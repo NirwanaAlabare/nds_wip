@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-    <div class="row g-3">
+    <div class="row g-3 mb-3">
         <div class="d-flex gap-3 align-items-center">
             <h5 class="mb-1">Form Cut Manual {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
@@ -389,10 +389,10 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
+                                <label class="form-label label-calc"><small><b>Cons Ampar</b></small></label>
                                 <div class="row">
                                     <div class="col-8">
-                                        <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_act, 2) > 0 ? round($formCutInputData->cons_act, 2) : '0' }}" step=".01" readonly>
+                                        <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? round($formCutInputData->cons_ampar, 2) : '0' }}" step=".01" readonly>
                                     </div>
                                     <div class="col-4">
                                         <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_act" id="unit_cons_act" value="{{ $formCutInputData->unit_panjang_marker ? strtoupper($formCutInputData->unit_panjang_marker) : 'METER' }}" readonly>

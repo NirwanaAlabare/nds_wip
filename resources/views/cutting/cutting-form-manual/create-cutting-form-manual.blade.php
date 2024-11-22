@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="row g-3">
+    <div class="row g-3 mb-3">
         <div class="d-flex gap-3 align-items-center">
             <h5 class="mb-1">Form Cut Manual {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
