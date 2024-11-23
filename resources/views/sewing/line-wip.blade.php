@@ -13,7 +13,7 @@
     <style>
         .dataTables_wrapper .dataTables_processing {
             position: absolute;
-            top: 15% !important;
+            top: 50px !important;
             /* background: #FFFFCC;
             border: 1px solid black; */
             border-radius: 3px;
@@ -159,6 +159,8 @@
             processing: true,
             serverSide: true,
             pageLength: 100,
+            scrollX: '500px',
+            scrollY: '500px',
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
