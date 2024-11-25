@@ -35,7 +35,7 @@
                     {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
                     <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-regular fa-file-lines fa-sm"></i> Print Stock Number</button>
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
-                    <button class="btn btn-primary btn-sm d-none" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print New Year Sequence</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print New Year Sequence</button>
                 </div>
                 {{-- <div class="d-none">
                     <div class="d-flex gap-1">
