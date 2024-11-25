@@ -124,7 +124,7 @@ group by tgl_trans_rfts, master_plan_id
 ) d_rfts on a.tgl_trans = d_rfts.tgl_trans_rfts and a.master_plan_id = d_rfts.master_plan_id
 left join
 (
-select min(id), man_power, sewing_line, tgl_plan from master_plan where date(tgl_plan) >= '$start_date' and  date(tgl_plan) <= '$end_date' and cancel = 'N' group by sewing_line, tgl_plan
+select min(id), man_power, sewing_line, tgl_plan from master_plan where tgl_plan >= '$tgl_awal_n' and  tgl_plan <= '$tgl_akhir_n' and cancel = 'N' group by sewing_line, tgl_plan
 ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
 left join master_kurs_bi mkb on a.tgl_trans = mkb.tanggal_kurs_bi
 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
