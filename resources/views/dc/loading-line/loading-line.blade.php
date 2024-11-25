@@ -91,8 +91,8 @@
             ajax: {
                 url: '{{ route('loading-line') }}',
                 data: function (d) {
-                    d.tanggal_awal = $("#tgl-awal").val();
-                    d.tanggal_akhir = $("#tgl-akhir").val();
+                    d.dateFrom = $("#tgl-awal").val();
+                    d.dateTo = $("#tgl-akhir").val();
                 }
             },
             columns: [

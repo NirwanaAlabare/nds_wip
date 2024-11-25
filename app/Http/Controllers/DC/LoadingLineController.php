@@ -24,8 +24,8 @@ class LoadingLineController extends Controller
             $detailDateFilter = "";
             if ($request->dateFrom || $request->dateTo) {
                 $detailDateFilter = "WHERE ";
-                $dateFromFilter = " loading_line.tanggal >= '".$request->dateFrom."' ";
-                $dateToFilter = " loading_line.tanggal <= '".$request->dateTo."' ";
+                $dateFromFilter = " loading_line.tanggal_loading >= '".$request->dateFrom."' ";
+                $dateToFilter = " loading_line.tanggal_loading <= '".$request->dateTo."' ";
 
                 if ($request->dateFrom && $request->dateTo) {
                     $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
@@ -75,7 +75,7 @@ class LoadingLineController extends Controller
                     trolley_stock.trolley_qty trolley_qty
                 FROM
                     loading_line_plan
-                    LEFT JOIN (
+                    INNER JOIN (
                         SELECT
                             (
                                 ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
@@ -133,7 +133,7 @@ class LoadingLineController extends Controller
                             ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
                             group by trolley.id
                     ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
-                ".$dateFilter."
+
                 GROUP BY
                     loading_line_plan.id
                 ORDER BY
