@@ -344,9 +344,62 @@ class ReturInMaterialController extends Controller
 
      $inmaterialDetailStore2 = InMaterialFabricDet::insert($inmaterialDetailData2);
 
-     $bpb_detail = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select a.*,(price_in + nilai_barang) nilai_barang from (select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode");
+    //  $bpb_detail = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select a.*,(price_in + nilai_barang) nilai_barang from (select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode");
 
-    $bpb_temp = InMaterialLokasiTemp::where('created_by',Auth::user()->name)->delete();
+    $cari_temp = DB::connection('mysql_sb')->select("select a.*,(coalesce(price_in,0) + coalesce(nilai_barang,0)) nilai_barang from (select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode");
+         // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
+    foreach ($cari_temp as $caritemp) {
+        $t_no_barcode = $caritemp->no_barcode;
+        $t_no_ws = $caritemp->no_ws;
+        $t_id_jo = $caritemp->id_jo;
+        $t_id_item = $caritemp->id_item;
+        $t_kode_item = $caritemp->kode_item;
+        $t_item_desc = $caritemp->item_desc;
+        $t_no_roll = $caritemp->no_roll;
+        $t_no_roll_buyer = $caritemp->no_roll_buyer;
+        $t_no_lot = $caritemp->no_lot;
+        $t_qty_sj = $caritemp->qty_sj;
+        $t_qty_aktual = $caritemp->qty_aktual;
+        $t_qty_mutasi = $caritemp->qty_mutasi;
+        $t_qty_out = $caritemp->qty_out;
+        $t_no_mut = $caritemp->no_mut;
+        $t_satuan = $caritemp->satuan;
+        $t_kode_lok = $caritemp->kode_lok;
+        $t_status = $caritemp->status;
+        $t_created_by = $caritemp->created_by;
+        $t_created_at = $caritemp->created_at;
+        $t_updated_at = $caritemp->updated_at;
+        $t_nilai_barang = $caritemp->nilai_barang;
+        
+
+    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                $barcode = $sql_barcode[0]->kode;
+
+                $save_lokasi = InMaterialLokasi::create([
+                    "no_barcode" => $barcode,
+                    "no_dok" => $bpbno_int,
+                    "no_ws" => $t_no_ws,
+                    "id_jo" => $t_id_jo,
+                    "id_item" => $t_id_item,
+                    "kode_item" => $t_kode_item,
+                    "item_desc" => $t_item_desc,
+                    "no_roll" => $t_no_roll,
+                    "no_roll_buyer" => $t_no_roll_buyer,
+                    "no_lot" => $t_no_lot,
+                    "qty_sj" => $t_qty_sj,
+                    "qty_aktual" => $t_qty_aktual,
+                    "satuan" => $t_satuan,
+                    "kode_lok" => $t_kode_lok,
+                    "status" => 'Y',
+                    "created_by" => Auth::user()->name,
+                    "created_at" => $t_created_at,
+                    "updated_at" => $t_updated_at,
+                    "nilai_barang" => $t_nilai_barang,
+                    "no_barcode_old" => $t_no_barcode,
+                ]);
+
+    $bpb_temp = InMaterialLokasiTemp::where('created_by',Auth::user()->name)->where('no_barcode',$t_no_barcode)->delete();
+            }
 
 
      $massage = $bpbno_int . ' Saved Succesfully';
@@ -724,14 +777,14 @@ public function savebarcoderiscan(Request $request)
             $no_lot = $sql_data_barcode[0]->no_lot;
             $satuan = $sql_data_barcode[0]->satuan;
             
-             $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
-            $barcode = $sql_barcode[0]->kode;
+            //  $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+            // $barcode = $sql_barcode[0]->kode;
 
-            $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
-            $barcode = $sql_barcode[0]->kode;
+            // $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+            // $barcode = $sql_barcode[0]->kode;
 
             array_push($bpb_det, [
-                "no_barcode" => $barcode,
+                "no_barcode" => $request["id_roll"][$i],
                 "no_dok" => $bpbno_int,
                 "no_ws" => $no_ws,
                 "id_jo" => $id_jo,
