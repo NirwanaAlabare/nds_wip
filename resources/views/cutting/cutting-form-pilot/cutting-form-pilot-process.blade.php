@@ -1048,13 +1048,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
                                         <select class="form-select form-select-sm border-calc" name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
@@ -1064,7 +1064,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -1073,7 +1073,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
