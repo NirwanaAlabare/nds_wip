@@ -44,6 +44,10 @@ class AppServiceProvider extends ServiceProvider
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "meja");
         });
 
+        Blade::if('sample', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "sample");
+        });
+
         Blade::if('stocker', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "stocker");
         });
