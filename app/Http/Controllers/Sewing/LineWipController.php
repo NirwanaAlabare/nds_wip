@@ -206,22 +206,22 @@ class LineWipController extends Controller
 
             return DataTables::of($data)->
                 addColumn("reject", function ($data) use ($dataReject) {
-                    $reject = is_a($dataReject, 'Illuminate\Database\Eloquent\Collection') ? $dataReject->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $reject = $dataReject ? $dataReject->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
 
                     return $reject ? $reject->total_output : '0';
                 })->
                 addColumn("defect", function ($data) use ($dataDefect) {
-                    $defect = is_a($dataDefect, 'Illuminate\Database\Eloquent\Collection') ? $dataDefect->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $defect = $dataDefect ? $dataDefect->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
 
                     return $defect ? $defect->total_output : '0';
                 })->
                 addColumn("output", function ($data) use ($dataOutput) {
-                    $output = is_a($dataOutput, 'Illuminate\Database\Eloquent\Collection') ? $dataOutput->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $output = $dataOutput ? $dataOutput->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
 
                     return $output ? $output->total_output : '0';
                 })->
                 addColumn("output_packing", function ($data) use ($dataOutputPacking) {
-                    $output = is_a($dataOutputPacking, 'Illuminate\Database\Eloquent\Collection') ? $dataOutputPacking->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $output = $dataOutputPacking ? $dataOutputPacking->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
 
                     return $output ? $output->total_output : '0';
                 })->
