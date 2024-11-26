@@ -154,7 +154,8 @@
     <script>
         $(document).ready(() => {
             dataTableReload();
-            // setInterval(dataTableReload, 10000);
+            setInterval(dataTableReload, 300000);
+            // 300000
         });
 
         function notif() {
