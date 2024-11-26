@@ -119,6 +119,7 @@ use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 use App\Http\Controllers\PackingPackingListController;
+use App\Http\Controllers\PackingReportController;
 
 
 // FINISH GOOD
@@ -1408,6 +1409,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/hapus_packing_list', 'hapus_packing_list')->name('hapus_packing_list');
         Route::post('/tambah_packing_list', 'tambah_packing_list')->name('tambah_packing_list');
         Route::get('/show_datatable_upload_packing_list_tambah', 'show_datatable_upload_packing_list_tambah')->name('show_datatable_upload_packing_list_tambah');
+    });
+
+    // Packing List
+    Route::controller(PackingReportController::class)->prefix("packing-packing-report")->middleware('packing')->group(function () {
+        Route::get('/packing_rep_packing_line_sum', 'packing_rep_packing_line_sum')->name('packing_rep_packing_line_sum');
     });
 
 
