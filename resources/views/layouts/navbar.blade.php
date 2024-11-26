@@ -945,7 +945,7 @@
                             </li>
                         </ul>
                     </li>
-                    {{-- <li class="nav-item dropdown">
+                    <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-master-karton' ? 'active' : '' }}">Report</a>
@@ -953,11 +953,11 @@
                             <li>
                                 <a href="{{ route('packing-list') }}"
                                     class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
-                                     <i class="fas fa-file-upload fa-sm"></i>
+                                    Summary Packing Line <i class="fas fa-file-upload fa-sm"></i>
                                 </a>
                             </li>
                         </ul>
-                    </li> --}}
+                    </li>
                 @endif
 
                 @if ($page == 'dashboard_finish_good')
