@@ -260,7 +260,7 @@ class MarkerController extends Controller
             "cons_marker" => "required|numeric|gt:0",
             "gramasi" => "required|numeric|gt:0",
             "tipe_marker" => "required",
-            "cons_piping" => "required|numeric|min:0"
+            "cons_piping" => "required|numeric|gt:0"
         ]);
 
         foreach ($request["cut_qty"] as $qty) {
