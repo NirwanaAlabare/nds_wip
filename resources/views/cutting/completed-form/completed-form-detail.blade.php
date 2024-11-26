@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-    <div class="row g-3">
+    <div class="row g-3 mb-3">
         <div class="d-flex gap-3 justify-content-between align-items-center">
             <h5 class="text-sb fw-bold mb-1">Form Cut / {{ $formCutInputData->no_form . " / ". strtoupper($formCutInputData->name) }}</h5>
             <a href="{{ route('manage-cutting') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke Completed Form</a>
@@ -260,28 +260,28 @@
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQtyPly > 0 ? round($formCutInputData->p_act / $totalCutQtyPly, 2) : '0') }}" step=".01" readonly>
+                                <label class="form-label label-calc"><small><b>Cons Ampar</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? $formCutInputData->cons_ampar : 0 }}" step=".01" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -290,7 +290,7 @@
                                 <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_piping ? $formCutInputData->cons_piping : 0 }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-6 col-md-6 d-none">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
                                 <div class="row">
@@ -394,7 +394,8 @@
                                             <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
-                                            <th class="label-scan">Roll</th>
+                                            <th class="label-scan">Roll Buyer</th>
+                                            <th class="label-scan">Qty Awal</th>
                                             <th class="label-scan">Qty</th>
                                             <th class="label-scan">Unit</th>
                                             <th>Sisa Gelaran</th>
@@ -408,18 +409,18 @@
                                             <th>Reject</th>
                                             <th>Piping</th>
                                             <th>Sisa Kain</th>
-                                            <th class="label-calc">Pemakaian Roll</th>
+                                            <th class="label-calc">Pemakaian Lembar</th>
                                             <th class="label-calc">Total Pemakaian Per Roll</th>
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th class="label-calc">Short Roll (%)</th>
-                                            <th id="th-berat-amparan" class="d-none">Berat 1 Amparan</th>
+                                            <th id="th-berat-amparan">Berat 1 Amparan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="7" class="text-center">Total</th>
+                                            <th colspan="8" class="text-center">Total</th>
                                             <th id="total-qty"></th>
                                             <th id="total-unit"></th>
                                             <th id="total-sisa-gelaran"></th>
@@ -437,7 +438,7 @@
                                             <th id="total-total-pemakaian"></th>
                                             <th id="total-short-roll"></th>
                                             <th id="total-short-roll-percentage"></th>
-                                            <th id="total-berat-amparan" class="d-none"></th>
+                                            <th id="total-berat-amparan"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -480,13 +481,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
                                         <select class="form-select form-select-sm border-calc"
@@ -497,7 +498,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -506,7 +507,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -1018,11 +1019,11 @@
             let totalLembarVar = totalLembar ? Number(totalLembar) : 0;
             let totalTotalPemakaianVar = totalTotalPemakaian ? Number(totalTotalPemakaian) : 0;
 
-            let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/(totalLembarVar * totalRatio) : 0;
-            let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
+            let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalSisaKainVar)/(totalLembarVar * totalRatio) : 0;
+            let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalSisaKainVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
 
             document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
-            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless.toString().replace(/[e,-]/ig,"")).round(3);
+            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
 
             document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
             document.getElementById("unit_cons_actual_gelaran_short_rolless").value = unitVar.toLowerCase();
@@ -1147,7 +1148,7 @@
 
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
-            latestStatus != 'need extension' ? totalQtyFabric += Number(data.qty) : '';
+            latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
             latestUnit = data.unit;
             latestBerat = data.berat_amparan;
 
@@ -1176,6 +1177,7 @@
             let td22 = document.createElement('td');
             let td23 = document.createElement('td');
             let td24 = document.createElement('td');
+            let td25 = document.createElement('td');
 
             if (latestStatus != 'need extension') {
                 td1.innerHTML = (latestStatus != 'need extension' ? totalScannedItem + 1 : '');
@@ -1185,26 +1187,27 @@
                 td5.innerHTML = data.id_item ? data.id_item : '-';
                 td6.innerHTML = data.lot ? data.lot : '-';
                 td7.innerHTML = data.roll_buyer ? data.roll_buyer : '-';
-                td8.innerHTML = (latestStatus != 'extension complete' ? data.qty : latestQty);
-                td9.innerHTML = data.unit ? data.unit : '-';
-                td10.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : 0;
-                td11.innerHTML = (latestStatus != 'extension complete' ? 0 : (latestSambungan ? latestSambungan : 0)).round(2);
-                td12.innerHTML = (latestStatus != 'extension complete' ? (data.sambungan_roll ? data.sambungan_roll : 0) : ((data.sambungan_roll ? data.sambungan_roll : 0)+latestSambunganRoll)).round(2);
-                td13.innerHTML = data.est_amparan ? data.est_amparan : 0;
-                td14.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '-';
-                td15.innerHTML = data.average_time ? data.average_time : 0;
-                td16.innerHTML = (latestStatus != 'extension complete' ? (data.kepala_kain ? data.kepala_kain : 0) : Number(data.kepala_kain ? data.kepala_kain : 0)+Number(latestKepalaKain)).round(2);
-                td17.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0) : Number(data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0)+Number(latestSisaTidakBisa)).round(2);
-                td18.innerHTML = (latestStatus != 'extension complete' ? (data.reject ? data.reject : 0) : Number(data.reject ? data.reject : 0)+Number(latestReject)).round(2);
-                td19.innerHTML = (latestStatus != 'extension complete' ? (data.piping ? data.piping : 0) : Number(data.piping ? data.piping : 0)+Number(latestPiping)).round(2);
-                td20.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_kain ? data.sisa_kain : 0) : Number(data.sisa_kain ? data.sisa_kain : 0)+Number(latestSisaKain)).round(2);
-                td21.innerHTML = (latestStatus != 'extension complete' ? (data.pemakaian_lembar ? data.pemakaian_lembar : 0) : Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar)).round(2);
-                td22.innerHTML = (latestStatus != 'extension complete' ? (data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) : Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian)).round(2);
-                td23.innerHTML = (latestStatus != 'extension complete' ? (data.short_roll ? data.short_roll : 0) : Number(data.short_roll ? data.short_roll : 0)+Number(latestShortRoll)).round(2);
-                td24.innerHTML = (latestStatus != 'extension complete' ? (data.short_roll ? (data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : 0) : 0) : Number(data.short_roll ? (latestQty > 0 ? Number((data.short_roll+latestShortRoll)/latestQty*100).round(2) : 0) : 0)).round(2);
+                td8.innerHTML = data.qty_awal > data.qty ? data.qty_awal : (latestStatus != 'extension complete' ? data.qty : latestQty);
+                td9.innerHTML = (latestStatus != 'extension complete' ? data.qty : latestQty);
+                td10.innerHTML = data.unit ? data.unit : '-';
+                td11.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : 0;
+                td12.innerHTML = (latestStatus != 'extension complete' ? 0 : (latestSambungan ? latestSambungan : 0)).round(2);
+                td13.innerHTML = (latestStatus != 'extension complete' ? (data.sambungan_roll ? data.sambungan_roll : 0) : ((data.sambungan_roll ? data.sambungan_roll : 0)+latestSambunganRoll)).round(2);
+                td14.innerHTML = data.est_amparan ? data.est_amparan : 0;
+                td15.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '-';
+                td16.innerHTML = data.average_time ? data.average_time : 0;
+                td17.innerHTML = (latestStatus != 'extension complete' ? (data.kepala_kain ? data.kepala_kain : 0) : Number(data.kepala_kain ? data.kepala_kain : 0)+Number(latestKepalaKain)).round(2);
+                td18.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0) : Number(data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0)+Number(latestSisaTidakBisa)).round(2);
+                td19.innerHTML = (latestStatus != 'extension complete' ? (data.reject ? data.reject : 0) : Number(data.reject ? data.reject : 0)+Number(latestReject)).round(2);
+                td20.innerHTML = (latestStatus != 'extension complete' ? (data.piping ? data.piping : 0) : Number(data.piping ? data.piping : 0)+Number(latestPiping)).round(2);
+                td21.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_kain ? data.sisa_kain : 0) : Number(data.sisa_kain ? data.sisa_kain : 0)+Number(latestSisaKain)).round(2);
+                td22.innerHTML = (latestStatus != 'extension complete' ? (data.pemakaian_lembar ? data.pemakaian_lembar : 0) : Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar)).round(2);
+                td23.innerHTML = (latestStatus != 'extension complete' ? (data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) : Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian)).round(2);
+                td24.innerHTML = (latestStatus != 'extension complete' ? (data.short_roll ? data.short_roll : 0) : Number(data.short_roll ? data.short_roll : 0)+Number(latestShortRoll)).round(2);
+                td25.innerHTML = (latestStatus != 'extension complete' ? (data.short_roll ? (data.qty_awal > 0 ? Number(data.short_roll/data.qty_awal*100).round(2) : (data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : 0)) : 0) : Number(data.short_roll ? (data.qty_awal > 0 ? Number((data.short_roll+latestShortRoll)/data.qty_awal*100).round(2) : (latestQty > 0 ? Number((data.short_roll+latestShortRoll)/data.qty*100).round(2) : 0)) : 0)).round(2);
             } else {
                 td1.innerHTML = '';
-                td14.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
+                td15.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
             }
 
             tr.appendChild(td1);
@@ -1231,11 +1234,12 @@
             tr.appendChild(td22);
             tr.appendChild(td23);
             tr.appendChild(td24);
+            tr.appendChild(td25);
 
             if (latestUnit == "KGM" || latestUnit == "KG") {
-                let td25 = document.createElement('td');
-                td25.innerHTML = latestStatus != 'need extension' ? (data.berat_amparan ? data.berat_amparan : '-') : '';
-                tr.appendChild(td25);
+                let td26 = document.createElement('td');
+                td26.innerHTML = latestStatus != 'need extension' ? (data.berat_amparan ? data.berat_amparan : '-') : '';
+                tr.appendChild(td26);
 
                 document.getElementById("th-berat-amparan").classList.remove("d-none");
                 document.getElementById("total-berat-amparan").classList.remove("d-none");
@@ -1245,20 +1249,6 @@
                 document.getElementById("total-berat-amparan").classList.add("d-none");
             }
 
-            tr.onclick = async function() {
-                clearSpreadingForm();
-
-                for (let i = 0; i < summaryItemTableTbody.children.length; i++) {
-                    summaryItemTableTbody.children[i].classList.remove('selected');
-                }
-
-                this.classList.add('selected');
-
-                setSpreadingForm(data, false);
-
-                location.href = '#spreading-form-card';
-            };
-
             summaryItemTableTbody.appendChild(tr);
 
             totalRow++;
@@ -1267,7 +1257,7 @@
             totalSisaGelaran += Number(data.sisa_gelaran);
             totalSambungan += Number(data.sambungan);
             totalSambunganRoll += Number(data.sambungan_roll);
-            totalEstAmparan += Number(data.est_amparan);
+            latestStatus != 'extension complete' ? totalEstAmparan += Number(data.est_amparan) : '';
             totalAverageTime += (Number(data.average_time.slice(0, 2)) * 60) + Number(data.average_time.slice(3, 5));
             totalKepalaKain += Number(data.kepala_kain);
             totalSisaTidakBisa += Number(data.sisa_tidak_bisa);
@@ -1319,6 +1309,20 @@
             latestStatus = data.status;
             latestQty = Number(data.qty);
             latestUnit = data.unit;
+
+            tr.onclick = async function() {
+                clearSpreadingForm();
+
+                for (let i = 0; i < summaryItemTableTbody.children.length; i++) {
+                    summaryItemTableTbody.children[i].classList.remove('selected');
+                }
+
+                this.classList.add('selected');
+
+                setSpreadingForm(data, false);
+
+                location.href = '#spreading-form-card';
+            };
         }
 
         function resetSummary() {
@@ -1611,10 +1615,12 @@
 
             let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
+            console.log(pActualFinal);
+
             // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
             consActual = totalQtyCut > 0 ? pActualFinal / totalRatio : 0;
 
-            document.getElementById('cons_act').value = consActual.round(2);
+            document.getElementById('cons_act').value = consActual.round(3);
         }
 
         // -Calculate Est. Piping-

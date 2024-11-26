@@ -13,7 +13,7 @@
     <style>
         .dataTables_wrapper .dataTables_processing {
             position: absolute;
-            top: 15% !important;
+            top: 50px !important;
             /* background: #FFFFCC;
             border: 1px solid black; */
             border-radius: 3px;
@@ -52,7 +52,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="line_wip_table">
+                    <table class="table table-sm table-bordered table-hover" id="line_wip_table">
                         <thead>
                             <tr>
                                 <th>Line</th>
@@ -159,6 +159,8 @@
             processing: true,
             serverSide: true,
             pageLength: 100,
+            scrollX: '400px',
+            scrollY: '400px',
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

@@ -823,9 +823,9 @@ class CuttingFormManualController extends Controller
                 "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
                 "l_act" => $validatedRequest['l_act'],
                 "unit_l_act" => $validatedRequest['unit_l_act'],
-                "cons_act" => $validatedRequest['cons_act'],
+                // "cons_act" => $validatedRequest['cons_act'],
                 "cons_pipping" => $validatedRequest['cons_pipping'],
-                "cons_ampar" => $validatedRequest['cons_ampar'],
+                "cons_ampar" => $validatedRequest['cons_act'],
                 "est_pipping" => $validatedRequest['est_pipping'],
                 "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
                 "est_kain" => $validatedRequest['est_kain'],
@@ -1285,8 +1285,10 @@ class CuttingFormManualController extends Controller
     public function checkSpreadingForm($noForm = 0, $noMeja = 0, Request $request)
     {
         $formCutInputDetailData = FormCutInputDetail::selectRaw('
-                form_cut_input_detail.*
+                form_cut_input_detail.*,
+                scanned_item.qty_in
             ')->
+            leftJoin('scanned_item', 'scanned_item.id_roll', '=', 'form_cut_input_detail.id_roll')->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
             where('no_form_cut_input', $noForm)->
             where('no_meja', $noMeja)->

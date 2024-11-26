@@ -691,6 +691,7 @@ Route::middleware('auth')->group(function () {
     // Loading Stock
     Route::controller(LoadingLineController::class)->prefix("loading-line")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('loading-line');
+        Route::get('/total-loading', 'totalLoading')->name('total-loading-line');
         Route::get('/detail/{id?}', 'show')->name('detail-loading-plan');
         Route::get('/create', 'create')->name('create-loading-plan');
         Route::post('/store', 'store')->name('store-loading-plan');

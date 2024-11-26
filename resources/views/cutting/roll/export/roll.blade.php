@@ -186,7 +186,7 @@
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
-                    <td>{{ $item->pemakaian_lembar }}</td>
+                    <td>-</td>
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>

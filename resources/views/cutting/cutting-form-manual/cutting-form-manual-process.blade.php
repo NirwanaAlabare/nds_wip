@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-    <div class="row g-3">
+    <div class="row g-3 mb-3">
         <div class="d-flex gap-3 align-items-center">
             <h5 class="mb-1">Form Cut Manual {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
@@ -367,30 +367,37 @@
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ $formCutInputData->unit_lebar_marker ? strtoupper($formCutInputData->unit_lebar_marker) : 'CM'  }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" value="{{ strtoupper($formCutInputData->cons_ws) }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Gramasi</b></small></label>
                                 <input type="text" class="form-control form-control-sm" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi ? $formCutInputData->gramasi : 0 }}"
-                                onkeyup="calculateConsAmpar();calculateEstAmpar(undefined, undefined, undefined, this.value);"
-                                onchange="calculateConsAmpar();calculateEstAmpar(undefined, undefined, undefined, this.value);">
+                                    onkeyup="calculateConsAmpar();calculateEstAmpar(undefined, undefined, undefined, this.value);"
+                                    onchange="calculateConsAmpar();calculateEstAmpar(undefined, undefined, undefined, this.value);">
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker ? $formCutInputData->cons_marker : 0 }}" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)">
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQtyPly > 0 ? round($formCutInputData->p_act / $totalCutQtyPly, 2) : '0') }}" step=".01" readonly>
+                                <label class="form-label label-calc"><small><b>Cons Ampar</b></small></label>
+                                <div class="row">
+                                    <div class="col-8">
+                                        <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? round($formCutInputData->cons_ampar, 2) : '0' }}" step=".01" readonly>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_act" id="unit_cons_act" value="{{ $formCutInputData->unit_panjang_marker ? strtoupper($formCutInputData->unit_panjang_marker) : 'METER' }}" readonly>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -409,7 +416,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-6 col-md-6 d-none">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
                                 <div class="row">
@@ -1110,13 +1117,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
                                         <select class="form-select form-select-sm border-calc" name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
@@ -1126,7 +1133,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -1135,7 +1142,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-md-3">
+                                <div class="col-sm-6 col-md-3 d-none">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -1459,6 +1466,8 @@
             document.getElementById('total_qty_cut_ply').value = totalQtyCut;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(4)").innerText = totalRatio;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(5)").innerText = totalQtyCut;
+
+            calculateTotalRatio();
         }
 
         // Calculate All Cut Qty at Once Based on Spread Qty
@@ -2535,7 +2544,7 @@
 
                 let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
-                console.log(totalRatio, totalQtyCut)
+                // console.log(totalRatio, totalQtyCut)
 
                 consAmpar = totalRatio > 0 ? (gramasiVar * pActualFinal * lActualMeter) / 1000 : 0;
 
@@ -2553,9 +2562,9 @@
                 let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
                 // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
-                consActual = totalQtyCut > 0 ? pActualFinal / totalRatio : 0;
+                consActual = totalRatio > 0 ? pActualFinal / totalRatio : 0;
 
-                document.getElementById('cons_act').value = consActual.round(2);
+                document.getElementById('cons_act').value = consActual.round(3);
             }
 
             // -Calculate Est. Piping-
@@ -2938,8 +2947,8 @@
                 let totalLembarVar = totalLembar ? Number(totalLembar) : 0;
                 let totalTotalPemakaianVar = totalTotalPemakaian ? Number(totalTotalPemakaian) : 0;
 
-                let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/(totalLembarVar * totalRatio) : 0;
-                let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
+                let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalSisaKainVar)/(totalLembarVar * totalRatio) : 0;
+                let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalSisaKainVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
 
                 document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
                 document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);

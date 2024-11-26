@@ -54,6 +54,19 @@
                             <th>Color</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+
+                            <th colspan="5">Total</th>
+                            <th id="total_target_sewing">...</th>
+                            <th id="total_target_loading">...</th>
+                            <th id="total_loading">...</th>
+                            <th id="total_balance_loading">...</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -91,8 +104,8 @@
             ajax: {
                 url: '{{ route('loading-line') }}',
                 data: function (d) {
-                    d.tanggal_awal = $("#tgl-awal").val();
-                    d.tanggal_akhir = $("#tgl-akhir").val();
+                    d.dateFrom = $("#tgl-awal").val();
+                    d.dateTo = $("#tgl-akhir").val();
                 }
             },
             columns: [
@@ -172,17 +185,57 @@
                 5,
                 6
             ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(5).footer()).html("...");
+                $(api.column(6).footer()).html("...");
+                $(api.column(7).footer()).html("...");
+                $(api.column(8).footer()).html("...");
+
+                $.ajax({
+                    url: '{{ route('total-loading-line') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom': $('#tgl-awal').val(),
+                        'dateTo': $('#tgl-akhir').val(),
+                        'lineFilter': $('#lineFilter').val(),
+                        'wsFilter': $('#wsFilter').val(),
+                        'styleFilter': $('#styleFilter').val(),
+                        'colorFilter': $('#colorFilter').val(),
+                        'trolleyFilter': $('#trolleyFilter').val(),
+                        'trolleyColorFilter': $('#trolleyColorFilter').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(5).footer()).html((Number(response['total_target_sewing'])).toLocaleString("ID-id"));
+                            $(api.column(6).footer()).html((Number(response['total_target_loading'])).toLocaleString("ID-id"));
+                            $(api.column(7).footer()).html((Number(response['total_loading'])).toLocaleString("ID-id"));
+                            $(api.column(8).footer()).html((Number(response['total_balance_loading'])).toLocaleString("ID-id"));
+                        }
+                    },
+                    error: function(jqXHR) {
+                        console.error(jqXHR);
+                    },
+                })
+            },
         });
 
         function datatableLoadingLineReload() {
             datatableLoadingLine.ajax.reload()
         }
 
+        var filters = ['lineFilter', 'actionFilter', 'wsFilter', 'styleFilter', 'colorFilter', 'targetSewingFilter', 'targetLoadingFilter', 'loadingFilter', 'balanceLoadingFilter', 'trolleyFilter', 'trolleyStockFilter', 'trolleyColorFilter']
         $('#datatable-loading-line thead tr').clone(true).appendTo('#datatable-loading-line thead');
         $('#datatable-loading-line thead tr:eq(1) th').each(function(i) {
             if (i == 0 || i == 2 || i == 3 || i == 4 || i == 9 || i == 11) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+filters[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatableLoadingLine.column(i).search() !== this.value) {

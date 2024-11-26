@@ -10,7 +10,7 @@
         </div>
     </div>
     <div class="row justify-content-between align-items-end">
-        <div class="col-12 col-lg-6 col-xl-4">
+        <div class="col-12 col-lg-6 col-xl-5">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateFrom" value="{{ $dateFromFilter }}">
@@ -22,7 +22,7 @@
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? $outputType : "SEWING"))) }}</span>
             </div>
         </div>
-        <div class="col-12 col-lg-6 col-xl-8">
+        <div class="col-12 col-lg-6 col-xl-7">
             <div class="d-flex align-items-end justify-content-end gap-3 mb-3">
                 <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#filter-modal"><i class="fa fa-filter"></i></button>
                 <div wire:ignore>
@@ -44,7 +44,6 @@
                 <div>
                     <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')">
                         <i class="fa fa-file-excel fa-sm"></i>
-                        Export
                     </button>
                 </div>
             </div>
@@ -52,11 +51,11 @@
     </div>
     <div class="table-responsive">
         @if (!$loadingOrderOutput)
-            <table class="table table-bordered">
+            <table class="sticky-table table table-bordered">
         @else
-            <table class="table table-bordered" wire:poll.30000ms>
+            <table class="sticky-table table table-bordered" wire:poll.30000ms>
         @endif
-            <tbody>
+            <thead>
                 <tr>
                     <th>No. WS</th>
                     <th>Style</th>
@@ -76,6 +75,8 @@
                     ?>
                             <th class="text-center">TOTAL</th>
                         </tr>
+            <thead>
+            <tbody>
                     <?php
 
                             $currentWs = null;
@@ -91,7 +92,7 @@
                                 ?>
                                     <tr>
                                         @if ($dailyGroup->ws != $currentWs)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}">{{ $dailyGroup->ws }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
 
                                             @php
                                                 $currentWs = $dailyGroup->ws;
@@ -101,7 +102,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}">{{ $dailyGroup->style }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
 
                                             @php
                                                 $currentStyle = $dailyGroup->style;
@@ -110,7 +111,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}">{{ $dailyGroup->color }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
 
                                             @php
                                                 $currentColor = $dailyGroup->color;
@@ -118,7 +119,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->sewing_line != $currentLine)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
 
                                             @php
                                                 $currentLine = $dailyGroup->sewing_line;

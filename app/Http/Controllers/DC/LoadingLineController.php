@@ -24,8 +24,8 @@ class LoadingLineController extends Controller
             $detailDateFilter = "";
             if ($request->dateFrom || $request->dateTo) {
                 $detailDateFilter = "WHERE ";
-                $dateFromFilter = " loading_line.tanggal >= '".$request->dateFrom."' ";
-                $dateToFilter = " loading_line.tanggal <= '".$request->dateTo."' ";
+                $dateFromFilter = " loading_line.tanggal_loading >= '".$request->dateFrom."' ";
+                $dateToFilter = " loading_line.tanggal_loading <= '".$request->dateTo."' ";
 
                 if ($request->dateFrom && $request->dateTo) {
                     $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
@@ -75,7 +75,7 @@ class LoadingLineController extends Controller
                     trolley_stock.trolley_qty trolley_qty
                 FROM
                     loading_line_plan
-                    LEFT JOIN (
+                    INNER JOIN (
                         SELECT
                             (
                                 ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
@@ -133,7 +133,7 @@ class LoadingLineController extends Controller
                             ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
                             group by trolley.id
                     ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
-                ".$dateFilter."
+
                 GROUP BY
                     loading_line_plan.id
                 ORDER BY
@@ -153,6 +153,186 @@ class LoadingLineController extends Controller
         }
 
         return view("dc.loading-line.loading-line", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line']);
+    }
+
+    public function totalLoading(Request $request)
+    {
+        $detailDateFilter = "";
+        if ($request->dateFrom || $request->dateTo) {
+            $detailDateFilter = "WHERE ";
+            $dateFromFilter = " loading_line.tanggal_loading >= '".$request->dateFrom."' ";
+            $dateToFilter = " loading_line.tanggal_loading <= '".$request->dateTo."' ";
+
+            if ($request->dateFrom && $request->dateTo) {
+                $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($request->dateTo) {
+                    $detailDateFilter .= $dateFromFilter;
+                }
+
+                if ($request->dateFrom) {
+                    $detailDateFilter .= $dateToFilter;
+                }
+            }
+        }
+
+        $dateFilter = "";
+        if ($request->dateFrom || $request->dateTo) {
+            $dateFilter = "WHERE ";
+            $dateFromFilter = " loading_line_plan.tanggal >= '".$request->dateFrom."' ";
+            $dateToFilter = " loading_line_plan.tanggal <= '".$request->dateTo."' ";
+
+            if ($request->dateFrom && $request->dateTo) {
+                $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($request->dateTo) {
+                    $dateFilter .= $dateFromFilter;
+                }
+
+                if ($request->dateFrom) {
+                    $dateFilter .= $dateToFilter;
+                }
+            }
+        }
+
+        $lineFilter = "";
+        $detailLineFilter = "";
+        if ($request->lineFilter) {
+            $lineData = UserLine::whereRaw('username like "%'.$request->lineFilter.'%" OR FullName like "%'.$request->lineFilter.'%"')->get();
+            $lineIds = $lineData->count() > 0 ? $lineData->pluck("line_id")->toArray() : [];
+
+            if (count($lineIds) > 0) {
+                $lineIds = implode(",", $lineIds);
+                $lineFilter .= " AND line_id in ('".$lineIds."')";
+                $detailLineFilter .= " AND loading_line.line_id in ('".$lineIds."')";
+            }
+        }
+
+        $wsFilter = "";
+        if ($request->wsFilter) {
+            $wsFilter .= " AND act_costing_ws LIKE '%".$request->wsFilter."%'";
+        }
+
+        $styleFilter = "";
+        if ($request->styleFilter) {
+            $styleFilter .= " AND style LIKE '%".$request->styleFilter."%'";
+        }
+
+        $colorFilter = "";
+        if ($request->colorFilter) {
+            $colorFilter .= " AND color LIKE '%".$request->colorFilter."%'";
+        }
+
+        $trolleyFilter = "";
+        if ($request->trolleyFilter) {
+            $trolleyFilter .= " AND nama_trolley LIKE '%".$request->trolleyFilter."%'";
+        }
+
+        $trolleyColorFilter = "";
+        if ($request->trolleyColorFilter) {
+            $trolleyColorFilter .= " AND trolley_color LIKE '%".$request->trolleyColorFilter."%'";
+        }
+
+        $loadingLine = DB::select("
+            SELECT
+                sum(target_sewing) total_target_loading,
+                sum(target_loading) total_target_sewing,
+                sum(loading_qty) total_loading,
+                sum(loading_balance) total_balance_loading
+            FROM
+                (
+                    SELECT
+                        loading_line_plan.id,
+                        loading_line_plan.line_id,
+                        loading_line_plan.act_costing_ws,
+                        loading_line_plan.style,
+                        loading_line_plan.color,
+                        loading_line_plan.target_sewing,
+                        loading_line_plan.target_loading,
+                        sum( loading_stock.qty ) loading_qty,
+                        loading_line_plan.target_loading - sum( loading_stock.qty ) loading_balance,
+                        loading_stock.nama_trolley nama_trolley,
+                        trolley_stock.trolley_color trolley_color,
+                        trolley_stock.trolley_qty trolley_qty
+                    FROM
+                        loading_line_plan
+                        INNER JOIN (
+                            SELECT
+                                (
+                                    ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                                    ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                                    ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                                    ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                                ) qty,
+                                trolley.id trolley_id,
+                                trolley.nama_trolley,
+                                stocker_input.so_det_id,
+                                stocker_input.size,
+                                loading_line.loading_plan_id
+                            FROM
+                                loading_line
+                                LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                                LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                                LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                                LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                                LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                                LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                                ".$detailDateFilter."
+                                ".$detailLineFilter."
+                            GROUP BY
+                                loading_line.tanggal_loading,
+                                stocker_input.form_cut_id,
+                                stocker_input.so_det_id,
+                                stocker_input.group_stocker,
+                                stocker_input.range_awal
+                            ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
+                        LEFT JOIN (
+                            select
+                                trolley.id trolley_id,
+                                group_concat(distinct trolley_stock_bundle.trolley_ws) trolley_ws,
+                                group_concat(distinct trolley_stock_bundle.trolley_color) trolley_color,
+                                sum(trolley_stock_bundle.trolley_qty) trolley_qty
+                            from
+                                trolley
+                                left join trolley_stocker on trolley_stocker.trolley_id = trolley.id
+                                inner join (
+                                    SELECT
+                                        trolley_stocker.stocker_id,
+                                        stocker_input.act_costing_ws trolley_ws,
+                                        stocker_input.color trolley_color,
+                                        stocker_input.qty_ply trolley_qty
+                                    FROM
+                                        trolley_stocker
+                                        LEFT JOIN stocker_input ON stocker_input.id = trolley_stocker.stocker_id
+                                    WHERE
+                                        trolley_stocker.STATUS = 'active'
+                                    GROUP BY
+                                        stocker_input.form_cut_id,
+                                        stocker_input.so_det_id,
+                                        stocker_input.group_stocker,
+                                        stocker_input.range_awal
+                                ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
+                                group by trolley.id
+                        ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
+                    WHERE
+                        loading_line_plan.id is not null
+                        ".$lineFilter."
+                        ".$wsFilter."
+                        ".$styleFilter."
+                        ".$colorFilter."
+                        ".$trolleyFilter."
+                        ".$trolleyColorFilter."
+                    GROUP BY
+                        loading_line_plan.id
+                    ORDER BY
+                        loading_line_plan.line_id,
+                        loading_line_plan.act_costing_ws,
+                        loading_line_plan.color
+                ) loading
+        ");
+
+        return json_encode($loadingLine ? $loadingLine[0] : null);
     }
 
     /**
