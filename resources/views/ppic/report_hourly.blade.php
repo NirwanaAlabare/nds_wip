@@ -2,11 +2,11 @@
 
 @section('custom-link')
     <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
-    <link href="https://cdn.datatables.net/2.0.3/css/dataTables.bootstrap4.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/fixedcolumns/5.0.0/css/fixedColumns.bootstrap4.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}">
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
 
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -48,6 +48,9 @@
                     <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative">
                         <i class="fas fa-search fa-sm"></i>
                     </a>
+                </div>
+                <div class="mb-3">
+                    <div id="last-updated" class="text-muted" style="font-size: small;"></div>
                 </div>
             </div>
 
@@ -126,10 +129,11 @@
 @endsection
 
 @section('custom-script')
+    <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/5.0.0/js/dataTables.fixedColumns.min.js"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <script>
@@ -150,6 +154,7 @@
     <script>
         $(document).ready(() => {
             dataTableReload();
+            // setInterval(dataTableReload, 10000);
         });
 
         function notif() {
@@ -157,6 +162,24 @@
         }
 
         function dataTableReload() {
+
+            // Update the "Last Updated" message
+
+            let now = new Date();
+
+            let options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+
+            document.getElementById('last-updated').innerText = 'Last Updated: ' + now.toLocaleString('en-US', options);
+
+
             // Check if DataTable is already initialized
             if ($.fn.DataTable.isDataTable('#datatable')) {
                 // Destroy the existing DataTable

@@ -647,7 +647,8 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('modify-year-sequence') }}"
-                                        class="dropdown-item {{ $subPage == 'modify-year-sequence' ? 'active' : '' }}"> Modify Year
+                                        class="dropdown-item {{ $subPage == 'modify-year-sequence' ? 'active' : '' }}">
+                                        Modify Year
                                         Sequence <i class="fa-solid fa-pen-to-square"></i></a>
                                 </li>
                             @enddc
@@ -930,12 +931,12 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-master-karton' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            <li>
+                            {{-- <li>
                                 <a href="{{ route('master-karton') }}"
                                     class="dropdown-item {{ $subPage == 'master-karton' ? 'active' : '' }}">
                                     Master Karton <i class="fa-solid fa-boxes fa-sm"></i>
                                 </a>
-                            </li>
+                            </li> --}}
                             <li>
                                 <a href="{{ route('packing-list') }}"
                                     class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
@@ -944,6 +945,19 @@
                             </li>
                         </ul>
                     </li>
+                    {{-- <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-master-karton' ? 'active' : '' }}">Report</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('packing-list') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
+                                     <i class="fas fa-file-upload fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li> --}}
                 @endif
 
                 @if ($page == 'dashboard_finish_good')

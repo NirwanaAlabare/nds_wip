@@ -1406,6 +1406,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_detail_packing_list', 'show_detail_packing_list')->name('show_detail_packing_list');
         Route::get('/show_detail_packing_list_hapus', 'show_detail_packing_list_hapus')->name('show_detail_packing_list_hapus');
         Route::post('/hapus_packing_list', 'hapus_packing_list')->name('hapus_packing_list');
+        Route::post('/tambah_packing_list', 'tambah_packing_list')->name('tambah_packing_list');
+        Route::get('/show_datatable_upload_packing_list_tambah', 'show_datatable_upload_packing_list_tambah')->name('show_datatable_upload_packing_list_tambah');
     });
 
 
