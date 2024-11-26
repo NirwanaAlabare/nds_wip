@@ -72,6 +72,7 @@
             <table class="table" id="rack-stock-datatable">
                 <thead>
                     <tr>
+                        <th>No. Rak</th>
                         <th>No. Stocker</th>
                         <th>No. WS</th>
                         <th>No. Cut</th>
@@ -222,5 +223,54 @@
                         await clearStockerScan();
                         await initStockerScan();
                     }
+
+            // Get Scanned Rack
+            function getScannedRack(id) {
+                if (id) {
+                    .$.ajax({
+                        url: "{{ route("get-scanned-rack-detail") }}",
+                        type: "get",
+                        data: {
+                            id : id
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            console.log(response);
+
+                            $('#rack').val(response.id).trigger("change");
+                        },
+                        error: function (jqXHR) {
+
+                        }
+                    });
+                }
+            }
+
+            // Datatable
+            var rackStockTable = $("#rack-stock-datatable").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('current-rack-stock') }}',
+                    data: function (d) {
+                        d.rack = $("#rack").val();
+                    },
+                },
+                columns: [
+                    {
+                        data: 'kode',
+                    },
+                    {
+                        data: 'nama_rak',
+                    },
+                    {
+                        data: 'total_ruang'
+                    },
+                    {
+                        data: 'id'
+                    },
+                ],
+            });
     </script>
 @endsection

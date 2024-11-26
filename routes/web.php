@@ -642,12 +642,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/update', 'update')->name('update-rack');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack');
         Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
+
+        Route::get('/get-scanned-rack-detail/{id?}', 'getScannedRackDetail')->name('get-scanned-rack-detail');
     });
 
     // Rack Stocker
     Route::controller(RackStockerController::class)->prefix("stock-rack")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('stock-rack');
         Route::get('/allocate', 'allocate')->name('allocate-rack');
+        Route::get('/current-rack-stock', 'currentRackStock')->name('current-rack-stock');
         Route::get('/stock-rack-visual', 'stockRackVisual')->name('stock-rack-visual');
         Route::get('/stock-rack-visual-detail', 'stockRackVisualDetail')->name('stock-rack-visual-detail');
         Route::post('/store', 'store')->name('store-rack-stock');

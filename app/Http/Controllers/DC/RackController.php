@@ -289,4 +289,15 @@ class RackController extends Controller
             return response()->download($generatedFilePath);
         }
     }
+
+    public function getRackDetailData(Request $request)
+    {
+        if ($request->rack_id) {
+            $data = RackDetail::where("id", $request->id)->first();
+
+            return $data ? $data : null;
+        }
+
+        return null;
+    }
 }
