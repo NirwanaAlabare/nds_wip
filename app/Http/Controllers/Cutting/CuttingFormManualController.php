@@ -1285,8 +1285,10 @@ class CuttingFormManualController extends Controller
     public function checkSpreadingForm($noForm = 0, $noMeja = 0, Request $request)
     {
         $formCutInputDetailData = FormCutInputDetail::selectRaw('
-                form_cut_input_detail.*
+                form_cut_input_detail.*,
+                scanned_item.qty_in
             ')->
+            leftJoin('scanned_item', 'scanned_item.id_roll', '=', 'form_cut_input_detail.id_roll')->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
             where('no_form_cut_input', $noForm)->
             where('no_meja', $noMeja)->

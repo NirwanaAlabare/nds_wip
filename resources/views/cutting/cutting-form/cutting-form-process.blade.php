@@ -1938,13 +1938,13 @@
 
                 document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
 
-                if (unitQtyVar == "KGM" || unitQtyVar == "KG") {
-                    document.getElementById("current_qty_awal").value = rollQtyVar;
-                    document.getElementById("current_unit_awal").innerHTML = unitQtyVar;
-                } else {
-                    document.getElementById("current_qty_awal").value = rollQtyConversion(rollQtyVar, unitQtyVar);
-                    document.getElementById("current_unit_awal").innerHTML = "METER";
-                }
+                // if (unitQtyVar == "KGM" || unitQtyVar == "KG") {
+                //     document.getElementById("current_qty_awal").value = rollQtyVar;
+                //     document.getElementById("current_unit_awal").innerHTML = unitQtyVar;
+                // } else {
+                //     document.getElementById("current_qty_awal").value = rollQtyConversion(rollQtyVar, unitQtyVar);
+                //     document.getElementById("current_unit_awal").innerHTML = "METER";
+                // }
 
                 calculateEstAmpar();
             }
@@ -2849,6 +2849,8 @@
                     document.getElementById("current_unit").value = "METER";
                     document.getElementById("current_custom_unit").value = "METER";
                 }
+
+                console.log(data);    
 
                 // spreading form data set
                 let convertedQty = await rollQtyConversion(data.qty, data.unit);
