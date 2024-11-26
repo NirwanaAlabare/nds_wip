@@ -2,11 +2,11 @@
 
 @section('custom-link')
     <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
-    <link href="https://cdn.datatables.net/2.0.3/css/dataTables.bootstrap4.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/fixedcolumns/5.0.0/css/fixedColumns.bootstrap4.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}">
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
 
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -93,9 +93,10 @@
 @section('custom-script')
     <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/5.0.0/js/dataTables.fixedColumns.min.js"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
+
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <script>
         // Select2 Autofocus

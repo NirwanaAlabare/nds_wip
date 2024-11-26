@@ -27,8 +27,149 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModalCheck" tabindex="-1" role="dialog" aria-labelledby="exampleModalCheckLabel"
+    <div class="modal fade" id="exampleModalTambah" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
+        <form action="{{ route('tambah_packing_list') }}" enctype="multipart/form-data" method="post"
+            onsubmit="submitForm(this, event)" name='form_upload_tambah' id='form_upload_tambah'>
+            @csrf
+            @method('POST')
+            <div class="modal-dialog modal-dialog-scrollable modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h3 class="modal-title fs-5"><i class="fas fa-list"></i> Tambah Packing List (Tambahan) </h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class='row'>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><small><b>Tipe Upload :</b></small></label>
+                                    <select class="form-control select2bs4" id="cbotipe_tmbh" name="cbotipe_tmbh"
+                                        style="width: 100%;" required>
+                                        <option selected="selected" value="" disabled="true">Pilih Tipe Upload
+                                        </option>
+                                        @foreach ($data_list as $datalist)
+                                            <option value="{{ $datalist->isi }}">
+                                                {{ $datalist->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div class="input-group">
+                                        <a onclick="export_data_po_tambah()"
+                                            class="btn btn-outline-success position-relative btn-sm">
+                                            <i class="fas fa-file-download fa-sm"></i>
+                                            Export Data PO
+                                        </a>
+                                    </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Buyer</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_t_buyer"
+                                        name = "modal_t_buyer" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>PO</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_t_po"
+                                        name = "modal_t_po" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Dest</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_t_dest"
+                                        name = "modal_t_dest" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Style</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_t_style"
+                                        name = "modal_t_style" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Upload File</b></small></label>
+                                    <input type="file" class="form-control form-control-sm" name="file_tmbh"
+                                        id="file_tmbh">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div class="input-group">
+                                        <button type="submit" class="btn btn-outline-info btn-sm"><i
+                                                class="fas fa-check"></i> Upload
+                                        </button>
+                                    </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label><small><b>Tidak Terdaftar :</b></small></label>
+                                    <input type='text' id="txtnon_upload_tmbh" name="txtnon_upload_tmbh"
+                                        class='form-control form-control-sm' value="" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="datatable_upload_tambah"
+                                class="table table-bordered table-sm w-100 table-hover display nowrap">
+                                <thead class="table-primary">
+                                    <tr style='text-align:center; vertical-align:middle'>
+                                        <th>Tgl. Shipment</th>
+                                        <th>PO #</th>
+                                        <th>No. Carton</th>
+                                        <th>Tipe Pack</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Qty</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="5"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_carton'> </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+        </form>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-dismiss="modal"><i
+                    class="fas fa-times-circle"></i> Tutup</button>
+            <a class="btn btn-outline-success btn-sm" onclick="tambah()">
+                <i class="fas fa-check"></i>
+                Tambah
+            </a>
+        </div>
+    </div>
+    </div>
+    </div>
+
+
+
+
+
+    <div class="modal fade" id="exampleModalCheck" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCheckLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-primary">
@@ -47,8 +188,8 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="form-label"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id = "modal_po" name = "modal_po"
-                                    readonly>
+                                <input type="text" class="form-control form-control-sm" id = "modal_po"
+                                    name = "modal_po" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -82,13 +223,18 @@
                                         <th>No.Carton</th>
                                         <th>Tipe Pack</th>
                                         <th>Qty</th>
+                                        <th>Qty Scan</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tfoot>
                                     <tr>
                                         <th colspan="9"></th>
-                                        <th> <input type = 'text' class="form-control form-control-sm" style="width:75px"
-                                                readonly id = 'total_qty_chk'> </th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_scan'> </th>
+                                        <th></th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -103,8 +249,8 @@
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModalHapus" tabindex="-1" role="dialog" aria-labelledby="exampleModalHapusLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exampleModalHapus" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalHapusLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-danger">
@@ -112,8 +258,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="form_h_karton" name='form_h_karton' method='post' action="{{ route('hapus_packing_list') }}"
-                        onsubmit="submitForm(this, event)">
+                    <form id="form_h_karton" name='form_h_karton' method='post'
+                        action="{{ route('hapus_packing_list') }}" onsubmit="submitForm(this, event)">
                         <div class='row'>
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -189,6 +335,7 @@
         aria-hidden="true">
         <form action="{{ route('upload-packing-list') }}" enctype="multipart/form-data" method="post"
             onsubmit="submitForm(this, event)" name='form_upload' id='form_upload'>
+            @csrf
             @method('POST')
             <div class="modal-dialog modal-dialog-scrollable modal-xl">
                 <div class="modal-content">
@@ -437,6 +584,16 @@
             })
 
         })
+
+        $('#exampleModalTambah').on('show.bs.modal', function(e) {
+
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $("#exampleModalHapus"),
+                containerCssClass: 'form-control-sm rounded'
+            })
+
+        })
     </script>
     <script>
         function notif() {
@@ -677,7 +834,11 @@
                 </a>
                 <a class='btn btn-danger btn-sm'  data-bs-toggle="modal"
                   data-bs-target="#exampleModalHapus"
-                onclick="show_data_h('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );dataTableDetailPackingListHapusReload();"><i class='fas fa-edit'></i>
+                onclick="show_data_h('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );dataTableDetailPackingListHapusReload();"><i class='fas fa-trash'></i>
+                </a>
+                <a class='btn btn-primary btn-sm'  data-bs-toggle="modal"
+                  data-bs-target="#exampleModalTambah"
+                onclick="show_data_t('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );dataTableUploadTambahReload();"><i class='fas fa-plus'></i>
                 </a>
                      </div>
                     `;
@@ -1034,9 +1195,17 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var sumTotalS = api
+                    .column(10)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
                 $(api.column(9).footer()).html(sumTotal);
+                $(api.column(10).footer()).html(sumTotalS);
             },
 
             ordering: false,
@@ -1088,6 +1257,12 @@
                 {
                     data: 'qty'
                 },
+                {
+                    data: 'qty_scan'
+                },
+                {
+                    data: 'stat'
+                },
             ],
             columnDefs: [{
                 "className": "align-middle",
@@ -1095,7 +1270,32 @@
             }, ],
             rowsGroup: [
                 7
-            ]
+            ],
+            createdRow: function(row, data, dataIndex) {
+
+                // Compare qty and qty_scan
+
+                if (data.qty == data.qty_scan) {
+
+                    // If they are equal, set font to bold and green for the entire row
+
+                    $(row).css({
+                        'font-weight': 'bold',
+                        'color': 'green'
+                    });
+
+                } else {
+
+                    // If they are not equal, set font color to blue for the entire row
+
+                    $(row).css({
+                        'font-weight': 'bold',
+                        'color': 'blue'
+                    });
+
+                }
+
+            }
         });
 
         function dataTableDetailPackingListHapusReload() {
@@ -1196,9 +1396,291 @@
             dataTableDetailPackingListHapusReload();
         }
 
+        function show_data_t(po_s, dest_s, buyer_s, style_s) {
+
+            $('#modal_t_po').val(po_s);
+            $('#modal_t_dest').val(dest_s);
+            $('#modal_t_buyer').val(buyer_s);
+            $('#modal_t_style').val(style_s);
+            $("#cbotipe_tmbh").val('HORIZONTAL').trigger('change');
+            delete_tmp_upload_tambah();
+            document.getElementById('file_tmbh').value = "";
+            dataTableUploadTambahReload();
+        }
+
+
+
+
         function ceklis(checkeds) {
             //get id..and check if checked
             console.log($(checkeds).attr("value"), checkeds.checked)
+        }
+
+
+
+        function export_data_po_tambah() {
+            let po = $('#modal_t_po').val();
+            let dest = $('#modal_t_dest').val();
+            let tipe = $('#cbotipe_tmbh').val();
+            if (!tipe) {
+                iziToast.warning({
+                    message: 'Tipe masih kosong, Silahkan pilih tipe',
+                    position: 'topCenter'
+                });
+            }
+
+            if (!po) {
+                iziToast.warning({
+                    message: 'PO masih kosong, Silahkan pilih po',
+                    position: 'topCenter'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                if (tipe == 'HORIZONTAL') {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_data_template_po_packing_list_horizontal') }}',
+                        data: {
+                            po: po,
+                            dest: dest
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "PO " + po + "_" + dest + "_H.xlsx";
+                                link.click();
+
+                            }
+                        },
+                    });
+                } else {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_data_template_po_packing_list_vertical') }}',
+                        data: {
+                            po: po,
+                            dest: dest
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "PO " + po + "_" + dest + "_V.xlsx";
+                                link.click();
+
+                            }
+                        },
+                    });
+                }
+
+
+            }
+        }
+
+        function dataTableUploadTambahReload() {
+            datatable_upload_tambah.ajax.reload();
+        }
+
+
+        $('#datatable_upload_tambah thead tr').clone(true).appendTo('#datatable_upload_tambah thead');
+        $('#datatable_upload_tambah thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_upload_tambah.column(i).search() !== this.value) {
+                    datatable_upload_tambah
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable_upload_tambah = $("#datatable_upload_tambah").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Count rows with color red
+
+                var redCount = 0;
+                api.rows().every(function() {
+                    var row = this.data();
+                    if (row.id_ppic_master_so === null || row.id_cek != null) {
+                        redCount++;
+                    }
+                });
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(5).footer()).html(sumTotal);
+                $('#txtnon_upload_tmbh').val(redCount);
+            },
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('show_datatable_upload_packing_list_tambah') }}',
+                data: function(d) {
+                    d.po = $('#modal_t_po').val();
+                    d.dest = $('#modal_t_dest').val();
+                    d.tipe = $('#cbotipe_tmbh').val();
+                },
+            },
+            columns: [{
+                    data: 'tgl_shipment_fix'
+
+                },
+                {
+                    data: 'po'
+                },
+                {
+                    data: 'no_carton'
+                },
+                {
+                    data: 'tipe_pack'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'qty'
+                },
+            ],
+            columnDefs: [{
+                    "className": "dt-center",
+                    "targets": "_all"
+                },
+                {
+                    targets: '_all',
+                    className: 'text-nowrap',
+                    render: (data, type, row, meta) => {
+                        if (row.id_ppic_master_so === null) {
+                            color = 'red';
+                        } else {
+                            color = '#087521';
+                        }
+                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
+                    }
+                },
+            ]
+
+
+        }, );
+
+        function tambah() {
+            // let po = $('#cbopo').val();
+            let txtnon_upload_tmbh = $('#txtnon_upload_tmbh').val();
+            let cbotipe_tmbh = $('#cbotipe_tmbh').val();
+            let modal_t_po = $('#modal_t_po').val();
+            let modal_t_dest = $('#modal_t_dest').val();
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_upload_packing_list') }}',
+                data: {
+                    txtnon_upload: txtnon_upload_tmbh,
+                    tipe: cbotipe_tmbh,
+                    txtpo: modal_t_po,
+                    txtdest: modal_t_dest
+                },
+                success: function(response) {
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                        dataTableReload();
+                        dataTableUploadReload();
+                    } else {
+                        Swal.fire({
+                            text: response.msg,
+                            icon: "success"
+                        });
+                        dataTableUploadTambahReload();
+                        delete_tmp_upload_tambah();
+                    }
+
+                },
+                error: function(request, status, error) {
+                    iziToast.warning({
+                        message: 'Silahkan cek lagi',
+                        position: 'topCenter'
+                    });
+                    dataTableUploadTambahReload();
+                    delete_tmp_upload_tambah();
+                    dataTableReload();
+                },
+            });
+        };
+
+
+        function delete_tmp_upload_tambah() {
+            let modal_t_po = $('#modal_t_po').val();
+            let modal_t_dest = $('#modal_t_dest').val();
+            let po = modal_t_po + '_' + modal_t_dest;
+            let html = $.ajax({
+                type: "POST",
+                url: '{{ route('delete_upload_packing_list') }}',
+                data: {
+                    po: po
+                },
+                async: false
+            }).responseText;
         }
     </script>
 @endsection
