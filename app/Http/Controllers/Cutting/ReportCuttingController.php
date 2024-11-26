@@ -479,7 +479,7 @@ class ReportCuttingController extends Controller
                 unit,
                 ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
                 ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
-                ROUND(MIN(sisa_kain), 2) total_sisa_kain,
+                ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) total_sisa_kain,
                 ROUND(SUM(short_roll), 2) total_short_roll,
                 CONCAT(ROUND((SUM(short_roll) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
                 '".$rollId->tgl_dok."' tanggal_return
