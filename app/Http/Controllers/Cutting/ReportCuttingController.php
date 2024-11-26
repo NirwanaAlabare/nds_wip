@@ -480,11 +480,12 @@ class ReportCuttingController extends Controller
                 ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
                 ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
                 ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) total_sisa_kain,
-                ROUND(SUM(short_roll), 2) total_short_roll,
-                CONCAT(ROUND((SUM(short_roll) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
+                ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll,
+                CONCAT(ROUND((((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty))/(SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) * 100), 2), ' %') total_short_roll_percentage,
                 '".$rollId->tgl_dok."' tanggal_return
             ")->
             whereNotNull("id_roll")->
+            whereIn("status", ['complete', 'need extension', 'extension complete'])->
             where("id_roll", $rollId->id_roll)->
             groupBy("id_item", "id_roll")->
             first();

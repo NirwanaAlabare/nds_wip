@@ -52,10 +52,12 @@ class ExportDetailPemakaianKain implements FromView, WithEvents, ShouldAutoSize 
                 ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
                 unit,
                 ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                ROUND(SUM(short_roll), 2) total_short_roll
+                ROUND(SUM(short_roll), 2) total_short_roll_2,
+                ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
             ")->
             whereNotNull("id_roll")->
             whereIn("id_roll", $rollIds)->
+            whereIn("status", ['complete', 'need extension', 'extension complete'])->
             groupBy("id_item", "id_roll")->
             get();
 

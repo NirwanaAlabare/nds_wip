@@ -40,7 +40,7 @@
             <td>{{ $roll->total_pemakaian_roll }}</td>
             <td>{{ $roll->sisa_kain }}</td>
             <td>{{ $roll->total_short_roll }}</td>
-            <td>{{ $roll->qty > 0 ? round(($roll->total_short_roll/$roll->qty) * 100, 2) : 0 }} %</td>
+            <td>{{ $roll->qty > 0 ? round(($roll->total_short_roll/($roll->qty+$roll->sisa_kain)) * 100, 2) : 0 }} %</td>
             <td>{{ $roll->unit }}</td>
         </tr>
     @endforeach
