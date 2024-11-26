@@ -2902,7 +2902,7 @@ class StockerController extends Controller
     }
 
     public function printYearSequenceNewFormat(Request $request) {
-        $yearSequence = YearSequence::selectRaw("master_sb_ws.reff_no style, master_sb_ws.color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
+        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, master_sb_ws.color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             where("year", $request->year)->
             where("year_sequence", $request->yearSequence)->

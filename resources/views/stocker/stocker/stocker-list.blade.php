@@ -646,9 +646,35 @@
                     if (res) {
                         if (res.status != "400") {
                             if (type == 'new') {
-                                $('#new-print-range-awal-year').val(res.year_sequence_number);
+                                $('#new-print-range-awal-year').val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
+
+                                if (Number(res.year_sequence_number) >= 999999) {
+                                    let newSelect = document.getElementById('new-year-sequence-sequence');
+
+                                    if ($('#new-year-sequence-sequence > option[value="'+(Number(newSelect.value)+1)+'"]').length < 1) {
+                                        let newOption = document.createElement("option");
+                                        newOption.setAttribute("value", Number(newSelect.value)+1);
+                                        newOption.innerHTML = Number(newSelect.value)+1;
+                                        newSelect.appendChild(newOption);
+                                    }
+
+                                    $("#new-year-sequence-sequence").val(Number(newSelect.value)+1).trigger("change");
+                                }
                             } else {
-                                $('#print-range-awal-year').val(res.year_sequence_number);
+                                $('#print-range-awal-year').val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
+
+                                if (Number(res.year_sequence_number) >= 999999) {
+                                    let select = document.getElementById('year-sequence-sequence');
+
+                                    if ($('#year-sequence-sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
+                                        let option = document.createElement("option");
+                                        option.setAttribute("value", Number(select.value)+1);
+                                        option.innerHTML = Number(select.value)+1;
+                                        select.appendChild(option);
+                                    }
+
+                                    $("#year-sequence-sequence").val(Number(select.value)+1).trigger("change");
+                                }
                             }
                         } else {
                             Swal.fire({
@@ -701,7 +727,7 @@
         function validatePrintYearSequence() {
             if (methodYear == 'qty' && $('#print-qty-year').val() > 0) {
                 return true;
-            } else if (methodYear == 'range' && Number($('#print-range-awal-year').val()) > 0 && Number($('#print-range-awal-year').val()) <= Number($('#print-range-akhir-year').val())) {
+            } else if (methodYear == 'range' && Number($('#print-range-awal-year').val()) > 0 && Number($('#print-range-awal-year').val()) <= Number($('#print-range-akhir-year').val()) &&  Number($('#print-range-akhir-year').val()) <= 999999) {
                 return true;
             }
 
@@ -761,8 +787,6 @@
                         },
                         success: function(res) {
                             if (res) {
-                                console.log(res);
-
                                 var blob = new Blob([res], {type: 'application/pdf'});
                                 var link = document.createElement('a');
                                 link.href = window.URL.createObjectURL(blob);
@@ -788,12 +812,21 @@
 
                 swal.close();
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    html: 'Qty/Range tidak valid.',
-                    allowOutsideClick: false,
-                });
+                if (Number($('#print-range-akhir-year').val()) > 999999) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Range Akhir tidak dapat melebihi 999999.',
+                        allowOutsideClick: false,
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Qty/Range tidak valid.',
+                        allowOutsideClick: false,
+                    });
+                }
             }
         }
 
@@ -885,12 +918,21 @@
 
                 swal.close();
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    html: 'Qty/Range tidak valid.',
-                    allowOutsideClick: false,
-                });
+                if (Number($('#print-range-akhir-year').val()) > 999999) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Range Akhir tidak dapat melebihi 999999.',
+                        allowOutsideClick: false,
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Qty/Range tidak valid.',
+                        allowOutsideClick: false,
+                    });
+                }
             }
         }
 
