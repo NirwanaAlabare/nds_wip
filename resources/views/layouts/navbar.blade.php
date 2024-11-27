@@ -948,11 +948,11 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-master-karton' ? 'active' : '' }}">Report</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-report' ? 'active' : '' }}">Report</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('packing-list') }}"
-                                    class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
+                                <a href="{{ route('packing_rep_packing_line_sum') }}"
+                                    class="dropdown-item {{ $subPage == 'packing_rep_packing_line_sum' ? 'active' : '' }}">
                                     Summary Packing Line <i class="fas fa-file-upload fa-sm"></i>
                                 </a>
                             </li>
