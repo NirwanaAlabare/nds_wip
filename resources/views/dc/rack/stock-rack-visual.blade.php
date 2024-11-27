@@ -92,6 +92,8 @@
                                                                             <div class="card-body" onclick="openModal({{ json_encode($data) }})"  data-bs-toggle="modal" data-bs-target="#detailModal">
                                                                                 {{ $data->style }}
                                                                                 <br>
+                                                                                {{ $data->size }}
+                                                                                <br>
                                                                                 <small>{{ $data->color }}</small>
                                                                             </div>
                                                                         </div>

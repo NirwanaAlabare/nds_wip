@@ -463,7 +463,20 @@
 
                     if (res) {
                         if (res.status != "400") {
-                            $("#range_awal").val(res.year_sequence_number+1).trigger("change");
+                            $("#range_awal").val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
+
+                            if (Number(res.year_sequence_number) >= 999999) {
+                                let select = document.getElementById('sequence');
+
+                                if ($('#sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
+                                    let option = document.createElement("option");
+                                    option.setAttribute("value", Number(select.value)+1);
+                                    option.innerHTML = Number(select.value)+1;
+                                    select.appendChild(option);
+                                }
+
+                                $("#sequence").val(Number(select.value)+1).trigger("change");
+                            }
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -524,7 +537,7 @@
         }
 
         function validatePrintYearSequence() {
-            if (Number($('#add_qty').val() > 0) && Number($('#range_awal').val()) > 0 && Number($('#range_awal').val()) <= Number($('#range_akhir').val())) {
+            if (Number($('#add_qty').val() > 0) && Number($('#range_awal').val()) > 0 && Number($('#range_awal').val()) <= Number($('#range_akhir').val()) && Number($('#range_akhir').val()) <= 999999) {
                 return true;
             }
 
@@ -638,12 +651,21 @@
                     }
                 });
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    html: 'Qty/Range tidak valid.',
-                    allowOutsideClick: false,
-                });
+                if (Number($('#range_akhir').val()) > 999999) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Range Akhir tidak dapat melebihi 999999.',
+                        allowOutsideClick: false,
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Qty/Range tidak valid.',
+                        allowOutsideClick: false,
+                    });
+                }
             }
         }
 

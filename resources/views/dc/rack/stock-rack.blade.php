@@ -59,16 +59,16 @@
                                                                 <tr>
                                                             @endif
 
-                                                            <td>{{ $stocker->stockers }}</td>
-                                                            <td>{{ $stocker->act_costing_ws }}</td>
-                                                            <td>{{ $stocker->no_cut }}</td>
-                                                            <td>{{ $stocker->shade }}</td>
-                                                            <td>{{ $stocker->style }}</td>
-                                                            <td>{{ $stocker->color }}</td>
-                                                            <td>{{ $stocker->act_costing_ws }}</td>
-                                                            <td>{{ $stocker->qty_ply }}</td>
-                                                            <td>{{ '-' }}</td>
-                                                            <td>{{ '-' }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->stockers }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->act_costing_ws }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->no_cut }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->shade }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->style }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->color }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->act_costing_ws }}</td>
+                                                            <td class="text-nowrap">{{ $stocker->qty_ply }}</td>
+                                                            <td class="text-nowrap">{{ '-' }}</td>
+                                                            <td class="text-nowrap">{{ '-' }}</td>
 
                                                             @if ($loop->index != 0)
                                                                 </tr>
