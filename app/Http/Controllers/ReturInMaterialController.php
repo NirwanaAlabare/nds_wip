@@ -140,7 +140,7 @@ class ReturInMaterialController extends Controller
     public function getListBppb(Request $request)
     {
 
-        $data_detail = DB::connection('mysql_sb')->select("select bppbno_int, a.id_bppb,a.id_so_det, a.id_jo,a.id_item,a.kpno, a.goods_code, a.itemdesc,a.color,(a.qty - COALESCE(qty_ri,0)) qty, a.unit,a.confirm,coalesce(c.qty_temp,0) qty_temp from (select bppbno_int,bppbno,a.id id_bppb,a.id_so_det,a.id_jo,a.id_item,ac.kpno,s.goods_code,s.itemdesc itemdesc,s.color,a.qty, a.unit,a.confirm from bppb a inner join masteritem s on a.id_item=s.id_item inner join jo_det jd on a.id_jo = jd.id_jo inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where bppbno='" . $request->sj_asal . "' order by a.id_item desc) a left join (select b.ori_dok,a.id_jo,a.id_item,a.no_ws,sum(COALESCE(qty_good,0) - COALESCE(qty_reject,0)) qty_ri from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.ori_dok = '" . $request->sj_asal . "') b on b.ori_dok = a.bppbno and b.id_item = a.id_item and b.id_jo = a.id_jo LEFT JOIN (select id_jo,id_item,sum(qty_sj) qty_temp from whs_lokasi_inmaterial_temp where created_by  = '".Auth::user()->name."' GROUP BY id_jo,id_item) c on c.id_jo = a.id_jo and c.id_item = a.id_item");
+        $data_detail = DB::connection('mysql_sb')->select("select bppbno_int, a.id_bppb,a.id_so_det, a.id_jo,a.id_item,a.kpno, a.goods_code, a.itemdesc,a.color,round(a.qty - COALESCE(qty_ri,0),2) qty, a.unit,a.confirm,coalesce(c.qty_temp,0) qty_temp from (select bppbno_int,bppbno,a.id id_bppb,a.id_so_det,a.id_jo,a.id_item,ac.kpno,s.goods_code,s.itemdesc itemdesc,s.color,a.qty, a.unit,a.confirm from bppb a inner join masteritem s on a.id_item=s.id_item inner join jo_det jd on a.id_jo = jd.id_jo inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where bppbno='" . $request->sj_asal . "' order by a.id_item desc) a left join (select b.ori_dok,a.id_jo,a.id_item,a.no_ws,sum(COALESCE(qty_good,0) - COALESCE(qty_reject,0)) qty_ri from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.ori_dok = '" . $request->sj_asal . "') b on b.ori_dok = a.bppbno and b.id_item = a.id_item and b.id_jo = a.id_jo LEFT JOIN (select id_jo,id_item,sum(qty_sj) qty_temp from whs_lokasi_inmaterial_temp where created_by  = '".Auth::user()->name."' GROUP BY id_jo,id_item) c on c.id_jo = a.id_jo and c.id_item = a.id_item");
         
 
         return json_encode([
@@ -156,6 +156,9 @@ class ReturInMaterialController extends Controller
     {
 
     // if (intval($request['jumlah_qty']) > 0) {
+        $validatedRequest = $request->validate([
+            "txt_type_pch" => "required",
+        ]);
 
         $tglbpb = $request['txt_tgl_ri'];
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/RI/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) bpbno_int FROM bpb WHERE MONTH(bpbdate) = MONTH('" . $tglbpb . "') AND YEAR(bpbdate) = YEAR('" . $tglbpb . "') AND LEFT(bpbno_int,2) = 'GK'");
@@ -291,7 +294,7 @@ class ReturInMaterialController extends Controller
             'no_po' => '',
             'no_ws' => '',
             'type_bc' => $request['txt_type_bc'],
-            'type_pch' => $request['txt_tujuan'],
+            'type_pch' => $request['txt_type_pch'],
             'ori_dok' => $request['txt_sj_asal'],
             'no_invoice' => $request['txt_noinvoice'],
             'no_aju' => $request['txt_aju_num'],

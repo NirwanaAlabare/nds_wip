@@ -77,6 +77,23 @@
             </div>
             </div>
 
+            <div class="col-md-12">
+        <div class="mb-1">
+            <div class="form-group">
+                <label><small>Tipe Pembelian</small></label>
+                <select class="form-control select2bs4" id="txt_type_pch" name="txt_type_pch"
+                style="width: 100%;">
+                <option selected="selected" value="">Pilih Tipe</option>
+                @foreach ($pch_type as $pch)
+                <option value="{{ $pch->nama_pilihan }}">
+                    {{ $pch->nama_pilihan }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
 
