@@ -77,25 +77,35 @@ class RackStockerController extends Controller
 
     public function currentRackStock(Request $request)
     {
-        $racks = Rack::selectRaw("
+        $racks = RackDetail::selectRaw("
+                rack_detail_stocker.id as id,
                 rack_detail.nama_detail_rak no_rak,
-
+                stocker_input.id_qr_stocker no_stocker,
+                marker_input.act_costing_ws no_ws,
+                form_cut_input.no_cut,
+                marker_input.style,
+                marker_input.color,
+                master_part.nama_part part,
+                stocker_input.size
             ")->
-            leftJoin("rack_detail", "rack_detail.stocker_id", "=", "rack.id")->
-            leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("rack_detail_stocker", "rack_detail_stocker.detail_rack_id", "=", "rack_detail.id")->
+            leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "rack_detail_stocker.stocker_id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             whereRaw("
+                rack_detail.id is not null and
+                (rack_detail_stocker.status is null or rack_detail_stocker.status = 'active') and
                 stocker_input.status = 'non secondary' and
                 stocker_input.updated_at >= '".(date('Y-m-d', strtotime('-30 days')))." 00:00:00'
             ")->
-            groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker")->
-            where("rack.id", $request->id)->
+            where("rack_detail.id", $request->id)->
+            groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio", "stocker_input.part_detail_id")->
+            orderBy("rack_detail_stocker.updated_at", "desc")->
             get();
 
-        return DataTables::of($racks);
+        return DataTables::of($racks)->toJson();
     }
 
     /**
@@ -106,16 +116,77 @@ class RackStockerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedRequest = $request->validate([
+            "rack_detail_id" => "required",
+            "stocker_kode" => "required",
+            "qty_in" => "required|gt:0"
+        ]);
+
+        $rackDetail = RackDetail::where("id", $validatedRequest['rack_detail_id'])->first();
+
+        $stockerData = Stocker::where("id_qr_stocker", $validatedRequest["stocker_kode"])->first();
+        $similarStockerData = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
+            where("so_det_id", $stockerData->so_det_id)->
+            where("group_stocker", $stockerData->group_stocker)->
+            where("ratio", $stockerData->ratio)->
+            get();
+
+        $oldRackStockArr = [];
+        $rackStockArr = [];
+
+        $i = 0;
+        foreach ($similarStockerData as $stocker) {
+            $oldRackDetailStocker = Stocker::where("id_qr_stocker", $stocker->id_qr_stocker)->first();
+
+            if ($oldRackDetailStocker) {
+                array_push($oldRackStockArr, $oldRackDetailStocker->id_qr_stocker);
+            }
+
+            array_push($rackStockArr, [
+                "detail_rack_id" => $rackDetail->id,
+                "nm_rak" => $rackDetail->nama_detail_rak,
+                "stocker_id" => $stocker['id_qr_stocker'],
+                "qty_in" => $validatedRequest['qty_in'],
+                "status" => "active",
+                "created_at" => Carbon::now(),
+                "updated_at" => Carbon::now(),
+            ]);
+
+            $i++;
+        }
+
+        $updateOldRackStock = RackDetailStocker::whereIn("stocker_id", $oldRackStockArr)->update(["status" => "not active"]);
+        $updateStocker = Stocker::whereIn("id_qr_stocker", $oldRackStockArr)->update(["tempat" => "RAK", "lokasi" => $rackDetail->nama_detail_rak, "latest_alokasi" => Carbon::now(), "status" => "non secondary"]);
+        $storeRackStock = RackDetailStocker::insert($rackStockArr);
+
+        if (count($rackStockArr)) {
+            return array(
+                'status' => 200,
+                'message' => 'Stocker berhasil dialokasi',
+                'redirect' => '',
+                'table' => 'rack-stock-datatable',
+                'callback' => 'clearAll()',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Stocker gagal dialokasi',
+            'redirect' => '',
+            'table' => 'rack-stock-datatable',
+            'callback' => 'clearAll()',
+            'additional' => [],
+        );
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
-    public function show(TrolleyStocker $trolleyStocker)
+    public function show(RackDetailStocker $rackDetailStocker)
     {
         //
     }
@@ -173,10 +244,10 @@ class RackStockerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
-    public function edit(TrolleyStocker $trolleyStocker)
+    public function edit(RackDetailStocker $rackDetailStocker)
     {
         //
     }
@@ -185,10 +256,10 @@ class RackStockerController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, TrolleyStocker $trolleyStocker)
+    public function update(Request $request, RackDetailStocker $rackDetailStocker)
     {
         //
     }
@@ -196,11 +267,33 @@ class RackStockerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TrolleyStocker $trolleyStocker)
+    public function destroy(RackDetailStocker $rackStocker, $id)
     {
-        //
+        if ($id) {
+            $deleteRackStock = RackDetailStocker::where("id", $id)->delete();
+
+            if ($deleteRackStock) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Rak Stocker berhasil dihapus',
+                    'redirect' => '',
+                    'table' => 'rack-stock-datatable',
+                    'callback' => '',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Rak Stocker gagal dihapus',
+            'redirect' => '',
+            'table' => 'rack-stock-datatable',
+            'callback' => '',
+            'additional' => [],
+        );
     }
 }
