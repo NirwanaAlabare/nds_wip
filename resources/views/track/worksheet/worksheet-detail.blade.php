@@ -77,7 +77,7 @@
                 <label class="form-label form-label-sm">Size</label>
                 <select class="form-select select2bs4" id="ws-size-filter">
                     <option value="" selected>All Size</option>
-                    @foreach ($ws->groupBy("size")->keys()->sort() as $size)
+                    @foreach ($ws->sortBy("id")->groupBy("size")->keys() as $size)
                         <option value="{{ $size }}">{{ $size }}</option>
                     @endforeach
                 </select>
