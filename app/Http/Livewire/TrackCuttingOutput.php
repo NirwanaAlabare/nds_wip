@@ -127,7 +127,7 @@ class TrackCuttingOutput extends Component
                         LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                     WHERE
-                        form_cut_input.`status` != 'SPREADING'
+                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
                         AND form_cut_input.waktu_mulai is not null
                         AND form_cut_input.id_marker is not null
                         ".$dateFilter."
@@ -139,7 +139,7 @@ class TrackCuttingOutput extends Component
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
-                form_cut_input.`status` != 'SPREADING'
+                form_cut_input.`status` = 'SELESAI PENGERJAAN'
                 AND form_cut_input.waktu_mulai is not null
                 AND form_cut_input.id_marker is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
@@ -191,7 +191,7 @@ class TrackCuttingOutput extends Component
                         LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                     WHERE
-                        form_cut_input.`status` != 'SPREADING'
+                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
                         AND form_cut_input.waktu_mulai is not null
                         AND form_cut_input.id_marker is not null
                         ".$dateFilter."
@@ -203,7 +203,7 @@ class TrackCuttingOutput extends Component
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
-                form_cut_input.`status` != 'SPREADING'
+                form_cut_input.`status` = 'SELESAI PENGERJAAN'
                 AND form_cut_input.waktu_mulai is not null
                 AND form_cut_input.id_marker is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
@@ -294,7 +294,7 @@ class TrackCuttingOutput extends Component
                                         LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
                                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                                     WHERE
-                                        form_cut_input.`status` != 'SPREADING'
+                                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                         AND form_cut_input.waktu_mulai is not null
                                         ".$dateFilter."
                                     GROUP BY

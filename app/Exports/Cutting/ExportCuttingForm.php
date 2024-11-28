@@ -114,7 +114,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
         );
 
         $event->sheet->styleCells(
-            'A4:N' . ($event->getConcernable()->rowCount+4),
+            'A4:N' . ($event->getConcernable()->rowCount+5),
             [
                 'borders' => [
                     'allBorders' => [

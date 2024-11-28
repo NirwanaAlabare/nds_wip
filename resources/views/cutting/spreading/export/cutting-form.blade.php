@@ -25,7 +25,13 @@
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">PANEL</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">QTY</th>
     </tr>
+    @php
+        $totalQty = 0;
+    @endphp
     @foreach ($data as $d)
+        @php
+            $totalQty += $d->qty;
+        @endphp
         <tr>
             <td style="text-align: left;">{{ $d->tanggal }}</td>
             <td style="text-align: left;">{{ $d->meja }}</td>
@@ -43,6 +49,10 @@
             <td>{{ $d->qty }}</td>
         </tr>
     @endforeach
+    <tr>
+        <td style="text-align: right;font-weight: bold;" colspan="13">TOTAL</td>
+        <td style="font-weight: bold;">{{ $totalQty }}</td>
+    </tr>
 </table>
 
 </html>

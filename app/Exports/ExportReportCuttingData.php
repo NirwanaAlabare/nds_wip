@@ -109,7 +109,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
                                     LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
                                     INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                                 WHERE
-                                    form_cut_input.`status` != 'SPREADING'
+                                    form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     AND form_cut_input.waktu_mulai is not null
                                     ".$additionalQuery."
                                 GROUP BY
