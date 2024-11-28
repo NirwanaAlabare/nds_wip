@@ -106,7 +106,7 @@
                     render: (data, type, row, meta) => {
                         return  `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a href='{{ route('stock-dc-complete-detail') }}/`+row.part_id+`/`+row.color+`/`+(row.size).replace("/", "_")+`/' class='btn btn-primary btn-sm'>
+                                <a href='{{ route('stock-dc-complete-detail') }}/`+row.part_id+`/`+(row.color).replace("/", "_")+`/`+(row.size).replace("/", "_")+`/' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search-plus'></i>
                                 </a>
                             </div>

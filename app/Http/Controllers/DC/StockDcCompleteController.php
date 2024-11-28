@@ -150,7 +150,7 @@ class StockDcCompleteController extends Controller
                 LEFT JOIN dc_in_input on dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
             WHERE
                 part_form.part_id = '".$partId."' AND
-                stocker_input.color = '".$color."' AND
+                stocker_input.color = '".str_replace("_", "/", $color)."' AND
                 stocker_input.size = '".str_replace("_", "/", $size)."'
             GROUP BY
                 part_form.part_id,
