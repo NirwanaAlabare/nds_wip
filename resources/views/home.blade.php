@@ -37,7 +37,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div class="col-lg-2 col-md-3 col-sm-6">
+                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('worksheet') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -49,7 +49,7 @@
                                     </div>
                                 </div>
                             </a>
-                        </div>
+                        </div> --}}
                     @endadmin
 
                     <!-- @sample
@@ -99,7 +99,7 @@
                             </a>
                         </div>
 
-                        @stocker
+                        {{-- @stocker --}}
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-stocker') }}" class="home-item">
                                     <div class="card h-100">
@@ -113,7 +113,7 @@
                                     </div>
                                 </a>
                             </div>
-                        @endstocker
+                        {{-- @endstocker --}}
                     @endif
 
                     @dc
