@@ -11,6 +11,7 @@ use App\Models\MasterPart;
 use App\Models\MasterTujuan;
 use App\Models\Stocker;
 use App\Exports\ExportTrackWorksheet;
+use App\Exports\ExportTrackStocker;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Excel;
@@ -1129,7 +1130,7 @@ class TrackController extends Controller
             (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
             COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
             COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
-            COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) stocker_qty_ply,
+            MIN(COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply)) stocker_qty_ply,
             COALESCE(UPPER(loading_line.nama_line), '-') line,
             stocker_input.updated_at latest_update
         ")->
@@ -1227,7 +1228,7 @@ class TrackController extends Controller
         }
 
         $stocker = $stockerSql->
-            groupBy("stocker_input.id_qr_stocker")->
+            groupBy("stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio")->
             orderBy("stocker_input.act_costing_ws", "asc")->
             orderBy("stocker_input.color", "asc")->
             orderBy("form_cut_input.no_cut", "asc")->
@@ -1380,5 +1381,14 @@ class TrackController extends Controller
 
             return view("track.stocker.stocker-detail", ["page" => "dashboard-track", "subPageGroup" => "track", "subPage" => "stocker", "head" => "Track ".$ws->first()->ws, "ws" => $ws, "panels" => $panels, "months" => $months, "years" => $years]);
         }
+    }
+
+    public function stockerExport(Request $request) {
+        ini_set('max_execution_time', 36000);
+
+        $month = $request->month ? $request->month : date('m');
+        $year = $request->year ? $request->year : date('Y');
+
+        return Excel::download(new ExportTrackStocker($month, $year), 'Laporan_track_stocker.xlsx');
     }
 }

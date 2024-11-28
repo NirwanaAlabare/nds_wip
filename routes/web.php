@@ -925,6 +925,7 @@ Route::middleware('auth')->group(function () {
         // stocker
         Route::get('/stocker', 'stocker')->name('track-stocker');
         Route::get('/stocker/show/{actCostingId?}', 'showStocker')->name('track-stocker-detail');
+        Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
     });
 
     //Mutasi Karywawan
