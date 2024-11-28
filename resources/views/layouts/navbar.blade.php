@@ -248,7 +248,7 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'master-marker' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             {{-- @marker --}}
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading')
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('master-part') }}"
                                         class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
