@@ -235,11 +235,14 @@ class RollController extends Controller
                     b.sisa_tidak_bisa,
                     b.reject,
                     b.piping,
-                    COALESCE ( b.sisa_kain, 0 ) sisa_kain,
+                    COALESCE ( b.sisa_kain, 0 ) sisa_kain1,
                     b.pemakaian_lembar,
                     b.total_pemakaian_roll,
-                    b.short_roll,
-                    CONCAT( ROUND((( b.short_roll / b.qty ) * 100 ), 2 ), ' %' ) short_roll_percentage,
+                    b.short_roll sr1,
+                    CONCAT( ROUND((( b.short_roll / b.qty ) * 100 ), 2 ), ' %' ) short_roll_percentage1,
+                    ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (qty - b.total_pemakaian_roll) END), 2) sisa_kain,
+                    ROUND((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (qty - b.total_pemakaian_roll) END)) - MAX(qty), 2) short_roll,
+                    CONCAT(ROUND((((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty))/(SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) * 100), 2), ' %') short_roll_percentage,
                     a.operator
                 FROM
                     form_cut_input a
