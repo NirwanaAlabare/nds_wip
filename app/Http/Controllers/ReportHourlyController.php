@@ -45,33 +45,33 @@ class ReportHourlyController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
 
-            $cek_trans = DB::connection('mysql_sb')->select("
-            SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
-            $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
+            //             $cek_trans = DB::connection('mysql_sb')->select("
+            //             SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
+            //             $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
 
-            if ($cek_trans_input === null) {
+            //             if ($cek_trans_input === null) {
 
-                $del_data = DB::connection('mysql_sb')->delete("
-                DELETE FROM rep_hourly_output_hist_trans");
+            //                 $del_data = DB::connection('mysql_sb')->delete("
+            //                 DELETE FROM rep_hourly_output_hist_trans");
 
-                $ins_data = DB::connection('mysql_sb')->insert("
-                INSERT INTO rep_hourly_output_hist_trans (created_by, sewing_line, styleno, tot_days, tgl_update)
-                SELECT
-created_by,
-u.name sewing_line,
-ac.styleno,
-COUNT(DISTINCT DATE(a.updated_at)) AS tot_days,
-curdate() tgl_update
-from output_rfts a
-inner join so_det sd on a.so_det_id = sd.id
-inner join so on sd.id_so = so.id
-inner join act_costing ac on so.id_cost = ac.id
-inner join user_sb_wip u on a.created_by = u.id
-where a.updated_at >= '2024-08-01' and a.updated_at <= curdate() -1
-group by  ac.styleno, created_by
-order by sewing_line asc
-                ");
-            }
+            //                 $ins_data = DB::connection('mysql_sb')->insert("
+            //                 INSERT INTO rep_hourly_output_hist_trans (created_by, sewing_line, styleno, tot_days, tgl_update)
+            //                 SELECT
+            // created_by,
+            // u.name sewing_line,
+            // ac.styleno,
+            // COUNT(DISTINCT DATE(a.updated_at)) AS tot_days,
+            // curdate() tgl_update
+            // from output_rfts a
+            // inner join so_det sd on a.so_det_id = sd.id
+            // inner join so on sd.id_so = so.id
+            // inner join act_costing ac on so.id_cost = ac.id
+            // inner join user_sb_wip u on a.created_by = u.id
+            // where a.updated_at >= '2024-08-01' and a.updated_at <= curdate() -1
+            // group by  ac.styleno, created_by
+            // order by sewing_line asc
+            //                 ");
+            //             }
 
             $data_tracking = DB::connection('mysql_sb')->select("SELECT
 a.tgl_trans,
