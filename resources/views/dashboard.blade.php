@@ -2490,11 +2490,28 @@
                 $('#marker-month-filter').val((today.getMonth() + 1)).trigger("change");
                 $('#marker-year-filter').val(todayYear).trigger("change");
 
+                $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
+                $('#datatable-marker thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableMarker.column(i).search() !== this.value) {
+                            datatableMarker
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
                 var datatableMarker = $("#datatable-marker").DataTable({
                     serverSide: false,
                     processing: true,
                     ordering: false,
                     pageLength: 50,
+                    scrollX: "400px",
+                    scrollY: "400px",
                     ajax: {
                         url: '{{ route('dashboard-marker') }}',
                         dataType: 'json',
@@ -2541,21 +2558,6 @@
                             className: "text-nowrap colorize"
                         }
                     ],
-                });
-
-                $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
-                $('#datatable-marker thead tr:eq(1) th').each(function(i) {
-                    var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-                    $('input', this).on('keyup change', function() {
-                        if (datatableMarker.column(i).search() !== this.value) {
-                            datatableMarker
-                                .column(i)
-                                .search(this.value)
-                                .draw();
-                        }
-                    });
                 });
 
                 $('#marker-month-filter').on('change', () => {

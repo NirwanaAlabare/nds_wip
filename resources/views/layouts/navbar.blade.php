@@ -247,7 +247,8 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'master-marker' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @marker
+                            {{-- @marker --}}
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('master-part') }}"
                                         class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
@@ -260,7 +261,8 @@
                                         Master Secondary <i class="fas fa-location-arrow fa-sm"></i>
                                     </a>
                                 </li>
-                            @endmarker
+                            @endif
+                            {{-- @endmarker --}}
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -268,7 +270,7 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-marker' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @marker
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
@@ -281,7 +283,7 @@
                                         Marker <i class="fas fa-marker fa-sm"></i>
                                     </a>
                                 </li>
-                            @endmarker
+                            @endif
                         </ul>
                     </li>
                 @endif
@@ -300,32 +302,32 @@
                                 </li>
                             @endmarker --}}
 
-                            @admin
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('spreading') }}"
                                         class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
                                         Spreading <i class="fas fa-scroll fa-sm"></i>
                                     </a>
                                 </li>
-                            @endadmin
+                            @endif
 
-                            @meja
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('form-cut-input') }}"
                                         class="appeared dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
                                         Form Cutting <i class="fas fa-cut fa-sm"></i>
                                     </a>
                                 </li>
-                            @endmeja
+                            @endif
 
-                            @meja
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('form-cut-piping') }}"
                                         class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}">
                                         Piping <i class="fa-solid fa-paperclip"></i>
                                     </a>
                                 </li>
-                            @endmeja
+                            @endif
 
                             {{-- @admin
                                 <li>
@@ -338,7 +340,7 @@
                         </ul>
                     </li>
 
-                    @admin
+                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading')
                         <li class="nav-item dropdown">
                             <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false"
@@ -423,7 +425,7 @@
                                 </li>
                             </ul>
                         </li>
-                    @endadmin
+                    @endif
                 @endif
 
                 @if ($page == 'dashboard-stocker')
@@ -448,7 +450,7 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @stocker
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'stocker' || auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('stocker-part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i
@@ -459,7 +461,7 @@
                                         class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i
                                             class="fas fa-ticket-alt"></i></a>
                                 </li>
-                            @endstocker
+                            @endif
                         </ul>
                     </li>
                     {{-- <li class="nav-item dropdown">

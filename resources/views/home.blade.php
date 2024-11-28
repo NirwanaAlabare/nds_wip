@@ -37,7 +37,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div class="col-lg-2 col-md-3 col-sm-6">
+                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('worksheet') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -49,7 +49,7 @@
                                     </div>
                                 </div>
                             </a>
-                        </div>
+                        </div> --}}
                     @endadmin
 
                     <!-- @sample
@@ -67,10 +67,7 @@
                         </div> --}}
                     @endsample -->
 
-                    @if (auth()->user()->type == 'admin' ||
-                            auth()->user()->type == 'superadmin' ||
-                            auth()->user()->type == 'marker' ||
-                            auth()->user()->type == 'spreading')
+                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-marker') }}" class="home-item">
                                 <div class="card h-100">
@@ -98,22 +95,22 @@
                                 </div>
                             </a>
                         </div>
+                    @endif
 
-                        @stocker
-                            <div class="col-lg-2 col-md-3 col-sm-6">
-                                <a href="{{ route('dashboard-stocker') }}" class="home-item">
-                                    <div class="card h-100">
-                                        <div class="card-body">
-                                            <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
-                                                    alt="qr code image">
-                                                <p class="text-center fw-bold text-uppercase text-dark">Stocker</p>
-                                            </div>
+                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading')
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="{{ route('dashboard-stocker') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Stocker</p>
                                         </div>
                                     </div>
-                                </a>
-                            </div>
-                        @endstocker
+                                </div>
+                            </a>
+                        </div>
                     @endif
 
                     @dc

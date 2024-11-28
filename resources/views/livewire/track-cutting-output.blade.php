@@ -44,7 +44,6 @@
                 <div>
                     <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')" wire:ignore>
                         <i class="fa fa-file-excel fa-sm"></i>
-                        Export
                     </button>
                 </div>
             </div>

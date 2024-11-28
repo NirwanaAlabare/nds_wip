@@ -984,11 +984,11 @@ class TrackController extends Controller
             }
 
             if ($dateFrom) {
-                $stockerSql->whereRaw("DATE(stocker_input.created_at) >= '" . $dateFrom . "'");
+                $stockerSql->whereRaw("stocker_input.updated_at >= '" . $dateFrom . " 00:00:00'");
             }
 
             if ($dateTo) {
-                $stockerSql->whereRaw("DATE(stocker_input.updated_at) <= '" . $dateTo . "'");
+                $stockerSql->whereRaw("stocker_input.updated_at <= '" . $dateTo . " 23:59:59'");
             }
 
             $stocker = $stockerSql->
@@ -1168,11 +1168,11 @@ class TrackController extends Controller
         }
 
         if ($dateFrom) {
-            $stockerSql->whereRaw("DATE(stocker_input.created_at) >= '" . $dateFrom . "'");
+            $stockerSql->whereRaw("stocker_input.updated_at >= '" . $dateFrom . " 00:00:00'");
         }
 
         if ($dateTo) {
-            $stockerSql->whereRaw("DATE(stocker_input.updated_at) <= '" . $dateTo . "'");
+            $stockerSql->whereRaw("stocker_input.updated_at <= '" . $dateTo . " 23:59:59'");
         }
 
         if ($stkColor) {

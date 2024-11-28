@@ -215,7 +215,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Part
-    Route::controller(PartController::class)->prefix("part")->middleware('stocker')->group(function () {
+    Route::controller(PartController::class)->prefix("part")->middleware('spreading')->group(function () {
         Route::get('/', 'index')->name('part');
         Route::get('/create', 'create')->name('create-part');
         Route::post('/store', 'store')->name('store-part');
@@ -438,7 +438,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Cutting Plan
-    Route::controller(CuttingPlanController::class)->prefix("cut-plan")->middleware('admin')->group(function () {
+    Route::controller(CuttingPlanController::class)->prefix("cut-plan")->middleware("spreading")->group(function () {
         Route::get('/', 'index')->name('cut-plan');
         Route::get('/create', 'create')->name('create-cut-plan');
         Route::post('/store', 'store')->name('store-cut-plan');
@@ -462,7 +462,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // CompletedForm
-    Route::controller(CompletedFormController::class)->prefix("manager")->middleware('manager')->group(function () {
+    Route::controller(CompletedFormController::class)->prefix("manager")->middleware("spreading")->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
         Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
         Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
@@ -472,7 +472,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // ReportCutting
-    Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
+    Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('spreading')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
         Route::get('/total-cutting', 'totalCutting')->name('total-cutting');
         Route::get('/cutting-daily', 'cuttingDaily')->name('report-cutting-daily');
@@ -491,7 +491,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Roll
-    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
+    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('spreading')->group(function () {
         Route::get('/', 'index')->name('lap_pemakaian');
         Route::post('/manajemen_roll', 'pemakaianRollData')->name('lap_pemakaian_data');
         Route::get('/sisa_kain_roll', 'sisaKainRoll')->name('sisa_kain_roll');
@@ -508,7 +508,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Stocker :
-    Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
+    Route::controller(StockerController::class)->prefix("stocker")->middleware('spreading')->group(function () {
         Route::get('/', 'index')->name('stocker');
         Route::get('/show/{formCutId?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
