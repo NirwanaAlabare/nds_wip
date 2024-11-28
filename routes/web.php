@@ -303,7 +303,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Form Cut Input
-    Route::controller(CuttingFormController::class)->prefix("form-cut-input")->middleware(["meja", "spreading"])->group(function () {
+    Route::controller(CuttingFormController::class)->prefix("form-cut-input")->middleware("meja")->group(function () {
         Route::get('/', 'index')->name('form-cut-input');
         Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
         Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
@@ -351,7 +351,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Manual Form Cut Input
-    Route::controller(CuttingFormManualController::class)->prefix("manual-form-cut")->middleware(["meja", "spreading"])->group(function () {
+    Route::controller(CuttingFormManualController::class)->prefix("manual-form-cut")->middleware("meja")->group(function () {
         Route::get('/', 'index')->name('manual-form-cut');
         Route::get('/create', 'create')->name('create-manual-form-cut');
         Route::get('/create-new', 'createNew')->name('create-new-manual-form-cut');
@@ -391,7 +391,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Pilot Form Cut Input
-    Route::controller(CuttingFormPilotController::class)->prefix("pilot-form-cut")->middleware(["meja", "spreading"])->group(function () {
+    Route::controller(CuttingFormPilotController::class)->prefix("pilot-form-cut")->middleware("meja")->group(function () {
         Route::get('/', 'index')->name('pilot-form-cut');
         Route::get('/create', 'create')->name('create-pilot-form-cut');
         Route::get('/create-new', 'createNew')->name('create-new-pilot-form-cut');
@@ -429,7 +429,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
     });
 
-    Route::controller(PipingController::class)->prefix("form-cut-piping")->middleware(["meja", "spreading"])->group(function () {
+    Route::controller(PipingController::class)->prefix("form-cut-piping")->middleware("meja")->group(function () {
         Route::get('/', 'index')->name('form-cut-piping');
         Route::get('/create', 'create')->name('create-piping');
         Route::post('/store', 'store')->name('store-piping');
