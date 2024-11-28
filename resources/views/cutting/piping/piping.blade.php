@@ -52,6 +52,7 @@
                             <th>Qty</th>
                             <th>Piping</th>
                             <th>Sisa</th>
+                            <th>Short Roll</th>
                             <th>Unit</th>
                             <th>Operator</th>
                         </tr>
@@ -176,6 +177,9 @@
                     data: 'qty_sisa'
                 },
                 {
+                    data: 'short_roll'
+                },
+                {
                     data: 'unit'
                 },
                 {
@@ -186,7 +190,7 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"consPipingModal\");'><i class='fa fa-edit'></i></a>";
+                        let btnEdit = "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"consPipingModal\");' disabled><i class='fa fa-edit'></i></button>";
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
                     }

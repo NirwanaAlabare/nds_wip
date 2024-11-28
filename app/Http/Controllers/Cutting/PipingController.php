@@ -32,6 +32,7 @@ class PipingController extends Controller
                 form_cut_piping.qty,
                 form_cut_piping.piping,
                 form_cut_piping.qty_sisa,
+                COALESCE(form_cut_piping.short_roll, 0) short_roll,
                 form_cut_piping.unit,
                 operator
             ")->
@@ -76,6 +77,7 @@ class PipingController extends Controller
             "qty_item" => "required|numeric|min:0",
             "piping" => "required|numeric|min:0",
             "qty_sisa" => "required|numeric|min:0",
+            "short_roll" => "required|numeric|min:0",
             "unit" => "required",
             "operator" => "required",
         ]);
@@ -93,6 +95,7 @@ class PipingController extends Controller
                 "qty" => $validatedRequest['qty_item'],
                 "piping" => $validatedRequest['piping'],
                 "qty_sisa" => $validatedRequest['qty_sisa'],
+                "short_roll" => $validatedRequest['short_roll'],
                 "unit" => $validatedRequest['unit'],
                 "operator" => $validatedRequest['operator']
             ]);

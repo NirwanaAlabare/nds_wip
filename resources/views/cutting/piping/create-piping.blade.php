@@ -141,7 +141,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Qty Roll</small></label>
                             <div class="input-group">
@@ -150,7 +150,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Piping</small></label>
                             <div class="input-group">
@@ -160,11 +160,20 @@
                             <input type="hidden" class="form-control" id="unit" name="unit" readonly>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Qty Sisa</small></label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="qty_sisa" name="qty_sisa" step=".001" readonly>
+                                <input type="number" class="form-control" id="qty_sisa" name="qty_sisa" step=".001" onkeyup="calculateShortRoll()" onchange="calculateShortRoll()">
+                                <span class="input-group-text unit-text">METER</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Short Roll</small></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="short_roll" name="short_roll" step=".001" readonly>
                                 <span class="input-group-text unit-text">METER</span>
                             </div>
                         </div>
@@ -564,7 +573,7 @@
             await $("#panel").prop("disabled", true);
         }
 
-        function calculatePipingRoll() {
+        async function calculatePipingRoll() {
             let qtyItem = document.getElementById("qty_item").value;
             let piping = document.getElementById("piping").value;
 
@@ -573,6 +582,20 @@
             console.log(qtySisa);
 
             document.getElementById("qty_sisa").value = qtySisa.round(2);
+
+            calculateShortRoll();
+        }
+
+        function calculateShortRoll() {
+            let qtyItem = document.getElementById("qty_item").value;
+            let piping = document.getElementById("piping").value;
+            let qtySisa = document.getElementById("qty_sisa").value;
+
+            let shortRoll = Number(qtyItem) - (Number(piping) + Number(qtySisa));
+
+            console.log(qtyItem, piping, qtySisa, shortRoll);
+
+            document.getElementById("short_roll").value = shortRoll.round(2);
         }
     </script>
 @endsection
