@@ -105,6 +105,7 @@
                     <table id="stocker-table" class="table table-bordered table-sm w-100">
                         <thead>
                             <tr>
+                                <th>Color</th>
                                 <th>Size</th>
                                 <th>Nama Part</th>
                                 <th>No. Form</th>
@@ -125,7 +126,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th class="text-end" colspan="5">Total</th>
+                                <th class="text-end" colspan="6">Total</th>
                                 <th id="total-stocker"></th>
                                 <th id="total-stocker-qty"></th>
                                 <th id="total-stocker-range"></th>
@@ -250,6 +251,9 @@
                     },
                     columns: [
                         {
+                            data: 'color',
+                        },
+                        {
                             data: 'size',
                         },
                         {
@@ -320,18 +324,18 @@
                     footerCallback: async function (row, data, start, end, display) {
                         let api = this.api();
 
-                        api.column(5).footer().innerHTML = "...";
                         api.column(6).footer().innerHTML = "...";
                         api.column(7).footer().innerHTML = "...";
                         api.column(8).footer().innerHTML = "...";
+                        api.column(9).footer().innerHTML = "...";
 
                         let totalStocker = await getTotalStocker();
 
                         if (await totalStocker) {
-                            api.column(5).footer().innerHTML = totalStocker.totalStocker+" Bundle";
-                            api.column(6).footer().innerHTML = totalStocker.totalQtyPly;
-                            api.column(7).footer().innerHTML = totalStocker.totalRange;
-                            api.column(8).footer().innerHTML = totalStocker.totalDifference;
+                            api.column(6).footer().innerHTML = totalStocker.totalStocker+" Bundle";
+                            api.column(7).footer().innerHTML = totalStocker.totalQtyPly;
+                            api.column(8).footer().innerHTML = totalStocker.totalRange;
+                            api.column(9).footer().innerHTML = totalStocker.totalDifference;
 
                                 // document.getElementById("total-stocker").innerText = totalStocker.totalStocker;
                                 // document.getElementById("total-stocker-qty").innerText = totalStocker.totalQtyPly;
