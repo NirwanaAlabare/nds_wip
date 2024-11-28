@@ -19,7 +19,7 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="row align-items-end g-3 mb-3">
+            <div class="row align-items-end g-1 mb-3">
                 <input type="hidden" class="form-control form-control-sm" id="part_id" name="part_id" value="{{ $stockDcIncomplete[0]->part_id }}">
                 <div class="col-6 col-md-3">
                     <label class="form-label"><small>Part</small></label>

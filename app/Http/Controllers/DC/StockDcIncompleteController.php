@@ -158,8 +158,8 @@ class StockDcIncompleteController extends Controller
                 LEFT JOIN master_secondary on master_secondary.id = part_detail.master_secondary_id
             WHERE
                 part.id = '".$partId."' AND
-                stocker_input.color = '".$color."' AND
-                stocker_input.size = '".$size."' AND
+                stocker_input.color = '".str_replace("_", "/", $color)."' AND
+                stocker_input.size = '".str_replace("_", "/", $size)."' AND
                 dc_in_input.id is null
             GROUP BY
                 part_form.part_id,
