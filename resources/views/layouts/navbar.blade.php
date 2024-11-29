@@ -302,7 +302,7 @@
                                 </li>
                             @endmarker --}}
 
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading')
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin'  || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
                                 <li>
                                     <a href="{{ route('spreading') }}"
                                         class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
@@ -311,7 +311,7 @@
                                 </li>
                             @endif
 
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading')
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
                                 <li>
                                     <a href="{{ route('form-cut-input') }}"
                                         class="appeared dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
@@ -320,7 +320,7 @@
                                 </li>
                             @endif
 
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading')
+                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
                                 <li>
                                     <a href="{{ route('form-cut-piping') }}"
                                         class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}">
@@ -340,7 +340,7 @@
                         </ul>
                     </li>
 
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading')
+                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
                         <li class="nav-item dropdown">
                             <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false"
