@@ -429,7 +429,7 @@
                 @endif
 
                 @if ($page == 'dashboard-stocker')
-                    {{-- <li class="nav-item dropdown">
+                    <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'master-stocker' ? 'active' : '' }}">Master</a>
@@ -443,7 +443,7 @@
                                 </li>
                             @endstocker
                         </ul>
-                    </li> --}}
+                    </li> 
 
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
