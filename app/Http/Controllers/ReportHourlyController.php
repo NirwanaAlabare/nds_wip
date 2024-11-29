@@ -45,35 +45,35 @@ class ReportHourlyController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
 
-            $cek_trans = DB::connection('mysql_sb')->select("
-                        SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
-            $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
+            // $cek_trans = DB::connection('mysql_sb')->select("
+            //             SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
+            // $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
 
-            if ($cek_trans_input === null) {
+            // if ($cek_trans_input === null) {
 
-                $del_data = DB::connection('mysql_sb')->delete("
-                            DELETE FROM rep_hourly_output_hist_trans");
+            //     $del_data = DB::connection('mysql_sb')->delete("
+            //                 DELETE FROM rep_hourly_output_hist_trans");
 
-                $ins_data = DB::connection('mysql_sb')->insert("
-                            INSERT INTO rep_hourly_output_hist_trans (tgl_trans, sewing_line, styleno, kpno, tgl_update)
-                            select
-                            date(a.updated_at) tgl_trans,
-                            u.name,
-                            ac.styleno,
-                            ac.kpno,
-                            '$tgl_skrg' tgl_update
-                            from
-                            (
-                            select * from output_rfts
-                            where date(updated_at) >= '2024-09-01'
-                            group by master_plan_id, date(updated_at), created_by
-                            ) a
-                            inner join user_sb_wip u on a.created_by = u.id
-                            inner join master_plan mp on a.master_plan_id = mp.id
-                            inner join act_costing ac on mp.id_ws = ac.id
-                            order by date(a.updated_at) asc
-                            ");
-            }
+            //     $ins_data = DB::connection('mysql_sb')->insert("
+            //                 INSERT INTO rep_hourly_output_hist_trans (tgl_trans, sewing_line, styleno, kpno, tgl_update)
+            //                 select
+            //                 date(a.updated_at) tgl_trans,
+            //                 u.name,
+            //                 ac.styleno,
+            //                 ac.kpno,
+            //                 '$tgl_skrg' tgl_update
+            //                 from
+            //                 (
+            //                 select * from output_rfts
+            //                 where date(updated_at) >= '2024-09-01'
+            //                 group by master_plan_id, date(updated_at), created_by
+            //                 ) a
+            //                 inner join user_sb_wip u on a.created_by = u.id
+            //                 inner join master_plan mp on a.master_plan_id = mp.id
+            //                 inner join act_costing ac on mp.id_ws = ac.id
+            //                 order by date(a.updated_at) asc
+            //                 ");
+            // }
 
             $data_tracking = DB::connection('mysql_sb')->select("SELECT
 a.tgl_trans,
