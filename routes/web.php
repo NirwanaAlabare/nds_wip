@@ -57,6 +57,7 @@ use App\Http\Controllers\Sewing\TrackOrderOutputController;
 use App\Http\Controllers\Sewing\TransferOutputController;
 use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
+use App\Http\Controllers\Sewing\UndoOutputController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -926,6 +927,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker', 'stocker')->name('track-stocker');
         Route::get('/stocker/show/{actCostingId?}', 'showStocker')->name('track-stocker-detail');
         Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
+    });
+
+    Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
+        Route::get('/', 'history')->name("undo-output-history");
     });
 
     //Mutasi Karywawan
