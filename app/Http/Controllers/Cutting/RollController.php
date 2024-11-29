@@ -235,13 +235,10 @@ class RollController extends Controller
                     b.sisa_tidak_bisa,
                     b.reject,
                     b.piping,
-                    COALESCE ( b.sisa_kain, 0 ) sisa_kain1,
+                    ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
                     b.pemakaian_lembar,
                     b.total_pemakaian_roll,
-                    b.short_roll sr1,
-                    CONCAT( ROUND((( b.short_roll / b.qty ) * 100 ), 2 ), ' %' ) short_roll_percentage1,
-                    ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (qty - b.total_pemakaian_roll) END), 2) sisa_kain,
-                    ROUND((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (qty - b.total_pemakaian_roll) END)) - MAX(qty), 2) short_roll,
+                    ROUND((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty), 2) short_roll,
                     CONCAT(ROUND((((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty))/(SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) * 100), 2), ' %') short_roll_percentage,
                     a.operator
                 FROM
@@ -262,6 +259,7 @@ class RollController extends Controller
                 WHERE
                     ( a.cancel = 'N' OR a.cancel IS NULL )
                     AND ( mrk.cancel = 'N' OR mrk.cancel IS NULL )
+                    AND a.status = 'SELESAI PENGERJAAN'
                     AND b.STATUS != 'not completed'
                     AND id_item IS NOT NULL
                     ".$additionalQuery."

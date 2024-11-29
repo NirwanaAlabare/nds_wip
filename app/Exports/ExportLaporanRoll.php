@@ -119,14 +119,11 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     b.sisa_tidak_bisa,
                     b.reject,
                     b.piping,
-                    COALESCE(b.sisa_kain, 0) sisa_kain1,
+                    ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
                     b.pemakaian_lembar,
                     b.total_pemakaian_roll,
-                    b.short_roll1,
-                    ROUND((CASE WHEN (b.status != 'extension' AND b.status != 'extension complete') THEN ((b.total_pemakaian_roll+b.sisa_kain) - b.qty)/COALESCE(scanned_item.qty_in, b.qty)*100 ELSE (b.short_roll / b.qty)*100 END), 2) short_roll_percentage1,
-                    ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (qty - b.total_pemakaian_roll) END), 2) sisa_kain,
-                    ROUND((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (qty - b.total_pemakaian_roll) END)) - MAX(qty), 2) short_roll,
-                    CONCAT(ROUND((((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty))/(SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) * 100), 2), ' %') short_roll_percentage,
+                    ROUND((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty), 2) short_roll,
+                    ROUND((((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty))/(SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) * 100), 2) short_roll_percentage,
                     b.status,
                     a.operator
                 from
@@ -139,6 +136,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 where
                     (a.cancel = 'N'  OR a.cancel IS NULL)
                     AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    AND a.status = 'SELESAI PENGERJAAN'
                     and b.status != 'not complete'
                     and b.id_item is not null
                     ".$additionalQuery."
