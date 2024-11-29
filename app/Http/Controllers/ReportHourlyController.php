@@ -45,35 +45,35 @@ class ReportHourlyController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
 
-            $cek_trans = DB::connection('mysql_sb')->select("
-                        SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
-            $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
+            // $cek_trans = DB::connection('mysql_sb')->select("
+            //             SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
+            // $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
 
-            if ($cek_trans_input === null) {
+            // if ($cek_trans_input === null) {
 
-                $del_data = DB::connection('mysql_sb')->delete("
-                            DELETE FROM rep_hourly_output_hist_trans");
+            //     $del_data = DB::connection('mysql_sb')->delete("
+            //                 DELETE FROM rep_hourly_output_hist_trans");
 
-                $ins_data = DB::connection('mysql_sb')->insert("
-                            INSERT INTO rep_hourly_output_hist_trans (tgl_trans, sewing_line, styleno, kpno, tgl_update)
-                            select
-                            date(a.updated_at) tgl_trans,
-                            u.name,
-                            ac.styleno,
-                            ac.kpno,
-                            '$tgl_skrg' tgl_update
-                            from
-                            (
-                            select * from output_rfts
-                            where date(updated_at) >= '2024-09-01'
-                            group by master_plan_id, date(updated_at), created_by
-                            ) a
-                            inner join user_sb_wip u on a.created_by = u.id
-                            inner join master_plan mp on a.master_plan_id = mp.id
-                            inner join act_costing ac on mp.id_ws = ac.id
-                            order by date(a.updated_at) asc
-                            ");
-            }
+            //     $ins_data = DB::connection('mysql_sb')->insert("
+            //                 INSERT INTO rep_hourly_output_hist_trans (tgl_trans, sewing_line, styleno, kpno, tgl_update)
+            //                 select
+            //                 date(a.updated_at) tgl_trans,
+            //                 u.name,
+            //                 ac.styleno,
+            //                 ac.kpno,
+            //                 '$tgl_skrg' tgl_update
+            //                 from
+            //                 (
+            //                 select * from output_rfts
+            //                 where date(updated_at) >= '2024-09-01'
+            //                 group by master_plan_id, date(updated_at), created_by
+            //                 ) a
+            //                 inner join user_sb_wip u on a.created_by = u.id
+            //                 inner join master_plan mp on a.master_plan_id = mp.id
+            //                 inner join act_costing ac on mp.id_ws = ac.id
+            //                 order by date(a.updated_at) asc
+            //                 ");
+            // }
 
             $data_tracking = DB::connection('mysql_sb')->select("SELECT
 a.tgl_trans,
@@ -116,19 +116,19 @@ sum(jam_10) o_jam_10,
 sum(jam_11) o_jam_11,
 sum(jam_12) o_jam_12,
 sum(jam_13) o_jam_13,
-sum(mp.set_target) set_target_perhari,
+jk.set_target set_target_perhari,
 mp.target_effy,
-sum(mp.jam_kerja) jam_kerja,
-round((((sum(mp.jam_kerja) * 60) * cmp.man_power) / mp.smv),0) target_100,
-round(((((sum(mp.jam_kerja) * 60) * cmp.man_power) / mp.smv) * mp.target_effy) / 100,0) target_output_eff,
+jk.jam_kerja jam_kerja,
+round((((jk.jam_kerja * 60) * cmp.man_power) / mp.smv),0) target_100,
+round(((((jk.jam_kerja * 60) * cmp.man_power) / mp.smv) * mp.target_effy) / 100,0) target_output_eff,
 case when
 		IF(
-        INSTR(CAST(if (sum(mp.jam_kerja) < 1,sum(mp.set_target), sum(mp.set_target) / sum(mp.jam_kerja)) AS CHAR), '.') > 0,
-        SUBSTRING(SUBSTRING_INDEX(CAST(if (sum(mp.jam_kerja) < 1,sum(mp.set_target), sum(mp.set_target) / sum(mp.jam_kerja)) AS CHAR), '.', -1), 1, 1),
+        INSTR(CAST(if (jk.jam_kerja < 1,jk.set_target , jk.set_target  / jk.jam_kerja) AS CHAR), '.') > 0,
+        SUBSTRING(SUBSTRING_INDEX(CAST(if (jk.jam_kerja < 1,jk.set_target , jk.set_target  / jk.jam_kerja) AS CHAR), '.', -1), 1, 1),
         '0'
-    ) >= 5 then CEILING(if (sum(mp.jam_kerja) < 1,sum(mp.set_target), sum(mp.set_target) / sum(mp.jam_kerja)))
+    ) >= 5 then CEILING(if (jk.jam_kerja < 1,jk.set_target , jk.set_target  / jk.jam_kerja))
 		else
-		floor(if (sum(mp.jam_kerja) < 1,sum(mp.set_target), sum(mp.set_target) / sum(mp.jam_kerja)))
+		floor(if (jk.jam_kerja < 1,jk.set_target , jk.set_target  / jk.jam_kerja))
 end as plan_target_perjam,
 concat(coalesce(e_kmrn_1.eff_kmrn_1,0), ' %') kemarin_1,
 concat(coalesce(e_kmrn_2.eff_kmrn_2,0), ' %') kemarin_2,
@@ -253,6 +253,22 @@ left join
             ) eff_hr_ini
             group by sewing_line
 ) e_skrg on u.name = e_skrg.sewing_line
+
+left join
+(
+select sum(mp.jam_kerja) jam_kerja, u.name, ac.styleno, sum(mp.set_target) set_target, ac.kpno
+from
+	(
+	select master_plan_id, created_by, so_det_id from output_rfts
+	where updated_at >= '$start_date' and updated_at <= '$end_date' and status = 'NORMAL'
+	GROUP BY master_plan_id, created_by
+	) a
+	inner join master_plan mp on a.master_plan_id = mp.id
+	inner join act_costing ac on mp.id_ws = ac.id
+	inner join user_sb_wip u on a.created_by = u.id
+	group by a.created_by, ac.styleno, ac.kpno
+) jk on u.name = jk.name and ac.styleno = jk.styleno and ac.kpno = jk.kpno
+
 left join
 (
             select

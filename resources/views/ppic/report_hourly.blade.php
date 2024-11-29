@@ -66,8 +66,8 @@
                             <th>SMV</th>
                             <th>MP</th>
                             <th>Jumlah Hari</th>
-                            <th>Eff Kemarin (1)</th>
                             <th>Eff Kemarin (2)</th>
+                            <th>Eff Kemarin (1)</th>
                             <th>Jam Kerja</th>
                             <th>Target Eff 100 %</th>
                             <th>Target Eff</th>
@@ -229,10 +229,10 @@
                         data: 'tot_days'
                     },
                     {
-                        data: 'kemarin_1'
+                        data: 'kemarin_2'
                     },
                     {
-                        data: 'kemarin_2'
+                        data: 'kemarin_1'
                     },
                     {
                         data: 'jam_kerja'
