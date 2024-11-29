@@ -167,8 +167,8 @@
                     <td>{{ $item->sisa_kain }}</td>
                     <td>{{ $item->pemakaian_lembar }}</td>
                     <td>{{ $latestStatus != 'extension complete' ? $item->total_pemakaian_roll : round(($item->total_pemakaian_roll+$latestTotalPemakaian), 2) }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->short_roll : round(($item->short_roll+$latestShortRoll), 2) }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->short_roll_percentage : ($latestQty > 0 ? round((($item->short_roll+$latestShortRoll)/$latestQty * 100), 2) : 0) }} %</td>
+                    <td>{{ $latestStatus != 'extension complete' ? $item->short_roll : round(($latestQty-($item->total_pemakaian_roll+$latestTotalPemakaian)), 2) }}</td>
+                    <td>{{ $latestStatus != 'extension complete' ? $item->short_roll_percentage : ($latestQty > 0 ? round((($latestQty-($item->total_pemakaian_roll+$latestTotalPemakaian))/$latestQty * 100), 2) : 0) }} %</td>
                 @else
                     <td>-</td>
                     <td>-</td>

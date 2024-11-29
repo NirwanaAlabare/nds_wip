@@ -259,6 +259,7 @@ class RollController extends Controller
                 WHERE
                     ( a.cancel = 'N' OR a.cancel IS NULL )
                     AND ( mrk.cancel = 'N' OR mrk.cancel IS NULL )
+                    AND a.status = 'SELESAI PENGERJAAN'
                     AND b.STATUS != 'not completed'
                     AND id_item IS NOT NULL
                     ".$additionalQuery."
