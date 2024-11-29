@@ -33,11 +33,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::if('marker', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "marker");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "marker" || auth()->user()->type == "spreading");
         });
 
         Blade::if('spreading', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "spreading");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "spreading" || auth()->user()->type == "marker");
         });
 
         Blade::if('meja', function () {
@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::if('stocker', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "stocker");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "stocker" || auth()->user()->type == "spreading");
         });
 
         Blade::if('manager', function () {
