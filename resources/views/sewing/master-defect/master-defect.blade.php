@@ -80,7 +80,7 @@
                             <label class="form-label">Alokasi</label>
                             <select class="form-select" name="allocation" id="allocation">
                                 <option value="SEWING">SEWING</option>
-                                <option value="MANDING">MANDING</option>
+                                <option value="MENDING">MENDING</option>
                                 <option value="SPOTCLEANING">SPOTCLEANING</option>
                             </select>
                         </div>
@@ -138,7 +138,7 @@
                             <label class="form-label">Alokasi</label>
                             <select class="form-select" name="edit_allocation" id="edit_allocation">
                                 <option value="SEWING">SEWING</option>
-                                <option value="MANDING">MANDING</option>
+                                <option value="MENDING">MENDING</option>
                                 <option value="SPOTCLEANING">SPOTCLEANING</option>
                             </select>
                         </div>
