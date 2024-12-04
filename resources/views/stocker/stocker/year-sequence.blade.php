@@ -427,7 +427,7 @@
                                 select.appendChild(option);
                             }
 
-                            $("#sequence").val(res[0].year_sequence).trigger("change");
+                            $("#sequence").val(res[res.length-1].year_sequence).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -465,18 +465,18 @@
                         if (res.status != "400") {
                             $("#range_awal").val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
 
-                            if (Number(res.year_sequence_number) >= 999999) {
-                                let select = document.getElementById('sequence');
+                            // if (Number(res.year_sequence_number) >= 999999) {
+                            //     let select = document.getElementById('sequence');
 
-                                if ($('#sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
-                                    let option = document.createElement("option");
-                                    option.setAttribute("value", Number(select.value)+1);
-                                    option.innerHTML = Number(select.value)+1;
-                                    select.appendChild(option);
-                                }
+                            //     if ($('#sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
+                            //         let option = document.createElement("option");
+                            //         option.setAttribute("value", Number(select.value)+1);
+                            //         option.innerHTML = Number(select.value)+1;
+                            //         select.appendChild(option);
+                            //     }
 
-                                $("#sequence").val(Number(select.value)+1).trigger("change");
-                            }
+                            //     $("#sequence").val(Number(select.value)+1).trigger("change");
+                            // }
                         } else {
                             Swal.fire({
                                 icon: 'error',
