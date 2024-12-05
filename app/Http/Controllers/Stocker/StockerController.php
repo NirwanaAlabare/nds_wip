@@ -2347,8 +2347,8 @@ class StockerController extends Controller
                                 year_sequence
                             WHERE
                                 year_sequence.so_det_id is not null
-                                AND year_sequence.updated_at >= '2024-12-05 00:00:00'
-                                AND year_sequence.updated_at <= '2024-12-05 23:59:59'
+                                AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+                                AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
                             GROUP BY
                                 form_cut_id,
                                 so_det_id,
