@@ -543,6 +543,7 @@ Route::middleware('auth')->group(function () {
 
         // stocker list
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
+        Route::get('/stocker-list-total', 'stockerListTotal')->name('stocker-list-total');
         Route::get('/stocker-list/detail/{form_cut_id?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
         Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
         Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');

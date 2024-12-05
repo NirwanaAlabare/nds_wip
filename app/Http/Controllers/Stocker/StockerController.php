@@ -2208,6 +2208,208 @@ class StockerController extends Controller
         return view("stocker.stocker.stocker-list", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
     }
 
+    public function stockerListTotal(Request $request) {
+        $additionalQuery = "";
+
+        $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
+        $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+        $tanggal_filter = "";
+        if ($request->tanggal_filter) {
+            $tanggal_filter = "AND year_sequence_num.updated_at LIKE '%".$request->tanggal_filter."%' ";
+        }
+        $no_form_filter = "";
+        if ($request->no_form_filter) {
+            $no_form_filter = "AND form_cut_input.no_form LIKE '%".$request->no_form_filter."%' ";
+        }
+        $no_cut_filter = "";
+        if ($request->no_cut_filter) {
+            $no_cut_filter = "AND form_cut_input.no_cut LIKE '%".$request->no_cut_filter."%' ";
+        }
+        $color_filter = "";
+        if ($request->color_filter) {
+            $color_filter = "AND master_sb_ws.color LIKE '%".$request->color_filter."%' ";
+        }
+        $size_filter = "";
+        if ($request->size_filter) {
+            $size_filter = "AND master_sb_ws.size LIKE '%".$request->size_filter."%' ";
+        }
+        $dest_filter = "";
+        if ($request->dest_filter) {
+            $dest_filter = "AND master_sb_ws.dest LIKE '%".$request->dest_filter."%' ";
+        }
+        $qty_filter = "";
+        if ($request->qty_filter) {
+            $qty_filter = "AND (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) LIKE '%".$request->qty_filter."%' ";
+        }
+        $year_sequence_filter = "";
+        if ($request->year_sequence_filter) {
+            $year_sequence_filter = "AND year_sequence_num.year_sequence LIKE '%".$request->year_sequence_filter."%' ";
+        }
+        $numbering_range_filter = "";
+        if ($request->numbering_range_filter) {
+            $numbering_range_filter = "AND CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir) ) LIKE '%".$request->numbering_range_filter."%' ";
+        }
+        $buyer_filter = "";
+        if ($request->buyer_filter) {
+            $buyer_filter = "AND master_sb_ws.buyer LIKE '%".$request->buyer_filter."%' ";
+        }
+        $ws_filter = "";
+        if ($request->ws_filter) {
+            $ws_filter = "AND master_sb_ws.ws LIKE '%".$request->ws_filter."%' ";
+        }
+        $style_filter = "";
+        if ($request->style_filter) {
+            $style_filter = "AND master_sb_ws.styleno LIKE '%".$request->style_filter."%' ";
+        }
+        $stocker_filter = "";
+        if ($request->stocker_filter) {
+            $stocker_filter = "AND GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) LIKE '%".$request->stocker_filter."%' ";
+        }
+        $part_filter = "";
+        if ($request->part_filter) {
+            $part_filter = "AND GROUP_CONCAT(DISTINCT master_part.nama_part) LIKE '%".$request->part_filter."%' ";
+        }
+        $group_filter = "";
+        if ($request->group_filter) {
+            $group_filter = "AND stocker_input.group_stocker LIKE '%".$request->group_filter."%' ";
+        }
+        $shade_filter = "";
+        if ($request->shade_filter) {
+            $shade_filter = "AND stocker_input.shade LIKE '%".$request->shade_filter."%' ";
+        }
+        $ratio_filter = "";
+        if ($request->ratio_filter) {
+            $ratio_filter = "AND stocker_input.ratio LIKE '%".$request->ratio_filter."%' ";
+        }
+        $stocker_range_filter = "";
+        if ($request->stocker_range_filter) {
+            $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$request->stocker_range_filter."%' ";
+        }
+
+        $stockerList = DB::select("
+            SELECT
+                COUNT(*) total_row,
+                SUM(qty) total_qty
+            FROM
+                (
+                    SELECT
+                        year_sequence_num.updated_at,
+                        GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
+                        GROUP_CONCAT(DISTINCT master_part.nama_part) part,
+                        stocker_input.form_cut_id,
+                        stocker_input.act_costing_ws,
+                        stocker_input.so_det_id,
+                        master_sb_ws.buyer buyer,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest,
+                        form_cut_input.no_form,
+                        form_cut_input.no_cut,
+                        stocker_input.group_stocker,
+                        stocker_input.shade,
+                        stocker_input.ratio,
+                        CONCAT (
+                            MIN(stocker_input.range_awal),
+                            '-',
+                            MAX(stocker_input.range_akhir)
+                        ) stocker_range,
+                        (
+                            MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1
+                        ) qty_stocker,
+                        year_sequence_num.year_sequence,
+                        (
+                            MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1
+                        ) qty,
+                        CONCAT (
+                            MIN(year_sequence_num.range_awal),
+                            ' - ',
+                            MAX(year_sequence_num.range_akhir)
+                        ) numbering_range
+                    FROM
+                        stocker_input
+                        LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                        INNER JOIN (
+                            SELECT
+                                form_cut_id,
+                                so_det_id,
+                                CONCAT (`year`, '_', year_sequence) year_sequence,
+                                MIN(number) range_numbering_awal,
+                                MAX(number) range_numbering_akhir,
+                                MIN(year_sequence_number) range_awal,
+                                MAX(year_sequence_number) range_akhir,
+                                COALESCE(updated_at, created_at) updated_at
+                            FROM
+                                year_sequence
+                            WHERE
+                                year_sequence.so_det_id is not null
+                                AND year_sequence.updated_at >= '2024-12-05 00:00:00'
+                                AND year_sequence.updated_at <= '2024-12-05 23:59:59'
+                            GROUP BY
+                                form_cut_id,
+                                so_det_id,
+                                COALESCE(updated_at, created_at)
+                        ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id
+                        and year_sequence_num.so_det_id = stocker_input.so_det_id
+                        and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
+                        and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                    WHERE
+                        (
+                            form_cut_input.cancel IS NULL
+                            OR form_cut_input.cancel != 'Y'
+                        )
+                        AND (
+                            form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
+                            OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+                            OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+                        )
+                        AND (
+                            form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
+                            OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                            OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+                            OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+                            OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+                        )
+                        ".$tanggal_filter."
+                        ".$no_form_filter."
+                        ".$no_cut_filter."
+                        ".$color_filter."
+                        ".$size_filter."
+                        ".$dest_filter."
+                        ".$year_sequence_filter."
+                        ".$buyer_filter."
+                        ".$ws_filter."
+                        ".$style_filter."
+                        ".$group_filter."
+                        ".$shade_filter."
+                        ".$ratio_filter."
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.ratio,
+                        year_sequence_num.updated_at
+                    HAVING
+                        stocker_input.form_cut_id
+                        ".$qty_filter."
+                        ".$numbering_range_filter."
+                        ".$stocker_filter."
+                        ".$part_filter."
+                        ".$stocker_range_filter."
+                    ORDER BY
+                        year_sequence_num.updated_at desc
+                ) stocker_list_total
+        ");
+
+        return $stockerList;
+    }
+
     public function stockerListDetail($form_cut_id, $so_det_id) {
         if ($form_cut_id && $so_det_id) {
             $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
