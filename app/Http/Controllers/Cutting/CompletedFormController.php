@@ -562,8 +562,9 @@ class CompletedFormController extends Controller
                 $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
 
                 if ($formCutDetailRoll) {
-                    $formCutDetailRoll->qty_pakai -= ($formCutDetail->qty - $formCutDetail->sisa_kain);
-                    $formCutDetailRoll->qty += ($formCutDetail->qty - $formCutDetail->sisa_kain);
+                    $formCutDetailRoll->qty_pakai -= round($formCutDetail->total_pemakaian_roll, 2);
+                    $formCutDetailRoll->qty += $formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round($formCutDetail->qty - $formCutDetail->sisa_kain, 2);
+
                     $formCutDetailRoll->save();
                 }
             }
