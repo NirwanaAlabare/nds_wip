@@ -2131,7 +2131,7 @@ class StockerController extends Controller
             // Convert seconds to days
             $daysInterval = $diffInSeconds / (60 * 60 * 24);
 
-            if ($daysInterval > 10) {
+            if ($daysInterval > 3) {
                 $stockerList = DB::select("
                     SELECT
                         year_sequence_num.updated_at,
@@ -2430,7 +2430,7 @@ class StockerController extends Controller
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$request->stocker_range_filter."%' ";
         }
 
-        if ($daysInterval > 10) {
+        if ($daysInterval > 3) {
             $stockerList = DB::select("
                 SELECT
                     COUNT(*) total_row,
@@ -3095,7 +3095,7 @@ class StockerController extends Controller
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$request->stocker_range_filter."%' ";
         }
 
-        if ($daysInterval > 10) {
+        if ($daysInterval > 3) {
             $stockerList = DB::select("
                 SELECT
                     year_sequence_num.updated_at,
