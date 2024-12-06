@@ -315,8 +315,6 @@ class StockerController extends Controller
 
         $dataAdditional = DB::table("stocker_ws_additional")->where("no_form", $dataSpreading->no_form)->first();
 
-            // dd($dataAdditional);
-
         $dataRatioAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
             stocker_ws_additional_detail.id additional_detail_id,
             stocker_ws_additional_detail.so_det_id,
@@ -2134,84 +2132,205 @@ class StockerController extends Controller
             $daysInterval = $diffInSeconds / (60 * 60 * 24);
 
             if ($daysInterval > 10) {
-                $dateFrom = date('Y-m-d', strtotime($dateTo.' -7 days'));
-            }
-
-            $stockerList = DB::select("
-                SELECT
-                    year_sequence_num.updated_at,
-                    GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                    GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
-                    stocker_input.form_cut_id,
-                    stocker_input.act_costing_ws,
-                    stocker_input.so_det_id,
-                    master_sb_ws.buyer buyer,
-                    master_sb_ws.styleno style,
-                    master_sb_ws.color,
-                    master_sb_ws.size,
-                    master_sb_ws.dest,
-                    form_cut_input.no_form,
-                    form_cut_input.no_cut,
-                    stocker_input.group_stocker,
-                    stocker_input.shade,
-                    stocker_input.ratio,
-                    CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
-                    (MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1) qty_stocker,
-                    year_sequence_num.year_sequence,
-                    (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
-                    CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
-                FROM
-                    stocker_input
-                    LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                    LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
-                    LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
-                    INNER JOIN (
+                $stockerList = DB::select("
+                    SELECT
+                        year_sequence_num.updated_at,
+                        stocker_input.id_qr_stocker,
+                        stocker_input.part,
+                        stocker_input.form_cut_id,
+                        stocker_input.act_costing_ws,
+                        stocker_input.so_det_id,
+                        stocker_input.buyer,
+                        stocker_input.style,
+                        stocker_input.color,
+                        stocker_input.size,
+                        stocker_input.dest,
+                        stocker_input.group_stocker,
+                        stocker_input.shade,
+                        stocker_input.ratio,
+                        stocker_input.stocker_range,
+                        stocker_input.qty_stocker,
+                        stocker_input.no_form,
+                        stocker_input.no_cut,
+                        year_sequence_num.year_sequence,
+                        ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+                        CONCAT(
+                            MIN( year_sequence_num.range_awal ),
+                            ' - ',
+                        MAX( year_sequence_num.range_akhir )) numbering_range
+                    FROM
+                        (
                         SELECT
                             form_cut_id,
                             so_det_id,
-                            CONCAT(`year`, '_', year_sequence) year_sequence,
+                            CONCAT( YEAR, '_', year_sequence ) year_sequence,
                             MIN( number ) range_numbering_awal,
                             MAX( number ) range_numbering_akhir,
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
-                            COALESCE(updated_at, created_at) updated_at
+                            COALESCE ( updated_at, created_at ) updated_at
                         FROM
                             year_sequence
                         WHERE
-                            year_sequence.so_det_id is not null
+                            year_sequence.so_det_id IS NOT NULL
                             AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
                             AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
                         GROUP BY
                             form_cut_id,
                             so_det_id,
-                            COALESCE(updated_at, created_at)
-                    ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
-                WHERE
-                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
-                    AND (
-                        form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
-                        OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
-                        OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
-                        OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
-                        OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
-                    )
-                    AND (
-                        form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
-                        OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
-                        OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
-                        OR stocker_input.created_at <= '".$dateTo." 23:59:59'
-                        OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
-                    )
-                GROUP BY
-                    stocker_input.form_cut_id,
-                    stocker_input.so_det_id,
-                    stocker_input.group_stocker,
-                    stocker_input.ratio,
-                    year_sequence_num.updated_at
-                ORDER BY
-                    year_sequence_num.updated_at desc
-            ");
+                            COALESCE ( updated_at, created_at )
+                        ) year_sequence_num
+                        INNER JOIN (
+                        SELECT
+                            GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                            stocker_input.form_cut_id,
+                            stocker_input.act_costing_ws,
+                            stocker_input.so_det_id,
+                            master_sb_ws.buyer buyer,
+                            master_sb_ws.styleno style,
+                            master_sb_ws.color,
+                            master_sb_ws.size,
+                            master_sb_ws.dest,
+                            stocker_input.part_detail_id,
+                            stocker_input.shade,
+                            stocker_input.group_stocker,
+                            stocker_input.ratio,
+                            stocker_input.range_awal,
+                            stocker_input.range_akhir,
+                            stocker_input.created_at,
+                            stocker_input.updated_at,
+                            form_cut_input.waktu_mulai,
+                            form_cut_input.waktu_selesai,
+                            form_cut_input.no_form,
+                            form_cut_input.no_cut,
+                            GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                            CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
+                            ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker
+                        FROM
+                            stocker_input
+                            LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                            LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                        GROUP BY
+                            stocker_input.form_cut_id,
+                            stocker_input.so_det_id,
+                            stocker_input.group_stocker
+                        ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
+                        AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
+                        AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                        WHERE
+                        (
+                            stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
+                            OR stocker_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+                            OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+                        )
+                        AND (
+                            stocker_input.waktu_mulai <= '".$dateTo." 23:59:59'
+                            OR stocker_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                            OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+                            OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+                            OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+                        )
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        year_sequence_num.updated_at
+                    ORDER BY
+                        year_sequence_num.updated_at DESC
+                ");
+            } else {
+                $stockerList = DB::select("
+                    SELECT
+                        year_sequence_num.updated_at,
+                        GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                        GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                        stocker_input.form_cut_id,
+                        stocker_input.act_costing_ws,
+                        stocker_input.so_det_id,
+                        master_sb_ws.buyer buyer,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest,
+                        form_cut_input.no_form,
+                        form_cut_input.no_cut,
+                        stocker_input.group_stocker,
+                        stocker_input.shade,
+                        stocker_input.ratio,
+                        CONCAT(
+                            MIN( stocker_input.range_awal ),
+                            '-',
+                        MAX( stocker_input.range_akhir )) stocker_range,
+                        ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
+                        year_sequence_num.year_sequence,
+                        ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+                        CONCAT(
+                            MIN( year_sequence_num.range_awal ),
+                            ' - ',
+                        MAX( year_sequence_num.range_akhir )) numbering_range
+                    FROM
+                        stocker_input
+                        LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                        INNER JOIN (
+                            SELECT
+                                form_cut_id,
+                                so_det_id,
+                                CONCAT( `year`, '_', year_sequence ) year_sequence,
+                                MIN( number ) range_numbering_awal,
+                                MAX( number ) range_numbering_akhir,
+                                MIN( year_sequence_number ) range_awal,
+                                MAX( year_sequence_number ) range_akhir,
+                                COALESCE ( updated_at, created_at ) updated_at
+                            FROM
+                                year_sequence
+                            WHERE
+                                year_sequence.so_det_id IS NOT NULL
+                                AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+                                AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
+                            GROUP BY
+                                form_cut_id,
+                                so_det_id,
+                                COALESCE ( updated_at, created_at )
+                            ORDER BY
+                                COALESCE ( updated_at, created_at)
+                        ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
+                        AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
+                        AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                    WHERE
+                        ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                        AND (
+                            form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
+                            OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+                            OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+                        )
+                        AND (
+                            form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
+                            OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                            OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+                            OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+                            OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+                        )
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.ratio,
+                        year_sequence_num.updated_at
+                    ORDER BY
+                        year_sequence_num.updated_at DESC
+                ");
+            }
 
             return DataTables::of($stockerList)->toJson();
         }
@@ -2237,10 +2356,6 @@ class StockerController extends Controller
 
         // Convert seconds to days
         $daysInterval = $diffInSeconds / (60 * 60 * 24);
-
-        if ($daysInterval > 10) {
-            $dateFrom = date('Y-m-d', strtotime($dateTo.' -7 days'));
-        }
 
         $tanggal_filter = "";
         if ($request->tanggal_filter) {
@@ -2315,16 +2430,152 @@ class StockerController extends Controller
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$request->stocker_range_filter."%' ";
         }
 
-        $stockerList = DB::select("
-            SELECT
-                COUNT(*) total_row,
-                SUM(qty) total_qty
-            FROM
+        if ($daysInterval > 10) {
+            $stockerList = DB::select("
+                SELECT
+                    COUNT(*) total_row,
+                    SUM(qty) total_qty
+                FROM
                 (
                     SELECT
                         year_sequence_num.updated_at,
-                        GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
-                        GROUP_CONCAT(DISTINCT master_part.nama_part) part,
+                        stocker_input.id_qr_stocker,
+                        stocker_input.part,
+                        stocker_input.form_cut_id,
+                        stocker_input.act_costing_ws,
+                        stocker_input.so_det_id,
+                        stocker_input.buyer,
+                        stocker_input.style,
+                        stocker_input.color,
+                        stocker_input.size,
+                        stocker_input.dest,
+                        stocker_input.group_stocker,
+                        stocker_input.shade,
+                        stocker_input.ratio,
+                        stocker_input.stocker_range,
+                        stocker_input.qty_stocker,
+                        year_sequence_num.year_sequence,
+                        stocker_input.no_form,
+                        stocker_input.no_cut,
+                        ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+                        CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range
+                    FROM
+                        (
+                        SELECT
+                            form_cut_id,
+                            so_det_id,
+                            CONCAT( YEAR, '_', year_sequence ) year_sequence,
+                            MIN( number ) range_numbering_awal,
+                            MAX( number ) range_numbering_akhir,
+                            MIN( year_sequence_number ) range_awal,
+                            MAX( year_sequence_number ) range_akhir,
+                            COALESCE ( updated_at, created_at ) updated_at
+                        FROM
+                            year_sequence
+                        WHERE
+                            year_sequence.so_det_id IS NOT NULL
+                            AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+                            AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
+                        GROUP BY
+                            form_cut_id,
+                            so_det_id,
+                            COALESCE ( updated_at, created_at )
+                        ) year_sequence_num
+                        INNER JOIN (
+                        SELECT
+                            GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                            stocker_input.form_cut_id,
+                            stocker_input.act_costing_ws,
+                            stocker_input.so_det_id,
+                            master_sb_ws.buyer buyer,
+                            master_sb_ws.styleno style,
+                            master_sb_ws.color,
+                            master_sb_ws.size,
+                            master_sb_ws.dest,
+                            stocker_input.part_detail_id,
+                            stocker_input.shade,
+                            stocker_input.group_stocker,
+                            stocker_input.ratio,
+                            stocker_input.range_awal,
+                            stocker_input.range_akhir,
+                            stocker_input.created_at,
+                            stocker_input.updated_at,
+                            form_cut_input.waktu_mulai,
+                            form_cut_input.waktu_selesai,
+                            form_cut_input.no_form,
+                            form_cut_input.no_cut,
+                            GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                            CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
+                            ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker
+                        FROM
+                            stocker_input
+                            LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                            LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                        GROUP BY
+                            stocker_input.form_cut_id,
+                            stocker_input.so_det_id,
+                            stocker_input.group_stocker
+                        ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
+                        AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
+                        AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                        WHERE
+                        (
+                            stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
+                            OR stocker_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+                            OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+                            OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+                        )
+                        AND (
+                            stocker_input.waktu_mulai <= '".$dateTo." 23:59:59'
+                            OR stocker_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                            OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+                            OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+                            OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+                        )
+                        ".$tanggal_filter."
+                        ".$no_form_filter."
+                        ".$no_cut_filter."
+                        ".$color_filter."
+                        ".$size_filter."
+                        ".$dest_filter."
+                        ".$year_sequence_filter."
+                        ".$buyer_filter."
+                        ".$ws_filter."
+                        ".$style_filter."
+                        ".$group_filter."
+                        ".$shade_filter."
+                        ".$ratio_filter."
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        year_sequence_num.updated_at
+                    HAVING
+                        stocker_input.form_cut_id
+                        ".$qty_filter."
+                        ".$numbering_range_filter."
+                        ".$stocker_filter."
+                        ".$part_filter."
+                        ".$stocker_range_filter."
+                    ORDER BY
+                        year_sequence_num.updated_at DESC
+                ) stocker_list_total
+            ");
+        } else {
+            $stockerList = DB::select("
+                SELECT
+                    COUNT(*) total_row,
+                    SUM(qty) total_qty
+                FROM
+                (
+                    SELECT
+                        year_sequence_num.updated_at,
+                        GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                        GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                         stocker_input.form_cut_id,
                         stocker_input.act_costing_ws,
                         stocker_input.so_det_id,
@@ -2338,23 +2589,17 @@ class StockerController extends Controller
                         stocker_input.group_stocker,
                         stocker_input.shade,
                         stocker_input.ratio,
-                        CONCAT (
-                            MIN(stocker_input.range_awal),
+                        CONCAT(
+                            MIN( stocker_input.range_awal ),
                             '-',
-                            MAX(stocker_input.range_akhir)
-                        ) stocker_range,
-                        (
-                            MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1
-                        ) qty_stocker,
+                        MAX( stocker_input.range_akhir )) stocker_range,
+                        ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
                         year_sequence_num.year_sequence,
-                        (
-                            MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1
-                        ) qty,
-                        CONCAT (
-                            MIN(year_sequence_num.range_awal),
+                        ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+                        CONCAT(
+                            MIN( year_sequence_num.range_awal ),
                             ' - ',
-                            MAX(year_sequence_num.range_akhir)
-                        ) numbering_range
+                        MAX( year_sequence_num.range_akhir )) numbering_range
                     FROM
                         stocker_input
                         LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -2365,31 +2610,30 @@ class StockerController extends Controller
                             SELECT
                                 form_cut_id,
                                 so_det_id,
-                                CONCAT (`year`, '_', year_sequence) year_sequence,
-                                MIN(number) range_numbering_awal,
-                                MAX(number) range_numbering_akhir,
-                                MIN(year_sequence_number) range_awal,
-                                MAX(year_sequence_number) range_akhir,
-                                COALESCE(updated_at, created_at) updated_at
+                                CONCAT( `year`, '_', year_sequence ) year_sequence,
+                                MIN( number ) range_numbering_awal,
+                                MAX( number ) range_numbering_akhir,
+                                MIN( year_sequence_number ) range_awal,
+                                MAX( year_sequence_number ) range_akhir,
+                                COALESCE ( updated_at, created_at ) updated_at
                             FROM
                                 year_sequence
                             WHERE
-                                year_sequence.so_det_id is not null
+                                year_sequence.so_det_id IS NOT NULL
                                 AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
                                 AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
                             GROUP BY
                                 form_cut_id,
                                 so_det_id,
-                                COALESCE(updated_at, created_at)
-                        ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id
-                        and year_sequence_num.so_det_id = stocker_input.so_det_id
-                        and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                        and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                                COALESCE ( updated_at, created_at )
+                            ORDER BY
+                                COALESCE ( updated_at, created_at)
+                        ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
+                        AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
+                        AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
                     WHERE
-                        (
-                            form_cut_input.cancel IS NULL
-                            OR form_cut_input.cancel != 'Y'
-                        )
+                        ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                         AND (
                             form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
                             OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
@@ -2431,9 +2675,10 @@ class StockerController extends Controller
                         ".$part_filter."
                         ".$stocker_range_filter."
                     ORDER BY
-                        year_sequence_num.updated_at desc
+                        year_sequence_num.updated_at DESC
                 ) stocker_list_total
-        ");
+            ");
+        }
 
         return $stockerList;
     }
@@ -2444,51 +2689,51 @@ class StockerController extends Controller
             $years = array_reverse(range(1999, date('Y')));
 
             $stockerList = DB::select("
-                    SELECT
-                        GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
-                        GROUP_CONCAT(DISTINCT master_part.nama_part) part,
-                        stocker_input.form_cut_id,
-                        stocker_input.act_costing_ws,
-                        stocker_input.so_det_id,
-                        master_sb_ws.buyer buyer,
-                        master_sb_ws.styleno style,
-                        master_sb_ws.color,
-                        master_sb_ws.size,
-                        master_sb_ws.dest,
-                        form_cut_input.no_form,
-                        form_cut_input.no_cut,
-                        stocker_input.group_stocker,
-                        stocker_input.shade,
-                        stocker_input.ratio,
-                        MIN(stocker_input.range_awal) range_awal,
-                        MAX(stocker_input.range_akhir) range_akhir,
-                        CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range
-                    FROM
-                        stocker_input
-                    LEFT JOIN
-                        part_detail on part_detail.id = stocker_input.part_detail_id
-                    LEFT JOIN
-                        master_part on master_part.id = part_detail.master_part_id
-                    LEFT JOIN
-                        master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
-                    LEFT JOIN
-                        form_cut_input on form_cut_input.id = stocker_input.form_cut_id
-                    WHERE
-                        (form_cut_input.cancel is null or form_cut_input.cancel != 'Y') AND
-                        stocker_input.form_cut_id = '".$form_cut_id."' AND
-                        stocker_input.so_det_id = '".$so_det_id."'
-                    GROUP BY
-                        stocker_input.form_cut_id,
-                        stocker_input.so_det_id,
-                        stocker_input.group_stocker,
-                        stocker_input.ratio
-                    ORDER BY
-                        stocker_input.updated_at desc,
-                        stocker_input.created_at desc,
-                        form_cut_input.waktu_selesai desc,
-                        form_cut_input.waktu_mulai desc
-                    LIMIT 1
-                ");
+                SELECT
+                    GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part) part,
+                    stocker_input.form_cut_id,
+                    stocker_input.act_costing_ws,
+                    stocker_input.so_det_id,
+                    master_sb_ws.buyer buyer,
+                    master_sb_ws.styleno style,
+                    master_sb_ws.color,
+                    master_sb_ws.size,
+                    master_sb_ws.dest,
+                    form_cut_input.no_form,
+                    form_cut_input.no_cut,
+                    stocker_input.group_stocker,
+                    stocker_input.shade,
+                    stocker_input.ratio,
+                    MIN(stocker_input.range_awal) range_awal,
+                    MAX(stocker_input.range_akhir) range_akhir,
+                    CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range
+                FROM
+                    stocker_input
+                LEFT JOIN
+                    part_detail on part_detail.id = stocker_input.part_detail_id
+                LEFT JOIN
+                    master_part on master_part.id = part_detail.master_part_id
+                LEFT JOIN
+                    master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
+                LEFT JOIN
+                    form_cut_input on form_cut_input.id = stocker_input.form_cut_id
+                WHERE
+                    (form_cut_input.cancel is null or form_cut_input.cancel != 'Y') AND
+                    stocker_input.form_cut_id = '".$form_cut_id."' AND
+                    stocker_input.so_det_id = '".$so_det_id."'
+                GROUP BY
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
+                    stocker_input.group_stocker,
+                    stocker_input.ratio
+                ORDER BY
+                    stocker_input.updated_at desc,
+                    stocker_input.created_at desc,
+                    form_cut_input.waktu_selesai desc,
+                    form_cut_input.waktu_mulai desc
+                LIMIT 1
+            ");
 
             if ($stockerList[0]) {
                 $stockerListNumber = YearSequence::selectRaw("
@@ -2602,6 +2847,41 @@ class StockerController extends Controller
         );
     }
 
+    public function checkYearSequenceNumber(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $now = Carbon::now();
+
+        $validatedRequest = $request->validate([
+            "year" => 'required',
+            "year_sequence" => 'required',
+            "form_cut_id" => 'required',
+            "so_det_id" => 'required',
+            "size" => 'required',
+            "range_awal_stocker" => 'required',
+            "range_akhir_stocker" => 'required',
+            "range_awal_year_sequence" => 'required',
+            "range_akhir_year_sequence" => 'required',
+        ]);
+
+        if ($validatedRequest) {
+            $restrictYearSequence = YearSequence::whereBetween('year_sequence_number', $validatedRequest['range_awal_year_sequence'], $validatedRequest['range_akhir_year_sequence'])->whereNotNull("so_det_id")->orderBy('year_sequence_number');
+
+            if ($restrictYearSequence->count() > 0) {
+
+                return array([
+                    "status" => 400,
+                    "message" => "Range "+($restrictYearSequence->implode('id_year_sequence', ' <br> '))+" Sudah di Regis"
+                ]);
+            }
+        }
+
+        return array([
+            "status" => 200,
+            "message" => "Range tersedia"
+        ]);
+    }
+
     public function setYearSequenceNumber(Request $request) {
         ini_set("max_execution_time", 36000);
 
@@ -2646,6 +2926,7 @@ class StockerController extends Controller
                 $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
 
                 $upsertData = [];
+                $restrictData = [];
 
                 $n = 0;
                 $n1 = 0;
@@ -2660,29 +2941,35 @@ class StockerController extends Controller
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
                         $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n);
 
-                        array_push($upsertData, [
-                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
-                            "year" => $validatedRequest['year'],
-                            "year_sequence" => $yearSequenceSequence,
-                            "year_sequence_number" => ($validatedRequest['range_awal_year_sequence']+$n1),
-                            "form_cut_id" => $validatedRequest['form_cut_id'],
-                            "so_det_id" => $validatedRequest['so_det_id'],
-                            "size" => $validatedRequest['size'],
-                            "number" => ($currentNumber > $validatedRequest['range_akhir_stocker'] ? $validatedRequest['range_akhir_stocker'] : ($currentNumber)),
-                            "id_qr_stocker" => $request["id_qr_stocker"],
-                            "created_at" => $now,
-                            "updated_at" => $now,
-                        ]);
+                        $currentYearSequence = YearSequence::where("id_year_sequence", $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1))->first();
 
-                        if (count($upsertData) % 5000 == 0) {
-                            YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
+                        if (!($currentYearSequence && $currentYearSequence->so_det_id)) {
+                            array_push($upsertData, [
+                                "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
+                                "year" => $validatedRequest['year'],
+                                "year_sequence" => $yearSequenceSequence,
+                                "year_sequence_number" => ($validatedRequest['range_awal_year_sequence']+$n1),
+                                "form_cut_id" => $validatedRequest['form_cut_id'],
+                                "so_det_id" => $validatedRequest['so_det_id'],
+                                "size" => $validatedRequest['size'],
+                                "number" => ($currentNumber > $validatedRequest['range_akhir_stocker'] ? $validatedRequest['range_akhir_stocker'] : ($currentNumber)),
+                                "id_qr_stocker" => $request["id_qr_stocker"],
+                                "created_at" => $now,
+                                "updated_at" => $now,
+                            ]);
 
-                            $upsertData = [];
+                            if (count($upsertData) % 5000 == 0) {
+                                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
 
-                            $largeCount++;
+                                $upsertData = [];
+
+                                $largeCount++;
+                            }
+
+                            $n1++;
+                        } else {
+                            array_push($restrictData, $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1));
                         }
-
-                        $n1++;
                     }
 
                     $n++;
@@ -2734,10 +3021,6 @@ class StockerController extends Controller
 
         // Convert seconds to days
         $daysInterval = $diffInSeconds / (60 * 60 * 24);
-
-        if ($daysInterval > 10) {
-            $dateFrom = date('Y-m-d', strtotime($dateTo.' -7 days'));
-        }
 
         $tanggal_filter = "";
         if ($request->tanggal_filter) {
@@ -2812,119 +3095,243 @@ class StockerController extends Controller
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$request->stocker_range_filter."%' ";
         }
 
-        $stockerList = DB::select("
-            SELECT
-                year_sequence_num.updated_at,
-                GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
-                GROUP_CONCAT(DISTINCT master_part.nama_part) part,
-                stocker_input.form_cut_id,
-                stocker_input.act_costing_ws,
-                stocker_input.so_det_id,
-                master_sb_ws.buyer buyer,
-                master_sb_ws.styleno style,
-                master_sb_ws.color,
-                master_sb_ws.size,
-                master_sb_ws.dest,
-                form_cut_input.no_form,
-                form_cut_input.no_cut,
-                stocker_input.group_stocker,
-                stocker_input.shade,
-                stocker_input.ratio,
-                CONCAT (
-                    MIN(stocker_input.range_awal),
-                    '-',
-                    MAX(stocker_input.range_akhir)
-                ) stocker_range,
-                (
-                    MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1
-                ) qty_stocker,
-                year_sequence_num.year_sequence,
-                (
-                    MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1
-                ) qty,
-                CONCAT (
-                    MIN(year_sequence_num.range_awal),
-                    ' - ',
-                    MAX(year_sequence_num.range_akhir)
-                ) numbering_range
-            FROM
-                stocker_input
-                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
-                LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
-                INNER JOIN (
-                    SELECT
-                        form_cut_id,
-                        so_det_id,
-                        CONCAT (`year`, '_', year_sequence) year_sequence,
-                        MIN(number) range_numbering_awal,
-                        MAX(number) range_numbering_akhir,
-                        MIN(year_sequence_number) range_awal,
-                        MAX(year_sequence_number) range_akhir,
-                        COALESCE(updated_at, created_at) updated_at
-                    FROM
-                        year_sequence
+        if ($daysInterval > 10) {
+            $stockerList = DB::select("
+                SELECT
+                    year_sequence_num.updated_at,
+                    stocker_input.id_qr_stocker,
+                    stocker_input.part,
+                    stocker_input.form_cut_id,
+                    stocker_input.act_costing_ws,
+                    stocker_input.so_det_id,
+                    stocker_input.buyer,
+                    stocker_input.style,
+                    stocker_input.color,
+                    stocker_input.size,
+                    stocker_input.dest,
+                    stocker_input.group_stocker,
+                    stocker_input.shade,
+                    stocker_input.ratio,
+                    stocker_input.stocker_range,
+                    stocker_input.qty_stocker,
+                    stocker_input.no_form,
+                    stocker_input.no_cut,
+                    year_sequence_num.year_sequence,
+                    ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+                    CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range
+                FROM
+                    (
+                        SELECT
+                            form_cut_id,
+                            so_det_id,
+                            CONCAT( YEAR, '_', year_sequence ) year_sequence,
+                            MIN( number ) range_numbering_awal,
+                            MAX( number ) range_numbering_akhir,
+                            MIN( year_sequence_number ) range_awal,
+                            MAX( year_sequence_number ) range_akhir,
+                            COALESCE ( updated_at, created_at ) updated_at
+                        FROM
+                            year_sequence
+                        WHERE
+                            year_sequence.so_det_id IS NOT NULL
+                            AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+                            AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
+                        GROUP BY
+                            form_cut_id,
+                            so_det_id,
+                            COALESCE ( updated_at, created_at )
+                    ) year_sequence_num
+                    INNER JOIN (
+                        SELECT
+                            GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                            stocker_input.form_cut_id,
+                            stocker_input.act_costing_ws,
+                            stocker_input.so_det_id,
+                            master_sb_ws.buyer buyer,
+                            master_sb_ws.styleno style,
+                            master_sb_ws.color,
+                            master_sb_ws.size,
+                            master_sb_ws.dest,
+                            stocker_input.part_detail_id,
+                            stocker_input.shade,
+                            stocker_input.group_stocker,
+                            stocker_input.ratio,
+                            stocker_input.range_awal,
+                            stocker_input.range_akhir,
+                            stocker_input.created_at,
+                            stocker_input.updated_at,
+                            form_cut_input.waktu_mulai,
+                            form_cut_input.waktu_selesai,
+                            form_cut_input.no_form,
+                            form_cut_input.no_cut,
+                            GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                            CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
+                            ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker
+                        FROM
+                            stocker_input
+                            LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                            LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                        GROUP BY
+                            stocker_input.form_cut_id,
+                            stocker_input.so_det_id,
+                            stocker_input.group_stocker
+                    ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
+                    AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                    AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
+                    AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
                     WHERE
-                        year_sequence.so_det_id is not null
-                        AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
-                        AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
-                    GROUP BY
-                        form_cut_id,
-                        so_det_id,
-                        COALESCE(updated_at, created_at)
-                ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id
-                and year_sequence_num.so_det_id = stocker_input.so_det_id
-                and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
-            WHERE
-                (
-                    form_cut_input.cancel IS NULL
-                    OR form_cut_input.cancel != 'Y'
-                )
-                AND (
-                    form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
-                    OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
-                    OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
-                    OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
-                    OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
-                )
-                AND (
-                    form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
-                    OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
-                    OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
-                    OR stocker_input.created_at <= '".$dateTo." 23:59:59'
-                    OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
-                )
-                ".$tanggal_filter."
-                ".$no_form_filter."
-                ".$no_cut_filter."
-                ".$color_filter."
-                ".$size_filter."
-                ".$dest_filter."
-                ".$year_sequence_filter."
-                ".$buyer_filter."
-                ".$ws_filter."
-                ".$style_filter."
-                ".$group_filter."
-                ".$shade_filter."
-                ".$ratio_filter."
-            GROUP BY
-                stocker_input.form_cut_id,
-                stocker_input.so_det_id,
-                stocker_input.group_stocker,
-                stocker_input.ratio,
-                year_sequence_num.updated_at
-            HAVING
-                stocker_input.form_cut_id
-                ".$qty_filter."
-                ".$numbering_range_filter."
-                ".$stocker_filter."
-                ".$part_filter."
-                ".$stocker_range_filter."
-            ORDER BY
-                year_sequence_num.updated_at desc
-        ");
+                    (
+                        stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
+                        OR stocker_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                        OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+                        OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+                        OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+                    )
+                    AND (
+                        stocker_input.waktu_mulai <= '".$dateTo." 23:59:59'
+                        OR stocker_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                        OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+                        OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+                        OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+                    )
+                    ".$tanggal_filter."
+                    ".$no_form_filter."
+                    ".$no_cut_filter."
+                    ".$color_filter."
+                    ".$size_filter."
+                    ".$dest_filter."
+                    ".$year_sequence_filter."
+                    ".$buyer_filter."
+                    ".$ws_filter."
+                    ".$style_filter."
+                    ".$group_filter."
+                    ".$shade_filter."
+                    ".$ratio_filter."
+                GROUP BY
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
+                    stocker_input.group_stocker,
+                    year_sequence_num.updated_at
+                HAVING
+                    stocker_input.form_cut_id
+                    ".$qty_filter."
+                    ".$numbering_range_filter."
+                    ".$stocker_filter."
+                    ".$part_filter."
+                    ".$stocker_range_filter."
+                ORDER BY
+                    year_sequence_num.updated_at DESC
+            ");
+        } else {
+            $stockerList = DB::select("
+                SELECT
+                    year_sequence_num.updated_at,
+                    GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                    GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                    stocker_input.form_cut_id,
+                    stocker_input.act_costing_ws,
+                    stocker_input.so_det_id,
+                    master_sb_ws.buyer buyer,
+                    master_sb_ws.styleno style,
+                    master_sb_ws.color,
+                    master_sb_ws.size,
+                    master_sb_ws.dest,
+                    form_cut_input.no_form,
+                    form_cut_input.no_cut,
+                    stocker_input.group_stocker,
+                    stocker_input.shade,
+                    stocker_input.ratio,
+                    CONCAT(
+                        MIN( stocker_input.range_awal ),
+                        '-',
+                    MAX( stocker_input.range_akhir )) stocker_range,
+                    ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
+                    year_sequence_num.year_sequence,
+                    ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+                    CONCAT(
+                        MIN( year_sequence_num.range_awal ),
+                        ' - ',
+                    MAX( year_sequence_num.range_akhir )) numbering_range
+                FROM
+                    stocker_input
+                    LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                    LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                    LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                    INNER JOIN (
+                        SELECT
+                            form_cut_id,
+                            so_det_id,
+                            CONCAT( `year`, '_', year_sequence ) year_sequence,
+                            MIN( number ) range_numbering_awal,
+                            MAX( number ) range_numbering_akhir,
+                            MIN( year_sequence_number ) range_awal,
+                            MAX( year_sequence_number ) range_akhir,
+                            COALESCE ( updated_at, created_at ) updated_at
+                        FROM
+                            year_sequence
+                        WHERE
+                            year_sequence.so_det_id IS NOT NULL
+                            AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+                            AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
+                        GROUP BY
+                            form_cut_id,
+                            so_det_id,
+                            COALESCE ( updated_at, created_at )
+                        ORDER BY
+                            COALESCE ( updated_at, created_at)
+                    ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
+                    AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                    AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
+                    AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                WHERE
+                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                    AND (
+                        form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
+                        OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                        OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+                        OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+                        OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+                    )
+                    AND (
+                        form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
+                        OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                        OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+                        OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+                        OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+                    )
+                    ".$tanggal_filter."
+                    ".$no_form_filter."
+                    ".$no_cut_filter."
+                    ".$color_filter."
+                    ".$size_filter."
+                    ".$dest_filter."
+                    ".$year_sequence_filter."
+                    ".$buyer_filter."
+                    ".$ws_filter."
+                    ".$style_filter."
+                    ".$group_filter."
+                    ".$shade_filter."
+                    ".$ratio_filter."
+                GROUP BY
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
+                    stocker_input.group_stocker,
+                    stocker_input.ratio,
+                    year_sequence_num.updated_at
+                HAVING
+                    stocker_input.form_cut_id
+                    ".$qty_filter."
+                    ".$numbering_range_filter."
+                    ".$stocker_filter."
+                    ".$part_filter."
+                    ".$stocker_range_filter."
+                ORDER BY
+                    year_sequence_num.updated_at DESC
+            ");
+        }
 
         return $stockerList;
     }

@@ -74,8 +74,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="5">TOTAL</th>
-                            <th></th>
+                            <th colspan="6">TOTAL</th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -304,53 +303,6 @@
 
         // Stocker Datatable
         let datatable = $("#datatable").DataTable({
-            footerCallback: async function(row, data, start, end, display) {
-                var api = this.api(),data;
-
-                $(api.column(0).footer()).html('Total');
-                $(api.column(6).footer()).html("...");
-                $(api.column(7).footer()).html("...");
-
-                $.ajax({
-                    url: '{{ route('stocker-list-total') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                    data: {
-                        'dateFrom': $('#tgl-awal').val(),
-                        'dateTo': $('#tgl-akhir').val(),
-                        'tanggal_filter': $('#tanggal_filter').val(),
-                        'no_form_filter': $('#no_form_filter').val(),
-                        'no_cut_filter': $('#no_cut_filter').val(),
-                        'color_filter': $('#color_filter').val(),
-                        'size_filter': $('#size_filter').val(),
-                        'dest_filter': $('#dest_filter').val(),
-                        'qty_filter': $('#qty_filter').val(),
-                        'year_sequence_filter': $('#year_sequence_filter').val(),
-                        'numbering_range_filter': $('#numbering_range_filter').val(),
-                        'buyer_filter': $('#buyer_filter').val(),
-                        'ws_filter': $('#ws_filter').val(),
-                        'style_filter': $('#style_filter').val(),
-                        'stocker_filter': $('#stocker_filter').val(),
-                        'part_filter': $('#part_filter').val(),
-                        'group_filter': $('#group_filter').val(),
-                        'shade_filter': $('#shade_filter').val(),
-                        'ratio_filter': $('#ratio_filter').val(),
-                        'stocker_range_filter': $('#stocker_range_filter').val()
-                    },
-                    success: function(response) {
-                        if (response && response[0]) {
-                            // Update footer by showing the total with the reference of the column index
-                            $(api.column(0).footer()).html('Total');
-                            $(api.column(6).footer()).html(response[0]['total_row']);
-                            $(api.column(7).footer()).html(response[0]['total_qty']);
-                        }
-                    },
-                    error: function(request, status, error) {
-                        alert('cek');
-                        console.error(error);
-                    },
-                })
-            },
             ordering: false,
             processing: true,
             serverSide: true,
@@ -463,6 +415,53 @@
                     className: "text-nowrap"
                 }
             ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(6).footer()).html("...");
+                $(api.column(7).footer()).html("...");
+
+                $.ajax({
+                    url: '{{ route('stocker-list-total') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom': $('#tgl-awal').val(),
+                        'dateTo': $('#tgl-akhir').val(),
+                        'tanggal_filter': $('#tanggal_filter').val(),
+                        'no_form_filter': $('#no_form_filter').val(),
+                        'no_cut_filter': $('#no_cut_filter').val(),
+                        'color_filter': $('#color_filter').val(),
+                        'size_filter': $('#size_filter').val(),
+                        'dest_filter': $('#dest_filter').val(),
+                        'qty_filter': $('#qty_filter').val(),
+                        'year_sequence_filter': $('#year_sequence_filter').val(),
+                        'numbering_range_filter': $('#numbering_range_filter').val(),
+                        'buyer_filter': $('#buyer_filter').val(),
+                        'ws_filter': $('#ws_filter').val(),
+                        'style_filter': $('#style_filter').val(),
+                        'stocker_filter': $('#stocker_filter').val(),
+                        'part_filter': $('#part_filter').val(),
+                        'group_filter': $('#group_filter').val(),
+                        'shade_filter': $('#shade_filter').val(),
+                        'ratio_filter': $('#ratio_filter').val(),
+                        'stocker_range_filter': $('#stocker_range_filter').val()
+                    },
+                    success: function(response) {
+                        if (response && response[0]) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(6).footer()).html(response[0]['total_row']);
+                            $(api.column(7).footer()).html(response[0]['total_qty']);
+                        }
+                    },
+                    error: function(request, status, error) {
+                        alert('cek');
+                        console.error(error);
+                    },
+                })
+            },
             rowCallback: function( row, data, index ) {
                 let numberingMonth = data['numbering_month'], //data numbering month
                     $node = this.api().row(row).nodes().to$();
