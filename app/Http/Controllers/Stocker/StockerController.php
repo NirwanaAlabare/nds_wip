@@ -2123,6 +2123,20 @@ class StockerController extends Controller
             $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
             $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
+            // Convert the dates to timestamps
+            $timestampFrom = strtotime($dateFrom);
+            $timestampTo = strtotime($dateTo);
+
+            // Calculate the difference in seconds
+            $diffInSeconds = abs($timestampTo - $timestampFrom);
+
+            // Convert seconds to days
+            $daysInterval = $diffInSeconds / (60 * 60 * 24);
+
+            if ($daysInterval > 10) {
+                $dateFrom = date('Y-m-d', strtotime($dateTo.' -7 days'));
+            }
+
             $stockerList = DB::select("
                 SELECT
                     year_sequence_num.updated_at,
@@ -2213,6 +2227,20 @@ class StockerController extends Controller
 
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
         $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+        // Convert the dates to timestamps
+        $timestampFrom = strtotime($dateFrom);
+        $timestampTo = strtotime($dateTo);
+
+        // Calculate the difference in seconds
+        $diffInSeconds = abs($timestampTo - $timestampFrom);
+
+        // Convert seconds to days
+        $daysInterval = $diffInSeconds / (60 * 60 * 24);
+
+        if ($daysInterval > 10) {
+            $dateFrom = date('Y-m-d', strtotime($dateTo.' -7 days'));
+        }
 
         $tanggal_filter = "";
         if ($request->tanggal_filter) {
@@ -2696,6 +2724,20 @@ class StockerController extends Controller
 
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
         $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+        // Convert the dates to timestamps
+        $timestampFrom = strtotime($dateFrom);
+        $timestampTo = strtotime($dateTo);
+
+        // Calculate the difference in seconds
+        $diffInSeconds = abs($timestampTo - $timestampFrom);
+
+        // Convert seconds to days
+        $daysInterval = $diffInSeconds / (60 * 60 * 24);
+
+        if ($daysInterval > 10) {
+            $dateFrom = date('Y-m-d', strtotime($dateTo.' -7 days'));
+        }
 
         $tanggal_filter = "";
         if ($request->tanggal_filter) {
