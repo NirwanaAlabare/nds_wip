@@ -76,9 +76,7 @@
                         <tr>
                             <th colspan="6">TOTAL</th>
                             <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
+                            <th colspan="3"></th>
                             <th></th>
                             <th></th>
                             <th></th>
