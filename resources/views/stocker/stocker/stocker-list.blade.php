@@ -654,7 +654,6 @@
                                 let select = document.getElementById('new-year-sequence-sequence');
                                 select.innerHTML = "";
 
-                                let latestVal = null;
                                 for(let i = 0; i < res.length; i++) {
                                     let option = document.createElement("option");
                                     option.setAttribute("value", res[i].year_sequence);
@@ -662,12 +661,11 @@
                                     select.appendChild(option);
                                 }
 
-                                $("#new-year-sequence-sequence").val(res[0].year_sequence).trigger("change");
+                                $("#new-year-sequence-sequence").val(res[res.length-1].year_sequence).trigger("change");
                             } else {
                                 let select = document.getElementById('year-sequence-sequence');
                                 select.innerHTML = "";
 
-                                let latestVal = null;
                                 for(let i = 0; i < res.length; i++) {
                                     let option = document.createElement("option");
                                     option.setAttribute("value", res[i].year_sequence);
@@ -675,7 +673,7 @@
                                     select.appendChild(option);
                                 }
 
-                                $("#year-sequence-sequence").val(res[0].year_sequence).trigger("change");
+                                $("#year-sequence-sequence").val(res[res.length-1].year_sequence).trigger("change");
                             }
                         } else {
                             Swal.fire({

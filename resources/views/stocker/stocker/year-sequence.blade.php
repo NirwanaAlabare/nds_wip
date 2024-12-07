@@ -567,6 +567,7 @@
                         if (response.status == 200) {
                             setYearSequenceNumber();
                         } else {
+                            console.log(response.message)
                             Swal.fire({
                                 icon: "error",
                                 title: "Gagal",

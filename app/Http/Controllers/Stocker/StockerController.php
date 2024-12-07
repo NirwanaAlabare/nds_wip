@@ -2865,21 +2865,21 @@ class StockerController extends Controller
         ]);
 
         if ($validatedRequest) {
-            $restrictYearSequence = YearSequence::whereBetween('year_sequence_number', $validatedRequest['range_awal_year_sequence'], $validatedRequest['range_akhir_year_sequence'])->whereNotNull("so_det_id")->orderBy('year_sequence_number');
+            $restrictYearSequence = YearSequence::where("year", $validatedRequest['year'])->where("year_sequence", $validatedRequest['year_sequence'])->whereBetween('year_sequence_number', [$validatedRequest['range_awal_year_sequence'], $validatedRequest['range_akhir_year_sequence']])->whereNotNull("so_det_id")->orderBy('year_sequence_number')->get();
 
             if ($restrictYearSequence->count() > 0) {
 
-                return array([
+                return array(
                     "status" => 400,
-                    "message" => "Range "+($restrictYearSequence->implode('id_year_sequence', ' <br> '))+" Sudah di Regis"
-                ]);
+                    "message" => "Kode <br><b>".($restrictYearSequence->implode('id_year_sequence', ' <br> '))."</b><br> Sudah di Regis"
+                );
             }
         }
 
-        return array([
+        return array(
             "status" => 200,
             "message" => "Range tersedia"
-        ]);
+        );
     }
 
     public function setYearSequenceNumber(Request $request) {
