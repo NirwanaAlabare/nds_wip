@@ -1418,6 +1418,10 @@ Route::middleware('auth')->group(function () {
     // Packing List
     Route::controller(PackingReportController::class)->prefix("packing-packing-report")->middleware('packing')->group(function () {
         Route::get('/packing_rep_packing_line_sum', 'packing_rep_packing_line_sum')->name('packing_rep_packing_line_sum');
+        Route::get('/packing_rep_packing_line_sum_range', 'packing_rep_packing_line_sum_range')->name('packing_rep_packing_line_sum_range');
+        Route::get('/packing_rep_packing_line_sum_buyer', 'packing_rep_packing_line_sum_buyer')->name('packing_rep_packing_line_sum_buyer');
+        Route::get('/export_excel_rep_packing_line_sum_range', 'export_excel_rep_packing_line_sum_range')->name('export_excel_rep_packing_line_sum_range');
+        Route::get('/export_excel_rep_packing_line_sum_buyer', 'export_excel_rep_packing_line_sum_buyer')->name('export_excel_rep_packing_line_sum_buyer');
     });
 
 

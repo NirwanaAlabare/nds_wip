@@ -130,7 +130,9 @@ order by ws asc");
             left join ppic_master_so p on m.id_so_det = p.id_so_det
                                 and tmp.po = p.po
 								and tmp.barcode = p.barcode
+            left join master_size_new msn on tmp.size = msn.size
             where tmp.created_by = '$user'
+            order by ws asc, urutan asc
             ");
 
             return DataTables::of($data_tmp)->toJson();
@@ -703,6 +705,32 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
     }
 
     public function data_cek_double_tmp_ppic_so(Request $request)
+    {
+        $user = Auth::user()->name;
+        $data_cek = DB::select("select coalesce(count(m.id_so_det),0) tot_cek from ppic_master_so_tmp tmp
+        left join master_sb_ws m on tmp.ws = m.ws
+        and tmp.color = m.color
+        and tmp.size = m.size
+        and tmp.style = m.styleno
+        and tmp.dest = m.dest
+				left join ppic_master_so p on m.id_so_det = p.id_so_det
+       and tmp.po = p.po
+			 where tmp.created_by = '" . $user . "'
+			 group by tmp.po, m.id_so_det
+			 having count(m.id_so_det) > '1'");
+        $data_cek_fix = $data_cek ? $data_cek[0]->tot_cek : 0;
+        if ($data_cek_fix == null or $data_cek_fix == '') {
+            $data_cek_fix == '0';
+        } else {
+            $data_cek_fix = $data_cek_fix;
+        }
+        // dd($data_cek_fix);
+
+        return json_encode($data_cek ? $data_cek[0] : null);
+    }
+
+
+    public function data_cek_avail_tmp_ppic_so(Request $request)
     {
         $user = Auth::user()->name;
         $data_cek = DB::select("select coalesce(count(m.id_so_det),0) tot_cek from ppic_master_so_tmp tmp

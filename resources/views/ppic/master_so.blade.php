@@ -446,7 +446,19 @@
                 </div>
             </div>
             <label>Preview</label>
-            <input type="hidden" class="form-control form-control-sm" id="data_cek_tmp" name= "data_cek_tmp">
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <label><small><b>Data Double</b></small></label>
+                    <input type="text" class="form-control form-control-sm" id="data_cek_tmp" name= "data_cek_tmp"
+                        readonly>
+                </div>
+                <div class="mb-3">
+                    <label><small><b>Data Tidak Valid</b></small></label>
+                    <input type="text" class="form-control form-control-sm" id="data_cek_avail"
+                        name= "data_cek_avail" readonly>
+                </div>
+            </div>
+
             <div class="table-responsive">
                 <table id="datatable_preview" class="table table-bordered table-sm w-100 text-nowrap">
                     <thead class="table-info">
@@ -754,9 +766,19 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var countCheck = api
+                    .column(12)
+                    .data()
+                    .reduce(function(count, value) {
+                        return value === 'Check' ? count + 1 : count;
+                    }, 0);
+
+
+
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
                 $(api.column(9).footer()).html(sumTotal);
+                $('input[name="data_cek_avail"]').val(countCheck);
             },
             ordering: false,
             processing: true,
@@ -910,38 +932,50 @@
         }
 
         function simpan() {
-            $.ajax({
-                type: "post",
-                url: '{{ route('store_tmp_ppic_so') }}',
-                success: function(response) {
-                    if (response.icon == 'salah') {
+            let data_cek_tmp = $('#data_cek_tmp').val();
+            let data_cek_avail = $('#data_cek_avail').val();
+
+            if (data_cek_tmp == '0' && data_cek_avail == '0') {
+                $.ajax({
+                    type: "post",
+                    url: '{{ route('store_tmp_ppic_so') }}',
+                    success: function(response) {
+                        if (response.icon == 'salah') {
+                            iziToast.warning({
+                                message: response.msg,
+                                position: 'topCenter'
+                            });
+                            dataTableReload();
+                            dataTablePreviewReload();
+                        } else {
+                            Swal.fire({
+                                text: response.msg,
+                                icon: "success"
+                            });
+                            dataTableReload();
+                            dataTablePreviewReload();
+                            data_cek_double_tmp();
+                        }
+
+                    },
+                    error: function(request, status, error) {
                         iziToast.warning({
-                            message: response.msg,
+                            message: 'Silahkan cek lagi',
                             position: 'topCenter'
                         });
                         dataTableReload();
                         dataTablePreviewReload();
-                    } else {
-                        Swal.fire({
-                            text: response.msg,
-                            icon: "success"
-                        });
-                        dataTableReload();
-                        dataTablePreviewReload();
                         data_cek_double_tmp();
-                    }
+                    },
+                });
+            } else {
+                iziToast.warning({
+                    message: 'Silahkan cek lagi',
+                    position: 'topCenter'
+                });
+            }
 
-                },
-                error: function(request, status, error) {
-                    iziToast.warning({
-                        message: 'Silahkan cek lagi',
-                        position: 'topCenter'
-                    });
-                    dataTableReload();
-                    dataTablePreviewReload();
-                    data_cek_double_tmp();
-                },
-            });
+
 
         };
 
@@ -1668,13 +1702,6 @@
                 success: async function(response) {
                     console.log(response);
                     document.getElementById('data_cek_tmp').value = response ? response.tot_cek : 0;
-
-                    if (document.getElementById('data_cek_tmp').value == '0') {
-                        document.getElementById('simpan_tmp').style.display = 'true';
-                    } else {
-                        document.getElementById('simpan_tmp').style.display = 'none';
-                    }
-
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
