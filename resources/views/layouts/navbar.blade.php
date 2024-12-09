@@ -443,7 +443,7 @@
                                 </li>
                             @endstocker
                         </ul>
-                    </li> 
+                    </li>
 
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
@@ -660,9 +660,7 @@
 
                 @if ($page == 'dashboard-sewing-eff')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-master' ? 'active' : '' }}">Master</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-master' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
                                 <li>
@@ -681,9 +679,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-sewing' ? 'active' : '' }}">Output</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-sewing' ? 'active' : '' }}">Output</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
                                 <li>
@@ -728,12 +724,12 @@
                                         Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                     </a>
                                 </li>
-                                {{-- <li>
-                                    <a href="{{ route('sewing-input-output') }}"
-                                        class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
-                                        Input Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                <li>
+                                    <a href="{{ route('undo-output-history') }}"
+                                        class="dropdown-item {{ $subPage == 'undo-output-history' ? 'active' : '' }}">
+                                        Undo Output History <i class="fa-solid fa-rotate-left"></i>
                                     </a>
-                                </li> --}}
+                                </li>
                             @endsewing
                         </ul>
                     </li>

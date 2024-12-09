@@ -32,6 +32,12 @@
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="mb-1">
+                            <label class="form-label"><small>Tanggal</small></label>
+                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-6">
+                        <div class="mb-1">
                             <label class="form-label"><small>Scan</small></label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="scan_item" name="scan_item" value="">
@@ -74,12 +80,6 @@
                         <div class="mb-1">
                             <label class="form-label"><small>Detail Item</small></label>
                             <input type="text" class="form-control" id="detail_item" name="detail_item" value="" readonly>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-6">
-                        <div class="mb-1">
-                            <label class="form-label"><small>Tanggal</small></label>
-                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-6">
@@ -591,7 +591,7 @@
             let piping = document.getElementById("piping").value;
             let qtySisa = document.getElementById("qty_sisa").value;
 
-            let shortRoll = Number(qtyItem) - (Number(piping) + Number(qtySisa));
+            let shortRoll = (Number(piping) + Number(qtySisa)) - Number(qtyItem);
 
             console.log(qtyItem, piping, qtySisa, shortRoll);
 

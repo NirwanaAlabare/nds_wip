@@ -2080,6 +2080,7 @@
             function calculatePemakaianLembar() {
                 let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
                 let pActualVar = Number(document.getElementById("p_act").value);
+                let sisaGelaranVar = Number(document.getElementById("current_sisa_gelaran").value);
                 let sambunganVar = Number(document.getElementById("current_sambungan").value);
                 let sambunganRollVar = Number(document.getElementById("current_total_sambungan_roll").value);
                 let qtyVar = Number(document.getElementById("current_qty").value);
@@ -2104,7 +2105,7 @@
                     }
                 }
 
-                let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar);
+                let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
                 document.getElementById("current_pemakaian_lembar").value = totalPemakaian.round(2);
             }
@@ -2850,7 +2851,7 @@
                     document.getElementById("current_custom_unit").value = "METER";
                 }
 
-                console.log(data);    
+                console.log(data);
 
                 // spreading form data set
                 let convertedQty = await rollQtyConversion(data.qty, data.unit);

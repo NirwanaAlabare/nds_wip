@@ -57,6 +57,7 @@ use App\Http\Controllers\Sewing\TrackOrderOutputController;
 use App\Http\Controllers\Sewing\TransferOutputController;
 use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
+use App\Http\Controllers\Sewing\UndoOutputController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -542,7 +543,9 @@ Route::middleware('auth')->group(function () {
 
         // stocker list
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
+        Route::get('/stocker-list-total', 'stockerListTotal')->name('stocker-list-total');
         Route::get('/stocker-list/detail/{form_cut_id?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
+        Route::get('/stocker-list/check-year-sequence', 'checkYearSequenceNumber')->name('check-year-sequence-number');
         Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
         Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');
         Route::post('/stocker-list/check-all-stock-number', 'checkAllStockNumber')->name('check-all-stock-number');
@@ -926,6 +929,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker', 'stocker')->name('track-stocker');
         Route::get('/stocker/show/{actCostingId?}', 'showStocker')->name('track-stocker-detail');
         Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
+    });
+
+    Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
+        Route::get('/', 'history')->name("undo-output-history");
     });
 
     //Mutasi Karywawan

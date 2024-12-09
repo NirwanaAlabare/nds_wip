@@ -157,7 +157,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <button class="btn btn-success btn-block mt-3" onclick="setYearSequenceNumber()"><i class="fa fa-print"></i> Set Year Sequence</button>
+                        <button class="btn btn-success btn-block mt-3" onclick="checkYearSequenceNumber()"><i class="fa fa-print"></i> Set Year Sequence</button>
                     </div>
                 </div>
             </div>
@@ -427,7 +427,7 @@
                                 select.appendChild(option);
                             }
 
-                            $("#sequence").val(res[0].year_sequence).trigger("change");
+                            $("#sequence").val(res[res.length-1].year_sequence).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -465,18 +465,18 @@
                         if (res.status != "400") {
                             $("#range_awal").val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
 
-                            if (Number(res.year_sequence_number) >= 999999) {
-                                let select = document.getElementById('sequence');
+                            // if (Number(res.year_sequence_number) >= 999999) {
+                            //     let select = document.getElementById('sequence');
 
-                                if ($('#sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
-                                    let option = document.createElement("option");
-                                    option.setAttribute("value", Number(select.value)+1);
-                                    option.innerHTML = Number(select.value)+1;
-                                    select.appendChild(option);
-                                }
+                            //     if ($('#sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
+                            //         let option = document.createElement("option");
+                            //         option.setAttribute("value", Number(select.value)+1);
+                            //         option.innerHTML = Number(select.value)+1;
+                            //         select.appendChild(option);
+                            //     }
 
-                                $("#sequence").val(Number(select.value)+1).trigger("change");
-                            }
+                            //     $("#sequence").val(Number(select.value)+1).trigger("change");
+                            // }
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -542,6 +542,46 @@
             }
 
             return false
+        }
+
+        function checkYearSequenceNumber() {
+            $.ajax({
+                url: "{{ route("check-year-sequence-number") }}",
+                type: "get",
+                data: {
+                    "id_qr_stocker": $('#id_qr_stocker').val(),
+                    "method": method,
+                    "year": $('#year').val(),
+                    "year_sequence": $('#sequence').val(),
+                    "form_cut_id": $('#form_cut_id').val(),
+                    "so_det_id": $('#so_det_id').val(),
+                    "size": $('#size').val(),
+                    "range_awal_stocker": Number($('#range_awal_stocker').val()),
+                    "range_akhir_stocker": Number($('#range_akhir_stocker').val()),
+                    "range_awal_year_sequence": Number($('#range_awal').val()),
+                    "range_akhir_year_sequence": Number($('#range_akhir').val()),
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response) {
+                        if (response.status == 200) {
+                            setYearSequenceNumber();
+                        } else {
+                            console.log(response.message)
+                            Swal.fire({
+                                icon: "error",
+                                title: "Gagal",
+                                html: response.message,
+                                showCancelButton: false,
+                                confirmButtonText: "Oke",
+                            });
+                        }
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
         }
 
         function setYearSequenceNumber() {

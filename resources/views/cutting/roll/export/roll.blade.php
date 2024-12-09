@@ -111,9 +111,28 @@
 
                     $currentForm = $item->no_form_cut_input;
                 }
+
+                $consLembar = 0;
+                if ($item->unit_roll == 'KGM') {
+                    $consLembar = $item->berat_amparan;
+                } else {
+                    $consLembar = $item->panjang_actual + ($item->comma_actual/100);
+                }
+
+                $currentSambunganRoll = $latestStatus != 'extension complete' ? $item->sambungan_roll : round(($item->sambungan_roll+$latestSambunganRoll), 2);
+                $currentKepalaKain = $latestStatus != 'extension complete' ? $item->kepala_kain : round(($item->kepala_kain+$latestKepalaKain), 2);
+                $currentSisaTidakBisa = $latestStatus != 'extension complete' ? $item->sisa_tidak_bisa : round(($item->sisa_tidak_bisa+$latestSisaTidakBisa), 2);
+                $currentReject = $latestStatus != 'extension complete' ? $item->reject : round(($item->reject+$latestReject), 2);
+                $currentPiping = $latestStatus != 'extension complete' ? $item->piping : round(($item->piping+$latestPiping), 2);
+
+                $currentPemakaianLembar =  round(($item->status != 'extension complete' ? ($consLembar * $item->lembar_gelaran) : $item->sambungan) + $item->sisa_gelaran + $item->sambungan_roll + ($latestStatus != 'extension complete' ? 0 : $latestSambungan), 2);
+                $currentTotalPemakaian = round($currentPemakaianLembar + $currentKepalaKain + $currentSisaTidakBisa + $currentReject + $currentPiping, 2);
+
+                $currentShortRoll = $latestStatus != 'extension complete' ? round((($currentTotalPemakaian+$item->sisa_kain)-$item->qty_roll), 2) : round((($currentTotalPemakaian+$item->sisa_kain)-$latestQty), 2);
+                $currentShortRollPercentage = $latestStatus != 'extension complete' ? ($item->qty_roll > 0 ? round((($currentTotalPemakaian+$item->sisa_kain)-$item->qty_roll)/$item->qty_roll*100) : 0 ) : ($latestQty > 0 ? round((($currentTotalPemakaian+$item->sisa_kain)-$latestQty)/$latestQty*100, 2) : 0);
             @endphp
             <tr>
-                <td>{{ $latestStatus != 'need extension' ? $no++ : '' }}</td>
+                <td>{{ $item->status != 'extension complete' ? $no++ : '' }}</td>
                 <td>{{ $item->bulan }}</td>
                 <td>{{ $item->tgl_input }}</td>
                 <td>{{ $item->no_form_cut_input }}</td>
@@ -148,7 +167,7 @@
                 <td>{{ $item->status == "extension complete" ? "SAMBUNGAN" : $item->roll }}</td>
                 <td>{{ $item->lot }}</td>
                 <td>{{ $item->group_roll }}</td>
-                @if ($latestStatus != 'need extension')
+                @if ($item->status != 'extension complete')
                     <td>{{ $latestStatus != 'extension complete' ? $item->qty_roll : $latestQty }}</td>
                     <td>{{ $item->unit_roll }}</td>
                     <td>{{ $item->berat_amparan }}</td>
@@ -159,16 +178,16 @@
                     <td>{{ $item->average_time }}</td>
                     <td>{{ $item->sisa_gelaran }}</td>
                     <td>{{ $latestStatus != 'extension complete' ? 0 : $latestSambungan }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->sambungan_roll : round(($item->sambungan_roll+$latestSambunganRoll), 2) }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->kepala_kain : round(($item->kepala_kain+$latestKepalaKain), 2) }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->sisa_tidak_bisa : round(($item->sisa_tidak_bisa+$latestSisaTidakBisa), 2) }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->reject : round(($item->reject+$latestReject), 2) }}</td>
+                    <td>{{ $currentSambunganRoll }}</td>
+                    <td>{{ $currentKepalaKain }}</td>
+                    <td>{{ $currentSisaTidakBisa }}</td>
+                    <td>{{ $currentReject }}</td>
                     <td>{{ $latestStatus != 'extension complete' ? $item->piping : round(($item->piping+$latestPiping), 2) }}</td>
                     <td>{{ $item->sisa_kain }}</td>
-                    <td>{{ $item->pemakaian_lembar }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->total_pemakaian_roll : round(($item->total_pemakaian_roll+$latestTotalPemakaian), 2) }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->short_roll : round(($latestQty-($item->total_pemakaian_roll+$latestTotalPemakaian)), 2) }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->short_roll_percentage : ($latestQty > 0 ? round((($latestQty-($item->total_pemakaian_roll+$latestTotalPemakaian))/$latestQty * 100), 2) : 0) }} %</td>
+                    <td>{{ $currentPemakaianLembar }}</td>
+                    <td>{{ $currentTotalPemakaian }}</td>
+                    <td>{{ $currentShortRoll }}</td>
+                    <td>{{ $currentShortRollPercentage }} %</td>
                 @else
                     <td>-</td>
                     <td>-</td>
@@ -195,15 +214,15 @@
             </tr>
 
             @php
-                $latestKepalaKain = $item->kepala_kain;
-                $latestSisaTidakBisa = $item->sisa_tidak_bisa;
-                $latestReject = $item->reject;
-                $latestPiping = $item->piping;
+                $latestKepalaKain = $currentKepalaKain;
+                $latestSisaTidakBisa = $currentSisaTidakBisa;
+                $latestReject = $currentReject;
+                $latestPiping = $currentPiping;
                 $latestSambungan = $item->sambungan;
-                $latestSambunganRoll = $item->sambungan_roll;
-                $latestPemakaianLembar = $item->pemakaian_lembar;
-                $latestTotalPemakaian = $item->total_pemakaian_roll;
-                $latestShortRoll = $item->short_roll;
+                $latestSambunganRoll = $currentSambunganRoll;
+                $latestPemakaianLembar = $currentPemakaianLembar;
+                $latestTotalPemakaian = $currentTotalPemakaian;
+                $latestShortRoll = $currentShortRoll;
 
                 $latestStatus = $item->status;
                 $latestQty = $item->qty_roll;

@@ -33,9 +33,10 @@
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3">
                     {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
-                    <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-regular fa-file-lines fa-sm"></i> Print Stock Number</button>
-                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print New Year Sequence</button>
+                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" disabled><i class="fa-regular fa-file-excel"></i></button>
+                    <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-solid fa-print"></i> Print Number Stock</button>
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-solid fa-print"></i> Print Label</button>
+                    <button class="btn btn-primary btn-sm d-none" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-solid fa-print"></i> Print New Label</button>
                 </div>
                 {{-- <div class="d-none">
                     <div class="d-flex gap-1">
@@ -71,6 +72,22 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="6">TOTAL</th>
+                            <th></th>
+                            <th colspan="3"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -396,6 +413,53 @@
                     className: "text-nowrap"
                 }
             ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(6).footer()).html("...");
+                $(api.column(7).footer()).html("...");
+
+                $.ajax({
+                    url: '{{ route('stocker-list-total') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom': $('#tgl-awal').val(),
+                        'dateTo': $('#tgl-akhir').val(),
+                        'tanggal_filter': $('#tanggal_filter').val(),
+                        'no_form_filter': $('#no_form_filter').val(),
+                        'no_cut_filter': $('#no_cut_filter').val(),
+                        'color_filter': $('#color_filter').val(),
+                        'size_filter': $('#size_filter').val(),
+                        'dest_filter': $('#dest_filter').val(),
+                        'qty_filter': $('#qty_filter').val(),
+                        'year_sequence_filter': $('#year_sequence_filter').val(),
+                        'numbering_range_filter': $('#numbering_range_filter').val(),
+                        'buyer_filter': $('#buyer_filter').val(),
+                        'ws_filter': $('#ws_filter').val(),
+                        'style_filter': $('#style_filter').val(),
+                        'stocker_filter': $('#stocker_filter').val(),
+                        'part_filter': $('#part_filter').val(),
+                        'group_filter': $('#group_filter').val(),
+                        'shade_filter': $('#shade_filter').val(),
+                        'ratio_filter': $('#ratio_filter').val(),
+                        'stocker_range_filter': $('#stocker_range_filter').val()
+                    },
+                    success: function(response) {
+                        if (response && response[0]) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(6).footer()).html(response[0]['total_row']);
+                            $(api.column(7).footer()).html(response[0]['total_qty']);
+                        }
+                    },
+                    error: function(request, status, error) {
+                        alert('cek');
+                        console.error(error);
+                    },
+                })
+            },
             rowCallback: function( row, data, index ) {
                 let numberingMonth = data['numbering_month'], //data numbering month
                     $node = this.api().row(row).nodes().to$();
@@ -418,7 +482,7 @@
                 }
 
                 currentPageCheck = 0;
-            }
+            },
         });
 
         function dataTableReload() {
@@ -588,7 +652,6 @@
                                 let select = document.getElementById('new-year-sequence-sequence');
                                 select.innerHTML = "";
 
-                                let latestVal = null;
                                 for(let i = 0; i < res.length; i++) {
                                     let option = document.createElement("option");
                                     option.setAttribute("value", res[i].year_sequence);
@@ -596,12 +659,11 @@
                                     select.appendChild(option);
                                 }
 
-                                $("#new-year-sequence-sequence").val(res[0].year_sequence).trigger("change");
+                                $("#new-year-sequence-sequence").val(res[res.length-1].year_sequence).trigger("change");
                             } else {
                                 let select = document.getElementById('year-sequence-sequence');
                                 select.innerHTML = "";
 
-                                let latestVal = null;
                                 for(let i = 0; i < res.length; i++) {
                                     let option = document.createElement("option");
                                     option.setAttribute("value", res[i].year_sequence);
@@ -609,7 +671,7 @@
                                     select.appendChild(option);
                                 }
 
-                                $("#year-sequence-sequence").val(res[0].year_sequence).trigger("change");
+                                $("#year-sequence-sequence").val(res[res.length-1].year_sequence).trigger("change");
                             }
                         } else {
                             Swal.fire({
@@ -648,33 +710,33 @@
                             if (type == 'new') {
                                 $('#new-print-range-awal-year').val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
 
-                                if (Number(res.year_sequence_number) >= 999999) {
-                                    let newSelect = document.getElementById('new-year-sequence-sequence');
+                                // if (Number(res.year_sequence_number) >= 999999) {
+                                //     let newSelect = document.getElementById('new-year-sequence-sequence');
 
-                                    if ($('#new-year-sequence-sequence > option[value="'+(Number(newSelect.value)+1)+'"]').length < 1) {
-                                        let newOption = document.createElement("option");
-                                        newOption.setAttribute("value", Number(newSelect.value)+1);
-                                        newOption.innerHTML = Number(newSelect.value)+1;
-                                        newSelect.appendChild(newOption);
-                                    }
+                                //     if ($('#new-year-sequence-sequence > option[value="'+(Number(newSelect.value)+1)+'"]').length < 1) {
+                                //         let newOption = document.createElement("option");
+                                //         newOption.setAttribute("value", Number(newSelect.value)+1);
+                                //         newOption.innerHTML = Number(newSelect.value)+1;
+                                //         newSelect.appendChild(newOption);
+                                //     }
 
-                                    $("#new-year-sequence-sequence").val(Number(newSelect.value)+1).trigger("change");
-                                }
+                                //     $("#new-year-sequence-sequence").val(Number(newSelect.value)+1).trigger("change");
+                                // }
                             } else {
                                 $('#print-range-awal-year').val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
 
-                                if (Number(res.year_sequence_number) >= 999999) {
-                                    let select = document.getElementById('year-sequence-sequence');
+                                // if (Number(res.year_sequence_number) >= 999999) {
+                                //     let select = document.getElementById('year-sequence-sequence');
 
-                                    if ($('#year-sequence-sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
-                                        let option = document.createElement("option");
-                                        option.setAttribute("value", Number(select.value)+1);
-                                        option.innerHTML = Number(select.value)+1;
-                                        select.appendChild(option);
-                                    }
+                                //     if ($('#year-sequence-sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
+                                //         let option = document.createElement("option");
+                                //         option.setAttribute("value", Number(select.value)+1);
+                                //         option.innerHTML = Number(select.value)+1;
+                                //         select.appendChild(option);
+                                //     }
 
-                                    $("#year-sequence-sequence").val(Number(select.value)+1).trigger("change");
-                                }
+                                //     $("#year-sequence-sequence").val(Number(select.value)+1).trigger("change");
+                                // }
                             }
                         } else {
                             Swal.fire({
@@ -990,24 +1052,24 @@
                     data: {
                         dateFrom: $("#tgl-awal").val(),
                         dateTo: $("#tgl-akhir").val(),
-                        tanggalFilter: $('#tanggal_filter').val(),
-                        stockerFilter: $('#stocker_filter').val(),
-                        partFilter: $('#part_filter').val(),
-                        buyerFilter: $('#buyer_filter').val(),
-                        wsFilter: $('#ws_filter').val(),
-                        styleFilter: $('#style_filter').val(),
-                        noFormFilter: $('#no_form_filter').val(),
-                        noCutFilter: $('#no_cut_filter').val(),
-                        colorFilter: $('#color_filter').val(),
-                        sizeFilter: $('#size_filter').val(),
-                        destFilter: $('#dest_filter').val(),
-                        groupFilter: $('#group_filter').val(),
-                        shadeFilter: $('#shade_filter').val(),
-                        ratioFilter: $('#ratio_filter').val(),
-                        stockerRangeFilter: $('#stocker_range_filter').val(),
-                        qtyFilter: $('#qty_filter').val(),
-                        yearSequenceFilter: $('#year_sequence_filter').val(),
-                        numberingRangeFilter: $('#numbering_range_filter').val()
+                        tanggal_filter: $('#tanggal_filter').val(),
+                        stocker_filter: $('#stocker_filter').val(),
+                        part_filter: $('#part_filter').val(),
+                        buyer_filter: $('#buyer_filter').val(),
+                        ws_filter: $('#ws_filter').val(),
+                        style_filter: $('#style_filter').val(),
+                        no_form_filter: $('#no_form_filter').val(),
+                        no_cut_filter: $('#no_cut_filter').val(),
+                        color_filter: $('#color_filter').val(),
+                        size_filter: $('#size_filter').val(),
+                        dest_filter: $('#dest_filter').val(),
+                        group_filter: $('#group_filter').val(),
+                        shade_filter: $('#shade_filter').val(),
+                        ratio_filter: $('#ratio_filter').val(),
+                        stocker_range_filter: $('#stocker_range_filter').val(),
+                        qty_filter: $('#qty_filter').val(),
+                        year_sequence_filter: $('#year_sequence_filter').val(),
+                        numbering_range_filter: $('#numbering_range_filter').val()
                     },
                     success: function (res) {
                         if (res) {
