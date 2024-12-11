@@ -12,7 +12,6 @@
         <th style="font-weight: 800;">Style</th>
         <th style="font-weight: 800;">Color</th>
         <th style="font-weight: 800;">Size</th>
-        <th style="font-weight: 800;">Dest</th>
         <th style="font-weight: 800;">Qty Loading</th>
         <th style="font-weight: 800;">WIP Sewing Line</th>
         <th style="font-weight: 800;">Reject</th>
@@ -36,10 +35,10 @@
     @endphp
     @foreach ($data as $d)
         @php
-            $reject = $dataReject->where("line_id", $d->line_id)->where("so_det_id", $d->id_so_det)->first();
-            $defect = $dataDefect->where("line_id", $d->line_id)->where("so_det_id", $d->id_so_det)->first();
-            $output = $dataOutput->where("line_id", $d->line_id)->where("so_det_id", $d->id_so_det)->first();
-            $outputPacking = $dataOutputPacking->where("line_id", $d->line_id)->where("so_det_id", $d->id_so_det)->first();
+            $reject = $dataReject->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
+            $defect = $dataDefect->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
+            $output = $dataOutput->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
+            $outputPacking = $dataOutputPacking->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
 
             $totalLoading += ($d->loading_qty ? $d->loading_qty : 0);
             $totalWipSewing += ($d->loading_qty ? $d->loading_qty : 0) - (($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) + ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) + ($output ? ($output->total_output ? $output->total_output : 0) : 0));
@@ -58,7 +57,6 @@
             <td>{{ $d->styleno }}</td>
             <td>{{ $d->color }}</td>
             <td>{{ $d->size }}</td>
-            <td>{{ $d->dest }}</td>
             <td>{{ ($d->loading_qty ? $d->loading_qty : 0) }}</td>
             <td>{{ ($d->loading_qty ? $d->loading_qty : 0) - (($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) + ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) + ($output ? ($output->total_output ? $output->total_output : 0) : 0)) }}</td>
             <td>{{ ($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) }}</td>
@@ -71,7 +69,7 @@
         </tr>
     @endforeach
     <tr>
-        <td style="font-weight: bold;" colspan="7">TOTAL</td>
+        <td style="font-weight: bold;" colspan="6">TOTAL</td>
         <td style="font-weight: bold;">{{ $totalLoading }}</td>
         <td style="font-weight: bold;">{{ $totalWipSewing }}</td>
         <td style="font-weight: bold;">{{ $totalReject }}</td>

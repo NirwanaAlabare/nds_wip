@@ -26,7 +26,7 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
     protected $lineId;
     protected $line;
 
-    public function __construct($dateFrom, $dateTo, $lineId, $line, $lineNameFilter, $tanggalFilter, $wsFilter, $styleFilter, $colorFilter, $sizeFilter, $destFilter)
+    public function __construct($dateFrom, $dateTo, $lineId, $line, $lineNameFilter, $tanggalFilter, $wsFilter, $styleFilter, $colorFilter, $sizeFilter)
     {
         $this->dateFrom = $dateFrom ? $dateFrom : date('Y-m-d');
         $this->dateTo = $dateTo ? $dateTo : date('Y-m-d');
@@ -38,7 +38,6 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
         $this->styleFilter = $styleFilter ? $styleFilter : null;
         $this->colorFilter = $colorFilter ? $colorFilter : null;
         $this->sizeFilter = $sizeFilter ? $sizeFilter : null;
-        $this->destFilter = $destFilter ? $destFilter : null;
     }
 
 
@@ -60,7 +59,6 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
         $styleFilter = "";
         $colorFilter = "";
         $sizeFilter = "";
-        $destFilter = "";
 
         if ($this->lineNameFilter) {
             $lineNameFilter1 = "AND userpassword.username LIKE '%".($this->lineNameFilter)."%'";
@@ -88,10 +86,6 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
             $sizeFilter = "AND master_sb_ws.size LIKE '%".($this->sizeFilter)."%'";
         }
 
-        if ($this->destFilter) {
-            $destFilter = "AND master_sb_ws.dest LIKE '%".($this->destFilter)."%'";
-        }
-
         $ppicList = collect(
             DB::select("
                 SELECT
@@ -109,7 +103,6 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                     ".$styleFilter."
                     ".$colorFilter."
                     ".$sizeFilter."
-                    ".$destFilter."
                 GROUP BY
                     id_so_det
                 HAVING
@@ -122,77 +115,108 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
 
             $dataOutput = collect(DB::connection("mysql_sb")->select("
                 SELECT
+                    userpassword.line_id,
                     so_det_id,
-                    user_sb_wip.line_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_rfts.id) total_output
                 FROM
                     output_rfts
                     LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_rfts.so_det_id in (".$soDetList.")
-                    ".$lineIdFilter."
+                    ".$lineIdFilter1."
+                    ".$lineNameFilter1."
                 GROUP BY
-                    user_sb_wip.line_id,
+                    userpassword.line_id,
                     so_det_id
             "));
 
             $dataDefect = collect(DB::connection("mysql_sb")->select("
                 SELECT
+                    userpassword.line_id,
                     so_det_id,
-                    user_sb_wip.line_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_defects.id) total_output
                 FROM
                     output_defects
                     LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN so_det on so_det.id = output_defects.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_defects.defect_status = 'defect' and
                     output_defects.so_det_id in (".$soDetList.")
-                    ".$lineIdFilter."
+                    ".$lineIdFilter1."
+                    ".$lineNameFilter1."
                 GROUP BY
-                    user_sb_wip.line_id,
+                    userpassword.line_id,
                     so_det_id
             "));
 
             $dataReject = collect(DB::connection("mysql_sb")->select("
                 SELECT
+                    userpassword.line_id,
                     so_det_id,
-                    user_sb_wip.line_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_rejects.id) total_output
                 FROM
                     output_rejects
                     LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN so_det on so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_rejects.so_det_id in (".$soDetList.")
-                    ".$lineIdFilter."
+                    ".$lineIdFilter1."
+                    ".$lineNameFilter1."
                 GROUP BY
-                    user_sb_wip.line_id,
+                    userpassword.line_id,
                     so_det_id
             "));
 
             $dataOutputPacking = collect(DB::connection("mysql_sb")->select("
                 SELECT
-                    so_det_id,
                     userpassword.line_id,
+                    so_det_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_rfts_packing.id) total_output
                 FROM
                     output_rfts_packing
                     LEFT JOIN userpassword ON userpassword.username = output_rfts_packing.created_by
+                    LEFT JOIN so_det on so_det.id = output_rfts_packing.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_rfts_packing.so_det_id in (".$soDetList.")
-                    $lineIdFilter
+                    ".$lineIdFilter1."
+                    ".$lineNameFilter1."
                 GROUP BY
                     userpassword.line_id,
                     so_det_id
             "));
 
             $data = collect(DB::select("
-                SELECT
+                 SELECT
                     ppic_master.tanggal,
+                    ppic_master.id_ws,
                     ppic_master.ws,
                     ppic_master.styleno,
                     ppic_master.color,
                     ppic_master.size,
-                    ppic_master.dest,
                     ppic_master.id_so_det,
                     loading_stock.line_id,
                     loading_stock.nama_line,
@@ -203,6 +227,7 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                     SELECT
                         MAX(tgl_shipment) tanggal,
                         ppic_master_so.id_so_det,
+                        master_sb_ws.id_act_cost as id_ws,
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -214,7 +239,9 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                     WHERE
                         ppic_master_so.id_so_det in (".$soDetList.")
                     GROUP BY
-                        ppic_master_so.id_so_det
+                        master_sb_ws.id_act_cost,
+                        master_sb_ws.color,
+                        master_sb_ws.size
                 ) ppic_master
                 LEFT JOIN
                 (
@@ -223,6 +250,8 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                         line_id,
                         nama_line,
                         so_det_id,
+                        act_costing_ws,
+                        color,
                         size,
                         SUM(loading_qty) loading_qty
                     FROM (
@@ -230,16 +259,18 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                             MAX(ll.tanggal_loading) tanggal_loading,
                             ll.line_id,
                             ll.nama_line,
+                            si.act_costing_ws,
                             si.so_det_id,
+                            si.color,
                             si.size,
                             (
-                                    COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
-                                    - COALESCE(di.qty_reject, 0)
-                                    + COALESCE(di.qty_replace, 0)
-                                    - COALESCE(sii.qty_reject, 0)
-                                    + COALESCE(sii.qty_replace, 0)
-                                    - COALESCE(sii_h.qty_reject, 0)
-                                    + COALESCE(sii_h.qty_replace, 0)
+                                COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
+                                - COALESCE(di.qty_reject, 0)
+                                + COALESCE(di.qty_replace, 0)
+                                - COALESCE(sii.qty_reject, 0)
+                                + COALESCE(sii.qty_replace, 0)
+                                - COALESCE(sii_h.qty_reject, 0)
+                                + COALESCE(sii_h.qty_replace, 0)
                             ) AS loading_qty
                         FROM
                             loading_line ll
@@ -261,36 +292,49 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                     ) ll
                     GROUP BY
                         line_id,
-                        so_det_id
-                ) loading_stock on loading_stock.so_det_id = ppic_master.id_so_det
+                        act_costing_ws,
+                        color,
+                        size
+                ) loading_stock on loading_stock.act_costing_ws = ppic_master.ws and loading_stock.color = ppic_master.color and loading_stock.size = ppic_master.size
                 LEFT JOIN (
                     SELECT
-                        line,
-                        id_so_det,
-                        sum(qty) total_transfer_garment
+                        packing_trf_garment.line,
+                        master_sb_ws.id_act_cost as id_ws,
+                        master_sb_ws.ws,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        packing_trf_garment.id_so_det,
+                        sum(packing_trf_garment.qty) total_transfer_garment
                     FROM
                         packing_trf_garment
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment.id_so_det
                     WHERE
-                        id_so_det in (".$soDetList.")
+                        packing_trf_garment.id_so_det in (".$soDetList.")
                         ".$lineFilter."
                         ".$lineNameFilter3."
                     GROUP BY
-                        line,
-                        id_so_det
-                ) transfer_garment ON transfer_garment.id_so_det = ppic_master.id_so_det and transfer_garment.line = loading_stock.nama_line
+                        packing_trf_garment.line,
+                        master_sb_ws.id_act_cost,
+                        master_sb_ws.color,
+                        master_sb_ws.size
+                ) transfer_garment ON transfer_garment.line = loading_stock.nama_line and transfer_garment.id_ws = ppic_master.id_ws and transfer_garment.color = ppic_master.color and transfer_garment.size = ppic_master.size
                 WHERE
-                    loading_stock.line_id is not null
+                    ppic_master.id_so_det is not null
                     ".$lineIdFilter."
                     ".$lineNameFilter2."
                     ".$lineNameFilter3."
                 GROUP BY
-                    ppic_master.id_so_det,
+                    ppic_master.id_ws,
+                    ppic_master.color,
+                    ppic_master.size,
                     loading_stock.line_id
                 HAVING
-                    loading_stock.line_id is not null
+                    ppic_master.id_so_det is not null
                     ".$lineIdFilter."
                     ".$lineNameFilter2."
                     ".$lineNameFilter3."
+                ORDER BY
+                    ppic_master.id_so_det
             "));
         } else {
             $data = [];
@@ -324,7 +368,7 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:P' . ($event->getConcernable()->rowCount+4),
+            'A3:O' . ($event->getConcernable()->rowCount+4),
             [
                 'borders' => [
                     'allBorders' => [

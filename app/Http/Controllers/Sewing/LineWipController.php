@@ -51,10 +51,16 @@ class LineWipController extends Controller
                     SELECT
                         so_det_id,
                         user_sb_wip.line_id,
+                        act_costing.id as id_ws,
+                        so_det.color,
+                        so_det.size,
                         COUNT(output_rfts.id) total_output
                     FROM
                         output_rfts
                         LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
+                        LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                        LEFT JOIN so on so.id = so_det.id_so
+                        LEFT JOIN act_costing on act_costing.id = so.id_cost
                     WHERE
                         output_rfts.so_det_id in (".$soDetList.")
                         ".$lineIdFilter."
@@ -67,10 +73,16 @@ class LineWipController extends Controller
                     SELECT
                         so_det_id,
                         user_sb_wip.line_id,
+                        act_costing.id as id_ws,
+                        so_det.color,
+                        so_det.size,
                         COUNT(output_defects.id) total_output
                     FROM
                         output_defects
                         LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
+                        LEFT JOIN so_det on so_det.id = output_defects.so_det_id
+                        LEFT JOIN so on so.id = so_det.id_so
+                        LEFT JOIN act_costing on act_costing.id = so.id_cost
                     WHERE
                         output_defects.defect_status = 'defect' and
                         output_defects.so_det_id in (".$soDetList.")
@@ -84,10 +96,16 @@ class LineWipController extends Controller
                     SELECT
                         so_det_id,
                         user_sb_wip.line_id,
+                        act_costing.id as id_ws,
+                        so_det.color,
+                        so_det.size,
                         COUNT(output_rejects.id) total_output
                     FROM
                         output_rejects
                         LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+                        LEFT JOIN so_det on so_det.id = output_rejects.so_det_id
+                        LEFT JOIN so on so.id = so_det.id_so
+                        LEFT JOIN act_costing on act_costing.id = so.id_cost
                     WHERE
                         output_rejects.so_det_id in (".$soDetList.")
                         ".$lineIdFilter."
@@ -100,10 +118,16 @@ class LineWipController extends Controller
                     SELECT
                         so_det_id,
                         userpassword.line_id,
+                        act_costing.id as id_ws,
+                        so_det.color,
+                        so_det.size,
                         COUNT(output_rfts_packing.id) total_output
                     FROM
                         output_rfts_packing
                         LEFT JOIN userpassword ON userpassword.username = output_rfts_packing.created_by
+                        LEFT JOIN so_det on so_det.id = output_rfts_packing.so_det_id
+                        LEFT JOIN so on so.id = so_det.id_so
+                        LEFT JOIN act_costing on act_costing.id = so.id_cost
                     WHERE
                         output_rfts_packing.so_det_id in (".$soDetList.")
                         $lineIdFilter
@@ -115,11 +139,11 @@ class LineWipController extends Controller
                 $data = collect(DB::select("
                     SELECT
                         ppic_master.tanggal,
+                        ppic_master.id_ws,
                         ppic_master.ws,
                         ppic_master.styleno,
                         ppic_master.color,
                         ppic_master.size,
-                        ppic_master.dest,
                         ppic_master.id_so_det,
                         loading_stock.line_id,
                         loading_stock.nama_line,
@@ -130,6 +154,7 @@ class LineWipController extends Controller
                         SELECT
                             MAX(tgl_shipment) tanggal,
                             ppic_master_so.id_so_det,
+                            master_sb_ws.id_act_cost as id_ws,
                             master_sb_ws.ws,
                             master_sb_ws.styleno,
                             master_sb_ws.color,
@@ -141,7 +166,9 @@ class LineWipController extends Controller
                         WHERE
                             ppic_master_so.id_so_det in (".$soDetList.")
                         GROUP BY
-                            id_so_det
+                            master_sb_ws.id_act_cost,
+                            master_sb_ws.color,
+                            master_sb_ws.size
                     ) ppic_master
                     LEFT JOIN
                     (
@@ -150,6 +177,8 @@ class LineWipController extends Controller
                             line_id,
                             nama_line,
                             so_det_id,
+                            act_costing_ws,
+                            color,
                             size,
                             SUM(loading_qty) loading_qty
                         FROM (
@@ -157,16 +186,18 @@ class LineWipController extends Controller
                                 MAX(ll.tanggal_loading) tanggal_loading,
                                 ll.line_id,
                                 ll.nama_line,
+                                si.act_costing_ws,
                                 si.so_det_id,
+                                si.color,
                                 si.size,
                                 (
-                                        COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
-                                        - COALESCE(di.qty_reject, 0)
-                                        + COALESCE(di.qty_replace, 0)
-                                        - COALESCE(sii.qty_reject, 0)
-                                        + COALESCE(sii.qty_replace, 0)
-                                        - COALESCE(sii_h.qty_reject, 0)
-                                        + COALESCE(sii_h.qty_replace, 0)
+                                    COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
+                                    - COALESCE(di.qty_reject, 0)
+                                    + COALESCE(di.qty_replace, 0)
+                                    - COALESCE(sii.qty_reject, 0)
+                                    + COALESCE(sii.qty_replace, 0)
+                                    - COALESCE(sii_h.qty_reject, 0)
+                                    + COALESCE(sii_h.qty_replace, 0)
                                 ) AS loading_qty
                             FROM
                                 loading_line ll
@@ -188,28 +219,41 @@ class LineWipController extends Controller
                         ) ll
                         GROUP BY
                             line_id,
-                            so_det_id
-                    ) loading_stock on loading_stock.so_det_id = ppic_master.id_so_det
+                            act_costing_ws,
+                            color,
+                            size
+                    ) loading_stock on loading_stock.act_costing_ws = ppic_master.ws and loading_stock.color = ppic_master.color and loading_stock.size = ppic_master.size
                     LEFT JOIN (
                         SELECT
-                            line,
-                            id_so_det,
-                            sum(qty) total_transfer_garment
+                            packing_trf_garment.line,
+                            master_sb_ws.id_act_cost as id_ws,
+                            master_sb_ws.ws,
+                            master_sb_ws.color,
+                            master_sb_ws.size,
+                            packing_trf_garment.id_so_det,
+                            sum(packing_trf_garment.qty) total_transfer_garment
                         FROM
                             packing_trf_garment
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment.id_so_det
                         WHERE
-                            id_so_det in (".$soDetList.")
+                            packing_trf_garment.id_so_det in (".$soDetList.")
                             ".$lineFilter."
                         GROUP BY
-                            line,
-                            id_so_det
-                    ) transfer_garment ON transfer_garment.id_so_det = ppic_master.id_so_det and transfer_garment.line = loading_stock.nama_line
+                            packing_trf_garment.line,
+                            master_sb_ws.id_act_cost,
+                            master_sb_ws.color,
+                            master_sb_ws.size
+                    ) transfer_garment ON transfer_garment.line = loading_stock.nama_line and transfer_garment.id_ws = ppic_master.id_ws and transfer_garment.color = ppic_master.color and transfer_garment.size = ppic_master.size
                     GROUP BY
-                        ppic_master.id_so_det,
+                        ppic_master.id_ws,
+                        ppic_master.color,
+                        ppic_master.size,
                         loading_stock.line_id
                     HAVING
-                        loading_stock.line_id is not null
+                        ppic_master.id_so_det is not null
                         ".$lineIdFilter."
+                    ORDER BY
+                        ppic_master.id_so_det
                 "));
             } else {
                 $data = [];
@@ -221,24 +265,24 @@ class LineWipController extends Controller
 
             return DataTables::of($data)->
                 addColumn("reject", function ($data) use ($dataReject) {
-                    $reject = $dataReject ? $dataReject->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $reject = $dataReject ? $dataReject->where("line_id", $data->line_id)->where("id_ws", $data->id_ws)->where("color", $data->color)->where("size", $data->size)->sum("total_output") : null;
 
-                    return $reject ? $reject->total_output : '0';
+                    return $reject;
                 })->
                 addColumn("defect", function ($data) use ($dataDefect) {
-                    $defect = $dataDefect ? $dataDefect->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $defect = $dataDefect ? $dataDefect->where("line_id", $data->line_id)->where("id_ws", $data->id_ws)->where("color", $data->color)->where("size", $data->size)->sum("total_output") : null;
 
-                    return $defect ? $defect->total_output : '0';
+                    return $defect;
                 })->
                 addColumn("output", function ($data) use ($dataOutput) {
-                    $output = $dataOutput ? $dataOutput->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $output = $dataOutput ? $dataOutput->where("line_id", $data->line_id)->where("id_ws", $data->id_ws)->where("color", $data->color)->where("size", $data->size)->sum("total_output") : null;
 
-                    return $output ? $output->total_output : '0';
+                    return $output;
                 })->
                 addColumn("output_packing", function ($data) use ($dataOutputPacking) {
-                    $output = $dataOutputPacking ? $dataOutputPacking->where("line_id", $data->line_id)->where("so_det_id", $data->id_so_det)->first() : null;
+                    $output = $dataOutputPacking ? $dataOutputPacking->where("line_id", $data->line_id)->where("id_ws", $data->id_ws)->where("color", $data->color)->where("size", $data->size)->sum("total_output") : null;
 
-                    return $output ? $output->total_output : '0';
+                    return $output;
                 })->
                 toJson();
         }
@@ -265,7 +309,6 @@ class LineWipController extends Controller
         $styleFilter = "";
         $colorFilter = "";
         $sizeFilter = "";
-        $destFilter = "";
 
         if ($request->lineNameFilter) {
             $lineNameFilter1 = "AND userpassword.username LIKE '%".($request->lineNameFilter)."%'";
@@ -293,10 +336,6 @@ class LineWipController extends Controller
             $sizeFilter = "AND master_sb_ws.size LIKE '%".($request->sizeFilter)."%'";
         }
 
-        if ($request->destFilter) {
-            $destFilter = "AND master_sb_ws.dest LIKE '%".($request->destFilter)."%'";
-        }
-
         $ppicList = collect(
             DB::select("
                 SELECT
@@ -314,7 +353,6 @@ class LineWipController extends Controller
                     ".$styleFilter."
                     ".$colorFilter."
                     ".$sizeFilter."
-                    ".$destFilter."
                 GROUP BY
                     id_so_det
                 HAVING
@@ -330,11 +368,17 @@ class LineWipController extends Controller
                 SELECT
                     userpassword.line_id,
                     so_det_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_rfts.id) total_output
                 FROM
                     output_rfts
                     LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
                     LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_rfts.so_det_id in (".$soDetList.")
                     ".$lineIdFilter1."
@@ -348,11 +392,17 @@ class LineWipController extends Controller
                 SELECT
                     userpassword.line_id,
                     so_det_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_defects.id) total_output
                 FROM
                     output_defects
                     LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
                     LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN so_det on so_det.id = output_defects.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_defects.defect_status = 'defect' and
                     output_defects.so_det_id in (".$soDetList.")
@@ -367,11 +417,17 @@ class LineWipController extends Controller
                 SELECT
                     userpassword.line_id,
                     so_det_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_rejects.id) total_output
                 FROM
                     output_rejects
                     LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
                     LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN so_det on so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_rejects.so_det_id in (".$soDetList.")
                     ".$lineIdFilter1."
@@ -385,10 +441,16 @@ class LineWipController extends Controller
                 SELECT
                     userpassword.line_id,
                     so_det_id,
+                    act_costing.id as id_ws,
+                    so_det.color,
+                    so_det.size,
                     COUNT(output_rfts_packing.id) total_output
                 FROM
                     output_rfts_packing
                     LEFT JOIN userpassword ON userpassword.username = output_rfts_packing.created_by
+                    LEFT JOIN so_det on so_det.id = output_rfts_packing.so_det_id
+                    LEFT JOIN so on so.id = so_det.id_so
+                    LEFT JOIN act_costing on act_costing.id = so.id_cost
                 WHERE
                     output_rfts_packing.so_det_id in (".$soDetList.")
                     ".$lineIdFilter1."
@@ -399,13 +461,13 @@ class LineWipController extends Controller
             "));
 
             $data = collect(DB::select("
-                SELECT
+                 SELECT
                     ppic_master.tanggal,
+                    ppic_master.id_ws,
                     ppic_master.ws,
                     ppic_master.styleno,
                     ppic_master.color,
                     ppic_master.size,
-                    ppic_master.dest,
                     ppic_master.id_so_det,
                     loading_stock.line_id,
                     loading_stock.nama_line,
@@ -416,6 +478,7 @@ class LineWipController extends Controller
                     SELECT
                         MAX(tgl_shipment) tanggal,
                         ppic_master_so.id_so_det,
+                        master_sb_ws.id_act_cost as id_ws,
                         master_sb_ws.ws,
                         master_sb_ws.styleno,
                         master_sb_ws.color,
@@ -427,7 +490,9 @@ class LineWipController extends Controller
                     WHERE
                         ppic_master_so.id_so_det in (".$soDetList.")
                     GROUP BY
-                        ppic_master_so.id_so_det
+                        master_sb_ws.id_act_cost,
+                        master_sb_ws.color,
+                        master_sb_ws.size
                 ) ppic_master
                 LEFT JOIN
                 (
@@ -436,6 +501,8 @@ class LineWipController extends Controller
                         line_id,
                         nama_line,
                         so_det_id,
+                        act_costing_ws,
+                        color,
                         size,
                         SUM(loading_qty) loading_qty
                     FROM (
@@ -443,16 +510,18 @@ class LineWipController extends Controller
                             MAX(ll.tanggal_loading) tanggal_loading,
                             ll.line_id,
                             ll.nama_line,
+                            si.act_costing_ws,
                             si.so_det_id,
+                            si.color,
                             si.size,
                             (
-                                    COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
-                                    - COALESCE(di.qty_reject, 0)
-                                    + COALESCE(di.qty_replace, 0)
-                                    - COALESCE(sii.qty_reject, 0)
-                                    + COALESCE(sii.qty_replace, 0)
-                                    - COALESCE(sii_h.qty_reject, 0)
-                                    + COALESCE(sii_h.qty_replace, 0)
+                                COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
+                                - COALESCE(di.qty_reject, 0)
+                                + COALESCE(di.qty_replace, 0)
+                                - COALESCE(sii.qty_reject, 0)
+                                + COALESCE(sii.qty_replace, 0)
+                                - COALESCE(sii_h.qty_reject, 0)
+                                + COALESCE(sii_h.qty_replace, 0)
                             ) AS loading_qty
                         FROM
                             loading_line ll
@@ -474,36 +543,49 @@ class LineWipController extends Controller
                     ) ll
                     GROUP BY
                         line_id,
-                        so_det_id
-                ) loading_stock on loading_stock.so_det_id = ppic_master.id_so_det
+                        act_costing_ws,
+                        color,
+                        size
+                ) loading_stock on loading_stock.act_costing_ws = ppic_master.ws and loading_stock.color = ppic_master.color and loading_stock.size = ppic_master.size
                 LEFT JOIN (
                     SELECT
-                        line,
-                        id_so_det,
-                        sum(qty) total_transfer_garment
+                        packing_trf_garment.line,
+                        master_sb_ws.id_act_cost as id_ws,
+                        master_sb_ws.ws,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        packing_trf_garment.id_so_det,
+                        sum(packing_trf_garment.qty) total_transfer_garment
                     FROM
                         packing_trf_garment
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment.id_so_det
                     WHERE
-                        id_so_det in (".$soDetList.")
+                        packing_trf_garment.id_so_det in (".$soDetList.")
                         ".$lineFilter."
                         ".$lineNameFilter3."
                     GROUP BY
-                        line,
-                        id_so_det
-                ) transfer_garment ON transfer_garment.id_so_det = ppic_master.id_so_det and transfer_garment.line = loading_stock.nama_line
+                        packing_trf_garment.line,
+                        master_sb_ws.id_act_cost,
+                        master_sb_ws.color,
+                        master_sb_ws.size
+                ) transfer_garment ON transfer_garment.line = loading_stock.nama_line and transfer_garment.id_ws = ppic_master.id_ws and transfer_garment.color = ppic_master.color and transfer_garment.size = ppic_master.size
                 WHERE
-                    loading_stock.line_id is not null
+                    ppic_master.id_so_det is not null
                     ".$lineIdFilter."
                     ".$lineNameFilter2."
                     ".$lineNameFilter3."
                 GROUP BY
-                    ppic_master.id_so_det,
+                    ppic_master.id_ws,
+                    ppic_master.color,
+                    ppic_master.size,
                     loading_stock.line_id
                 HAVING
-                    loading_stock.line_id is not null
+                    ppic_master.id_so_det is not null
                     ".$lineIdFilter."
                     ".$lineNameFilter2."
                     ".$lineNameFilter3."
+                ORDER BY
+                    ppic_master.id_so_det
             "));
         } else {
             $data = collect([]);
@@ -513,10 +595,10 @@ class LineWipController extends Controller
             $dataOutputPacking = collect([]);
         }
 
-        $dataRejectOutput = $dataReject->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("so_det_id", $data->pluck("id_so_det")->toArray());
-        $dataDefectOutput = $dataDefect->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("so_det_id", $data->pluck("id_so_det")->toArray());
-        $dataOutputOutput = $dataOutput->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("so_det_id", $data->pluck("id_so_det")->toArray());
-        $dataOutputPackingOutput = $dataOutputPacking->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("so_det_id", $data->pluck("id_so_det")->toArray());
+        $dataRejectOutput = $dataReject->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("id_ws", $data->pluck("id_ws")->toArray())->whereIn("color", $data->pluck("color")->toArray())->whereIn("size", $data->pluck('size')->toArray());
+        $dataDefectOutput = $dataDefect->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("id_ws", $data->pluck("id_ws")->toArray())->whereIn("color", $data->pluck("color")->toArray())->whereIn("size", $data->pluck('size')->toArray());
+        $dataOutputOutput = $dataOutput->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("id_ws", $data->pluck("id_ws")->toArray())->whereIn("color", $data->pluck("color")->toArray())->whereIn("size", $data->pluck('size')->toArray());
+        $dataOutputPackingOutput = $dataOutputPacking->whereIn("line_id", $data->pluck("line_id")->toArray())->whereIn("id_ws", $data->pluck("id_ws")->toArray())->whereIn("color", $data->pluck("color")->toArray())->whereIn("size", $data->pluck('size')->toArray());
 
         return json_encode(array(
             "total_loading" => $data ? $data->sum("loading_qty") : null,
@@ -546,9 +628,8 @@ class LineWipController extends Controller
         $styleFilter = $request->styleFilter ? $request->styleFilter : null;
         $colorFilter = $request->colorFilter ? $request->colorFilter : null;
         $sizeFilter = $request->sizeFilter ? $request->sizeFilter : null;
-        $destFilter = $request->destFilter ? $request->destFilter : null;
 
-        return Excel::download(new LineWipExport($tanggalAwal, $tanggalAkhir, $lineIdFilter, $lineFilter, $lineNameFilter, $tanggalFilter, $wsFilter, $styleFilter, $colorFilter, $sizeFilter, $destFilter), 'production_excel.xlsx');
+        return Excel::download(new LineWipExport($tanggalAwal, $tanggalAkhir, $lineIdFilter, $lineFilter, $lineNameFilter, $tanggalFilter, $wsFilter, $styleFilter, $colorFilter, $sizeFilter), 'production_excel.xlsx');
     }
 
     /**
