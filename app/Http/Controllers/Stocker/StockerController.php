@@ -2218,8 +2218,8 @@ class StockerController extends Controller
                             stocker_input.group_stocker
                         ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
-                        AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                         WHERE
                         (
                             stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -2236,9 +2236,6 @@ class StockerController extends Controller
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
                         )
                     GROUP BY
-                        stocker_input.form_cut_id,
-                        stocker_input.so_det_id,
-                        stocker_input.group_stocker,
                         year_sequence_num.updated_at
                     ORDER BY
                         year_sequence_num.updated_at DESC
@@ -2303,8 +2300,8 @@ class StockerController extends Controller
                                 COALESCE ( updated_at, created_at)
                         ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                        AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                     WHERE
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                         AND (
@@ -2322,10 +2319,6 @@ class StockerController extends Controller
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
                         )
                     GROUP BY
-                        stocker_input.form_cut_id,
-                        stocker_input.so_det_id,
-                        stocker_input.group_stocker,
-                        stocker_input.ratio,
                         year_sequence_num.updated_at
                     ORDER BY
                         year_sequence_num.updated_at DESC
@@ -2519,8 +2512,8 @@ class StockerController extends Controller
                             stocker_input.group_stocker
                         ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
-                        AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                        AND CAST(year_sequence_num.range_numbering_awal as UNSIGNED) >= CAST(stocker_input.range_awal as UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir as UNSIGNED) <= CAST(stocker_input.range_akhir as UNSIGNED)
                         WHERE
                         (
                             stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -2630,8 +2623,8 @@ class StockerController extends Controller
                                 COALESCE ( updated_at, created_at)
                         ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                        AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                     WHERE
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                         AND (
@@ -3179,8 +3172,8 @@ class StockerController extends Controller
                             stocker_input.group_stocker
                     ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                    AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
-                    AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                    AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                    AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                     WHERE
                     (
                         stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -3284,8 +3277,8 @@ class StockerController extends Controller
                             COALESCE ( updated_at, created_at)
                     ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                    AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                    AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                    AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                    AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                 WHERE
                     ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                     AND (
