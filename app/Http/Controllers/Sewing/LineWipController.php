@@ -146,34 +146,49 @@ class LineWipController extends Controller
                     LEFT JOIN
                     (
                         SELECT
-                            MAX(ll.tanggal_loading) tanggal_loading,
-                            ll.line_id,
-                            ll.nama_line,
-                            si.so_det_id,
-                            si.size,
-                            SUM(
-                                COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
-                                - COALESCE(di.qty_reject, 0)
-                                + COALESCE(di.qty_replace, 0)
-                                - COALESCE(sii.qty_reject, 0)
-                                + COALESCE(sii.qty_replace, 0)
-                                - COALESCE(sii_h.qty_reject, 0)
-                                + COALESCE(sii_h.qty_replace, 0)
-                            ) AS loading_qty
-                        FROM
-                            loading_line ll
-                            INNER JOIN stocker_input si ON si.id = ll.stocker_id
-                            LEFT JOIN dc_in_input di ON di.id_qr_stocker = si.id_qr_stocker
-                            LEFT JOIN secondary_in_input sii ON sii.id_qr_stocker = si.id_qr_stocker
-                            LEFT JOIN secondary_inhouse_input sii_h ON sii_h.id_qr_stocker = si.id_qr_stocker
-                        where
-                            si.so_det_id in (".$soDetList.")
-                            ".$lineIdFilter."
+                            MAX(tanggal_loading) tanggal_loading,
+                            line_id,
+                            nama_line,
+                            so_det_id,
+                            size,
+                            SUM(loading_qty) loading_qty
+                        FROM (
+                            SELECT
+                                MAX(ll.tanggal_loading) tanggal_loading,
+                                ll.line_id,
+                                ll.nama_line,
+                                si.so_det_id,
+                                si.size,
+                                (
+                                        COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
+                                        - COALESCE(di.qty_reject, 0)
+                                        + COALESCE(di.qty_replace, 0)
+                                        - COALESCE(sii.qty_reject, 0)
+                                        + COALESCE(sii.qty_replace, 0)
+                                        - COALESCE(sii_h.qty_reject, 0)
+                                        + COALESCE(sii_h.qty_replace, 0)
+                                ) AS loading_qty
+                            FROM
+                                loading_line ll
+                                INNER JOIN stocker_input si ON si.id = ll.stocker_id
+                                LEFT JOIN dc_in_input di ON di.id_qr_stocker = si.id_qr_stocker
+                                LEFT JOIN secondary_in_input sii ON sii.id_qr_stocker = si.id_qr_stocker
+                                LEFT JOIN secondary_inhouse_input sii_h ON sii_h.id_qr_stocker = si.id_qr_stocker
+                            where
+                                si.so_det_id in (".$soDetList.")
+                                ".$lineIdFilter."
+                            GROUP BY
+                                ll.line_id,
+                                si.form_cut_id,
+                                si.so_det_id,
+                                si.group_stocker,
+                                si.ratio
+                            HAVING
+                                loading_qty > 0
+                        ) ll
                         GROUP BY
-                            ll.line_id,
-                            si.so_det_id
-                        HAVING
-                            loading_qty > 0
+                            line_id,
+                            so_det_id
                     ) loading_stock on loading_stock.so_det_id = ppic_master.id_so_det
                     LEFT JOIN (
                         SELECT
@@ -417,35 +432,49 @@ class LineWipController extends Controller
                 LEFT JOIN
                 (
                     SELECT
-                        MAX(ll.tanggal_loading) tanggal_loading,
-                        ll.line_id,
-                        ll.nama_line,
-                        si.so_det_id,
-                        si.size,
-                        SUM(
-                            COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
-                            - COALESCE(di.qty_reject, 0)
-                            + COALESCE(di.qty_replace, 0)
-                            - COALESCE(sii.qty_reject, 0)
-                            + COALESCE(sii.qty_replace, 0)
-                            - COALESCE(sii_h.qty_reject, 0)
-                            + COALESCE(sii_h.qty_replace, 0)
-                        ) AS loading_qty
-                    FROM
-                        loading_line ll
-                        INNER JOIN stocker_input si ON si.id = ll.stocker_id
-                        LEFT JOIN dc_in_input di ON di.id_qr_stocker = si.id_qr_stocker
-                        LEFT JOIN secondary_in_input sii ON sii.id_qr_stocker = si.id_qr_stocker
-                        LEFT JOIN secondary_inhouse_input sii_h ON sii_h.id_qr_stocker = si.id_qr_stocker
-                    where
-                        si.so_det_id in (".$soDetList.")
-                        ".$lineIdFilter."
-                        ".$lineNameFilter2."
+                        MAX(tanggal_loading) tanggal_loading,
+                        line_id,
+                        nama_line,
+                        so_det_id,
+                        size,
+                        SUM(loading_qty) loading_qty
+                    FROM (
+                        SELECT
+                            MAX(ll.tanggal_loading) tanggal_loading,
+                            ll.line_id,
+                            ll.nama_line,
+                            si.so_det_id,
+                            si.size,
+                            (
+                                    COALESCE(di.qty_awal, si.qty_ply_mod, si.qty_ply, 0)
+                                    - COALESCE(di.qty_reject, 0)
+                                    + COALESCE(di.qty_replace, 0)
+                                    - COALESCE(sii.qty_reject, 0)
+                                    + COALESCE(sii.qty_replace, 0)
+                                    - COALESCE(sii_h.qty_reject, 0)
+                                    + COALESCE(sii_h.qty_replace, 0)
+                            ) AS loading_qty
+                        FROM
+                            loading_line ll
+                            INNER JOIN stocker_input si ON si.id = ll.stocker_id
+                            LEFT JOIN dc_in_input di ON di.id_qr_stocker = si.id_qr_stocker
+                            LEFT JOIN secondary_in_input sii ON sii.id_qr_stocker = si.id_qr_stocker
+                            LEFT JOIN secondary_inhouse_input sii_h ON sii_h.id_qr_stocker = si.id_qr_stocker
+                        where
+                            si.so_det_id in (".$soDetList.")
+                            ".$lineIdFilter."
+                        GROUP BY
+                            ll.line_id,
+                            si.form_cut_id,
+                            si.so_det_id,
+                            si.group_stocker,
+                            si.ratio
+                        HAVING
+                            loading_qty > 0
+                    ) ll
                     GROUP BY
-                        ll.line_id,
-                        si.so_det_id
-                    HAVING
-                        loading_qty > 0
+                        line_id,
+                        so_det_id
                 ) loading_stock on loading_stock.so_det_id = ppic_master.id_so_det
                 LEFT JOIN (
                     SELECT
