@@ -2218,8 +2218,8 @@ class StockerController extends Controller
                             stocker_input.group_stocker
                         ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
-                        AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                         WHERE
                         (
                             stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -2236,9 +2236,6 @@ class StockerController extends Controller
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
                         )
                     GROUP BY
-                        stocker_input.form_cut_id,
-                        stocker_input.so_det_id,
-                        stocker_input.group_stocker,
                         year_sequence_num.updated_at
                     ORDER BY
                         year_sequence_num.updated_at DESC
@@ -2303,8 +2300,8 @@ class StockerController extends Controller
                                 COALESCE ( updated_at, created_at)
                         ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                        AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                     WHERE
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                         AND (
@@ -2322,10 +2319,6 @@ class StockerController extends Controller
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
                         )
                     GROUP BY
-                        stocker_input.form_cut_id,
-                        stocker_input.so_det_id,
-                        stocker_input.group_stocker,
-                        stocker_input.ratio,
                         year_sequence_num.updated_at
                     ORDER BY
                         year_sequence_num.updated_at DESC
@@ -2519,8 +2512,8 @@ class StockerController extends Controller
                             stocker_input.group_stocker
                         ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
-                        AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                        AND CAST(year_sequence_num.range_numbering_awal as UNSIGNED) >= CAST(stocker_input.range_awal as UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir as UNSIGNED) <= CAST(stocker_input.range_akhir as UNSIGNED)
                         WHERE
                         (
                             stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -2630,8 +2623,8 @@ class StockerController extends Controller
                                 COALESCE ( updated_at, created_at)
                         ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                        AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                     WHERE
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                         AND (
@@ -3179,8 +3172,8 @@ class StockerController extends Controller
                             stocker_input.group_stocker
                     ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                    AND year_sequence_num.range_numbering_awal >= (stocker_input.range_awal-10)
-                    AND year_sequence_num.range_numbering_akhir <= (stocker_input.range_akhir+10)
+                    AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                    AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                     WHERE
                     (
                         stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -3284,8 +3277,8 @@ class StockerController extends Controller
                             COALESCE ( updated_at, created_at)
                     ) year_sequence_num ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                    AND year_sequence_num.range_numbering_awal >= stocker_input.range_awal
-                    AND year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+                    AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                    AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                 WHERE
                     ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                     AND (
@@ -3804,17 +3797,17 @@ class StockerController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             where("year", $request->year)->
             where("year_sequence", $request->sequence)->
-            whereBetween("year_sequence_number", [($request->range_awal ? $request->range_awal : 0), ($request->range_akhir ? $request->range_akhir : 0)]);
+            whereBetween("year_sequence_number", [($request->range_awal ? $request->range_awal : '-'), ($request->range_akhir ? $request->range_akhir : '-')]);
 
         if ($request->range_awal && $request->range_akhir) {
             $dataOutput = collect(
                     DB::connection("mysql_sb")->select("
                         SELECT output.*, userpassword.username as sewing_line FROM (
-                            select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                            select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
                             UNION
-                            select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                            select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
                             UNION
-                            select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                            select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
                         ) output
                         left join user_sb_wip on user_sb_wip.id = output.created_by
                         left join userpassword on userpassword.line_id = user_sb_wip.line_id
@@ -3824,11 +3817,15 @@ class StockerController extends Controller
             $dataOutput = collect([]);
         }
 
-        $dataOutputPacking = collect(
+        if ($request->range_awal && $request->range_akhir) {
+            $dataOutputPacking = collect(
                 DB::connection("mysql_sb")->select("
-                    select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                    select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : '-')."
                 ")
             );
+        } else {
+            $dataOutputPacking = collect([]);
+        }
 
         return Datatables::of($data)->
             filterColumn('ws', function($query, $keyword) {
