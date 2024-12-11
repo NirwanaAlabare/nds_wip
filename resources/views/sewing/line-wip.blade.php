@@ -339,7 +339,14 @@
                     tanggal_awal : $('#tanggal_awal').val(),
                     tanggal_akhir : $('#tanggal_akhir').val(),
                     line_id : $('#line_id').val(),
-                    line : $('#line_id').find(":selected").attr("data-line")
+                    line : $('#line_id').find(":selected").attr("data-line"),
+                    lineNameFilter : $('#line_filter').val(),
+                    tanggalFilter : $('#tanggal_filter').val(),
+                    wsFilter : $('#ws_filter').val(),
+                    styleFilter : $('#style_filter').val(),
+                    colorFilter : $('#color_filter').val(),
+                    sizeFilter : $('#size_filter').val(),
+                    destFilter : $('#dest_filter').val()
                 },
                 xhrFields: {
                     responseType: 'blob'

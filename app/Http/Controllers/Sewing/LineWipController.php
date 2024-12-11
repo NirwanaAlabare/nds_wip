@@ -540,8 +540,15 @@ class LineWipController extends Controller
         $tanggalAkhir = $request->tanggal_akhir ? $request->tanggal_akhir : date('Y-m-d');
         $lineIdFilter = $request->line_id ? $request->line_id : null;
         $lineFilter = $request->line ? $request->line : null;
+        $lineNameFilter = $request->lineNameFilter ? $request->lineNameFilter : null;
+        $tanggalFilter = $request->tanggalFilter ? $request->tanggalFilter : null;
+        $wsFilter = $request->wsFilter ? $request->wsFilter : null;
+        $styleFilter = $request->styleFilter ? $request->styleFilter : null;
+        $colorFilter = $request->colorFilter ? $request->colorFilter : null;
+        $sizeFilter = $request->sizeFilter ? $request->sizeFilter : null;
+        $destFilter = $request->destFilter ? $request->destFilter : null;
 
-        return Excel::download(new LineWipExport($tanggalAwal, $tanggalAkhir, $lineIdFilter, $lineFilter), 'production_excel.xlsx');
+        return Excel::download(new LineWipExport($tanggalAwal, $tanggalAkhir, $lineIdFilter, $lineFilter, $lineNameFilter, $tanggalFilter, $wsFilter, $styleFilter, $colorFilter, $sizeFilter, $destFilter), 'production_excel.xlsx');
     }
 
     /**
