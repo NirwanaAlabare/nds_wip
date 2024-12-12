@@ -121,7 +121,7 @@
 
         let datatable = $("#datatable").DataTable({
             processing: true,
-            serverSide: false,
+            serverSide: true,
             ordering: false,
             scrollX: "500px",
             scrollY: "500px",
