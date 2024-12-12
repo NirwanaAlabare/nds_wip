@@ -16,10 +16,12 @@ use App\Models\MonthCount;
 use App\Models\YearSequence;
 use App\Models\StockerAdditional;
 use App\Models\StockerAdditionalDetail;
+use App\Exports\Stocker\StockerListExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 use DB;
 use QrCode;
 use PDF;
@@ -2652,6 +2654,15 @@ class StockerController extends Controller
         }
 
         return $stockerList;
+    }
+
+    public function stockerListExport(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
+        $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+        return Excel::download(new StockerListExport($dateFrom, $dateTo, $request->tanggal_filter, $request->no_form_filter, $request->no_cut_filter, $request->color_filter, $request->size_filter, $request->dest_filter, $request->qty_filter, $request->year_sequence_filter, $request->numbering_range_filter, $request->buyer_filter, $request->ws_filter, $request->style_filter, $request->stocker_filter, $request->part_filter, $request->group_filter, $request->shade_filter, $request->ratio_filter, $request->stocker_range_filter), 'production_excel.xlsx');
     }
 
     public function stockerListDetail($form_cut_id, $so_det_id) {

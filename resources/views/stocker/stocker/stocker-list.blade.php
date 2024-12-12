@@ -33,7 +33,7 @@
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3">
                     {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
-                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" disabled><i class="fa-regular fa-file-excel"></i></button>
+                    <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa-regular fa-file-excel"></i></button>
                     <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-solid fa-print"></i> Print Number Stock</button>
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-solid fa-print"></i> Print Label</button>
                     <button class="btn btn-primary btn-sm d-none" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-solid fa-print"></i> Print New Label</button>
@@ -455,7 +455,7 @@
                         }
                     },
                     error: function(request, status, error) {
-                        alert('cek');
+                        // alert('cek');
                         console.error(error);
                     },
                 })
@@ -489,6 +489,58 @@
             $('#datatable').DataTable().ajax.reload(function () {
                 document.getElementById("loading").classList.add("d-none");
             }, false);
+        }
+
+        function exportExcel() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                url: "{{ route("stocker-list-export") }}",
+                type: "get",
+                data: {
+                    'dateFrom': $('#tgl-awal').val(),
+                    'dateTo': $('#tgl-akhir').val(),
+                    'tanggal_filter': $('#tanggal_filter').val(),
+                    'no_form_filter': $('#no_form_filter').val(),
+                    'no_cut_filter': $('#no_cut_filter').val(),
+                    'color_filter': $('#color_filter').val(),
+                    'size_filter': $('#size_filter').val(),
+                    'dest_filter': $('#dest_filter').val(),
+                    'qty_filter': $('#qty_filter').val(),
+                    'year_sequence_filter': $('#year_sequence_filter').val(),
+                    'numbering_range_filter': $('#numbering_range_filter').val(),
+                    'buyer_filter': $('#buyer_filter').val(),
+                    'ws_filter': $('#ws_filter').val(),
+                    'style_filter': $('#style_filter').val(),
+                    'stocker_filter': $('#stocker_filter').val(),
+                    'part_filter': $('#part_filter').val(),
+                    'group_filter': $('#group_filter').val(),
+                    'shade_filter': $('#shade_filter').val(),
+                    'ratio_filter': $('#ratio_filter').val(),
+                    'stocker_range_filter': $('#stocker_range_filter').val()
+                },
+                xhrFields:{
+                    responseType: 'blob'
+                },
+                success: function (res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Stocker List.xlsx";
+                        link.click();
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
+                }
+            });
         }
 
         function fixRedundantStocker() {
