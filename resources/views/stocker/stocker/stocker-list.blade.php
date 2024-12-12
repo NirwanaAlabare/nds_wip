@@ -533,10 +533,22 @@
                         link.href = window.URL.createObjectURL(blob);
                         link.download = "Stocker List.xlsx";
                         link.click();
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Data Stocker Number List berhasil di export.',
+                            position: 'topCenter'
+                        });
                     }
                 },
                 error: function (jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
+
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Data Stocker Number List gagal di export.',
+                        position: 'topCenter'
+                    });
 
                     console.error(jqXHR);
                 }
