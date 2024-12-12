@@ -655,19 +655,19 @@ class ReportCuttingController extends Controller
             }
 
             $keywordQuery = "";
-            // if ($request->search["value"]) {
-            //     $keywordQuery = "
-            //         and (
-            //             marker_cutting.tgl_form_cut like '%" . $request->search["value"] . "%' OR
-            //             marker_cutting.meja like '%" . $request->search["value"] . "%' OR
-            //             marker_cutting.buyer like '%" . $request->search["value"] . "%' OR
-            //             marker_cutting.act_costing_ws like '%" . $request->search["value"] . "%' OR
-            //             marker_cutting.style like '%" . $request->search["value"] . "%' OR
-            //             marker_cutting.color like '%" . $request->search["value"] . "%' OR
-            //             marker_cutting.notes like '%" . $request->search["value"] . "%'
-            //         )
-            //     ";
-            // }
+            if ($request->search["value"]) {
+                $keywordQuery = "
+                    and (
+                        marker_cutting.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.meja like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.buyer like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.style like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.color like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.notes like '%" . $request->search["value"] . "%'
+                    )
+                ";
+            }
 
             $reportCutting = DB::select("
                 SELECT
