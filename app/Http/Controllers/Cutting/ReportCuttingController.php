@@ -655,24 +655,25 @@ class ReportCuttingController extends Controller
             }
 
             $keywordQuery = "";
-            if ($request->search["value"]) {
-                $keywordQuery = "
-                    and (
-                        marker_cutting.tgl_form_cut like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.meja like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.buyer like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.act_costing_ws like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.style like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.color like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.notes like '%" . $request->search["value"] . "%'
-                    )
-                ";
-            }
+            // if ($request->search["value"]) {
+            //     $keywordQuery = "
+            //         and (
+            //             marker_cutting.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+            //             marker_cutting.meja like '%" . $request->search["value"] . "%' OR
+            //             marker_cutting.buyer like '%" . $request->search["value"] . "%' OR
+            //             marker_cutting.act_costing_ws like '%" . $request->search["value"] . "%' OR
+            //             marker_cutting.style like '%" . $request->search["value"] . "%' OR
+            //             marker_cutting.color like '%" . $request->search["value"] . "%' OR
+            //             marker_cutting.notes like '%" . $request->search["value"] . "%'
+            //         )
+            //     ";
+            // }
 
             $reportCutting = DB::select("
                 SELECT
                     marker_cutting.tgl_form_cut,
                     UPPER(marker_cutting.meja) meja,
+                    marker_cutting.buyer,
                     marker_cutting.act_costing_ws,
                     marker_cutting.style,
                     marker_cutting.color,
@@ -781,6 +782,10 @@ class ReportCuttingController extends Controller
         if ($request->noMeja) {
             $noMejaFilter = " and form_cut.meja LIKE '%".$request->noMeja."%'";
         }
+        $buyerFilter = "";
+        if ($request->buyer) {
+            $buyerFilter = " and marker_input.buyer LIKE '%".$request->buyer."%'";
+        }
         $wsFilter = "";
         if ($request->ws) {
             $wsFilter = " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
@@ -867,6 +872,7 @@ class ReportCuttingController extends Controller
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
                             ".$noMejaFilter."
+                            ".$buyerFilter."
                             ".$wsFilter."
                             ".$styleFilter."
                             ".$colorFilter."

@@ -42,6 +42,7 @@
                         <tr>
                             <th>Tanggal</th>
                             <th>Meja</th>
+                            <th>Buyer</th>
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
@@ -54,7 +55,7 @@
                     <tfoot>
                         <tr>
                             <td colspan="6" class="fw-bold">Total</td>
-                            <td class="fw-bold"></td>
+                            <td colspan="2" class="fw-bold"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -91,6 +92,7 @@
         var listFilter = [
             "tanggal_filter",
             "no_meja_filter",
+            "buyer_filter",
             "ws_filter",
             "style_filter",
             "color_filter",
@@ -100,7 +102,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i <= 5) {
+            if (i <= 6) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
@@ -119,7 +121,7 @@
 
         let datatable = $("#datatable").DataTable({
             processing: true,
-            serverSide: true,
+            serverSide: false,
             ordering: false,
             scrollX: "500px",
             scrollY: "500px",
@@ -137,6 +139,9 @@
                 },
                 {
                     data: 'meja'
+                },
+                {
+                    data: 'buyer'
                 },
                 {
                     data: 'act_costing_ws'
@@ -175,6 +180,7 @@
                         'dateTo' : $('#to').val(),
                         'tanggal': $('#tanggal_filter').val(),
                         'noMeja': $('#no_meja_filter').val(),
+                        'buyer': $('#buyer_filter').val(),
                         'ws': $('#ws_filter').val(),
                         'style': $('#style_filter').val(),
                         'color': $('#color_filter').val(),
