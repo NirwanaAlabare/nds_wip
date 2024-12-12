@@ -808,6 +808,7 @@ class ReportCuttingController extends Controller
                 SELECT
                     marker_cutting.tgl_form_cut,
                     UPPER(marker_cutting.meja) meja,
+                    marker_cutting.buyer,
                     marker_cutting.act_costing_ws,
                     marker_cutting.style,
                     marker_cutting.color,
@@ -871,6 +872,7 @@ class ReportCuttingController extends Controller
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
+                            ".$tanggalFilter."
                             ".$noMejaFilter."
                             ".$buyerFilter."
                             ".$wsFilter."
