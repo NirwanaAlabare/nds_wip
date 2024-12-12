@@ -324,7 +324,7 @@ class RollController extends Controller
                     form_cut_piping.piping pemakaian_lembar,
                     form_cut_piping.piping total_pemakaian_roll,
                     ROUND(( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty, 2 ) short_roll,
-                    CONCAT( ROUND((( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty )/ form_cut_piping.qty * 100, 2 ), ' %' ) short_roll_percentage,
+                    CONCAT( ROUND((( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty ) / form_cut_piping.qty * 100, 2 ), ' %' ) short_roll_percentage,
                     form_cut_piping.operator
                 FROM
                     form_cut_piping
