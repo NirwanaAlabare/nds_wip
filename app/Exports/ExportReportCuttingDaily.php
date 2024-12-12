@@ -54,6 +54,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                 SELECT
                     marker_cutting.tgl_form_cut,
                     UPPER(marker_cutting.meja) meja,
+                    marker_cutting.buyer,
                     marker_cutting.act_costing_ws,
                     marker_cutting.style,
                     marker_cutting.color,
@@ -159,7 +160,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A5:G' . ($event->getConcernable()->rowCount),
+            'A5:H' . ($event->getConcernable()->rowCount),
             [
                 'borders' => [
                     'allBorders' => [

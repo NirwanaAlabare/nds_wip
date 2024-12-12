@@ -21,6 +21,7 @@
     <tr>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">TANGGAL</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">MEJA</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;">BUYER</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">WORKSHEET</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">STYLE</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">COLOR</th>
@@ -36,6 +37,7 @@
                 @endphp
                 <td style="text-align: center;vertical-align: middle;" rowspan="{{ $reportCutting->where('meja', $cutting->meja)->count() }}">{{ $cutting->meja }}</td>
             @endif
+            <td>{{ $cutting->buyer }}</td>
             <td>{{ $cutting->act_costing_ws }}</td>
             <td>{{ $cutting->style }}</td>
             <td>{{ $cutting->color }}</td>
@@ -47,8 +49,8 @@
         </tr>
     @endforeach
     <tr>
-        <th colspan="6">TOTAL</th>
-        <th>{{ $totalOutput }}</th>
+        <th style="font-weight: bold;" colspan="6">TOTAL</th>
+        <th style="font-weight: bold;" colspan="2">{{ $totalOutput }}</th>
     </tr>
 </table>
 
