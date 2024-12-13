@@ -3503,8 +3503,8 @@
                 totalPemakaianLembar += Number(data.pemakaian_lembar);
                 totalTotalPemakaian += Number(data.total_pemakaian_roll);
                 latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
-                Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
-                Number(data.short_roll) < 0 ? totalShortRollPercentage += (latestStatus != 'extension complete' ? (data.short_roll ? (data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : 0) : 0) : Number(data.short_roll ? (latestQty > 0 ? Number((data.short_roll+latestShortRoll)/latestQty*100).round(2) : 0) : 0)) : 0;
+                Number(data.short_roll) < 0 ? totalShortRoll += (latestStatus != 'extension complete' ? Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 ) - ( data.qty ? data.qty : 0 )).round(2) : Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 ) - ( latestQty ? latestQty : 0 )).round(2)) : "";
+                Number(data.short_roll) < 0 ? totalShortRollPercentage += (latestStatus != 'extension complete' ? Number(((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 ) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number(((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 ) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2)) : 0;
 
                 let averageTotalAverageTime = totalAverageTime / totalRow;
                 let averageTotalAverageTimeMinute = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) / 60).round(0)) : pad(0);
