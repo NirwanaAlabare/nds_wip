@@ -132,7 +132,7 @@
                                 $currentTotal = 0;
                                 $currentBefore = 0;
                             @endphp
-                            @foreach ($dataSpreading->formCutInputDetails->whereRaw("updated_at", ">=", date("Y-m-d", strtotime("-6 month")))->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                            @foreach ($dataSpreading->formCutInputDetails->where("updated_at", ">=", date("Y-m-d", strtotime("-6 MONTH")))->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
                                 {{-- Without group stocker condition --}}
 
