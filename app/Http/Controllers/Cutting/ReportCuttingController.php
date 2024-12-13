@@ -728,6 +728,8 @@ class ReportCuttingController extends Controller
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     AND form_cut_input.waktu_mulai is not null
+                                    AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                                    AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.no_form
@@ -863,6 +865,8 @@ class ReportCuttingController extends Controller
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     AND form_cut_input.waktu_mulai is not null
+                                    AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                                    AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.no_form

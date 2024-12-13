@@ -38,6 +38,7 @@ class CuttingPlanController extends Controller
                     count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
                 ")
                 ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
+                ->whereRaw('form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)')
                 ->groupBy("tgl_plan", "no_cut_plan")
                 ->orderBy('tgl_plan', 'desc');
 
@@ -144,7 +145,8 @@ class CuttingPlanController extends Controller
                 where
                     a.status = 'SPREADING' and
                     b.cancel = 'N' and
-                    marker_input_detail.ratio > 0
+                    marker_input_detail.ratio > 0 and
+                    a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -239,7 +241,8 @@ class CuttingPlanController extends Controller
                 left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
                 where
                     a.id is not null and
-                    marker_input_detail.ratio > 0
+                    marker_input_detail.ratio > 0 and
+                    a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -452,7 +455,10 @@ class CuttingPlanController extends Controller
 
                 if ($formInfoFilter) {
                     $query->whereHas('formCutInput', function ($query) use ($formInfoFilter) {
-                        $query->whereRaw("(
+                        $query->whereRaw("
+                            form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                            AND
+                            (
                                 LOWER(form_cut_input.tgl_form_cut) LIKE LOWER('%" . $formInfoFilter . "%') OR
                                 LOWER(form_cut_input.no_form) LIKE LOWER('%" . $formInfoFilter . "%') OR
                                 LOWER(form_cut_input.qty_ply) LIKE LOWER('%" . $formInfoFilter . "%') OR
@@ -616,7 +622,10 @@ class CuttingPlanController extends Controller
                 });
             })->filterColumn('form_info', function ($query, $keyword) {
                 $query->whereHas('formCutInput', function ($query) use ($keyword) {
-                    $query->whereRaw("(
+                    $query->whereRaw("
+                        form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                        AND
+                        (
                             form_cut_input.no_form LIKE '%" . $keyword . "%' OR
                             form_cut_input.tgl_form_cut LIKE '%" . $keyword . "%'
                         )");
@@ -698,6 +707,7 @@ class CuttingPlanController extends Controller
             leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
             where("cutting_plan_output.id", $request->id)->
+            whereRaw("form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)")->
             groupBy("form_cut_input.no_form")->
             get();
 
@@ -785,7 +795,8 @@ class CuttingPlanController extends Controller
             left join users on users.id = a.no_meja
             where
                 b.cancel = 'N' and
-                marker_input_detail.ratio > 0
+                marker_input_detail.ratio > 0 and
+                a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             GROUP BY a.id
@@ -887,7 +898,8 @@ class CuttingPlanController extends Controller
             left join users on users.id = a.no_meja
             where
                 b.cancel = 'N' and
-                marker_input_detail.ratio > 0
+                marker_input_detail.ratio > 0 and
+                a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             GROUP BY a.id
@@ -963,7 +975,8 @@ class CuttingPlanController extends Controller
             left join users on users.id = a.no_meja
             where
                 b.cancel = 'N' and
-                marker_input_detail.ratio > 0
+                marker_input_detail.ratio > 0 and
+                a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             GROUP BY a.id

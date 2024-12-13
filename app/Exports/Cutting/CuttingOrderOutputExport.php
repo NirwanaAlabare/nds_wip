@@ -106,6 +106,8 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
                         AND form_cut_input.waktu_mulai is not null
                         AND form_cut_input.id_marker is not null
+                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$dateFilter."
                     GROUP BY
                         form_cut_input.no_form
@@ -193,6 +195,8 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                     WHERE
                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                         AND form_cut_input.waktu_mulai is not null
+                                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                         ".$dateFilter."
                                     GROUP BY
                                         form_cut_input.no_form

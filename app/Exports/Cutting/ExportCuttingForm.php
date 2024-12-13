@@ -59,6 +59,8 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                         SUM( form_cut_input_detail.lembar_gelaran ) total_lembar
                     FROM
                         form_cut_input_detail
+                    WHERE
+                        form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                     GROUP BY
                         form_cut_input_detail.no_form_cut_input,
                         form_cut_input_detail.group_roll
@@ -69,6 +71,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
             WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN' and
                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_input) between '".$this->dateFrom."' and '".$this->dateTo."'
+                AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             GROUP BY
                 form_cut_input.no_form,
                 form_cut_input_detail.group_roll,
