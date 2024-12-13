@@ -139,6 +139,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     AND a.status = 'SELESAI PENGERJAAN'
                     and b.status != 'not complete'
                     and b.id_item is not null
+                    AND a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                    AND b.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                     ".$additionalQuery."
                 group by
                     b.id
