@@ -377,7 +377,7 @@ class DashboardController extends Controller
                     WHERE
                         ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                        and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                        form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) AND
                         ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
                     GROUP BY
                         form_cut_input.id

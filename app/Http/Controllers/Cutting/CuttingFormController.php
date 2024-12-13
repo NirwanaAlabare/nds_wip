@@ -103,6 +103,7 @@ class CuttingFormController extends Controller
                 left join users on users.id = a.no_meja
                 where
                     a.id is not null
+                    AND a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -587,6 +588,7 @@ class CuttingFormController extends Controller
     public function storeTimeRecord(Request $request)
     {
         $validatedRequest = $request->validate([
+            "id" => "required",
             "current_id_roll" => "nullable",
             "no_form_cut_input" => "required",
             "no_meja" => "required",
@@ -621,7 +623,7 @@ class CuttingFormController extends Controller
             $status = 'need extension';
         }
 
-        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('id', 'desc')->first();
+        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('form_cut_id', $validatedRequest['id'])->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('id', 'desc')->first();
         $groupStocker = $beforeData ? ($beforeData->group_roll == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
@@ -632,7 +634,7 @@ class CuttingFormController extends Controller
             where('form_cut_input_detail.status', 'not complete')->
             whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->
             updateOrCreate(
-                ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
+                ["form_cut_id" => $validatedRequest['id'], "no_form_cut_input" => $validatedRequest['no_form_cut_input']],
                 [
                     "id_roll" => $validatedRequest['current_id_roll'],
                     "id_item" => $validatedRequest['current_id_item'],
@@ -704,6 +706,7 @@ class CuttingFormController extends Controller
                 );
 
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
+                    "form_cut_id" => $validatedRequest['id'],
                     "group_roll" => $validatedRequest['current_group'],
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                     "id_sambungan" => $storeTimeRecordSummary->id,
@@ -768,7 +771,7 @@ class CuttingFormController extends Controller
             where('form_cut_input.no_meja', $request->no_meja)->
             whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->
             updateOrCreate(
-                ["no_form_cut_input" => $request->no_form_cut_input, 'form_cut_input_detail.status' => 'not complete'],
+                ["form_cut_id" => $request->id, "no_form_cut_input" => $request->no_form_cut_input, 'form_cut_input_detail.status' => 'not complete'],
                 [
                     "id_roll" => $request->current_id_roll,
                     "id_item" => $request->current_id_item,
@@ -842,6 +845,7 @@ class CuttingFormController extends Controller
         $lap = 1;
 
         $validatedRequest = $request->validate([
+            "id" => "required",
             "status_sambungan" => "required",
             "id_sambungan" => "required",
             "current_id_roll" => "nullable",
@@ -871,7 +875,7 @@ class CuttingFormController extends Controller
             "current_sambungan" => "required"
         ]);
 
-        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('id', 'desc')->first();
+        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('form_cut_id', $validatedRequest['id'])->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('id', 'desc')->first();
         $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
@@ -881,7 +885,7 @@ class CuttingFormController extends Controller
             where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
             whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->
             updateOrCreate(
-                ['form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input'], 'form_cut_input_detail.status' => 'extension'],
+                ['form_cut_input_detail.form_cut_id' => $validatedRequest['id'], 'form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input'], 'form_cut_input_detail.status' => 'extension'],
                 [
                     "id_roll" => $validatedRequest['current_id_roll'],
                     "id_item" => $validatedRequest['current_id_item'],
@@ -955,7 +959,7 @@ class CuttingFormController extends Controller
 
             if ($lap > 0) {
                 $storeTimeRecordLap = FormCutInputDetailLap::updateOrCreate(
-                    ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
+                    ["form_cut_input_detail.", "form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
                     [
                         "waktu" => $request["time_record"][$lap]
                     ]
@@ -963,6 +967,7 @@ class CuttingFormController extends Controller
 
                 if ($storeTimeRecordLap) {
                     $storeTimeRecordSummaryNext = FormCutInputDetail::create([
+                        "form_cut_id" => $validatedRequest['form_cut_id'],
                         "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                         "id_roll" => $validatedRequest['current_id_roll'],
                         "id_item" => $validatedRequest['current_id_item'],
@@ -1007,7 +1012,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function checkSpreadingForm($noForm = 0, $noMeja = 0, Request $request)
+    public function checkSpreadingForm($id = 0, $noForm = 0, $noMeja = 0, Request $request)
     {
         $formCutInputDetailData = FormCutInputDetail::selectRaw('
                 form_cut_input_detail.*,
@@ -1015,6 +1020,7 @@ class CuttingFormController extends Controller
             ')->
             leftJoin('scanned_item', 'scanned_item.id_roll', '=', 'form_cut_input_detail.id_roll')->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.id', $id)->
             where('no_form_cut_input', $noForm)->
             where('no_meja', $noMeja)->
             whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->
@@ -1122,10 +1128,11 @@ class CuttingFormController extends Controller
             "operator" => $request->operator,
         ]);
 
-        $notCompletedDetails = FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->get();
+        $notCompletedDetails = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->get();
         if ($notCompletedDetails->count() > 0) {
             foreach ($notCompletedDetails as $notCompletedDetail) {
                 DB::table("form_cut_input_detail_delete")->insert([
+                    "form_cut_id" => $notCompletedDetail['form_cut_id'],
                     "no_form_cut_input" => $notCompletedDetail['no_form_cut_input'],
                     "id_roll" => $notCompletedDetail['id_roll'],
                     "id_item" => $notCompletedDetail['id_item'],
@@ -1164,7 +1171,7 @@ class CuttingFormController extends Controller
             }
         }
 
-        FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->delete();
+        FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->delete();
 
         // store to part form
         $partData = Part::select('part.id')->
@@ -1181,7 +1188,7 @@ class CuttingFormController extends Controller
             $addToPartForm = PartForm::create([
                 "kode" => $kodePartForm,
                 "part_id" => $partData->id,
-                "form_id" => $formCutInputData->id,
+                "form_cut_id" => $formCutInputData->id,
                 "created_at" => Carbon::now(),
                 "updated_at" => Carbon::now(),
             ]);

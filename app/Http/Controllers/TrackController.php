@@ -39,8 +39,8 @@ class TrackController extends Controller
             }
 
             $worksheet = DB::select("
-                SELECT DATE
-                    ( master_sb_ws.tgl_kirim ) tgl_kirim,
+                SELECT
+                    DATE ( master_sb_ws.tgl_kirim ) tgl_kirim,
                     master_sb_ws.id_act_cost,
                     master_sb_ws.ws,
                     master_sb_ws.styleno,
@@ -110,26 +110,23 @@ class TrackController extends Controller
                                     *
                                 FROM
                                     (
-                                    SELECT
-                                        stocker_input.form_cut_id,
-                                        stocker_input.part_detail_id,
-                                        stocker_input.so_det_id,
-                                        sum(
-                                        COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty_ply,
-                                        sum((
-                                                dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace
-                                            )) dc_qty_ply,
-                                        sum( secondary_in_input.qty_in ) sec_qty_ply,
-                                        sum( secondary_inhouse_input.qty_in ) sec_in_qty_ply
-                                    FROM
-                                        stocker_input
-                                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = dc_in_input.id_qr_stocker
-                                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = secondary_in_input.id_qr_stocker
-                                    GROUP BY
-                                        stocker_input.form_cut_id,
-                                        stocker_input.part_detail_id,
-                                        stocker_input.so_det_id
+                                        SELECT
+                                            stocker_input.form_cut_id,
+                                            stocker_input.part_detail_id,
+                                            stocker_input.so_det_id,
+                                            sum( COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply ) ) qty_ply,
+                                            sum( (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace) ) dc_qty_ply,
+                                            sum( secondary_in_input.qty_in ) sec_qty_ply,
+                                            sum( secondary_inhouse_input.qty_in ) sec_in_qty_ply
+                                        FROM
+                                            stocker_input
+                                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                                            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = dc_in_input.id_qr_stocker
+                                            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                                        GROUP BY
+                                            stocker_input.form_cut_id,
+                                            stocker_input.part_detail_id,
+                                            stocker_input.so_det_id
                                     ) stocker
                                 GROUP BY
                                     stocker.form_cut_id,
