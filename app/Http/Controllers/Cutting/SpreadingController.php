@@ -92,7 +92,7 @@ class SpreadingController extends Controller
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
-                    left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
+                    left join cutting_plan on cutting_plan.form_cut_id = a.id
                     left join users on users.id = a.no_meja
                     left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                     left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
@@ -467,7 +467,7 @@ class SpreadingController extends Controller
                 $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
             }
 
-            $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
+            $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
             $deleteStocker = Stocker::where("form_cut_id", $id)->delete();
             $deleteNumbering = StockerDetail::where("form_cut_id", $id)->delete();
 

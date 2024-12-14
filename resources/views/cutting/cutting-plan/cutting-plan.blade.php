@@ -469,7 +469,7 @@
                     sortable: false,
                 },
                 {
-                    data: 'input_no_form',
+                    data: 'input_form_cut_id',
                     searchable: false,
                     sortable: false,
                 },

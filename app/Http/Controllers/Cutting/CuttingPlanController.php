@@ -37,7 +37,7 @@ class CuttingPlanController extends Controller
                     count(IF(form_cut_input.status ='PENGERJAAN MARKER' or form_cut_input.status ='PENGERJAAN FORM CUTTING' or form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
                     count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
                 ")
-                ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
+                ->leftJoin('form_cut_input', 'cutting_plan.form_cut_id', '=', 'form_cut_input.id')
                 ->whereRaw('form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)')
                 ->groupBy("tgl_plan", "no_cut_plan")
                 ->orderBy('tgl_plan', 'desc');
@@ -238,7 +238,7 @@ class CuttingPlanController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
-                left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
+                left join (select form_cut_id,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by form_cut_id) c on a.id = c.form_cut_id
                 where
                     a.id is not null and
                     marker_input_detail.ratio > 0 and
@@ -274,7 +274,10 @@ class CuttingPlanController extends Controller
                 $addToCutPlan = CutPlan::create([
                     "no_cut_plan" => $noCutPlan,
                     "tgl_plan" => $request->tgl_plan,
-                    "no_form_cut_input" => $req['no_form']
+                    "form_cut_id" => $req['form_cut_id'],
+                    "no_form_cut_input" => $req['no_form'],
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username
                 ]);
 
                 if ($addToCutPlan) {
@@ -346,15 +349,15 @@ class CuttingPlanController extends Controller
         $approvedBy = Auth::user()->id;
         $approvedAt = $now;
 
-        if (count($request['no_form_cut']) > 0) {
-            foreach ($request['no_form_cut'] as $noFormId => $noFormVal) {
-                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->where('no_form_cut_input', $request['no_form_cut'][$noFormId])->update([
+        if (count($request['form_cut_id']) > 0) {
+            foreach ($request['form_cut_id'] as $noFormId => $noFormVal) {
+                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->where('form_cut_id', $request['form_cut_id'][$noFormId])->update([
                     'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
                     'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
                     'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
                 ]);
 
-                $updateForm = FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->update([
+                $updateForm = FormCutInput::where('id', $request['form_cut_id'][$noFormId])->update([
                     'no_meja' => (array_key_exists($noFormId, $request['no_meja'])) ? $request['no_meja'][$noFormId] : null,
                     'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
                     'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
@@ -435,7 +438,7 @@ class CuttingPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan)->groupBy("no_form_cut_input");
+            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan)->groupBy("form_cut_id");
 
             return DataTables::eloquent($cutPlanForm)->filter(function ($query) {
                 $tglAwal = request('tgl_awal');
@@ -572,8 +575,8 @@ class CuttingPlanController extends Controller
                     ";
 
                 return $markerDetailInfo;
-            })->addColumn('input_no_form', function ($row) {
-                $input = "<input type='hidden' class='form-control' id='no_form_cut_" . $row->id . "' name='no_form_cut[" . $row->id . "]' value='" . $row->no_form_cut_input . "'>";
+            })->addColumn('input_form_cut_id', function ($row) {
+                $input = "<input type='hidden' class='form-control' id='form_cut_id" . $row->id . "' name='form_cut_id[" . $row->id . "]' value='" . $row->form_cut_id . "'>";
 
                 return $input;
             })->addColumn('meja', function ($row) {
@@ -607,7 +610,7 @@ class CuttingPlanController extends Controller
 
                 return $input;
             })
-            ->rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])
+            ->rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_form_cut_id', 'meja', 'approve'])
             ->filterColumn('marker_info', function ($query, $keyword) {
                 $query->whereHas('formCutInput', function ($query) use ($keyword) {
                     $query->whereHas('marker', function ($query) use ($keyword) {
