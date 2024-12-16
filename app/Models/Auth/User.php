@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Auth;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,4 +37,31 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get all of the roles for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function roles()
+    {
+        return $this->hasManyThrough(
+            Role::class,
+            UserRole::class,
+            'user_id', // Foreign key on the user role table...
+            'id', // Foreign key on the role table...
+            'id', // Local key on the user table...
+            'role_id' // Local key on the user role table...
+        );
+    }
+
+    /**
+     * Get all of the user role for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function userRole()
+    {
+        return $this->hasMany(UserRole::class, 'user_id', 'id');
+    }
 }
