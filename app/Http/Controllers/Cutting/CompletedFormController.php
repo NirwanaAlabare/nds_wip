@@ -13,7 +13,7 @@ use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
 use App\Models\Part;
 use App\Models\PartForm;
-use App\Models\User;
+use App\Models\Auth\User;
 use App\Models\ModifySizeQty;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
@@ -97,7 +97,7 @@ class CompletedFormController extends Controller
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
-                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
+                left join cutting_plan on cutting_plan.form_cut_id = a.id
                 left join users on users.id = a.no_meja
                 left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
@@ -215,6 +215,7 @@ class CompletedFormController extends Controller
 
     public function updateCutting(Request $request) {
         $validatedRequest = $request->validate([
+            "id" => "required",
             "current_id" => "required",
             "current_id_roll" => "nullable",
             "no_form_cut_input" => "required",
@@ -245,6 +246,7 @@ class CompletedFormController extends Controller
 
         $updateTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.id', $validatedRequest['id'])->
             where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
             where('form_cut_input_detail.id', $validatedRequest['current_id'])->
             update([
@@ -272,21 +274,23 @@ class CompletedFormController extends Controller
 
         $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.id', $validatedRequest['id'])->
             where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
             where('form_cut_input_detail.id', $validatedRequest['current_id'])->first();
 
         if ($updateTimeRecordSummary) {
             $itemRemain = $validatedRequest['current_sisa_kain'];
 
-            ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->update([
-                "id_item" => $validatedRequest['current_id_item'],
-                "lot" => $request['current_lot'],
-                "roll" => $validatedRequest['current_roll'],
-                "qty" => $itemRemain,
-                "unit" => $itemUnit,
-            ]);
+            ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
+                update([
+                    "id_item" => $validatedRequest['current_id_item'],
+                    "lot" => $request['current_lot'],
+                    "roll" => $validatedRequest['current_roll'],
+                    "qty" => $itemRemain,
+                    "unit" => $itemUnit,
+                ]);
 
-            $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
+            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
             $currentGroup = "";
             $groupNumber = 0;
             foreach ($formCutDetails as $formCutDetail) {
@@ -299,9 +303,11 @@ class CompletedFormController extends Controller
                 $formCutDetail->save();
             }
 
-            $updateFormCut = FormCutInput::where('no_form', $validatedRequest['no_form_cut_input'])->update([
-                "no_meja" => $validatedRequest['no_meja']
-            ]);
+            $updateFormCut = FormCutInput::where('id', $validatedRequest['id'])->
+                where('no_form', $validatedRequest['no_form_cut_input'])->
+                update([
+                    "no_meja" => $validatedRequest['no_meja']
+                ]);
 
             return array(
                 "status" => 200,
@@ -408,7 +414,7 @@ class CompletedFormController extends Controller
                     ]);
 
                     // Adjust form cut detail data
-                    $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
+                    $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
 
                     $currentGroup = "";
                     $currentGroupNumber = 0;
@@ -433,9 +439,9 @@ class CompletedFormController extends Controller
                     foreach ($stockerForm as $key => $stocker) {
                         $lembarGelaran = 1;
                         if ($stocker->group_stocker) {
-                            $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
+                            $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
                         } else {
-                            $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                            $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
                         }
 
                         if ($currentStockerPart == $stocker->part_detail_id) {
@@ -471,63 +477,63 @@ class CompletedFormController extends Controller
                     }
 
                     // Adjust numbering data
-                    // $numbers = StockerDetail::selectRaw("
-                    //         form_cut_id,
-                    //         act_costing_ws,
-                    //         color,
-                    //         panel,
-                    //         so_det_id,
-                    //         size,
-                    //         no_cut_size,
-                    //         MAX(number) number
-                    //     ")->
-                    //     where("form_cut_id", $formCut->id_form)->
-                    //     whereRaw("(cancel is null OR cancel = 'N')")->
-                    //     groupBy("form_cut_id", "size")->
-                    //     get();
+                        // $numbers = StockerDetail::selectRaw("
+                        //         form_cut_id,
+                        //         act_costing_ws,
+                        //         color,
+                        //         panel,
+                        //         so_det_id,
+                        //         size,
+                        //         no_cut_size,
+                        //         MAX(number) number
+                        //     ")->
+                        //     where("form_cut_id", $formCut->id_form)->
+                        //     whereRaw("(cancel is null OR cancel = 'N')")->
+                        //     groupBy("form_cut_id", "size")->
+                        //     get();
 
-                    // foreach ($numbers as $number) {
-                    //     if (isset($sizeRangeAkhir[$number->so_det_id])) {
-                    //         if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
-                    //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                    //                 where("size", $number->size)->
-                    //                 where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
-                    //                 update([
-                    //                     "cancel" => "Y"
-                    //                 ]);
-                    //         } else {
-                    //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                    //                 where("size", $number->size)->
-                    //                 where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
-                    //                 where("cancel", "Y")->
-                    //                 update([
-                    //                     "cancel" => "N"
-                    //                 ]);
-                    //         }
+                        // foreach ($numbers as $number) {
+                        //     if (isset($sizeRangeAkhir[$number->so_det_id])) {
+                        //         if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
+                        //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
+                        //                 where("size", $number->size)->
+                        //                 where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
+                        //                 update([
+                        //                     "cancel" => "Y"
+                        //                 ]);
+                        //         } else {
+                        //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
+                        //                 where("size", $number->size)->
+                        //                 where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
+                        //                 where("cancel", "Y")->
+                        //                 update([
+                        //                     "cancel" => "N"
+                        //                 ]);
+                        //         }
 
-                    //         if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
-                    //             $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
-                    //             $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
+                        //         if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
+                        //             $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+                        //             $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
 
-                    //             $no = 0;
-                    //             for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
-                    //                 StockerDetail::create([
-                    //                     "kode" => "WIP-".($stockerDetailCount+$no),
-                    //                     "form_cut_id" => $number->form_cut_id,
-                    //                     "act_costing_ws" => $number->act_costing_ws,
-                    //                     "color" => $number->color,
-                    //                     "panel" => $number->panel,
-                    //                     "so_det_id" => $number->so_det_id,
-                    //                     "size" => $number->size,
-                    //                     "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
-                    //                     "number" => $i+1
-                    //                 ]);
+                        //             $no = 0;
+                        //             for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
+                        //                 StockerDetail::create([
+                        //                     "kode" => "WIP-".($stockerDetailCount+$no),
+                        //                     "form_cut_id" => $number->form_cut_id,
+                        //                     "act_costing_ws" => $number->act_costing_ws,
+                        //                     "color" => $number->color,
+                        //                     "panel" => $number->panel,
+                        //                     "so_det_id" => $number->so_det_id,
+                        //                     "size" => $number->size,
+                        //                     "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
+                        //                     "number" => $i+1
+                        //                 ]);
 
-                    //                 $no++;
-                    //             }
-                    //         }
-                    //     }
-                    // }
+                        //                 $no++;
+                        //             }
+                        //         }
+                        //     }
+                        // }
                 }
             }
 
@@ -570,6 +576,7 @@ class CompletedFormController extends Controller
             }
 
             DB::table("form_cut_input_detail_delete")->insert([
+                "form_cut_id" => $formCutDetail['form_cut_id'],
                 "no_form_cut_input" => $formCutDetail['no_form_cut_input'],
                 "id_roll" => $formCutDetail['id_roll'],
                 "id_item" => $formCutDetail['id_item'],

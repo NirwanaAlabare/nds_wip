@@ -88,7 +88,7 @@
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Form Cut</small></label>
-                                    <input type="hidden" id="form_cut_id" name="form_cut_id" value="{{ $dataSpreading->form_cut_id }}">
+                                    <input type="hidden" id="form_cut_id" name="form_cut_id" value="{{ $dataSpreading->id }}" readonly>
                                     <input type="text" class="form-control form-control-sm" id="no_form_cut" name="no_form_cut" value="{{ $dataSpreading->no_form }}" readonly>
                                 </div>
                             </div>
@@ -132,7 +132,7 @@
                                 $currentTotal = 0;
                                 $currentBefore = 0;
                             @endphp
-                            @foreach ($dataSpreading->formCutInputDetails->where("updated_at", ">=", date("Y-m-d", strtotime("-6 MONTH")))->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                            @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
                                 {{-- Without group stocker condition --}}
 
@@ -655,8 +655,8 @@
                                             $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
                                             $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
 
-                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
-                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : $qty) : $qty);
+                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : ($qty > 0 ? 1 : '-')) : ($qty > 0 ? 1 : '-'));
+                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : ($qty > 0 ? $qty : '-')) : ($qty > 0 ? $qty : '-'));
 
                                             $numGeneratable = true;
                                         @endphp
@@ -706,6 +706,7 @@
                 </div>
                 <div class="modal-body">
                     <form method="post" action="{{ route('submit-stocker-add') }}" id="add-additional-stocker-form">
+                        <input type="hidden" id="add_form_cut_id" name="add_form_cut_id" value="{{ $dataSpreading->id }}">
                         <input type="hidden" id="add_no_form" name="add_no_form" value="{{ $dataSpreading->no_form }}">
                         <input type="hidden" class="form-control" id="add_ws_ws" name="add_ws_ws" readonly>
                         <div class="row">
@@ -1744,6 +1745,7 @@
             });
 
             let modSizeQtyForm = new FormData(document.getElementById("mod-size-qty-form"));
+            modSizeQtyForm.append("form_cut_id", document.getElementById("form_cut_id").value);
             modSizeQtyForm.append("no_form", document.getElementById("no_form_cut").value);
 
             return $.ajax({

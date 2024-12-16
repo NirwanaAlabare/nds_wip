@@ -53,6 +53,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_input
                 LEFT JOIN (
                     SELECT
+                        form_cut_id,
                         no_form_cut_input,
                         form_cut_input_detail.group_roll,
                         form_cut_input_detail.lot,
@@ -62,9 +63,9 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                     WHERE
                         form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                     GROUP BY
-                        form_cut_input_detail.no_form_cut_input,
+                        form_cut_input_detail.form_cut_id,
                         form_cut_input_detail.group_roll
-                ) form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                 LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
                 LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
                 LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id and marker_input_detail.ratio > 0
@@ -73,7 +74,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_input) between '".$this->dateFrom."' and '".$this->dateTo."'
                 AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             GROUP BY
-                form_cut_input.no_form,
+                form_cut_input.id,
                 form_cut_input_detail.group_roll,
                 marker_input_detail.id
             ORDER BY

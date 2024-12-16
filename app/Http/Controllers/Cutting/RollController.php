@@ -243,7 +243,7 @@ class RollController extends Controller
                     a.operator
                 FROM
                     form_cut_input a
-                    LEFT JOIN form_cut_input_detail b ON a.no_form = b.no_form_cut_input
+                    LEFT JOIN form_cut_input_detail b ON a.id = b.form_cut_id
                     LEFT JOIN users meja ON meja.id = a.no_meja
                     LEFT JOIN (
                         SELECT
@@ -481,7 +481,7 @@ class RollController extends Controller
                 COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
             ")->
             leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
-            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
             leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $newItem[0]->id_item)->
@@ -554,7 +554,7 @@ class RollController extends Controller
                 COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
             ")->
             leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
-            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
             leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $item[0]->id_item)->
@@ -585,11 +585,11 @@ class RollController extends Controller
                 form_cut_input_detail.status,
                 COALESCE(form_cut_input_detail.updated_at, form_cut_input_detail.created_at) updated_at
             ")->
-            leftJoin("form_cut_input", "form_cut_input.no_form", "=", "form_cut_input_detail.no_form_cut_input")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
             whereRaw("(form_cut_input.status != 'SELESAI PENGERJAAN' OR (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension') )")->
             where("id_roll", $request->id)->
             whereRaw("(id_roll is not null AND id_roll != '')")->
-            groupBy("form_cut_input.no_form")->
+            groupBy("form_cut_input.id")->
             orderBy("form_cut_input_detail.id");
 
         return DataTables::of($forms)->toJson();
@@ -679,7 +679,7 @@ class RollController extends Controller
                 GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-')) SEPARATOR '^') AS no_form
             ")->
             leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->
-            leftJoin("form_cut_input", "form_cut_input.no_form", "=", "form_cut_input_detail.no_form_cut_input")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
             where("scanned_item.id_roll", $id)->
             orderBy("scanned_item.id", "desc")->
             groupBy("scanned_item.id_roll")->

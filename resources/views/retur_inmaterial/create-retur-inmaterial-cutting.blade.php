@@ -105,6 +105,10 @@
                                     </option>
                                     @endforeach
                                 </select>
+
+                                <select class="form-control hidden" id="txt_type_pch" name="txt_type_pch" style="width: 100%;">
+                                    <option selected="selected" value="Pengembalian dari Produksi">Pengembalian dari Produksi</option>
+                                </select>
                             </div>
                         </div>
                     </div>

@@ -1082,10 +1082,11 @@
             }
 
             if (summaryData == null) {
+                let id = document.getElementById("id").value;
                 let noForm = document.getElementById("no_form").value;
 
                 return $.ajax({
-                    url: '{{ route('get-time-form-cut-input') }}/' + noForm,
+                    url: '{{ route('get-time-form-cut-input') }}/'+ id +'/' + noForm,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
@@ -1966,6 +1967,7 @@
             let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
             let dataObj = {
+                "id": $("#id").val(),
                 "p_act": $("#p_act").val(),
                 "unit_p_act": $("#unit_p_act").val(),
                 "comma_act": $("#comma_act").val(),

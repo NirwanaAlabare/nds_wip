@@ -478,8 +478,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Spreading</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                class="fas fa-minus"></i></button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -1235,8 +1234,6 @@
                     },
                     success: function(res) {
                         if (res) {
-                            console.log(res);
-
                             status = "PENGERJAAN FORM CUTTING";
                         }
                     }
@@ -1424,6 +1421,7 @@
                 let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
                 let dataObj = {
+                    "id": $("#id").val(),
                     "p_act": $("#p_act").val(),
                     "unit_p_act": $("#unit_p_act").val(),
                     "comma_act": $("#comma_act").val(),
@@ -1697,6 +1695,7 @@
                 let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
                 let dataObj = {
+                    "id": $("#id").val(),
                     "no_form_cut_input": $("#no_form").val(),
                     "color_act": $("#color_act").val(),
                     "detail_item": $("#detail_item").val(),
@@ -2794,11 +2793,12 @@
         // Function :
             // -Check Spreading Form-
             function checkSpreadingForm() {
+                let id = document.getElementById("id").value;
                 let noForm = document.getElementById("no_form").value;
                 let noMeja = document.getElementById("no_meja").value;
 
                 $.ajax({
-                    url: '{{ route('check-spreading-form-cut-input') }}/' + noForm + '/' + noMeja,
+                    url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm + '/' + noMeja,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
@@ -3098,10 +3098,11 @@
             // -Get Summary Data-
             function getSummary() {
                 if (summaryData == null) {
+                    let id = document.getElementById("id").value;
                     let noForm = document.getElementById("no_form").value;
 
                     return $.ajax({
-                        url: '{{ route('get-time-form-cut-input') }}/' + noForm,
+                        url: '{{ route('get-time-form-cut-input') }}/' + id + '/' + noForm,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {

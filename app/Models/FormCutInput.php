@@ -46,6 +46,6 @@ class FormCutInput extends Model
 
     public function formCutInputDetails()
     {
-        return $this->hasMany(FormCutInputDetail::class, 'no_form_cut_input', 'no_form');
+        return $this->hasMany(FormCutInputDetail::class, 'form_cut_id', 'id');
     }
 }
