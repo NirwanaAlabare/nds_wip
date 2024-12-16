@@ -69,6 +69,7 @@
                             <thead>
                                 <tr>
                                     <th>Tanggal</th>
+                                    <th>ID</th>
                                     <th>No. Form</th>
                                     <th>No. Meja</th>
                                     <th>Style</th>
@@ -108,6 +109,7 @@
                             <thead>
                                 <tr>
                                     <th>Tanggal</th>
+                                    <th>ID</th>
                                     <th>No. Form</th>
                                     <th>No. Meja</th>
                                     <th>Style</th>
@@ -191,7 +193,7 @@
 
         $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
         $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i != 6) {
+            if (i != 7) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -219,6 +221,9 @@
                 },
             },
             columns: [
+                {
+                    data: 'id'
+                },
                 {
                     data: 'tgl_form_cut'
                 },
@@ -252,7 +257,11 @@
             ],
             columnDefs: [
                 {
-                    targets: [8],
+                    targets: [0],
+                    visible: false,
+                },
+                {
+                    targets: [9],
                     render: (data, type, row, meta) => {
                         return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
                     }
@@ -289,6 +298,7 @@
             for (let key in selectedForm) {
                 if (!isNaN(key)) {
                     formCutPlan.push({
+                        form_cut_id: selectedForm[key]['id'],
                         no_form: selectedForm[key]['no_form']
                     });
                 }
@@ -396,7 +406,7 @@
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
         $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i != 6 && i != 10) {
+            if (i != 7 && i != 11) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -424,6 +434,9 @@
                 },
             },
             columns: [
+                {
+                    data: 'id',
+                },
                 {
                     data: 'tgl_form_cut'
                 },
@@ -460,7 +473,11 @@
             ],
             columnDefs: [
                 {
-                    targets: [10],
+                    targets: [0],
+                    visible: false,
+                },
+                {
+                    targets: [11],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -522,6 +539,7 @@
             for (let key in selectedForm) {
                 if (!isNaN(key)) {
                     formCutPlan.push({
+                        id: selectedForm[key]['id'],
                         no_form: selectedForm[key]['no_form'],
                         status: selectedForm[key]['status']
                     });
