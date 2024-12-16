@@ -19,14 +19,14 @@ class RoleMiddleWare
     {
         $user = Auth::user();
 
-        if ($user->roles->where("nama_role", "admin")->count() > 0) {
+        if ($user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
             return $next($request);
         }
 
         foreach($roles as $role) {
             // Check if user has the role This check will depend on how your roles are set up
             foreach ($user->roles as $userRole) {
-                if ($userRole->accesses->whereIn("access", [$role, "admin", "superadmin"])->count() > 0) {
+                if ($userRole->accesses->whereIn("access", [$role, "all"])->count() > 0) {
                     return $next($request);
                 }
             }
