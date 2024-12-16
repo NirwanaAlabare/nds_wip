@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use App\Models\User;
+use App\Models\Auth\User;
 use App\Models\Marker;
 use App\Models\Part;
 use App\Models\MasterPart;

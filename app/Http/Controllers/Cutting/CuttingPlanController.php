@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\Auth\User;
 use App\Models\CutPlan;
 use App\Models\CutPlanOutput;
 use App\Models\CutPlanOutputForm;

@@ -9,7 +9,7 @@ class Access extends Model
 {
     use HasFactory;
 
-    protected $table = 'roles';
+    protected $table = 'access';
 
     protected $guarded = [];
 

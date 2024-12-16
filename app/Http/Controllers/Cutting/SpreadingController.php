@@ -11,7 +11,7 @@ use App\Models\MarkerDetail;
 use App\Models\Marker;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
-use App\Models\User;
+use App\Models\Auth\User;
 use App\Exports\Cutting\ExportCuttingForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
