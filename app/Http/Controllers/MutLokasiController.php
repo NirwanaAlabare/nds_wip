@@ -93,7 +93,7 @@ class MutLokasiController extends Controller
 
     public function updatemutlok(Request $request)
     {
-        
+
         for ($i = 1; $i <= intval($request['txt_sum_roll']); $i++) {
             $updateInMaterialDet = MutLokasi::where('id', $request["id_det"][$i])->update([
                 'qty_mutasi' => $request["qty_mut"][$i],
@@ -109,7 +109,7 @@ class MutLokasiController extends Controller
             "additional" => [],
             "redirect" => url('/mutasi-lokasi')
         );
-        
+
     }
 
     public function getRakList(Request $request)
@@ -126,7 +126,7 @@ class MutLokasiController extends Controller
 // inner join master_rak mr on br.id_rak_loc = mr.id
 // where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
 
-        $nomorrak = DB::connection('mysql_sb')->select("select DISTINCT kode_lok kode_rak from whs_lokasi_inmaterial where no_ws = '" . $request->no_ws . "' and LEFT(no_dok,2) = 'GK' 
+        $nomorrak = DB::connection('mysql_sb')->select("select DISTINCT kode_lok kode_rak from whs_lokasi_inmaterial where no_ws = '" . $request->no_ws . "' and (qty_aktual - COALESCE(qty_mutasi,0)) > 0
             UNION
             select DISTINCT kode_lok kode_rak from whs_sa_fabric where no_ws = '" . $request->no_ws . "' and qty > 0 ");
 
@@ -142,7 +142,7 @@ class MutLokasiController extends Controller
 
     public function getListroll(Request $request)
     {
-        
+
         // $det_item = DB::connection('mysql_sb')->select("select br.id,mi.itemdesc, mi.id_item, goods_code, supplier, bpbno_int,pono,invno,ac.kpno,roll_no, roll_qty, lot_no, bpb.unit, kode_rak, CONCAT(mi.id_item,'-',goods_code,'-',mi.itemdesc,'-',ac.kpno,'-',bpbno_int,'-',bpb.unit) filter
         //     from bpb_roll br
         //     inner join bpb_roll_h brh on br.id_h = brh.id
@@ -153,22 +153,22 @@ class MutLokasiController extends Controller
         //     inner join so on jd.id_so = so.id
         //     inner join act_costing ac on so.id_cost = ac.id
         //     inner join master_rak mr on br.id_rak_loc = mr.id
-        //     where mr.kode_rak = '" . $request->rak . "' and ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK' 
+        //     where mr.kode_rak = '" . $request->rak . "' and ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'
         //     group by br.id
         //     order by br.id");
 
-        $det_item = DB::connection('mysql_sb')->select("select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, qty_sisa roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
+        $det_item = DB::connection('mysql_sb')->select("select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, qty_sisa roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
             UNION
             select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
             UNION
-            select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and LEFT(a.no_dok,2) = 'GK' UNION select 'SA' fil, no_barcode, a.id_jo,a.id,b.itemdesc itemdesc,a.id_item,b.goods_code,'' supplier,a.no_bpb bpbno_int,a.no_po pono,a.no_sj invno,a.no_ws kpno,a.no_roll roll_no,'' no_roll_buyer,a.qty roll_qty,a.no_lot lot_no,a.unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',goods_code,'-',itemdesc,'-',a.no_ws,'-',a.no_bpb,'-',a.unit) filter,COALESCE(c.qty_out,0) qty_out,(a.qty - COALESCE(c.qty_out,0)) qty_sisa from whs_sa_fabric a left join masteritem b on b.id_item = a.id_item left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
+            select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' UNION select 'SA' fil, no_barcode, a.id_jo,a.id,b.itemdesc itemdesc,a.id_item,b.goods_code,'' supplier,a.no_bpb bpbno_int,a.no_po pono,a.no_sj invno,a.no_ws kpno,a.no_roll roll_no,'' no_roll_buyer,a.qty roll_qty,a.no_lot lot_no,a.unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',goods_code,'-',itemdesc,'-',a.no_ws,'-',a.no_bpb,'-',a.unit) filter,COALESCE(c.qty_out,0) qty_out,(a.qty - COALESCE(c.qty_out,0)) qty_sisa from whs_sa_fabric a left join masteritem b on b.id_item = a.id_item left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
             UNION
             select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
             UNION
             select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and a.qty > 0) a where a.qty_sisa > 0");
 
         $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
-        
+
         $pilih_lokasi = " <option value='-'>Pilih Rak</option> ";
         $html = '';
         $jml_qty_sj = 0;
@@ -204,16 +204,16 @@ class MutLokasiController extends Controller
 
     public function getSumroll(Request $request)
     {
-        
-        $det_item = DB::connection('mysql_sb')->select("select count(id) jml from (select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
-            UNION
-            select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
-            UNION
-            select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and LEFT(a.no_dok,2) = 'GK' UNION select 'SA' fil, no_barcode, a.id_jo,a.id,b.itemdesc itemdesc,a.id_item,b.goods_code,'' supplier,a.no_bpb bpbno_int,a.no_po pono,a.no_sj invno,a.no_ws kpno,a.no_roll roll_no,'' no_roll_buyer,a.qty roll_qty,a.no_lot lot_no,a.unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',goods_code,'-',itemdesc,'-',a.no_ws,'-',a.no_bpb,'-',a.unit) filter,COALESCE(c.qty_out,0) qty_out,(a.qty - COALESCE(c.qty_out,0)) qty_sisa from whs_sa_fabric a left join masteritem b on b.id_item = a.id_item left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
-            UNION
-            select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
-            UNION
-            select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and a.qty > 0) a where a.qty_sisa > 0) a");
+
+        $det_item = DB::connection('mysql_sb')->select("select count(id) jml from (select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, qty_sisa roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
+        UNION
+        select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
+        UNION
+        select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' UNION select 'SA' fil, no_barcode, a.id_jo,a.id,b.itemdesc itemdesc,a.id_item,b.goods_code,'' supplier,a.no_bpb bpbno_int,a.no_po pono,a.no_sj invno,a.no_ws kpno,a.no_roll roll_no,'' no_roll_buyer,a.qty roll_qty,a.no_lot lot_no,a.unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',goods_code,'-',itemdesc,'-',a.no_ws,'-',a.no_bpb,'-',a.unit) filter,COALESCE(c.qty_out,0) qty_out,(a.qty - COALESCE(c.qty_out,0)) qty_sisa from whs_sa_fabric a left join masteritem b on b.id_item = a.id_item left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
+        UNION
+        select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
+        UNION
+        select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and a.qty > 0) a where a.qty_sisa > 0) a");
 
         return $det_item;
     }
@@ -243,7 +243,7 @@ class MutLokasiController extends Controller
             'approved_by' => Auth::user()->name,
             'approved_date' => $timestamp,
         ]);
-        
+
         $massage = 'Approved Data Successfully';
 
         return array(
@@ -252,7 +252,7 @@ class MutLokasiController extends Controller
             "additional" => [],
             "redirect" => url('/mutasi-lokasi')
         );
-        
+
     }
 
 
@@ -305,7 +305,7 @@ class MutLokasiController extends Controller
                     ]);
 
                     if($request["fil_update"][$i] == 'SA'){
-                        
+
                         $Qmut = DB::connection('mysql_sb')->select("select coalesce(sum(qty_mut),0) qty from whs_sa_fabric where no_barcode = '".$request["no_barcode"][$i]."'");
                         $qty_mutasi = $Qmut[0]->qty;
                         $ttl_Qmut = $qty_mutasi + $request["qty_mut"][$i];
@@ -353,6 +353,7 @@ class MutLokasiController extends Controller
                         "created_by" => Auth::user()->name,
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
+                        "no_barcode_old" => $request["no_barcode"][$i],
                     ]);
 
                 }
@@ -386,7 +387,7 @@ class MutLokasiController extends Controller
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -418,7 +419,7 @@ class MutLokasiController extends Controller
         //
     }
 
-    
 
-    
+
+
 }

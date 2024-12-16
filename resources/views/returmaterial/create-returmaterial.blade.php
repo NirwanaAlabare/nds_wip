@@ -246,6 +246,7 @@
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">No JO</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty BPB</th>
@@ -800,6 +801,9 @@ function submitFormScan(e, evt) {
                     data: 'jo_no'
                 },
                 {
+                    data: 'no_ws'
+                },
+                {
                     data: 'goods_code'
                 } ,
                 {
@@ -832,27 +836,27 @@ function submitFormScan(e, evt) {
             ],
             columnDefs: [
                 {
-                    targets: [6],
+                    targets: [7],
                     // className: "d-none",
                     render: (data, type, row, meta) => '<input style="width:150px;text-align:right;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="" />'
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="id_item' + meta.row + '" name="id_item['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [8],
+                    targets: [9],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="id_jo' + meta.row + '" name="id_jo['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [9],
+                    targets: [10],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="id_bpb' + meta.row + '" name="id_bpb['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [10],
+                    targets: [11],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="no_ws' + meta.row + '" name="no_ws['+meta.row+']" value="' + data + '" readonly />'
                 }
