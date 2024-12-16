@@ -23,6 +23,6 @@ class FormCutInputDetail extends Model
 
     public function formCutInput()
     {
-        return $this->belongsTo(FormCutInput::class, 'no_form_cut_input', 'no_form');
+        return $this->belongsTo(FormCutInput::class, 'form_cut_id', 'id');
     }
 }
