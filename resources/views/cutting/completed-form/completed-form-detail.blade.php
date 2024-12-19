@@ -1082,10 +1082,11 @@
             }
 
             if (summaryData == null) {
+                let id = document.getElementById("id").value;
                 let noForm = document.getElementById("no_form").value;
 
                 return $.ajax({
-                    url: '{{ route('get-time-form-cut-input') }}/' + noForm,
+                    url: '{{ route('get-time-form-cut-input') }}/'+ id +'/' + noForm,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
@@ -1203,8 +1204,8 @@
                 td21.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_kain ? data.sisa_kain : 0) : Number(data.sisa_kain ? data.sisa_kain : 0)+Number(latestSisaKain)).round(2);
                 td22.innerHTML = (latestStatus != 'extension complete' ? (data.pemakaian_lembar ? data.pemakaian_lembar : 0) : Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar)).round(2);
                 td23.innerHTML = (latestStatus != 'extension complete' ? (data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) : Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian)).round(2);
-                td24.innerHTML = (latestStatus != 'extension complete' ? (data.short_roll ? data.short_roll : 0) : Number(data.short_roll ? data.short_roll : 0)+Number(latestShortRoll)).round(2);
-                td25.innerHTML = (latestStatus != 'extension complete' ? (data.short_roll ? (data.qty_awal > 0 ? Number(data.short_roll/data.qty_awal*100).round(2) : (data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : 0)) : 0) : Number(data.short_roll ? (data.qty_awal > 0 ? Number((data.short_roll+latestShortRoll)/data.qty_awal*100).round(2) : (latestQty > 0 ? Number((data.short_roll+latestShortRoll)/data.qty*100).round(2) : 0)) : 0)).round(2);
+                td24.innerHTML = (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )).round(2) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )).round(2));
+                td25.innerHTML = (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2));
             } else {
                 td1.innerHTML = '';
                 td15.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
@@ -1267,8 +1268,9 @@
             totalPemakaianLembar += Number(data.pemakaian_lembar);
             totalTotalPemakaian += Number(data.total_pemakaian_roll);
             latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
-            Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
-            Number(data.short_roll) < 0 ? totalShortRollPercentage += (latestStatus != 'extension complete' ? (data.short_roll ? (data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : 0) : 0) : Number(data.short_roll ? (latestQty > 0 ? Number((data.short_roll+latestShortRoll)/latestQty*100).round(2) : 0) : 0)) : 0;
+            // console.log(Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )).round(2));
+            Number(data.short_roll) < 0 ? totalShortRoll += (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )).round(2) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )).round(2)) : "";
+            Number(data.short_roll) < 0 ? totalShortRollPercentage += (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2)) : 0;
 
             let averageTotalAverageTime = totalAverageTime / totalRow;
             let averageTotalAverageTimeMinute = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) / 60).round(0)) : pad(0);
@@ -1965,6 +1967,7 @@
             let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
             let dataObj = {
+                "id": $("#id").val(),
                 "p_act": $("#p_act").val(),
                 "unit_p_act": $("#unit_p_act").val(),
                 "comma_act": $("#comma_act").val(),

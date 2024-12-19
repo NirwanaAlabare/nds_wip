@@ -738,7 +738,7 @@ function submitFormScan(e, evt) {
             var sum_out = 0;
 
             for (let i = 1; i < (table.rows.length); i++) {
-                satuan = document.getElementById("tableshow").rows[i].cells[7].children[0].value;
+                satuan = document.getElementById("tableshow").rows[i].cells[8].children[0].value;
                 qty_stok = document.getElementById("qty_stok"+i).value || 0;
                 qty_out = document.getElementById("qty_out"+i).value || 0;
                 sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;

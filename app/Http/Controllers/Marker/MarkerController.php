@@ -339,6 +339,7 @@ class MarkerController extends Controller
     {
         $data_marker = DB::select("
         SELECT a.*,
+        a.kode kode_marker,
         DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
         CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
         CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker_fix,
@@ -503,25 +504,31 @@ class MarkerController extends Controller
 
             $html = "
                 <div class='row'>
-                    <div class='col-sm-3'>
+                    <div class='col-sm-6'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Kode</small></label>
+                            <input type='text' class='form-control' id='txtkode_marker' name='txtkode_marker' value = '" . $datanomarker->kode_marker . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-6'>
                         <div class='form-group'>
                             <label class='form-label'><small>Tanggal</small></label>
                             <input type='text' class='form-control' id='txttgl_cutting' name='txttgl_cutting' value = '" . $datanomarker->tgl_cut_fix . "' readonly>
                         </div>
                     </div>
-                    <div class='col-sm-3'>
+                    <div class='col-sm-4'>
                         <div class='form-group'>
                             <label class='form-label'><small>No. WS</small></label>
                             <input type='text' class='form-control' id='txtno_ws' name='txtno_ws'  value = '" . $datanomarker->act_costing_ws . "' readonly>
                         </div>
                     </div>
-                    <div class='col-sm-3'>
+                    <div class='col-sm-4'>
                         <div class='form-group'>
                             <label class='form-label'><small>Color</small></label>
                             <input type='text' class='form-control' id='txtcol' name='txtcol'  value = '" . $datanomarker->color . "' readonly>
                         </div>
                     </div>
-                    <div class='col-sm-3'>
+                    <div class='col-sm-4'>
                         <div class='form-group'>
                             <label class='form-label'><small>Panel</small></label>
                             <input type='text' class='form-control' id='txtpanel' name='txtpanel'  value = '" . $datanomarker->panel . "' readonly>
@@ -531,19 +538,19 @@ class MarkerController extends Controller
 
 
                 <div class='row'>
-                    <div class='col-sm-4'>
+                    <div class='col-sm-6'>
                         <div class='form-group'>
                             <label class='form-label'><small>Buyer</small></label>
                             <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
                         </div>
                     </div>
-                    <div class='col-sm-4'>
+                    <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'><small>Panjang Marker</small></label>
                             <input type='text' class='form-control' id='txtp_marker' name='txtp_marker'  value = '" . $datanomarker->panjang_marker_fix . "' readonly>
                         </div>
                     </div>
-                    <div class='col-sm-4'>
+                    <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'><small>Lebar Marker</small></label>
                             <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . $datanomarker->lebar_marker_fix . "' readonly>
@@ -822,7 +829,7 @@ class MarkerController extends Controller
     public function show_gramasi(Request $request)
     {
         $data_gramasi = DB::select("
-        select marker_input.id,gramasi,tipe_marker,status_marker, count(form_cut_input.id) jumlah_form from marker_input
+        select marker_input.kode,marker_input.id,gramasi,tipe_marker,status_marker, count(form_cut_input.id) jumlah_form from marker_input
         left join form_cut_input on form_cut_input.id_marker = marker_input.kode
         where marker_input.id = '$request->id_c'
         group by marker_input.id");

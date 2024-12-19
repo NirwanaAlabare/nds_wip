@@ -39,6 +39,12 @@
                         <div class='row'>
                             <div class='col-sm-12'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small class="fw-bold">Kode</small></label>
+                                    <input type='text' class='form-control' id='txtkode_marker_edit' name='txtkode_marker_edit' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-12'>
+                                <div class='form-group'>
                                     <label class='form-label'><small class="fw-bold">Gramasi</small></label>
                                     <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
@@ -392,6 +398,9 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log(response);
+
+                    document.getElementById('txtkode_marker_edit').value = response.kode;
                     document.getElementById('txt_gramasi').value = response.gramasi;
                     document.getElementById('id_c').value = response.id;
 

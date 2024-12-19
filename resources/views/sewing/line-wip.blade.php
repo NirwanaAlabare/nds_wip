@@ -61,7 +61,6 @@
                                 <th>Style</th>
                                 <th>Color</th>
                                 <th>Size</th>
-                                <th>Dest</th>
                                 <th>Qty Loading</th>
                                 <th>WIP Sewing Line</th>
                                 <th>Reject</th>
@@ -77,7 +76,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="7">Total</td>
+                                <td colspan="6">Total</td>
                                 <th>...</th>
                                 <th>...</th>
                                 <th>...</th>
@@ -134,10 +133,10 @@
         }
 
         // Filter
-        const filters = ["line_filter", "tanggal_filter", "ws_filter", "style_filter", "color_filter", "size_filter", "dest_filter"];
+        const filters = ["line_filter", "tanggal_filter", "ws_filter", "style_filter", "color_filter", "size_filter"];
         $('#line_wip_table thead tr').clone(true).appendTo('#line_wip_table thead');
         $('#line_wip_table thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+filters[i]+'"/>');
 
@@ -157,7 +156,7 @@
         let lineWipTable = $("#line_wip_table").DataTable({
             ordering: false,
             processing: true,
-            serverSide: true,
+            serverSide: false,
             pageLength: 100,
             scrollX: '400px',
             scrollY: '400px',
@@ -193,9 +192,6 @@
                 },
                 {
                     data: 'size'
-                },
-                {
-                    data: 'dest'
                 },
                 {
                     data: 'loading_qty'
@@ -234,28 +230,28 @@
                     }
                 },
                 {
-                    targets: [7, 9, 10, 11, 13, 15],
+                    targets: [6, 8, 9, 10, 12, 14],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         return data ? data.toLocaleString("ID-id") : 0;
                     }
                 },
                 {
-                    targets: [8],
+                    targets: [7],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         return ((row.loading_qty ? Number(row.loading_qty) : 0) -  ((row.reject ? Number(row.reject) : 0) + (row.defect ? Number(row.defect) : 0) + (row.output ? Number(row.output) : 0))).toLocaleString("ID-id");
                     }
                 },
                 {
-                    targets: [12],
+                    targets: [11],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         return ((row.output ? Number(row.output) : 0) -  (row.output_packing ? Number(row.output_packing) : 0)).toLocaleString("ID-id");
                     }
                 },
                 {
-                    targets: [14],
+                    targets: [13],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         return ((row.output_packing ? Number(row.output_packing) : 0) - (row.total_transfer_garment ? Number(row.total_transfer_garment) : 0)).toLocaleString("ID-id");
@@ -271,6 +267,7 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
+                $(api.column(6).footer()).html("...");
                 $(api.column(7).footer()).html("...");
                 $(api.column(8).footer()).html("...");
                 $(api.column(9).footer()).html("...");
@@ -279,7 +276,6 @@
                 $(api.column(12).footer()).html("...");
                 $(api.column(13).footer()).html("...");
                 $(api.column(14).footer()).html("...");
-                $(api.column(15).footer()).html("...");
 
                 $.ajax({
                     url: '{{ route('total-line-wip') }}',
@@ -296,7 +292,6 @@
                         'styleFilter': $('#style_filter').val(),
                         'colorFilter': $('#color_filter').val(),
                         'sizeFilter': $('#size_filter').val(),
-                        'destFilter': $('#dest_filter').val()
                     },
                     success: function(response) {
                         console.log(response);
@@ -304,15 +299,15 @@
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(7).footer()).html((response['total_loading']).toLocaleString("ID-id"));
-                            $(api.column(8).footer()).html((Number(response['total_loading']) - (Number(response['total_reject']) + Number(response['total_defect']) + Number(response['total_output']))).toLocaleString("ID-id"));
-                            $(api.column(9).footer()).html((response['total_reject']).toLocaleString("ID-id"));
-                            $(api.column(10).footer()).html((response['total_defect']).toLocaleString("ID-id"));
-                            $(api.column(11).footer()).html((response['total_output']).toLocaleString("ID-id"));
-                            $(api.column(12).footer()).html((Number(response['total_output']) - Number(response['total_output_packing'])).toLocaleString("ID-id"));
-                            $(api.column(13).footer()).html((response['total_output_packing']).toLocaleString("ID-id"));
-                            $(api.column(14).footer()).html((Number(response['total_output_packing']) - Number(response['total_transfer_garment'])).toLocaleString("ID-id"));
-                            $(api.column(15).footer()).html((response['total_transfer_garment']).toLocaleString("ID-id"));
+                            $(api.column(6).footer()).html((response['total_loading']).toLocaleString("ID-id"));
+                            $(api.column(7).footer()).html((Number(response['total_loading']) - (Number(response['total_reject']) + Number(response['total_defect']) + Number(response['total_output']))).toLocaleString("ID-id"));
+                            $(api.column(8).footer()).html((response['total_reject']).toLocaleString("ID-id"));
+                            $(api.column(9).footer()).html((response['total_defect']).toLocaleString("ID-id"));
+                            $(api.column(10).footer()).html((response['total_output']).toLocaleString("ID-id"));
+                            $(api.column(11).footer()).html((Number(response['total_output']) - Number(response['total_output_packing'])).toLocaleString("ID-id"));
+                            $(api.column(12).footer()).html((response['total_output_packing']).toLocaleString("ID-id"));
+                            $(api.column(13).footer()).html((Number(response['total_output_packing']) - Number(response['total_transfer_garment'])).toLocaleString("ID-id"));
+                            $(api.column(14).footer()).html((response['total_transfer_garment']).toLocaleString("ID-id"));
                         }
                     },
                     error: function(jqXHR) {
@@ -339,7 +334,13 @@
                     tanggal_awal : $('#tanggal_awal').val(),
                     tanggal_akhir : $('#tanggal_akhir').val(),
                     line_id : $('#line_id').val(),
-                    line : $('#line_id').find(":selected").attr("data-line")
+                    line : $('#line_id').find(":selected").attr("data-line"),
+                    lineNameFilter : $('#line_filter').val(),
+                    tanggalFilter : $('#tanggal_filter').val(),
+                    wsFilter : $('#ws_filter').val(),
+                    styleFilter : $('#style_filter').val(),
+                    colorFilter : $('#color_filter').val(),
+                    sizeFilter : $('#size_filter').val()
                 },
                 xhrFields: {
                     responseType: 'blob'

@@ -43,6 +43,8 @@
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$additionalQuery."
                     GROUP BY
                         DATE(form_cut_input.waktu_mulai)

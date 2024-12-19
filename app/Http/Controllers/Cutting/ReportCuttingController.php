@@ -103,6 +103,7 @@ class ReportCuttingController extends Controller
                                         meja.`name` meja,
                                         COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
                                         form_cut_input.id_marker,
+                                        form_cut_input.id,
                                         form_cut_input.no_form,
                                         form_cut_input.qty_ply,
                                         form_cut_input.total_lembar,
@@ -111,16 +112,16 @@ class ReportCuttingController extends Controller
                                     FROM
                                         form_cut_input
                                         LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                                        INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                        INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                     WHERE
                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                         AND form_cut_input.waktu_mulai is not null
                                         ".$additionalQuery."
                                     GROUP BY
-                                        form_cut_input.no_form
+                                        form_cut_input.id
                                 ) form_cut on form_cut.id_marker = marker_input.kode
                             LEFT JOIN
-                                modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                                modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                             where
                                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                                 AND marker_input_detail.ratio > 0
@@ -235,6 +236,7 @@ class ReportCuttingController extends Controller
                                     meja.`name` meja,
                                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
                                     form_cut_input.id_marker,
+                                    form_cut_input.id,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
                                     form_cut_input.total_lembar,
@@ -243,16 +245,16 @@ class ReportCuttingController extends Controller
                                 FROM
                                     form_cut_input
                                     LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     AND form_cut_input.waktu_mulai is not null
                                     ".$additionalQuery."
                                 GROUP BY
-                                    form_cut_input.no_form
+                                    form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
                         LEFT JOIN
-                            modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
@@ -673,6 +675,7 @@ class ReportCuttingController extends Controller
                 SELECT
                     marker_cutting.tgl_form_cut,
                     UPPER(marker_cutting.meja) meja,
+                    marker_cutting.buyer,
                     marker_cutting.act_costing_ws,
                     marker_cutting.style,
                     marker_cutting.color,
@@ -715,6 +718,7 @@ class ReportCuttingController extends Controller
                                     meja.`name` meja,
                                     COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
                                     form_cut_input.id_marker,
+                                    form_cut_input.id,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
                                     form_cut_input.total_lembar,
@@ -723,16 +727,18 @@ class ReportCuttingController extends Controller
                                 FROM
                                     form_cut_input
                                     LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     AND form_cut_input.waktu_mulai is not null
+                                    AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                                    AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                     ".$additionalQuery."
                                 GROUP BY
-                                    form_cut_input.no_form
+                                    form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
                         LEFT JOIN
-                            modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
@@ -781,6 +787,10 @@ class ReportCuttingController extends Controller
         if ($request->noMeja) {
             $noMejaFilter = " and form_cut.meja LIKE '%".$request->noMeja."%'";
         }
+        $buyerFilter = "";
+        if ($request->buyer) {
+            $buyerFilter = " and marker_input.buyer LIKE '%".$request->buyer."%'";
+        }
         $wsFilter = "";
         if ($request->ws) {
             $wsFilter = " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
@@ -803,6 +813,7 @@ class ReportCuttingController extends Controller
                 SELECT
                     marker_cutting.tgl_form_cut,
                     UPPER(marker_cutting.meja) meja,
+                    marker_cutting.buyer,
                     marker_cutting.act_costing_ws,
                     marker_cutting.style,
                     marker_cutting.color,
@@ -845,6 +856,7 @@ class ReportCuttingController extends Controller
                                     meja.`name` meja,
                                     COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
                                     form_cut_input.id_marker,
+                                    form_cut_input.id,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
                                     form_cut_input.total_lembar,
@@ -853,20 +865,24 @@ class ReportCuttingController extends Controller
                                 FROM
                                     form_cut_input
                                     LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     AND form_cut_input.waktu_mulai is not null
+                                    AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                                    AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                     ".$additionalQuery."
                                 GROUP BY
-                                    form_cut_input.no_form
+                                    form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
                         LEFT JOIN
-                            modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
+                            ".$tanggalFilter."
                             ".$noMejaFilter."
+                            ".$buyerFilter."
                             ".$wsFilter."
                             ".$styleFilter."
                             ".$colorFilter."

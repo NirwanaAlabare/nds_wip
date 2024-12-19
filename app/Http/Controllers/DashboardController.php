@@ -268,6 +268,7 @@ class DashboardController extends Controller
                                 left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
                             where
                                 ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
+                                and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                                 and ( cutting_plan.tgl_plan = '".$date."' OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' ) )
                             group by
                                 form_cut_input.id_marker
@@ -283,6 +284,7 @@ class DashboardController extends Controller
                                 left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
                             where
                                 ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
+                                and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                                 and ( cutting_plan.tgl_plan = '".$date."' OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' ) )
                                 and form_cut_input.`status` = 'SELESAI PENGERJAAN'
                             group by
@@ -312,6 +314,7 @@ class DashboardController extends Controller
                                 where
                                     form_cut_input.status = 'SELESAI PENGERJAAN' AND
                                     ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
+                                    and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                                 group by
                                     form_cut_input.id_marker
                             ) form on form.id_marker = marker_input.kode
@@ -374,6 +377,7 @@ class DashboardController extends Controller
                     WHERE
                         ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
+                        form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) AND
                         ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
                     GROUP BY
                         form_cut_input.id
@@ -401,6 +405,7 @@ class DashboardController extends Controller
                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                 ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
                 ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
+                and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             ")->
             groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
             get();
@@ -499,6 +504,7 @@ class DashboardController extends Controller
                 leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
                 whereRaw("(MONTH(form_cut_input.tgl_form_cut) = '".$month."')")->
                 whereRaw("(YEAR(form_cut_input.tgl_form_cut) = '".$year."')")->
+                whereRaw("form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->
                 groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.id")->
                 orderBy("marker_input.tgl_cutting", "desc")->
                 orderBy("marker_input.buyer", "asc")->
@@ -571,6 +577,7 @@ class DashboardController extends Controller
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
                 whereRaw("(MONTH(form_cut_input.waktu_selesai) = '".$month."')")->
                 whereRaw("(YEAR(form_cut_input.waktu_selesai) = '".$year."')")->
+                whereRaw("form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)")->
                 orderBy("stocker_input.act_costing_ws", "asc")->
                 orderBy("stocker_input.color", "asc")->
                 orderBy("form_cut_input.no_cut", "asc")->

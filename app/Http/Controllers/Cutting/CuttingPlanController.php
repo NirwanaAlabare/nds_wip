@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\Auth\User;
 use App\Models\CutPlan;
 use App\Models\CutPlanOutput;
 use App\Models\CutPlanOutputForm;
@@ -37,7 +37,8 @@ class CuttingPlanController extends Controller
                     count(IF(form_cut_input.status ='PENGERJAAN MARKER' or form_cut_input.status ='PENGERJAAN FORM CUTTING' or form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
                     count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
                 ")
-                ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
+                ->leftJoin('form_cut_input', 'cutting_plan.form_cut_id', '=', 'form_cut_input.id')
+                ->whereRaw('form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)')
                 ->groupBy("tgl_plan", "no_cut_plan")
                 ->orderBy('tgl_plan', 'desc');
 
@@ -74,16 +75,16 @@ class CuttingPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->groupBy("no_form_cut_input")->get();
+            $thisStoredCutPlan = CutPlan::select("form_cut_id")->groupBy("form_cut_id")->get();
 
             if ($thisStoredCutPlan->count() > 0) {
                 $i = 0;
-                $additionalQuery .= " AND a.no_form NOT IN (";
+                $additionalQuery .= " AND a.id NOT IN (";
                 foreach ($thisStoredCutPlan as $cutPlan) {
                     if ($i+1 == count($thisStoredCutPlan)) {
-                        $additionalQuery .= "'".$cutPlan->no_form_cut_input . "' ";
+                        $additionalQuery .= "'".$cutPlan->form_cut_id . "' ";
                     } else {
-                        $additionalQuery .= "'".$cutPlan->no_form_cut_input . "' , ";
+                        $additionalQuery .= "'".$cutPlan->form_cut_id . "' , ";
                     }
 
                     $i++;
@@ -144,7 +145,8 @@ class CuttingPlanController extends Controller
                 where
                     a.status = 'SPREADING' and
                     b.cancel = 'N' and
-                    marker_input_detail.ratio > 0
+                    marker_input_detail.ratio > 0 and
+                    a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -236,10 +238,11 @@ class CuttingPlanController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
-                left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
+                left join (select form_cut_id,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by form_cut_id) c on a.id = c.form_cut_id
                 where
                     a.id is not null and
-                    marker_input_detail.ratio > 0
+                    marker_input_detail.ratio > 0 and
+                    a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -271,7 +274,10 @@ class CuttingPlanController extends Controller
                 $addToCutPlan = CutPlan::create([
                     "no_cut_plan" => $noCutPlan,
                     "tgl_plan" => $request->tgl_plan,
-                    "no_form_cut_input" => $req['no_form']
+                    "form_cut_id" => $req['form_cut_id'],
+                    "no_form_cut_input" => $req['no_form'],
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username
                 ]);
 
                 if ($addToCutPlan) {
@@ -343,15 +349,15 @@ class CuttingPlanController extends Controller
         $approvedBy = Auth::user()->id;
         $approvedAt = $now;
 
-        if (count($request['no_form_cut']) > 0) {
-            foreach ($request['no_form_cut'] as $noFormId => $noFormVal) {
-                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->where('no_form_cut_input', $request['no_form_cut'][$noFormId])->update([
+        if (count($request['form_cut_id']) > 0) {
+            foreach ($request['form_cut_id'] as $noFormId => $noFormVal) {
+                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->where('form_cut_id', $request['form_cut_id'][$noFormId])->update([
                     'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
                     'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
                     'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
                 ]);
 
-                $updateForm = FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->update([
+                $updateForm = FormCutInput::where('id', $request['form_cut_id'][$noFormId])->update([
                     'no_meja' => (array_key_exists($noFormId, $request['no_meja'])) ? $request['no_meja'][$noFormId] : null,
                     'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
                     'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
@@ -432,7 +438,7 @@ class CuttingPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan)->groupBy("no_form_cut_input");
+            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan)->groupBy("form_cut_id");
 
             return DataTables::eloquent($cutPlanForm)->filter(function ($query) {
                 $tglAwal = request('tgl_awal');
@@ -452,7 +458,10 @@ class CuttingPlanController extends Controller
 
                 if ($formInfoFilter) {
                     $query->whereHas('formCutInput', function ($query) use ($formInfoFilter) {
-                        $query->whereRaw("(
+                        $query->whereRaw("
+                            form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                            AND
+                            (
                                 LOWER(form_cut_input.tgl_form_cut) LIKE LOWER('%" . $formInfoFilter . "%') OR
                                 LOWER(form_cut_input.no_form) LIKE LOWER('%" . $formInfoFilter . "%') OR
                                 LOWER(form_cut_input.qty_ply) LIKE LOWER('%" . $formInfoFilter . "%') OR
@@ -566,8 +575,8 @@ class CuttingPlanController extends Controller
                     ";
 
                 return $markerDetailInfo;
-            })->addColumn('input_no_form', function ($row) {
-                $input = "<input type='hidden' class='form-control' id='no_form_cut_" . $row->id . "' name='no_form_cut[" . $row->id . "]' value='" . $row->no_form_cut_input . "'>";
+            })->addColumn('input_form_cut_id', function ($row) {
+                $input = "<input type='hidden' class='form-control' id='form_cut_id" . $row->id . "' name='form_cut_id[" . $row->id . "]' value='" . $row->form_cut_id . "'>";
 
                 return $input;
             })->addColumn('meja', function ($row) {
@@ -601,7 +610,7 @@ class CuttingPlanController extends Controller
 
                 return $input;
             })
-            ->rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])
+            ->rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_form_cut_id', 'meja', 'approve'])
             ->filterColumn('marker_info', function ($query, $keyword) {
                 $query->whereHas('formCutInput', function ($query) use ($keyword) {
                     $query->whereHas('marker', function ($query) use ($keyword) {
@@ -616,7 +625,10 @@ class CuttingPlanController extends Controller
                 });
             })->filterColumn('form_info', function ($query, $keyword) {
                 $query->whereHas('formCutInput', function ($query) use ($keyword) {
-                    $query->whereRaw("(
+                    $query->whereRaw("
+                        form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                        AND
+                        (
                             form_cut_input.no_form LIKE '%" . $keyword . "%' OR
                             form_cut_input.tgl_form_cut LIKE '%" . $keyword . "%'
                         )");
@@ -698,6 +710,7 @@ class CuttingPlanController extends Controller
             leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
             where("cutting_plan_output.id", $request->id)->
+            whereRaw("form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)")->
             groupBy("form_cut_input.no_form")->
             get();
 
@@ -785,7 +798,8 @@ class CuttingPlanController extends Controller
             left join users on users.id = a.no_meja
             where
                 b.cancel = 'N' and
-                marker_input_detail.ratio > 0
+                marker_input_detail.ratio > 0 and
+                a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             GROUP BY a.id
@@ -887,7 +901,8 @@ class CuttingPlanController extends Controller
             left join users on users.id = a.no_meja
             where
                 b.cancel = 'N' and
-                marker_input_detail.ratio > 0
+                marker_input_detail.ratio > 0 and
+                a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             GROUP BY a.id
@@ -963,7 +978,8 @@ class CuttingPlanController extends Controller
             left join users on users.id = a.no_meja
             where
                 b.cancel = 'N' and
-                marker_input_detail.ratio > 0
+                marker_input_detail.ratio > 0 and
+                a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             GROUP BY a.id
@@ -1163,7 +1179,7 @@ class CuttingPlanController extends Controller
                     $form = FormCutInput::find($forms[$i]);
 
                     CutPlan::updateOrCreate(
-                        ["tgl_plan" => $tglPlan, "no_cut_plan" => $noCutPlan,"no_form_cut_input" => $form->no_form],
+                        ["tgl_plan" => $tglPlan, "no_cut_plan" => $noCutPlan,"no_form_cut_input" => $form->no_form, "form_cut_id" => $form->id],
                         ["app" => "Y", "app_by" => Auth::user()->id, "app_at" => Carbon::now()]
                     );
 
