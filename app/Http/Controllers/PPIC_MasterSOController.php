@@ -619,6 +619,12 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
         SET a.barcode = p.barcode
         where a.po = '$po'");
 
+        $update_packing_list =  DB::update("
+        update packing_master_packing_list a
+        INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+        SET a.barcode = p.barcode
+        where a.po = '$po'");
+
         return array(
             'status' => 201,
             'message' => 'Data  Berhasil Diupdate',
