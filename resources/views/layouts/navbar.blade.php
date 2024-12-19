@@ -425,6 +425,31 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-piping' ? 'active' : '' }}">Piping</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('master-piping') }}" class="dropdown-item {{ $subPage == 'master-piping' ? 'active' : '' }}">
+                                        Master Piping <i class="fa-solid fa-gear"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('piping-process') }}" class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
+                                        Piping Process <i class="fa-solid fa-ring"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('track-cutting-output') }}" class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
+                                        Order Cutting Output <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('pemakaian-roll') }}" class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
+                                        Pemakaian Kain <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endif
                 @endif
 
