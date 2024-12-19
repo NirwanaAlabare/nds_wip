@@ -1427,8 +1427,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/packing_rep_packing_line_sum', 'packing_rep_packing_line_sum')->name('packing_rep_packing_line_sum');
         Route::get('/packing_rep_packing_line_sum_range', 'packing_rep_packing_line_sum_range')->name('packing_rep_packing_line_sum_range');
         Route::get('/packing_rep_packing_line_sum_buyer', 'packing_rep_packing_line_sum_buyer')->name('packing_rep_packing_line_sum_buyer');
+        Route::get('/packing_rep_packing_mutasi', 'packing_rep_packing_mutasi')->name('packing_rep_packing_mutasi');
+        Route::get('/packing_rep_packing_mutasi_load', 'packing_rep_packing_mutasi_load')->name('packing_rep_packing_mutasi_load');
         Route::get('/export_excel_rep_packing_line_sum_range', 'export_excel_rep_packing_line_sum_range')->name('export_excel_rep_packing_line_sum_range');
         Route::get('/export_excel_rep_packing_line_sum_buyer', 'export_excel_rep_packing_line_sum_buyer')->name('export_excel_rep_packing_line_sum_buyer');
+        Route::get('/export_excel_rep_packing_mutasi', 'export_excel_rep_packing_mutasi')->name('export_excel_rep_packing_mutasi');
     });
 
 
