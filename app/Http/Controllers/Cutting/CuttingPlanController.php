@@ -75,16 +75,16 @@ class CuttingPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->groupBy("no_form_cut_input")->get();
+            $thisStoredCutPlan = CutPlan::select("form_cut_id")->groupBy("form_cut_id")->get();
 
             if ($thisStoredCutPlan->count() > 0) {
                 $i = 0;
-                $additionalQuery .= " AND a.no_form NOT IN (";
+                $additionalQuery .= " AND a.id NOT IN (";
                 foreach ($thisStoredCutPlan as $cutPlan) {
                     if ($i+1 == count($thisStoredCutPlan)) {
-                        $additionalQuery .= "'".$cutPlan->no_form_cut_input . "' ";
+                        $additionalQuery .= "'".$cutPlan->form_cut_id . "' ";
                     } else {
-                        $additionalQuery .= "'".$cutPlan->no_form_cut_input . "' , ";
+                        $additionalQuery .= "'".$cutPlan->form_cut_id . "' , ";
                     }
 
                     $i++;
@@ -1179,7 +1179,7 @@ class CuttingPlanController extends Controller
                     $form = FormCutInput::find($forms[$i]);
 
                     CutPlan::updateOrCreate(
-                        ["tgl_plan" => $tglPlan, "no_cut_plan" => $noCutPlan,"no_form_cut_input" => $form->no_form],
+                        ["tgl_plan" => $tglPlan, "no_cut_plan" => $noCutPlan,"no_form_cut_input" => $form->no_form, "form_cut_id" => $form->id],
                         ["app" => "Y", "app_by" => Auth::user()->id, "app_at" => Carbon::now()]
                     );
 
