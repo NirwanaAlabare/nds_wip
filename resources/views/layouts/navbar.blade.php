@@ -984,7 +984,7 @@
                             <li>
                                 <a href="{{ route('packing_rep_packing_mutasi') }}"
                                     class="dropdown-item {{ $subPage == 'packing_rep_packing_mutasi' ? 'active' : '' }}">
-                                    <i class="fas fa-file-upload fa-sm"></i> Mutasi
+                                    <i class="fas fa-file-upload fa-sm"></i> Mutasi Packing List
                                 </a>
                             </li>
                         </ul>
