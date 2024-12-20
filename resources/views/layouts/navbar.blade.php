@@ -761,6 +761,21 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-defect' ? 'active' : '' }}">Defect</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @sewing
+                                <li>
+                                    <a href="{{ route('report-defect-in-out') }}"
+                                        class="dropdown-item {{ $subPage == 'report-defect-in-out' ? 'active' : '' }}">
+                                        Report Defect In Out <i class="fa-solid fa-circle-exclamation"></i>
+                                    </a>
+                                </li>
+                            @endsewing
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-report' ? 'active' : '' }}">Report</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing

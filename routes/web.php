@@ -789,7 +789,8 @@ Route::middleware('auth')->group(function () {
 
     // Report Daily
     Route::controller(ReportController::class)->prefix('report')->middleware('role:sewing')->group(function () {
-        Route::get('/{type}', 'index')->name("daily-sewing");
+        Route::get('/index/{type}', 'index')->name("daily-sewing");
+        Route::get('/defect-in-out', 'defectInOut')->name("report-defect-in-out");
         Route::post('/output/export', 'exportOutput');
         Route::post('/production/export', 'exportProduction');
         Route::post('/production/defect/export', 'exportProductionDefect');
