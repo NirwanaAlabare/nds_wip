@@ -530,42 +530,41 @@
                             });
     }
 
-    var i = 0;
-        window.Echo.channel('cutting-chart-channel')
-        .listen('.UpdatedCuttingEvent', (data) => {
-            i++;
-            console.log("Data received:", data.data[0]);
-            // $("#realtimeUpdateWrap").html('<div class="alert alert-success">' + i + '.' + data.data + '</div>');
-            updateChartData(data.data[0]);
-        });
+    // Mendengarkan channel dinamis
+        let channelName = `cutting-chart-channel-${mejaId}-${tglPlan}`;
+        window.Echo.channel(channelName)
+            .listen('.UpdatedCuttingEvent', (data) => {
+                console.log("Data received:", data.data[0]);
+                updateChartData(data.data[0]);
+            });
 
         function updateChartData(data) {
-    if (myChart && myDoughnutChart && data) {
-        // Cek apakah data yang diterima valid
-        if (data.completed_form !== undefined && data.incomplete_form !== undefined && data.total_form !== undefined) {
-            
-            // Update "Completed form" dan "Total form" pada Bar Chart
-            const completedForm = parseInt(data.completed_form);
-            const totalForm = parseInt(data.total_form);
-            const incompleteForm = parseInt(data.incomplete_form);
+            if (myChart && myDoughnutChart && data) {
+                // Cek apakah data yang diterima valid
+                if (data.completed_form !== undefined && data.incomplete_form !== undefined && data.total_form !== undefined) {
+                    
+                    // Update "Completed form" dan "Total form" pada Bar Chart
+                    const completedForm = parseInt(data.completed_form);
+                    const totalForm = parseInt(data.total_form);
+                    const incompleteForm = parseInt(data.incomplete_form);
 
-            // Update Doughnut Chart
-            const totalForms = completedForm + incompleteForm;
-            const completedPercentage = totalForms > 0 ? (completedForm / totalForms * 100).toFixed(2) : 0;
-            const incompletedPercentage = totalForms > 0 ? (incompleteForm / totalForms * 100).toFixed(2) : 0;
+                    // Update Doughnut Chart
+                    const totalForms = completedForm + incompleteForm;
+                    const completedPercentage = totalForms > 0 ? (completedForm / totalForms * 100).toFixed(2) : 0;
+                    const incompletedPercentage = totalForms > 0 ? (incompleteForm / totalForms * 100).toFixed(2) : 0;
 
-            myDoughnutChart.data.datasets[0].data = [completedPercentage, incompletedPercentage];
-            myDoughnutChart.update(); // Update Doughnut Chart
+                    myDoughnutChart.data.datasets[0].data = [completedPercentage, incompletedPercentage];
+                    myDoughnutChart.update(); // Update Doughnut Chart
 
-            // Perbarui Bar Chart
-            myChart.data.datasets[0].data = [totalForm]; // Total form
-            myChart.data.datasets[1].data = [completedForm]; // Completed form
-            myChart.update(); // Update Bar Chart
+                    // Perbarui Bar Chart
+                    myChart.data.datasets[0].data = [totalForm]; // Total form
+                    myChart.data.datasets[1].data = [completedForm]; // Completed form
+                    myChart.update(); // Update Bar Chart
 
-            console.log(`Updated data for ${data.no_meja}: total_form = ${data.total_form}, completed_form = ${data.completed_form}`);
+                    console.log(`Updated data for ${data.no_meja}: total_form = ${data.total_form}, completed_form = ${data.completed_form}`);
+                }
+            }
         }
-    }
-}
 
 
 

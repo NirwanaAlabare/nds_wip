@@ -1608,6 +1608,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{mejaId?}', 'show')->name('dashboard-chart-detail');
 
         // TEST TRIGGER SOCKET.IO
+        Route::get('/trigger/all','cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
         Route::get('/trigger/{mejaId?}','cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
 
     });

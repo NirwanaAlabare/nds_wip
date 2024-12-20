@@ -45,7 +45,7 @@
     background-color:rgb(0, 0, 0);
     border: 1px solid rgb(0, 0, 0);
     color: #fff;
-    padding: 7px 21px;
+    padding: 7px 15px;
     }
     .PillList-label {
     border: 1px solid rgb(144, 144, 144);
@@ -53,9 +53,10 @@
     color:rgb(37, 37, 37);
     display: flex; 
     align-items: center;
-    padding: 7px 30px;
+    padding: 7px 15px;
     text-decoration: none;
     cursor: pointer;
+    flex-direction: row;
     }
 
     .PillList-item
@@ -74,7 +75,7 @@
     .PillList-label .Icon {
     width: 12px;
     height: 12px;
-    margin: 0 0 0 6px;
+    margin: 0 0 0 20px;
     }
 
     .Icon--smallest {
@@ -118,6 +119,24 @@
     .description {
       font-size: 0.875rem;
       color: #666;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
     }
 
     #selected-date {
@@ -170,7 +189,7 @@
             </div>
             <div class="card" >
                 <div class="card-body">
-                    <canvas id="myChart" width="360" height="150"></canvas>
+                    <canvas id="myChart" width="1000" height="450"></canvas>
                 </div>
             </div>
         </div>
@@ -201,17 +220,6 @@
     <script> window.laravel_echo_port='{{env("LARAVEL_ECHO_PORT")}}';</script>
     <script src="http://{{ Request::getHost() }}:{{ config('redis.echo_port') }}/socket.io/socket.io.js"></script>
     <script src="{{ config('redis.redis_url_public') }}/js/laravel-echo-setup.js" type="text/javascript"></script>
-<!-- SCRIPT SOCKET.IO -->
-    <script>
-        var i = 0;
-        window.Echo.channel('user-channel')
-        .listen('.UserEvent', (data) => {
-            i++;
-            console.log("Data received:", data);
-            $("#realtimeUpdateWrap").html('<div class="alert alert-success">' + i + '.' + data.data + '</div>');
-        });
-    </script>
-
 <script>
     let myChart;
     let myDoughnutChart;
@@ -224,148 +232,99 @@
     let totalCompleted = 0;
     let totalIncompleted = 0;
     let previousDate = '';
-
+    let currentChannel = null;
+ 
     function formatDate(date) {
         const months = [
             'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ]; // Array bulan dalam bahasa Indonesia
+        ]; 
         const dateObj = new Date(date);
-        const day = String(dateObj.getDate()).padStart(2, '0'); // Menambahkan padding 0 pada hari jika perlu
-        const month = months[dateObj.getMonth()]; // Mengambil nama bulan
-        const year = dateObj.getFullYear(); // Mengambil tahun
-        
-        return `${day} ${month} ${year}`;  // Format: DD MMMM YYYY
+        const day = String(dateObj.getDate()).padStart(2, '0'); 
+        const month = months[dateObj.getMonth()];
+        const year = dateObj.getFullYear(); 
+        return `${day} ${month} ${year}`; 
     }
+    
     $(document).ready(async function () {
-    const currentDate = $("#cutting-form-date-filter").val();
-    await loadMejaCutting([]); // Fungsi loadMejaCutting sesuai kebutuhan Anda
-    await loadCuttingFormChart([], currentDate); // Fungsi loadCuttingFormChart sesuai kebutuhan Anda
+            const currentDate = $("#cutting-form-date-filter").val() || new Date().toISOString().split('T')[0];
+            await loadMejaCutting([]); 
+            await loadCuttingFormChart([], currentDate); 
 
-    const dateInput = document.getElementById('cutting-form-date-filter');
-    const selectedDateElement = document.getElementById('selected-date'); // Ambil elemen dengan id 'selected-date'
+            const dateInput = document.getElementById('cutting-form-date-filter');
+            const selectedDateElement = document.getElementById('selected-date'); 
 
-    // Fungsi untuk memperbarui tanggal dalam deskripsi
-    function updateDescription() {
-        const selectedDate = dateInput.value;  // Ambil nilai tanggal dari input
-        selectedDateElement.textContent = formatDate(selectedDate);  // Perbarui teks tanggal di dalam elemen <strong>
-    }
+            function updateDescription() {
+                const selectedDate = dateInput.value;  
+                selectedDateElement.textContent = formatDate(selectedDate); 
+            }
+            dateInput.addEventListener('input', updateDescription);
 
-    // Jalankan updateDescription setiap kali nilai input berubah
-    dateInput.addEventListener('input', updateDescription);
+            updateDescription();
 
-    // Panggil fungsi untuk inisialisasi saat halaman dimuat
-    updateDescription();
-});
+           setupChannel(currentDate);
+    });
 
 
-    // function generateCheckboxes(noMejaId, selectedCheckboxesIds) {
-    //     const checkboxContainer = document.querySelector('.item-checklist-box');
-        
-    //     // Simpan checkbox yang sudah dipilih
-    //     const selectedCheckboxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked'))
-    //         .map(checkbox => checkbox.value);
-
-    //     checkboxContainer.innerHTML = ''; // Menghapus konten lama
-    //     noMejaId.forEach((meja, index) => {
-    //         const checkboxLabel = document.createElement('label');
-    //         checkboxLabel.classList.add('PillList-item');
-
-    //         // Membuat checkbox
-    //         const checkboxInput = document.createElement('input');
-    //         checkboxInput.type = 'checkbox';
-    //         checkboxInput.name = 'feature';
-    //         checkboxInput.value = meja;
-    //         checkboxInput.disabled = true;
-
-    //         // Setel status checkbox jika sebelumnya sudah dipilih
-    //         if (selectedCheckboxes.includes(meja)) {
-    //             checkboxInput.checked = true;
-    //         }
-
-    //         // Membuat label untuk checkbox
-    //         const labelSpan = document.createElement('span');
-    //         labelSpan.classList.add('PillList-label');
-    //         labelSpan.textContent = meja.toUpperCase().replace('_', ' ');
-
-    //         // Menambahkan ikon check
-    //         const iconSpan = document.createElement('span');
-    //         iconSpan.classList.add('Icon', 'Icon--checkLight', 'Icon--smallest');
-    //         const icon = document.createElement('i');
-    //         icon.classList.add('fa', 'fa-spinner', 'fa-spin'); // Ikon loading
-    //         iconSpan.appendChild(icon);
-
-    //         // Menambahkan ikon dan label ke checkbox
-    //         labelSpan.appendChild(iconSpan);
-
-    //         // Menambahkan input checkbox dan label ke dalam label kontainer
-    //         checkboxLabel.appendChild(checkboxInput);
-    //         checkboxLabel.appendChild(labelSpan);
-
-    //         // Menambahkan label checkbox ke dalam container
-    //         checkboxContainer.appendChild(checkboxLabel);
-    //     });
-    // }
 
     function generateCheckboxes(noMejaId, selectedCheckboxesIds) {
-    const checkboxContainer = document.querySelector('.item-checklist-box');
-    
-    // Simpan checkbox yang sudah dipilih
-    const selectedCheckboxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked'))
-        .map(checkbox => checkbox.value);
-    const currentDate = $("#cutting-form-date-filter").val();
-    checkboxContainer.innerHTML = ''; // Menghapus konten lama
-    noMejaId.forEach((meja, index) => {
-        const checkboxLabel = document.createElement('label');
-        checkboxLabel.classList.add('PillList-item');
 
-        // Membuat checkbox
-        const checkboxInput = document.createElement('input');
-        checkboxInput.type = 'checkbox';
-        checkboxInput.name = 'feature';
-        checkboxInput.value = meja;
-        checkboxInput.disabled = true;
 
-        // Setel status checkbox jika sebelumnya sudah dipilih
-        if (selectedCheckboxes.includes(meja)) {
-            checkboxInput.checked = true;
-        }
+        const checkboxContainer = document.querySelector('.item-checklist-box');
+        const currentDate = $("#cutting-form-date-filter").val();
+        // Simpan checkbox yang sudah dipilih
+        const selectedCheckboxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(checkbox => checkbox.value);
+        
 
-        // Membuat label untuk checkbox
-        const labelSpan = document.createElement('span');
-        labelSpan.classList.add('PillList-label');
-        labelSpan.textContent = meja.toUpperCase().replace('_', ' ');
+        checkboxContainer.innerHTML = ''; // Menghapus konten lama
+        noMejaId.forEach((meja, index) => {
+            const checkboxLabel = document.createElement('label');
+            checkboxLabel.classList.add('PillList-item');
 
-        // Menambahkan ikon plus
-        const iconSpan = document.createElement('span');
-        iconSpan.classList.add('Icon', 'Icon--plus', 'Icon--smallest');
-        const icon = document.createElement('i');
-        icon.classList.add('fa', 'fa-plus'); // Ikon plus
-        iconSpan.appendChild(icon);
+            // Membuat checkbox
+            const checkboxInput = document.createElement('input');
+            checkboxInput.type = 'checkbox';
+            checkboxInput.name = 'feature';
+            checkboxInput.value = meja;
+            checkboxInput.disabled = true;
 
-        // Menambahkan event listener pada ikon plus untuk mengarahkan ke halaman lain
-        iconSpan.addEventListener('click', function() {
-            const url = `/halaman-lain/${meja}`; // Ganti dengan URL yang sesuai
-            window.location.href = '{{ route('dashboard-chart') }}/' + meja +'?tgl_plan=' + currentDate;
+            // Setel status checkbox jika sebelumnya sudah dipilih
+            if (selectedCheckboxes.includes(meja)) {
+                checkboxInput.checked = true;
+            }
+
+            // Membuat label untuk checkbox
+            const labelSpan = document.createElement('span');
+            labelSpan.classList.add('PillList-label');
+            labelSpan.textContent = meja.toUpperCase().replace('_', ' ');
+
+            // Menambahkan ikon plus
+            const iconSpan = document.createElement('span');
+            iconSpan.classList.add('Icon', 'Icon--plus', 'Icon--smallest');
+            const icon = document.createElement('i');
+            icon.classList.add('fa', 'fa-plus'); // Ikon plus
+            iconSpan.appendChild(icon);
+
+            // Menambahkan event listener pada ikon plus untuk mengarahkan ke halaman lain
+            iconSpan.addEventListener('click', function() {
+                const url ='{{ route('dashboard-chart') }}/' + meja +'?tgl_plan=' + currentDate;
+                window.location.href =  url;
+            });
+
+            // Menambahkan ikon dan label ke checkbox
+            labelSpan.appendChild(iconSpan);
+
+            // Menambahkan input checkbox dan label ke dalam label kontainer
+            checkboxLabel.appendChild(checkboxInput);
+            checkboxLabel.appendChild(labelSpan);
+
+            // Menambahkan label checkbox ke dalam container
+            checkboxContainer.appendChild(checkboxLabel);
         });
-
-        // Menambahkan ikon dan label ke checkbox
-        labelSpan.appendChild(iconSpan);
-
-        // Menambahkan input checkbox dan label ke dalam label kontainer
-        checkboxLabel.appendChild(checkboxInput);
-        checkboxLabel.appendChild(labelSpan);
-
-        // Menambahkan label checkbox ke dalam container
-        checkboxContainer.appendChild(checkboxLabel);
-    });
-}
-
-
-
+    }
 
     function loadCuttingFormChart(selectedCheckboxes, currentDate) {
-        console.log('loadCuttingFormChart',selectedCheckboxes);
         document.getElementById("loading-cutting-form").classList.remove("d-none");
         const checkboxContainer = document.querySelector('.item-checklist-box');
     
@@ -377,10 +336,10 @@
         checkboxes.forEach(checkbox => {
             const icon = checkbox.parentElement.querySelector('.Icon i');
             if (icon) {
-                icon.classList.remove('fa-plus'); // Menghapus ikon check
-                icon.classList.add('fa-spinner', 'fa-spin'); // Menambahkan ikon loading
+                icon.classList.remove('fa-plus'); 
+                icon.classList.add('fa-spinner', 'fa-spin'); 
             }
-            checkbox.disabled = true; // Menonaktifkan checkbox selama loading
+            checkbox.disabled = true; 
         });
                 return $.ajax({
                     url: '{{ route('cutting-chart-by-mejaid') }}',
@@ -392,7 +351,6 @@
                     dataType: 'json',
                     success: async function(res) {
                         if (res) {
-                            console.log('loadCuttingFormChart',res);
                             mejaArr = [];
                             totalFormArr = [];
                             completedFormArr = [];
@@ -417,9 +375,6 @@
                                 totalIncompleted += item.incomplete_form ? parseInt(item.incomplete_form) : 0;
                             });
                           
-                            // const uniqueNoMejaId = Array.from(new Set(noMejaId));
-                            // generateCheckboxes(uniqueNoMejaId, selectedCheckboxes);
-
                             const checkboxesAfterLoad = checkboxContainer.querySelectorAll('input[type="checkbox"]');
                             checkboxesAfterLoad.forEach(checkbox => {
                                 const icon = checkbox.parentElement.querySelector('.Icon i');
@@ -427,10 +382,9 @@
                                     checkbox.checked = true;
                                 }
                                 icon.classList.remove('fa-spinner', 'fa-spin');
-                                icon.classList.add('fa-plus'); // Ganti ikon loading dengan check
-                                checkbox.disabled = false; // Mengaktifkan kembali checkbox
+                                icon.classList.add('fa-plus'); 
+                                checkbox.disabled = false;
                             });
-                            // Fungsi Utilitas untuk mendukung data
                             const Utils = {
                                 months: function({ count }) {
                                     const months = mejaArr;
@@ -463,16 +417,11 @@
                                         label: 'Completed form',
                                         data: completedFormArr,
                                         backgroundColor: Utils.CHART_COLORS.green,
-                                    },
-                                    // {
-                                    //     label: 'Incompleted form',
-                                    //     data: incompletedFormArr,
-                                    //     backgroundColor: Utils.CHART_COLORS.orange,
-                                    // },
+                                    }                                
                                 ]
                             };
 
-                                // Konfigurasi Chart.js
+                            // Konfigurasi Chart.js
                             const config = {
                                 type: 'bar',
                                 data: data,
@@ -623,38 +572,119 @@
     }
 
     $('#cutting-form-date-filter').on("change", async function () {
-                const currentDate = $("#cutting-form-date-filter").val();
+                const selectedDate  = $("#cutting-form-date-filter").val();
                 await loadMejaCutting([])
-                await loadCuttingFormChart([],currentDate)
+                await loadCuttingFormChart([],selectedDate )
+                const checkboxContainer = document.querySelector('.item-checklist-box');
+                checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false; // Uncheck semua checkbox
+                });
+                setupChannel(selectedDate);
     });
-    // loadMejaCutting([]);
-    // loadCuttingFormChart([]);
 
-    // Menambah event listener pada checkbox
     const checkboxContainer = document.querySelector('.item-checklist-box');
-        checkboxContainer.addEventListener('change', function (e) {
-            const currentDate = $("#cutting-form-date-filter").val();
-            if (e.target && e.target.name === 'feature') {
-                // Ambil semua checkbox yang dicentang
-                const selectedCheckboxes = Array.from(
-                    checkboxContainer.querySelectorAll('input[name="feature"]:checked')
-                ).map(checkbox => checkbox.value);
 
-                // Kirim array string ke API untuk update chart
-                if (selectedCheckboxes.length > 0) {
-                    loadCuttingFormChart(selectedCheckboxes,currentDate); // Kirim array string
-                } else {
-                    loadCuttingFormChart(selectedCheckboxes,currentDate); // Atau lakukan sesuatu jika semua uncheck
-                }
+    checkboxContainer.addEventListener('click', function (e) {
+        const currentDate = $("#cutting-form-date-filter").val();
+
+        if (e.target && e.target.closest('.Icon--plus')) {
+            e.preventDefault(); // Cegah default action pada label
+            const iconSpan = e.target.closest('.Icon--plus');
+            const checkboxLabel = iconSpan.closest('.PillList-item');
+            const meja = checkboxLabel.querySelector('input[type="checkbox"]').value;
+
+            // Arahkan ke halaman baru
+            const url = '{{ route('dashboard-chart') }}/' + meja + '?tgl_plan=' + currentDate;
+            window.location.href = url;
+            return; // Hentikan eksekusi lebih lanjut
+        }
+    });
+
+    checkboxContainer.addEventListener('change', function (e) {
+        const currentDate = $("#cutting-form-date-filter").val();
+        // Jika yang diubah adalah checkbox
+        if (e.target && e.target.name === 'feature') {
+            // Ambil semua checkbox yang dicentang
+            const selectedCheckboxes = Array.from(
+                checkboxContainer.querySelectorAll('input[name="feature"]:checked')
+            ).map(checkbox => checkbox.value);
+            // Kirim array string ke API untuk update chart
+            if (selectedCheckboxes.length > 0) {
+                loadCuttingFormChart(selectedCheckboxes, currentDate); // Kirim array string
+            } else {
+                loadCuttingFormChart(selectedCheckboxes, currentDate); // Atau lakukan sesuatu jika semua uncheck
             }
+        }
     });
 
     $('#cutting-form-date-filter').on('focus', function() {
-        this.showPicker(); // Memastikan kalender tampil saat input diberi fokus
+        this.showPicker(); 
     });
 
+    // Fungsi untuk setup dan bind channel
+    function setupChannel(date) {
+        if (currentChannel) {
+            currentChannel.unsubscribe(); 
+        }
 
+        let channelName = `cutting-chart-channel-all-${date}`;
 
+        currentChannel = window.Echo.channel(channelName)
+            .listen('.UpdatedAllCuttingEvent', (data) => {
+                console.log("Data received:", data.data);
+                updateChartDataAll(data.data); 
+            });
+    }
+
+    function updateChartDataAll(dataArray) {
+            if (myChart && myDoughnutChart && Array.isArray(dataArray)) {
+                // Inisialisasi array untuk menyimpan data Total Form dan Completed Form
+                const totalFormArr = [];
+                const completedFormArr = [];
+                const incompletedFormArr = [];
+
+                let totalCompleted = 0;
+                let totalIncompleted = 0;
+
+                const existingData = myChart.data.labels;
+                let arr_curr_check_value= [];
+                existingData.forEach((meja, index) => {
+                    arr_curr_check_value.push(meja.toLowerCase().replace(' ', '_'));
+                });
+
+                const filteredData = dataArray.filter(item => arr_curr_check_value.includes(item.no_meja));
+                // Iterasi data yang diterima
+                filteredData.forEach((data) => {
+                    if (data.total_form !== undefined && data.completed_form !== undefined && data.incomplete_form !== undefined) {
+                        const totalForm = parseInt(data.total_form);
+                        const completedForm = parseInt(data.completed_form);
+                        const incompleteForm = parseInt(data.incomplete_form);
+
+                        // Tambahkan ke array masing-masing
+                        totalFormArr.push(totalForm);
+                        completedFormArr.push(completedForm);
+                        incompletedFormArr.push(incompleteForm);
+
+                        // Hitung total Completed dan Incompleted
+                        totalCompleted += completedForm;
+                        totalIncompleted += incompleteForm;
+                    }
+                });
+
+                // Update Doughnut Chart
+                const totalForms = totalCompleted + totalIncompleted;
+                const completedPercentage = totalForms > 0 ? (totalCompleted / totalForms * 100).toFixed(2) : 0;
+                const incompletedPercentage = totalForms > 0 ? (totalIncompleted / totalForms * 100).toFixed(2) : 0;
+
+                myDoughnutChart.data.datasets[0].data = [completedPercentage, incompletedPercentage];
+                myDoughnutChart.update();
+
+                // Update Bar Chart
+                myChart.data.datasets[0].data = totalFormArr; // Total Form
+                myChart.data.datasets[1].data = completedFormArr; // Completed Form
+                myChart.update();
+            }
+    }
 </script>
 
 

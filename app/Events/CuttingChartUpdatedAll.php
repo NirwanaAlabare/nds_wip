@@ -11,7 +11,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CuttingChartUpdated implements ShouldBroadcastNow
+class CuttingChartUpdatedAll implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -21,31 +21,28 @@ class CuttingChartUpdated implements ShouldBroadcastNow
      * @return void
      */
     public $data;
-    public $mejaId;
     public $tglPlan;
 
-    public function __construct($data, $mejaId, $tglPlan)
+    public function __construct($data, $tglPlan)
     {
         $this->data = $data;
-        $this->mejaId = $mejaId;
         $this->tglPlan = $tglPlan;
     }
 
-   public function broadcastOn()
+    public function broadcastOn()
     {
-        return new Channel("cutting-chart-channel-{$this->mejaId}-{$this->tglPlan}");
+        return new Channel("cutting-chart-channel-all-{$this->tglPlan}");
     }
 
     public function broadcastAs()
     {
-        return 'UpdatedCuttingEvent';
+        return 'UpdatedAllCuttingEvent';
     }
 
     public function broadcastWith()
     {
         return [
             'data' => $this->data,
-            'mejaId' => $this->mejaId,
             'tglPlan' => $this->tglPlan,
         ];
     }
