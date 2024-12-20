@@ -22,6 +22,7 @@
         "livewire/livewire": "^2.12",
         "maatwebsite/excel": "^3.1",
         "milon/barcode": "^10.0",
+        "predis/predis": "^2.3",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "yajra/laravel-datatables-oracle": "^9.21"
     },

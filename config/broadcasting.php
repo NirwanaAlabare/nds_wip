@@ -53,6 +53,11 @@ return [
         'null' => [
             'driver' => 'null',
         ],
+        'socketio' => [
+            'driver' => 'socketio',
+            'host' => env('LARAVEL_ECHO_SERVER_HOST', 'localhost'),
+            'port' => env('LARAVEL_ECHO_PORT', 6001),
+        ],
 
     ],
 
