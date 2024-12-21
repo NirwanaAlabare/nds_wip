@@ -30,6 +30,9 @@ use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
 use App\Http\Controllers\Cutting\RollController;
+// Piping Process
+use App\Http\Controllers\Cutting\MasterPipingController;
+use App\Http\Controllers\Cutting\PipingProcessController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -182,6 +185,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('get-general-number');
 
         // new general
+        // get buyers
+        Route::get('/get-buyers-new', 'getBuyers')->name('get-buyers');
         // get orders
         Route::get('/get-orders-new', 'getOrders')->name('get-orders');
         // get colors
@@ -430,12 +435,36 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
     });
 
+    // Piping  Controller
     Route::controller(PipingController::class)->prefix("form-cut-piping")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('form-cut-piping');
         Route::get('/create', 'create')->name('create-piping');
         Route::post('/store', 'store')->name('store-piping');
 
         Route::get('/get-marker-piping', 'getMarkerPiping')->name('get-marker-piping');
+    });
+
+    // Master Piping
+    Route::controller(MasterPipingController::class)->prefix("master-piping")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('master-piping');
+        Route::get('/create', 'create')->name('create-master-piping');
+        Route::post('/store', 'store')->name('store-master-piping');
+
+        // List Master Piping
+        Route::get('/list', 'list')->name('list-master-piping');
+
+        // Take Master Piping
+        Route::get('/take/{id?}', 'take')->name('take-master-piping');
+    });
+
+    // Piping Process
+    Route::controller(PipingProcessController::class)->prefix("piping-process")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('piping-process');
+        Route::get('/create', 'create')->name('create-piping-process');
+        Route::post('/store', 'store')->name('store-piping-process');
+
+        // Generate
+        Route::get('/generate', 'generate')->name('generate-piping-process');
     });
 
     // Cutting Plan
@@ -760,12 +789,14 @@ Route::middleware('auth')->group(function () {
 
     // Report Daily
     Route::controller(ReportController::class)->prefix('report')->middleware('role:sewing')->group(function () {
-        Route::get('/{type}', 'index')->name("daily-sewing");
+        Route::get('/index/{type}', 'index')->name("daily-sewing");
+        Route::get('/defect-in-out', 'defectInOut')->name("report-defect-in-out");
         Route::post('/output/export', 'exportOutput');
         Route::post('/production/export', 'exportProduction');
         Route::post('/production/defect/export', 'exportProductionDefect');
         Route::post('/production-all/export', 'exportProductionAll');
         Route::post('/track-order-output/export', 'exportOrderOutput');
+        Route::post('/defect-in-out/export', 'exportDefectInOut');
     });
 
     // Pareto Chart

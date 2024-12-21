@@ -16,6 +16,7 @@ use App\Exports\ProductionExport;
 use App\Exports\ProductionAllExport;
 use App\Exports\ProductionDefectExport;
 use App\Exports\OrderOutputExport;
+use App\Exports\Sewing\DefectInOutExport;
 use DB;
 use Excel;
 
@@ -25,6 +26,12 @@ class ReportController extends Controller
         return view('sewing.report', [
             'type' => $type,
             'subPageGroup' => 'sewing-sewing', 'subPage' => 'sewing-'.$type, 'page' => 'dashboard-sewing-eff'
+        ]);
+    }
+
+    public function defectInOut() {
+        return view('sewing.report-defect-in-out', [
+            'subPageGroup' => 'sewing-defect', 'subPage' => 'report-defect-in-out', 'page' => 'dashboard-sewing-eff'
         ]);
     }
 
@@ -73,5 +80,13 @@ class ReportController extends Controller
         $buyer = $request->buyer;
 
         return Excel::download(new OrderOutputExport($dateFrom, $dateTo, $outputType, $groupBy, $order, $buyer), 'order_output.xlsx');
+    }
+
+    public function exportDefectInOut(Request $request) {
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+        $type = $request->type;
+
+        return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type), 'defectInOut.xlsx');
     }
 }

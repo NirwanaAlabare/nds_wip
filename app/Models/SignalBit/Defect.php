@@ -28,6 +28,16 @@ class Defect extends Model
         'updated_at',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(UserSbWip::class, 'created_by', 'id');
+    }
+
+    public function soDet()
+    {
+        return $this->belongsTo(SoDet::class, 'so_det_id', 'id');
+    }
+
     public function masterPlan()
     {
         return $this->belongsTo(MasterPlan::class, 'master_plan_id', 'id');
