@@ -37,7 +37,7 @@
             </div>
             <div>
                 <div class="d-flex justify-content-end gap-3">
-                    <button class="btn btn-sm btn-success" onclick="exportExcel(this, 'defect', '{{ $this->dateFrom }}', '{{ $this->dateTo }}', '{{ $this->selectedDefectType }}')">
+                    <button class="btn btn-sm btn-success" onclick="exportExcel(this, '{{ $this->selectedDefectType }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}')">
                         Export <i class="fa-solid fa-file-excel"></i>
                     </button>
                 </div>
@@ -112,113 +112,65 @@
             Livewire.emit('loadingStart');
         });
 
-        // function exportExcel(elm, type, date, line) {
-        //     @this.set('loadingLine', true);
+        function exportExcel(elm, type, dateFrom, dateTo) {
+            @this.set('loading', true);
 
-        //     elm.setAttribute('disabled', 'true');
-        //     elm.innerText = "";
-        //     let loading = document.createElement('div');
-        //     loading.classList.add('loading-small');
-        //     elm.appendChild(loading);
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
 
-        //     iziToast.info({
-        //         title: 'Exporting...',
-        //         message: 'Data sedang di export. Mohon tunggu...',
-        //         position: 'topCenter'
-        //     });
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
 
-        //     if (type == 'production') {
-        //         $.ajax({
-        //             url: "{{ url("/report/production/export") }}",
-        //             type: 'post',
-        //             data: { date : date, line : line },
-        //             xhrFields: { responseType : 'blob' },
-        //             success: function(res) {
-        //                 @this.set('loadingLine', false);
+            $.ajax({
+                url: "{{ url("/report/defect-in-out/export") }}",
+                type: 'post',
+                data: { dateFrom : dateFrom, dateTo : dateTo, type : type },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    @this.set('loading', false);
 
-        //                 elm.removeAttribute('disabled');
-        //                 elm.innerText = "Export ";
-        //                 let icon = document.createElement('i');
-        //                 icon.classList.add('fa-solid');
-        //                 icon.classList.add('fa-file-excel');
-        //                 elm.appendChild(icon);
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
 
-        //                 iziToast.success({
-        //                     title: 'Success',
-        //                     message: 'Success',
-        //                     position: 'topCenter'
-        //                 });
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
 
-        //                 var blob = new Blob([res]);
-        //                 var link = document.createElement('a');
-        //                 link.href = window.URL.createObjectURL(blob);
-        //                 link.download = line.replace("_", "-")+" "+date+" Production Report.xlsx";
-        //                 link.click();
-        //             }, error: function (jqXHR) {
-        //                 @this.set('loadingLine', false);
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = dateFrom+" - "+dateTo+" "+type+" Defect Report.xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    @this.set('loading', false);
 
-        //                 let res = jqXHR.responseJSON;
-        //                 let message = '';
-        //                 console.log(res.message);
-        //                 for (let key in res.errors) {
-        //                     message += res.errors[key]+' ';
-        //                     document.getElementById(key).classList.add('is-invalid');
-        //                 };
-        //                 iziToast.error({
-        //                     title: 'Error',
-        //                     message: message,
-        //                     position: 'topCenter'
-        //                 });
-        //             }
-        //         });
-        //     } else if (type == 'production-all') {
-        //         @this.set('loadingLine', true);
-
-        //         $.ajax({
-        //             url: "{{ url("/report/production-all/export") }}",
-        //             type: 'post',
-        //             data: { date : date },
-        //             xhrFields: { responseType : 'blob' },
-        //             success: function(res) {
-        //                 @this.set('loadingLine', false);
-
-        //                 elm.removeAttribute('disabled');
-        //                 elm.innerText = "Export All ";
-        //                 let icon = document.createElement('i');
-        //                 icon.classList.add('fa-solid');
-        //                 icon.classList.add('fa-file-excel');
-        //                 elm.appendChild(icon);
-
-        //                 iziToast.success({
-        //                     title: 'Success',
-        //                     message: 'Success',
-        //                     position: 'topCenter'
-        //                 });
-
-        //                 var blob = new Blob([res]);
-        //                 var link = document.createElement('a');
-        //                 link.href = window.URL.createObjectURL(blob);
-        //                 link.download = date+" Production Report.xlsx";
-        //                 link.click();
-        //             }, error: function (jqXHR) {
-        //                 @this.set('loadingLine', false);
-
-        //                 let res = jqXHR.responseJSON;
-        //                 let message = '';
-        //                 console.log(res.message);
-        //                 for (let key in res.errors) {
-        //                     message += res.errors[key]+' ';
-        //                     document.getElementById(key).classList.add('is-invalid');
-        //                 };
-        //                 iziToast.error({
-        //                     title: 'Error',
-        //                     message: message,
-        //                     position: 'topCenter'
-        //                 });
-        //             }
-        //         });
-        //     }
-        // }
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
+        }
 
         // function exportExcelDefect(elm, date, line) {
         //     console.log(date, line);

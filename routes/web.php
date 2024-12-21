@@ -796,6 +796,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/production/defect/export', 'exportProductionDefect');
         Route::post('/production-all/export', 'exportProductionAll');
         Route::post('/track-order-output/export', 'exportOrderOutput');
+        Route::post('/defect-in-out/export', 'exportDefectInOut');
     });
 
     // Pareto Chart

@@ -1,28 +1,33 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\Sewing;
 
 use App\Models\SignalBit\MasterPlan;
-use App\Models\SignalBit\UserLine;
-use App\Models\SignalBit\Rft;
-use App\Models\SignalBit\Defect;
-use App\Models\SignalBit\Rework;
-use App\Models\SignalBit\Reject;
+use App\Models\SignalBit\DefectInOut;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Sheet;
 use DB;
 
-class DefectInOutExport implements FromView, ShouldAutoSize
+Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
+    $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
+});
+
+class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
 {
     protected $dateFrom;
     protected $dateTo;
     protected $type;
+    protected $rowCount;
 
     function __construct($dateFrom, $dateTo, $type) {
         $this->dateFrom = $dateFrom;
         $this->dateTo = $dateTo;
         $this->type = $type;
+        $this->rowCount = 0;
     }
 
     public function view(): View
@@ -51,11 +56,35 @@ class DefectInOutExport implements FromView, ShouldAutoSize
             orderBy("output_defect_in_out.updated_at", "desc")->
             get();
 
-        return view('sewing.export.output-export', [
+        $this->rowCount = $defectInOutList->count();
+
+        return view('sewing.export.defect-in-out-export', [
             'dateFrom' => $this->dateFrom,
             'dateTo' => $this->dateTo,
             'type' => $this->type,
             'defectInOutList' => $defectInOutList
         ]);
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => [self::class, 'afterSheet']
+        ];
+    }
+
+    public static function afterSheet(AfterSheet $event)
+    {
+        $event->sheet->styleCells(
+            'A2:I' . ($event->getConcernable()->rowCount+4),
+            [
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => '000000'],
+                    ],
+                ],
+            ]
+        );
     }
 }

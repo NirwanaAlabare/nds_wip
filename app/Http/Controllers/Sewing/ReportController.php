@@ -16,7 +16,7 @@ use App\Exports\ProductionExport;
 use App\Exports\ProductionAllExport;
 use App\Exports\ProductionDefectExport;
 use App\Exports\OrderOutputExport;
-use App\Exports\DefectInOutExport;
+use App\Exports\Sewing\DefectInOutExport;
 use DB;
 use Excel;
 

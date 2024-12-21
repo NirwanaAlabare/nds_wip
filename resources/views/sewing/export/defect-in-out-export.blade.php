@@ -1,8 +1,7 @@
 <table>
     <tr>
-        <td style="text-align: center;">{{ $dateFrom }}</td>
-        <td style="text-align: center;">-</td>
-        <td style="text-align: center;">{{ $dateTo }}</td>
+        <td style="text-align: center;">Dari : {{ $dateFrom }}</td>
+        <td style="text-align: center;">Sampai : {{ $dateTo }}</td>
     </tr>
     <tr>
         <td colspan="9" style="text-align: center; font-weight: 800;">{{ strtoupper(str_replace("_", "", $type)) }}</td>
