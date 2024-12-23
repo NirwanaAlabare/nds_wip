@@ -1608,8 +1608,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{mejaId?}', 'show')->name('dashboard-chart-detail');
 
         // TEST TRIGGER SOCKET.IO
-        Route::get('/trigger/all','cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
-        Route::get('/trigger/{mejaId?}','cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
+        Route::get('/trigger/all/{date?}','cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
+        Route::get('/trigger/{date?}/{mejaId?}','cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
 
     });
 });
@@ -1635,7 +1635,7 @@ Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData
 // });
 Route::get('/trigger', function () {
     event(new TestEvent('This is realtime data'));
-    return response()->json(['status' => 'Event sent']);
+    return response()->json(['status' => 'Event sent testing']);
 });
 
 

@@ -24,7 +24,7 @@ class DashboardController extends Controller
     public function index() {
 
         return view('cutting.chart.dashboard-chart');
-        
+
     }
 
     // Marker
@@ -327,7 +327,7 @@ class DashboardController extends Controller
             SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
         ")->
         leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
-        leftJoin("cutting_plan", "cutting_plan.no_form_cut_input", "form_cut_input.no_form")->
+        leftJoin("cutting_plan", "cutting_plan.form_cut_id", "form_cut_input.no_form")->
         join("users as meja", "meja.id", "form_cut_input.no_meja")->
         whereRaw("
             ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
@@ -337,19 +337,19 @@ class DashboardController extends Controller
         ")->
         groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
         get();
-        
+
         return json_encode($query);
 
     }
 
-    public function cutting_chart_trigger_all(Request $request) {
+    public function cutting_chart_trigger_all($currentDate) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
 
-        $date = $request->query('tgl_plan', null);
-        
+        $date = $currentDate;
+
         if (!$date) {
-            $date = date('Y-m-d'); 
+            $date = date('Y-m-d');
         }
 
         $query = DB::table('form_cut_input')->
@@ -379,7 +379,7 @@ class DashboardController extends Controller
     public function cutting_chart_by_mejaid(Request $request) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
-        
+
         $meja_ids = $request->meja_id ? $request->meja_id : null;
         $date = $request->date ? $request->date : date("Y-m-d");
         // $date = '2024-12-04';
@@ -406,20 +406,20 @@ class DashboardController extends Controller
         })
         ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
         ->get();
-    
+
     return response()->json($query);
     }
 
-    public function cutting_trigger_chart_by_mejaid(Request $request, $mejaId = null) {
+    public function cutting_trigger_chart_by_mejaid($currentDate, $mejaId) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
-        
+
         $meja_ids = $mejaId ? [$mejaId] : null;
 
-        $date = $request->query('tgl_plan', null);
-        
+        $date = $currentDate;
+
         if (!$date) {
-            $date = date('Y-m-d'); 
+            $date = date('Y-m-d');
         }
 
         $query = DB::table('form_cut_input')
@@ -444,16 +444,16 @@ class DashboardController extends Controller
         })
         ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
         ->get();
-    
+
         broadcast(new CuttingChartUpdated($query, $mejaId, $date));
-        
+
         return response()->json($query);
     }
 
     public function get_cutting_chart_meja(Request $request) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
-        
+
         $date = $request->date ? $request->date : date("Y-m-d");
 
         $query = DB::table('form_cut_input')
@@ -467,10 +467,10 @@ class DashboardController extends Controller
                 (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) AND
                 form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             ")
-        
+
             ->groupBy('meja.username')  // Grup berdasarkan meja.username untuk menghindari duplikasi
             ->get();
-    
+
     return response()->json($query);
     }
 
