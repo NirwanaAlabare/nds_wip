@@ -73,12 +73,12 @@
         </div>
     </div>
 </div>
-        <div class="d-flex justify-content-between">
+        {{-- <div class="d-flex justify-content-between">
             <div class="ml-auto">
                 <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search Data..." onkeyup="carigrdok()">
-        </div>
+        </div> --}}
         <div class="table-responsive">
             <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                 <thead>
@@ -179,8 +179,8 @@ $('.select2type').select2({
         ordering: false,
         processing: true,
         serverSide: true,
-        paging: false,
-        searching: false,
+        paging: true,
+        searching: true,
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
