@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Auth\User;
 use App\Scopes\ThisYearScope;
 
 class FormCutInput extends Model
