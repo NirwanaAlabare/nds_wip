@@ -11,6 +11,7 @@ use App\Http\Controllers\GeneralController;
 
 // Worksheet
 use App\Http\Controllers\WorksheetController;
+use App\Events\TestEvent;
 
 // Part
 use App\Http\Controllers\Part\MasterPartController;
@@ -30,6 +31,9 @@ use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
 use App\Http\Controllers\Cutting\RollController;
+// Piping Process
+use App\Http\Controllers\Cutting\MasterPipingController;
+use App\Http\Controllers\Cutting\PipingProcessController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -182,6 +186,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('get-general-number');
 
         // new general
+        // get buyers
+        Route::get('/get-buyers-new', 'getBuyers')->name('get-buyers');
         // get orders
         Route::get('/get-orders-new', 'getOrders')->name('get-orders');
         // get colors
@@ -430,12 +436,36 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
     });
 
+    // Piping  Controller
     Route::controller(PipingController::class)->prefix("form-cut-piping")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('form-cut-piping');
         Route::get('/create', 'create')->name('create-piping');
         Route::post('/store', 'store')->name('store-piping');
 
         Route::get('/get-marker-piping', 'getMarkerPiping')->name('get-marker-piping');
+    });
+
+    // Master Piping
+    Route::controller(MasterPipingController::class)->prefix("master-piping")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('master-piping');
+        Route::get('/create', 'create')->name('create-master-piping');
+        Route::post('/store', 'store')->name('store-master-piping');
+
+        // List Master Piping
+        Route::get('/list', 'list')->name('list-master-piping');
+
+        // Take Master Piping
+        Route::get('/take/{id?}', 'take')->name('take-master-piping');
+    });
+
+    // Piping Process
+    Route::controller(PipingProcessController::class)->prefix("piping-process")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('piping-process');
+        Route::get('/create', 'create')->name('create-piping-process');
+        Route::post('/store', 'store')->name('store-piping-process');
+
+        // Generate
+        Route::get('/generate', 'generate')->name('generate-piping-process');
     });
 
     // Cutting Plan
@@ -760,12 +790,14 @@ Route::middleware('auth')->group(function () {
 
     // Report Daily
     Route::controller(ReportController::class)->prefix('report')->middleware('role:sewing')->group(function () {
-        Route::get('/{type}', 'index')->name("daily-sewing");
+        Route::get('/index/{type}', 'index')->name("daily-sewing");
+        Route::get('/defect-in-out', 'defectInOut')->name("report-defect-in-out");
         Route::post('/output/export', 'exportOutput');
         Route::post('/production/export', 'exportProduction');
         Route::post('/production/defect/export', 'exportProductionDefect');
         Route::post('/production-all/export', 'exportProductionAll');
         Route::post('/track-order-output/export', 'exportOrderOutput');
+        Route::post('/defect-in-out/export', 'exportDefectInOut');
     });
 
     // Pareto Chart
@@ -1605,6 +1637,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('stock-dc-wip');
         Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
     });
+
+    Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
+        Route::get('/', 'index')->name('dashboard-chart');
+        Route::get('/{mejaId?}', 'show')->name('dashboard-chart-detail');
+
+        // TEST TRIGGER SOCKET.IO
+        Route::get('/trigger/all/{date?}','cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
+        Route::get('/trigger/{date?}/{mejaId?}','cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
+
+    });
 });
 
 // Dashboard
@@ -1612,6 +1654,9 @@ Route::get('/dashboard-track', [DashboardController::class, 'track'])->middlewar
 Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
+Route::get('/dashboard-cutting-chart', [DashboardController::class, 'cutting_chart'])->middleware('auth')->name('dashboard-cutting-chart');
+Route::get('/meja-dashboard-cutting', [DashboardController::class, 'get_cutting_chart_meja'])->middleware('auth')->name('meja-dashboard-cutting');
+Route::get('/cutting-chart-by-mejaid', [DashboardController::class, 'cutting_chart_by_mejaid'])->middleware('auth')->name('cutting-chart-by-mejaid');
 Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
 Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware('auth')->name('cutting-form-chart');
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
@@ -1619,6 +1664,18 @@ Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
 Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
+
+// Route::get('/dashboard-chart', function () {
+//    return view('cutting.chart.dashboard-chart');
+// });
+Route::get('/trigger', function () {
+    event(new TestEvent('This is realtime data'));
+    return response()->json(['status' => 'Event sent testing']);
+});
+
+
+
+
 
 // Dashboard
 // Route::get('/dashboard-marker', function () {

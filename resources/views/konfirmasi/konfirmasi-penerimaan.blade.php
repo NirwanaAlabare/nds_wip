@@ -43,7 +43,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class="col-md-5" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Search">
@@ -54,7 +54,7 @@
                 Saldo Awal
             </a> -->
             </div>
-           
+
         </div>
         </div>
     </div>
@@ -107,8 +107,8 @@
                 <div class="col-lg-12">
                     <!-- style="height: 400px" -->
                 <div class="table-responsive" id="table_modal">
-                    
-                </div> 
+
+                </div>
                 </div>
             </div>
         </div>
@@ -315,7 +315,7 @@ $('.select2type').select2({
                 targets: [9],
                 render: (data, type, row, meta) => {
                     console.log(row);
-                if (row.no_po != '') {
+                // if (row.no_po != '') {
                     if (row.qty_balance == 0) {
                         return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
                         '" name="chek_id[' + meta.row + ']" class="flat" value="1" ></td></div>';
@@ -323,9 +323,9 @@ $('.select2type').select2({
                         return '';
                     }
 
-                }else{
-                    return '';
-                }
+                // }else{
+                //     return '';
+                // }
                 }
             },
             {

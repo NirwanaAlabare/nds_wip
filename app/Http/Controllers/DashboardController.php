@@ -10,12 +10,21 @@ use App\Models\Marker;
 use App\Models\DCIn;
 use App\Models\FormCutInput;
 use Yajra\DataTables\Facades\DataTables;
+use App\Events\CuttingChartUpdated;
+use App\Events\CuttingChartUpdatedAll;
 use DB;
 
 class DashboardController extends Controller
 {
     public function track(Request $request) {
         return Redirect::to('/home');
+    }
+
+
+    public function index() {
+
+        return view('cutting.chart.dashboard-chart');
+
     }
 
     // Marker
@@ -145,56 +154,6 @@ class DashboardController extends Controller
             "wsQty" => $wsQty
         );
     }
-
-    // Cutting
-    // public function cutting(Request $request) {
-    //     ini_set("max_execution_time", 0);
-    //     ini_set("memory_limit", '2048M');
-
-    //     $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
-    //     $years = array_reverse(range(1999, date('Y')));
-
-    //     if ($request->ajax()) {
-    //         // $month = date("m");
-    //         // $year = date("Y");
-
-    //         // if ($request->month) {
-    //         //     $month = $request->month;
-    //         // }
-    //         // if ($request->year) {
-    //         //     $year = $request->year;
-    //         // }
-
-    //         $date = $request->date ? $request->date : date("Y-m-d");
-
-    //         $form = MarkerInput::selectRaw("
-    //                 marker_input.buyer,
-    //                 marker_input.act_costing_ws,
-    //                 marker_input.style,
-    //                 sum(marker_input_detail.ratio) * sum(form_cut_input.total_gelar)
-    //             ")->
-    //             leftJoin("marker_input_detail", "marker_input.kode", "=", "form_cut_input.id_marker")->
-    //             leftJoin("marker_input_detail", "marker_input_detail.kode", "=", "form_cut_input.id_marker")->
-    //             whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
-    //             whereRaw("(form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')")->
-    //             whereRaw("(COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')")->
-    //             groupBy("marker_input.act_costing_ws", "marker_input.style")->
-    //             orderBy("form_cut_input.waktu_mulai", "desc")->
-    //             orderBy("marker_input.buyer", "asc")->
-    //             orderBy("marker_input.act_costing_ws", "asc")->
-    //             orderBy("marker_input.style", "asc")->
-    //             orderBy("marker_input.color", "asc")->
-    //             orderBy("marker_input.panel", "asc")->
-    //             orderBy("marker_input.urutan_marker", "asc")->
-    //             orderBy("form_cut_input.no_cut", "asc")->
-    //             orderBy("form_cut_input_detail.id", "asc");
-
-    //         return DataTables::eloquent($form)->toJson();
-    //     }
-
-    //     return view('dashboard', ['page' => 'dashboard-cutting', 'months' => $months, 'years' => $years]);
-    // }
-
 
     public function cutting(Request $request) {
         ini_set("max_execution_time", 0);
@@ -337,6 +296,182 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', ['page' => 'dashboard-cutting', 'months' => $months, 'years' => $years]);
+    }
+
+    public function show(Request $request, $mejaId = null)
+    {
+        // Ambil parameter tgl_plan dari query string
+        $tglPlan = $request->query('tgl_plan', null);
+
+        // Lakukan proses sesuai kebutuhan
+        return view('cutting.chart.dashboard-chart-detail', [
+            'mejaId' => $mejaId,
+            'tglPlan' => $tglPlan
+        ]);
+    }
+
+
+    public function cutting_chart(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $date = $request->date ? $request->date : date("Y-m-d");
+        // $date = '2024-12-04';
+
+        $query = DB::table('form_cut_input')->
+        selectRaw("
+            meja.username no_meja,
+            cutting_plan.tgl_plan,
+            COUNT(form_cut_input.id) total_form,
+            SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
+            SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
+        ")->
+        leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
+        leftJoin("cutting_plan", "cutting_plan.form_cut_id", "form_cut_input.no_form")->
+        join("users as meja", "meja.id", "form_cut_input.no_meja")->
+        whereRaw("
+            ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
+            ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
+            ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
+            and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+        ")->
+        groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
+        get();
+
+        return json_encode($query);
+
+    }
+
+    public function cutting_chart_trigger_all($currentDate) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $date = $currentDate;
+
+        if (!$date) {
+            $date = date('Y-m-d');
+        }
+
+        $query = DB::table('form_cut_input')->
+        selectRaw("
+            meja.username no_meja,
+            cutting_plan.tgl_plan,
+            COUNT(form_cut_input.id) total_form,
+            SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
+            SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
+        ")->
+        leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
+        leftJoin("cutting_plan", "cutting_plan.no_form_cut_input", "form_cut_input.no_form")->
+        join("users as meja", "meja.id", "form_cut_input.no_meja")->
+        whereRaw("
+            ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
+            ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
+            ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
+            and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+        ")->
+        groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
+        get();
+        broadcast(new CuttingChartUpdatedAll($query, $date));
+        return json_encode($query);
+
+    }
+
+    public function cutting_chart_by_mejaid(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $meja_ids = $request->meja_id ? $request->meja_id : null;
+        $date = $request->date ? $request->date : date("Y-m-d");
+        // $date = '2024-12-04';
+
+        $query = DB::table('form_cut_input')
+        ->selectRaw("
+            meja.username no_meja,
+            cutting_plan.tgl_plan,
+            COUNT(form_cut_input.id) total_form,
+            SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
+            SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
+        ")
+        ->leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")
+        ->leftJoin("cutting_plan", "cutting_plan.no_form_cut_input", "form_cut_input.no_form")
+        ->join("users as meja", "meja.id", "form_cut_input.no_meja")
+        ->whereRaw("
+            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
+            (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
+            (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) AND
+            form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+        ")
+        ->when($meja_ids, function ($query) use ($meja_ids) {
+            return $query->whereIn('meja.username', $meja_ids);
+        })
+        ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
+        ->get();
+
+    return response()->json($query);
+    }
+
+    public function cutting_trigger_chart_by_mejaid($currentDate, $mejaId) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $meja_ids = $mejaId ? [$mejaId] : null;
+
+        $date = $currentDate;
+
+        if (!$date) {
+            $date = date('Y-m-d');
+        }
+
+        $query = DB::table('form_cut_input')
+        ->selectRaw("
+            meja.username no_meja,
+            cutting_plan.tgl_plan,
+            COUNT(form_cut_input.id) total_form,
+            SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
+            SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
+        ")
+        ->leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")
+        ->leftJoin("cutting_plan", "cutting_plan.no_form_cut_input", "form_cut_input.no_form")
+        ->join("users as meja", "meja.id", "form_cut_input.no_meja")
+        ->whereRaw("
+            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
+            (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
+            (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) AND
+            form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+        ")
+        ->when($meja_ids, function ($query) use ($meja_ids) {
+            return $query->whereIn('meja.username', $meja_ids);
+        })
+        ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
+        ->get();
+
+        broadcast(new CuttingChartUpdated($query, $mejaId, $date));
+
+        return response()->json($query);
+    }
+
+    public function get_cutting_chart_meja(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $date = $request->date ? $request->date : date("Y-m-d");
+
+        $query = DB::table('form_cut_input')
+            ->select('meja.username as no_meja')  // Hanya mengambil meja.username
+            ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+            ->leftJoin('cutting_plan', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
+            ->join('users as meja', 'meja.id', '=', 'form_cut_input.no_meja')
+            ->whereRaw("
+                (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
+                (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
+                (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) AND
+                form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+            ")
+
+            ->groupBy('meja.username')  // Grup berdasarkan meja.username untuk menghindari duplikasi
+            ->get();
+
+    return response()->json($query);
     }
 
     // Cutting Qty

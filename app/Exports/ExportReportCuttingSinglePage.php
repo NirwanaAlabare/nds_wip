@@ -45,11 +45,11 @@
 
             if($dateFrom < $dateTo) {
                 if ($this->dateFrom) {
-                    $additionalQuery .= " and DATE(form_cut_input.waktu_mulai) >= '".$this->dateFrom."'";
+                    $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$this->dateFrom."'";
                 }
 
                 if ($this->dateTo) {
-                    $additionalQuery .= " and DATE(form_cut_input.waktu_mulai) <= '".$this->dateTo."'";
+                    $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$this->dateTo."'";
                 }
 
                 $reportCutting = DB::select("
@@ -92,7 +92,7 @@
                                 marker_input.gelar_qty marker_gelar,
                                 SUM(form_cut.qty_ply) spreading_gelar,
                                 SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar,
-                                SUM(modify_size_qty.difference_qty) diff
+                                SUM(modify_size_qty.difference_qty) form_diff
                             FROM
                                 marker_input
                                 INNER JOIN
@@ -103,9 +103,9 @@
                                     (
                                         SELECT
                                             meja.`name` meja,
-                                            DATE(form_cut_input.waktu_mulai) tgl_form_cut,
+                                            COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
                                             form_cut_input.id_marker,
-                                            form_cut_input.form_cut_id,
+                                            form_cut_input.id,
                                             form_cut_input.no_form,
                                             form_cut_input.qty_ply,
                                             form_cut_input.total_lembar,
@@ -118,8 +118,6 @@
                                         WHERE
                                             form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                             AND form_cut_input.waktu_mulai is not null
-                                            AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                                            AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                             ".$additionalQuery."
                                         GROUP BY
                                             form_cut_input.id
@@ -128,7 +126,6 @@
                                     modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                                 where
                                     (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-                                    AND marker_input_detail.ratio > 0
                                 group by
                                     marker_input.id,
                                     marker_input_detail.so_det_id,

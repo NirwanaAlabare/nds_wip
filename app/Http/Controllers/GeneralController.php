@@ -33,9 +33,30 @@ class GeneralController extends Controller
         //
     }
 
+    public function getBuyers(Request $request)
+    {
+        $buyers = DB::select("
+            SELECT
+                Id_Supplier as id,
+                Supplier as buyer
+            FROM
+                mastersupplier
+                LEFT JOIN act_costing ON act_costing.id_buyer = mastersupplier.Id_Supplier
+            WHERE
+                tipe_sup = 'C'
+                AND act_costing.cost_date > DATE_SUB( CURRENT_DATE, INTERVAL 1 YEAR )
+            GROUP BY
+                mastersupplier.Id_Supplier
+            ORDER BY
+                mastersupplier.Supplier ASC
+        ");
+
+        return $buyers ? $buyers : null;
+    }
+
     public function getOrders(Request $request)
     {
-        $orders = DB::select("select id_act_cost, ws from master_sb_ws where buyer = '" . $request->buyer . "' and tgl_kirim >= '2023-01-01' group by id_act_cost");
+        $orders = DB::select("select id_act_cost, ws from master_sb_ws where buyer = '" . $request->buyer . "' and tgl_kirim >= DATE_SUB( CURRENT_DATE, INTERVAL 1 YEAR ) group by id_act_cost");
 
         return $orders ? $orders : null;
     }
@@ -81,7 +102,8 @@ class GeneralController extends Controller
             leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->
             leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->
             where('act_costing.id', $request->act_costing_id)->
-            groupBy('act_costing.id')->first();
+            groupBy('act_costing.id')->
+            first();
 
         return json_encode($order);
     }

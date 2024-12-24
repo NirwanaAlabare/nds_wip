@@ -445,6 +445,31 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-piping' ? 'active' : '' }}">Piping</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('master-piping') }}" class="dropdown-item {{ $subPage == 'master-piping' ? 'active' : '' }}">
+                                        Master Piping <i class="fa-solid fa-gear"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('piping-process') }}" class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
+                                        Piping Process <i class="fa-solid fa-ring"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('track-cutting-output') }}" class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
+                                        Order Cutting Output <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('pemakaian-roll') }}" class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
+                                        Pemakaian Kain <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endif
                 @endif
 
@@ -740,12 +765,6 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('order-defects') }}"
-                                        class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
-                                        Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('sewing-transfer-output') }}"
                                         class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
                                         Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
@@ -755,6 +774,25 @@
                                     <a href="{{ route('undo-output-history') }}"
                                         class="dropdown-item {{ $subPage == 'undo-output-history' ? 'active' : '' }}">
                                         Undo Output History <i class="fa-solid fa-rotate-left"></i>
+                                    </a>
+                                </li>
+                            @endsewing
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-defect' ? 'active' : '' }}">Defect</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @sewing
+                                <li>
+                                    <a href="{{ route('order-defects') }}" class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
+                                        Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('report-defect-in-out') }}" class="dropdown-item {{ $subPage == 'report-defect-in-out' ? 'active' : '' }}">
+                                        Report Defect In Out <i class="fa-solid fa-circle-exclamation"></i>
                                     </a>
                                 </li>
                             @endsewing

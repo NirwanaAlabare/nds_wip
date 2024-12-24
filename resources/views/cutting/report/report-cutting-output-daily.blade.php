@@ -47,6 +47,7 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
+                            <th>No. Form</th>
                             <th>Output</th>
                         </tr>
                     </thead>
@@ -54,7 +55,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="6" class="fw-bold">Total</td>
+                            <td colspan="7" class="fw-bold">Total</td>
                             <td colspan="2" class="fw-bold"></td>
                         </tr>
                     </tfoot>
@@ -97,12 +98,13 @@
             "style_filter",
             "color_filter",
             "panel_filter",
+            "no_form_filter",
             "output_filter"
         ];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i <= 6) {
+            if (i <= 7) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
@@ -156,6 +158,9 @@
                     data: 'panel'
                 },
                 {
+                    data: 'no_form'
+                },
+                {
                     data: 'qty'
                 },
             ],
@@ -169,7 +174,7 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(6).footer()).html("...");
+                $(api.column(7).footer()).html("...");
 
                 $.ajax({
                     url: 'total-cutting-daily',
@@ -180,6 +185,7 @@
                         'dateTo' : $('#to').val(),
                         'tanggal': $('#tanggal_filter').val(),
                         'noMeja': $('#no_meja_filter').val(),
+                        'noForm': $('#no_form_filter').val(),
                         'buyer': $('#buyer_filter').val(),
                         'ws': $('#ws_filter').val(),
                         'style': $('#style_filter').val(),
@@ -193,7 +199,7 @@
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(6).footer()).html(response['totalCuttingDaily']);
+                            $(api.column(7).footer()).html(response['totalCuttingDaily']);
                         }
                     },
                     error: function(jqXHR) {

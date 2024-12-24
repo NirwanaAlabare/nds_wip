@@ -19,4 +19,24 @@ class UserSbWip extends Model
     {
         return $this->belongsTo(UserLine::class, 'line_id', 'line_id');
     }
+
+    public function rfts()
+    {
+        return $this->hasMany(Rft::class, 'created_by', 'id');
+    }
+
+    public function defects()
+    {
+        return $this->hasMany(Defect::class, 'created_by', 'id');
+    }
+
+    public function rejects()
+    {
+        return $this->hasMany(Reject::class, 'created_by', 'id');
+    }
+
+    public function reworks()
+    {
+        return $this->hasMany(Rework::class, 'created_by', 'id');
+    }
 }

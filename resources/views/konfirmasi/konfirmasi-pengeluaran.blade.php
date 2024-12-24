@@ -43,7 +43,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class="col-md-5" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Search">
@@ -54,7 +54,7 @@
                 Saldo Awal
             </a> -->
             </div>
-           
+
         </div>
         </div>
     </div>
@@ -105,8 +105,8 @@
                 <div class="col-lg-12">
                     <!-- style="height: 400px" -->
                 <div class="table-responsive" id="table_modal">
-                    
-                </div> 
+
+                </div>
                 </div>
             </div>
         </div>

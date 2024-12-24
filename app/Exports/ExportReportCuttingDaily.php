@@ -54,6 +54,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                 SELECT
                     marker_cutting.tgl_form_cut,
                     UPPER(marker_cutting.meja) meja,
+                    marker_cutting.no_form,
                     marker_cutting.buyer,
                     marker_cutting.act_costing_ws,
                     marker_cutting.style,
@@ -65,6 +66,8 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                         SELECT
                             marker_input.kode,
                             GROUP_CONCAT(form_cut.no_form, form_cut.meja) no_form_meja,
+                            form_cut.id form_cut_id,
+                            form_cut.no_form,
                             form_cut.id_meja,
                             form_cut.meja,
                             form_cut.tgl_form_cut,
@@ -110,8 +113,6 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     AND form_cut_input.waktu_mulai is not null
-                                    AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                                    AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.id
@@ -125,20 +126,23 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                             marker_input.id,
                             marker_input_detail.so_det_id,
                             form_cut.tgl_form_cut,
-                            form_cut.meja
+                            form_cut.meja,
+                            form_cut.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,
                     marker_cutting.act_costing_id,
                     marker_cutting.color,
                     marker_cutting.panel,
-                    marker_cutting.tgl_form_cut
+                    marker_cutting.tgl_form_cut,
+                    marker_cutting.form_cut_id
                 ORDER BY
                     marker_cutting.id_meja,
                     marker_cutting.tgl_form_cut,
                     marker_cutting.panel,
                     marker_cutting.act_costing_id,
-                    marker_cutting.color
+                    marker_cutting.color,
+                    marker_cutting.form_cut_id
             ")
         );
 
@@ -163,7 +167,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A5:H' . ($event->getConcernable()->rowCount),
+            'A5:I' . ($event->getConcernable()->rowCount),
             [
                 'borders' => [
                     'allBorders' => [
