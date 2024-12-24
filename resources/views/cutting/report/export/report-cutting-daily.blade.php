@@ -20,6 +20,7 @@
     <tr></tr>
     <tr>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">TANGGAL</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;">NO. FORM</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">MEJA</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">BUYER</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">WORKSHEET</th>
@@ -31,12 +32,14 @@
     @foreach ($reportCutting as $cutting)
         <tr>
             <td>{{ $cutting->tgl_form_cut }}</td>
-            @if ($currentMeja != $cutting->meja)
+            <td>{{ $cutting->no_form }}</td>
+            {{-- @if ($currentMeja != $cutting->meja)
                 @php
                     $currentMeja = $cutting->meja;
                 @endphp
                 <td style="text-align: center;vertical-align: middle;" rowspan="{{ $reportCutting->where('meja', $cutting->meja)->count() }}">{{ $cutting->meja }}</td>
-            @endif
+            @endif --}}
+            <td style="text-align: center;vertical-align: middle;">{{ $cutting->meja }}</td>
             <td>{{ $cutting->buyer }}</td>
             <td>{{ $cutting->act_costing_ws }}</td>
             <td>{{ $cutting->style }}</td>
@@ -49,7 +52,7 @@
         </tr>
     @endforeach
     <tr>
-        <th style="font-weight: bold;" colspan="6">TOTAL</th>
+        <th style="font-weight: bold;" colspan="7">TOTAL</th>
         <th style="font-weight: bold;" colspan="2">{{ $totalOutput }}</th>
     </tr>
 </table>
