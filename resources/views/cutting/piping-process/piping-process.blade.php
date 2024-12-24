@@ -151,16 +151,16 @@
                     data: 'part'
                 },
                 {
-                    data: 'jumlah_roll'
+                    data: 'jumlah_roll_piping'
                 },
                 {
-                    data: 'lebar_roll'
+                    data: 'lebar_roll_piping'
                 },
                 {
-                    data: 'panjang_roll'
+                    data: 'panjang_roll_piping'
                 },
                 {
-                    data: 'output'
+                    data: 'output_total_roll'
                 },
                 {
                     data: 'created_by_username'

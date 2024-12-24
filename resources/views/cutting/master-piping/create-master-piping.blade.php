@@ -57,7 +57,7 @@
                         <div class="mb-1">
                             <div class="form-group mb-0">
                                 <label>Style</label>
-                                <input type="text" class="form-control" id="style" name="style">
+                                <input type="text" class="form-control" id="style" name="style" readonly>
                             </div>
                         </div>
                     </div>
