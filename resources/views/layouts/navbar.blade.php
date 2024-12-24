@@ -765,12 +765,6 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('order-defects') }}"
-                                        class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
-                                        Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('sewing-transfer-output') }}"
                                         class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
                                         Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
@@ -792,8 +786,12 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
                                 <li>
-                                    <a href="{{ route('report-defect-in-out') }}"
-                                        class="dropdown-item {{ $subPage == 'report-defect-in-out' ? 'active' : '' }}">
+                                    <a href="{{ route('order-defects') }}" class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
+                                        Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('report-defect-in-out') }}" class="dropdown-item {{ $subPage == 'report-defect-in-out' ? 'active' : '' }}">
                                         Report Defect In Out <i class="fa-solid fa-circle-exclamation"></i>
                                     </a>
                                 </li>
