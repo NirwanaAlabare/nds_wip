@@ -17,6 +17,7 @@
                     <div>
                         <label>Buyer</label>
                         <select class="form-select form-select-sm" name="supplier" id="supplier">
+                            <option value="all">SEMUA</option>
                             @foreach ($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                             @endforeach
@@ -74,7 +75,7 @@
             // bar chart options
             var options = {
                 chart: {
-                    height: 550,
+                    height: 650,
                     type: 'bar',
                 },
                 plotOptions: {
@@ -123,12 +124,9 @@
                 xaxis: {
                     labels: {
                         show: true,
-                        rotate: 0,
-                        rotateAlways: false,
                         hideOverlappingLabels: false,
                         showDuplicates: false,
                         trim: false,
-                        minHeight: undefined,
                         style: {
                             fontSize: '12px',
                             fontFamily: 'Helvetica, Arial, sans-serif',
@@ -166,10 +164,13 @@
                     success: function(res) {
                         let totalDefect = 0;
                         let dataArr = [];
+
                         res.forEach(element => {
                             totalDefect += element.total_defect;
                             dataArr.push({'x' : autoBreak(element.defect_type), 'y' : element.total_defect });
                         });
+
+                        let cumulativeTotalDefect = cumulativeSplitNumber(totalDefect);
 
                         chart.updateSeries([{
                             data: dataArr
@@ -194,7 +195,42 @@
                                     fontFamily:  undefined,
                                     color:  '#263238'
                                 },
-                            }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    dataLabels: {
+                                        position: 'top',
+                                    },
+                                    colors: {
+                                        ranges: [
+                                            {
+                                                from: cumulativeTotalDefect[2]+1,
+                                                to: cumulativeTotalDefect[3],
+                                                color: '#333'
+                                            },
+                                            {
+                                                from: cumulativeTotalDefect[1]+1,
+                                                to: cumulativeTotalDefect[2],
+                                                color: '#d33141'
+                                            },
+                                            {
+                                                from: cumulativeTotalDefect[0]+1,
+                                                to: cumulativeTotalDefect[1],
+                                                color: '#ff971f'
+                                            },
+                                            {
+                                                from: 0,
+                                                to: cumulativeTotalDefect[0],
+                                                color: '#12be60'
+                                            }
+                                        ],
+                                        backgroundBarColors: [],
+                                        backgroundBarOpacity: 1,
+                                        backgroundBarRadius: 0,
+                                    },
+                                }
+                            },
                         });
                     }, error: function (jqXHR) {
                         let res = jqXHR.responseJSON;
@@ -294,5 +330,13 @@
             }, 30000)
         });
 
+        function cumulativeSplitNumber(number) {
+            const part1 = Math.floor(number * 0.05);
+            const part2 = Math.floor(number * 0.10);
+            const part3 = Math.floor(number * 0.20);
+            const part4 = number - (part1 + part2 + part3); // Adjust to get the total sum
+
+            return [part1, part1 + part2, part1 + part2 + part3, number];
+        }
     </script>
 @endsection

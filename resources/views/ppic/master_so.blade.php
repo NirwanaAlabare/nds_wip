@@ -1416,7 +1416,7 @@
                     targets: [5],
                     render: (data, type, row, meta) => {
 
-                        if (row.qty_packing_out == '0' && row.id_pl === null) {
+                        if (row.qty_packing_out == '0') {
                             return `
                                <div class='d-flex gap-1 justify-content-center'>
 							<input type ='text' style='width:120px' class='form-control form-control-sm'

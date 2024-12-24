@@ -11,12 +11,113 @@
         <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Proses Piping</h5>
         <a href="{{ route('piping-process') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Data Proses Piping</a>
     </div>
-    <form action="{{ route("store-piping-process") }}" method="post" id="store-piping-process" onsubmit="submitForm(this, event)">
+    <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-header" onsubmit="processOne(this, event)">
         @csrf
         <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
                     Header Data
+                </h5>
+            </div>
+            <div class="card-body">
+                <input type="hidden" id="process" name="process" value="1" readonly>
+                <div class="row justify-content-start align-items-end g-3">
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group mb-0">
+                                <label>Kode Piping</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="kode_piping" name="kode_piping" value="" readonly>
+                                    <button type="button" class="btn btn-sb-secondary" onclick="generateCode()"><i class="fa fa-rotate"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group mb-0">
+                                <label>Buyer</label>
+                                <select class="form-select select2bs4" id="buyer_id" name="buyer_id">
+                                    <option selected="selected" value="">Pilih Buyer</option>
+                                    @foreach ($buyers as $buyer)
+                                        <option value="{{ $buyer->id }}">
+                                            {{ $buyer->buyer }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <input type="hidden" name="buyer" id="buyer">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group mb-0">
+                                <label>No. WS</label>
+                                <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id">
+                                    <option selected="selected" value="">Pilih WS</option>
+                                    {{-- select 2 option --}}
+                                </select>
+                            </div>
+                            <input type="hidden" name="act_costing_ws" id="act_costing_ws">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group mb-0">
+                                <label>Style</label>
+                                <input type="text" class="form-control" id="style" name="style" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group mb-0">
+                                <label>Color</label>
+                                <select class="form-select select2bs4" id="color" name="color">
+                                    <option selected="selected" value="">Pilih Color</option>
+                                    {{-- select 2 option --}}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group mb-0">
+                                <label>Part</label>
+                                <select class="form-select select2bs4" id="master_piping_id" name="master_piping_id">
+                                    <option selected="selected" value="">Pilih Part</option>
+                                    {{-- select 2 option --}}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="mb-1">
+                            <div class="form-group mb-0">
+                                <label>Panjang</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="panjang" name="panjang" value="" readonly>
+                                    <input type="text" class="form-control" id="unit" name="unit" value="" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn btn-success mt-1 mb-3 fw-bold">NEXT</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-header" onsubmit="nextProcess(this, event)">
+        @csrf
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold">
+                    Scan Roll
                 </h5>
             </div>
             <div class="card-body">
@@ -147,6 +248,7 @@
             theme: 'bootstrap4',
         })
 
+        // Generate Piping Code
         function generateCode() {
             document.getElementById("loading").classList.remove("d-none");
 
@@ -384,11 +486,34 @@
         }
 
         // Prevent Form Submit When Pressing Enter
-        document.getElementById("store-piping-process").onkeypress = function(e) {
+        document.getElementById("piping-process-header").onkeypress = function(e) {
             var key = e.charCode || e.keyCode || 0;
             if (key == 13) {
                 e.preventDefault();
             }
+        }
+
+        // Submit Process
+        function processOne(e, event) {
+            event.preventDefault();
+
+            let form = new FormData(e);
+
+            let dataObj = {
+                "process": 1,
+            }
+
+            form.forEach((value, key) => dataObj[key] = value);
+
+            $.ajax({
+                url: "{{ route("store-piping-process") }}",
+                type: "post",
+                data: form,
+                dataType: "json",
+                success: function (response) {
+                    console.log(response);
+                }
+            });
         }
 
         // Reset Step

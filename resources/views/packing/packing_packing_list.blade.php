@@ -589,7 +589,7 @@
 
             $('.select2bs4').select2({
                 theme: 'bootstrap4',
-                dropdownParent: $("#exampleModalHapus"),
+                dropdownParent: $("#exampleModalTambah"),
                 containerCssClass: 'form-control-sm rounded'
             })
 

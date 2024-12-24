@@ -248,7 +248,10 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'master-marker' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             {{-- @marker --}}
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
+                            @if (auth()->user()->type == 'admin' ||
+                                    auth()->user()->type == 'superadmin' ||
+                                    auth()->user()->type == 'marker' ||
+                                    auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('master-part') }}"
                                         class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
@@ -270,7 +273,10 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-marker' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
+                            @if (auth()->user()->type == 'admin' ||
+                                    auth()->user()->type == 'superadmin' ||
+                                    auth()->user()->type == 'marker' ||
+                                    auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
@@ -302,7 +308,10 @@
                                 </li>
                             @endmarker --}}
 
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin'  || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
+                            @if (auth()->user()->type == 'admin' ||
+                                    auth()->user()->type == 'superadmin' ||
+                                    auth()->user()->type == 'spreading' ||
+                                    auth()->user()->type == 'marker')
                                 <li>
                                     <a href="{{ route('spreading') }}"
                                         class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
@@ -311,7 +320,11 @@
                                 </li>
                             @endif
 
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
+                            @if (auth()->user()->type == 'admin' ||
+                                    auth()->user()->type == 'superadmin' ||
+                                    auth()->user()->type == 'meja' ||
+                                    auth()->user()->type == 'spreading' ||
+                                    auth()->user()->type == 'marker')
                                 <li>
                                     <a href="{{ route('form-cut-input') }}"
                                         class="appeared dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
@@ -320,7 +333,11 @@
                                 </li>
                             @endif
 
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'meja' || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
+                            @if (auth()->user()->type == 'admin' ||
+                                    auth()->user()->type == 'superadmin' ||
+                                    auth()->user()->type == 'meja' ||
+                                    auth()->user()->type == 'spreading' ||
+                                    auth()->user()->type == 'marker')
                                 <li>
                                     <a href="{{ route('form-cut-piping') }}"
                                         class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}">
@@ -340,7 +357,10 @@
                         </ul>
                     </li>
 
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading' || auth()->user()->type == 'marker')
+                    @if (auth()->user()->type == 'admin' ||
+                            auth()->user()->type == 'superadmin' ||
+                            auth()->user()->type == 'spreading' ||
+                            auth()->user()->type == 'marker')
                         <li class="nav-item dropdown">
                             <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false"
@@ -475,7 +495,10 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'stocker' || auth()->user()->type == 'spreading')
+                            @if (auth()->user()->type == 'admin' ||
+                                    auth()->user()->type == 'superadmin' ||
+                                    auth()->user()->type == 'stocker' ||
+                                    auth()->user()->type == 'spreading')
                                 <li>
                                     <a href="{{ route('stocker-part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i
@@ -685,7 +708,9 @@
 
                 @if ($page == 'dashboard-sewing-eff')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-master' ? 'active' : '' }}">Master</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-master' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
                                 <li>
@@ -704,7 +729,9 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-sewing' ? 'active' : '' }}">Output</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-sewing' ? 'active' : '' }}">Output</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
                                 <li>
@@ -738,12 +765,6 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('order-defects') }}"
-                                        class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
-                                        Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('sewing-transfer-output') }}"
                                         class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
                                         Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
@@ -753,6 +774,25 @@
                                     <a href="{{ route('undo-output-history') }}"
                                         class="dropdown-item {{ $subPage == 'undo-output-history' ? 'active' : '' }}">
                                         Undo Output History <i class="fa-solid fa-rotate-left"></i>
+                                    </a>
+                                </li>
+                            @endsewing
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-defect' ? 'active' : '' }}">Defect</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @sewing
+                                <li>
+                                    <a href="{{ route('order-defects') }}" class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
+                                        Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('report-defect-in-out') }}" class="dropdown-item {{ $subPage == 'report-defect-in-out' ? 'active' : '' }}">
+                                        Report Defect In Out <i class="fa-solid fa-circle-exclamation"></i>
                                     </a>
                                 </li>
                             @endsewing
@@ -976,7 +1016,13 @@
                             <li>
                                 <a href="{{ route('packing_rep_packing_line_sum') }}"
                                     class="dropdown-item {{ $subPage == 'packing_rep_packing_line_sum' ? 'active' : '' }}">
-                                    Summary Packing Line <i class="fas fa-file-upload fa-sm"></i>
+                                    <i class="fas fa-file-upload fa-sm"></i> Summary Packing Line
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('packing_rep_packing_mutasi') }}"
+                                    class="dropdown-item {{ $subPage == 'packing_rep_packing_mutasi' ? 'active' : '' }}">
+                                    <i class="fas fa-file-upload fa-sm"></i> Mutasi Packing List
                                 </a>
                             </li>
                         </ul>
