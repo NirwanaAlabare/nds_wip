@@ -120,6 +120,11 @@
     </script>
     <script>
         function dataTableReload() {
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                // Destroy the existing DataTable
+                $('#datatable').DataTable().destroy();
+            }
+
             // Re-initialize the DataTable
             let tglawal = $('#tgl-awal').val();
             let tglakhir = $('#tgl-akhir').val();
