@@ -37,8 +37,14 @@
             </div>
             <div>
                 <div class="d-flex justify-content-end gap-3">
-                    <button class="btn btn-sm btn-success" onclick="exportExcel(this, '{{ $this->selectedDefectType }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}')">
-                        Export <i class="fa-solid fa-file-excel"></i>
+                    <select class="form-select form-select-sm w-75" name="pagination" id="pagination" wire:model="defectInOutShowPage">
+                        <option value="10">Show 10</option>
+                        <option value="25">Show 25</option>
+                        <option value="50">Show 50</option>
+                        <option value="100">Show 100</option>
+                    </select>
+                    <button class="w-25 btn btn-sm btn-success" onclick="exportExcel(this, '{{ $this->selectedDefectType }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}')">
+                        <i class="fa-solid fa-file-excel"></i>
                     </button>
                 </div>
             </div>
