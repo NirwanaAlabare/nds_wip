@@ -20,19 +20,18 @@
     <tr></tr>
     <tr>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">TANGGAL</th>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;">NO. FORM</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">MEJA</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">BUYER</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">WORKSHEET</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">STYLE</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">COLOR</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">PANEL</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;">NO. FORM</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">OUTPUT</th>
     </tr>
     @foreach ($reportCutting as $cutting)
         <tr>
             <td>{{ $cutting->tgl_form_cut }}</td>
-            <td>{{ $cutting->no_form }}</td>
             {{-- @if ($currentMeja != $cutting->meja)
                 @php
                     $currentMeja = $cutting->meja;
@@ -45,6 +44,7 @@
             <td>{{ $cutting->style }}</td>
             <td>{{ $cutting->color }}</td>
             <td>{{ $cutting->panel }}</td>
+            <td>{{ $cutting->no_form }}</td>
             <td>{{ $cutting->qty }}</td>
             @php
                 $totalOutput += $cutting->qty;

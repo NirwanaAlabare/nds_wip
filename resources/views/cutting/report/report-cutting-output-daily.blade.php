@@ -41,13 +41,13 @@
                     <thead>
                         <tr>
                             <th>Tanggal</th>
-                            <th>No. Form</th>
                             <th>Meja</th>
                             <th>Buyer</th>
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
+                            <th>No. Form</th>
                             <th>Output</th>
                         </tr>
                     </thead>
@@ -92,13 +92,13 @@
 
         var listFilter = [
             "tanggal_filter",
-            "no_form_filter",
             "no_meja_filter",
             "buyer_filter",
             "ws_filter",
             "style_filter",
             "color_filter",
             "panel_filter",
+            "no_form_filter",
             "output_filter"
         ];
 
@@ -140,9 +140,6 @@
                     data: 'tgl_form_cut'
                 },
                 {
-                    data: 'no_form'
-                },
-                {
                     data: 'meja'
                 },
                 {
@@ -159,6 +156,9 @@
                 },
                 {
                     data: 'panel'
+                },
+                {
+                    data: 'no_form'
                 },
                 {
                     data: 'qty'
