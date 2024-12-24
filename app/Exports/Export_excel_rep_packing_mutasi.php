@@ -48,26 +48,60 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
     public function view(): View
 
     {
-        $data = DB::select("SELECT p.po, m.buyer, m.ws, m.color, m.size, p.dest,a.barcode, a.no_carton,a.qty qty_pl,
-        coalesce(b.tot_scan,0) tot_scan, coalesce(c.qty_fg_in,0) qty_fg_in, coalesce(qty_fg_out,0) qty_fg_out , lokasi, coalesce(a.qty,0) - coalesce(qty_fg_out,0) balance
-from packing_master_packing_list a
-left join
-	(
-	select count(barcode) tot_scan, po, barcode, no_carton from packing_packing_out_scan
-	group by po, barcode, no_carton
-	) b on a.barcode = b.barcode and a.po = b.po and a.no_carton = b.no_carton
-left join
-	(
-	select sum(qty) qty_fg_in, po, barcode, no_carton, lokasi from fg_fg_in where status = 'NORMAL' group by po, barcode, no_carton
-	) c on a.barcode = c.barcode and a.po = c.po and a.no_carton = c.no_carton
-left join
-	(
-	select sum(qty) qty_fg_out, po, barcode, no_carton from fg_fg_out where status = 'NORMAL' group by po, barcode, no_carton
-	) d on a.barcode = d.barcode and a.po = d.po and a.no_carton = d.no_carton
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-left join master_size_new msn on m.size = msn.size
-order by a.po asc, buyer asc, no_carton asc, urutan asc
+        $data = DB::select("WITH Totals AS (
+    SELECT
+        po,
+        barcode,
+        no_carton,
+        COUNT(barcode) AS tot_scan
+    FROM packing_packing_out_scan
+    GROUP BY po, barcode, no_carton
+),
+FgIn AS (
+    SELECT
+        po,
+        barcode,
+        no_carton,
+        SUM(qty) AS qty_fg_in,
+        lokasi
+    FROM fg_fg_in
+    WHERE status = 'NORMAL'
+    GROUP BY po, barcode, no_carton, lokasi
+),
+FgOut AS (
+    SELECT
+        po,
+        barcode,
+        no_carton,
+        SUM(qty) AS qty_fg_out
+    FROM fg_fg_out
+    WHERE status = 'NORMAL'
+    GROUP BY po, barcode, no_carton
+)
+
+SELECT
+    p.po,
+    m.buyer,
+    m.ws,
+    m.color,
+    m.size,
+    a.dest,
+    a.barcode,
+    a.no_carton,
+    a.qty AS qty_pl,
+    COALESCE(b.tot_scan, 0) AS tot_scan,
+    COALESCE(c.qty_fg_in, 0) AS qty_fg_in,
+    COALESCE(d.qty_fg_out, 0) AS qty_fg_out,
+    c.lokasi,
+    COALESCE(a.qty, 0) - COALESCE(d.qty_fg_out, 0) AS balance
+FROM packing_master_packing_list a
+LEFT JOIN Totals b ON a.barcode = b.barcode AND a.po = b.po AND a.no_carton = b.no_carton
+LEFT JOIN FgIn c ON a.barcode = c.barcode AND a.po = c.po AND a.no_carton = c.no_carton
+LEFT JOIN FgOut d ON a.barcode = d.barcode AND a.po = d.po AND a.no_carton = d.no_carton
+INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
+LEFT JOIN master_size_new msn ON m.size = msn.size
+ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         ");
 
 
