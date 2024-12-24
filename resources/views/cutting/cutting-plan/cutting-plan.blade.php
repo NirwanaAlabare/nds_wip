@@ -14,7 +14,7 @@
 @section('content')
     {{-- Detail Cutting Plan Modal --}}
     <div class="modal fade" id="cutPlanDetailModal" tabindex="-1" role="dialog" aria-labelledby="cutPlanDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable" style="width: 100%; height: 100%;">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" style="width: 100%; height: 100%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="cutPlanDetailModalLabel"><i class="fa fa-search"></i> Detail Cutting Plan</h1>
