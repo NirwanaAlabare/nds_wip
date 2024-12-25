@@ -3,7 +3,7 @@
 
 <table class="table">
     <tr>
-        <td colspan='9'>Laporan Karyawan</td>
+        <td colspan='9'>Laporan Mutasi Mesin</td>
     </tr>
     <tr>
         <td colspan='9'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
@@ -13,12 +13,12 @@
         <tr>
             <td>No</td>
             <td>Tanggal Pindah</td>
-            <td>Line Sekarang</td>
+            <td>Lokasi Sekarang</td>
             <td>Jenis Mesin</td>
             <td>Brand</td>
             <td>Tipe Mesin</td>
             <td>Serial No</td>
-            <td>Line Asal</td>
+            <td>Lokasi Asal</td>
             <td>Last Update</td>
         </tr>
     </thead>
