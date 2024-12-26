@@ -1445,6 +1445,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_rep_packing_line_sum_range', 'export_excel_rep_packing_line_sum_range')->name('export_excel_rep_packing_line_sum_range');
         Route::get('/export_excel_rep_packing_line_sum_buyer', 'export_excel_rep_packing_line_sum_buyer')->name('export_excel_rep_packing_line_sum_buyer');
         Route::get('/export_excel_rep_packing_mutasi', 'export_excel_rep_packing_mutasi')->name('export_excel_rep_packing_mutasi');
+        Route::get('/export_excel_rep_packing_mutasi_wip', 'export_excel_rep_packing_mutasi_wip')->name('export_excel_rep_packing_mutasi_wip');
     });
 
 
@@ -1643,9 +1644,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{mejaId?}', 'show')->name('dashboard-chart-detail');
 
         // TEST TRIGGER SOCKET.IO
-        Route::get('/trigger/all/{date?}','cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
-        Route::get('/trigger/{date?}/{mejaId?}','cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
-
+        Route::get('/trigger/all/{date?}', 'cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
+        Route::get('/trigger/{date?}/{mejaId?}', 'cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
     });
 });
 

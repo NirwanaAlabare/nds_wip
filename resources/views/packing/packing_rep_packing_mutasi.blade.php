@@ -1,14 +1,34 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <!-- DataTables -->
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}">
+    <!-- jQuery -->
+    <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
 
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style>
+        /* Custom styles for the table */
+
+        .table-bordered {
+
+            border: 1px solid black;
+            /* Change thickness of the outer border */
+
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+
+            border: 1px solid black;
+            /* Change thickness of inner borders */
+
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -61,71 +81,38 @@
 
 @section('custom-script')
     <!-- DataTables & Plugins -->
-    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
-    <script>
-        // Select2 Autofocus
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
-        });
-
-        // Initialize Select2 Elements
-        $('.select2').select2();
-
-        // Initialize Select2BS4 Elements
-        $('.select2bs4').select2({
-            theme: 'bootstrap4',
-            containerCssClass: 'form-control-sm rounded'
-        });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.2.0/exceljs.min.js"></script>
     <script>
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
     </script>
     <script>
-        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
-        $('#datatable thead tr:eq(1) th').each(
-            function(i) {
-                if (i >= 8 && i <= 11) {
-                    $(this).empty();
-                } else {
-                    var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
-                    let debounceTimer;
-                    $('input', this).on('keyup change', function() {
-                        clearTimeout(debounceTimer);
-                        debounceTimer = setTimeout(() => {
-                            if (datatable.column(i).search() !== this.value) {
-                                datatable.column(i).search(this.value).draw();
-                            }
-                        }, 300);
-                    });
-                }
-            });
-
+        $(document).ready(function() {
+            dataTableReload();
+        });
 
         function dataTableReload() {
-            let datatable = $("#datatable").DataTable({
-                ordering: false,
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                // Destroy the existing DataTable
+                $('#datatable').DataTable().destroy();
+            }
+            datatable = $("#datatable").DataTable({
                 processing: true,
                 serverSide: true,
-                destroy: true,
-                paging: true,
-                searching: true,
-                scrollY: '300px',
-                scrollX: '300px',
+                scrollY: "450px",
+                scrollX: true,
                 scrollCollapse: true,
                 deferRender: true,
+                paging: true,
+                ordering: false,
                 ajax: {
                     url: '{{ route('packing_rep_packing_mutasi_load') }}',
-                    data: function(d) {
-
-                    },
                 },
                 columns: [{
                         data: 'no_carton'
@@ -188,42 +175,103 @@
         }
 
         function export_excel() {
+            // Start the timer
+            const startTime = new Date().getTime();
+
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
                 didOpen: () => {
-                    Swal.showLoading()
+                    Swal.showLoading();
                 },
                 allowOutsideClick: false,
             });
 
+            // Fetch all data from the server
             $.ajax({
-                type: "get",
+                type: "GET",
                 url: '{{ route('export_excel_rep_packing_mutasi') }}',
-                data: {
-                    // from: from,
-                    // to: to
-                },
-                xhrFields: {
-                    responseType: 'blob'
-                },
-                success: function(response) {
-                    {
-                        swal.close();
-                        Swal.fire({
-                            title: 'Data Sudah Di Export!',
-                            icon: "success",
-                            showConfirmButton: true,
-                            allowOutsideClick: false
+                success: function(data) {
+                    // Create a new workbook and a worksheet
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet("Packing List");
+
+                    // Define the header row
+                    const headers = [
+                        "No. Carton", "Barcode", "PO", "Buyer", "WS",
+                        "Color", "Size", "Dest", "Qty PL", "Qty Scan",
+                        "Qty FG in", "Qty FG Out", "Lokasi", "Balance"
+                    ];
+                    worksheet.addRow(headers);
+
+                    // Add data rows
+                    data.forEach(function(row) {
+                        worksheet.addRow([
+                            row.no_carton, row.barcode, row.po, row.buyer, row.ws,
+                            row.color, row.size, row.dest, row.qty_pl, row.tot_scan,
+                            row.qty_fg_in, row.qty_fg_out, row.lokasi, row.balance
+                        ]);
+                    });
+
+                    // Apply border style to all cells
+                    worksheet.eachRow({
+                        includeEmpty: true
+                    }, function(row, rowNumber) {
+                        row.eachCell({
+                            includeEmpty: true
+                        }, function(cell, colNumber) {
+                            cell.border = {
+                                top: {
+                                    style: 'thin'
+                                },
+                                left: {
+                                    style: 'thin'
+                                },
+                                bottom: {
+                                    style: 'thin'
+                                },
+                                right: {
+                                    style: 'thin'
+                                }
+                            };
                         });
-                        var blob = new Blob([response]);
-                        var link = document.createElement('a');
+                    });
+
+                    // Export the workbook
+                    workbook.xlsx.writeBuffer().then(function(buffer) {
+                        const blob = new Blob([buffer], {
+                            type: "application/octet-stream"
+                        });
+                        const link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "Laporan Mutasi Packing List " + ".xlsx";
+                        link.download = "Laporan Mutasi Packing List.xlsx";
                         link.click();
 
-                    }
+                        // Calculate the elapsed time
+                        const endTime = new Date().getTime();
+                        const elapsedTime = Math.round((endTime - startTime) /
+                        1000); // Convert to seconds
+
+                        // Close the loading notification
+                        Swal.close();
+
+                        // Show success message with elapsed time
+                        Swal.fire({
+                            title: 'Success!',
+                            text: `Data has been successfully exported in ${elapsedTime} seconds.`,
+                            icon: 'success',
+                            confirmButtonText: 'Okay'
+                        });
+                    });
                 },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'There was an error exporting the data.',
+                        icon: 'error',
+                        confirmButtonText: 'Okay'
+                    });
+                }
             });
         }
     </script>
