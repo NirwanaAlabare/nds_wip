@@ -306,7 +306,7 @@ SELECT
 			'0' qty_pck_out
 FROM signalbit_erp.output_rfts_packing a
 where
-			updated_at >= '$tgl_awal' and STATUS = 'NORMAL'
+			updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and STATUS = 'NORMAL'
 GROUP BY so_det_id
 UNION
 SELECT
