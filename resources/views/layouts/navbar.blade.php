@@ -1025,6 +1025,12 @@
                                     <i class="fas fa-file-upload fa-sm"></i> Mutasi Packing List
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('packing_rep_packing_mutasi_wip') }}"
+                                    class="dropdown-item {{ $subPage == 'packing_rep_packing_mutasi_wip' ? 'active' : '' }}">
+                                    <i class="fas fa-file-upload fa-sm"></i> Mutasi Packing (WIP)
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

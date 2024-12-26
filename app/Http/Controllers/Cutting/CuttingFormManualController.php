@@ -1458,6 +1458,9 @@ class CuttingFormManualController extends Controller
             ]);
         }
 
+        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputData->alokasiMeja->username);
+
         return $updateFormCutInput;
     }
 }
