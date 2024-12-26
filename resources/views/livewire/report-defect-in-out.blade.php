@@ -53,7 +53,7 @@
             <table class="table table-sm table-bordered align-middle mt-3">
                 <thead>
                     <tr>
-                        <th colspan="9" class="text-center">{{ strtoupper(str_replace("_", "", $this->selectedDefectType)) }}</th>
+                        <th colspan="10" class="text-center">{{ strtoupper(str_replace("_", "", $this->selectedDefectType)) }}</th>
                     </tr>
                     <tr>
                         <th class="text-center">DATE IN</th>
@@ -65,6 +65,7 @@
                         <th class="text-center">SIZE</th>
                         <th class="text-center">TYPE</th>
                         <th class="text-center">QTY</th>
+                        <th class="text-center">RATE (%)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,11 +81,12 @@
                                 <td>{{ $defect->size }}</td>
                                 <td>{{ $defect->defect_type }}</td>
                                 <td>{{ $defect->defect_qty }}</td>
+                                <td>{{ round(($defect->defect_qty/($defectInOutTotalQty > 0 ? $defectInOutTotalQty : 1)) * 100, 2) }} %</td>
                             </tr>
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="9">Data Tidak ditemukan</td>
+                            <td colspan="10">Data Tidak ditemukan</td>
                         </tr>
                     @endif
                 </tbody>
@@ -92,6 +94,7 @@
                     <tr>
                         <td colspan="8" class="fs-5 fw-bold text-center">Summary</td>
                         <td class="fs-5 fw-bold text-center">{{ num($defectInOutTotalQty) }}</td>
+                        <td class="fs-5 fw-bold text-center"></td>
                     </tr>
                 </tfoot>
             </table>
