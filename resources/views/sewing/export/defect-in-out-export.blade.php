@@ -39,7 +39,7 @@
                 <td>{{ $defect->size }}</td>
                 <td>{{ $defect->defect_type }}</td>
                 <td>{{ $defect->defect_qty }}</td>
-                <td>{{ $summaryDefectQty/($defect->defect_qty > 0 ? $defect->defect_qty : 1) }}</td>
+                <td>{{ round($defect->defect_qty/($summaryDefectQty > 0 ? $summaryDefectQty : 1) * 100, 2) }} %</td>
             </tr>
         @endforeach
     @endif

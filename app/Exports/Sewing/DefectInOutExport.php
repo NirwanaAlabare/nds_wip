@@ -76,7 +76,7 @@ class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A2:I' . ($event->getConcernable()->rowCount+4),
+            'A2:J' . ($event->getConcernable()->rowCount+4),
             [
                 'borders' => [
                     'allBorders' => [
