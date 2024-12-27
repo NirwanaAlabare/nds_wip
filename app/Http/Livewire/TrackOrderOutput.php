@@ -213,7 +213,7 @@ class TrackOrderOutput extends Component
                 $this->dailyOrderGroup = $dailyOrderGroupSql->get();
 
             $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
-            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
+            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-7 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
 
             $dailyOrderOutputSql = MasterPlan::selectRaw("
                     rfts.tanggal,

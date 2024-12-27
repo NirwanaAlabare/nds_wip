@@ -40,7 +40,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
     public function view(): View
     {
         $masterPlanDateFilter = " between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'";
-        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
+        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-7 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
 
         $supplier = DB::connection('mysql_sb')->table('mastersupplier')->
             selectRaw('Id_Supplier as id, Supplier as name')->
