@@ -489,7 +489,7 @@ left join
 
 left join
 (
-select sum(mp.jam_kerja) jam_kerja, u.name, ac.styleno, sum(mp.set_target) set_target, ac.kpno
+select format(sum(mp.jam_kerja),1) jam_kerja, u.name, ac.styleno, sum(mp.set_target) set_target, ac.kpno
 from
 	(
 	select master_plan_id, created_by, so_det_id from output_rfts
