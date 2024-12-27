@@ -16,6 +16,7 @@ use App\Models\MonthCount;
 use App\Models\YearSequence;
 use App\Models\StockerAdditional;
 use App\Models\StockerAdditionalDetail;
+use App\Models\DCIn;
 use App\Exports\Stocker\StockerListExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -2125,6 +2126,14 @@ class StockerController extends Controller
                     'additional' => [],
                 );
             }
+        } else {
+            return array(
+                'status' => 400,
+                'message' => 'Stocker Form ini sudah di scan di DC',
+                'redirect' => '',
+                'table' => '',
+                'additional' => [],
+            );
         }
 
         return array(
