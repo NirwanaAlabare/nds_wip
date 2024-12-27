@@ -7,18 +7,10 @@
 @endsection
 
 @section('content')
-    @php
-        $currentPiping = null;
-
-        if (isset($piping)) {
-            $currentPiping = $piping;
-        }
-    @endphp
     <div class="d-flex justify-content-between mb-3">
         <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Proses Piping</h5>
         <a href="{{ route('piping-process') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Data Proses Piping</a>
     </div>
-    <input type="hidden" id="process" value="{{ $currentPiping ? $currentPiping->process : null }}"></input>
     {{-- PROCESS ONE --}}
         <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-header" onsubmit="processOne(this, event)">
             @csrf
@@ -36,7 +28,7 @@
                                 <div class="form-group mb-0">
                                     <label>Kode Piping</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="kode_piping" name="kode_piping" value="{{ $currentPiping->kode_piping }}" readonly>
+                                        <input type="text" class="form-control" id="kode_piping" name="kode_piping" value="" readonly>
                                         <button type="button" class="btn btn-sb-secondary" onclick="generateCode()"><i class="fa fa-rotate"></i></button>
                                     </div>
                                 </div>
@@ -46,35 +38,26 @@
                             <div class="mb-1">
                                 <div class="form-group mb-0">
                                     <label>Buyer</label>
-                                    @if ($currentPiping)
-                                        <input type="hidden" class="form-control" id="buyer_id" name="buyer_id" value="{{ $currentPiping->masterPiping->buyer_id }}">
-                                        <input type="text" class="form-control" id="buyer" name="buyer" value="{{ $currentPiping->masterPiping->buyer }}" readonly>
-                                    @else
-                                        <select class="form-select select2bs4" id="buyer_id" name="buyer_id">
-                                            <option selected="selected" value="">Pilih Buyer</option>
-                                            @foreach ($buyers as $buyer)
-                                                <option value="{{ $buyer->id }}">
-                                                    {{ $buyer->buyer }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @endif
+                                    <select class="form-select select2bs4" id="buyer_id" name="buyer_id">
+                                        <option selected="selected" value="">Pilih Buyer</option>
+                                        @foreach ($buyers as $buyer)
+                                            <option value="{{ $buyer->id }}">
+                                                {{ $buyer->buyer }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
+                                <input type="hidden" name="buyer" id="buyer">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-1">
                                 <div class="form-group mb-0">
                                     <label>No. WS</label>
-                                    @if ($currentPiping)
-                                        <input type="hidden" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentPiping->masterPiping->act_costing_id }}">
-                                        <input type="text" class="form-control" id="act_costing_ws" name="act_costing_ws" value="{{ $currentPiping->masterPiping->act_costing_ws }}" readonly>
-                                    @else
-                                        <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id">
-                                            <option selected="selected" value="">Pilih WS</option>
-                                            {{-- select 2 option --}}
-                                        </select>
-                                    @endif
+                                    <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id">
+                                        <option selected="selected" value="">Pilih WS</option>
+                                        {{-- select 2 option --}}
+                                    </select>
                                 </div>
                                 <input type="hidden" name="act_costing_ws" id="act_costing_ws">
                             </div>
@@ -83,7 +66,7 @@
                             <div class="mb-1">
                                 <div class="form-group mb-0">
                                     <label>Style</label>
-                                    <input type="text" class="form-control" id="style" name="style" value="{{ $currentPiping ? $currentPiping->masterPiping->style : null }}" readonly>
+                                    <input type="text" class="form-control" id="style" name="style" readonly>
                                 </div>
                             </div>
                         </div>
@@ -91,14 +74,10 @@
                             <div class="mb-1">
                                 <div class="form-group mb-0">
                                     <label>Color</label>
-                                    @if ($currentPiping)
-                                        <input type="text" class="form-control" id="color" name="color" value="{{ $currentPiping->masterPiping->color }}" readonly>
-                                    @else
-                                        <select class="form-select select2bs4" id="color" name="color">
-                                            <option selected="selected" value="">Pilih Color</option>
-                                            {{-- select 2 option --}}
-                                        </select>
-                                    @endif
+                                    <select class="form-select select2bs4" id="color" name="color">
+                                        <option selected="selected" value="">Pilih Color</option>
+                                        {{-- select 2 option --}}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -106,15 +85,10 @@
                             <div class="mb-1">
                                 <div class="form-group mb-0">
                                     <label>Part</label>
-                                    @if ($currentPiping)
-                                        <input type="hidden" class="form-control" id="master_piping_id" name="master_piping_id" value="{{ $currentPiping->masterPiping->id }}">
-                                        <input type="text" class="form-control" id="part" name="part" value="{{ $currentPiping->masterPiping->part }}" readonly>
-                                    @else
-                                        <select class="form-select select2bs4" id="master_piping_id" name="master_piping_id">
-                                            <option selected="selected" value="">Pilih Part</option>
-                                            {{-- select 2 option --}}
-                                        </select>
-                                    @endif
+                                    <select class="form-select select2bs4" id="master_piping_id" name="master_piping_id">
+                                        <option selected="selected" value="">Pilih Part</option>
+                                        {{-- select 2 option --}}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -123,15 +97,15 @@
                                 <div class="form-group mb-0">
                                     <label>Panjang</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="panjang" name="panjang" value="{{ $currentPiping ? $currentPiping->masterPiping->panjang : null }}" readonly>
-                                        <input type="text" class="form-control" id="unit" name="unit" value="{{ $currentPiping ? $currentPiping->masterPiping->unit : null }}" readonly>
+                                        <input type="text" class="form-control" id="panjang" name="panjang" value="" readonly>
+                                        <input type="text" class="form-control" id="unit" name="unit" value="" readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-content-center">
-                                <button type="submit" class="btn btn-success mt-1 mb-3 fw-bold">START</button>
+                                <button type="submit" class="btn btn-success mt-1 mb-3 fw-bold">NEXT</button>
                             </div>
                         </div>
                     </div>
@@ -140,7 +114,7 @@
         </form>
 
     {{-- PROCESS TWO --}}
-        <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-scan" onsubmit="processTwo(this, event)" class="d-none">
+        <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-scan" onsubmit="processTwo(this, event)">
             @csrf
             <div class="card card-sb">
                 <div class="card-header">
@@ -197,12 +171,12 @@
                                         <label class="form-label"><small><b>ID Roll</b></small></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="id_roll_1" name="id_roll[1]">
-                                            <button class="btn btn-success" type="button" id="get_button_1" onclick="getMultiItemForm(1)">Get</button>
+                                            <button class="btn btn-success" type="button" id="get_button_1">Get</button>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label"><small><b>No. Form</b></small></label>
-                                        <select class="form-select" id="id_form_roll_1" name="id_form_roll[1]" onchange="getMultiItemPiping(1)">
+                                        <select class="form-select form-select-sm select2bs4" id="no_form_roll_1" name="no_form_roll[1]">
                                             {{-- Form Options --}}
                                         </select>
                                     </div>
@@ -221,14 +195,14 @@
                                     <div class="col-md-2">
                                         <label class="form-label"><small><b>Qty</b></small></label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control" id="qty_roll_1" name="qty[1]" readonly>
-                                            <input type="text" class="form-control" id="unit_roll_1" name="unit[1]" readonly>
+                                            <input type="text" class="form-control" id="qty_1" name="qty[1]" readonly>
+                                            <input type="text" class="form-control" id="unit_1" name="unit[1]" readonly>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end mb-3">
-                                <button type="button" class="btn btn-sb-secondary w-auto" id="add-new-roll" onclick="addMultiRoll()"><i class="fa fa-plus fa-sm"></i></button>
+                                <button class="btn btn-sb-secondary w-auto" id="add-new-roll"><i class="fa fa-plus fa-sm"></i></button>
                             </div>
                             <div class="row justify-content-end g-3 mb-3">
                                 <div class="col-md-6">
@@ -252,7 +226,7 @@
     {{-- END OF PROCESS TWO --}}
 
     {{-- PROCESS THREE --}}
-        <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-final" onsubmit="processThree(this, event)" class="d-none">
+        <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-scan" onsubmit="processThree(this, event)">
             @csrf
             <div class="card card-sb">
                 <div class="card-header">
@@ -263,7 +237,100 @@
                 <div class="card-body">
                     <input type="hidden" id="process_3" name="process_3" value="3" readonly>
                     <div class="row justify-content-start align-items-end g-3 mb-3">
-
+                        {{-- Switch Method --}}
+                        <div class="col-12 col-md-12">
+                            <div class="d-flex justify-content-center mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="switch-method" checked onchange="switchMethod(this)">
+                                    <label class="form-check-label" id="to-scan">Scan Roll</label>
+                                    <label class="form-check-label d-none" id="to-multi">Multi Roll</label>
+                                </div>
+                            </div>
+                        </div>
+                        {{-- Scan Method --}}
+                        <div class="col-md-12" id="scan-method">
+                            <div class="row align-items-end g-3">
+                                <div class="col-12 col-md-12">
+                                    <label class="form-label"><small><b>ID Roll</b></small></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-sm" name="id_roll" id="id_roll">
+                                        <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScan()">Get</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="refreshScan()">Scan</button>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <label class="form-label"><small><b>ID Item</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" name="id_item" id="id_item" readonly>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <label class="form-label"><small><b>Detail Item</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" name="detail_item" id="detail_item" readonly>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <label class="form-label"><small><b>Color Act</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" name="color_act" id="color_act">
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <button type="submit" class="btn btn-sm btn-success btn-block fw-bold">NEXT</button>
+                                </div>
+                            </div>
+                        </div>
+                        {{-- Multi Method --}}
+                        <div class="col-md-12 d-none" id="multi-method">
+                            <div id="multi-rolls" class="mb-3">
+                                <div class="row align-items-end" id="multi-roll-1">
+                                    <div class="col-md-2">
+                                        <label class="form-label"><small><b>ID Roll</b></small></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="id_roll_1" name="id_roll[1]">
+                                            <button class="btn btn-success" type="button" id="get_button_1">Get</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label"><small><b>No. Form</b></small></label>
+                                        <select class="form-select form-select-sm select2bs4" id="no_form_roll_1" name="no_form_roll[1]">
+                                            {{-- Form Options --}}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label"><small><b>Color</b></small></label>
+                                        <input type="text" class="form-control" id="color_roll_1" name="color_roll[1]" readonly>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label"><small><b>Group</b></small></label>
+                                        <input type="text" class="form-control" id="group_roll_1" name="group_roll[1]" readonly>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label"><small><b>Lot</b></small></label>
+                                        <input type="text" class="form-control" id="lot_roll_1" name="lot_roll[1]" readonly>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label"><small><b>Qty</b></small></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="qty_1" name="qty[1]" readonly>
+                                            <input type="text" class="form-control" id="unit_1" name="unit[1]" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-sb-secondary w-auto" id="add-new-roll"><i class="fa fa-plus fa-sm"></i></button>
+                            </div>
+                            <div class="row justify-content-end g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label"><small><b>Total Roll</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id="total_roll" name="total_roll" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><small><b>Total Qty</b></small></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-sm" id="total_qty" name="total_qty" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="total_unit" name="total_unit" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-block btn-sb fw-bold">NEXT</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -295,36 +362,26 @@
         })
 
         // Init
-        async function initial() {
-            if (document.getElementById("process").value > 0) {
-                // Check Current Process
-                await checkProcess(document.getElementById("process").value);
-            } else {
-                //Reset Form
-                if (document.getElementById('piping-process-header')) {
-                    document.getElementById('piping-process-header').reset();
+        function initial() {
+            //Reset Form
+            if (document.getElementById('piping-process-header')) {
+                document.getElementById('piping-process-header').reset();
 
-                    $("#buyer_id").val(null).trigger("change");
-                }
-
-                // Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )
-                $("#color").prop("disabled", true);
-                $("#master_piping_id").prop("disabled", true);
-
-                // Generate Code
-                generateCode();
+                $("#buyer_id").val(null).trigger("change");
             }
+
+            // Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )
+            $("#color").prop("disabled", true);
+            $("#master_piping_id").prop("disabled", true);
+
+            // Generate Code
+            generateCode();
         }
 
-        // CHECK PROCESS
-            function checkProcess(process) {
-                switch (process) {
-                    case "1" :
-                        initProcessTwo();
+        // Check Current Process
+        function checkProcess() {
 
-                        break;
-                }
-            }
+        }
 
         // PROCESS ONE :
             // Generate Piping Code
@@ -336,14 +393,9 @@
                     type: "get",
                     dataType: "json",
                     success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         $("#kode_piping").val(response);
-
-                        document.getElementById("loading").classList.add("d-none");
-                    },
-                    error: function (jqXHR) {
-                        console.log(jqXHR);
-
-                        document.getElementById("loading").classList.add("d-none");
                     }
                 });
             }
@@ -413,11 +465,6 @@
                         }
 
                         document.getElementById("loading").classList.add("d-none");
-                    },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-
-                        document.getElementById("loading").classList.add("d-none");
                     }
                 });
             }
@@ -455,11 +502,6 @@
                         }
 
                         document.getElementById('loading').classList.add('d-none');
-                    },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-
-                        document.getElementById('loading').classList.add('d-none');
                     }
                 });
             }
@@ -481,11 +523,6 @@
                             document.getElementById('style').value = res.styleno;
                         }
                     },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-
-                        document.getElementById('loading').classList.add('d-none');
-                    }
                 });
             }
 
@@ -523,11 +560,6 @@
                                 $("#color").val(response[response.length-1].color).trigger("change");
                             }
                         }
-
-                        document.getElementById('loading').classList.add('d-none');
-                    },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
 
                         document.getElementById('loading').classList.add('d-none');
                     }
@@ -571,11 +603,6 @@
                         }
 
                         document.getElementById('loading').classList.add('d-none');
-                    },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-
-                        document.getElementById('loading').classList.add('d-none');
                     }
                 });
             }
@@ -602,10 +629,8 @@
                 }
             }
 
-            // Submit Process One
+            // Submit Process
             function processOne(e, event) {
-                document.getElementById("loading").classList.remove("d-none");
-
                 event.preventDefault();
 
                 let form = new FormData(e);
@@ -625,13 +650,6 @@
                         if (response.status == 200) {
                             initProcessTwo();
                         }
-
-                        document.getElementById("loading").classList.add("d-none");
-                    },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-
-                        document.getElementById("loading").classList.add("d-none");
                     }
                 });
             }
@@ -640,15 +658,11 @@
         // PROCESS TWO :
             // -Init Process Two-
             function initProcessTwo() {
-                document.getElementById("piping-process-scan").classList.remove("d-none");
-
                 let form = document.getElementById("piping-process-header");
 
                 for (let i = 0; i < form.length; i++) {
                     form[i].setAttribute("disabled", "true");
                 }
-
-                document.getElementById("switch-method").checked = true;
             }
 
             // -Scan Roll-
@@ -810,186 +824,6 @@
                     confirmButtonText: 'Oke',
                 });
             }
-
-            // -Add Multi Roll-
-            async function addMultiRoll() {
-                if (document.getElementById('id_roll_1').value && document.getElementById('id_form_roll_1').value) {
-                    // Clone the existing roll element
-                    let rollElement = document.getElementById('multi-roll-1');
-                    let newRoll = rollElement.cloneNode(true);  // Clone the element including its children
-
-                    // Update the IDs and names to make them unique for the new roll
-                    let rollCount = document.querySelectorAll('#multi-rolls .row').length + 1;  // Get the next roll count
-                    newRoll.id = 'multi-roll-' + rollCount;  // Update the ID for the new roll
-
-                    // Update all input names and IDs within the new roll to ensure uniqueness
-                    let inputs = newRoll.querySelectorAll('input, select, button');
-                    inputs.forEach(function(input) {
-                        let id = input.getAttribute('id');
-                        if (id) {
-                            input.setAttribute('id', id.replace(/\d+/, rollCount));  // Update ID attribute
-                        }
-
-                        let name = input.getAttribute('name');
-                        if (name) {
-                            input.setAttribute('name', name.replace(/\d+/, rollCount));  // Update name attribute
-                        }
-
-                        if (id.includes("get_button")) {
-                            let onclick = input.getAttribute('onclick');
-                            if (onclick) {
-                                input.setAttribute('onclick', onclick.replace(/\d+/, rollCount));  // Update onclick attribute
-                            }
-                        }
-
-                        if (id.includes("id_form_roll")) {
-                            let onchange = input.getAttribute('onchange');
-                            if (onchange) {
-                                input.setAttribute('onchange', onchange.replace(/\d+/, rollCount));  // Update onchange attribute
-                            }
-                        }
-                    });
-
-                    // Append the new roll element to the container
-                    document.getElementById('multi-rolls').appendChild(newRoll);
-                }
-            }
-
-            // -Check Multi Roll-
-            function checkMultiItem(check = "all") {
-                console.log(check);
-
-                let unitSetting = document.getElementById('unit_roll_1').value;
-
-                if (check == "all") {
-                    let rolls = document.querySelectorAll('#multi-rolls .row');
-
-                    for (let i = 1; i < rolls.length; i++) {
-                        let roll = document.getElementById('multi-roll-' + (i+1));
-
-                        let rollUnit = roll.getElementById('unit_roll_' + (i+1));
-
-                        if (rollUnit != unitSetting) {
-                            return false;
-                        }
-                    }
-                } else {
-                    let roll = document.getElementById('multi-roll-' + (check));
-
-                    let rollUnit = roll.getElementById('unit_roll_' + (check));
-
-                    if (rollUnit != unitSetting) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            // -Calculate Multi Roll-
-            function calculateMultiItem() {
-                let totalRollQty = document.getElementById("total_qty");
-                let totalRollUnit = document.getElementById("total_unit");
-
-                console.log(totalRollQty, totalRollUnit);
-
-                if (totalRollQty && totalRollUnit) {
-                    let rolls = document.querySelectorAll('#multi-rolls .row');
-
-                    for (let i = 0; i < rolls.length; i++) {
-                        let roll = document.getElementById('multi-roll-' + (i+1));
-
-                        let rollQty = roll.getElementById('qty_roll_' + (i+1));
-                        let rollUnit = roll.getElementById('unit_roll_' + (i+1));
-
-                        totalRollQty.value = Number(totalRollQty.value) + Number(rollQty.value);
-                        totalRollUnit.value = rollUnit.value;
-                    }
-                }
-            }
-
-            // -Get Multi Item Form-
-            function getMultiItemForm(index) {
-                document.getElementById("loading").classList.remove("d-none");
-
-                let id  = document.getElementById("id_roll_"+index).value;
-
-                $.ajax({
-                    url: "{{ route("item-forms-piping") }}/"+id,
-                    type: "get",
-                    dataType: "json",
-                    success: function (response) {
-                        let select = document.getElementById("id_form_roll_"+index)
-
-                        if (select) {
-                            select.innerHTML = null;
-
-                            if (response && response.length > 0) {
-                                for (let i = 0; i < response.length ;i++) {
-                                    let option = document.createElement("option");
-                                    option.setAttribute("value", response[i].id);
-                                    option.innerText = response[i].no_form;
-
-                                    select.appendChild(option);
-                                }
-                            }
-
-                            $("#id_form_roll_"+index).val(response && response[0] ? response[0].id : null).trigger("change");
-                        }
-
-                        document.getElementById("loading").classList.add("d-none");
-                    },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-
-                        document.getElementById("loading").classList.add("d-none");
-                    }
-                });
-            }
-
-            // -Get Multi Item Piping-
-            function getMultiItemPiping(index) {
-                document.getElementById("loading").classList.remove("d-none");
-
-                let id  = document.getElementById("id_roll_"+index).value;
-                let idForm  = document.getElementById("id_form_roll_"+index).value;
-
-                let totalRollQty = document.getElementById("total_qty");
-                let totalRollUnit = document.getElementById("total_unit");
-
-                $.ajax({
-                    url: "{{ route("item-piping-piping") }}/"+id+"/"+idForm,
-                    type: "get",
-                    // dataType: "json",
-                    success: async function (response) {
-                        console.log("piping", response, typeof response === 'object', response && typeof response === 'object');
-
-                        if (response && typeof response === 'object') {
-                            document.getElementById("color_roll_"+index).value = response.color_act;
-                            document.getElementById("group_roll_"+index).value = response.group_roll;
-                            document.getElementById("lot_roll_"+index).value = response.lot;
-                            document.getElementById("qty_roll_"+index).value = response.piping;
-                            document.getElementById("unit_roll_"+index).value = response.unit;
-                        } else {
-                            document.getElementById("color_roll_"+index).value = "";
-                            document.getElementById("group_roll_"+index).value = "";
-                            document.getElementById("lot_roll_"+index).value = "";
-                            document.getElementById("qty_roll_"+index).value = "";
-                            document.getElementById("unit_roll_"+index).value = "";
-                        }
-
-                        calculateMultiItem();
-
-                        document.getElementById("loading").classList.add("d-none");
-                    },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-
-                        document.getElementById("loading").classList.add("d-none");
-                    }
-                });
-            }
-
         // END OF PROCESS TWO
 
         // Reset Step

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\FormCutInput;
 use App\Models\Cutting\PipingProcess;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -54,33 +55,77 @@ class PipingProcessController extends Controller
     }
 
     public function create() {
+        if (session('currentPipingProcess')) {
+            return redirect()->route('process-piping-process', ["id" => session('currentPipingProcess')]);
+        }
+
+        $buyers = DB::connection('mysql_sb')->table('mastersupplier')->select('Id_Supplier as id', 'Supplier as buyer')->leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->where('tipe_sup', 'C')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('Supplier', 'asc')->groupBy('Id_Supplier')->get();
+
+        return view('cutting.piping-process.create-piping-process', ['buyers' => $buyers, 'page' => 'dashboard-cutting', "subPageGroup" => "cutting-piping", "subPage" => "piping-process"]);
+    }
+
+    public function process($id = 0)
+    {
+        $pipingProcess = PipingProcess::find($id);
+
+        if (!$pipingProcess) {
+            return redirect()->route('create-piping-process');
+        }
+
+        $buyers = DB::connection('mysql_sb')->table('mastersupplier')->select('Id_Supplier as id', 'Supplier as buyer')->leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->where('tipe_sup', 'C')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('Supplier', 'asc')->groupBy('Id_Supplier')->get();
+
+        return view('cutting.piping-process.create-piping-process', ['piping' => $pipingProcess, 'buyers' => $buyers, 'page' => 'dashboard-cutting', "subPageGroup" => "cutting-piping", "subPage" => "piping-process"]);
+    }
+
+    public function createNew() {
+        session()->forget('currentPipingProcess');
+
         $buyers = DB::connection('mysql_sb')->table('mastersupplier')->select('Id_Supplier as id', 'Supplier as buyer')->leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->where('tipe_sup', 'C')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('Supplier', 'asc')->groupBy('Id_Supplier')->get();
 
         return view('cutting.piping-process.create-piping-process', ['buyers' => $buyers, 'page' => 'dashboard-cutting', "subPageGroup" => "cutting-piping", "subPage" => "piping-process"]);
     }
 
     public function store(Request $request) {
-        if ($request->process == 1) {
-            $validatedRequest1 = $request->validate([
-                "kode_piping" => "required|unique:piping_process",
-                "master_piping_id" => "required",
-            ]);
+        switch ($request->process) {
+            case 1 :
+                $validatedRequest = $request->validate([
+                    "kode_piping" => "required|unique:piping_process",
+                    "master_piping_id" => "required",
+                ]);
 
-            $storePipingProcess = PipingProcess::create([
-                "kode_piping" => $request["kode_piping"],
-                "master_piping_id" => $request["master_piping_id"],
-                "created_by" => Auth::user()->id,
-                "created_by_username" => Auth::user()->username
-            ]);
+                $storePipingProcess = PipingProcess::create([
+                    "process" => $request->process,
+                    "kode_piping" => $validatedRequest["kode_piping"],
+                    "master_piping_id" => $validatedRequest["master_piping_id"],
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username
+                ]);
 
-            if ($storePipingProcess) {
+                if ($storePipingProcess) {
+                    session(['currentPipingProcess' => $storePipingProcess->id]);
 
+                    return array(
+                        "status" => 200,
+                        "message" => "Process Piping berhasil disimpan.",
+                        "additional" => [],
+                    );
+                }
+
+                break;
+            case 2 :
+                dd($request);
+
+                break;
+            case 3 :
+                dd($request);
+
+                break;
+            default :
                 return array(
-                    "status" => 200,
-                    "message" => "Process Piping berhasil disimpan.",
+                    "status" => 400,
+                    "message" => "Proses tidak ditemukan",
                     "additional" => [],
                 );
-            }
         }
 
         return array(
@@ -96,5 +141,32 @@ class PipingProcessController extends Controller
         $code = "PIP-".($latestPipingProcess ? (substr($latestPipingProcess->kode_piping, 4)+1) : '1');
 
         return json_encode($code);
+    }
+
+    public function itemForms($id = 0) {
+        $forms = FormCutInput::select("form_cut_input.id", "form_cut_input.no_form")->
+            leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
+            where("form_cut_input_detail.id_roll", $id)->
+            groupBy("form_cut_input.id")->
+            get();
+
+        return $forms;
+    }
+
+    public function itemPiping($id = 0, $idForm = 0) {
+        $piping = FormCutInput::selectRaw("
+                form_cut_input_detail.color_act,
+                form_cut_input_detail.group_roll,
+                form_cut_input_detail.lot,
+                SUM(form_cut_input_detail.piping) piping,
+                form_cut_input_detail.unit
+            ")->
+            leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
+            where("form_cut_input_detail.id_roll", $id)->
+            where("form_cut_input.id", $idForm)->
+            groupBy("form_cut_input.id")->
+            first();
+
+        return $piping;
     }
 }
