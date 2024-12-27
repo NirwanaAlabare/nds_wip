@@ -1785,6 +1785,8 @@
                             });
                         }
                     }
+
+                    swal.close();
                 },
                 error: function(jqXHR) {
                     iziToast.error({

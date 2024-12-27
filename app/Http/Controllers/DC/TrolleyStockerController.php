@@ -592,7 +592,7 @@ class TrolleyStockerController extends Controller
                                 "loading_plan_id" => $storeLoadingPlan['id'],
                                 "nama_line" => $lineData['username'],
                                 "stocker_id" => $thisStockerData['id'],
-                                "qty" => ($thisStockerData['qty_ply_mod'] > 0 ? $thisStockerData['qty_ply_mod'] : $thisStockerData['qty_ply']),
+                                "qty" => ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0),
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
                                 "created_at" => Carbon::now(),
