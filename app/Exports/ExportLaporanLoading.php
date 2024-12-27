@@ -92,18 +92,12 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                     DATE ( loading_line.updated_at )) tanggal_loading,
                     loading_line.loading_plan_id,
                     loading_line.nama_line,
-                    COALESCE ((
-                            MAX( dc_in_input.qty_awal ) - (
-                                MAX(
-                                    COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(
-                                COALESCE ( dc_in_input.qty_replace, 0 ))) - (
-                                MAX(
-                                    COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(
-                                COALESCE ( secondary_in_input.qty_replace, 0 ))) - (
-                                MAX(
-                                    COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(
-                                COALESCE ( secondary_inhouse_input.qty_replace, 0 )))),
-                    COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty,
+                    (
+                        COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                        ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                        ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                        ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                    ) qty,
                     trolley.id trolley_id,
                     trolley.nama_trolley,
                     stocker_input.so_det_id,
