@@ -76,7 +76,7 @@ use App\Http\Controllers\Sewing\ReportProductionController;
 use App\Http\Controllers\Sewing\ReportEfficiencyController;
 use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
 use App\Http\Controllers\Sewing\ReportDetailOutputController;
-
+use App\Http\Controllers\Sewing\ReportMutasiOutputController;
 
 // Track
 use App\Http\Controllers\TrackController;
@@ -919,13 +919,18 @@ Route::middleware('auth')->group(function () {
     });
 
 
+    // Report Mutasi Output
+    Route::controller(ReportMutasiOutputController::class)->prefix("report-mut-output")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('report_mut_output');
+        Route::get('/export_excel_mut_output', 'export_excel_mut_output')->name('export_excel_mut_output');
+    });
+
     Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('reportDetailOutput');
         Route::get('/packing', 'packing')->name('reportDetailOutputPacking');
         Route::get('/get-data', 'getData')->name('reportDetailOutput.getData');
         Route::post('/export-data', 'exportData')->name('reportDetailOutput.exportData');
         Route::post('/export-data-packing', 'exportDataPacking')->name('reportDetailOutput.exportDataPacking');
-
         Route::post('/transfer-data', 'transfer')->name('reportDetailOutput.transferData');
     });
 
@@ -1447,7 +1452,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_rep_packing_mutasi', 'export_excel_rep_packing_mutasi')->name('export_excel_rep_packing_mutasi');
         Route::get('/export_excel_rep_packing_mutasi_wip', 'export_excel_rep_packing_mutasi_wip')->name('export_excel_rep_packing_mutasi_wip');
     });
-
 
     // Finish Good
     // Dashboard Finish Good
