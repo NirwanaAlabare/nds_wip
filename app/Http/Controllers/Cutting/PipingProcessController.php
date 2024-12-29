@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
 use App\Models\Cutting\PipingProcess;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -143,6 +144,24 @@ class PipingProcessController extends Controller
         return json_encode($code);
     }
 
+    public function item($id = 0) {
+        $piping = FormCutInputDetail::selectRaw("
+            form_cut_input_detail.id_item,
+            form_cut_input_detail.detail_item,
+            form_cut_input_detail.color_act,
+            form_cut_input_detail.group_roll,
+            form_cut_input_detail.lot,
+            SUM(form_cut_input_detail.piping) piping,
+            form_cut_input_detail.unit
+        ")->
+        where("form_cut_input_detail.id_roll", $id)->
+        groupBy("form_cut_input_detail.form_cut_id")->
+        having("piping", ">", 0)->
+        first();
+
+        return $piping;
+    }
+
     public function itemForms($id = 0) {
         $forms = FormCutInput::select("form_cut_input.id", "form_cut_input.no_form")->
             leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
@@ -165,6 +184,7 @@ class PipingProcessController extends Controller
             where("form_cut_input_detail.id_roll", $id)->
             where("form_cut_input.id", $idForm)->
             groupBy("form_cut_input.id")->
+            having("piping", ">", 0)->
             first();
 
         return $piping;

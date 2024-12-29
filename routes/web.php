@@ -469,6 +469,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/generate', 'generate')->name('generate-piping-process');
 
         // Item Forms
+        Route::get('/item/{id?}', 'item')->name('item-piping');
         Route::get('/item/forms/{id?}', 'itemForms')->name('item-forms-piping');
         Route::get('/item/piping/{id?}/{idForm?}', 'itemPiping')->name('item-piping-piping');
     });

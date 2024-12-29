@@ -163,6 +163,7 @@
                         </div>
                         {{-- Scan Method --}}
                         <div class="col-md-12" id="scan-method">
+                            <div class="mb-3" id="reader"></div>
                             <div class="row align-items-end g-3">
                                 <div class="col-12 col-md-12">
                                     <label class="form-label"><small><b>ID Roll</b></small></label>
@@ -185,7 +186,14 @@
                                     <input type="text" class="form-control form-control-sm" name="color_act" id="color_act">
                                 </div>
                                 <div class="col-6 col-md-6">
-                                    <button type="submit" class="btn btn-sm btn-success btn-block fw-bold">NEXT</button>
+                                    <label class="form-label"><small><b>Qty</b></small></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-sm" name="qty_item" id="qty_item" readonly>
+                                        <input type="text" class="form-control form-control-sm" name="unit_item" id="unit_item" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-12">
+                                    <button type="submit" class="btn btn-sm btn-success btn-block fw-bold mt-3">NEXT</button>
                                 </div>
                             </div>
                         </div>
@@ -640,6 +648,8 @@
         // PROCESS TWO :
             // -Init Process Two-
             function initProcessTwo() {
+                initScan();
+
                 resetScanMethod();
                 resetMultiMethod();
 
@@ -671,7 +681,7 @@
                 document.getElementById("scan-method").classList.add('d-none');
                 document.getElementById("to-scan").classList.add('d-none');
 
-                resetMultiMethod();
+                resetScanMethod();
 
                 document.getElementById("multi-method").classList.remove('d-none');
                 document.getElementById("to-multi").classList.remove('d-none');
@@ -722,7 +732,8 @@
             }
 
             // -Scanner-
-            var html5QrcodeScanner = null;
+            var html5QrcodeScanner = new Html5Qrcode("reader");
+            var scannerInitialized = false;
 
             // -Init Scanner-
             async function initScan() {
@@ -776,32 +787,23 @@
 
                 document.getElementById("id_item").value = "";
                 document.getElementById("detail_item").value = "";
+                document.getElementById("qty_item").value = "";
+                document.getElementById("unit_item").value = "";
                 document.getElementById("color_act").value = "";
 
                 if (isNotNull(id)) {
                     return $.ajax({
-                        url: '{{ route('get-scanned-form-cut-input') }}/' + id,
+                        url: '{{ route('item-piping') }}/' + id,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
                             console.log(res);
 
                             if (typeof res === 'object' && res !== null) {
-                                if (res.qty > 0) {
-                                    currentScannedItem = res;
-
-                                    document.getElementById("id_item").value = res.id_item;
-                                    document.getElementById("detail_item").value = res.detail_item;
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal',
-                                        text: 'Qty sudah habis.',
-                                        showCancelButton: false,
-                                        showConfirmButton: true,
-                                        confirmButtonText: 'Oke',
-                                    });
-                                }
+                                document.getElementById("id_item").value = res.id_item;
+                                document.getElementById("detail_item").value = res.detail_item;
+                                document.getElementById("qty_item").value = res.piping;
+                                document.getElementById("unit_item").value = res.unit;
                             } else {
                                 Swal.fire({
                                     icon: 'error',
