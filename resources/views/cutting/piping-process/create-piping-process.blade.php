@@ -36,7 +36,7 @@
                                 <div class="form-group mb-0">
                                     <label>Kode Piping</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="kode_piping" name="kode_piping" value="{{ $currentPiping->kode_piping }}" readonly>
+                                        <input type="text" class="form-control" id="kode_piping" name="kode_piping" value="{{ $currentPiping ? $currentPiping->kode_piping : null }}" readonly>
                                         <button type="button" class="btn btn-sb-secondary" onclick="generateCode()"><i class="fa fa-rotate"></i></button>
                                     </div>
                                 </div>
@@ -47,8 +47,8 @@
                                 <div class="form-group mb-0">
                                     <label>Buyer</label>
                                     @if ($currentPiping)
-                                        <input type="hidden" class="form-control" id="buyer_id" name="buyer_id" value="{{ $currentPiping->masterPiping->buyer_id }}">
-                                        <input type="text" class="form-control" id="buyer" name="buyer" value="{{ $currentPiping->masterPiping->buyer }}" readonly>
+                                        <input type="hidden" class="form-control" id="buyer_id" name="buyer_id" value="{{ $currentPiping ? $currentPiping->masterPiping->buyer_id : null }}">
+                                        <input type="text" class="form-control" id="buyer" name="buyer" value="{{ $currentPiping ? $currentPiping->masterPiping->buyer : null }}" readonly>
                                     @else
                                         <select class="form-select select2bs4" id="buyer_id" name="buyer_id">
                                             <option selected="selected" value="">Pilih Buyer</option>
@@ -67,8 +67,8 @@
                                 <div class="form-group mb-0">
                                     <label>No. WS</label>
                                     @if ($currentPiping)
-                                        <input type="hidden" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentPiping->masterPiping->act_costing_id }}">
-                                        <input type="text" class="form-control" id="act_costing_ws" name="act_costing_ws" value="{{ $currentPiping->masterPiping->act_costing_ws }}" readonly>
+                                        <input type="hidden" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentPiping ? $currentPiping->masterPiping->act_costing_id : null }}">
+                                        <input type="text" class="form-control" id="act_costing_ws" name="act_costing_ws" value="{{ $currentPiping ? $currentPiping->masterPiping->act_costing_ws : null }}" readonly>
                                     @else
                                         <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id">
                                             <option selected="selected" value="">Pilih WS</option>
@@ -92,7 +92,7 @@
                                 <div class="form-group mb-0">
                                     <label>Color</label>
                                     @if ($currentPiping)
-                                        <input type="text" class="form-control" id="color" name="color" value="{{ $currentPiping->masterPiping->color }}" readonly>
+                                        <input type="text" class="form-control" id="color" name="color" value="{{ $currentPiping ? $currentPiping->masterPiping->color : null }}" readonly>
                                     @else
                                         <select class="form-select select2bs4" id="color" name="color">
                                             <option selected="selected" value="">Pilih Color</option>
@@ -107,8 +107,8 @@
                                 <div class="form-group mb-0">
                                     <label>Part</label>
                                     @if ($currentPiping)
-                                        <input type="hidden" class="form-control" id="master_piping_id" name="master_piping_id" value="{{ $currentPiping->masterPiping->id }}">
-                                        <input type="text" class="form-control" id="part" name="part" value="{{ $currentPiping->masterPiping->part }}" readonly>
+                                        <input type="hidden" class="form-control" id="master_piping_id" name="master_piping_id" value="{{ $currentPiping ? $currentPiping->masterPiping->id : null }}">
+                                        <input type="text" class="form-control" id="part" name="part" value="{{ $currentPiping ? $currentPiping->masterPiping->part : null }}" readonly>
                                     @else
                                         <select class="form-select select2bs4" id="master_piping_id" name="master_piping_id">
                                             <option selected="selected" value="">Pilih Part</option>
@@ -640,6 +640,9 @@
         // PROCESS TWO :
             // -Init Process Two-
             function initProcessTwo() {
+                resetScanMethod();
+                resetMultiMethod();
+
                 document.getElementById("piping-process-scan").classList.remove("d-none");
 
                 let form = document.getElementById("piping-process-header");
@@ -668,6 +671,8 @@
                 document.getElementById("scan-method").classList.add('d-none');
                 document.getElementById("to-scan").classList.add('d-none');
 
+                resetMultiMethod();
+
                 document.getElementById("multi-method").classList.remove('d-none');
                 document.getElementById("to-multi").classList.remove('d-none');
 
@@ -682,12 +687,38 @@
                 document.getElementById("multi-method").classList.add('d-none');
                 document.getElementById("to-multi").classList.add('d-none');
 
+                resetMultiMethod();
+
                 document.getElementById("scan-method").classList.remove('d-none');
                 document.getElementById("to-scan").classList.remove('d-none');
 
                 initScan();
 
                 location.href = "#piping-process-scan";
+            }
+
+            async function resetScanMethod() {
+                let idRoll = document.getElementById('id_roll');
+
+                idRoll.value = null;
+
+                fetchScan();
+            }
+
+            async function resetMultiMethod() {
+                let rolls = document.querySelectorAll('#multi-rolls .row');
+
+                for (let i = 0; i < rolls.length; i++) {
+                    let roll = document.getElementById('multi-roll-' + (i+1));
+
+                    if (i == 0) {
+                        clearMultiItem((i+1));
+                    } else {
+                        roll.remove()
+                    }
+                }
+
+                calculateMultiItem();
             }
 
             // -Scanner-
@@ -733,14 +764,14 @@
             }
 
             // -Fetch Scanned Item Data-
-            function fetchScan() {
+            async function fetchScan() {
                 let kodeBarang = document.getElementById('id_roll').value;
 
-                getScannedItem(kodeBarang);
+                await getScannedItem(kodeBarang);
             }
 
             // -Get Scanned Item Data-
-            function getScannedItem(id) {
+            async function getScannedItem(id) {
                 document.getElementById("loading").classList.remove("d-none");
 
                 document.getElementById("id_item").value = "";
@@ -801,14 +832,7 @@
                     });
                 }
 
-                return Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: 'Item tidak ditemukan',
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                });
+                document.getElementById("loading").classList.add("d-none");
             }
 
             // -Add Multi Roll-
@@ -825,6 +849,8 @@
                     // Update all input names and IDs within the new roll to ensure uniqueness
                     let inputs = newRoll.querySelectorAll('input, select, button');
                     inputs.forEach(function(input) {
+                        input.value = null;
+
                         let id = input.getAttribute('id');
                         if (id) {
                             input.setAttribute('id', id.replace(/\d+/, rollCount));  // Update ID attribute
@@ -843,6 +869,8 @@
                         }
 
                         if (id.includes("id_form_roll")) {
+                            input.innerHTML = null;
+
                             let onchange = input.getAttribute('onchange');
                             if (onchange) {
                                 input.setAttribute('onchange', onchange.replace(/\d+/, rollCount));  // Update onchange attribute
@@ -861,25 +889,25 @@
 
                 let unitSetting = document.getElementById('unit_roll_1').value;
 
-                if (check == "all") {
+                if (check > 1) {
+                    let roll = document.getElementById('multi-roll-' + (check));
+
+                    let rollUnit = roll.querySelector('#unit_roll_' + (check));
+
+                    if (rollUnit.value != unitSetting) {
+                        return false;
+                    }
+                } else {
                     let rolls = document.querySelectorAll('#multi-rolls .row');
 
                     for (let i = 1; i < rolls.length; i++) {
                         let roll = document.getElementById('multi-roll-' + (i+1));
 
-                        let rollUnit = roll.getElementById('unit_roll_' + (i+1));
+                        let rollUnit = roll.querySelector('#unit_roll_' + (i+1));
 
-                        if (rollUnit != unitSetting) {
+                        if (rollUnit.value != unitSetting) {
                             return false;
                         }
-                    }
-                } else {
-                    let roll = document.getElementById('multi-roll-' + (check));
-
-                    let rollUnit = roll.getElementById('unit_roll_' + (check));
-
-                    if (rollUnit != unitSetting) {
-                        return false;
                     }
                 }
 
@@ -894,17 +922,27 @@
                 console.log(totalRollQty, totalRollUnit);
 
                 if (totalRollQty && totalRollUnit) {
+                    totalRollQty.value = null;
+                    totalRollUnit.value = null;
+
                     let rolls = document.querySelectorAll('#multi-rolls .row');
 
+                    let totalRoll = 0;
                     for (let i = 0; i < rolls.length; i++) {
                         let roll = document.getElementById('multi-roll-' + (i+1));
 
-                        let rollQty = roll.getElementById('qty_roll_' + (i+1));
-                        let rollUnit = roll.getElementById('unit_roll_' + (i+1));
+                        let idRoll = document.getElementById('id_roll_' + (i+1));
 
-                        totalRollQty.value = Number(totalRollQty.value) + Number(rollQty.value);
-                        totalRollUnit.value = rollUnit.value;
+                        let rollQty = roll.querySelector('#qty_roll_' + (i+1));
+                        let rollUnit = roll.querySelector('#unit_roll_' + (i+1));
+
+                        rollQty.value ? totalRollQty.value = Number(totalRollQty.value) + Number(rollQty.value) : console.log("null value");
+                        rollUnit.value ? totalRollUnit.value =  rollUnit.value : console.log("null value");
+
+                        idRoll.value ? totalRoll++ : console.log("null value");
                     }
+
+                    document.getElementById("total_roll").value = totalRoll;
                 }
             }
 
@@ -978,6 +1016,21 @@
                             document.getElementById("unit_roll_"+index).value = "";
                         }
 
+                        console.log("check multi item", checkMultiItem(index));
+
+                        if (!checkMultiItem(index)) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Unit Roll tidak sesuai.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+
+                            clearMultiItem(index);
+                        }
+
                         calculateMultiItem();
 
                         document.getElementById("loading").classList.add("d-none");
@@ -990,6 +1043,49 @@
                 });
             }
 
+            function clearMultiItem(index) {
+                document.getElementById("id_roll_"+index).value = "";
+                document.getElementById("id_form_roll_"+index).value = "";
+                document.getElementById("color_roll_"+index).value = "";
+                document.getElementById("group_roll_"+index).value = "";
+                document.getElementById("lot_roll_"+index).value = "";
+                document.getElementById("qty_roll_"+index).value = "";
+                document.getElementById("unit_roll_"+index).value = "";
+            }
+
+            // Submit Process Two
+            function processTwo(e, event) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                event.preventDefault();
+
+                let form = new FormData(e);
+
+                let dataObj = {
+                    "process": 2,
+                }
+
+                form.forEach((value, key) => dataObj[key] = value);
+
+                $.ajax({
+                    url: "{{ route("store-piping-process") }}",
+                    type: "post",
+                    data: dataObj,
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.status == 200) {
+                            // initProcessThree();
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
         // END OF PROCESS TWO
 
         // Reset Step
