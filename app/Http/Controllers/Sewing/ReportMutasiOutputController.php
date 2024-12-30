@@ -70,7 +70,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal' and STATUS in ('normal','rework')
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -95,7 +95,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -132,7 +132,7 @@ FROM
 						b.ratio
 		) a
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -169,7 +169,7 @@ FROM
 						b.ratio
 		) a
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -196,7 +196,7 @@ WHERE
     allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'  and defect_status = 'reworked'
 GROUP BY
     so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -223,7 +223,7 @@ WHERE
     allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and defect_status = 'defect'
 GROUP BY
     so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -247,7 +247,7 @@ FROM
 		signalbit_erp.output_rejects
 WHERE updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -272,7 +272,7 @@ FROM
 WHERE
      updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and STATUS = 'NORMAL'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -297,7 +297,7 @@ FROM
 WHERE
      updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and STATUS = 'REWORK'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -322,7 +322,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -347,7 +347,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -372,7 +372,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -397,7 +397,7 @@ FROM
 WHERE
      updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and status in ('NORMAL', 'REWORK')
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -491,7 +491,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal' and STATUS in ('normal','rework')
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -516,7 +516,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -553,7 +553,7 @@ FROM
 						b.ratio
 		) a
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -590,7 +590,7 @@ FROM
 						b.ratio
 		) a
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -617,7 +617,7 @@ WHERE
     allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'  and defect_status = 'reworked'
 GROUP BY
     so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -644,7 +644,7 @@ WHERE
     allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and defect_status = 'defect'
 GROUP BY
     so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -668,7 +668,7 @@ FROM
 		signalbit_erp.output_rejects
 WHERE updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -693,7 +693,7 @@ FROM
 WHERE
      updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and STATUS = 'NORMAL'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -718,7 +718,7 @@ FROM
 WHERE
      updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and STATUS = 'REWORK'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -743,7 +743,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -768,7 +768,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -793,7 +793,7 @@ FROM
 WHERE
      updated_at < '$tgl_awal'
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
@@ -818,7 +818,7 @@ FROM
 WHERE
      updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and status in ('NORMAL', 'REWORK')
 GROUP BY so_det_id
-UNION
+UNION ALL
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
