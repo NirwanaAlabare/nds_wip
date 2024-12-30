@@ -428,7 +428,7 @@ inner join signalbit_erp.so so on sd.id_so = so.id
 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
-GROUP BY so_det_id
+GROUP BY ac.kpno, ac.styleno, sd.color, sd.size
 order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
       ");
 
@@ -849,7 +849,7 @@ inner join signalbit_erp.so so on sd.id_so = so.id
 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
-GROUP BY so_det_id
+GROUP BY ac.kpno, ac.styleno, sd.color, sd.size
 order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
 
               ");

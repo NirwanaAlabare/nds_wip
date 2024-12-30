@@ -246,7 +246,7 @@
                 success: function(data) {
                     // Create a new workbook and a worksheet
                     const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet("Mutasi Packing Out");
+                    const worksheet = workbook.addWorksheet("Mutasi Output Production ");
                     // Add a title row for Tgl Transaksi without borders
                     const titleRow = worksheet.addRow([`Tgl Transaksi: ${tglawal} - ${tglakhir}`]);
                     // Center align the title row
