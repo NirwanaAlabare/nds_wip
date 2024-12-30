@@ -28,7 +28,7 @@ class ReportMutasiOutputController extends Controller
 			sd.color,
 			sd.size,
 			so_det_id,
-			sum(sa_loading_awal) - sum(sa_qc_line_awal) sa_sewing,
+			sum(sa_loading_awal) - sum(sa_qc_line_awal) - sum(sa_qc_line_rej_awal) sa_sewing,
 			sum(qty_loading) qty_loading,
 			sum(input_rework_sewing) input_rework_sewing,
 			sum(input_rework_spotcleaning) input_rework_spotcleaning,
@@ -39,7 +39,7 @@ class ReportMutasiOutputController extends Controller
 			sum(qty_reject) qty_reject,
 			sum(out_sew_rft) out_sew_rft,
 			sum(out_sew_rework) out_sew_rework,
-			sum(sa_loading_awal) - sum(sa_qc_line_awal) + sum(qty_loading) - sum(qty_reject) - sum(output_def_sewing) - sum(output_def_spotcleaning) - sum(output_def_mending) - sum(out_sew_rft) - sum(out_sew_rework) saldo_akhir_qc_line,
+			sum(sa_loading_awal) - sum(sa_qc_line_awal) - sum(sa_qc_line_rej_awal) + sum(qty_loading) - sum(qty_reject) - sum(output_def_sewing) - sum(output_def_spotcleaning) - sum(output_def_mending) - sum(out_sew_rft) - sum(out_sew_rework) saldo_akhir_qc_line,
 			sum(sa_out_sew) - sum(sa_in_steam) sa_steam,
 			sum(input_steam) input_steam,
 			sum(output_steam) output_steam,
@@ -49,6 +49,7 @@ FROM
 SELECT
 			so_det_id,
 			count(so_det_id) sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -67,12 +68,38 @@ SELECT
 FROM
      signalbit_erp.output_rfts a
 WHERE
-     updated_at < '$tgl_awal' and STATUS = 'NORMAL'
+     updated_at < '$tgl_awal' and STATUS in ('normal','rework')
 GROUP BY so_det_id
 UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			count(so_det_id) sa_qc_line_rej_awal,
+			'0' sa_loading_awal,
+			'0' qty_loading,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0'input_rework_mending,
+			'0' output_def_sewing,
+			'0' output_def_spotcleaning,
+			'0' output_def_mending,
+			'0' qty_reject,
+			'0' out_sew_rft,
+			'0' out_sew_rework,
+			'0' sa_out_sew,
+			'0' sa_in_steam,
+			'0' input_steam,
+			'0' output_steam
+FROM
+     signalbit_erp.output_rejects a
+WHERE
+     updated_at < '$tgl_awal'
+GROUP BY so_det_id
+UNION
+SELECT
+			so_det_id,
+			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			sum(sa_loading_awal) sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -109,6 +136,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			SUM(qty_loading) qty_loading,
 			'0' input_rework_sewing,
@@ -145,6 +173,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
     SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS input_rework_sewing,
@@ -171,6 +200,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -197,6 +227,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -220,6 +251,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -244,6 +276,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -268,6 +301,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -292,6 +326,32 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
+			'0' sa_loading_awal,
+			'0' qty_loading,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0'input_rework_mending,
+			'0' output_def_sewing,
+			'0' output_def_spotcleaning,
+			'0' output_def_mending,
+			'0' qty_reject,
+			'0' out_sew_rft,
+			'0' out_sew_rework,
+			count(so_det_id) sa_out_sew,
+			'0' sa_in_steam,
+			'0' input_steam,
+			'0' output_steam
+FROM
+     signalbit_erp.output_rfts a
+WHERE
+     updated_at < '$tgl_awal'
+GROUP BY so_det_id
+UNION
+SELECT
+			so_det_id,
+			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -316,6 +376,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -340,6 +401,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -387,7 +449,7 @@ order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
 			sd.color,
 			sd.size,
 			so_det_id,
-			sum(sa_loading_awal) - sum(sa_qc_line_awal) sa_sewing,
+			sum(sa_loading_awal) - sum(sa_qc_line_awal) - sum(sa_qc_line_rej_awal) sa_sewing,
 			sum(qty_loading) qty_loading,
 			sum(input_rework_sewing) input_rework_sewing,
 			sum(input_rework_spotcleaning) input_rework_spotcleaning,
@@ -398,7 +460,7 @@ order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
 			sum(qty_reject) qty_reject,
 			sum(out_sew_rft) out_sew_rft,
 			sum(out_sew_rework) out_sew_rework,
-			sum(sa_loading_awal) - sum(sa_qc_line_awal) + sum(qty_loading) - sum(qty_reject) - sum(output_def_sewing) - sum(output_def_spotcleaning) - sum(output_def_mending) - sum(out_sew_rft) - sum(out_sew_rework) saldo_akhir_qc_line,
+			sum(sa_loading_awal) - sum(sa_qc_line_awal) - sum(sa_qc_line_rej_awal) + sum(qty_loading) - sum(qty_reject) - sum(output_def_sewing) - sum(output_def_spotcleaning) - sum(output_def_mending) - sum(out_sew_rft) - sum(out_sew_rework) saldo_akhir_qc_line,
 			sum(sa_out_sew) - sum(sa_in_steam) sa_steam,
 			sum(input_steam) input_steam,
 			sum(output_steam) output_steam,
@@ -408,6 +470,7 @@ FROM
 SELECT
 			so_det_id,
 			count(so_det_id) sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -426,12 +489,38 @@ SELECT
 FROM
      signalbit_erp.output_rfts a
 WHERE
-     updated_at < '$tgl_awal' and STATUS = 'NORMAL'
+     updated_at < '$tgl_awal' and STATUS in ('normal','rework')
 GROUP BY so_det_id
 UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			count(so_det_id) sa_qc_line_rej_awal,
+			'0' sa_loading_awal,
+			'0' qty_loading,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0'input_rework_mending,
+			'0' output_def_sewing,
+			'0' output_def_spotcleaning,
+			'0' output_def_mending,
+			'0' qty_reject,
+			'0' out_sew_rft,
+			'0' out_sew_rework,
+			'0' sa_out_sew,
+			'0' sa_in_steam,
+			'0' input_steam,
+			'0' output_steam
+FROM
+     signalbit_erp.output_rejects a
+WHERE
+     updated_at < '$tgl_awal'
+GROUP BY so_det_id
+UNION
+SELECT
+			so_det_id,
+			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			sum(sa_loading_awal) sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -468,6 +557,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			SUM(qty_loading) qty_loading,
 			'0' input_rework_sewing,
@@ -504,6 +594,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
     SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS input_rework_sewing,
@@ -530,6 +621,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -556,6 +648,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -579,6 +672,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -603,6 +697,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -627,6 +722,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -651,6 +747,32 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
+			'0' sa_loading_awal,
+			'0' qty_loading,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0'input_rework_mending,
+			'0' output_def_sewing,
+			'0' output_def_spotcleaning,
+			'0' output_def_mending,
+			'0' qty_reject,
+			'0' out_sew_rft,
+			'0' out_sew_rework,
+			count(so_det_id) sa_out_sew,
+			'0' sa_in_steam,
+			'0' input_steam,
+			'0' output_steam
+FROM
+     signalbit_erp.output_rfts a
+WHERE
+     updated_at < '$tgl_awal'
+GROUP BY so_det_id
+UNION
+SELECT
+			so_det_id,
+			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -675,6 +797,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
@@ -699,6 +822,7 @@ UNION
 SELECT
 			so_det_id,
 			'0' sa_qc_line_awal,
+			'0' sa_qc_line_rej_awal,
 			'0' sa_loading_awal,
 			'0' qty_loading,
 			'0' input_rework_sewing,
