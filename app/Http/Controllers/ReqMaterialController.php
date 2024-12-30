@@ -41,11 +41,11 @@ class ReqMaterialController extends Controller
 
             if ($request->tipe_data == 'header') {
                 $data_request = DB::connection('mysql_sb')->select("select username,bppbno,bppbdate,supplier,kpno,styleno,buyer, idws_act ,mattype, format(sum(qty_req),2) qty_req, format(sum(qty_out),2) qty_out,  group_concat(distinct(bppbno_int)) bppbno_int, unit from (select a.username,a.bppbno,a.id_item, a.id_jo,a.bppbdate,s.supplier,ac.kpno,ac.styleno,ms.supplier buyer, a.idws_act, round(coalesce(sum(a.qty),0),2) qty_req, round(coalesce(sum(bppb.qty),0),2) qty_out, group_concat(distinct(bppb.bppbno_int)) bppbno_int, IF(bppb.unit is null,a.unit,bppb.unit) unit ,itm.mattype
-                    from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier 
+                    from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
                     INNER JOIN (select id_item, mattype,matclass from masteritem GROUP BY id_item) itm on itm.id_item                                = a.id_item
-                    inner join jo_det jod on a.id_jo=jod.id_jo 
-                    inner join so on jod.id_so=so.id 
-                    inner join act_costing ac on so.id_cost=ac.id 
+                    inner join jo_det jod on a.id_jo=jod.id_jo
+                    inner join so on jod.id_so=so.id
+                    inner join act_costing ac on so.id_cost=ac.id
                     inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
                     left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
                     where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."'
@@ -53,11 +53,11 @@ class ReqMaterialController extends Controller
                     order by a.bppbdate desc) a GROUP BY bppbno");
             }else{
                 $data_request = DB::connection('mysql_sb')->select("select a.username,a.bppbno,a.id_item, a.id_jo,a.bppbdate,s.supplier,ac.kpno,ac.styleno,ms.supplier buyer, a.idws_act, format(round(coalesce(sum(a.qty),0),2),2) qty_req, format(round(coalesce(sum(bppb.qty),0),2),2) qty_out, group_concat(distinct(bppb.bppbno_int)) bppbno_int, IF(bppb.unit is null,a.unit,bppb.unit) unit ,itm.mattype
-                    from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier 
+                    from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
                     INNER JOIN (select id_item, mattype,matclass from masteritem GROUP BY id_item) itm on itm.id_item                                = a.id_item
-                    inner join jo_det jod on a.id_jo=jod.id_jo 
-                    inner join so on jod.id_so=so.id 
-                    inner join act_costing ac on so.id_cost=ac.id 
+                    inner join jo_det jod on a.id_jo=jod.id_jo
+                    inner join so on jod.id_so=so.id
+                    inner join act_costing ac on so.id_cost=ac.id
                     inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
                     left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
                     where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."'
@@ -94,7 +94,7 @@ class ReqMaterialController extends Controller
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
         $kode_gr = DB::connection('mysql_sb')->select("select CONCAT('RQ-F', IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0))) kode, IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)) nomor FROM bppb_req WHERE LEFT(bppbno,4) = 'RQ-F'");
 
-        $tipe_ws = DB::connection('mysql_sb')->select("select type_ws isi, type_ws tampil from act_costing group by type_ws order by 
+        $tipe_ws = DB::connection('mysql_sb')->select("select type_ws isi, type_ws tampil from act_costing group by type_ws order by
             case type_ws when 'STD' then '1'
             when 'DTH' then '2'
             when 'GLOBAL' then '3'
@@ -110,14 +110,14 @@ class ReqMaterialController extends Controller
         $data_head = DB::connection('mysql_sb')->select("select DISTINCT bppbno, bppbdate,id_supplier,remark  from bppb_req where bppbno = '$bppbno'");
         $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('area', '!=', 'LINE')->get();
 
-        $tipe_ws = DB::connection('mysql_sb')->select("select type_ws isi, type_ws tampil from act_costing group by type_ws order by 
+        $tipe_ws = DB::connection('mysql_sb')->select("select type_ws isi, type_ws tampil from act_costing group by type_ws order by
             case type_ws when 'STD' then '1'
             when 'DTH' then '2'
             when 'GLOBAL' then '3'
             else '4'
             end");
 
-        $det_data = DB::connection('mysql_sb')->select("select ac.kpno,idws_act,ac.styleno,jo.jo_no,mi.id_item, a.id_jo, mi.goods_code, mi.itemdesc, a.qty, round(coalesce(sum(bppb.qty),0),2) qty_out, a.unit 
+        $det_data = DB::connection('mysql_sb')->select("select ac.kpno,idws_act,ac.styleno,jo.jo_no,mi.id_item, a.id_jo, mi.goods_code, mi.itemdesc, a.qty, round(coalesce(sum(bppb.qty),0),2) qty_out, a.unit
             from bppb_req a
             inner join masteritem mi on a.id_item = mi.id_item
             left join bppb on a.bppbno = bppb.bppbno_req and a.id_item = bppb.id_item and a.id_jo = bppb.id_jo
@@ -128,7 +128,7 @@ class ReqMaterialController extends Controller
             where a.bppbno = '$bppbno'
             group by a.bppbno, a.id_item");
 
-        $jml_det = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_dok from (select ac.kpno,idws_act,ac.styleno,jo.jo_no,mi.id_item, a.id_jo, mi.goods_code, mi.itemdesc, a.qty, round(coalesce(sum(bppb.qty),0),2) qty_out, a.unit 
+        $jml_det = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_dok from (select ac.kpno,idws_act,ac.styleno,jo.jo_no,mi.id_item, a.id_jo, mi.goods_code, mi.itemdesc, a.qty, round(coalesce(sum(bppb.qty),0),2) qty_out, a.unit
             from bppb_req a
             inner join masteritem mi on a.id_item = mi.id_item
             left join bppb on a.bppbno = bppb.bppbno_req and a.id_item = bppb.id_item and a.id_jo = bppb.id_jo
@@ -145,10 +145,10 @@ class ReqMaterialController extends Controller
 
     public function getWSReq(Request $request)
     {
-        $nomorws = DB::connection('mysql_sb')->select("select a.id isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil 
-          from jo a inner join jo_det s on a.id=s.id_jo 
-          inner join  so on s.id_so=so.id 
-          inner join act_costing ac on so.id_cost=ac.id 
+        $nomorws = DB::connection('mysql_sb')->select("select a.id isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil
+          from jo a inner join jo_det s on a.id=s.id_jo
+          inner join  so on s.id_so=so.id
+          inner join act_costing ac on so.id_cost=ac.id
           where ac.type_ws = '" . $request->tipe_ws . "'
           group by a.id ");
 
@@ -163,10 +163,10 @@ class ReqMaterialController extends Controller
 
     public function getWSact(Request $request)
     {
-        $nomorwsact = DB::connection('mysql_sb')->select("select ac.kpno isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil 
-            from jo a inner join jo_det s on a.id=s.id_jo 
-            inner join  so on s.id_so=so.id 
-            inner join act_costing ac on so.id_cost=ac.id 
+        $nomorwsact = DB::connection('mysql_sb')->select("select ac.kpno isi,concat(a.jo_no,' | ',ac.styleno,' | ',ac.kpno) tampil
+            from jo a inner join jo_det s on a.id=s.id_jo
+            inner join  so on s.id_so=so.id
+            inner join act_costing ac on so.id_cost=ac.id
             inner join (select id_jo from bom_jo_item group by id_jo)   k on s.id_jo = k.id_jo
             where ac.type_ws = 'STD'
             group by a.id");
@@ -185,116 +185,116 @@ class ReqMaterialController extends Controller
     {
         $tipe = $request->tipe_ws;
         // dd($tipe);
-//         if ($tipe == 'STD') {
-//             $det_item = DB::connection('mysql_sb')->select("select a.id_item,ac.kpno,jo_no,a.goods_code,a.id_jo,a.mattype,a.matclass,a.itemdesc,    round( COALESCE ( sum( qty_bpb ), 0 ), 2 ) qty_bpb,
-//             round(COALESCE ( sum( qty_bppb ), 0 ),2) qty_bppb,
-//             round(COALESCE ( sum( qty_bpb ), 0 ) - COALESCE ( sum( qty_bppb ), 0 ),2) sisa_stok,
-//             round(COALESCE ( br.qty_br, 0 ),2) qty_br,
-//             round(COALESCE ( br.qty_br_out, 0 ),2) qty_br_out,
-//             round( COALESCE ( br.qty_br, 0 ) - COALESCE ( br.qty_br_out, 0 ), 2 ) sisa_req,  a.unit from
-//             (select id_item,goods_code,id_jo,mattype, matclass, itemdesc,round(sum(qty_bpb),2) qty_bpb, '0' qty_bppb,unit from (select 'SA' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,round(sum(qty_good),2) qty_bpb, '0' qty_bppb,unit from whs_inmaterial_fabric_det a inner join masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and status = 'Y' GROUP BY a.id_item,id_jo,unit
-// UNION
-// select 'TR' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,round(sum(qty),2) qty_bpb, '0' qty_bppb,unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and qty > 0 and qty_mut is null GROUP BY a.id_item,id_jo,unit
-// UNION
-// select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,'0' qty_bpb, round(sum(qty_out),2) qty_bppb,satuan from whs_bppb_det a inner join  masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and a.status = 'Y' GROUP BY a.id_item,id_jo,satuan) a GROUP BY a.id_item,id_jo,unit) a
-//             inner join jo_det jd on a.id_jo = jd.id_jo
-//             inner join jo on jd.id_jo = jo.id
-//             inner join so on jd.id_so = so.id
-//             inner join act_costing ac on so.id_cost = ac.id
-//             left join 
-//             (select mi.id_item,mi.goods_code,br.id_jo,mi.mattype, mi.matclass, mi.itemdesc,round(sum(br.qty),2) qty_br,round(sum(bppb.qty),2) qty_br_out
-//             from bppb_req br
-//             inner join masteritem mi on br.id_item = mi.id_item
-//             left join 
-//             (select bppb.bppbno_req,id_jo, bppb.id_item, sum(qty) qty, unit from bppb 
-//             inner join masteritem mi on bppb.id_item = mi.id_item 
-//             where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F' and bppbno like 'SJ-F%'
-//             group by mi.id_item, bppb.id_jo, bppbno_req) bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
-//             where br.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and br.unit is not null
-//             group by mi.id_item, br.id_jo
-//             ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
-//             group by a.id_item, a.id_jo, a.unit");
-//         }else if ($tipe == 'GLOBAL') {
-//             $det_item = DB::connection('mysql_sb')->select("select a.id_item,ac.kpno,jo_no,a.goods_code,a.id_jo,a.mattype,a.matclass,a.itemdesc,    round( COALESCE ( sum( qty_bpb ), 0 ), 2 ) qty_bpb,
-//             round(COALESCE ( sum( qty_bppb ), 0 ),2) qty_bppb,
-//             round(COALESCE ( sum( qty_bpb ), 0 ) - COALESCE ( sum( qty_bppb ), 0 ),2) sisa_stok,
-//             round(COALESCE ( br.qty_br, 0 ),2) qty_br,
-//             round(COALESCE ( br.qty_br_out, 0 ),2) qty_br_out,
-//             round( COALESCE ( br.qty_br, 0 ) - COALESCE ( br.qty_br_out, 0 ), 2 ) sisa_req,  a.unit from
-//             (select mi.id_item,mi.goods_code,k.id_jo,mi.mattype, mi.matclass, mi.itemdesc, sum(bpb.qty) qty_bpb, '0' qty_bppb, bpb.unit
-//             from (select id_item,id_jo from bom_jo_global_item k where k.id_jo = '" . $request->id_jo . "' group by id_item) k 
-//             inner join masteritem mi on k.id_item = mi.id_item
-//             left join bpb on mi.id_item = bpb.id_item and k.id_jo = bpb.id_jo          
-//             where k.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
-//             group by mi.id_item, bpb.id_jo, bpb.unit
-//             union
-//             select mi.id_item,mi.goods_code,id_jo,mi.mattype, mi.matclass, mi.itemdesc, '0' qty_bpb, sum(bppb.qty) qty_bppb, bppb.unit
-//             from bppb 
-//             inner join masteritem mi on bppb.id_item = mi.id_item
-//             where bppb.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and bppb.unit is not null
-//             group by mi.id_item, bppb.id_jo, bppb.unit                  
-//             ) a
-//             inner join jo_det jd on a.id_jo = jd.id_jo
-//             inner join jo on jd.id_jo = jo.id
-//             inner join so on jd.id_so = so.id
-//             inner join act_costing ac on so.id_cost = ac.id
-//             left join 
-//             (select mi.id_item,mi.goods_code,br.id_jo,mi.mattype, mi.matclass, mi.itemdesc,round(sum(br.qty),2) qty_br,round(sum(bppb.qty),2) qty_br_out
-//             from bppb_req br
-//             inner join masteritem mi on br.id_item = mi.id_item
-//             left join bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
-//             where br.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and br.unit is not null
-//             group by mi.id_item, br.id_jo
-//             ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
-//             group by a.id_item, a.id_jo, a.unit");           
-//         } else if ($tipe == 'DTH'){
-//             $det_item = DB::connection('mysql_sb')->select("select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo, 
-//             round(coalesce(sum(a.qty_in),0),2) qty_bpb, 
-//             round(coalesce(sum(a.qty_out),0),2) qty_bppb,
-//             round(coalesce(sum(a.qty_in) - sum(a.qty_out),0),2) sisa_stok, 
-//             round(coalesce(sum(qty_br),0),2) qty_br, 
-//             round(coalesce(sum(qty_br_out),0),2) qty_br_out,
-//             round(coalesce(sum(qty_br) - sum(qty_br_out),0),2) sisa_req,
-//             a.unit
-//             from (
-//             select mi.id_item,id_jo, sum(bpb.qty) qty_in, '0' qty_out,bpb.unit
-//             from bpb 
-//             inner join masteritem mi on bpb.id_item = mi.id_item
-//             where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
-//             group by id_item, id_jo, unit
-//             union 
-//             select mi.id_item,id_jo, '0' qty_in,sum(bppb.qty) qty_out,bppb.unit
-//             from bppb 
-//             inner join masteritem mi on bppb.id_item = mi.id_item
-//             where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
-//             group by id_item, id_jo, unit
-//             ) a
-//             left join masteritem mi on a.id_item = mi.id_item
-//             inner join jo_det jd on a.id_jo  = jd.id_jo
-//             inner join jo on a.id_jo = jo.id
-//             inner join so on jd.id_so = so.id
-//             inner join act_costing ac on so.id_cost = ac.id
-//             left join (select mi.id_item, br.id_jo,round(coalesce(sum(br.qty),0),2) qty_br,round(coalesce(sum(bppb.qty),0),2) qty_br_out, br.unit from bppb_req br
-//             inner join masteritem mi on br.id_item = mi.id_item
-//             left join bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
-//             where br.id_jo= '" . $request->id_jo . "' and mi.mattype = 'F' and br.bppbdate >= '2023-01-01'
-//             group by mi.id_item, br.unit) br on a.id_item = br.id_item and a.id_jo = br.id_jo and a.unit = br.unit
-//             group by mi.id_item, a.id_jo, unit
-//             having sum(a.qty_in) - sum(a.qty_out) >'0'");            
-//         }  
+        if ($tipe == 'STD') {
+            $det_item = DB::connection('mysql_sb')->select("select a.id_item,ac.kpno,jo_no,a.goods_code,a.id_jo,a.mattype,a.matclass,a.itemdesc,    round( COALESCE ( sum( qty_bpb ), 0 ), 2 ) qty_bpb,
+            round(COALESCE ( sum( qty_bppb ), 0 ),2) qty_bppb,
+            round(COALESCE ( sum( qty_bpb ), 0 ) - COALESCE ( sum( qty_bppb ), 0 ),2) sisa_stok,
+            round(COALESCE ( br.qty_br, 0 ),2) qty_br,
+            round(COALESCE ( br.qty_br_out, 0 ),2) qty_br_out,
+            round( COALESCE ( br.qty_br, 0 ) - COALESCE ( br.qty_br_out, 0 ), 2 ) sisa_req,  a.unit from
+            (select id_item,goods_code,id_jo,mattype, matclass, itemdesc,round(sum(qty_bpb),2) qty_bpb, '0' qty_bppb,unit from (select 'SA' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,round(sum(qty_good),2) qty_bpb, '0' qty_bppb,unit from whs_inmaterial_fabric_det a inner join masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and status = 'Y' GROUP BY a.id_item,id_jo,unit
+UNION
+select 'TR' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,round(sum(qty),2) qty_bpb, '0' qty_bppb,unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and qty > 0 and qty_mut is null GROUP BY a.id_item,id_jo,unit
+UNION
+select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,'0' qty_bpb, round(sum(qty_out),2) qty_bppb,satuan from whs_bppb_det a inner join  masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and a.status = 'Y' GROUP BY a.id_item,id_jo,satuan) a GROUP BY a.id_item,id_jo,unit) a
+            inner join jo_det jd on a.id_jo = jd.id_jo
+            inner join jo on jd.id_jo = jo.id
+            inner join so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            left join
+            (select mi.id_item,mi.goods_code,br.id_jo,mi.mattype, mi.matclass, mi.itemdesc,round(sum(br.qty),2) qty_br,round(sum(bppb.qty),2) qty_br_out
+            from bppb_req br
+            inner join masteritem mi on br.id_item = mi.id_item
+            left join
+            (select bppb.bppbno_req,id_jo, bppb.id_item, sum(qty) qty, unit from bppb
+            inner join masteritem mi on bppb.id_item = mi.id_item
+            where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F' and bppbno like 'SJ-F%'
+            group by mi.id_item, bppb.id_jo, bppbno_req) bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
+            where br.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and br.unit is not null
+            group by mi.id_item, br.id_jo
+            ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
+            group by a.id_item, a.id_jo, a.unit");
+        }else if ($tipe == 'GLOBAL') {
+            $det_item = DB::connection('mysql_sb')->select("select a.id_item,ac.kpno,jo_no,a.goods_code,a.id_jo,a.mattype,a.matclass,a.itemdesc,    round( COALESCE ( sum( qty_bpb ), 0 ), 2 ) qty_bpb,
+            round(COALESCE ( sum( qty_bppb ), 0 ),2) qty_bppb,
+            round(COALESCE ( sum( qty_bpb ), 0 ) - COALESCE ( sum( qty_bppb ), 0 ),2) sisa_stok,
+            round(COALESCE ( br.qty_br, 0 ),2) qty_br,
+            round(COALESCE ( br.qty_br_out, 0 ),2) qty_br_out,
+            round( COALESCE ( br.qty_br, 0 ) - COALESCE ( br.qty_br_out, 0 ), 2 ) sisa_req,  a.unit from
+            (select mi.id_item,mi.goods_code,k.id_jo,mi.mattype, mi.matclass, mi.itemdesc, sum(bpb.qty) qty_bpb, '0' qty_bppb, bpb.unit
+            from (select id_item,id_jo from bom_jo_global_item k where k.id_jo = '" . $request->id_jo . "' group by id_item) k
+            inner join masteritem mi on k.id_item = mi.id_item
+            left join bpb on mi.id_item = bpb.id_item and k.id_jo = bpb.id_jo
+            where k.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
+            group by mi.id_item, bpb.id_jo, bpb.unit
+            union
+            select mi.id_item,mi.goods_code,id_jo,mi.mattype, mi.matclass, mi.itemdesc, '0' qty_bpb, sum(bppb.qty) qty_bppb, bppb.unit
+            from bppb
+            inner join masteritem mi on bppb.id_item = mi.id_item
+            where bppb.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and bppb.unit is not null
+            group by mi.id_item, bppb.id_jo, bppb.unit
+            ) a
+            inner join jo_det jd on a.id_jo = jd.id_jo
+            inner join jo on jd.id_jo = jo.id
+            inner join so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            left join
+            (select mi.id_item,mi.goods_code,br.id_jo,mi.mattype, mi.matclass, mi.itemdesc,round(sum(br.qty),2) qty_br,round(sum(bppb.qty),2) qty_br_out
+            from bppb_req br
+            inner join masteritem mi on br.id_item = mi.id_item
+            left join bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
+            where br.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and br.unit is not null
+            group by mi.id_item, br.id_jo
+            ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
+            group by a.id_item, a.id_jo, a.unit");
+        } else if ($tipe == 'DTH'){
+            $det_item = DB::connection('mysql_sb')->select("select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo,
+            round(coalesce(sum(a.qty_in),0),2) qty_bpb,
+            round(coalesce(sum(a.qty_out),0),2) qty_bppb,
+            round(coalesce(sum(a.qty_in) - sum(a.qty_out),0),2) sisa_stok,
+            round(coalesce(sum(qty_br),0),2) qty_br,
+            round(coalesce(sum(qty_br_out),0),2) qty_br_out,
+            round(coalesce(sum(qty_br) - sum(qty_br_out),0),2) sisa_req,
+            a.unit
+            from (
+            select mi.id_item,id_jo, sum(bpb.qty) qty_in, '0' qty_out,bpb.unit
+            from bpb
+            inner join masteritem mi on bpb.id_item = mi.id_item
+            where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
+            group by id_item, id_jo, unit
+            union
+            select mi.id_item,id_jo, '0' qty_in,sum(bppb.qty) qty_out,bppb.unit
+            from bppb
+            inner join masteritem mi on bppb.id_item = mi.id_item
+            where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
+            group by id_item, id_jo, unit
+            ) a
+            left join masteritem mi on a.id_item = mi.id_item
+            inner join jo_det jd on a.id_jo  = jd.id_jo
+            inner join jo on a.id_jo = jo.id
+            inner join so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            left join (select mi.id_item, br.id_jo,round(coalesce(sum(br.qty),0),2) qty_br,round(coalesce(sum(bppb.qty),0),2) qty_br_out, br.unit from bppb_req br
+            inner join masteritem mi on br.id_item = mi.id_item
+            left join bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
+            where br.id_jo= '" . $request->id_jo . "' and mi.mattype = 'F' and br.bppbdate >= '2023-01-01'
+            group by mi.id_item, br.unit) br on a.id_item = br.id_item and a.id_jo = br.id_jo and a.unit = br.unit
+            group by mi.id_item, a.id_jo, unit
+            having sum(a.qty_in) - sum(a.qty_out) >'0'");
+        }
 
 
-        $det_item = DB::connection('mysql_sb')->select("select a.id_item, tmpjo.kpno, tmpjo.jo_no, mi.goods_code, mi.itemdesc,a.id_jo, mi.mattype, mi.matclass, a.qty_bpb, qty_bppb, sisa_stok, COALESCE(br.qty_br,0) qty_br, COALESCE(br.qty_br_out,0) qty_br_out, (COALESCE(br.qty_br,0) - COALESCE(br.qty_br_out,0)) sisa_req, a.unit from (select id_jo,id_item,round(sum(qty_in),2) qty_bpb, round(sum(qty_out),2) qty_bppb, round(sum(qty_sisa),2) sisa_stok,unit from (select no_bpb, tgl_bpb ,no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll, sum(qty_in) qty_in, sum(qty_out) qty_out, round(sum(qty_in) - sum(qty_out),2) qty_sisa,unit from (select 'saldo_awal' id,no_barcode,no_bpb, tgl_bpb, kode_lok,id_jo,id_item,no_lot,no_roll, sum(qty) qty_in, 0 qty_out,unit from whs_sa_fabric where id_jo = '" . $request->id_jo . "' GROUP BY no_barcode, kode_lok
-            UNION
-            select 'transaksi in',no_barcode,a.no_dok,b.tgl_dok,kode_lok,id_jo,id_item,no_lot,no_roll,sum(qty_sj) qty_in, 0 qty_out,satuan from whs_lokasi_inmaterial a Inner JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and id_jo = '" . $request->id_jo . "' GROUP BY no_barcode, kode_lok
-            UNION
-            select 'transaksi in mut',no_barcode,a.no_dok,b.tgl_mut,kode_lok,id_jo,a.id_item,a.no_lot,a.no_roll,sum(qty_sj) qty_in, 0 qty_out,satuan from whs_lokasi_inmaterial a inner JOIN whs_mut_lokasi b on b.idbpb_det = a.no_barcode_old where a.status = 'Y' and a.no_dok like '%MT/%'  and id_jo = '" . $request->id_jo . "' GROUP BY no_barcode,kode_lok
-            UNION
-            select 'pengeluaran',id_roll,b.no_bppb,b.tgl_bppb,no_rak,id_jo,id_item,no_lot,no_roll,0 qty_in, sum(qty_out) qty_out,satuan from whs_bppb_det a INNER JOIN whs_bppb_h b on b.no_bppb = a.no_bppb where a.status = 'Y' and id_jo = '" . $request->id_jo . "' GROUP BY id_roll, no_rak
-            UNION
-            select 'mutasi',idbpb_det,a.no_mut,a.tgl_mut, b.kode_lok,b.id_jo,a.id_item,a.no_lot,a.no_roll,0 qty_in, sum(a.qty_mutasi) qty_out,satuan from whs_mut_lokasi a INNER JOIN whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where a.status = 'Y' and b.qty_mutasi > 0 and id_jo = '" . $request->id_jo . "' GROUP BY idbpb_det, b.kode_lok
-            UNION
-            select 'mutasi',idbpb_det,a.no_mut,a.tgl_mut, b.kode_lok,b.id_jo,a.id_item,a.no_lot,a.no_roll,0 qty_in, sum(a.qty_mutasi) qty_out,b.unit from whs_mut_lokasi a INNER JOIN whs_sa_fabric b on b.no_barcode = a.idbpb_det where a.status = 'Y' and id_jo = '" . $request->id_jo . "' GROUP BY idbpb_det, kode_lok) a GROUP BY no_barcode,kode_lok) a where no_barcode not in ('F28526','F48312') GROUP BY id_jo,id_item,unit) a inner join (select id_jo,kpno,styleno,jo_no from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so inner join jo on jo.id = jod.id_jo where id_jo = '" . $request->id_jo . "' group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo INNER JOIN masteritem mi on a.id_item = mi.id_item LEFT JOIN (select id_jo, id_item, sum(qty) qty_br, sum(qty_out) qty_br_out, unit from bppb_req where id_jo = '" . $request->id_jo . "' GROUP BY id_jo, id_item, unit) br on br.id_jo = a.id_jo and br.id_item = a.id_item and br.unit = a.unit"); 
+        // $det_item = DB::connection('mysql_sb')->select("select a.id_item, tmpjo.kpno, tmpjo.jo_no, mi.goods_code, mi.itemdesc,a.id_jo, mi.mattype, mi.matclass, a.qty_bpb, qty_bppb, sisa_stok, COALESCE(br.qty_br,0) qty_br, COALESCE(br.qty_br_out,0) qty_br_out, (COALESCE(br.qty_br,0) - COALESCE(br.qty_br_out,0)) sisa_req, a.unit from (select id_jo,id_item,round(sum(qty_in),2) qty_bpb, round(sum(qty_out),2) qty_bppb, round(sum(qty_sisa),2) sisa_stok,unit from (select no_bpb, tgl_bpb ,no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll, sum(qty_in) qty_in, sum(qty_out) qty_out, round(sum(qty_in) - sum(qty_out),2) qty_sisa,unit from (select 'saldo_awal' id,no_barcode,no_bpb, tgl_bpb, kode_lok,id_jo,id_item,no_lot,no_roll, sum(qty) qty_in, 0 qty_out,unit from whs_sa_fabric where id_jo = '" . $request->id_jo . "' GROUP BY no_barcode, kode_lok
+        //     UNION
+        //     select 'transaksi in',no_barcode,a.no_dok,b.tgl_dok,kode_lok,id_jo,id_item,no_lot,no_roll,sum(qty_sj) qty_in, 0 qty_out,satuan from whs_lokasi_inmaterial a Inner JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and id_jo = '" . $request->id_jo . "' GROUP BY no_barcode, kode_lok
+        //     UNION
+        //     select 'transaksi in mut',no_barcode,a.no_dok,b.tgl_mut,kode_lok,id_jo,a.id_item,a.no_lot,a.no_roll,sum(qty_sj) qty_in, 0 qty_out,satuan from whs_lokasi_inmaterial a inner JOIN whs_mut_lokasi b on b.idbpb_det = a.no_barcode_old where a.status = 'Y' and a.no_dok like '%MT/%'  and id_jo = '" . $request->id_jo . "' GROUP BY no_barcode,kode_lok
+        //     UNION
+        //     select 'pengeluaran',id_roll,b.no_bppb,b.tgl_bppb,no_rak,id_jo,id_item,no_lot,no_roll,0 qty_in, sum(qty_out) qty_out,satuan from whs_bppb_det a INNER JOIN whs_bppb_h b on b.no_bppb = a.no_bppb where a.status = 'Y' and id_jo = '" . $request->id_jo . "' GROUP BY id_roll, no_rak
+        //     UNION
+        //     select 'mutasi',idbpb_det,a.no_mut,a.tgl_mut, b.kode_lok,b.id_jo,a.id_item,a.no_lot,a.no_roll,0 qty_in, sum(a.qty_mutasi) qty_out,satuan from whs_mut_lokasi a INNER JOIN whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where a.status = 'Y' and b.qty_mutasi > 0 and id_jo = '" . $request->id_jo . "' GROUP BY idbpb_det, b.kode_lok
+        //     UNION
+        //     select 'mutasi',idbpb_det,a.no_mut,a.tgl_mut, b.kode_lok,b.id_jo,a.id_item,a.no_lot,a.no_roll,0 qty_in, sum(a.qty_mutasi) qty_out,b.unit from whs_mut_lokasi a INNER JOIN whs_sa_fabric b on b.no_barcode = a.idbpb_det where a.status = 'Y' and id_jo = '" . $request->id_jo . "' GROUP BY idbpb_det, kode_lok) a GROUP BY no_barcode,kode_lok) a where no_barcode not in ('F28526','F48312') GROUP BY id_jo,id_item,unit) a inner join (select id_jo,kpno,styleno,jo_no from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so inner join jo on jo.id = jod.id_jo where id_jo = '" . $request->id_jo . "' group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo INNER JOIN masteritem mi on a.id_item = mi.id_item LEFT JOIN (select id_jo, id_item, sum(qty) qty_br, sum(qty_out) qty_br_out, unit from bppb_req where id_jo = '" . $request->id_jo . "' GROUP BY id_jo, id_item, unit) br on br.id_jo = a.id_jo and br.id_item = a.id_item and br.unit = a.unit");
 
         $html = '';
         $x = 1;
@@ -361,19 +361,19 @@ class ReqMaterialController extends Controller
                 inner join jo on jd.id_jo = jo.id
                 inner join so on jd.id_so = so.id
                 inner join act_costing ac on so.id_cost = ac.id
-                left join 
+                left join
                 (select mi.id_item,mi.goods_code,br.id_jo,mi.mattype, mi.matclass, mi.itemdesc,round(sum(br.qty),2) qty_br,round(sum(bppb.qty),2) qty_br_out
                 from bppb_req br
                 inner join masteritem mi on br.id_item = mi.id_item
-                left join 
-                (select bppb.bppbno_req,id_jo, bppb.id_item, sum(qty) qty, unit from bppb 
-                inner join masteritem mi on bppb.id_item = mi.id_item 
+                left join
+                (select bppb.bppbno_req,id_jo, bppb.id_item, sum(qty) qty, unit from bppb
+                inner join masteritem mi on bppb.id_item = mi.id_item
                 where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F' and bppbno like 'SJ-F%'
                 group by mi.id_item, bppb.id_jo, bppbno_req) bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
                 where br.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and br.unit is not null
                 group by mi.id_item, br.id_jo
                 ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
-                group by a.id_item, a.id_jo, a.unit) a");           
+                group by a.id_item, a.id_jo, a.unit) a");
         } else if ($tipe == 'GLOBAL') {
             $sum_item = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_item from (select a.id_item,ac.kpno,jo_no,a.goods_code,a.id_jo,a.mattype,a.matclass,a.itemdesc,    round( COALESCE ( sum( qty_bpb ), 0 ), 2 ) qty_bpb,
                 round(COALESCE ( sum( qty_bppb ), 0 ),2) qty_bppb,
@@ -382,23 +382,23 @@ class ReqMaterialController extends Controller
                 round(COALESCE ( br.qty_br_out, 0 ),2) qty_br_out,
                 round( COALESCE ( br.qty_br, 0 ) - COALESCE ( br.qty_br_out, 0 ), 2 ) sisa_req,  a.unit from
                 (select mi.id_item,mi.goods_code,k.id_jo,mi.mattype, mi.matclass, mi.itemdesc, sum(bpb.qty) qty_bpb, '0' qty_bppb, bpb.unit
-                from (select id_item,id_jo from bom_jo_global_item k where k.id_jo = '" . $request->id_jo . "' group by id_item) k 
+                from (select id_item,id_jo from bom_jo_global_item k where k.id_jo = '" . $request->id_jo . "' group by id_item) k
                 inner join masteritem mi on k.id_item = mi.id_item
-                left join bpb on mi.id_item = bpb.id_item and k.id_jo = bpb.id_jo          
+                left join bpb on mi.id_item = bpb.id_item and k.id_jo = bpb.id_jo
                 where k.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
                 group by mi.id_item, bpb.id_jo, bpb.unit
                 union
                 select mi.id_item,mi.goods_code,id_jo,mi.mattype, mi.matclass, mi.itemdesc, '0' qty_bpb, sum(bppb.qty) qty_bppb, bppb.unit
-                from bppb 
+                from bppb
                 inner join masteritem mi on bppb.id_item = mi.id_item
                 where bppb.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and bppb.unit is not null
-                group by mi.id_item, bppb.id_jo, bppb.unit                  
+                group by mi.id_item, bppb.id_jo, bppb.unit
                 ) a
                 inner join jo_det jd on a.id_jo = jd.id_jo
                 inner join jo on jd.id_jo = jo.id
                 inner join so on jd.id_so = so.id
                 inner join act_costing ac on so.id_cost = ac.id
-                left join 
+                left join
                 (select mi.id_item,mi.goods_code,br.id_jo,mi.mattype, mi.matclass, mi.itemdesc,round(sum(br.qty),2) qty_br,round(sum(bppb.qty),2) qty_br_out
                 from bppb_req br
                 inner join masteritem mi on br.id_item = mi.id_item
@@ -406,25 +406,25 @@ class ReqMaterialController extends Controller
                 where br.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and br.unit is not null
                 group by mi.id_item, br.id_jo
                 ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
-                group by a.id_item, a.id_jo, a.unit) a");           
+                group by a.id_item, a.id_jo, a.unit) a");
         }else if ($tipe == 'DTH'){
-            $sum_item = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_item from (select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo, 
-                round(coalesce(sum(a.qty_in),0),2) qty_bpb, 
+            $sum_item = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_item from (select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo,
+                round(coalesce(sum(a.qty_in),0),2) qty_bpb,
                 round(coalesce(sum(a.qty_out),0),2) qty_bppb,
-                round(coalesce(sum(a.qty_in) - sum(a.qty_out),0),2) sisa_stok, 
-                round(coalesce(sum(qty_br),0),2) qty_br, 
+                round(coalesce(sum(a.qty_in) - sum(a.qty_out),0),2) sisa_stok,
+                round(coalesce(sum(qty_br),0),2) qty_br,
                 round(coalesce(sum(qty_br_out),0),2) qty_br_out,
                 round(coalesce(sum(qty_br) - sum(qty_br_out),0),2) sisa_req,
                 a.unit
                 from (
                 select mi.id_item,id_jo, sum(bpb.qty) qty_in, '0' qty_out,bpb.unit
-                from bpb 
+                from bpb
                 inner join masteritem mi on bpb.id_item = mi.id_item
                 where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
                 group by id_item, id_jo, unit
-                union 
+                union
                 select mi.id_item,id_jo, '0' qty_in,sum(bppb.qty) qty_out,bppb.unit
-                from bppb 
+                from bppb
                 inner join masteritem mi on bppb.id_item = mi.id_item
                 where id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
                 group by id_item, id_jo, unit
@@ -440,10 +440,10 @@ class ReqMaterialController extends Controller
                 where br.id_jo= '" . $request->id_jo . "' and mi.mattype = 'F' and br.bppbdate >= '2023-01-01'
                 group by mi.id_item, br.unit) br on a.id_item = br.id_item and a.id_jo = br.id_jo and a.unit = br.unit
                 group by mi.id_item, a.id_jo, unit
-                having sum(a.qty_in) - sum(a.qty_out) >'0') a");            
-        }    
+                having sum(a.qty_in) - sum(a.qty_out) >'0') a");
+        }
         // dd($sum_item);
-        
+
         return $sum_item;
     }
 
@@ -456,7 +456,7 @@ class ReqMaterialController extends Controller
             'approved_by' => Auth::user()->name,
             'approved_date' => $timestamp,
         ]);
-        
+
         $massage = 'Approved Data Successfully';
 
         return array(
@@ -465,7 +465,7 @@ class ReqMaterialController extends Controller
             "additional" => [],
             "redirect" => url('/in-material')
         );
-        
+
     }
 
 
@@ -567,7 +567,7 @@ class ReqMaterialController extends Controller
 
 
         $dataHeader = DB::connection('mysql_sb')->select("select DISTINCT b.username,b.bppbno,b.bppbdate,ac.kpno,ac.styleno,b.tanggal_aju,supplier tujuan,b.idws_act,so.mindeldate as del_date FROM bppb_req b INNER JOIN masteritem mi on b.id_item = mi.id_item INNER JOIN mastersupplier msup on b.id_supplier=msup.id_supplier INNER JOIN (select id_so,id_jo from jo_det group by id_jo) jod on b.id_jo=jod.id_jo inner join (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on so.id=sod.id_so group by so.id) so on jod.id_so=so.id inner join act_costing ac on so.id_cost=ac.id WHERE 1=1 AND bppbno = '$bppbno'");
-        $dataDetail = DB::connection('mysql_sb')->select("select b.username,b.bppbno,b.bppbdate,ac.kpno,ac.styleno,b.tanggal_aju,supplier tujuan,so.mindeldate as del_date,concat(mi.goods_code,' ',mi.itemdesc) itemdesc,mi.color,no_rak as location,qtyloc as loc_qty,unitloc as loc_unit,b.qty as qty_request,qtysdhout as out_qty,unitsdhout as out_unit,'' as check_picker,'' as check_loader,'' as check_penerima,b.remark,b.idws_act FROM bppb_req b INNER JOIN masteritem mi on b.id_item = mi.id_item INNER JOIN mastersupplier msup on b.id_supplier=msup.id_supplier INNER JOIN (select id_so,id_jo from jo_det group by id_jo)  jod on b.id_jo=jod.id_jo inner join (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on so.id=sod.id_so group by so.id) so on jod.id_so=so.id inner join act_costing ac on so.id_cost=ac.id 
+        $dataDetail = DB::connection('mysql_sb')->select("select b.username,b.bppbno,b.bppbdate,ac.kpno,ac.styleno,b.tanggal_aju,supplier tujuan,so.mindeldate as del_date,concat(mi.goods_code,' ',mi.itemdesc) itemdesc,mi.color,no_rak as location,qtyloc as loc_qty,unitloc as loc_unit,b.qty as qty_request,qtysdhout as out_qty,unitsdhout as out_unit,'' as check_picker,'' as check_loader,'' as check_penerima,b.remark,b.idws_act FROM bppb_req b INNER JOIN masteritem mi on b.id_item = mi.id_item INNER JOIN mastersupplier msup on b.id_supplier=msup.id_supplier INNER JOIN (select id_so,id_jo from jo_det group by id_jo)  jod on b.id_jo=jod.id_jo inner join (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on so.id=sod.id_so group by so.id) so on jod.id_so=so.id inner join act_costing ac on so.id_cost=ac.id
             left join (select id_item,id_jo,group_concat(kode_rak,' ',qtyloc,' ',unitloc SEPARATOR ', ') no_rak,0 qtyloc,'' unitloc from (select a.id_item,a.id_jo,d.kode_rak,round(sum(roll_qty),2) qtyloc, round(sum(roll_qty_used),2) qtyused,round(sum(roll_qty),2) - round(sum(roll_qty_used),2) qtysisa,unit unitloc from bpb_roll_h a inner join bpb_roll s on a.id=s.id_h inner join master_rak d on s.id_rak_loc=d.id group by id_item,id_jo,d.kode_rak having round(sum(roll_qty),2) - round(sum(roll_qty_used),2) != '0') tmplok group by id_item,id_jo) tbllok on b.id_item=tbllok.id_item and b.id_jo=tbllok.id_jo left join (select bppbno_req,id_item,id_jo,sum(qty) qtysdhout,unit unitsdhout from bppb where bppbno_req='$bppbno' group by id_item,id_jo) tblsdhout on b.bppbno=tblsdhout.bppbno_req and b.id_item=tblsdhout.id_item WHERE 1=1 AND bppbno = '$bppbno'");
         $dataSum = DB::connection('mysql_sb')->select("select sum(qty) total_req FROM bppb_req where bppbno = '$bppbno'");
         $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$bppbno' limit 1");
@@ -582,7 +582,7 @@ class ReqMaterialController extends Controller
         $generatedFilePath = public_path('pdf/'.$fileName);
 
         return response()->download($generatedFilePath);
-        
+
     }
 
     public function updateReq(Request $request)
@@ -608,7 +608,7 @@ class ReqMaterialController extends Controller
             "additional" => [],
             "redirect" => url('/req-material')
         );
-        
+
     }
 
 
@@ -618,7 +618,7 @@ class ReqMaterialController extends Controller
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -657,5 +657,5 @@ class ReqMaterialController extends Controller
 
 
 
-    
+
 }
