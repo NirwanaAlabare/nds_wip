@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\Cutting\PipingProcess;
+use App\Models\Cutting\PipingProcessDetail;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
@@ -46,6 +47,12 @@ class PipingProcessController extends Controller
                 addColumn('part', function ($row) {
                     return $row->masterPiping->part;
                 })->
+                addColumn('panjang', function ($row) {
+                    return $row->masterPiping->panjang;
+                })->
+                addColumn('unit', function ($row) {
+                    return $row->masterPiping->unit;
+                })->
                 order(function ($query) {
                     $query->orderBy('piping_process.updated_at', 'desc');
                 })->
@@ -70,6 +77,8 @@ class PipingProcessController extends Controller
         $pipingProcess = PipingProcess::find($id);
 
         if (!$pipingProcess) {
+            session()->forget('currentPipingProcess');
+
             return redirect()->route('create-piping-process');
         }
 
@@ -98,6 +107,7 @@ class PipingProcessController extends Controller
                     "process" => $request->process,
                     "kode_piping" => $validatedRequest["kode_piping"],
                     "master_piping_id" => $validatedRequest["master_piping_id"],
+                    "tanggal" => date("Y-m-d"),
                     "created_by" => Auth::user()->id,
                     "created_by_username" => Auth::user()->username
                 ]);
@@ -108,13 +118,107 @@ class PipingProcessController extends Controller
                     return array(
                         "status" => 200,
                         "message" => "Process Piping berhasil disimpan.",
-                        "additional" => [],
+                        "additional" => $storePipingProcess,
                     );
                 }
 
                 break;
             case 2 :
-                dd($request);
+                $validatedRequest = $request->validate([
+                    "id" => "required",
+                    "method" => "required",
+                ]);
+
+                $idItem = $validatedRequest["method"] == "single" ? $request->id_item : implode(", ", array_unique($request->id_item_rolls));
+                $group = $validatedRequest["method"] == "single" ? $request->group_item : implode(", ", array_unique($request->group_rolls));
+                $lot = $validatedRequest["method"] == "single" ? $request->lot_item : implode(", ", array_unique($request->lot_rolls));
+                $noRoll = $validatedRequest["method"] == "single" ? $request->no_roll_item : implode(", ", array_unique($request->no_rolls));
+                $qty = $validatedRequest["method"] == "single" ? $request->qty_item : $request->total_qty;
+                $unit = $validatedRequest["method"] == "single" ? $request->unit_item : $request->total_unit;
+                $totalRoll = $validatedRequest["method"] == "single" ? 1 : $request->total_roll;
+
+
+                $pipingProcessModel = PipingProcess::where("id", $validatedRequest["id"]);
+
+                if ($pipingProcessModel) {
+                    $updatePipingProcess = $pipingProcessModel->update([
+                        "process" => $request->process,
+                        "method" => $validatedRequest["method"],
+                        "id_item" => $idItem,
+                        "group" => $group,
+                        "lot" => $lot,
+                        "no_roll" => $noRoll,
+                        "qty_awal" => $qty,
+                        "unit" => $unit,
+                        "panjang_roll_piping" => $pipingProcessModel->first()->masterPiping->panjang,
+                        "panjang_roll_piping_unit" => $pipingProcessModel->first()->masterPiping->unit,
+                        "lebar_kain_act_unit" => $unit,
+                        "lebar_kain_cuttable_unit" => $unit,
+                        // "lebar_roll_piping" => 0,
+                        "lebar_roll_piping_unit" => $pipingProcessModel->first()->masterPiping->unit,
+                        "total_roll" => $totalRoll
+                    ]);
+
+                    if ($updatePipingProcess) {
+                        $storePipingProcessDetail = [];
+
+                        if ($validatedRequest["method"] == "single") {
+                            $validatedRequestDetail = $request->validate([
+                                "id_roll" => "required",
+                                "id_item" => "required",
+                                "color_act" => "required",
+                                "group_item" => "required",
+                                "lot_item" => "required",
+                                "no_roll" => "required",
+                                "form_cut_id" => "required",
+                                "no_form" => "required",
+                                "qty" => "required",
+                                "unit" => "required"
+                            ]);
+
+                            array_push($storePipingProcessDetail, [
+                                "piping_process_id" => $validatedRequest["id"],
+                                "id_roll" => $validatedRequestDetail["id_roll"],
+                                "id_item" => $validatedRequestDetail["id_item"],
+                                "color_act" => $validatedRequestDetail["color_act"],
+                                "group" => $validatedRequestDetail["group_item"],
+                                "lot" => $validatedRequestDetail["lot_item"],
+                                "no_roll" => $validatedRequestDetail["no_roll_item"],
+                                "form_cut_id" => $validatedRequestDetail["form_cut_id"],
+                                "no_form" => $validatedRequestDetail["no_form"],
+                                "qty" => $validatedRequestDetail["qty_item"],
+                                "unit" => $validatedRequestDetail["unit_item"],
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username
+                            ]);
+                        } else if ($validatedRequest["method"] == "multi") {
+                            for ($i = 1; $i <= count($request->id_rolls); $i++) {
+                                array_push($storePipingProcessDetail, [
+                                    "piping_process_id" => $validatedRequest["id"],
+                                    "id_roll" => $request->id_rolls[$i],
+                                    "id_item" => $request->id_item_rolls[$i],
+                                    "color_act" => $request->color_rolls[$i],
+                                    "group" => $request->group_rolls[$i],
+                                    "lot" => $request->lot_rolls[$i],
+                                    "no_roll" => $request->no_rolls[$i],
+                                    "form_cut_id" => $request->id_form_rolls[$i],
+                                    "qty" => $request->qty_rolls[$i],
+                                    "unit" => $request->unit_rolls[$i],
+                                    "created_by" => Auth::user()->id,
+                                    "created_by_username" => Auth::user()->username
+                                ]);
+                            }
+                        }
+
+                        $storePipingProcessDetail = PipingProcessDetail::insert($storePipingProcessDetail);
+
+                        return array(
+                            "status" => 200,
+                            "message" => "Process Item Piping berhasil disimpan.",
+                            "additional" => $pipingProcessModel->first(),
+                        );
+                    }
+                }
 
                 break;
             case 3 :
@@ -146,16 +250,19 @@ class PipingProcessController extends Controller
 
     public function item($id = 0) {
         $piping = FormCutInputDetail::selectRaw("
+            form_cut_input_detail.form_cut_id,
+            form_cut_input_detail.no_form_cut_input,
             form_cut_input_detail.id_item,
             form_cut_input_detail.detail_item,
             form_cut_input_detail.color_act,
             form_cut_input_detail.group_roll,
             form_cut_input_detail.lot,
+            COALESCE(form_cut_input_detail.roll_buyer, form_cut_input_detail.roll) no_roll,
             SUM(form_cut_input_detail.piping) piping,
             form_cut_input_detail.unit
         ")->
         where("form_cut_input_detail.id_roll", $id)->
-        groupBy("form_cut_input_detail.form_cut_id")->
+        groupBy("form_cut_input_detail.id_roll")->
         having("piping", ">", 0)->
         first();
 
@@ -174,16 +281,20 @@ class PipingProcessController extends Controller
 
     public function itemPiping($id = 0, $idForm = 0) {
         $piping = FormCutInput::selectRaw("
+                form_cut_input_detail.form_cut_id,
+                form_cut_input_detail.no_form_cut_input,
+                form_cut_input_detail.id_item,
                 form_cut_input_detail.color_act,
                 form_cut_input_detail.group_roll,
                 form_cut_input_detail.lot,
+                COALESCE(form_cut_input_detail.roll_buyer, form_cut_input_detail.roll) no_roll,
                 SUM(form_cut_input_detail.piping) piping,
                 form_cut_input_detail.unit
             ")->
             leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
             where("form_cut_input_detail.id_roll", $id)->
             where("form_cut_input.id", $idForm)->
-            groupBy("form_cut_input.id")->
+            groupBy("form_cut_input_detail.id_roll", "form_cut_input.id")->
             having("piping", ">", 0)->
             first();
 

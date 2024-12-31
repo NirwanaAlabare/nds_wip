@@ -45,6 +45,7 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Part</th>
+                            <th>Panjang</th>
                             <th>Jumlah Roll</th>
                             <th>Lebar Roll</th>
                             <th>Panjang Roll</th>
@@ -151,6 +152,9 @@
                     data: 'part'
                 },
                 {
+                    data: 'panjang_master_piping'
+                },
+                {
                     data: 'jumlah_roll_piping'
                 },
                 {
@@ -170,13 +174,13 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMasterPipingModal\");' disabled><i class='fa fa-edit'></i></button>";
+                        let btnEdit = "<a href='{{ route('process-piping-process') }}/"+data+"' class='btn btn-primary btn-sm'><i class='fa fa-search-plus'></i></a>";
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
                     }
                 },
                 {
-                    targets: [6],
+                    targets: [8],
                     render: (data, type, row, meta) => {
                         return row.panjang+" "+row.unit;
                     }
