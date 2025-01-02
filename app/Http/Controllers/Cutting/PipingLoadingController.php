@@ -12,10 +12,8 @@ use App\Models\Cutting\PipingProcessDetail;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
-use QrCode;
-use PDF;
 
-class PipingProcessController extends Controller
+class PipingLoadingController extends Controller
 {
     public function index(Request $request) {
         if ($request->ajax()) {
@@ -368,21 +366,16 @@ class PipingProcessController extends Controller
             having("piping", ">", 0)->
             first();
 
-        return $piping;
-    }
-
-    public function pdf($id = 0) {
-        $pipingProcess = PipingProcess::find($id);
-
+        // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $customPaper = array(0, 0, 300, 250);
-        $pdf = PDF::loadView('cutting.piping-process.pdf.pdf-piping-process', ["pipingProcess" => $pipingProcess])->setPaper('A7', 'landscape');
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('A7', 'landscape');
 
         $path = public_path('pdf/');
-        $fileName = 'Piping '.$pipingProcess->kode_piping.'.pdf';
+        $fileName = 'STOCKER_'.$request["no_ws"]."_".$request['color']."_".$request['panel']."_".$request['group'][$index]."_".$request["size"][$index] . '.pdf';
         $pdf->save($path . '/' . str_replace("/", "_", $fileName));
         $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-        return response()->download($generatedFilePath);
+        return $piping;
     }
 }

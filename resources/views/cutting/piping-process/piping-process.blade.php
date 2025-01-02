@@ -155,7 +155,7 @@
                     data: 'panjang_master_piping'
                 },
                 {
-                    data: 'jumlah_roll_piping'
+                    data: 'total_roll'
                 },
                 {
                     data: 'lebar_roll_piping'
@@ -175,8 +175,9 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         let btnEdit = "<a href='{{ route('process-piping-process') }}/"+data+"' class='btn btn-primary btn-sm'><i class='fa fa-search-plus'></i></a>";
+                        let btnPdf = "<a href='{{ route('pdf-piping-process') }}/"+data+"' class='btn btn-danger btn-sm'><i class='fa-solid fa-print'></i></a>";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnPdf + `</div>`;
                     }
                 },
                 {

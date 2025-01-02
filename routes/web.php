@@ -465,6 +465,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create/new', 'createNew')->name('create-new-piping-process');
         Route::get('/process/{id?}', 'process')->name('process-piping-process');
         Route::post('/store', 'store')->name('store-piping-process');
+        Route::get('/pdf/{id?}', 'pdf')->name('pdf-piping-process');
 
         // Generate
         Route::get('/generate', 'generate')->name('generate-piping-process');
@@ -473,6 +474,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/item/{id?}', 'item')->name('item-piping');
         Route::get('/item/forms/{id?}', 'itemForms')->name('item-forms-piping');
         Route::get('/item/piping/{id?}/{idForm?}', 'itemPiping')->name('item-piping-piping');
+    });
+
+    Route::controller(PipingLoadingController::class)->prefix("piping-loading")->middleware("role:cutting")->group(function () {
+        Route::get("/", "index")->name("piping-loading");
+        Route::get("/create", "create")->name("create-piping-loading");
     });
 
     // Cutting Plan

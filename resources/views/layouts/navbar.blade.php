@@ -463,9 +463,9 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('track-cutting-output') }}"
+                                    <a href="{{ route('piping-loading') }}"
                                         class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
-                                        Order Cutting Output <i class="fa fa-file"></i>
+                                        Loading <i class="fa fa-file"></i>
                                     </a>
                                 </li>
                                 <li>

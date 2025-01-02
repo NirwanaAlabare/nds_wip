@@ -65,10 +65,10 @@
                         <div class="mb-1">
                             <div class="form-group mb-0">
                                 <label>Color</label>
-                                <select class="form-select select2bs4" id="color" name="color" style="width: 100%;">
+                                {{-- <select class="form-select select2bs4" id="color" name="color" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Color</option>
-                                    {{-- select 2 option --}}
-                                </select>
+                                </select> --}}
+                                <input type="text" class="form-control" id="color" name="color">
                             </div>
                         </div>
                     </div>
@@ -233,17 +233,13 @@
 
                         if (res.length > 0) {
                             // Update this step
-                            let selectElement = document.getElementById("color");
+                            let colors = "";
 
                             for (let i = 0; i < res.length; i++) {
-                                let newOptionElement = document.createElement("option");
-                                newOptionElement.value = res[i].color;
-                                newOptionElement.innerHTML = res[i].color;
-
-                                selectElement.prepend(newOptionElement);
+                                colors += res[res.length-1].color;
                             }
 
-                            $("#color").val(res[res.length-1].id_act_cost).trigger("change");
+                            $("#color").val(colors).trigger("change");
 
                             // Open this step
                             $("#color").prop("disabled", false);
