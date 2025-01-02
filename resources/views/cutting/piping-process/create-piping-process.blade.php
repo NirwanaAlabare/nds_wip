@@ -16,7 +16,10 @@
     @endphp
     <div class="d-flex justify-content-between mb-3">
         <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Proses Piping</h5>
-        <a href="{{ route('piping-process') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Data Proses Piping</a>
+        <div class="d-flex justify-content-end gap-3">
+            <a href="{{ route('create-new-piping-process') }}" class="btn btn-success btn-sm px-1 py-1 fw-bold"><i class="fas fa-plus"></i> NEW</a>
+            <a href="{{ route('piping-process') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Data Proses Piping</a>
+        </div>
     </div>
     <input type="hidden" id="process" value="{{ $currentPiping ? $currentPiping->process : null }}"></input>
     {{-- PROCESS ONE --}}
@@ -215,7 +218,7 @@
                                 </div>
                                 <div class="col-4 col-md-4">
                                     <label class="form-label">No. Roll Buyer</label>
-                                    <input type="text" class="form-control form-control-sm" name="no_roll_item" id="no_roll_item" value="{{ $currentPipingDetail ? $currentPipingDetail->no_roll_buyer : null }}" readonly>
+                                    <input type="text" class="form-control form-control-sm" name="no_roll_item" id="no_roll_item" value="{{ $currentPipingDetail ? $currentPipingDetail->no_roll : null }}" readonly>
                                 </div>
                                 <div class="col-4 col-md-4">
                                     <label class="form-label">Qty</label>
@@ -265,7 +268,7 @@
                                             </div>
                                             <div class="col-md-2 d-none">
                                                 <label class="form-label">No. Roll Buyer</label>
-                                                <input type="text" class="form-control" id="no_rolls_{{ $loop->index+1 }}" name="no_rolls[{{ $loop->index+1 }}]" value="{{ $pipingDetail->no_roll_buyer }}" disabled>
+                                                <input type="text" class="form-control" id="no_rolls_{{ $loop->index+1 }}" name="no_rolls[{{ $loop->index+1 }}]" value="{{ $pipingDetail->no_roll }}" disabled>
                                             </div>
                                             <div class="col-md-2">
                                                 <label class="form-label">Qty</label>
@@ -361,7 +364,7 @@
     {{-- END OF PROCESS TWO --}}
 
     {{-- PROCESS THREE --}}
-        <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-calculate" onsubmit="processThree(this, event)" class="d-none">
+        <form action="{{ route("store-piping-process") }}" method="post" id="piping-process-calculate" onsubmit="processThree(this, event)" class="{{ ($currentPiping ? ($currentPiping->process >= 2 ? "" : "d-none") : "d-none") }}">
             @csrf
             <div class="card card-sb">
                 <div class="card-header">
@@ -374,47 +377,47 @@
                     <div class="row justify-content-start align-items-end g-3 mb-3">
                         <div class="col-12">
                             <label class="form-label">Arah Potong Roll</label>
-                            <select class="form-select" id="arah_potong_roll" name="arah_potong_roll" onchange="calculateSetting(this)">
-                                <option value="">Pilih Arah Potong</option>
-                                <option value="vertical">Vertikal</option>
-                                <option value="horizontal">Horizontal</option>
+                            <select class="form-select" id="arah_potong" name="arah_potong" onchange="calculate()">
+                                <option value="" {{ $currentPiping ? ($currentPiping->arah_potong == "" ? "selected" : "") : "" }}>Pilih Arah Potong</option>
+                                <option value="vertical" {{ $currentPiping ? ($currentPiping->arah_potong == "vertical" ? "selected" : "") : "" }}>Vertikal</option>
+                                <option value="horizontal" {{ $currentPiping ? ($currentPiping->arah_potong == "horizontal" ? "selected" : "") : "" }}>Horizontal</option>
                             </select>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Group</label>
-                            <input type="text" class="form-control" id="group_roll" name="group_roll" value="{{ $currentPiping ? $currentPiping->group : null }}">
+                            <input type="text" class="form-control" id="group" name="group" value="{{ $currentPiping ? $currentPiping->group : null }}">
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">ID Item</label>
-                            <input type="text" class="form-control" id="id_item_roll" name="id_item_roll" value="{{ $currentPiping ? $currentPiping->id_item : null }}" readonly>
+                            <input type="text" class="form-control" id="id_item" name="id_item" value="{{ $currentPiping ? $currentPiping->id_item : null }}" readonly>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Lot</label>
-                            <input type="text" class="form-control" id="lot_roll" name="lot_roll" value="{{ $currentPiping ? $currentPiping->lot : null }}" readonly>
+                            <input type="text" class="form-control" id="lot" name="lot" value="{{ $currentPiping ? $currentPiping->lot : null }}" readonly>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">No. Roll</label>
-                            <input type="number" class="form-control" id="no_roll" name="no_roll" value="{{ $currentPiping ? $currentPiping->no_roll : null }}" readonly>
+                            <input type="text" class="form-control" id="no_roll" name="no_roll" value="{{ $currentPiping ? $currentPiping->no_roll : null }}" readonly>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Qty Awal</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="qty_awal_roll" name="qty_awal_roll" value="{{ $currentPiping ? $currentPiping->qty_awal : null }}" readonly>
-                                <input type="text" class="form-control" id="qty_awal_roll_unit" name="qty_awal_roll_unit" value="{{ $currentPiping ? $currentPiping->unit : null }}" readonly>
+                                <input type="text" class="form-control" id="qty_awal" name="qty_awal" value="{{ $currentPiping ? $currentPiping->qty_awal : null }}" readonly>
+                                <input type="text" class="form-control" id="qty_awal_unit" name="qty_awal_unit" value="{{ $currentPiping ? $currentPiping->unit : null }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Qty</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="qty_roll" name="qty_roll" value="{{ $currentPiping ? $currentPiping->qty : null }}">
-                                <input type="text" class="form-control" id="qty_roll_unit" name="qty_roll_unit" value="{{ $currentPiping ? $currentPiping->unit : null }}" readonly>
+                                <input type="text" class="form-control" id="qty" name="qty" value="{{ $currentPiping ? $currentPiping->qty : null }}" onkeyup="calculate()">
+                                <input type="text" class="form-control" id="qty_unit" name="qty_unit" value="{{ $currentPiping ? $currentPiping->unit : null }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Qty Konversi</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="qty_konversi_roll" name="qty_konversi_roll" value="{{ $currentPiping ? $currentPiping->qty_konversi : null }}" readonly>
-                                <input type="text" class="form-control" id="qty_konversi_roll_unit" name="qty_konversi_roll_unit" value="{{ $currentPiping ? $currentPiping->unit : null }}" readonly>
+                                <input type="text" class="form-control" id="qty_konversi" name="qty_konversi" value="{{ $currentPiping ? $currentPiping->qty_konversi : null }}" readonly>
+                                <input type="text" class="form-control" id="qty_konversi_unit" name="qty_konversi_unit" value="{{ $currentPiping ? $currentPiping->unit : null }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
@@ -427,34 +430,34 @@
                         <div class="col-4 col-md-3">
                             <label class="form-label">Lebar Kain Act</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="lebar_kain" name="lebar_kain" value="{{ $currentPiping ? $currentPiping->lebar_kain_act : null }}">
-                                <input type="text" class="form-control" id="lebar_kain_unit" name="lebar_kain_unit" value="{{ $currentPiping ? $currentPiping->lebar_kain_act_unit : null }}" readonly>
+                                <input type="text" class="form-control" id="lebar_kain_act" name="lebar_kain_act" value="{{ $currentPiping ? $currentPiping->lebar_kain_act : null }}" onkeyup="calculate()">
+                                <input type="text" class="form-control" id="lebar_kain_act_unit" name="lebar_kain_act_unit" value="{{ $currentPiping ? $currentPiping->lebar_kain_act_unit : null }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Lebar Cuttable Kain</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="lebar_cuttable" name="lebar_cuttable" value="{{ $currentPiping ? $currentPiping->lebar_kain_cuttable : null }}">
-                                <input type="text" class="form-control" id="lebar_cuttable_unit" name="lebar_cuttable_unit" value="{{ $currentPiping ? $currentPiping->lebar_kain_cuttable_unit : null }}" readonly>
+                                <input type="text" class="form-control" id="lebar_kain_cuttable" name="lebar_kain_cuttable" value="{{ $currentPiping ? $currentPiping->lebar_kain_cuttable : null }}" onkeyup="calculate()">
+                                <input type="text" class="form-control" id="lebar_kain_cuttable_unit" name="lebar_kain_cuttable_unit" value="{{ $currentPiping ? $currentPiping->lebar_kain_cuttable_unit : null }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Lebar Roll Piping</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="lebar_roll_piping" name="lebar_roll_piping" value="{{ $currentPiping ? $currentPiping->lebar_roll_piping : null }}">
+                                <input type="text" class="form-control" id="lebar_roll_piping" name="lebar_roll_piping" value="{{ $currentPiping ? $currentPiping->lebar_roll_piping : null }}" onkeyup="calculate()">
                                 <input type="text" class="form-control" id="lebar_roll_piping_unit" name="lebar_roll_piping_unit" value="{{ $currentPiping ? $currentPiping->lebar_roll_piping_unit : null }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Output Total Roll</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="output_total_roll" name="output_total_roll" value="{{ $currentPiping ? $currentPiping->output_total : null }}">
+                                <input type="text" class="form-control" id="output_total_roll" name="output_total_roll" value="{{ $currentPiping ? $currentPiping->output_total_roll : null }}" onkeyup="calculate()">
                                 <input type="text" class="form-control" id="output_total_roll_unit" name="output_total_roll_unit" value="ROLL" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Jenis Potong Piping</label>
-                            <select class="form-select" id="jenis_potong_piping" name="jenis_potong_piping" onchange="calculateType(this)">
+                            <select class="form-select" id="jenis_potong_piping" name="jenis_potong_piping" onchange="calculate()">
                                 <option value="" {{ $currentPiping ? ($currentPiping->jenis_potong_piping == "" ? "selected" : "") : "" }}>Pilih Jenis Potong</option>
                                 <option value="straight" {{ $currentPiping ? ($currentPiping->jenis_potong_piping == "straight" ? "selected" : "") : "" }}>Straigth</option>
                                 <option value="bias" {{ $currentPiping ? ($currentPiping->jenis_potong_piping == "bias" ? "selected" : "") : "" }}>Bias</option>
@@ -463,15 +466,15 @@
                         <div class="col-4 col-md-3">
                             <label class="form-label">Est. Output/Roll</label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm" id="est_output_roll" name="est_output_roll" value="{{ $currentPiping ? $currentPiping->estimasi_output_roll : null }}" readonly>
-                                <input type="text" class="form-control form-control-sm" id="est_output_roll_unit" name="est_output_roll_unit" value="PCS" readonly>
+                                <input type="text" class="form-control" id="estimasi_output_roll" name="estimasi_output_roll" value="{{ $currentPiping ? $currentPiping->estimasi_output_roll : null }}" readonly>
+                                <input type="text" class="form-control" id="estimasi_output_roll_unit" name="estimasi_output_roll_unit" value="PCS" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
                             <label class="form-label">Est. Output Total</label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm" id="est_output_total_roll" name="est_output_total_roll" value="{{ $currentPiping ? $currentPiping->estimasi_output_total_roll : null }}" readonly>
-                                <input type="text" class="form-control form-control-sm" id="est_output_total_roll_unit" name="output_total_roll_unit" value="PCS" readonly>
+                                <input type="text" class="form-control" id="estimasi_output_total" name="estimasi_output_total" value="{{ $currentPiping ? $currentPiping->estimasi_output_total : null }}" readonly>
+                                <input type="text" class="form-control" id="estimasi_output_total_unit" name="estimasi_output_total_unit" value="PCS" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-3">
@@ -482,6 +485,13 @@
             </div>
         </form>
     {{-- END OF PROCESS THREE --}}
+
+    {{-- FINISH --}}
+        <div id="piping-process-finish" class="my-5 {{ ($currentPiping ? ($currentPiping->process >= 3 ? "" : "d-none") : "d-none") }}">
+            <h3 class="text-center text-sb fw-bold">PROCESS FINISHED</h3>
+            <h5 class="text-center">Last Update : <span id="last-update" class="fw-bold">{{ $currentPiping ? $currentPiping->updated_at : "-" }}</span></h5>
+        </div>
+    {{-- END OF THE LINE --}}
 @endsection
 
 @section('custom-script')
@@ -492,6 +502,10 @@
         // Initial Window On Load Event
         $(document).ready(async function () {
             initial();
+
+            disableFormSubmit("#piping-process-header");
+            disableFormSubmit("#piping-process-scan");
+            disableFormSubmit("#piping-process-calculate");
         });
 
         // Select2 Autofocus
@@ -509,6 +523,8 @@
 
         // Init
         async function initial() {
+            document.getElementById("loading").classList.remove("d-none");
+
             if (document.getElementById("process").value > 0) {
                 // Check Current Process
                 await checkProcess(document.getElementById("process").value);
@@ -527,10 +543,14 @@
                 // Generate Code
                 generateCode();
             }
+
+            await document.getElementById("loading").classList.add("d-none");
         }
 
         // CHECK PROCESS
-            function checkProcess(process) {
+            async function checkProcess(process) {
+                document.getElementById("loading").classList.remove("d-none");
+
                 switch (process) {
                     case "1" :
                         initProcessTwo();
@@ -540,7 +560,13 @@
                         initProcessThree();
 
                         break;
+                    case "3" :
+                        initFinish();
+
+                        break;
                 }
+
+                document.getElementById("loading").classList.add("d-none");
             }
 
         // PROCESS ONE :
@@ -1353,71 +1379,164 @@
             }
 
             function setProcessThree(data) {
-                document.getElementById("arah_potong_roll").value = data ? data.arah_potong_roll : "";
-                document.getElementById("group_roll").value = data ? data.group : "";
-                document.getElementById("id_item_roll").value = data ? data.id_item : "";
-                document.getElementById("lot_roll").value = data ? data.lot : "";
-                document.getElementById("no_roll").value = data ? data.no_roll : "";
-                document.getElementById("qty_awal_roll").value = data ? data.qty_awal : "";
-                document.getElementById("qty_awal_roll_unit").value = data ? data.unit : "";
-                document.getElementById("qty_roll").value = data ? data.qty : "";
-                document.getElementById("qty_roll_unit").value = data ? data.unit : "";
-                document.getElementById("qty_konversi_roll").value = data ? data.qty_konversi : "";
-                document.getElementById("qty_konversi_roll_unit").value = data ? data.unit : "";
-                document.getElementById("panjang_roll_piping").value = data ? data.panjang_roll_piping : "";
-                document.getElementById("panjang_roll_piping_unit").value = data ? data.panjang_roll_piping_unit : "";
-                document.getElementById("lebar_kain").value = data ? data.lebar_kain : "";
-                document.getElementById("lebar_kain_unit").value = data ? data.lebar_kain_unit : "";
-                document.getElementById("lebar_cuttable").value = data ? data.lebar_cuttable : "";
-                document.getElementById("lebar_cuttable_unit").value = data ? data.lebar_cuttable_unit : "";
-                document.getElementById("lebar_roll_piping").value = data ? data.lebar_roll_piping : "";
-                document.getElementById("lebar_roll_piping_unit").value = data ? data.lebar_roll_piping_unit : "";
-                document.getElementById("output_total_roll").value = data ? data.output_total_roll : "";
-                document.getElementById("output_total_roll_unit").value = "ROLL";
-                document.getElementById("jenis_potong_roll").value = data ? data.jenis_potong_roll : "";
-                document.getElementById("est_output_roll").value = data ? data.estimasi_output_roll : "";
-                document.getElementById("est_output_roll_unit").value = "PCS";
-                document.getElementById("est_output_total_roll").value = data ? data.estimasi_output_total_roll : "";
-                document.getElementById("est_output_total_roll_unit").value = "PCS";
+                document.getElementById("piping-process-calculate").querySelector("#arah_potong").value = data ? data.arah_potong : "";
+                document.getElementById("piping-process-calculate").querySelector("#group").value = data ? data.group : "";
+                document.getElementById("piping-process-calculate").querySelector("#id_item").value = data ? data.id_item : "";
+                document.getElementById("piping-process-calculate").querySelector("#lot").value = data ? data.lot : "";
+                document.getElementById("piping-process-calculate").querySelector("#no_roll").value = data ? data.no_roll : "";
+                document.getElementById("piping-process-calculate").querySelector("#qty_awal").value = data ? data.qty_awal : "";
+                document.getElementById("piping-process-calculate").querySelector("#qty_awal_unit").value = data ? data.unit : "";
+                document.getElementById("piping-process-calculate").querySelector("#qty").value = data ? data.qty : "";
+                document.getElementById("piping-process-calculate").querySelector("#qty_unit").value = data ? data.unit : "";
+                document.getElementById("piping-process-calculate").querySelector("#qty_konversi").value = data ? data.qty_konversi : "";
+                document.getElementById("piping-process-calculate").querySelector("#qty_konversi_unit").value = data ? data.unit : "";
+                document.getElementById("piping-process-calculate").querySelector("#panjang_roll_piping").value = data ? data.panjang_roll_piping : "";
+                document.getElementById("piping-process-calculate").querySelector("#panjang_roll_piping_unit").value = data ? data.panjang_roll_piping_unit : "";
+                document.getElementById("piping-process-calculate").querySelector("#lebar_kain_act").value = data ? data.lebar_kain_act : "";
+                document.getElementById("piping-process-calculate").querySelector("#lebar_kain_act_unit").value = data ? data.lebar_kain_act_unit : "";
+                document.getElementById("piping-process-calculate").querySelector("#lebar_kain_cuttable").value = data ? data.lebar_kain_cuttable : "";
+                document.getElementById("piping-process-calculate").querySelector("#lebar_kain_cuttable_unit").value = data ? data.lebar_kain_cuttable_unit : "";
+                document.getElementById("piping-process-calculate").querySelector("#lebar_roll_piping").value = data ? data.lebar_roll_piping : "";
+                document.getElementById("piping-process-calculate").querySelector("#lebar_roll_piping_unit").value = data ? data.lebar_roll_piping_unit : "";
+                document.getElementById("piping-process-calculate").querySelector("#output_total_roll").value = data ? data.output_total_roll : "";
+                document.getElementById("piping-process-calculate").querySelector("#output_total_roll_unit").value = "ROLL";
+                document.getElementById("piping-process-calculate").querySelector("#jenis_potong_piping").value = data ? data.jenis_potong_piping : "";
+                document.getElementById("piping-process-calculate").querySelector("#estimasi_output_roll").value = data ? data.estimasi_output_roll : "";
+                document.getElementById("piping-process-calculate").querySelector("#estimasi_output_roll_unit").value = "PCS";
+                document.getElementById("piping-process-calculate").querySelector("#estimasi_output_total").value = data ? data.estimasi_output_total : "";
+                document.getElementById("piping-process-calculate").querySelector("#estimasi_output_total_unit").value = "PCS";
             }
 
-            function calculate() {
-                let qty = document.getElementById("qty_roll");
-                let qtyKonversi = document.getElementById("qty_konversi_roll");
+            async function calculate() {
+                let arahPotongRoll = document.getElementById("arah_potong");
+
+                let qty = document.getElementById("qty");
+                let qtyKonversi = document.getElementById("qty_konversi");
                 let panjangRollPiping = document.getElementById("panjang_roll_piping");
-                let lebarKain = document.getElementById("lebar_kain");
-                let lebarCuttable = document.getElementById("lebar_cuttable");
+                let lebarKain = document.getElementById("lebar_kain_act");
+                let lebarCuttable = document.getElementById("lebar_kain_cuttable");
                 let lebarRollPiping = document.getElementById("lebar_roll_piping");
                 let outputTotalRoll = document.getElementById("output_total_roll");
-                let estOutputRoll = document.getElementById("est_output_roll");
-                let estOutputTotalRoll = document.getElementById("est_output_total_roll");
+                let estOutputRoll = document.getElementById("estimasi_output_roll");
+                let estOutputTotalRoll = document.getElementById("estimasi_output_total");
+
                 let jenisPotongPiping = document.getElementById("jenis_potong_piping");
 
-                // Calculate Output Total Roll
-                let lebarCuttableValue = lebarCuttable.value ? lebarCuttable.value : 0;
-                let lebarRollPipingValue = lebarRollPiping.value ? lebarRollPiping.value : 0;
+                // Qty Konversi
+                let qtyValue = qty.value ? qty.value : 0;
 
-                outputTotalRoll.value = lebarCuttableValue/(lebarRollPipingValue ? lebarRollPipingValue : 1);
+                qtyKonversi.value = qtyValue;
+
+                // Calculate Output Total Roll
+                let lebarCuttableValue = lebarCuttable.value ? Number(lebarCuttable.value) : 0;
+                let lebarRollPipingValue = lebarRollPiping.value ? Number(lebarRollPiping.value) : 0;
+
+                outputTotalRoll.value = Math.floor((lebarCuttableValue*100)/(lebarRollPipingValue ? lebarRollPipingValue : 1));
 
                 // Calculate Est. Output Roll
-                let qtyKonversiValue = qtyKonversi.value ? qtyKonversi.value : 0;
-                let panjangRollPipingValue = panjangRollPiping.value ? panjangRollPiping.value : 0;
+                let qtyKonversiValue = qtyKonversi.value ? Number(qtyKonversi.value) : 0;
+                let lebarKainValue = lebarKain.value ? Number(lebarKain.value) : 0;
+                let panjangRollPipingValue = panjangRollPiping.value ? Number(panjangRollPiping.value) : 0;
 
                 if (jenisPotongPiping.value == "straight") {
-                    estOutputRoll.value = qtyKonversiValue/(panjangRollPipingValue ? panjangRollPipingValue : 1)
+                    estOutputRoll.value = Math.floor((qtyKonversiValue*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1))
                 } else if (jenisPotongPiping.value == "bias") {
-                    estOutputRoll.value = qtyKonversiValue/(panjangRollPipingValue ? panjangRollPipingValue : 1)
+                    estOutputRoll.value = Math.floor(((Math.sqrt(((qtyKonversiValue/2)*(qtyKonversiValue/2))+(lebarKainValue*lebarKainValue))*2)*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1));
                 }
 
                 // Est. Output Total Roll
                 if (estOutputRoll.value && outputTotalRoll.value) {
-                    let estOutputRollValue = estOutputRoll.value ? estOutputRoll.value : 0;
-                    let estOutputTotalRollValue = estOutputTotalRoll.value ? estOutputTotalRoll.value : 0;
+                    let estOutputRollValue = estOutputRoll.value ? Number(estOutputRoll.value) : 0;
+                    let outputTotalRollValue = outputTotalRoll.value ? Number(outputTotalRoll.value) : 0;
 
-                    estOutputTotalRoll.value = estOutputRollValue*outputTotalRollValue;
+                    estOutputTotalRoll.value = Math.floor(estOutputRollValue*outputTotalRollValue);
                 }
             }
+
+            // Submit Process Three
+            function processThree(e, event) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                event.preventDefault();
+
+                let form = new FormData(e);
+
+                let dataObj = {
+                    "process": 3,
+                    "id": document.getElementById("id").value
+                }
+
+                form.forEach((value, key) => dataObj[key] = value);
+
+                $.ajax({
+                    url: "{{ route("store-piping-process") }}",
+                    type: "post",
+                    data: dataObj,
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data hitung Piping berhasil disimpan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+
+                            initFinish();
+
+                            if (response.additional) {
+                                setFinish(response.additional);
+                            }
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
         // END PROCES THREE
+
+        // FINISH
+            function initFinish() {
+                clearScan();
+
+                document.getElementById("piping-process-finish").classList.remove("d-none");
+
+                // Process Header
+                let headerForm = document.getElementById("piping-process-header");
+
+                for (let i = 0; i < headerForm.length; i++) {
+                    headerForm[i].setAttribute("disabled", "true");
+                }
+
+                // Process Scan
+                let scanForm = document.getElementById("piping-process-scan");
+
+                for (let i = 0; i < scanForm.length; i++) {
+                    scanForm[i].setAttribute("disabled", "true");
+                }
+
+                // Process Calculate
+                let calculateForm = document.getElementById("piping-process-calculate");
+
+                for (let i = 0; i < calculateForm.length; i++) {
+                    calculateForm[i].setAttribute("disabled", "true");
+                }
+            }
+
+            function setFinish(data) {
+                if (data && data.updated_at) {
+                    document.getElementById("last-update").innerText = formatDateTime(data.updated_at);
+                }
+            }
+        // END OF THE LINE
+
 
         // Reset Step
         async function resetStep() {
