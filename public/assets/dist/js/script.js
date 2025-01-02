@@ -17,6 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+function disableFormSubmit(formId) {
+    // Target the form and its submit button
+    const form = document.querySelector(formId);
+
+    // Add an event listener for the 'keypress' event
+    form.addEventListener('keypress', function(event) {
+        // Check if the pressed key is 'Enter' (key code 13)
+        if (event.key === 'Enter') {
+            // Prevent the form from submitting
+            event.preventDefault();
+        }
+    });
+}
+
 function isImage(i) {
     return i instanceof HTMLImageElement;
 }
@@ -68,12 +82,39 @@ function isNotNull(value) {
 
 // Format date to YYYY-MM-DD
 function formatDate(date) {
+    var dateObj = new Date(date);
+
     return [
-        date.getFullYear(),
-        pad(date.getMonth() + 1),
-        pad(date.getDate()),
+        dateObj.getFullYear(),
+        pad(dateObj.getMonth() + 1),
+        pad(dateObj.getDate()),
     ].join('-');
 }
+
+function formatDateTime(date) {
+    var dateObj = new Date(date);
+
+    var date = "0" + dateObj.getDate();
+    var month = "0" + (dateObj.getMonth()+1);
+    var year = dateObj.getFullYear();
+
+    var dateMonthYear = year+"-"+month+"-"+date.substr(-2);
+
+    // Hours part from the timestamp
+    var hours = "0" + dateObj.getHours();
+
+    // Minutes part from the timestamp
+    var minutes = "0" + dateObj.getMinutes();
+
+    // Seconds part from the timestamp
+    var seconds = "0" + dateObj.getSeconds();
+
+    // Will display time in 10:30:23 format
+    var time = hours.substr(-2) + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+
+    return dateMonthYear + " " + time;
+}
+
 
 // Clear modified
 var modified = [];
