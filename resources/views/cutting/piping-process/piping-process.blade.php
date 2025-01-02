@@ -155,7 +155,7 @@
                     data: 'panjang_master_piping'
                 },
                 {
-                    data: 'jumlah_roll_piping'
+                    data: 'total_roll'
                 },
                 {
                     data: 'lebar_roll_piping'
