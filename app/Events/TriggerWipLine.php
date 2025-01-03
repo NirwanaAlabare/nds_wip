@@ -10,6 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use DB;
 
 class TriggerWipLine implements ShouldBroadcastNow
 {
@@ -21,19 +22,15 @@ class TriggerWipLine implements ShouldBroadcastNow
      * @return void
      */
     public $data;
-    public $lineId;
-    public $tanggal;
 
-    public function __construct($data, $lineId, $tanggal)
+    public function __construct($data)
     {
-        $this->data = $data;
-        $this->lineId = $lineId;
-        $this->tanggal = $tanggal;
+        $this->data = null;
     }
 
    public function broadcastOn()
     {
-        return new Channel("dashboard-wip-line-channel-{$this->lineId}-{$this->tanggal}");
+        return new Channel("dashboard-wip-line-channel");
     }
 
     public function broadcastAs()
@@ -43,10 +40,9 @@ class TriggerWipLine implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
+
         return [
             'data' => $this->data,
-            'lineId' => $this->lineId,
-            'tanggal' => $this->tanggal,
         ];
     }
 }

@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NDS - WIP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    @include('layouts.link')
+
+    @yield('custom-link')
 </head>
 
 <style>
@@ -93,10 +95,11 @@ swiper-container {
 }
 </style>
 <!-- autoplay-delay="15000"  -->
+<!-- autoplay-disable-on-interaction="false" -->
 
 <body class=" d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #072c66;">
     <swiper-container class="mySwiper" space-between="30" centered-slides="true" 
-    autoplay-disable-on-interaction="false">
+    >
         <swiper-slide>
             <div class="shadow rounded p-4 d-flex justify-content-center align-items-center" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #e3e5e8;">
                 <div class="row g-3">
@@ -504,6 +507,10 @@ swiper-container {
             </div>
         </swiper-slide>
     </swiper-container>
+    
+    @include('layouts.script')
+
+    @stack('scripts')
 </body>
 </html>
 
@@ -525,38 +532,36 @@ swiper-container {
     <script src="{{ config('redis.redis_url_public') }}/js/laravel-echo-setup.js" type="text/javascript"></script>
 
 <script>
-    var lineId = @json($id);
-    var tglPlan = @json($tglPlan);
+
+    // var lineId = @json($id);
     const currentDate = new Date().toISOString().split('T')[0];
-    // $(document).ready(async function () {
+
+    // const swiper = new Swiper('.swiper', {
+    // direction: 'vertical',
+    // loop: true,
+
+    // pagination: {
+    //     el: '.swiper-pagination',
+    // },
+
+    // navigation: {
+    //     nextEl: '.swiper-button-next',
+    //     prevEl: '.swiper-button-prev',
+    // },
+
+    // scrollbar: {
+    //     el: '.swiper-scrollbar',
+    // },
     // });
 
-     // Mendengarkan channel dinamis
-     let channelName = `dashboard-wip-line-channel-${lineId}-${currentDate}`;
-        window.Echo.channel(channelName)
+    $(document).ready(async function () {
+        console.log("HALLO",currentDate);
+        window.Echo.channel("dashboard-wip-line-channel")
             .listen('.UpdatedDashboardWipLineEvent', (data) => {
-                console.log("Data received:", data.data[0]);
+                console.log("Data received:", data);
             });
-</script>
-
-<script>
-    const swiper = new Swiper('.swiper', {
-    direction: 'vertical',
-    loop: true,
-
-    pagination: {
-        el: '.swiper-pagination',
-    },
-
-    navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-    },
-
-    scrollbar: {
-        el: '.swiper-scrollbar',
-    },
     });
+
  </script>
 
 

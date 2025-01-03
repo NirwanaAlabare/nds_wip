@@ -85,7 +85,7 @@ class DashboardWipLineController extends Controller
         $data['deffect15'] = $this->cari_deffect_jam15($tanggal, $lineId);
         $data['deffect16'] = $this->cari_deffect_jam16($tanggal, $lineId);
 
-        broadcast(new TriggerWipLine($data, $lineId, $tanggal));
+        broadcast(new TriggerWipLine($data));
         return response()->json([
             'message' => 'Data diterima',
             'data' => [
@@ -168,7 +168,7 @@ class DashboardWipLineController extends Controller
     function cari_output_jam7($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '07:00' and '08:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 07:00:00' and '".$tanggal." 08:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -176,7 +176,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam8($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '08:00' and '09:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 08:00:00' and '".$tanggal." 09:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -184,7 +184,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam9($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '09:00' and '10:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 09:00:00' and '".$tanggal." 10:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -192,7 +192,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam10($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '10:00' and '11:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 10:00:00' and '".$tanggal." 11:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -200,7 +200,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam11($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '11:00' and '12:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 11:00:00' and '".$tanggal." 12:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -208,7 +208,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam13($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '13:00' and '14:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 13:00:00' and '".$tanggal." 14:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -216,7 +216,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam14($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '14:00' and '15:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 14:00:00' and '".$tanggal." 15:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -224,7 +224,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam15($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '15:00' and '16:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 15:00:00' and '".$tanggal." 16:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -232,7 +232,7 @@ class DashboardWipLineController extends Controller
      function cari_output_jam16($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '16:00' and '17:00'");
+        ->select("SELECT count(a.id) jumlah from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 16:00:00' and '".$tanggal." 17:00:00')");
 
         return isset($query[0]) ? $query[0]->jumlah : null;
     }
@@ -241,7 +241,7 @@ class DashboardWipLineController extends Controller
      function cari_deffect_jam7($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '07:00' and '08:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 07:00:00' and '".$tanggal." 08:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -249,7 +249,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam8($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '08:00' and '09:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 08:00:00' and '".$tanggal." 09:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -257,7 +257,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam9($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '09:00' and '10:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 09:00:00' and '".$tanggal." 10:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -265,7 +265,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam10($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '10:00' and '11:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 10:00:00' and '".$tanggal." 11:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -273,7 +273,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam11($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '11:00' and '12:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 11:00:00' and '".$tanggal." 12:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -281,7 +281,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam13($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '13:00' and '14:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 13:00:00' and '".$tanggal." 14:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -289,7 +289,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam14($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '14:00' and '15:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 14:00:00' and '".$tanggal." 15:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -297,7 +297,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam15($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '15:00' and '16:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 15:00:00' and '".$tanggal." 16:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
@@ -305,7 +305,7 @@ class DashboardWipLineController extends Controller
       function cari_deffect_jam16($tanggal, $lineId)
      {
          $query = DB::connection('mysql_dsb')
-        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and DATE_FORMAT(created_at, '%Y-%m-%d') = '".$tanggal."' and DATE_FORMAT(created_at, '%H:%i') BETWEEN '16:00' and '17:00'");
+        ->select("SELECT count(a.id) jumlah from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '".$lineId."' and (created_at BETWEEN '".$tanggal." 16:00:00' and '".$tanggal." 17:00:00')");
 
          return isset($query[0]) ? $query[0]->jumlah : null;
      }
