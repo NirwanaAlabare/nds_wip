@@ -36,7 +36,7 @@ class MasterPipingController extends Controller
                 toJson();
         }
 
-        return view('cutting.master-piping.master-piping', ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piping", "subPage" => "master-process"]);
+        return view('cutting.master-piping.master-piping', ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piping", "subPage" => "master-piping"]);
     }
 
     public function create() {
@@ -96,7 +96,7 @@ class MasterPipingController extends Controller
                 $data = MasterPiping::select("color")->
                     where("act_costing_id", $request->act_costing_id)->
                     groupBy("act_costing_id", "color")->
-                    get();
+                    first();
 
                 break;
             case 'part' :

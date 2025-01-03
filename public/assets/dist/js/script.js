@@ -17,6 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+function unique(value, index, array) {
+    return array.indexOf(value) === index;
+}
+
+function arrayUnique(array) {
+    return array.filter(unique)
+}
+
 function disableFormSubmit(formId) {
     // Target the form and its submit button
     const form = document.querySelector(formId);

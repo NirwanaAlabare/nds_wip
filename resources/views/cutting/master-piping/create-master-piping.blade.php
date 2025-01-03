@@ -68,7 +68,7 @@
                                 {{-- <select class="form-select select2bs4" id="color" name="color" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Color</option>
                                 </select> --}}
-                                <input type="text" class="form-control" id="color" name="color">
+                                <input type="text" class="form-control" id="color" name="color" readonly>
                             </div>
                         </div>
                     </div>
@@ -232,11 +232,15 @@
                     if (res) {
 
                         if (res.length > 0) {
+                            let colorsArr = arrayUnique(res);
+
+                            console.log("color arr", colorsArr);
+
                             // Update this step
                             let colors = "";
 
-                            for (let i = 0; i < res.length; i++) {
-                                colors += res[res.length-1].color;
+                            for (let i = 0; i < colorsArr.length; i++) {
+                                colors += colorsArr[i].color+(i < (colorsArr.length-1) ? ", " : "");
                             }
 
                             $("#color").val(colors).trigger("change");

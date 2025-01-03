@@ -1,4 +1,4 @@
-process_process_@extends('layouts.index')
+@extends('layouts.index')
 
 @section('custom-link')
     <!-- DataTables -->

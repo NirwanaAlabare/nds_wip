@@ -32,7 +32,7 @@
 
         table td, table th{
             text-align: left;
-            vertical-align: middle;
+            vertical-align: start;
             padding-top: 5px 3px 5px 3px;
             width: auto;
         }
@@ -45,7 +45,7 @@
 <body>
     <table>
         <tr>
-            <td style="border: 1px solid black;" rowspan="8">
+            <td style="border: 1px solid black; vertical-align: middle;" rowspan="8">
                 <center>
                     <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($pipingProcess->kode_piping)) !!}">
                 </center>
@@ -72,7 +72,18 @@
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Color </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->masterPiping->color }}</td>
+            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">
+                <?php
+                    $colors = explode(", ", $pipingProcess->masterPiping->color);
+
+                    foreach ($colors as $color) {
+                        echo $color;
+                        ?>
+                            <br>
+                        <?php
+                    }
+                ?>
+            </td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Panjang Roll </td>

@@ -95,14 +95,7 @@
                             <div class="mb-1">
                                 <div class="form-group mb-0">
                                     <label>Color</label>
-                                    @if ($currentPiping)
-                                        <input type="text" class="form-control" id="color" name="color" value="{{ $currentPiping ? $currentPiping->masterPiping->color : null }}" readonly>
-                                    @else
-                                        <select class="form-select select2bs4" id="color" name="color">
-                                            <option selected="selected" value="">Pilih Color</option>
-                                            {{-- select 2 option --}}
-                                        </select>
-                                    @endif
+                                    <input type="text" class="form-control" id="color" name="color" value="{{ $currentPiping ? $currentPiping->masterPiping->color : null }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -750,21 +743,7 @@
                     dataType: "json",
                     success: function (response) {
                         if (response) {
-                            if (response.length > 0) {
-                                $("#color").prop("disabled", false);
-
-                                let selectElement = document.getElementById("color");
-
-                                for (let i = 0; i < response.length; i++) {
-                                    let newOption = document.createElement("option");
-                                    newOption.value = response[i].color;
-                                    newOption.innerHTML = response[i].color;
-
-                                    selectElement.prepend(newOption);
-                                }
-
-                                $("#color").val(response[response.length-1].color).trigger("change");
-                            }
+                            $("#color").val(response.color).trigger("change");
                         }
 
                         document.getElementById('loading').classList.add('d-none');

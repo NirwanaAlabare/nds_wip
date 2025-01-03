@@ -383,6 +383,6 @@ class PipingProcessController extends Controller
         $pdf->save($path . '/' . str_replace("/", "_", $fileName));
         $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-        return response()->download($generatedFilePath);
+        return $pdf->stream();
     }
 }
