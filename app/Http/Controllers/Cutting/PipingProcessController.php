@@ -371,6 +371,16 @@ class PipingProcessController extends Controller
         return $piping;
     }
 
+    public function takePiping($id = 0) {
+        if ($id) {
+            $pipingProcess = PipingProcess::where("kode_piping", $request->kode_piping)->first();
+
+            return $pipingProcess;
+        }
+
+        return null;
+    }
+
     public function pdf($id = 0) {
         $pipingProcess = PipingProcess::find($id);
 
