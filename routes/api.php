@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FGStokLaporanController;
+use App\Http\Controllers\DashboardWipLineController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -25,4 +26,9 @@ Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->g
     Route::get('/', 'index');
     Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok');
     Route::get('/show_fg_stok_mutasi', 'show_fg_stok_mutasi');
+});
+
+// DASHBOARD WIP LINE
+Route::controller(DashboardWipLineController::class)->prefix("trigger-wip-line")->group(function () {
+    Route::post('dashboard-line/wip-line-sign', 'trigger_wip_line');
 });

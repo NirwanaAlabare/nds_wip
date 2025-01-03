@@ -6,6 +6,9 @@ use App\Http\Controllers\DashboardController;
 // User
 use App\Http\Controllers\UserController;
 
+// Dashboard WIP Line
+use App\Http\Controllers\DashboardWipLineController;
+
 // General
 use App\Http\Controllers\GeneralController;
 
@@ -1617,6 +1620,9 @@ Route::middleware('auth')->group(function () {
 // Dashboard
 Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
 Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
+Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware('auth')->name('dashboard-wip');
+Route::get('/dashboard-wip/wip-line/{id?}',[DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
+
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
 Route::get('/dashboard-cutting-chart', [DashboardController::class, 'cutting_chart'])->middleware('auth')->name('dashboard-cutting-chart');
