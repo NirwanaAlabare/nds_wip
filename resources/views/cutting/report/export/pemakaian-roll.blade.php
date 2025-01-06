@@ -16,6 +16,7 @@
         <th>ID Roll</th>
         <th>ID Item</th>
         <th>Detail Item</th>
+        <th>Color</th>
         <th>Lot</th>
         <th>Roll</th>
         <th>Qty</th>
@@ -34,6 +35,7 @@
             <td>{{ $roll->id_roll }}</td>
             <td>{{ $roll->id_item }}</td>
             <td>{{ $roll->detail_item }}</td>
+            <td>{{ $roll->color }}</td>
             <td>{{ $roll->lot }}</td>
             <td>{{ $roll->roll }}</td>
             <td>{{ $roll->qty }}</td>

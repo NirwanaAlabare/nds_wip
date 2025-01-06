@@ -91,6 +91,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     req.id_item,
                     req.item_desc detail_item,
                     req.no_lot lot,
+                    req.color,
                     COALESCE(roll.roll, req.no_roll) roll,
                     COALESCE(roll.qty, req.qty_out) qty,
                     COALESCE(roll.sisa_kain, 0) sisa_kain,
@@ -99,7 +100,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
                     COALESCE(roll.total_short_roll, 0) total_short_roll
                 FROM (
-                    select b.* from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll
+                    select b.*, c.color from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll
                 ) req
                 LEFT JOIN (
                     select
@@ -160,7 +161,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
         $currentRow = 1;
 
         $event->sheet->styleCells(
-            'A3:O' . ($event->getConcernable()->rowCount+2+1),
+            'A3:P' . ($event->getConcernable()->rowCount+2+1),
             [
                 'borders' => [
                     'allBorders' => [
