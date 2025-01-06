@@ -26,6 +26,7 @@
                                 <option value="{{ $line->line_id }}">{{ strtoupper(str_replace("_", " ", $line->username)) }}</option>
                             @endforeach
                         </select>
+                        <input type="hidden" class="form-control" name="line_name" id="line_name">
                     </div>
                     <div class="col-12">
                         <div id="reader"></div>
@@ -105,8 +106,8 @@
                     <div class="col-3">
                         <label class="form-label">Qty Loading</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" name="qty_loading" id="qty_loading" onkeyup="calculateOutput()">
-                            <input type="text" class="form-control" name="qty_loading_unit" id="qty_loading_unit" value="ROLL" readonly>
+                            <input type="text" class="form-control" name="qty_roll" id="qty_roll" onkeyup="calculateOutput()">
+                            <input type="text" class="form-control" name="qty_roll_unit" id="qty_roll_unit" value="ROLL" readonly>
                         </div>
                     </div>
                     <div class="col-3 d-none">
@@ -119,8 +120,8 @@
                     <div class="col-3">
                         <label class="form-label">Output</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" name="output_total_loading" id="output_total_loading" readonly>
-                            <input type="text" class="form-control" name="output_total_loading_unit" id="output_total_loading_unit" value="PCS" readonly>
+                            <input type="text" class="form-control" name="estimasi_output_total" id="estimasi_output_total" readonly>
+                            <input type="text" class="form-control" name="estimasi_output_total_unit" id="estimasi_output_total_unit" value="PCS" readonly>
                         </div>
                     </div>
                 </div>
@@ -154,6 +155,10 @@
         $('.select2bs4').select2({
             theme: 'bootstrap4',
         })
+
+        $('#line_id').on('change', function () {
+            $('#line_name').val($("#line_id option:selected").text());
+        });
 
         // -Scanner-
         var html5QrcodeScanner = new Html5Qrcode("reader");
@@ -209,6 +214,7 @@
         async function getScannedItem(id) {
             document.getElementById("loading").classList.remove("d-none");
 
+            document.getElementById("piping_process_id").value = "";
             document.getElementById("buyer").value = "";
             document.getElementById("act_costing_ws").value = "";
             document.getElementById("style").value = "";
@@ -224,8 +230,8 @@
             document.getElementById("panjang_roll_unit").value = "";
             document.getElementById("output_total_roll_awal").value = "";
             document.getElementById("output_total_roll").value = "";
-            document.getElementById("qty_loading").value = "";
-            document.getElementById("output_total_loading").value = "";
+            document.getElementById("qty_roll").value = "";
+            document.getElementById("estimasi_output_total").value = "";
             document.getElementById("estimasi_output_roll").value = "";
             document.getElementById("estimasi_output_roll_unit").value = "";
 
@@ -238,6 +244,7 @@
                         console.log(res);
 
                         if (typeof res === 'object' && res !== null) {
+                            document.getElementById("piping_process_id").value = res.id;
                             document.getElementById("buyer").value = res.buyer;
                             document.getElementById("act_costing_ws").value = res.act_costing_ws;
                             document.getElementById("style").value = res.style;
@@ -291,8 +298,8 @@
         async function calculateOutput() {
             let outputTotalRoll = document.getElementById("output_total_roll");
             let estimasiOutputRoll = document.getElementById("estimasi_output_roll");
-            let qtyLoading = document.getElementById("qty_loading");
-            let outputTotalLoading = document.getElementById("output_total_loading");
+            let qtyLoading = document.getElementById("qty_roll");
+            let outputTotalLoading = document.getElementById("estimasi_output_total");
 
             let outputTotalRollValue = outputTotalRoll.value ? outputTotalRoll.value : 0;
             let estimasiOutputRollValue = estimasiOutputRoll.value ? estimasiOutputRoll.value : 0;
@@ -321,7 +328,60 @@
         }
 
         function storePipingLoading(e, event) {
+            document.getElementById("loading").classList.remove("d-none");
 
+            event.preventDefault();
+
+            let form = new FormData(e);
+
+            $.ajax({
+                url: "{{ route("store-piping-loading") }}",
+                type: "post",
+                data: form,
+                dataType: "json",
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    console.log(response);
+
+                    if (response.status == 200) {
+                        if (response.additional) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Piping Loading '+response.additional.kode+' berhasil disimpan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    }
+
+                    resetForm(e);
+
+                    document.getElementById("loading").classList.add("d-none");
+                },
+                error: function (jqXHR) {
+                    iziToast.error({
+                        title: 'Gagal',
+                        message: 'Loading Piping gagal disimpan.',
+                        position: 'topCenter'
+                    });
+
+                    console.error(jqXHR);
+
+                    document.getElementById("loading").classList.add("d-none");
+                }
+            });
+        }
+
+        function resetForm(form) {
+            form.reset();
+
+            if (document.getElementsByClassName('select2')) {
+                $(".select2").val('').trigger('change');
+                $(".select2bs4").val('').trigger('change');
+            }
         }
     </script>
 @endsection

@@ -90,31 +90,47 @@ class PipingLoadingController extends Controller
 
     public function store(Request $request) {
         $validatedRequest = $request->validate([
+            "line_id" => "required",
+            "line_name" => "required",
             "piping_process_id" => "required",
-            "buyer" => "required",
-            "act_costing_ws" => "required",
-            "style" => "required",
-            "color" => "required",
-            "group" => "required",
-            "lot" => "required",
-            "part" => "required",
-            "panjang" => "required",
-            "unit" => "required",
-            "lebar_roll_piping" => "required",
-            "lebar_roll_piping_unit" => "required",
-            "panjang_roll" => "required",
-            "panjang_roll_unit" => "required",
-            "output_total_roll_awal" => "required",
-            "output_total_roll_awal_unit" => "required",
-            "output_total_roll" => "required",
-            "output_total_roll_unit" => "required",
-            "qty_loading" => "required",
-            "qty_loading_unit" => "required",
-            "estimasi_output_roll" => "required",
-            "estimasi_output_roll_unit" => "required",
-            "output_total_loading" => "required",
-            "output_total_loading_unit" => "required",
+            "qty_roll" => "required|numeric|gt:0",
+            "qty_roll_unit" => "required",
+            "estimasi_output_total" => "required|numeric|gt:0",
+            "estimasi_output_total_unit" => "required",
         ]);
+
+        $pipingProcess = PipingProcess::find($validatedRequest['piping_process_id']);
+
+        if ($pipingProcess) {
+            $pipingLoading = PipingLoading::orderBy("id", "desc")->first();
+
+            $kodePipingLoading = "PIP-L-".( $pipingLoading ? intval(substr($pipingLoading->kode, 6))+1 : 1 );
+
+            $storePipingLoading = PipingLoading::create([
+                "kode" => $kodePipingLoading,
+                "line_id" => $validatedRequest["line_id"],
+                "line_name" => $validatedRequest["line_name"],
+                "piping_process_id" => $validatedRequest["piping_process_id"],
+                "qty_roll" => $validatedRequest["qty_roll"],
+                "qty_roll_unit" => $validatedRequest["qty_roll_unit"],
+                "estimasi_output_total" => $validatedRequest["estimasi_output_total"],
+                "estimasi_output_total_unit" => $validatedRequest["estimasi_output_total_unit"],
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username,
+            ]);
+
+            if ($storePipingLoading) {
+                $pipingProcess->output_total_roll = $pipingProcess->output_total_roll - intval($validatedRequest["qty_roll"]);
+                $pipingProcess->estimasi_output_total = $pipingProcess->output_total_roll * $pipingProcess->estimasi_output_roll;
+                $pipingProcess->save();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Piping Loading Berhasil",
+                    "additional" => $storePipingLoading,
+                );
+            }
+        }
 
         return array(
             "status" => 400,
