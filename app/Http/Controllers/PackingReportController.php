@@ -321,7 +321,7 @@ SELECT
 FROM
      signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at < '$tgl_awal' and STATUS = 'NORMAL'
+     updated_at < '$tgl_awal'
 GROUP BY so_det_id
 UNION
 SELECT
@@ -366,7 +366,7 @@ SELECT
 			'0' qty_pck_out
 FROM signalbit_erp.output_rfts_packing a
 where
-			updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and STATUS = 'NORMAL'
+			updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
 GROUP BY so_det_id
 UNION
 SELECT
@@ -374,35 +374,9 @@ SELECT
 		'0'sa_pck_line_awal,
 		'0' sa_trf_gmt_awal,
 		'0' qty_in_pck_line,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS input_rework_sewing,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS input_rework_mending,
-		'0' output_def_sewing,
-		'0' output_def_spotcleaning,
-		'0' output_def_mending,
-		'0' qty_reject,
-		'0' qty_trf_gmt,
-		'0' sa_pck_in_awal,
-		'0' qty_pck_in,
-		'0' qty_pck_out_awal,
-		'0' qty_pck_out
-FROM
-    signalbit_erp.output_defects_packing a
-INNER JOIN
-    signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and defect_status = 'reworked'
-GROUP BY
-    so_det_id
-UNION
-SELECT
-    so_det_id,
-		'0'sa_pck_line_awal,
-		'0' sa_trf_gmt_awal,
-		'0' qty_in_pck_line,
-		'0' input_rework_sewing,
-		'0' input_rework_spotcleaning,
-		'0'input_rework_mending,
+    SUM(CASE WHEN allocation = 'SEWING' AND defect_status = 'REWORKED' THEN 1 ELSE 0 END) AS input_rework_sewing,
+    SUM(CASE WHEN allocation = 'spotcleaning' AND defect_status = 'REWORKED' THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
+    SUM(CASE WHEN allocation = 'mending' AND defect_status = 'REWORKED' THEN 1 ELSE 0 END) AS input_rework_mending,
     SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS output_def_sewing,
     SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS output_def_spotcleaning,
     SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS output_def_mending,
@@ -567,7 +541,7 @@ inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
 group by so_det_id
-order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc;
+order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
       ");
 
             return DataTables::of($data_mut)->toJson();
@@ -627,7 +601,7 @@ SELECT
 FROM
      signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at < '$tgl_awal' and STATUS = 'NORMAL'
+     updated_at < '$tgl_awal'
 GROUP BY so_det_id
 UNION
 SELECT
@@ -672,7 +646,7 @@ SELECT
 			'0' qty_pck_out
 FROM signalbit_erp.output_rfts_packing a
 where
-			updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir' and STATUS = 'NORMAL'
+			updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
 GROUP BY so_det_id
 UNION
 SELECT
@@ -680,35 +654,9 @@ SELECT
 		'0'sa_pck_line_awal,
 		'0' sa_trf_gmt_awal,
 		'0' qty_in_pck_line,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS input_rework_sewing,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS input_rework_mending,
-		'0' output_def_sewing,
-		'0' output_def_spotcleaning,
-		'0' output_def_mending,
-		'0' qty_reject,
-		'0' qty_trf_gmt,
-		'0' sa_pck_in_awal,
-		'0' qty_pck_in,
-		'0' qty_pck_out_awal,
-		'0' qty_pck_out
-FROM
-    signalbit_erp.output_defects_packing a
-INNER JOIN
-    signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and defect_status = 'reworked'
-GROUP BY
-    so_det_id
-UNION
-SELECT
-    so_det_id,
-		'0'sa_pck_line_awal,
-		'0' sa_trf_gmt_awal,
-		'0' qty_in_pck_line,
-		'0' input_rework_sewing,
-		'0' input_rework_spotcleaning,
-		'0'input_rework_mending,
+    SUM(CASE WHEN allocation = 'SEWING' AND defect_status = 'REWORKED' THEN 1 ELSE 0 END) AS input_rework_sewing,
+    SUM(CASE WHEN allocation = 'spotcleaning' AND defect_status = 'REWORKED' THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
+    SUM(CASE WHEN allocation = 'mending' AND defect_status = 'REWORKED' THEN 1 ELSE 0 END) AS input_rework_mending,
     SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS output_def_sewing,
     SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS output_def_spotcleaning,
     SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS output_def_mending,
@@ -873,7 +821,7 @@ inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
 group by so_det_id
-order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc;
+order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
 
               ");
 

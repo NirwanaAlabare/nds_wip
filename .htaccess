@@ -1,5 +1,5 @@
 <IfModule mod_rewrite.c>
-
+LimitRequestBody 10485760
     RewriteEngine on
     RewriteCond %{REQUEST_URI} /$
     RewriteRule ^ %{REQUEST_URI}index.php [L,R=301]

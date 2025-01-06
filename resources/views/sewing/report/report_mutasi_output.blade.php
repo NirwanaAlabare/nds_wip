@@ -14,20 +14,15 @@
 
     <style>
         /* Custom styles for the table */
-
         .table-bordered {
-
             border: 1px solid black;
             /* Change thickness of the outer border */
-
         }
 
         .table-bordered th,
         .table-bordered td {
-
             border: 1px solid black;
             /* Change thickness of inner borders */
-
         }
     </style>
 @endsection
@@ -63,12 +58,22 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped table-sm table-hover w-100 text-nowrap">
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="12" style="background-color: lightgreen; text-align:center;">Sewing</th>
+                            <th colspan="11" style="background-color: lightgreen; text-align:center;">Sewing</th>
                             <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Steam</th>
+                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Sewing</th>
+                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
+                            </th>
+                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Mending</th>
+                            </th>
+                            <th colspan="4" style="background-color:#FFE5B4; text-align:center;">Defect Packing</th>
+                            <th colspan="4" style="background-color:#FFE5B4; text-align:center;">Defect Packing
+                                Spotcleaning</th>
+                            <th colspan="4" style="background-color:#FFE5B4; text-align:center;">Defect Packing Mending
+                            </th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th style="background-color: lightblue;">WS</th>
@@ -79,19 +84,42 @@
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima Loading</th>
                             <th style="background-color: lightgreen;">Rework Sewing</th>
-                            <th style="background-color: lightgreen;">Rework Mending</th>
                             <th style="background-color: lightgreen;">Rework Spot Cleaning</th>
+                            <th style="background-color: lightgreen;">Rework Mending</th>
                             <th style="background-color: lightgreen;">Defect Sewing</th>
-                            <th style="background-color: lightgreen;">Defect Mending</th>
                             <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
+                            <th style="background-color: lightgreen;">Defect Mending</th>
                             <th style="background-color: lightgreen;">Reject</th>
-                            <th style="background-color: lightgreen;">Keluar RFT</th>
-                            <th style="background-color: lightgreen;">Keluar Rework</th>
+                            <th style="background-color: lightgreen;">Output</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
                             <th style="background-color: lightsteelblue;">Saldo Awal</th>
                             <th style="background-color: lightsteelblue;">Terima</th>
                             <th style="background-color: lightsteelblue;">Keluar</th>
                             <th style="background-color: lightsteelblue;">Saldo Akhir</th>
+                            <th style="background-color: Lavender;">Saldo Awal</th>
+                            <th style="background-color: Lavender;">Terima</th>
+                            <th style="background-color: Lavender;">Keluar</th>
+                            <th style="background-color: Lavender;">Saldo Akhir</th>
+                            <th style="background-color: Lavender;">Saldo Awal</th>
+                            <th style="background-color: Lavender;">Terima</th>
+                            <th style="background-color: Lavender;">Keluar</th>
+                            <th style="background-color: Lavender;">Saldo Akhir</th>
+                            <th style="background-color: Lavender;">Saldo Awal</th>
+                            <th style="background-color: Lavender;">Terima</th>
+                            <th style="background-color: Lavender;">Keluar</th>
+                            <th style="background-color: Lavender;">Saldo Akhir</th>
+                            <th style="background-color: #FFE5B4;">Saldo Awal</th>
+                            <th style="background-color: #FFE5B4;">Terima</th>
+                            <th style="background-color: #FFE5B4;">Keluar</th>
+                            <th style="background-color: #FFE5B4;">Saldo Akhir</th>
+                            <th style="background-color: #FFE5B4;">Saldo Awal</th>
+                            <th style="background-color: #FFE5B4;">Terima</th>
+                            <th style="background-color: #FFE5B4;">Keluar</th>
+                            <th style="background-color: #FFE5B4;">Saldo Akhir</th>
+                            <th style="background-color: #FFE5B4;">Saldo Awal</th>
+                            <th style="background-color: #FFE5B4;">Terima</th>
+                            <th style="background-color: #FFE5B4;">Keluar</th>
+                            <th style="background-color: #FFE5B4;">Saldo Akhir</th>
                         </tr>
                     </thead>
                 </table>
@@ -114,6 +142,11 @@
         }
     </script>
     <script>
+        $(document).ready(function() {
+            let datatable = new DataTable('#datatable');
+            datatable.clear().draw();
+        })
+
         function dataTableReload() {
             if ($.fn.DataTable.isDataTable('#datatable')) {
                 // Destroy the existing DataTable
@@ -125,6 +158,7 @@
             let tglakhir = $('#tgl-akhir').val();
             let dateFrom = tglawal + ' 00:00:00';
             let dateTo = tglakhir + ' 23:59:59';
+            console.log(dateFrom, dateTo);
             datatable = $("#datatable").DataTable({
                 processing: true,
                 serverSide: true,
@@ -138,7 +172,8 @@
                     leftColumns: 5 // Fix the first three columns
                 },
                 ajax: {
-                    url: '{{ route('report_mut_output') }}',
+                    url: '{{ route('show_mut_output') }}',
+                    type: 'post',
                     data: function(d) {
                         d.dateFrom = dateFrom;
                         d.dateTo = dateTo;
@@ -160,7 +195,7 @@
                         data: 'size'
                     },
                     {
-                        data: 'sa_sewing'
+                        data: 'saldo_awal_sewing'
                     },
                     {
                         data: 'qty_loading'
@@ -175,28 +210,25 @@
                         data: 'input_rework_mending'
                     },
                     {
-                        data: 'output_def_sewing'
+                        data: 'defect_sewing'
                     },
                     {
-                        data: 'output_def_spotcleaning'
+                        data: 'defect_spotcleaning'
                     },
                     {
-                        data: 'output_def_mending'
+                        data: 'defect_mending'
                     },
                     {
-                        data: 'qty_reject'
+                        data: 'output_rejects'
                     },
                     {
-                        data: 'out_sew_rft'
+                        data: 'output_rfts'
                     },
                     {
-                        data: 'out_sew_rework'
+                        data: 'saldo_akhir'
                     },
                     {
-                        data: 'saldo_akhir_qc_line'
-                    },
-                    {
-                        data: 'sa_steam'
+                        data: 'saldo_awal_steam'
                     },
                     {
                         data: 'input_steam'
@@ -206,6 +238,78 @@
                     },
                     {
                         data: 'saldo_akhir_steam'
+                    },
+                    {
+                        data: 'saldo_awal_def_sew'
+                    },
+                    {
+                        data: 'defect_trans_sewing'
+                    },
+                    {
+                        data: 'defect_trans_rew_sewing'
+                    },
+                    {
+                        data: 'saldo_akhir_def_sewing'
+                    },
+                    {
+                        data: 'saldo_awal_def_spotcleaning'
+                    },
+                    {
+                        data: 'defect_trans_spotcleaning'
+                    },
+                    {
+                        data: 'defect_trans_rew_spotcleaning'
+                    },
+                    {
+                        data: 'saldo_akhir_def_spotcleaning'
+                    },
+                    {
+                        data: 'saldo_awal_def_mending'
+                    },
+                    {
+                        data: 'defect_trans_mending'
+                    },
+                    {
+                        data: 'defect_trans_rew_mending'
+                    },
+                    {
+                        data: 'saldo_akhir_def_mending'
+                    },
+                    {
+                        data: 'saldo_awal_def_sew_pck'
+                    },
+                    {
+                        data: 'defect_trans_sewing_pck'
+                    },
+                    {
+                        data: 'defect_trans_rew_sewing_pck'
+                    },
+                    {
+                        data: 'saldo_akhir_def_sewing_pck'
+                    },
+                    {
+                        data: 'saldo_awal_def_spotcleaning_pck'
+                    },
+                    {
+                        data: 'defect_trans_spotcleaning_pck'
+                    },
+                    {
+                        data: 'defect_trans_rew_spotcleaning_pck'
+                    },
+                    {
+                        data: 'saldo_akhir_def_spotcleaning_pck'
+                    },
+                    {
+                        data: 'saldo_awal_def_mending_pck'
+                    },
+                    {
+                        data: 'defect_trans_mending_pck'
+                    },
+                    {
+                        data: 'defect_trans_rew_mending_pck'
+                    },
+                    {
+                        data: 'saldo_akhir_def_mending_pck'
                     },
 
                 ],
@@ -237,7 +341,7 @@
 
             // Fetch all data from the server
             $.ajax({
-                type: "GET",
+                type: "POST",
                 url: '{{ route('export_excel_mut_output') }}',
                 data: {
                     dateFrom: dateFrom,
@@ -247,6 +351,21 @@
                     // Create a new workbook and a worksheet
                     const workbook = new ExcelJS.Workbook();
                     const worksheet = workbook.addWorksheet("Mutasi Output Production ");
+
+                    // Add a main title row above the Tgl Transaksi
+                    const mainTitleRow = worksheet.addRow(["Laporan Mutasi Saldo WIP"]);
+                    // Center align the main title row
+                    worksheet.getCell(`A${mainTitleRow.number}`).alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    // Optionally, you can merge cells for the main title
+                    worksheet.mergeCells(`A${mainTitleRow.number}:E${mainTitleRow.number}`);
+                    mainTitleRow.font = {
+                        bold: true,
+                        size: 14
+                    };
+
                     // Add a title row for Tgl Transaksi without borders
                     const titleRow = worksheet.addRow([`Tgl Transaksi: ${tglawal} - ${tglakhir}`]);
                     // Center align the title row
@@ -254,18 +373,35 @@
                         horizontal: 'center',
                         vertical: 'middle'
                     };
+                    // Set border to null for the title row
+                    titleRow.eachCell((cell) => {
+                        cell.border = null;
+                    });
+
                     // Add an empty row for spacing
                     worksheet.addRow([]);
                     const headerRow = worksheet.addRow([
                         "Jenis Produk", "", "", "", "",
-                        "Sewing", "", "", "", "", "", "", "", "", "", "", "",
+                        "Sewing", "", "", "", "", "", "", "", "", "", "",
                         "Steam", "", "", "",
+                        "Defect Sewing", "", "", "",
+                        "Defect Spotcleaning", "", "", "",
+                        "Defect Mending", "", "", "",
+                        "Defect Packing Sewing", "", "", "",
+                        "Defect Packing Spotcleaning", "", "", "",
+                        "Defect Packing Mending", "", "", "",
                     ]);
 
                     // Merge cells for the first header row
                     worksheet.mergeCells(`A${headerRow.number}:E${headerRow.number}`); // Merge "Jenis Produk"
                     worksheet.mergeCells(`F${headerRow.number}:P${headerRow.number}`); // Merge "Packing Line"
-                    worksheet.mergeCells(`R${headerRow.number}:U${headerRow.number}`);
+                    worksheet.mergeCells(`Q${headerRow.number}:T${headerRow.number}`);
+                    worksheet.mergeCells(`U${headerRow.number}:X${headerRow.number}`);
+                    worksheet.mergeCells(`Y${headerRow.number}:AB${headerRow.number}`);
+                    worksheet.mergeCells(`AC${headerRow.number}:AF${headerRow.number}`);
+                    worksheet.mergeCells(`AG${headerRow.number}:AJ${headerRow.number}`);
+                    worksheet.mergeCells(`AK${headerRow.number}:AN${headerRow.number}`);
+                    worksheet.mergeCells(`AO${headerRow.number}:AR${headerRow.number}`);
 
                     // Define the second header row
                     // Center align the merged cells
@@ -285,13 +421,38 @@
                         horizontal: 'center',
                         vertical: 'middle'
                     };
+                    worksheet.getCell(`Y${headerRow.number}`).alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    worksheet.getCell(`AC${headerRow.number}`).alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    worksheet.getCell(`AG${headerRow.number}`).alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    worksheet.getCell(`AK${headerRow.number}`).alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    worksheet.getCell(`AO${headerRow.number}`).alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
                     const headers = [
                         "WS", "Buyer", "Style", "Color", "Size",
                         "Saldo Awal", "Terima Dari Loading", "Rework Sewing",
                         "Rework Spot Cleaning", "Rework Mending", "Defect Sewing",
-                        "Defect Spot Cleaning", "Defect Mending", "Reject",
-                        "Keluar RFT", "Keluar Rework", "Saldo Akhir", "Saldo Awal",
-                        "Terima", "Keluar", "Saldo Akhir"
+                        "Defect Spot Cleaning", "Defect Mending", "Reject", "Output", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
                     ];
                     worksheet.addRow(headers);
 
@@ -303,47 +464,74 @@
                             row.styleno,
                             row.color,
                             row.size,
-                            row.sa_sewing,
+                            row.saldo_awal_sewing,
                             row.qty_loading,
                             row.input_rework_sewing,
                             row.input_rework_spotcleaning,
                             row.input_rework_mending,
-                            row.output_def_sewing,
-                            row.output_def_spotcleaning,
-                            row.output_def_mending,
-                            row.qty_reject,
-                            row.out_sew_rft,
-                            row.out_sew_rework,
-                            row.saldo_akhir_qc_line,
-                            row.sa_steam,
+                            row.defect_sewing,
+                            row.defect_spotcleaning,
+                            row.defect_mending,
+                            row.output_rejects,
+                            row.output_rfts,
+                            row.saldo_akhir,
+                            row.saldo_awal_steam,
                             row.input_steam,
                             row.output_steam,
-                            row.saldo_akhir_steam
+                            row.saldo_akhir_steam,
+                            row.saldo_awal_def_sew,
+                            row.defect_trans_sewing,
+                            row.defect_trans_rew_sewing,
+                            row.saldo_akhir_def_sewing,
+                            row.saldo_awal_def_spotcleaning,
+                            row.defect_trans_spotcleaning,
+                            row.defect_trans_rew_spotcleaning,
+                            row.saldo_akhir_def_spotcleaning,
+                            row.saldo_awal_def_mending,
+                            row.defect_trans_mending,
+                            row.defect_trans_rew_mending,
+                            row.saldo_akhir_def_mending,
+                            row.saldo_awal_def_sew_pck,
+                            row.defect_trans_sewing_pck,
+                            row.defect_trans_rew_sewing_pck,
+                            row.saldo_akhir_def_sewing_pck,
+                            row.saldo_awal_def_spotcleaning_pck,
+                            row.defect_trans_spotcleaning_pck,
+                            row.defect_trans_rew_spotcleaning_pck,
+                            row.saldo_akhir_def_spotcleaning_pck,
+                            row.saldo_awal_def_mending_pck,
+                            row.defect_trans_mending_pck,
+                            row.defect_trans_rew_mending_pck,
+                            row.saldo_akhir_def_mending_pck
                         ]);
                     });
 
-                    // Apply border style to all cells
+                    // Apply border style to all cells except title and A3
+
                     worksheet.eachRow({
                         includeEmpty: true
                     }, function(row, rowNumber) {
-                        row.eachCell({
-                            includeEmpty: true
-                        }, function(cell, colNumber) {
-                            cell.border = {
-                                top: {
-                                    style: 'thin'
-                                },
-                                left: {
-                                    style: 'thin'
-                                },
-                                bottom: {
-                                    style: 'thin'
-                                },
-                                right: {
-                                    style: 'thin'
-                                }
-                            };
-                        });
+                        if (rowNumber !== mainTitleRow.number && rowNumber !== titleRow.number &&
+                            rowNumber !== 3) {
+                            row.eachCell({
+                                includeEmpty: true
+                            }, function(cell, colNumber) {
+                                cell.border = {
+                                    top: {
+                                        style: 'thin'
+                                    },
+                                    left: {
+                                        style: 'thin'
+                                    },
+                                    bottom: {
+                                        style: 'thin'
+                                    },
+                                    right: {
+                                        style: 'thin'
+                                    }
+                                };
+                            });
+                        }
                     });
 
                     // Export the workbook

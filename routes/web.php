@@ -949,7 +949,8 @@ Route::middleware('auth')->group(function () {
     // Report Mutasi Output
     Route::controller(ReportMutasiOutputController::class)->prefix("report-mut-output")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('report_mut_output');
-        Route::get('/export_excel_mut_output', 'export_excel_mut_output')->name('export_excel_mut_output');
+        Route::post('/show_mut_output', 'show_mut_output')->name('show_mut_output');
+        Route::post('/export_excel_mut_output', 'export_excel_mut_output')->name('export_excel_mut_output');
     });
 
     Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->middleware('role:sewing')->group(function () {
@@ -1568,8 +1569,8 @@ Route::middleware('auth')->group(function () {
     // Laporan BC
     Route::controller(ReportDocController::class)->prefix("report_doc_laporan")->middleware('bc')->group(function () {
         Route::get('/report_doc_laporan_wip', 'report_doc_laporan_wip')->name('report-doc-laporan-wip');
-        Route::get('/show_report_doc_lap_fab', 'show_report_doc_lap_fab')->name('show_report_doc_lap_fab');
         Route::get('/show_report_doc_lap_wip', 'show_report_doc_lap_wip')->name('show_report_doc_lap_wip');
+        Route::get('/export_excel_doc_lap_wip', 'export_excel_doc_lap_wip')->name('export_excel_doc_lap_wip');
     });
 
 
