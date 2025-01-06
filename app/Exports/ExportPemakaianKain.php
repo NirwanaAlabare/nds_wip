@@ -62,33 +62,76 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
         foreach ($requestRoll as $req) {
             $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
-            $rollIds = $rollIdsArr->pluck('id_roll');
+            $rollIds = $rollIdsArr->pluck('id_roll')->map(function ($item) {
+                return "'" . $item . "'";
+            })->implode(', ');
 
-            $rolls = FormCutInputDetail::selectRaw("
-                    id_roll,
-                    id_item,
-                    detail_item,
-                    lot,
-                    COALESCE(roll_buyer, roll) roll,
-                    MAX(qty) qty,
-                    ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
-                    unit,
-                    ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                    ROUND(SUM(short_roll), 2) total_short_roll_2,
-                    ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
-                ")->
-                whereNotNull("id_roll")->
-                whereIn("id_roll", $rollIds)->
-                whereIn("status", ['complete', 'need extension', 'extension complete'])->
-                groupBy("id_item", "id_roll")->
-                get();
+            // $rolls = FormCutInputDetail::selectRaw("
+            //         id_roll,
+            //         id_item,
+            //         detail_item,
+            //         lot,
+            //         COALESCE(roll_buyer, roll) roll,
+            //         MAX(qty) qty,
+            //         ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
+            //         unit,
+            //         ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+            //         ROUND(SUM(short_roll), 2) total_short_roll_2,
+            //         ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+            //     ")->
+            //     whereNotNull("id_roll")->
+            //     whereIn("id_roll", $rollIds)->
+            //     whereIn("status", ['complete', 'need extension', 'extension complete'])->
+            //     groupBy("id_item", "id_roll")->
+            //     get();
+
+            $rolls = collect(DB::select("
+                SELECT
+                    req.id_roll,
+                    req.id_item,
+                    req.item_desc detail_item,
+                    req.no_lot lot,
+                    req.color,
+                    COALESCE(roll.roll, req.no_roll) roll,
+                    COALESCE(roll.qty, req.qty_out) qty,
+                    COALESCE(roll.sisa_kain, 0) sisa_kain,
+                    COALESCE(roll.unit, req.satuan) unit,
+                    COALESCE(roll.total_pemakaian_roll, 0) total_pemakaian_roll,
+                    COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
+                    COALESCE(roll.total_short_roll, 0) total_short_roll
+                FROM (
+                    select b.*, c.color from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll
+                ) req
+                LEFT JOIN (
+                    select
+                        id_roll,
+                        id_item,
+                        detail_item,
+                        lot,
+                        COALESCE(roll_buyer, roll) roll,
+                        MAX(qty) qty,
+                        ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
+                        unit,
+                        ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                        ROUND(SUM(short_roll), 2) total_short_roll_2,
+                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+                    from
+                        laravel_nds.form_cut_input_detail
+                    WHERE
+                        `status` in ('complete', 'need extension', 'extension complete')
+                        ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                    GROUP BY
+                        id_item,
+                        id_roll
+                ) roll ON req.id_roll = roll.id_roll
+            "));
 
             if ($rolls->count() > 0) {
                 $rolls->map(function ($roll) use ($req) {
-                    $roll['tanggal_req'] = $req->bppbdate;
-                    $roll['no_req'] = $req->bppbno;
-                    $roll['no_ws'] = $req->no_ws;
-                    $roll['no_ws_aktual'] = $req->no_ws_aktual;
+                    $roll->tanggal_req = $req->bppbdate;
+                    $roll->no_req = $req->bppbno;
+                    $roll->no_ws = $req->no_ws;
+                    $roll->no_ws_aktual = $req->no_ws_aktual;
                 });
 
                 $data->push($rolls);
@@ -118,7 +161,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
         $currentRow = 1;
 
         $event->sheet->styleCells(
-            'A3:O' . ($event->getConcernable()->rowCount+2+1),
+            'A3:P' . ($event->getConcernable()->rowCount+2+1),
             [
                 'borders' => [
                     'allBorders' => [

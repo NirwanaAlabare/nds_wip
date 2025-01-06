@@ -38,9 +38,14 @@ class MasterPlanController extends Controller
                 master_plan.target_effy
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+            join("so", "so.id_cost", "=", "act_costing.id")->
+            join(DB::raw("(select * from so_det group by id_so, color) so_det"), function ($join) {
+                $join->on("so_det.id_so", "=", "so.id");
+                $join->on("so_det.color", "=", "master_plan.color");
+            })->
             where("tgl_plan", $tglPlan)->
-            orderBy("sewing_line", "asc")->
             where("cancel", "N")->
+            orderBy("sewing_line", "asc")->
             get();
 
             return Datatables::of($masterPlan)->toJson();
@@ -155,6 +160,11 @@ class MasterPlanController extends Controller
                 CONCAT('http://10.10.5.62:8080/erp/pages/prod_new/upload_files/', master_plan.gambar) gambar
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+            join("so", "so.id_cost", "=", "act_costing.id")->
+            join(DB::raw("(select * from so_det group by id_so, color) so_det"), function ($join) {
+                $join->on("so_det.id_so", "=", "so.id");
+                $join->on("so_det.color", "=", "master_plan.color");
+            })->
             where("sewing_line", $line)->
             where("tgl_plan", $date)->
             where("cancel", "N")->

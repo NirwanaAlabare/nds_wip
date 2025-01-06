@@ -458,14 +458,14 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('piping-process') }}"
-                                        class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'piping-process' ? 'active' : '' }}">
                                         Piping Process <i class="fa-solid fa-ring"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('track-cutting-output') }}"
-                                        class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
-                                        Order Cutting Output <i class="fa fa-file"></i>
+                                    <a href="{{ route('piping-loading') }}"
+                                        class="dropdown-item {{ $subPage == 'piping-loading' ? 'active' : '' }}">
+                                        Loading <i class="fa-solid fa-right-to-bracket"></i>
                                     </a>
                                 </li>
                                 <li>

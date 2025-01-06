@@ -34,6 +34,7 @@ use App\Http\Controllers\Cutting\RollController;
 // Piping Process
 use App\Http\Controllers\Cutting\MasterPipingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
+use App\Http\Controllers\Cutting\PipingLoadingController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -462,10 +463,29 @@ Route::middleware('auth')->group(function () {
     Route::controller(PipingProcessController::class)->prefix("piping-process")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('piping-process');
         Route::get('/create', 'create')->name('create-piping-process');
+        Route::get('/create/new', 'createNew')->name('create-new-piping-process');
+        Route::get('/process/{id?}', 'process')->name('process-piping-process');
         Route::post('/store', 'store')->name('store-piping-process');
+        Route::get('/take-piping/{id?}', 'takePiping')->name('take-piping-process');
+        Route::get('/pdf/{id?}', 'pdf')->name('pdf-piping-process');
 
         // Generate
         Route::get('/generate', 'generate')->name('generate-piping-process');
+
+        // Item Forms
+        Route::get('/item/{id?}', 'item')->name('item-piping');
+        Route::get('/item/forms/{id?}', 'itemForms')->name('item-forms-piping');
+        Route::get('/item/piping/{id?}/{idForm?}', 'itemPiping')->name('item-piping-piping');
+    });
+
+    // Piping Loading
+    Route::controller(PipingLoadingController::class)->prefix("piping-loading")->middleware("role:cutting")->group(function () {
+        Route::get("/", "index")->name("piping-loading");
+        Route::get("/create", "create")->name("create-piping-loading");
+        Route::post("/store", "store")->name("store-piping-loading");
+        Route::get("/total", "total")->name("total-piping-loading");
+
+        Route::get("/pipingProcess/{id?}", "getPipingProcess")->name("get-piping-process");
     });
 
     // Cutting Plan

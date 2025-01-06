@@ -151,6 +151,11 @@
             $("#total_update").val(currentRangeTable.page.info().recordsTotal);
         });
 
+
+        $("#year").on("change", function () {
+            getSequence();
+        });
+
         // Get Sequence
         function getSequence() {
             document.getElementById('loading').classList.remove('d-none');

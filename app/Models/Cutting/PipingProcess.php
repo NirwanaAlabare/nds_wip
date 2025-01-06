@@ -22,4 +22,9 @@ class PipingProcess extends Model
     {
         return $this->hasMany(PipingProcessDetail::class, 'piping_process_id', 'id');
     }
+
+    public function pipingLoadings()
+    {
+        return $this->hasMany(PipingLoading::class, 'piping_process_id', 'id');
+    }
 }

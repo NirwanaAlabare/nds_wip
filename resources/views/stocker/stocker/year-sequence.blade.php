@@ -404,7 +404,13 @@
             })
         }
 
+        $('#year').on("change", function () {
+            getSequenceYearSequence();
+        });
+
         function getSequenceYearSequence() {
+            document.getElementById("loading").classList.remove("d-none");
+
             $.ajax({
                 url: '{{ route('get-sequence-year-sequence') }}',
                 type: 'get',
@@ -436,10 +442,14 @@
                             });
                         }
                     }
+
+                    document.getElementById("loading").classList.remove("d-none");
                 },
                 error: function(jqXHR)
                 {
                     console.error(jqXHR)
+
+                    document.getElementById("loading").classList.remove("d-none");
                 }
             })
         }
