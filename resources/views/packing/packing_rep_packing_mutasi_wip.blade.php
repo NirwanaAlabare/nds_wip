@@ -120,6 +120,11 @@
         }
     </script>
     <script>
+        $(document).ready(function() {
+            let datatable = new DataTable('#datatable');
+            datatable.clear().draw();
+        })
+
         function dataTableReload() {
             if ($.fn.DataTable.isDataTable('#datatable')) {
                 // Destroy the existing DataTable
