@@ -16,7 +16,7 @@ class PipingLoading extends Model
 
     public function pipingProcess()
     {
-        return $this->belongsTo(PipingProcessDetail::class, 'piping_process_id', 'id');
+        return $this->belongsTo(PipingProcess::class, 'piping_process_id', 'id');
     }
 
     public function sewingLine()

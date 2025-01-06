@@ -8,8 +8,8 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="text-sb fw-bold"><i class="fa fa-plus"></i> New Loading Piping</h5>
-        <button class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke Loading Piping</button>
+        <h5 class="text-sb fw-bold"><i class="fa fa-plus"></i> New Piping Loading</h5>
+        <a href="{{ route('piping-loading') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke Loading Piping</a>
     </div>
     <form action="{{ route('store-piping-loading') }}" method="post" id="piping-loading-form" onsubmit="storePipingLoading(this, event)">
         <div class="card card-sb">
@@ -39,6 +39,10 @@
                             <button type="button" class="btn btn-primary" id="scan-btn" onclick="initScan()">Scan</button>
                         </div>
                         <input type="hidden" name="piping_process_id" id="piping_process_id">
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" class="form-control" name="tanggal" id="tanggal" value="{{ date("Y-m-d") }}" readonly>
                     </div>
                     <div class="col-3">
                         <label class="form-label">Buyer</label>
@@ -126,7 +130,7 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-center">
-                    <button class="btn btn-success fw-bold px-5">Loading</button>
+                    <button class="btn btn-success fw-bold px-5">LOAD</button>
                 </div>
             </div>
         </div>
@@ -141,6 +145,10 @@
         // Initial Window On Load Event
         $(document).ready(async function () {
             disableFormSubmit("#piping-loading-form");
+
+            let pipingLoadingForm = document.getElementById("piping-loading-form");
+
+            resetForm(pipingLoadingForm);
         });
 
         // Select2 Autofocus

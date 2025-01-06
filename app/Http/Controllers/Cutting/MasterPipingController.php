@@ -102,7 +102,6 @@ class MasterPipingController extends Controller
             case 'part' :
                 $data = MasterPiping::select("id", "part")->
                     where("act_costing_id", $request->act_costing_id)->
-                    where("color", $request->color)->
                     groupBy("act_costing_id", "color", "part")->
                     get();
 

@@ -101,12 +101,14 @@ class PipingProcessController extends Controller
                 $validatedRequest = $request->validate([
                     "kode_piping" => "required|unique:piping_process",
                     "master_piping_id" => "required",
+                    "color" => "required",
                 ]);
 
                 $storePipingProcess = PipingProcess::create([
                     "process" => $request->process,
                     "kode_piping" => $validatedRequest["kode_piping"],
                     "master_piping_id" => $validatedRequest["master_piping_id"],
+                    "color" => $validatedRequest["color"],
                     "tanggal" => date("Y-m-d"),
                     "created_by" => Auth::user()->id,
                     "created_by_username" => Auth::user()->username
@@ -277,6 +279,7 @@ class PipingProcessController extends Controller
                         "lebar_kain_cuttable_unit" => $validatedRequest["lebar_kain_cuttable_unit"],
                         "lebar_roll_piping" => $validatedRequest["lebar_roll_piping"],
                         "lebar_roll_piping_unit" => $validatedRequest["lebar_roll_piping_unit"],
+                        "output_total_roll_awal" => $validatedRequest["output_total_roll"],
                         "output_total_roll" => $validatedRequest["output_total_roll"],
                         "jenis_potong_piping" => $validatedRequest["jenis_potong_piping"],
                         "estimasi_output_roll" => $validatedRequest["estimasi_output_roll"],

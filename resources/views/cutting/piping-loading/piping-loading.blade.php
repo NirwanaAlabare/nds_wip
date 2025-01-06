@@ -37,7 +37,6 @@
                 <table id="datatable" class="table table-bordered table-hover table-sm w-100">
                     <thead>
                         <tr>
-                            <th>Action</th>
                             <th>Tanggal</th>
                             <th>No. Transaksi</th>
                             <th>Line</th>
@@ -55,6 +54,15 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="9"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -93,31 +101,41 @@
             });
         });
 
+        var listFilter = [
+                "tanggal_filter",
+                "kode_filter",
+                "line_name_filter",
+                "kode_piping_filter",
+                "buyer_filter",
+                "act_costing_ws_filter",
+                "style_filter",
+                "color_filter",
+                "part_filter",
+                "lebar_filter",
+                "qty_filter",
+                "output_filter",
+                "user_filter"
+            ];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
-                $('input', this).on('keyup change', function() {
-                    if (datatable.column(i).search() !== this.value) {
-                        datatable
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).empty();
-            }
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
         });
 
         let datatable = $("#datatable").DataTable({
             processing: true,
             serverSide: true,
             ordering: false,
-            scrollX: "500px",
-            scrollY: "500px",
             pageLength: 50,
             ajax: {
                 url: '{{ route('piping-loading') }}',
@@ -128,16 +146,13 @@
             },
             columns: [
                 {
-                    data: 'id'
-                },
-                {
                     data: 'tanggal'
                 },
                 {
-                    data: 'line_name'
+                    data: 'kode'
                 },
                 {
-                    data: 'no_transaksi'
+                    data: 'line_name'
                 },
                 {
                     data: 'kode_piping'
@@ -167,36 +182,59 @@
                     data: 'estimasi_output_total'
                 },
                 {
-                    data: 'created_by'
+                    data: 'created_by_username'
                 },
             ],
             columnDefs: [
                 {
-                    targets: [0],
-                    render: (data, type, row, meta) => {
-                        let btnEdit = "<a href='{{ route('process-piping-process') }}/"+data+"' class='btn btn-primary btn-sm' disabled><i class='fa fa-search-plus'></i></a>";
-                        let btnPdf = "<a href='{{ route('pdf-piping-process') }}/"+data+"' class='btn btn-secondary btn-sm' disabled><i class='fa-solid fa-print'></i></a>";
-
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnPdf + `</div>`;
-                    }
-                },
-                {
-                    targets: [10],
-                    render: (data, type, row, meta) => {
-                        return row.qty_roll+" "+row.qty_roll_unit;
-                    }
-                },
-                {
-                    targets: [11],
-                    render: (data, type, row, meta) => {
-                        return row.estimasi_output_total+" "+row.estimasi_output_total_unit;
-                    }
-                },
-                {
                     targets: '_all',
                     className: 'text-nowrap'
                 }
-            ]
+            ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(9).footer()).html("...");
+                $(api.column(10).footer()).html("...");
+                $(api.column(11).footer()).html("...");
+
+                $.ajax({
+                    url: "{{ route("total-piping-loading") }}",
+                    data: {
+                        'dateFrom' : $('#tgl-awal').val(),
+                        'dateTo' : $('#tgl-akhir').val(),
+                        "tanggal": $("#tanggal_filter").val(),
+                        "kode": $("#kode_filter").val(),
+                        "line_name": $("#line_name_filter").val(),
+                        "kode_piping": $("#kode_piping_filter").val(),
+                        "buyer": $("#buyer_filter").val(),
+                        "act_costing_ws": $("#act_costing_ws_filter").val(),
+                        "style": $("#style_filter").val(),
+                        "color": $("#color_filter").val(),
+                        "part": $("#part_filter").val(),
+                        "lebar": $("#lebar_filter").val(),
+                        "qty": $("#qty_filter").val(),
+                        "output": $("#output_filter").val(),
+                        "user": $("#user_filter").val()
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log(response);
+
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(9).footer()).html(response['total_lebar']+" "+response['total_lebar_unit']);
+                            $(api.column(10).footer()).html(response['total_qty']+" "+response['total_qty_unit']);
+                            $(api.column(11).footer()).html(response['total_output']+" "+response['total_output_unit']);
+                        }
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+                    },
+                })
+            },
         });
 
         function dataTableReload() {

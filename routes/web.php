@@ -483,6 +483,7 @@ Route::middleware('auth')->group(function () {
         Route::get("/", "index")->name("piping-loading");
         Route::get("/create", "create")->name("create-piping-loading");
         Route::post("/store", "store")->name("store-piping-loading");
+        Route::get("/total", "total")->name("total-piping-loading");
 
         Route::get("/pipingProcess/{id?}", "getPipingProcess")->name("get-piping-process");
     });

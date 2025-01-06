@@ -95,7 +95,13 @@
                             <div class="mb-1">
                                 <div class="form-group mb-0">
                                     <label>Color</label>
-                                    <input type="text" class="form-control" id="color" name="color" value="{{ $currentPiping ? $currentPiping->masterPiping->color : null }}" readonly>
+                                    @if ($currentPiping)
+                                        <input type="text" class="form-control" id="color" name="color" value="{{ $currentPiping ? $currentPiping->color : null }}" readonly>
+                                    @else
+                                        <select class="form-select select2bs4" id="color" name="color">
+                                            <option value=""></option>
+                                        </select>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -703,7 +709,7 @@
             // Update Order Information Based on Order WS and Order Color
             function updateOrderInfo() {
                 return $.ajax({
-                    url: '{{ route("get-general-order") }}',
+                    url: '{{ route('get-general-order') }}',
                     type: 'get',
                     data: {
                         act_costing_id: $('#act_costing_id').val()
@@ -733,17 +739,29 @@
                 document.getElementById("color").innerHTML = null;
 
                 $.ajax({
-                    url: "{{ route("list-master-piping") }}",
+                    url: "{{ route("get-colors") }}",
                     type: "get",
                     data: {
-                        data: 'color',
-                        buyer_id: $('#buyer_id').val(),
                         act_costing_id: $('#act_costing_id').val()
                     },
                     dataType: "json",
                     success: function (response) {
                         if (response) {
-                            $("#color").val(response.color).trigger("change");
+                            if (response.length > 0) {
+                                $("#color").prop("disabled", false);
+
+                                let selectElement = document.getElementById("color");
+
+                                for (let i = 0; i < response.length; i++) {
+                                    let newOption = document.createElement("option");
+                                    newOption.value = response[i].color;
+                                    newOption.innerHTML = response[i].color;
+
+                                    selectElement.prepend(newOption);
+                                }
+
+                                $("#color").val(response[response.length-1].color).trigger("change");
+                            }
                         }
 
                         document.getElementById('loading').classList.add('d-none');
@@ -769,8 +787,7 @@
                     data: {
                         data: 'part',
                         buyer_id: $('#buyer_id').val(),
-                        act_costing_id: $('#act_costing_id').val(),
-                        color: $('#color').val(),
+                        act_costing_id: $('#act_costing_id').val()
                     },
                     dataType: "json",
                     success: function (response) {
