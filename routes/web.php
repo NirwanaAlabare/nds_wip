@@ -35,6 +35,7 @@ use App\Http\Controllers\Cutting\RollController;
 use App\Http\Controllers\Cutting\MasterPipingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingLoadingController;
+use App\Http\Controllers\Cutting\PipingStockController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -486,6 +487,12 @@ Route::middleware('auth')->group(function () {
         Route::get("/total", "total")->name("total-piping-loading");
 
         Route::get("/pipingProcess/{id?}", "getPipingProcess")->name("get-piping-process");
+    });
+
+    // Piping Stock
+    Route::controller(PipingStockController::class)->prefix("piping-stock")->middleware("role:cutting")->group(function () {
+        Route::get("/", "index")->name("piping-stock");
+        Route::get("/total", "total")->name("total-piping-stock");
     });
 
     // Cutting Plan
