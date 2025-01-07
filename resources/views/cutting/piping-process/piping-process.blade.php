@@ -156,10 +156,10 @@
                     data: 'total_roll'
                 },
                 {
-                    data: 'lebar_roll_piping'
+                    data: 'lebar_roll'
                 },
                 {
-                    data: 'panjang_roll_piping'
+                    data: 'panjang_roll'
                 },
                 {
                     data: 'output_total_roll'

@@ -493,6 +493,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(PipingStockController::class)->prefix("piping-stock")->middleware("role:cutting")->group(function () {
         Route::get("/", "index")->name("piping-stock");
         Route::get("/total", "total")->name("total-piping-stock");
+        Route::get("/show/{id?}/{color?}", "show")->name("show-piping-stock");
     });
 
     // Cutting Plan

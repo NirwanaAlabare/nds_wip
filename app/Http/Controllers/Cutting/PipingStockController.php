@@ -16,10 +16,11 @@ class PipingStockController extends Controller
 {
     function index(Request $request) {
         if ($request->ajax()) {
-            $dateFrom = $request->from ? $request->from : date('Y-m-d');
-            $dateTo = $request->to ? $request->to : date('Y-m-d');
+            $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
+            $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
-            $pipingStock = PipingProcess::selectRaw("
+            $pipingStock = MasterPiping::selectRaw("
+                master_piping.id,
                 master_piping.buyer,
                 master_piping.act_costing_ws,
                 master_piping.style,
@@ -28,7 +29,7 @@ class PipingStockController extends Controller
                 CONCAT(SUM(piping_process.output_total_roll), ' ', GROUP_CONCAT(DISTINCT piping_process.output_total_roll_unit)) output_total_roll,
                 CONCAT(SUM(piping_process.output_total_roll * piping_process.estimasi_output_roll), ' ', GROUP_CONCAT(DISTINCT piping_process.estimasi_output_roll_unit)) estimasi_output_total
             ")->
-            leftJoin("master_piping", "master_piping.id", "=", "piping_process.master_piping_id")->
+            leftJoin("piping_process", "piping_process.master_piping_id", "=", "master_piping.id")->
             whereBetween("piping_process.updated_at", [$dateFrom." 00:00:00", $dateTo." 23:59:59"])->
             groupBy("master_piping.act_costing_ws", "piping_process.color", "master_piping.part")->
             get();
@@ -82,9 +83,15 @@ class PipingStockController extends Controller
         return $pipingStock ? ($pipingStock[0] ? $pipingStock[0] : null) : null;
     }
 
-    function show($id = 0) {
-        if ($id) {
-            $piping = PipingProcess::where("act_costing_ws", $id);
+    function show($id = 0, $color = "") {
+        if ($id && $color) {
+            $piping = MasterPiping::find($id);
+
+            if ($piping) {
+                return view("cutting.piping-stock.show-piping-stock", ["piping" => $piping, "color" => $color, "page" => "dashboard-cutting", "subPageGroup" => "cutting-piping", "subPage" => "piping-stock"]);
+            }
         }
+
+        return view("cutting.piping-stock.piping-stock", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piping", "subPage" => "piping-stock"]);
     }
 }

@@ -17,7 +17,6 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toolbox"></i> Piping Stock</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-piping') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> Tambah Piping</a>
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
@@ -166,7 +165,7 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<a href='#' class='btn btn-primary btn-sm'><i class='fa fa-search'></i></button>";
+                        let btnEdit = "<a href='{{ route('show-piping-stock') }}/"+ row.id +"/"+ row.color +"' class='btn btn-primary btn-sm'><i class='fa fa-search'></i></button>";
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
                     }

@@ -812,12 +812,12 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-report' ? 'active' : '' }}">Report</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('reportOutput') }}"
                                         class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">
                                         Report Output <i class="fa-solid fa-file"></i>
                                     </a>
-                                </li>
+                                </li> --}}
                                 {{-- <li>
                                     <a href="{{ route('reportProduction') }}"
                                         class="dropdown-item {{ $subPage == 'reportProduction' ? 'active' : '' }}">
