@@ -17,6 +17,9 @@ use App\Models\YearSequence;
 use App\Models\StockerAdditional;
 use App\Models\StockerAdditionalDetail;
 use App\Models\DCIn;
+use App\Models\SignalBit\Rft;
+use App\Models\SignalBit\Defect;
+use App\Models\SignalBit\Reject;
 use App\Exports\Stocker\StockerListExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -3888,11 +3891,7 @@ class StockerController extends Controller
         $yearSequenceArr = [];
         $yearSequenceFailArr = [];
         foreach ($yearSequences as $yearSequence) {
-            if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
-                array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-            } else {
-                array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
-            }
+            array_push($yearSequenceArr, $yearSequence->id_year_sequence);
         }
 
         $failMessage = "";
@@ -3904,6 +3903,18 @@ class StockerController extends Controller
             $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
                 "so_det_id" => $request->size,
                 "size" => $request->size_text,
+            ]);
+
+            $rft = Rft::whereIn("kode_numbering", $yearSequenceArr)->update([
+                "so_det_id" => $request->size,
+            ]);
+
+            $defect = Defect::whereIn("kode_numbering", $yearSequenceArr)->update([
+                "so_det_id" => $request->size,
+            ]);
+
+            $reject = Reject::whereIn("kode_numbering", $yearSequenceArr)->update([
+                "so_det_id" => $request->size,
             ]);
 
             return array(
