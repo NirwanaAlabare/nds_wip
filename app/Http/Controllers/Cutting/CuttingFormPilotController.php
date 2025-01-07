@@ -548,6 +548,47 @@ class CuttingFormPilotController extends Controller
 
     public function startProcess(Request $request)
     {
+        // $date = date('Y-m-d');
+        // $hari = substr($date, 8, 2);
+        // $bulan = substr($date, 5, 2);
+        // $now = Carbon::now();
+
+        // $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
+        // $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + 1) : 1;
+
+        // $noForm = $hari."-".$bulan."-".$urutan;
+
+        // $storeFormCutInput = FormCutInput::create([
+        //     "tgl_form_cut" => $date,
+        //     "no_form" => $noForm,
+        //     "status" => "PENGERJAAN PILOT MARKER",
+        //     "tipe_form_cut" => "PILOT",
+        //     "app" => "Y",
+        //     "app_by" => Auth::user()->id,
+        //     "app_notes" => "PILOT FORM CUT",
+        //     "app_at" => $now,
+        // ]);
+
+        // if ($storeFormCutInput) {
+        //     $dateFormat = date("dmY", strtotime($date));
+
+        //     session(['currentPilotForm' => $storeFormCutInput->id]);
+
+        //     return array(
+        //         "status" => 200,
+        //         "message" => "alright",
+        //         "data" => $storeFormCutInput,
+        //         "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
+        //     );
+        // }
+
+        // return array(
+        //     "status" => 400,
+        //     "message" => "nothing really matter anymore",
+        //     "data" => null,
+        //     "additional" => [],
+        // );
+
         $date = date('Y-m-d');
         $hari = substr($date, 8, 2);
         $bulan = substr($date, 5, 2);
@@ -556,30 +597,73 @@ class CuttingFormPilotController extends Controller
         $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
         $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + 1) : 1;
 
-        $noForm = $hari."-".$bulan."-".$urutan;
+        $noForm = "$hari-$bulan-$urutan";
 
-        $storeFormCutInput = FormCutInput::create([
-            "tgl_form_cut" => $date,
-            "no_form" => $noForm,
-            "status" => "PENGERJAAN PILOT MARKER",
-            "tipe_form_cut" => "PILOT",
-            "app" => "Y",
-            "app_by" => Auth::user()->id,
-            "app_notes" => "PILOT FORM CUT",
-            "app_at" => $now,
-        ]);
+        if ($id) {
+            $currentForm = FormCutInput::where("id", $id)->first();
 
-        if ($storeFormCutInput) {
-            $dateFormat = date("dmY", strtotime($date));
+            $updateFormCutInput = FormCutInput::where("id", $id)->
+                update([
+                    "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
+                    "status" => "PENGERJAAN PILOT MARKER",
+                    "waktu_mulai" => ($request->startTime ? $request->startTime : Carbon::now()),
+                    "app" => "Y",
+                    "app_by" => Auth::user()->id,
+                    "app_notes" => "PILOT FORM CUT",
+                    "app_at" => $now,
+                ]);
 
-            session(['currentPilotForm' => $storeFormCutInput->id]);
+            if ($updateFormCutInput) {
+                session(['currentManualForm' => $id]);
 
-            return array(
-                "status" => 200,
-                "message" => "alright",
-                "data" => $storeFormCutInput,
-                "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
-            );
+                return array(
+                    "status" => 200,
+                    "message" => "alright",
+                    "data" => $currentForm,
+                    "additional" => ['id' => $id, 'no_form' => $currentForm->no_form],
+                );
+            }
+        } else {
+            $storeFormCutInput = FormCutInput::create([
+                "tgl_form_cut" => $date,
+                "no_form" => $noForm,
+                "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
+                "status" => "PENGERJAAN PILOT MARKER",
+                "tipe_form_cut" => "PILOT",
+                "waktu_mulai" => ($request->startTime ? $request->startTime : Carbon::now()),
+                "app" => "Y",
+                "app_by" => Auth::user()->id,
+                "app_notes" => "PILOT FORM CUT",
+                "app_at" => $now,
+            ]);
+
+            if ($storeFormCutInput) {
+                $dateFormat = date("dmY", strtotime($date));
+                $noCutPlan = "CP-" . $dateFormat;
+
+                $addToCutPlan = CutPlan::create([
+                    "no_cut_plan" => $noCutPlan,
+                    "tgl_plan" => $date,
+                    "form_cut_id" => $storeFormCutInput->id,
+                    "no_form_cut_input" => $noForm,
+                    "app" => "Y",
+                    "app_by" => Auth::user()->id,
+                    "app_at" => $now,
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username,
+                ]);
+
+                if ($addToCutPlan) {
+                    session(['currentManualForm' => $storeFormCutInput->id]);
+
+                    return array(
+                        "status" => 200,
+                        "message" => "alright",
+                        "data" => $storeFormCutInput,
+                        "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
+                    );
+                }
+            }
         }
 
         return array(

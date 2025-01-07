@@ -541,7 +541,7 @@ class CuttingFormManualController extends Controller
                 update([
                     "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
                     "status" => "PENGERJAAN MARKER",
-                    "waktu_mulai" => $request->startTime,
+                    "waktu_mulai" => ($request->startTime ? $request->startTime : Carbon::now()),
                     "app" => "Y",
                     "app_by" => Auth::user()->id,
                     "app_notes" => "MANUAL FORM CUT",
@@ -565,7 +565,7 @@ class CuttingFormManualController extends Controller
                 "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
                 "status" => "PENGERJAAN MARKER",
                 "tipe_form_cut" => "MANUAL",
-                "waktu_mulai" => $request->startTime,
+                "waktu_mulai" => ($request->startTime ? $request->startTime : Carbon::now()),
                 "app" => "Y",
                 "app_by" => Auth::user()->id,
                 "app_notes" => "MANUAL FORM CUT",
