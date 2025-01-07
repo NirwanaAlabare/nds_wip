@@ -301,6 +301,21 @@
                             </a>
                         </div>
                     @endga
+                    @wip
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="{{ route('dashboard-wip') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/work-progress.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">WIP</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endwip
 
                     <div class="col-lg-2 col-md-3 col-sm-6">
                         <a href="{{ route('logout') }}"

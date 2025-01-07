@@ -700,5 +700,4 @@
         }
     </script>
 
-
   @endsection
