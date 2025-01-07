@@ -104,7 +104,7 @@ return [
         ],
 
         'pgsql' => [
-            'driver' => 'pgsql',
+            'driver' => env('DB_CONNECTION_PG', 'pgsql'),
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST_PG', '127.0.0.1'),
             'port' => env('DB_PORT_PG', '5432'),
