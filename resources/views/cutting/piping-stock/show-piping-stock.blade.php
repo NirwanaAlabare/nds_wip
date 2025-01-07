@@ -51,39 +51,39 @@
                     </thead>
                     <tbody>
                         @php
-                            $pipingProcess = $piping->pipingProcesses->where("color", $color);
+                            $pipingProcesses = $piping->pipingProcesses->where("color", $color);
 
                             $totalLebar = 0;
                             $totalPanjang = 0;
                             $totalQty = 0;
                             $totalOutput = 0;
                         @endphp
-                        @foreach ($pipingProcess as $piping)
+                        @foreach ($pipingProcesses as $pipingProcess)
                             @php
-                                $totalLebar += floatval($piping->lebar_roll_piping);
-                                $totalPanjang += floatval($piping->panjang_roll_piping);
-                                $totalQty += intval($piping->output_total_roll);
-                                $totalOutput += intval($piping->output_total_roll * $piping->estimasi_output_roll);
+                                $totalLebar += floatval($pipingProcess->lebar_roll_piping);
+                                $totalPanjang += floatval($pipingProcess->panjang_roll_piping);
+                                $totalQty += intval($pipingProcess->output_total_roll);
+                                $totalOutput += intval($pipingProcess->output_total_roll * $pipingProcess->estimasi_output_roll);
                             @endphp
                             <tr>
-                                <td>{{ $piping->kode_piping }}</td>
-                                <td>{{ $piping->pipingProcessDetails->implode("id_roll", ", ") }}</td>
-                                <td>{{ $piping->group }}</td>
-                                <td>{{ $piping->lot }}</td>
-                                <td>{{ $piping->lebar_roll_piping." ".$piping->lebar_roll_piping_unit }}</td>
-                                <td>{{ $piping->panjang_roll_piping." ".$piping->panjang_roll_piping_unit }}</td>
-                                <td>{{ $piping->output_total_roll." ".$piping->output_total_roll_unit }}</td>
-                                <td>{{ ($piping->output_total_roll * $piping->estimasi_output_roll)." ".$piping->estimasi_output_roll_unit }}</td>
+                                <td>{{ $pipingProcess->kode_piping }}</td>
+                                <td>{{ $pipingProcess->pipingProcessDetails->implode("id_roll", ", ") }}</td>
+                                <td>{{ $pipingProcess->group }}</td>
+                                <td>{{ $pipingProcess->lot }}</td>
+                                <td>{{ $pipingProcess->lebar_roll_piping." ".$pipingProcess->lebar_roll_piping_unit }}</td>
+                                <td>{{ $pipingProcess->panjang_roll_piping." ".$pipingProcess->panjang_roll_piping_unit }}</td>
+                                <td>{{ $pipingProcess->output_total_roll." ".$pipingProcess->output_total_roll_unit }}</td>
+                                <td>{{ ($pipingProcess->output_total_roll * $pipingProcess->estimasi_output_roll)." ".$pipingProcess->estimasi_output_roll_unit }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr>
                             <th colspan="4">Total</th>
-                            <th>{{ $totalLebar." ".($pipingProcess->unique("lebar_roll_piping_unit")->implode("lebar_roll_piping_unit", ",")) }}</th>
-                            <th>{{ $totalPanjang." ".($pipingProcess->unique("panjang_roll_piping_unit")->implode("panjang_roll_piping_unit", ",")) }}</th>
-                            <th>{{ $totalQty." ".($pipingProcess->unique("output_total_roll_unit")->implode("output_total_roll_unit", ",")) }}</th>
-                            <th>{{ $totalOutput." ".($pipingProcess->unique("estimasi_output_roll_unit")->implode("estimasi_output_roll_unit", ",")) }}</th>
+                            <th>{{ $totalLebar." ".($pipingProcesses->unique("lebar_roll_piping_unit")->implode("lebar_roll_piping_unit", ",")) }}</th>
+                            <th>{{ $totalPanjang." ".($pipingProcesses->unique("panjang_roll_piping_unit")->implode("panjang_roll_piping_unit", ",")) }}</th>
+                            <th>{{ $totalQty." ".($pipingProcesses->unique("output_total_roll_unit")->implode("output_total_roll_unit", ",")) }}</th>
+                            <th>{{ $totalOutput." ".($pipingProcesses->unique("estimasi_output_roll_unit")->implode("estimasi_output_roll_unit", ",")) }}</th>
                         </tr>
                     </tfoot>
                 </table>
