@@ -48,8 +48,8 @@
             $dateFilter = "";
             $dateFilter2 = "";
             if ($this->periode == "monthly") {
-                $dateFilter = "DATE_PART('month', data_detail_produksi_day.tgl_produksi) = '".$this->bulan."' AND DATE_PART('year', data_detail_produksi_day.tgl_produksi) = '".$this->tahun."'";
-                $dateFilter2 = "DATE_PART('month', summary_line.tgl_produksi_line) = '".$this->bulan."' AND DATE_PART('year', summary_line.tgl_produksi_line) = '".$this->tahun."'";
+                $dateFilter = "MONTH(data_detail_produksi_day.tgl_produksi) = '".$this->bulan."' AND YEAR(data_detail_produksi_day.tgl_produksi) = '".$this->tahun."'";
+                $dateFilter2 = "MONTH(summary_line.tgl_produksi_line) = '".$this->bulan."' AND YEAR(summary_line.tgl_produksi_line) = '".$this->tahun."'";
             } else {
                 $dateFilter = "data_detail_produksi_day.tgl_produksi = '".$this->tanggal."' ";
                 $dateFilter2 = "summary_line.tgl_produksi_line = '".$this->tanggal."' ";
@@ -158,8 +158,8 @@
 
             $kurs = MasterKursBI::select("kurs_tengah")->
             whereRaw("
-                DATE_PART('month', tanggal_kurs_bi) = '".$this->bulan."'
-                AND DATE_PART('year', tanggal_kurs_bi) = '".$this->tahun."'
+                MONTH(tanggal_kurs_bi) = '".$this->bulan."'
+                AND YEAR(tanggal_kurs_bi) = '".$this->tahun."'
             ")->first();
 
             $this->rowCount = $dataDetailProduksiDay->count()+5;
