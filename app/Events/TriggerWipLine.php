@@ -22,15 +22,17 @@ class TriggerWipLine implements ShouldBroadcastNow
      * @return void
      */
     public $data;
+    public $lineId;
 
-    public function __construct($data)
+    public function __construct($data, $lineId)
     {
-        $this->data = null;
+        $this->data = $data;
+        $this->lineId = $lineId;
     }
 
    public function broadcastOn()
     {
-        return new Channel("dashboard-wip-line-channel");
+        return new Channel("dashboard-wip-line-channel-" . $this->lineId);
     }
 
     public function broadcastAs()
