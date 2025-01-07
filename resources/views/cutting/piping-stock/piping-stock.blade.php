@@ -14,19 +14,19 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-right-to-bracket"></i> Piping Loading</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toolbox"></i> Piping Stock</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-piping-loading') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
+            <a href="{{ route('create-piping') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> Tambah Piping</a>
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tanggal Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="from" name="from" onchange="dataTableReload()">
                     </div>
                     <div>
                         <label class="form-label"><small>Tanggal Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
@@ -37,28 +37,21 @@
                 <table id="datatable" class="table table-bordered table-hover table-sm w-100">
                     <thead>
                         <tr>
-                            <th>Tanggal</th>
-                            <th>No. Transaksi</th>
-                            <th>Line</th>
-                            <th>Kode Piping</th>
+                            <th>Action</th>
                             <th>Buyer</th>
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Part</th>
-                            <th>Lebar Roll</th>
-                            <th>Qty Roll</th>
-                            <th>Output Roll</th>
-                            <th>Created By</th>
+                            <th>Jumlah Roll</th>
+                            <th>Output PCS</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="9"></th>
-                            <th></th>
-                            <th></th>
+                            <th colspan="6">Total</th>
                             <th></th>
                             <th></th>
                         </tr>
@@ -94,7 +87,7 @@
             let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
-            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+            $("#from").val(oneWeeksBeforeFull).trigger("change");
 
             window.addEventListener("focus", () => {
                 $('#datatable').DataTable().ajax.reload(null, false);
@@ -102,34 +95,33 @@
         });
 
         var listFilter = [
-            "tanggal_filter",
-            "kode_filter",
-            "line_name_filter",
-            "kode_piping_filter",
+            "action",
             "buyer_filter",
             "act_costing_ws_filter",
             "style_filter",
             "color_filter",
             "part_filter",
-            "lebar_filter",
-            "qty_filter",
-            "output_filter",
-            "user_filter"
+            "roll_filter",
+            "output_filter"
         ];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
+            if (i != 0) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
-            $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
         });
 
         let datatable = $("#datatable").DataTable({
@@ -138,24 +130,15 @@
             ordering: false,
             pageLength: 50,
             ajax: {
-                url: '{{ route('piping-loading') }}',
+                url: '{{ route('piping-stock') }}',
                 data: function(d) {
-                    d.dateFrom = $('#tgl-awal').val();
-                    d.dateTo = $('#tgl-akhir').val();
+                    d.dateFrom = $('#from').val();
+                    d.dateTo = $('#to').val();
                 },
             },
             columns: [
                 {
-                    data: 'tanggal'
-                },
-                {
-                    data: 'kode'
-                },
-                {
-                    data: 'line_name'
-                },
-                {
-                    data: 'kode_piping'
+                    data: 'id'
                 },
                 {
                     data: 'buyer'
@@ -173,19 +156,21 @@
                     data: 'part'
                 },
                 {
-                    data: 'lebar_roll_piping'
-                },
-                {
-                    data: 'qty_roll'
+                    data: 'output_total_roll'
                 },
                 {
                     data: 'estimasi_output_total'
-                },
-                {
-                    data: 'created_by_username'
-                },
+                }
             ],
             columnDefs: [
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        let btnEdit = "<a href='#' class='btn btn-primary btn-sm'><i class='fa fa-search'></i></button>";
+
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
+                    }
+                },
                 {
                     targets: '_all',
                     className: 'text-nowrap'
@@ -195,28 +180,21 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(9).footer()).html("...");
-                $(api.column(10).footer()).html("...");
-                $(api.column(11).footer()).html("...");
+                $(api.column(6).footer()).html("...");
+                $(api.column(7).footer()).html("...");
 
                 $.ajax({
-                    url: "{{ route("total-piping-loading") }}",
+                    url: "{{ route("total-piping-stock") }}",
                     data: {
-                        'dateFrom' : $('#tgl-awal').val(),
-                        'dateTo' : $('#tgl-akhir').val(),
-                        "tanggal": $("#tanggal_filter").val(),
-                        "kode": $("#kode_filter").val(),
-                        "line_name": $("#line_name_filter").val(),
-                        "kode_piping": $("#kode_piping_filter").val(),
-                        "buyer": $("#buyer_filter").val(),
-                        "act_costing_ws": $("#act_costing_ws_filter").val(),
-                        "style": $("#style_filter").val(),
-                        "color": $("#color_filter").val(),
-                        "part": $("#part_filter").val(),
-                        "lebar": $("#lebar_filter").val(),
-                        "qty": $("#qty_filter").val(),
-                        "output": $("#output_filter").val(),
-                        "user": $("#user_filter").val()
+                        'dateFrom' : $('#from').val(),
+                        'dateTo' : $('#to').val(),
+                        'buyer' : $('#buyer_filter').val(),
+                        'act_costing_ws' : $('#act_costing_ws_filter').val(),
+                        'style' : $('#style_filter').val(),
+                        'color' : $('#color_filter').val(),
+                        'part' : $('#part_filter').val(),
+                        'roll' : $('#roll_filter').val(),
+                        'output' : $('#output_filter').val()
                     },
                     dataType: 'json',
                     success: function(response) {
@@ -225,9 +203,8 @@
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(9).footer()).html(response['total_lebar']+" "+response['total_lebar_unit']);
-                            $(api.column(10).footer()).html(response['total_qty']+" "+response['total_qty_unit']);
-                            $(api.column(11).footer()).html(response['total_output']+" "+response['total_output_unit']);
+                            $(api.column(6).footer()).html(response['output_total_roll']+" "+response['output_total_roll_unit']);
+                            $(api.column(7).footer()).html(response['estimasi_output_total']+" "+response['estimasi_output_total_unit']);
                         }
                     },
                     error: function(jqXHR) {

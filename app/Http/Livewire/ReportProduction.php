@@ -42,13 +42,13 @@ class ReportProduction extends Component
                 $query->whereBetween('master_plan.tgl_plan', [date('Y-m-d', strtotime('-1 days', strtotime($this->date))), $this->date]);
             },
             "masterPlans.rfts" => function ($query) {
-                $query->whereRaw('DATE(output_rfts.updated_at) = "'.$this->date.'"');
+                $query->whereRaw('output_rfts.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
             },
             "masterPlans.defects" => function ($query) {
-                $query->whereRaw('DATE(output_defects.updated_at) = "'.$this->date.'"');
+                $query->whereRaw('output_defects.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
             },
             "masterPlans.rejects" => function ($query) {
-                $query->whereRaw('DATE(output_rejects.updated_at) = "'.$this->date.'"');
+                $query->whereRaw('output_rejects.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
             }
         ])->where('Groupp', 'SEWING')->whereRaw("(Locked != '1' OR Locked IS NULL)")->orderBy('FullName', 'asc')->get();
 
