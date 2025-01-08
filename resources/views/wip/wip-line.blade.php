@@ -194,7 +194,7 @@ swiper-container {
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true"
     >
         <swiper-slide>
-            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
+            <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
                 <div class="row g-1">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -398,7 +398,7 @@ swiper-container {
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
+            <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
                 <div class="row g-1">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -548,7 +548,7 @@ swiper-container {
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
+            <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
                 <div class="row g-1">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
