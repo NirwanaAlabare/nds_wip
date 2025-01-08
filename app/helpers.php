@@ -118,4 +118,19 @@
         $hasil = number_format($num, 2, '.', ',');
         return $hasil;
     }
+
+    function addQuotesAround($inputStr) {
+        // Split the input string by one or more whitespace characters
+        $parts = preg_split('/\s+/', $inputStr);
+
+        // Process each part and add quotes around every item
+        foreach ($parts as &$part) {
+            $part = "'" . trim($part) . "'";  // Add quotes around every item
+        }
+
+        // Rejoin the parts with commas separating them, but avoid trailing comma at the end
+        $result = implode(', ', $parts);
+
+        return $result;  // Return the result without an extra comma at the end
+    }
 ?>

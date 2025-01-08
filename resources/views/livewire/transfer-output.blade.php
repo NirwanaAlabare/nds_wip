@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='transferAll, transferRft, transferDefect, transferReject, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferDefect, transferReject, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -187,17 +187,42 @@
         </div>
     </div>
     <div class="row g-3 mt-3">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-8">
             <button class="btn btn-sb w-100 h-100 fw-bold" wire:click="transferAll()">TRANSFER ALL <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
-        <div class="col-6 col-md-3">
-            <button class="btn btn-rft w-100 h-100 fw-bold" wire:click="transferRft()">TRANSFER RFT <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+        <div class="col-6 col-md-4">
+            <button class="btn btn-sb-secondary w-100 h-100 fw-bold" data-bs-toggle="modal" data-bs-target="#transferNumberingModal">TRANSFER NUMBERING <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
-        <div class="col-6 col-md-3">
-            <button class="btn btn-defect w-100 h-100 fw-bold" wire:click="transferDefect()">TRANSFER DEFECT/REWORK <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+        <div class="col-6 col-md-4">
+            <button class="btn btn-rft w-100 h-100 fw-bold" wire:click="transferRft()">TRANSFER ALL RFT <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
-        <div class="col-6 col-md-3">
-            <button class="btn btn-reject w-100 h-100 fw-bold" wire:click="transferReject()">TRANSFER REJECT <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+        <div class="col-6 col-md-4">
+            <button class="btn btn-defect w-100 h-100 fw-bold" wire:click="transferDefect()">TRANSFER ALL DEFECT/REWORK <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+        </div>
+        <div class="col-6 col-md-4">
+            <button class="btn btn-reject w-100 h-100 fw-bold" wire:click="transferReject()">TRANSFER ALL REJECT <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+        </div>
+    </div>
+    <!-- Transfer Numbering Modal -->
+    <div class="modal fade" id="transferNumberingModal" tabindex="-1" aria-labelledby="transferNumberingModalLabel" aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="transferNumberingModalLabel">Transfer Numbering</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <label class="form-label">Kode Numbering :</label>
+                        <textarea class="form-control" name="kode_numbering" id="kode_numbering" wire:model="kodeNumbering" cols="30" rows="10"></textarea>
+                        <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sb" wire:click="transferNumbering">SEND</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

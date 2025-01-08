@@ -632,6 +632,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/modify-year-sequence', 'modifyYearSequence')->name('modify-year-sequence');
         Route::get('/modify-year-sequence-list', 'modifyYearSequenceList')->name('modify-year-sequence-list');
         Route::post('/modify-year-sequence-update', 'modifyYearSequenceUpdate')->name('update-year-sequence');
+        Route::post('/modify-year-sequence-delete', 'modifyYearSequenceDelete')->name('delete-year-sequence');
 
         // get stocker
         Route::get('/get-stocker', 'getStocker')->name('get-stocker');

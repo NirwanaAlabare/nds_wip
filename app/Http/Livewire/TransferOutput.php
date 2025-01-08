@@ -51,13 +51,76 @@ class TransferOutput extends Component
         $this->toSelectedMasterPlan = null;
         $this->toSoDet = null;
 
+        $this->kodeNumbering = null;
+
         $this->loadingMasterPlan = false;
         $this->baseUrl = url('/');
     }
 
+    public function transferNumbering()
+    {
+        $newKodeNumbering = addQuotesAround($this->kodeNumbering);
+
+        if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+            if ($this->kodeNumbering) {
+                $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
+                    user_sb_wip.id
+                ")->
+                leftJoin("user_sb_wip", "user_sb_wip.line_id", "=", "userpassword.line_id")->
+                where("userpassword.username", $this->toLine)->
+                orderBy("user_sb_wip.id", "asc")->
+                first();
+
+                $messageSuccess = "";
+                $messageNotFound = "";
+                if ($toUser) {
+                    // Transfer Output
+                    $transferOutput = DB::connection("mysql_sb")->statement("
+                        update output_rfts
+                        left join master_plan on master_plan.id = output_rfts.master_plan_id
+                        set output_rfts.master_plan_id = '".$this->toSelectedMasterPlan."', output_rfts.created_by = '".$toUser->id."'
+                        where output_rfts.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts.kode_numbering in (".$newKodeNumbering.")
+                    ");
+
+                    // Transfer Defect
+                    $transferDefect = DB::connection("mysql_sb")->statement("
+                        update output_defects
+                        left join master_plan on master_plan.id = output_defects.master_plan_id
+                        set output_defects.master_plan_id = '".$this->toSelectedMasterPlan."', output_defects.created_by = '".$toUser->id."'
+                        where output_defects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects.kode_numbering in (".$newKodeNumbering.")
+                    ");
+
+                    // Transfer Reject
+                    $transferReject = DB::connection("mysql_sb")->statement("
+                        update output_rejects
+                        left join master_plan on master_plan.id = output_rejects.master_plan_id
+                        set output_rejects.master_plan_id = '".$this->toSelectedMasterPlan."', output_rejects.created_by = '".$toUser->id."'
+                        where output_rejects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rejects.kode_numbering in (".$newKodeNumbering.")
+                    ");
+
+                    $messageSuccess .= $newKodeNumbering." <br> berhasil <br>";
+                } else {
+                    $messageNotFound .= "User Line '".$this->toLine."' tidak ditemukan.";
+                }
+
+                if ($messageSuccess != "") {
+                    $this->emit('alert', 'success', $messageSuccess);
+                }
+
+                if ($messageNotFound != "") {
+                    $this->emit('alert', 'error', $messageNotFound);
+                }
+            } else {
+                $this->emit("alert", "warning", "Harap cantumkan kode numbering seperti contoh");
+            }
+        } else {
+            $this->emit("alert", "warning", "Harap pilih line dan master plan dengan lengkap");
+        }
+    }
+
     public function transferAll()
     {
-        if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+        if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             // From SoDet List
             $this->fromSoDet = MasterPlan::selectRaw("
                 so_det.id,
@@ -99,7 +162,7 @@ class TransferOutput extends Component
                         update output_rfts
                         left join master_plan on master_plan.id = output_rfts.master_plan_id
                         set output_rfts.master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_rfts.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts.so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."'
+                        where output_rfts.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts.so_det_id = '".$fromSoDet->id."'
                     ");
                     if ($transferOutput) {
                         $soDetOutput = DB::connection("mysql_sb")->statement("
@@ -115,7 +178,7 @@ class TransferOutput extends Component
                         update output_defects
                         left join master_plan on master_plan.id = output_defects.master_plan_id
                         set output_defects.master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_defects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects.so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."'
+                        where output_defects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects.so_det_id = '".$fromSoDet->id."'
                     ");
                     if ($transferDefect) {
                         $soDetDefect = DB::connection("mysql_sb")->statement("
@@ -131,7 +194,7 @@ class TransferOutput extends Component
                         update output_rejects
                         left join master_plan on master_plan.id = output_rejects.master_plan_id
                         set output_rejects.master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_rejects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rejects.so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."'
+                        where output_rejects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rejects.so_det_id = '".$fromSoDet->id."'
                     ");
                     if ($transferReject) {
                         $soDetReject = DB::connection("mysql_sb")->statement("
@@ -204,7 +267,7 @@ class TransferOutput extends Component
                         update output_rfts
                         left join master_plan on master_plan.id = output_rfts.master_plan_id
                         set output_rfts.master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_rfts.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts.so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts.status != 'REWORK' and output_rfts.rework_id is null
+                        where output_rfts.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts.so_det_id = '".$fromSoDet->id."' and output_rfts.status != 'REWORK' and output_rfts.rework_id is null
                     ");
                     if ($transferOutput) {
                         $soDetOutput = DB::connection("mysql_sb")->statement("
@@ -277,7 +340,7 @@ class TransferOutput extends Component
                         update output_defects
                         left join master_plan on master_plan.id = output_defects.master_plan_id
                         set output_defects.master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_defects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects.so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."'
+                        where output_defects.master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects.so_det_id = '".$fromSoDet->id."'
                     ");
                     if ($transferDefect) {
                         $soDetDefect = DB::connection("mysql_sb")->statement("

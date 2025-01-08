@@ -210,16 +210,16 @@
             let todayYear = today.getFullYear();
             let todayFull = todayYear + '-' + todayMonth + '-' + todayDate;
 
-            $('#month_year_month').val(todayMonth).trigger("change");
-            $('#month_year_year').val(todayYear).trigger("change");
+            // $('#month_year_month').val(todayMonth).trigger("change");
+            // $('#month_year_year').val(todayYear).trigger("change");
 
-            $('#year').val('2024').trigger("change");
+            await $('#year').val('2024').trigger("change");
 
             clearScanItemForm();
 
             changeQtyMethod(document.getElementById('qty_method'));
 
-            document.getElementById('loading').classList.add('d-none');
+            // document.getElementById('loading').classList.add('d-none');
 
             await initScan();
         });
@@ -404,8 +404,10 @@
             })
         }
 
-        function getSequenceYearSequence() {
-            $.ajax({
+        async function getSequenceYearSequence() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            return $.ajax({
                 url: '{{ route('get-sequence-year-sequence') }}',
                 type: 'get',
                 data: {
@@ -414,6 +416,8 @@
                 dataType: 'json',
                 success: async function(res)
                 {
+                    document.getElementById("loading").classList.add("d-none");
+
                     if (res) {
                         if (res.status != "400") {
                             let select = document.getElementById('sequence');
@@ -440,14 +444,16 @@
                 error: function(jqXHR)
                 {
                     console.error(jqXHR)
+
+                    document.getElementById("loading").classList.add("d-none");
                 }
             })
         }
 
-        function getRangeYearSequence() {
+        async function getRangeYearSequence() {
             document.getElementById("loading").classList.remove("d-none");
 
-            $.ajax({
+            return $.ajax({
                 url: '{{ route('get-range-year-sequence') }}',
                 type: 'get',
                 data: {

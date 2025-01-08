@@ -111,7 +111,10 @@
                 <div class="col-md-12">
                     <div class="d-flex justify-content-between mt-3">
                         <button class="btn btn-sm btn-primary fw-bold"><i class="fa fa-reply"></i> Kembali</button>
-                        <button class="btn btn-sm btn-success fw-bold" onclick="updateYearSequence()"><i class="fa fa-save"></i> UPDATE</button>
+                        <div class="d-flex gap-3">
+                            <button class="btn btn-sm btn-danger fw-bold" onclick="deleteYearSequence()"><i class="fa fa-trash"></i> DELETE</button>
+                            <button class="btn btn-sm btn-success fw-bold" onclick="updateYearSequence()"><i class="fa fa-save"></i> UPDATE</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -389,7 +392,84 @@
                                         title: 'Berhasil',
                                         html: res.message,
                                     }).then(() => {
-                                        location.reload();
+                                        currentRangeTableReload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        html: res.message,
+                                    });
+                                }
+                            },
+                            error: function (jqXHR) {
+                                document.getElementById("loading").classList.add("d-none");
+
+                                let res = jqXHR.responseJSON;
+                                let message = '';
+
+                                for (let key in res.errors) {
+                                    message = res.errors[key];
+                                    document.getElementById(key).classList.add('is-invalid');
+                                    document.getElementById(key + '_error').classList.remove('d-none');
+                                    document.getElementById(key + '_error').innerHTML = res.errors[key];
+
+                                    modified.push(
+                                        [key, '.classList', '.remove(', "'is-invalid')"],
+                                        [key + '_error', '.classList', '.add(', "'d-none')"],
+                                        [key + '_error', '.innerHTML = ', "''"],
+                                    )
+                                };
+
+                                iziToast.error({
+                                    title: 'Error',
+                                    message: 'Terjadi kesalahan.',
+                                    position: 'topCenter'
+                                });
+                            }
+                        })
+                    } else {
+                        Swal.fire("Update dibatalkan", "", "info");
+                    }
+                });
+            } else {
+                Swal.fire("Harap cek range QR", "", "info");
+            }
+        }
+
+        function deleteYearSequence() {
+            if ($("#total_update").val() > 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Konfirmasi",
+                    html: "<b>HAPUS</b> Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+($("#total_update").val())+"</b>",
+                    showDenyButton: true,
+                    showCancelButton: false,
+                    confirmButtonText: "Lanjut",
+                    denyButtonText: "Batal"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById("loading").classList.remove("d-none");
+
+                        $.ajax({
+                            url: '{{ route('delete-year-sequence') }}',
+                            method: "POST",
+                            data: {
+                                "year": $("#year").val(),
+                                "sequence": $("#sequence").val(),
+                                "range_awal": $("#range_awal").val(),
+                                "range_akhir": $("#range_akhir").val(),
+                            },
+                            success: function (res) {
+                                document.getElementById("loading").classList.add("d-none");
+
+                                if (res.status == 200) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        html: res.message,
+                                    }).then(() => {
+                                        currentRangeTableReload();
                                     });
                                 } else {
                                     Swal.fire({
