@@ -194,8 +194,8 @@ swiper-container {
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true"
     >
         <swiper-slide>
-            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
-                <div class="row g-1">
+            <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
+                <div class="row">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -285,12 +285,12 @@ swiper-container {
                                             </tr>
 
                                             <tr style="line-height: 10px;" class="bg-danger">
-                                                    <td scope="row" style="border-color: lightgray;font-size: 13px;">12:00 - 13:00</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0%</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0%</td>
+                                                <td scope="row" style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">12:00 - 13:00</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0%</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0%</td>
                                             </tr>
                                             <tr style="line-height: 10px;">
                                                 <td scope="row" style="border-color: lightgray;font-size: 13px;" id="hour-7">13:00 - 14:00</td>
@@ -398,8 +398,8 @@ swiper-container {
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row g-1">
+            <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -440,7 +440,14 @@ swiper-container {
                                         <img src="/nds_wip/public/assets/dist/img/icon/checked.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-2"></p>
+                                        <div>
+                                            <div style="display: flex; width: 100%; justify-content: space-between">
+                                                <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-2"></p>
+                                                <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
+                                                    <p class="card-title" style="font-size: 28px; color: #282828; line-height: 0px;" id="variation-page-2"></p>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <p  style="color: #64748b; font-size: 19px;">ACTUAL</p>
                                     </div>
                                 </div>
@@ -465,9 +472,9 @@ swiper-container {
                                         <div>
                                             <div style="display: flex; width: 100%; justify-content: space-between">
                                                 <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="cumulative-target-2"></p>
-                                                <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
+                                                {{-- <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
                                                     <p class="card-title" style="font-size: 28px; color: #282828; line-height: 0px;" id="variation-page-2"></p>
-                                                </div>
+                                                </div> --}}
                                             </div>
                                             <p  style="color: #64748b; font-size: 19px;">REALTIME TARGET</p>
                                         </div>
@@ -511,7 +518,7 @@ swiper-container {
                             <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div id="chartdiv-efficiency"></div>
-                                    <div style="position: absolute; bottom: -15%; left: 49%;  transform: translate(-50%, -50%);">
+                                    <div style="position: absolute; bottom: -18%; left: 49%;  transform: translate(-50%, -50%);">
                                         <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">EFFICIENCY</p>
                                     </div>
                                 </div>
@@ -521,7 +528,7 @@ swiper-container {
                             <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div id="chartdiv-rft"></div>
-                                    <div style="position: absolute; bottom: -15%; left: 50%;  transform: translate(-50%, -50%);">
+                                    <div style="position: absolute; bottom: -18%; left: 50%;  transform: translate(-50%, -50%);">
                                         <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">RFT</p>
                                     </div>
                                 </div>
@@ -531,7 +538,7 @@ swiper-container {
                             <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                 <div id="chartdiv-deffect"></div>
-                                    <div style="position: absolute; bottom: -15%; left: 50%;  transform: translate(-50%, -50%);">
+                                    <div style="position: absolute; bottom: -18%; left: 50%;  transform: translate(-50%, -50%);">
                                         <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">DEFFECT RATE</p>
                                     </div>
                                 </div>
@@ -541,8 +548,8 @@ swiper-container {
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row g-1">
+            <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -688,7 +695,7 @@ swiper-container {
         $("#target-1").text(target);
         $("#output-1").text(output);
         $("#variation-1").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -727,7 +734,7 @@ swiper-container {
         $("#target-2").text(target);
         $("#output-2").text(output);
         $("#variation-2").html(`
-            ${variance}
+            ${Math.abs(variance)}
              <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -766,7 +773,7 @@ swiper-container {
         $("#target-3").text(target);
         $("#output-3").text(output);
         $("#variation-3").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -805,7 +812,7 @@ swiper-container {
         $("#target-4").text(target);
         $("#output-4").text(output);
         $("#variation-4").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -844,7 +851,7 @@ swiper-container {
         $("#target-5").text(target);
         $("#output-5").text(output);
         $("#variation-5").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -883,7 +890,7 @@ swiper-container {
         $("#target-7").text(target);
         $("#output-7").text(output);
         $("#variation-7").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -922,7 +929,7 @@ swiper-container {
         $("#target-8").text(target);
         $("#output-8").text(output);
         $("#variation-8").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -961,7 +968,7 @@ swiper-container {
         $("#target-9").text(target);
         $("#output-9").text(output);
         $("#variation-9").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -1030,10 +1037,11 @@ swiper-container {
         // Menghitung efficiency_sum
         const efficiencySum = (actuall1 / dayTarget1) * 100;
         const roundedEfficiency = efficiencySum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
+        const eff_data = data.dashboard_indicators[0].effi || 0;
 
         // Menampilkan hasilnya pada elemen #efficiency1
         $("#efficiency1").html(`
-            ${roundedEfficiency}%
+            ${eff_data}%
         `);
     }
 
@@ -1044,10 +1052,11 @@ swiper-container {
         // Menghitung deffect_sum
         const deffectSum = (deffectl1 / dayTarget1) * 100;
         const roundedDeffect = deffectSum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
+        const deffect_data = data.dashboard_indicators[0].per_defect || 0;
 
         // Menampilkan hasilnya pada elemen #deffect1
         $("#deffect1").html(`
-            ${roundedDeffect}%
+            ${deffect_data}%
         `);
     }
 
@@ -1069,7 +1078,7 @@ swiper-container {
             min = minutes - 60;
         }
 
-        const cumulative = Math.round(Math.min(min, target_menit) * target_menit, 0);
+        const cumulative = Math.round(min * target_menit, 0);
         document.getElementById("cumulative-target-2").textContent = cumulative;
 
     }
@@ -1077,21 +1086,24 @@ swiper-container {
 
     function variance2(data) {
         const target_menit = data.target_menit || 0;
+        const day_target = data.day_target1 || 0;
         const actual = data.actuall1 || 0;
         const datelog = new Date();
+        datelog.setHours(7, 0, 0, 0);
         const datenow = new Date();
 
         const diff = (datenow - datelog) / 1000;
         const minutes = Math.floor(diff / 60);
         const jam = Math.floor(minutes / 60);
+
         let min = minutes;
 
         if (jam >= 6) {
             min = minutes - 60;
         }
 
-        const cumulative = Math.round(Math.min(min, target_menit) * target_menit, 0);
-        const variance = cumulative - actual;
+        const cumulative = Math.round(min * target_menit, 0);
+        const variance = day_target - actual;
         const varianceDisplay = Math.abs(variance);
         console.log(variance);
         $("#variation-page-2").html(`
