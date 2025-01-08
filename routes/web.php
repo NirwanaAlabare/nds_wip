@@ -455,6 +455,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-piping');
         Route::get('/create', 'create')->name('create-master-piping');
         Route::post('/store', 'store')->name('store-master-piping');
+        Route::put('/update', 'update')->name('update-master-piping');
 
         // List Master Piping
         Route::get('/list', 'list')->name('list-master-piping');
