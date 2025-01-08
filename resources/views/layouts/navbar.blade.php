@@ -453,13 +453,13 @@
                                 <li>
                                     <a href="{{ route('master-piping') }}"
                                         class="dropdown-item {{ $subPage == 'master-piping' ? 'active' : '' }}">
-                                        Master Piping <i class="fa-solid fa-gear"></i>
+                                        Master <i class="fa-solid fa-gear"></i>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('piping-process') }}"
                                         class="dropdown-item {{ $subPage == 'piping-process' ? 'active' : '' }}">
-                                        Piping Process <i class="fa-solid fa-ring"></i>
+                                        Process <i class="fa-solid fa-ring"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -469,9 +469,9 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('pemakaian-roll') }}"
-                                        class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
-                                        Pemakaian Kain <i class="fa fa-file"></i>
+                                    <a href="{{ route('piping-stock') }}"
+                                        class="dropdown-item {{ $subPage == 'piping-stock' ? 'active' : '' }}">
+                                        Stock <i class="fa-solid fa-toolbox"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -812,18 +812,18 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-report' ? 'active' : '' }}">Report</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('reportOutput') }}"
                                         class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">
                                         Report Output <i class="fa-solid fa-file"></i>
                                     </a>
-                                </li>
-                                <li>
+                                </li> --}}
+                                {{-- <li>
                                     <a href="{{ route('reportProduction') }}"
                                         class="dropdown-item {{ $subPage == 'reportProduction' ? 'active' : '' }}">
                                         Report Production <i class="fa-solid fa-file"></i>
                                     </a>
-                                </li>
+                                </li> --}}
                                 {{-- <li>
                                     <a href="{{ route('reportEfficiency') }}"
                                         class="dropdown-item {{ $subPage == 'reportEfficiency' ? 'active' : '' }}">
@@ -836,12 +836,12 @@
                                         Report Efficiency <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('reportDetailOutput') }}"
                                         class="dropdown-item {{ $subPage == 'reportDetailOutput' ? 'active' : '' }}">
                                         Report Detail Output <i class="fa-solid fa-file"></i>
                                     </a>
-                                </li>
+                                </li> --}}
                                 <li>
                                     <a href="{{ route('report_mut_output') }}"
                                         class="dropdown-item {{ $subPage == 'report_mut_output' ? 'active' : '' }}">

@@ -43,9 +43,6 @@ class PipingProcessController extends Controller
                 addColumn('style', function ($row) {
                     return $row->masterPiping->style;
                 })->
-                addColumn('color', function ($row) {
-                    return $row->masterPiping->color;
-                })->
                 addColumn('part', function ($row) {
                     return $row->masterPiping->part;
                 })->
@@ -54,6 +51,15 @@ class PipingProcessController extends Controller
                 })->
                 addColumn('unit', function ($row) {
                     return $row->masterPiping->unit;
+                })->
+                addColumn('lebar_roll', function ($row) {
+                    return $row->lebar_roll_piping." ".$row->lebar_roll_piping_unit;
+                })->
+                addColumn('panjang_roll', function ($row) {
+                    return $row->panjang_roll_piping." ".$row->panjang_roll_piping_unit;
+                })->
+                addColumn('output_total_roll', function ($row) {
+                    return $row->output_total_roll." ".$row->output_total_roll_unit;
                 })->
                 order(function ($query) {
                     $query->orderBy('piping_process.updated_at', 'desc');
@@ -248,6 +254,7 @@ class PipingProcessController extends Controller
                     "lebar_roll_piping" => "required|gt:0",
                     "lebar_roll_piping_unit" => "required",
                     "output_total_roll" => "required|gt:0",
+                    "output_total_roll_unit" => "required",
                     "jenis_potong_piping" => "required",
                     "estimasi_output_roll" => "required|gt:0",
                     "estimasi_output_roll_unit" => "required",
@@ -281,6 +288,7 @@ class PipingProcessController extends Controller
                         "lebar_roll_piping_unit" => $validatedRequest["lebar_roll_piping_unit"],
                         "output_total_roll_awal" => $validatedRequest["output_total_roll"],
                         "output_total_roll" => $validatedRequest["output_total_roll"],
+                        "output_total_roll_unit" => $validatedRequest["output_total_roll_unit"],
                         "jenis_potong_piping" => $validatedRequest["jenis_potong_piping"],
                         "estimasi_output_roll" => $validatedRequest["estimasi_output_roll"],
                         "estimasi_output_roll_unit" => $validatedRequest["estimasi_output_roll_unit"],

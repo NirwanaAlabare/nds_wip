@@ -71,7 +71,9 @@ class ReportEfficiencyController extends Controller
                     ) summary_line
                 "),
                 "summary_line.sewing_line", "=", "data_detail_produksi.sewing_line"
-            );
+            )
+            ->where('data_detail_produksi_day.tgl_produksi', "=", request('date'))
+            ->where('summary_line.tgl_produksi_line', "=", request('date'));
 
         if ($request->ajax()) {
             return
@@ -100,12 +102,6 @@ class ReportEfficiencyController extends Controller
                 addColumn('earning', function($row) {
                     return $row->kode_mata_uang.' '.curr($row->earning);
                 })->
-                filter(function ($query) {
-                    if (request()->has('date') && request('date') != '') {
-                        $query->where('data_detail_produksi_day.tgl_produksi', "=", request('date'))
-                            ->where('summary_line.tgl_produksi_line', "=", request('date'));
-                    }
-                }, true)->
                 filterColumn('no_ws', function($query, $keyword) {
                     $query->whereRaw("LOWER(CAST(data_produksi.no_ws as TEXT)) LIKE LOWER('%".$keyword."%')");
                 })->

@@ -13,6 +13,7 @@
         <th>No. Req</th>
         <th>No. WS</th>
         <th>No. WS Aktual</th>
+        <th>Style</th>
         <th>ID Roll</th>
         <th>ID Item</th>
         <th>Detail Item</th>
@@ -32,6 +33,7 @@
             <td>{{ $roll->no_req }}</td>
             <td>{{ $roll->no_ws }}</td>
             <td>{{ $roll->no_ws_aktual }}</td>
+            <td>{{ $roll->styleno }}</td>
             <td>{{ $roll->id_roll }}</td>
             <td>{{ $roll->id_item }}</td>
             <td>{{ $roll->detail_item }}</td>

@@ -23,7 +23,6 @@ class ReportProductionController extends Controller
         $years = array_reverse(range(1999, date('Y')));
 
         $dataDetailProduksiDay = DataDetailProduksiDay::selectRaw("
-            DISTINCT ON (data_detail_produksi_day.tgl_produksi, data_detail_produksi.sewing_line, data_produksi.id)
             data_detail_produksi.sewing_line,
             data_produksi.no_ws,
             master_buyer.nama_buyer,
@@ -72,7 +71,9 @@ class ReportProductionController extends Controller
                 ) summary_line
             "),
             "summary_line.sewing_line","=","data_detail_produksi.sewing_line"
-        );
+        )
+        ->whereRaw("data_detail_produksi_day.tgl_produksi = '".request('date')."' AND summary_line.summary_tanggal = '".request('date')."'")
+        ->groupByRaw("data_detail_produksi_day.tgl_produksi, data_detail_produksi.sewing_line, data_produksi.id");
 
         if ($request->ajax()) {
             return
@@ -86,11 +87,6 @@ class ReportProductionController extends Controller
                 addColumn('order_cfm_price', function($row) {
                     return '<span class="'.($row->order_cfm_price <= 0 ? "text-danger" : "").'">'.$row->kode_mata_uang.' '.curr($row->order_cfm_price).'</span>';
                 })->
-                filter(function ($query) {
-                    if (request()->has('date') && request('date') != '') {
-                        $query->whereRaw("data_detail_produksi_day.tgl_produksi = '".request('date')."' AND summary_line.summary_tanggal = '".request('date')."'");
-                    }
-                }, true)->
                 filterColumn('sewing_line', function($query, $keyword) {
                     $query->whereRaw("LOWER(CAST(data_detail_produksi.sewing_line as TEXT)) LIKE LOWER('%".$keyword."%')");
                 })->

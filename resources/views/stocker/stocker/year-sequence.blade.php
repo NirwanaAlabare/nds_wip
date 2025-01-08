@@ -213,7 +213,7 @@
             $('#month_year_month').val(todayMonth).trigger("change");
             $('#month_year_year').val(todayYear).trigger("change");
 
-            $('#year').val(todayYear).trigger("change");
+            $('#year').val('2024').trigger("change");
 
             clearScanItemForm();
 
@@ -404,13 +404,7 @@
             })
         }
 
-        $('#year').on("change", function () {
-            getSequenceYearSequence();
-        });
-
         function getSequenceYearSequence() {
-            document.getElementById("loading").classList.remove("d-none");
-
             $.ajax({
                 url: '{{ route('get-sequence-year-sequence') }}',
                 type: 'get',
@@ -442,14 +436,10 @@
                             });
                         }
                     }
-
-                    document.getElementById("loading").classList.remove("d-none");
                 },
                 error: function(jqXHR)
                 {
                     console.error(jqXHR)
-
-                    document.getElementById("loading").classList.remove("d-none");
                 }
             })
         }

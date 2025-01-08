@@ -116,8 +116,6 @@
             processing: true,
             serverSide: true,
             ordering: false,
-            scrollX: "500px",
-            scrollY: "500px",
             pageLength: 50,
             ajax: {
                 url: '{{ route('piping-process') }}',
@@ -158,10 +156,10 @@
                     data: 'total_roll'
                 },
                 {
-                    data: 'lebar_roll_piping'
+                    data: 'lebar_roll'
                 },
                 {
-                    data: 'panjang_roll_piping'
+                    data: 'panjang_roll'
                 },
                 {
                     data: 'output_total_roll'

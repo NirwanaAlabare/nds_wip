@@ -33,8 +33,8 @@
                     tgl_produksi
                 ")
                 ->whereRaw("
-                    DATE_PART('month',tgl_produksi) = '".$this->bulan."'
-                    AND DATE_PART('year',tgl_produksi) = '".$this->tahun."'
+                    MONTH(tgl_produksi) = '".$this->bulan."'
+                    AND YEAR(tgl_produksi) = '".$this->tahun."'
                 ")
                 ->groupBy('tgl_produksi')
                 ->get();

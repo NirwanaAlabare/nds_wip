@@ -31,7 +31,7 @@ class ReportOutputController extends Controller
                 data_produksi.kode_mata_uang,
                 data_produksi.order_cfm_price,
                 (CASE WHEN data_produksi.order_qty_cutting <= 0 OR data_produksi.order_qty_cutting IS NULL THEN data_produksi.order_qty ELSE data_produksi.order_qty_cutting END) order_qty_cutting,
-                STRING_AGG(DISTINCT master_buyer.nama_buyer, ', ') nama_buyer,
+                GROUP_CONCAT(DISTINCT master_buyer.nama_buyer, ', ') nama_buyer,
                 AVG(data_detail_produksi_day.smv) smv,
                 SUM(data_detail_produksi_day.output)  output,
                 SUM(data_detail_produksi_day.cumulative_output) cumulative_output,
