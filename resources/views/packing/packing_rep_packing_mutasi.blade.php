@@ -86,7 +86,7 @@
     <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.2.0/exceljs.min.js"></script>
+    <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
     <script>
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
@@ -250,7 +250,7 @@
                         // Calculate the elapsed time
                         const endTime = new Date().getTime();
                         const elapsedTime = Math.round((endTime - startTime) /
-                        1000); // Convert to seconds
+                            1000); // Convert to seconds
 
                         // Close the loading notification
                         Swal.close();
