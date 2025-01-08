@@ -1069,7 +1069,7 @@ swiper-container {
             min = minutes - 60;
         }
 
-        const cumulative = Math.round(Math.min(min, target_menit) * target_menit, 0);
+        const cumulative = Math.round(min * target_menit, 0);
         document.getElementById("cumulative-target-2").textContent = cumulative;
 
     }
@@ -1079,18 +1079,20 @@ swiper-container {
         const target_menit = data.target_menit || 0;
         const actual = data.actuall1 || 0;
         const datelog = new Date();
+        datelog.setHours(7, 0, 0, 0);
         const datenow = new Date();
 
         const diff = (datenow - datelog) / 1000;
         const minutes = Math.floor(diff / 60);
         const jam = Math.floor(minutes / 60);
+
         let min = minutes;
 
         if (jam >= 6) {
             min = minutes - 60;
         }
 
-        const cumulative = Math.round(Math.min(min, target_menit) * target_menit, 0);
+        const cumulative = Math.round(min * target_menit, 0);
         const variance = cumulative - actual;
         const varianceDisplay = Math.abs(variance);
         console.log(variance);
