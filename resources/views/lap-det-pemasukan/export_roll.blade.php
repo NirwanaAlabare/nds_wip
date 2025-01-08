@@ -34,6 +34,8 @@
             <th>Nama Barang</th>
             <th>Warna</th>
             <th>Ukuran</th>
+            <th>Curr</th>
+            <th>Price</th>
             <th>Keterangan</th>
             <th>Nama User</th>
             <th>Approve By</th>
@@ -68,6 +70,8 @@
                 <td>{{ $item->itemdesc }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
+                <td>{{ $item->curr }}</td>
+                <td>{{ $item->price }}</td>
                 <td>{{ $item->deskripsi }}</td>
                 <td>{{ $item->username }}</td>
                 <td>{{ $item->confirm_by }}</td>

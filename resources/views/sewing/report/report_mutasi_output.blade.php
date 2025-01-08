@@ -83,12 +83,12 @@
                             <th style="background-color: lightblue;">Size</th>
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima Loading</th>
-                            <th style="background-color: lightgreen;">Rework Sewing</th>
-                            <th style="background-color: lightgreen;">Rework Spot Cleaning</th>
-                            <th style="background-color: lightgreen;">Rework Mending</th>
                             <th style="background-color: lightgreen;">Defect Sewing</th>
                             <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
                             <th style="background-color: lightgreen;">Defect Mending</th>
+                            <th style="background-color: lightgreen;">Output Sewing</th>
+                            <th style="background-color: lightgreen;">Output Spot Cleaning</th>
+                            <th style="background-color: lightgreen;">Output Mending</th>
                             <th style="background-color: lightgreen;">Reject</th>
                             <th style="background-color: lightgreen;">Output</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
@@ -122,6 +122,50 @@
                             <th style="background-color: #FFE5B4;">Saldo Akhir</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr style='text-align:center; vertical-align:middle'>
+                            <th colspan="5">Total </th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -135,7 +179,7 @@
     <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.2.0/exceljs.min.js"></script>
+    <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
     <script>
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
@@ -201,15 +245,6 @@
                         data: 'qty_loading'
                     },
                     {
-                        data: 'input_rework_sewing'
-                    },
-                    {
-                        data: 'input_rework_spotcleaning'
-                    },
-                    {
-                        data: 'input_rework_mending'
-                    },
-                    {
                         data: 'defect_sewing'
                     },
                     {
@@ -217,6 +252,15 @@
                     },
                     {
                         data: 'defect_mending'
+                    },
+                    {
+                        data: 'input_rework_sewing'
+                    },
+                    {
+                        data: 'input_rework_spotcleaning'
+                    },
+                    {
+                        data: 'input_rework_mending'
                     },
                     {
                         data: 'output_rejects'
@@ -317,7 +361,26 @@
                     "className": "align-middle",
                     "targets": "_all"
                 }],
-
+                footerCallback: function(row, data, start, end, display) {
+                    let api = this.api();
+                    let totalColumns = api.columns().header().length; // Get the total number of columns
+                    // Loop through each column
+                    for (let i = 5; i < totalColumns; i++) {
+                        let columnData = api.column(i).data().toArray(); // Convert to array if not already
+                        // console.log(columnData); // Log the column data to inspect its structure
+                        // Check if the column data is numeric
+                        if (columnData.length > 0 && columnData.every(value => !isNaN(value))) {
+                            let total = columnData.reduce(function(a, b) {
+                                return parseFloat(a) + parseFloat(b);
+                            }, 0);
+                            // Update the footer with the total for each column
+                            $(api.column(i).footer()).html(total);
+                        } else {
+                            // If not numeric, you can set the footer to an empty string or a specific message
+                            $(api.column(i).footer()).html('');
+                        }
+                    }
+                },
             });
         }
 
