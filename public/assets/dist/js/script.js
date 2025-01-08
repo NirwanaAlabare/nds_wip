@@ -542,3 +542,37 @@ function generateToken(id, route) {
         }
     });
 }
+
+// popup notification
+function showNotification(type, message) {
+    switch (type) {
+        case 'info' :
+            iziToast.info({
+                title: 'Information',
+                message: message,
+                position: 'topCenter'
+            });
+            break;
+        case 'success' :
+            iziToast.success({
+                title: 'Success',
+                message: message,
+                position: 'topCenter'
+            });
+            break;
+        case 'warning' :
+            iziToast.warning({
+                title: 'Warning',
+                message: message,
+                position: 'topCenter'
+            });
+            break;
+        case 'error' :
+            iziToast.error({
+                title: 'Error',
+                message: message,
+                position: 'topCenter'
+            });
+            break;
+    }
+}
