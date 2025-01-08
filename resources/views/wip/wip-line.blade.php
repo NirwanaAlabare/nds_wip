@@ -137,61 +137,56 @@ swiper-container {
 #defno1text::after {
       content: '';
       display: inline-block;
-      width:25px;
-      height:25px;
+      width:15px;
+      height:15px;
       border-radius: 50%;
       background: #ec3032;
       top: 10px;
       margin: 0 10px;
-      transform: translateY(4px);
     }
 
     #defno2text::after {
       content: '';
       display: inline-block;
-      width:25px;
-      height:25px;
+      width:15px;
+      height:15px;
       border-radius: 50%;
       background: #fd8024;
       top: 10px;
       margin: 0 10px;
-      transform: translateY(4px);
     }
 
     #defno3text::after {
       content: '';
       display: inline-block;
-      width:25px;
-      height:25px;
+      width:15px;
+      height:15px;
       border-radius: 50%;
       background: #fffb45;
       top: 10px;
       margin: 0 10px;
-      transform: translateY(4px);
     }
 
     #defno4text::after {
       content: '';
       display: inline-block;
-      width:25px;
-      height:25px;
+      width:15px;
+      height:15px;
       border-radius: 50%;
       background: #2bff6b;
       top: 10px;
       margin: 0 10px;
-      transform: translateY(4px);
     }
 
     #defno5text::after {
       content: '';
       display: inline-block;
-      width:25px;
-      height:25px;
+      width:15px;
+      height:15px;
       border-radius: 50%;
       background: whitesmoke;
       top: 10px;
       margin: 0 10px;
-      transform: translateY(4px);
     }
 </style>
 
@@ -236,15 +231,15 @@ swiper-container {
                         <div class="col-lg-9">
                             <div class="card">
                                 <div class="card-body">
-                                    <table class="table border-collapse" style="background-color: #072c66; text-align: center;border-radius: 10px;" style="max-height: 70vh !important;">
+                                    <table class="table border-collapse" style="background-color: #072c66; text-align: center;border-radius: 10px;" style="max-height: 10vh !important;">
                                         <thead class="thead-custom">
                                             <tr>
-                                                <th scope="col" style="border-color: lightgray; font-size: 600px; border-top-left-radius: 10px; color: #072c66;">Hours</th>
-                                                <th scope="col" style="border-color: lightgray; font-size: 600px; color: #072c66;">Target</th>
-                                                <th scope="col" style="border-color: lightgray; font-size: 600px; color: #072c66;">Output</th>
-                                                <th scope="col" style="border-color: lightgray; font-size: 600px; color: #072c66;">Variation</th>
-                                                <th scope="col" style="border-color: lightgray; font-size: 600px; color: #072c66;">Efficiency</th>
-                                                <th scope="col" style="border-color: lightgray; font-size: 600px; border-top-right-radius: 10px; color: #072c66;">Defect Rate</th>
+                                                <th scope="col" style="border-color: lightgray; border-top-left-radius: 10px; color: #072c66;">Hours</th>
+                                                <th scope="col" style="border-color: lightgray; color: #072c66;">Target</th>
+                                                <th scope="col" style="border-color: lightgray; color: #072c66;">Output</th>
+                                                <th scope="col" style="border-color: lightgray; color: #072c66;">Variation</th>
+                                                <th scope="col" style="border-color: lightgray; color: #072c66;">Efficiency</th>
+                                                <th scope="col" style="border-color: lightgray; border-top-right-radius: 10px; color: #072c66;">Defect Rate</th>
                                             </tr>
                                         </thead>
                                         <tbody class="tbody-custom">
@@ -340,14 +335,14 @@ swiper-container {
                                 <div class="card-body">
                                 <div>
                                         <div class="" style="height: 40.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
-                                        <h5 style="font-size: 18px; color:#072c66; font-weight: bold">
-                                            Target
-                                        </h5>
+                                            <h5 style="font-size: 18px; color:#072c66; font-weight: bold">
+                                                Target
+                                            </h5>
                                         </div>
                                         <div class="" style="height: 40.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
-                                        <h5 id="day_target1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
+                                            <h5 id="day_target1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
 
-                                        </h5>
+                                            </h5>
                                         </div>
                                 </div>
                                 <div class="mt-3">
@@ -439,14 +434,14 @@ swiper-container {
                         </div>
 
                         <div class="col-md-4">
-                            <div class="card px-4 py-3" style="height: 220px; background-color: #FFFFFF; flex-direction: column; gap: 15px; justify-content: center;">
+                            <div class="card px-4 py-3" style="height: 220px; background-color: #FFFFFF; flex-direction: column; gap: 1px; justify-content: center;">
                                 <div style="display: flex; align-items: center; justify-content: center;">
                                     <div style="height: 80px; width: 100px; background-color: #DA3EBF; display: flex; align-items: center; justify-content: center; border-radius: 20%;">
                                         <img src="/nds_wip/public/assets/dist/img/icon/checked.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
                                         <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-2"></p>
-                                        <p  style="color: #64748b; font-size: 21px;">ACTUAL</p>
+                                        <p  style="color: #64748b; font-size: 19px;">ACTUAL</p>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: center;">
@@ -455,7 +450,7 @@ swiper-container {
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
                                         <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="day-target-2"></p>
-                                        <p  style="color: #64748b; font-size: 21px;">DAY TARGET</p>
+                                        <p  style="color: #64748b; font-size: 19px;">DAY TARGET</p>
                                     </div>
                                 </div>
                             </div>
@@ -468,7 +463,7 @@ swiper-container {
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
                                         <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="cumulative-target-2"></p>
-                                        <p  style="color: #64748b; font-size: 21px;">Cumulative TARGET</p>
+                                        <p  style="color: #64748b; font-size: 16px;">CUMMULATIVE TARGET</p>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: center;">
@@ -477,7 +472,7 @@ swiper-container {
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
                                         <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="req-hour-target-2"></p>
-                                        <p  style="color: #64748b; font-size: 21px;">REQ HOUR TARGET</p>
+                                        <p  style="color: #64748b; font-size: 19px;">REQ HOUR TARGET</p>
                                     </div>
                                 </div>
                             </div>
@@ -491,7 +486,7 @@ swiper-container {
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
                                         <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="deffect-garment-qty-2"></p>
-                                        <p  style="color: #64748b; font-size: 21px;">DEFFECT GARMENT QTY</p>
+                                        <p  style="color: #64748b; font-size: 16px;">DEFFECT GARMENT QTY</p>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: center;">
@@ -500,7 +495,7 @@ swiper-container {
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
                                         <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="rework-balance-2"></p>
-                                        <p  style="color: #64748b; font-size: 21px;">REWORK BALANCE</p>
+                                        <p  style="color: #64748b; font-size: 19px;">REWORK BALANCE</p>
                                     </div>
                                 </div>
                             </div>
@@ -510,7 +505,7 @@ swiper-container {
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                                     <div id="chartdiv-efficiency"></div>
                                     <div style="position: absolute; top: 8%; left: 12%; transform: translate(-50%, -50%);">
-                                        <p style="color: #64748b; font-size: 20px; margin-top:20px;">EFFICIENCY</p>
+                                        <p style="color: #64748b; font-size: 15px; margin-top:20px;">EFFICIENCY</p>
                                     </div>
                                 </div>
                             </div>
@@ -520,7 +515,7 @@ swiper-container {
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                                     <div id="chartdiv-rft"></div>
                                     <div style="position: absolute; top: 8%; left: 1%; transform: translate(-50%, -50%);">
-                                        <p style="color: #64748b; font-size: 20px; margin-top:20px;">RFT</p>
+                                        <p style="color: #64748b; font-size: 15px; margin-top:20px;">RFT</p>
                                     </div>
                                 </div>
                             </div>
@@ -529,8 +524,8 @@ swiper-container {
                             <div class="card px-4" style="height: 220px; background-color: #FFFFFF;">
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                                 <div id="chartdiv-deffect"></div>
-                                    <div style="position: absolute; top: 8%; left: 15%; transform: translate(-50%, -50%);">
-                                        <p style="color: #64748b; font-size: 20px; margin-top:20px;">DEFFECT RATE</p>
+                                    <div style="position: absolute; top: 8%; left: 12%; transform: translate(-50%, -50%);">
+                                        <p style="color: #64748b; font-size: 15px; margin-top:20px;">DEFFECT RATE</p>
                                     </div>
                                 </div>
                             </div>
@@ -599,7 +594,7 @@ swiper-container {
                                                     LIST DEFFECT
                                                 </h5>
                                             </div>
-                                            <div id="defect-list" class="px-4 w-100" style="text-align: left; background-color: #072c66; display: flex; flex-direction: column; align-items: center; justify-content: start; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
+                                            <div id="defect-list" class="px-0 w-100" style="text-align: left; background-color: #072c66; display: flex; flex-direction: column; align-items: center; justify-content: start; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
 
                                             </div>
                                     </div>
@@ -1124,23 +1119,25 @@ swiper-container {
                             } else {
                                 $.each(defects, function(index, defect) {
                                     const defectHtml = `
-                                        <h5 id="defno${index+1}text" style="font-size: 20px; color:#FFFFFF; font-weight: bold; text-align: left; padding-top: 5px; padding-bottom: 5px; width: 100%;">
-                                            <input type="hidden" id="defno${index+1}" value="${defect.defect_type_id}">
-                                            ${index + 1}. ${defect.defect_type} (${defect.jml} items)
-                                        </h5>
+                                         <div class="defect-item" id="defno${index+1}text" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ccc; font-size: 14px; text-align: left; width:100%;">
+                                            <div style="display: flex; align-items: center; justify-content-center; width:85%;">
+                                                <span style="font-weight: bold; font-size:18px;">${index + 1}. ${defect.defect_type}</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; justify-content-center;">
+                                                <input type="hidden" id="defno${index+1}" value="${defect.defect_type_id}">
+                                                <span style="color: #FFF; font-weight: bold;">(${defect.jml})</span>
+                                            </div>
+                                        </div>
                                     `;
                                     $('#defect-list').append(defectHtml);
                                 });
                             }
-
-
 
                             const carouselContainer = $('#carousel-inner');
                             const linkGambar1 = data.link_gambar1;
                             const positionDefect = data.positiondefect || [];
 
                             carouselContainer.empty();
-                            // Loop through link_gambar1
                             linkGambar1.forEach((gambar1, index) => {
                                 const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
                                 const defectPoints = positionDefect
