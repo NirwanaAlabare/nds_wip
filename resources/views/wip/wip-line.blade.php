@@ -195,7 +195,7 @@ swiper-container {
     >
         <swiper-slide>
             <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
-                <div class="row g-1">
+                <div class="row">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -399,7 +399,7 @@ swiper-container {
         </swiper-slide>
         <swiper-slide>
             <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row g-1">
+                <div class="row">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -549,7 +549,7 @@ swiper-container {
         </swiper-slide>
         <swiper-slide>
             <div class="p-1 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row g-1">
+                <div class="row">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -695,7 +695,7 @@ swiper-container {
         $("#target-1").text(target);
         $("#output-1").text(output);
         $("#variation-1").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -734,7 +734,7 @@ swiper-container {
         $("#target-2").text(target);
         $("#output-2").text(output);
         $("#variation-2").html(`
-            ${variance}
+            ${Math.abs(variance)}
              <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -773,7 +773,7 @@ swiper-container {
         $("#target-3").text(target);
         $("#output-3").text(output);
         $("#variation-3").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -812,7 +812,7 @@ swiper-container {
         $("#target-4").text(target);
         $("#output-4").text(output);
         $("#variation-4").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -851,7 +851,7 @@ swiper-container {
         $("#target-5").text(target);
         $("#output-5").text(output);
         $("#variation-5").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -890,7 +890,7 @@ swiper-container {
         $("#target-7").text(target);
         $("#output-7").text(output);
         $("#variation-7").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -929,7 +929,7 @@ swiper-container {
         $("#target-8").text(target);
         $("#output-8").text(output);
         $("#variation-8").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -968,7 +968,7 @@ swiper-container {
         $("#target-9").text(target);
         $("#output-9").text(output);
         $("#variation-9").html(`
-            ${variance}
+            ${Math.abs(variance)}
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
@@ -1037,10 +1037,11 @@ swiper-container {
         // Menghitung efficiency_sum
         const efficiencySum = (actuall1 / dayTarget1) * 100;
         const roundedEfficiency = efficiencySum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
+        const eff_data = data.dashboard_indicators[0].effi || 0;
 
         // Menampilkan hasilnya pada elemen #efficiency1
         $("#efficiency1").html(`
-            ${roundedEfficiency}%
+            ${eff_data}%
         `);
     }
 
@@ -1051,10 +1052,11 @@ swiper-container {
         // Menghitung deffect_sum
         const deffectSum = (deffectl1 / dayTarget1) * 100;
         const roundedDeffect = deffectSum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
+        const deffect_data = data.dashboard_indicators[0].per_defect || 0;
 
         // Menampilkan hasilnya pada elemen #deffect1
         $("#deffect1").html(`
-            ${roundedDeffect}%
+            ${deffect_data}%
         `);
     }
 
@@ -1084,6 +1086,7 @@ swiper-container {
 
     function variance2(data) {
         const target_menit = data.target_menit || 0;
+        const day_target = data.day_target1 || 0;
         const actual = data.actuall1 || 0;
         const datelog = new Date();
         datelog.setHours(7, 0, 0, 0);
@@ -1100,7 +1103,7 @@ swiper-container {
         }
 
         const cumulative = Math.round(min * target_menit, 0);
-        const variance = cumulative - actual;
+        const variance = day_target - actual;
         const varianceDisplay = Math.abs(variance);
         console.log(variance);
         $("#variation-page-2").html(`
