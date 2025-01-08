@@ -81,12 +81,12 @@
                             <th style="background-color: lightblue;">Size</th>
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima Dari Steam</th>
-                            <th style="background-color: lightgreen;">Rework Sewing</th>
-                            <th style="background-color: lightgreen;">Rework Mending</th>
-                            <th style="background-color: lightgreen;">Rework Spot Cleaning</th>
                             <th style="background-color: lightgreen;">Defect Sewing</th>
                             <th style="background-color: lightgreen;">Defect Mending</th>
                             <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
+                            <th style="background-color: lightgreen;">Output Rework Sewing</th>
+                            <th style="background-color: lightgreen;">Output Mending</th>
+                            <th style="background-color: lightgreen;">Output Spot Cleaning</th>
                             <th style="background-color: lightgreen;">Reject</th>
                             <th style="background-color: lightgreen;">Keluar</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
@@ -177,15 +177,6 @@
                         data: 'qty_in_pck_line'
                     },
                     {
-                        data: 'input_rework_sewing'
-                    },
-                    {
-                        data: 'input_rework_mending'
-                    },
-                    {
-                        data: 'input_rework_spotcleaning'
-                    },
-                    {
                         data: 'output_def_sewing'
                     },
                     {
@@ -193,6 +184,15 @@
                     },
                     {
                         data: 'output_def_spotcleaning'
+                    },
+                    {
+                        data: 'input_rework_sewing'
+                    },
+                    {
+                        data: 'input_rework_mending'
+                    },
+                    {
+                        data: 'input_rework_spotcleaning'
                     },
                     {
                         data: 'qty_reject'

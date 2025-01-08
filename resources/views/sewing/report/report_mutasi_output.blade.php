@@ -86,7 +86,7 @@
                             <th style="background-color: lightgreen;">Defect Sewing</th>
                             <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
                             <th style="background-color: lightgreen;">Defect Mending</th>
-                            <th style="background-color: lightgreen;">Output Sewing</th>
+                            <th style="background-color: lightgreen;">Output Rework Sewing</th>
                             <th style="background-color: lightgreen;">Output Spot Cleaning</th>
                             <th style="background-color: lightgreen;">Output Mending</th>
                             <th style="background-color: lightgreen;">Reject</th>
