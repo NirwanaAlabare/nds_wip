@@ -238,7 +238,7 @@ class DashboardWipLineController extends Controller
     function getbuyer($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT GROUP_CONCAT(Supplier) buyer from (select mp.id_ws,ms.Supplier from master_plan mp
+        ->select("SELECT GROUP_CONCAT(DISTINCT Supplier) buyer from (select mp.id_ws,ms.Supplier from master_plan mp
         inner join act_costing ac on mp.id_ws = ac.id
         inner join mastersupplier ms on ms.Id_Supplier = ac.id_buyer
         where mp.tgl_plan = '".$tanggal."' and mp.sewing_line = '".$lineId."') a");
@@ -248,7 +248,7 @@ class DashboardWipLineController extends Controller
     function getno_ws($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')
-        ->select("SELECT GROUP_CONCAT(kpno) no_ws from (select mp.id_ws,ac.kpno from master_plan mp
+        ->select("SELECT GROUP_CONCAT(DISTINCT kpno) no_ws from (select mp.id_ws,ac.kpno from master_plan mp
         inner join act_costing ac on mp.id_ws = ac.id
         where mp.tgl_plan = '".$tanggal."' and mp.sewing_line = '".$lineId."') a ");
 
