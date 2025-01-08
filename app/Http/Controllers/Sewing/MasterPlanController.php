@@ -44,7 +44,7 @@ class MasterPlanController extends Controller
                 $join->on("so_det.color", "=", "master_plan.color");
             })->
             where("tgl_plan", $tglPlan)->
-            where("cancel", "N")->
+            where("master_plan.cancel", "N")->
             orderBy("sewing_line", "asc")->
             get();
 
