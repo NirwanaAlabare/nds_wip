@@ -78,7 +78,7 @@ class ExportLaporanPemasukanRoll implements FromView, WithEvents, ShouldAutoSize
     {
 
         $event->sheet->styleCells(
-            'A3:Z' . $event->getConcernable()->rowCount,
+            'A3:AB' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
