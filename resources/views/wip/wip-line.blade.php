@@ -285,12 +285,12 @@ swiper-container {
                                             </tr>
 
                                             <tr style="line-height: 10px;" class="bg-danger">
-                                                    <td scope="row" style="border-color: lightgray;font-size: 13px;">12:00 - 13:00</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0%</td>
-                                                <td style="border-color: lightgray;font-size: 13px;">0%</td>
+                                                <td scope="row" style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">12:00 - 13:00</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0%</td>
+                                                <td style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">0%</td>
                                             </tr>
                                             <tr style="line-height: 10px;">
                                                 <td scope="row" style="border-color: lightgray;font-size: 13px;" id="hour-7">13:00 - 14:00</td>
@@ -440,7 +440,14 @@ swiper-container {
                                         <img src="/nds_wip/public/assets/dist/img/icon/checked.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-2"></p>
+                                        <div>
+                                            <div style="display: flex; width: 100%; justify-content: space-between">
+                                                <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-2"></p>
+                                                <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
+                                                    <p class="card-title" style="font-size: 28px; color: #282828; line-height: 0px;" id="variation-page-2"></p>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <p  style="color: #64748b; font-size: 19px;">ACTUAL</p>
                                     </div>
                                 </div>
@@ -465,9 +472,9 @@ swiper-container {
                                         <div>
                                             <div style="display: flex; width: 100%; justify-content: space-between">
                                                 <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="cumulative-target-2"></p>
-                                                <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
+                                                {{-- <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
                                                     <p class="card-title" style="font-size: 28px; color: #282828; line-height: 0px;" id="variation-page-2"></p>
-                                                </div>
+                                                </div> --}}
                                             </div>
                                             <p  style="color: #64748b; font-size: 19px;">REALTIME TARGET</p>
                                         </div>
@@ -511,7 +518,7 @@ swiper-container {
                             <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div id="chartdiv-efficiency"></div>
-                                    <div style="position: absolute; bottom: -15%; left: 49%;  transform: translate(-50%, -50%);">
+                                    <div style="position: absolute; bottom: -18%; left: 49%;  transform: translate(-50%, -50%);">
                                         <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">EFFICIENCY</p>
                                     </div>
                                 </div>
@@ -521,7 +528,7 @@ swiper-container {
                             <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div id="chartdiv-rft"></div>
-                                    <div style="position: absolute; bottom: -15%; left: 50%;  transform: translate(-50%, -50%);">
+                                    <div style="position: absolute; bottom: -18%; left: 50%;  transform: translate(-50%, -50%);">
                                         <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">RFT</p>
                                     </div>
                                 </div>
@@ -531,7 +538,7 @@ swiper-container {
                             <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                 <div id="chartdiv-deffect"></div>
-                                    <div style="position: absolute; bottom: -15%; left: 50%;  transform: translate(-50%, -50%);">
+                                    <div style="position: absolute; bottom: -18%; left: 50%;  transform: translate(-50%, -50%);">
                                         <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">DEFFECT RATE</p>
                                     </div>
                                 </div>
