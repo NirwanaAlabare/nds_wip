@@ -3619,6 +3619,7 @@ class StockerController extends Controller
                     stocker_input.form_cut_id,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
+                    part.act_costing_id,
                     part.style,
                     stocker_input.color,
                     stocker_input.size,
@@ -3865,77 +3866,85 @@ class StockerController extends Controller
     }
 
     public function modifyYearSequenceUpdate(Request $request) {
+        $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.so_det_id, stocker_input.size, stocker_input.range_akhir")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
+
+        $request->size = $stocker ? $stocker->so_det_id : $request->size;
+        $request->size_text = $stocker ? $stocker->size : $request->size_text;
+
         $request->validate([
             "year" => "required",
             "sequence" => "required",
             "range_awal" => "required|numeric|gt:0",
-            "range_akhir" => "required|numeric|gte:range_awal",
-            "size" => "required",
-            "size_text" => "required",
+            "range_akhir" => "required|numeric|gte:range_awal"
         ]);
 
-        $yearSequences = YearSequence::where("year", $request->year)->
-            where("year_sequence", $request->sequence)->
-            whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
-            get();
+        if ($request->size && $request->size_text) {
+            $yearSequences = YearSequence::where("year", $request->year)->
+                where("year_sequence", $request->sequence)->
+                whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
+                get();
 
-        $output = collect(
-            DB::connection("mysql_sb")->select("
-                select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                UNION
-                select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                UNION
-                select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-            ")
-        );
-
-        $yearSequenceArr = [];
-        $yearSequenceFailArr = [];
-        foreach ($yearSequences as $yearSequence) {
-            array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-        }
-
-        $failMessage = "";
-        for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
-            $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
-        }
-
-        if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
-            $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
-                "so_det_id" => $request->size,
-                "size" => $request->size_text,
-            ]);
-
-            $rft = Rft::whereIn("kode_numbering", $yearSequenceArr)->update([
-                "so_det_id" => $request->size,
-            ]);
-
-            $defect = Defect::whereIn("kode_numbering", $yearSequenceArr)->update([
-                "so_det_id" => $request->size,
-            ]);
-
-            $reject = Reject::whereIn("kode_numbering", $yearSequenceArr)->update([
-                "so_det_id" => $request->size,
-            ]);
-
-            $outputPacking = OutputPacking::whereIn("kode_numbering", $yearSequenceArr)->update([
-                "so_det_id" => $request->size,
-            ]);
-
-            return array(
-                "status" => 200,
-                "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
+            $output = collect(
+                DB::connection("mysql_sb")->select("
+                    select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                    UNION
+                    select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                    UNION
+                    select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                ")
             );
-        } else if (count($yearSequenceArr) < 1) {
-            return array(
-                "status" => 400,
-                "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
-            );
-        } else if (count($yearSequenceArr) > 5000) {
-            return array(
-                "status" => 400,
-                "message" => "Maksimal QTY '5000'"
-            );
+
+            $yearSequenceArr = [];
+            $yearSequenceFailArr = [];
+            foreach ($yearSequences as $yearSequence) {
+                array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+            }
+
+            $failMessage = "";
+            for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
+                $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
+            }
+
+            if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
+                $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
+                    "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
+                    "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
+                    "number" => $stocker ? $stocker->range_akhir : null,
+                    "so_det_id" => $request->size,
+                    "size" => $request->size_text,
+                ]);
+
+                $rft = Rft::whereIn("kode_numbering", $yearSequenceArr)->update([
+                    "so_det_id" => $request->size,
+                ]);
+
+                $defect = Defect::whereIn("kode_numbering", $yearSequenceArr)->update([
+                    "so_det_id" => $request->size,
+                ]);
+
+                $reject = Reject::whereIn("kode_numbering", $yearSequenceArr)->update([
+                    "so_det_id" => $request->size,
+                ]);
+
+                $outputPacking = OutputPacking::whereIn("kode_numbering", $yearSequenceArr)->update([
+                    "so_det_id" => $request->size,
+                ]);
+
+                return array(
+                    "status" => 200,
+                    "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
+                );
+            } else if (count($yearSequenceArr) < 1) {
+                return array(
+                    "status" => 400,
+                    "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
+                );
+            } else if (count($yearSequenceArr) > 5000) {
+                return array(
+                    "status" => 400,
+                    "message" => "Maksimal QTY '5000'"
+                );
+            }
         }
 
         return array(
