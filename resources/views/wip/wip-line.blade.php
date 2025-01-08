@@ -91,8 +91,6 @@
       position: absolute;
       width: 40px;
       height: 40px;
-      /* background-color: #FFA07A;
-      border: 3px solid #d42a13; */
       border-radius: 50%;
       opacity: 80%;
       z-index: 99999;
@@ -104,13 +102,13 @@
 swiper-container {
       width: 100%;
       height: 100%;
-      background-color: #FFFFFF !important;
+      background-color: #ffffff !important;
     }
 
     swiper-slide {
       text-align: left;
       font-size: 18px;
-      background: #fff;
+      background: #ffffff;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -196,14 +194,12 @@ swiper-container {
       transform: translateY(4px);
     }
 </style>
-<!-- autoplay-delay="15000"  -->
-<!-- autoplay-disable-on-interaction="false" -->
 
-<body class=" d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #072c66; font-family: 'Inter', sans-serif;">
+<body class=" d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #ffffff; font-family: 'Inter', sans-serif;">
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true"
     >
         <swiper-slide>
-            <div class="shadow rounded p-4 d-flex justify-content-center align-items-center" style="max-width: 1300px; width: 100%; background-color: #e3e5e8;">
+            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
                 <div class="row g-1">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -343,59 +339,59 @@ swiper-container {
                             <div class="card">
                                 <div class="card-body">
                                 <div>
-                                        <div class="" style="height: 45.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                        <div class="" style="height: 40.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                         <h5 style="font-size: 18px; color:#072c66; font-weight: bold">
                                             Target
                                         </h5>
                                         </div>
-                                        <div class="" style="height: 45.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
+                                        <div class="" style="height: 40.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
                                         <h5 id="day_target1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
 
                                         </h5>
                                         </div>
                                 </div>
                                 <div class="mt-3">
-                                        <div class="" style="height: 45.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                        <div class="" style="height: 40.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                         <h5 style="font-size: 18px; color:#072c66; font-weight: bold">
                                             Output
                                         </h5>
                                         </div>
-                                        <div class="" style="height: 45.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
+                                        <div class="" style="height: 40.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
                                         <h5 id="actuall1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
 
                                         </h5>
                                         </div>
                                 </div>
                                 <div class="mt-3">
-                                        <div class="" style="height: 45.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                        <div class="" style="height: 40.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                         <h5 style="font-size: 18px; color:#072c66; font-weight: bold">
                                             Variation
                                         </h5>
                                         </div>
-                                        <div class="" style="height: 45.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
+                                        <div class="" style="height: 40.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
                                             <h5 id="variation1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
 
                                             </h5>
                                         </div>
                                 </div>
                                 <div class="mt-3">
-                                        <div class="" style="height: 45.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                        <div class="" style="height: 40.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                         <h5 style="font-size: 18px; color:#072c66; font-weight: bold">
                                             Efficiency
                                         </h5>
                                         </div>
-                                        <div class="" style="height: 45.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
+                                        <div class="" style="height: 40.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
                                             <h5 id="efficiency1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
                                             </h5>
                                         </div>
                                 </div>
                                 <div class="mt-3">
-                                        <div class="" style="height: 45.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                        <div class="" style="height: 40.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                         <h5 style="font-size: 18px; color:#072c66; font-weight: bold">
                                             Defect Rate
                                         </h5>
                                         </div>
-                                        <div class="" style="height: 45.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
+                                        <div class="" style="height: 40.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
                                             <h5 id="deffect1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
                                             </h5>
                                         </div>
@@ -407,8 +403,8 @@ swiper-container {
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="shadow rounded p-4 d-flex justify-content-center align-items-center" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #e3e5e8;">
-                <div class="row g-3">
+            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row g-1">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -543,8 +539,8 @@ swiper-container {
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="shadow rounded p-4 d-flex justify-content-center align-items-center" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #e3e5e8;">
-                <div class="row g-3">
+            <div class="p-4 d-flex justify-content-center align-items-start" style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row g-1">
                         <div class="col-md-1">
                             <div class="card" style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
                                 <img src="/nds_wip/public/assets/dist/img/logo-nds4.png" alt="AdminLTE Logo" class="" style="height: 60px; width: 60px;">
@@ -614,66 +610,6 @@ swiper-container {
         </swiper-slide>
     </swiper-container>
 
-    {{-- <tr style="line-height: 18px; " <?php if ($datenow > '07:00' && $datenow <= '08:00') {
-        echo 'class="bg-info"';
-        } ?>>
-        <th scope="row" style="border-color: lightgray;font-size: 18px;">07:00 - 08:00</th>
-        <td style="border-color: lightgray;font-size: 18px;"><?php
-        if ($jamker < 1) {
-        echo '0';
-        } elseif ($jamker > 1) {
-        echo $datajam7['target1'];
-        } else {
-        echo $datajam7['target2'];
-        } ?></td>
-        <td style="border-color: lightgray;font-size: 18px;"><?= $datajam7['output']; ?></td>
-        <td style="border-color: lightgray;font-size: 18px;">
-        <?php
-        if ($jamker < 1) {
-        $variance7 = '0';
-        } elseif ($jamker > 1) {
-        $variance7 = $datajam7['variation1'];
-        } else {
-        $variance7 = $datajam7['variation2'];
-        }
-
-        $varianc7 = abs($variance7);
-        echo $varianc7;
-        if ($variance7 > 0) {
-        echo '<ion-icon name="caret-down-outline" style= "color: red;"></ion-icon>';
-        } else {
-        echo '<ion-icon name="caret-up-outline" style= "color: green;"></ion-icon>';
-        }
-
-        if ($datenow > '07:00') {
-        $cumulativeVariation += $variance7;
-        }
-        ?>
-        </td>
-        <td style="border-color: lightgray;font-size: 18px;">
-        <?php
-        if ($jamker < 1) {
-        echo '0';
-        } elseif ($jamker > 1) {
-        echo $datajam7['efficiency1'];
-        } else {
-        echo $datajam7['efficiency2'];
-        }
-        ?> %
-        </td>
-        <td style="border-color: lightgray;font-size: 18px;">
-        <?php
-        if ($jamker < 1) {
-        echo '0';
-        } elseif ($jamker > 1) {
-        echo $datajam7['defect_rate1'];
-        } else {
-        echo $datajam7['defect_rate2'];
-        }
-        ?> %
-        </td>
-        </tr> --}}
-
     @include('layouts.script')
 
     @stack('scripts')
@@ -692,14 +628,13 @@ swiper-container {
 <script src="https://code.jscharting.com/latest/jscharting.js"></script>
 
  <!-- SOCKET.IO configuration -->
- <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-    <script> window.laravel_echo_port='{{env("LARAVEL_ECHO_PORT")}}';</script>
-    <script src="http://{{ Request::getHost() }}:{{ config('redis.echo_port') }}/socket.io/socket.io.js"></script>
-    <script src="{{ config('redis.redis_url_public') }}/js/laravel-echo-setup.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script> window.laravel_echo_port='{{env("LARAVEL_ECHO_PORT")}}';</script>
+<script src="http://{{ Request::getHost() }}:{{ config('redis.echo_port') }}/socket.io/socket.io.js"></script>
+<script src="{{ config('redis.redis_url_public') }}/js/laravel-echo-setup.js" type="text/javascript"></script>
 
 <script>
 
-    // var lineId = @json($id);
     const currentDate = new Date().toISOString().split('T')[0];
 
     const swiper = new Swiper('.swiper', {
@@ -1145,8 +1080,8 @@ swiper-container {
 
     function showingalldata(data) {
                             $("#user-name").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
-                            $("#buyer-name").text(data.buyer || "Unknown -");
-                            $("#buyer-id").text(data.no_ws || "Unknown WS");
+                            $("#buyer-name").text(data.buyer || "0");
+                            $("#buyer-id").text(data.no_ws || "0");
                             updateTable1(data);
                             updateTable2(data);
                             updateTable3(data);
@@ -1162,34 +1097,41 @@ swiper-container {
 
                             // PAGES 2
                             $("#user-name-2").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
-                            $("#buyer-name-2").text(data.buyer || "Unknown -");
-                            $("#buyer-id-2").text(data.no_ws || "Unknown WS");
-                            $("#actual-2").text(data.actuall1 || "Unknown -");
-                            $("#day-target-2").text(data.day_target1 || "Unknown -");
-                            $("#req-hour-target-2").text(data.target_floor || "Unknown -");
-                            $("#deffect-garment-qty-2").text(data.deffectl1 || "Unknown -");
-                            $("#rework-balance-2").text(data.rework || "Unknown -");
+                            $("#buyer-name-2").text(data.buyer || "0");
+                            $("#buyer-id-2").text(data.no_ws || "0");
+                            $("#actual-2").text(data.actuall1 || "0");
+                            $("#day-target-2").text(data.day_target1 || "0");
+                            $("#req-hour-target-2").text(data.target_floor || "0");
+                            $("#deffect-garment-qty-2").text(data.deffectl1 || "0");
+                            $("#rework-balance-2").text(data.rework || "0");
                             commulation2(data);
 
                             // PAGES 3
                             $("#user-name-3").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
-                            $("#buyer-name-3").text(data.buyer || "Unknown -");
-                            $("#buyer-id-3").text(data.no_ws || "Unknown WS");
+                            $("#buyer-name-3").text(data.buyer || "0");
+                            $("#buyer-id-3").text(data.no_ws || "0");
                             const defects = data.list_defect;
 
-                            // Clear previous list of defects
                             $('#defect-list').empty();
 
-                            // Loop through each defect item and append to the container
-                            $.each(defects, function(index, defect) {
-                                const defectHtml = `
+                            if (defects.length === 0) {
+                                const noDataHtml = `
+                                    <h5 style="font-size: 20px; color: #FFFFFF; font-weight: bold; text-align: center; padding: 20px; width: 100%;">
+                                        Belum ada defect
+                                    </h5>
+                                `;
+                                $('#defect-list').append(noDataHtml);
+                            } else {
+                                $.each(defects, function(index, defect) {
+                                    const defectHtml = `
                                         <h5 id="defno${index+1}text" style="font-size: 20px; color:#FFFFFF; font-weight: bold; text-align: left; padding-top: 5px; padding-bottom: 5px; width: 100%;">
-                                        <input type="hidden" id="defno${index+1}" value="${defect.defect_type_id}">
+                                            <input type="hidden" id="defno${index+1}" value="${defect.defect_type_id}">
                                             ${index + 1}. ${defect.defect_type} (${defect.jml} items)
                                         </h5>
-                                `;
-                                $('#defect-list').append(defectHtml); // Append defect HTML to the list
-                            });
+                                    `;
+                                    $('#defect-list').append(defectHtml);
+                                });
+                            }
 
 
 
@@ -1200,7 +1142,6 @@ swiper-container {
                             carouselContainer.empty();
                             // Loop through link_gambar1
                             linkGambar1.forEach((gambar1, index) => {
-                                console.log("gambar1:", gambar1);
                                 const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
                                 const defectPoints = positionDefect
                                     .filter(posdef => posdef.image === gambar1.image)
@@ -1214,9 +1155,9 @@ swiper-container {
                                 // Add carousel item
                                 const carouselItem = `
                                     <div class="${isActive}">
-                                        <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 470px; padding-bottom: 20px;">
+                                        <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 420px; padding-bottom: 20px;">
                                             ${defectPoints}
-                                            <img style="opacity: .8; width: auto; height: 470px;"
+                                            <img style="opacity: .8; width: auto; height: 420px;"
                                                 src="http://10.10.5.60/dashboard-wip/assets/dist/img/upload_files/${gambar1.image}"
                                                 class="img-fluid defect-area-img">
                                         </div>
@@ -1280,6 +1221,10 @@ swiper-container {
                                     }
                                 }
                             }
+
+                            showChartEfficiency(data);
+                            showChartRFT(data);
+                            showChartDeffect(data);
     }
 
     $(document).ready(async function () {
@@ -1293,7 +1238,6 @@ swiper-container {
 
         window.Echo.channel("dashboard-wip-line-channel-" + lineId)
             .listen('.UpdatedDashboardWipLineEvent', (event) => {
-                console.log("Data received:", event);
                     if (event && event.data) {
                         const data = event.data;
                         showingalldata(data);
@@ -1308,10 +1252,8 @@ swiper-container {
                     contentType: 'application/json',
                     data: JSON.stringify(data),
                     success: function (result) {
-                        // console.log('Response:', result);
                     },
                     error: function (xhr, status, error) {
-                        // console.error('Error:', status, error);
                     }
                 });
 
@@ -1320,8 +1262,6 @@ swiper-container {
                 console.error('Request failed:', error);
             }
     });
-
-
 
     function updateJakartaTime() {
         // Buat objek waktu sekarang
@@ -1353,8 +1293,6 @@ swiper-container {
         // Meminta frame berikutnya
         requestAnimationFrame(updateJakartaTime);
     }
-
-    // Memulai pembaruan waktu
     updateJakartaTime();
 
     function updateRealtimeDiff() {
@@ -1371,433 +1309,203 @@ swiper-container {
         // Jika sekarang sebelum jam 07:00:00, set ke 0
         if (diff < 0) diff = 0;
 
-        // Hitung jam dan menit
+        // Hitung total menit
         let totalMinutes = Math.floor(diff / (1000 * 60));
-        const hours = Math.floor(totalMinutes / 60);
-        let minutes = totalMinutes % 60;
 
-        // Case berdasarkan waktu tertentu
-        const currentTime = now.toTimeString().split(" ")[0]; // Format HH:MM:SS
-        if (currentTime >= "12:00:00" && currentTime <= "13:00:00") {
-            // Jam istirahat (12:00 - 13:00), tidak menghitung menit
-            minutes = 0;
+        // Jika waktu sekarang melewati jam 12:00, kurangi waktu istirahat dari total menit
+        const restStart = new Date();
+        restStart.setHours(12, 0, 0, 0); // 12:00:00
+        const restEnd = new Date();
+        restEnd.setHours(13, 0, 0, 0); // 13:00:00
+
+        if (now >= restEnd) {
+            // Jika sekarang sudah melewati jam 13:00, kurangi 60 menit (durasi istirahat)
+            totalMinutes -= 60;
+        } else if (now >= restStart && now < restEnd) {
+            // Jika sekarang berada di antara 12:00 - 13:00, set total menit hingga jam istirahat dimulai
+            totalMinutes -= Math.floor((now - restStart) / (1000 * 60));
         }
 
-        // Tampilkan hasil di elemen
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
         document.getElementById("realtime-diff").textContent = `${hours} Hours ${minutes} Minutes`;
         document.getElementById("realtime-diff-2").textContent = `${hours} Hours ${minutes} Minutes`;
         document.getElementById("realtime-diff-3").textContent = `${hours} Hours ${minutes} Minutes`;
 
-        // Perbarui perhitungan setiap detik
         requestAnimationFrame(updateRealtimeDiff);
     }
 
-    // Mulai perhitungan real-time
     updateRealtimeDiff();
 
 
+    function showChartEfficiency(data){
+        const eff_data = data.dashboard_indicators[0].effi || 0;
+        var chart = JSC.chart('chartdiv-efficiency', {
+        debug: false,
+        legend_visible: false,
+        defaultTooltip_enabled: false,
+        xAxis_spacingPercentage: 0.4,
+        yAxis: [
+          {
+            id: 'ax1',
+            defaultTick: { padding: 10, enabled: false },
+            customTicks: [0, 30, 60, 90,100],
+            line: {
+              width: 10,
+
+              /*Defining the option will enable it.*/
+              breaks: {},
+
+              /*Palette is defined at series level with an ID referenced here.*/
+              color: 'smartPalette:pal1'
+            },
+            scale_range: [0, 100]
+          }
+        ],
+        defaultSeries: {
+          type: 'gauge column roundcaps',
+          shape: {
+            label: {
+              text: '%max',
+              align: 'center',
+              verticalAlign: 'middle',
+              style_fontSize: 28
+            }
+          }
+        },
+        series: [
+          {
+            type: 'column roundcaps',
+            name: 'Temperatures',
+            yAxis: 'ax1',
+            palette: {
+              id: 'pal1',
+              pointValue: '%yValue',
+              ranges: [
+                { value: 0, color: '#FF5353' },
+                { value: 30, color: '#FFD221' },
+                { value: 60, color: '#77E6B4' },
+                { value: [90,100], color: '#21D683' }
+              ]
+            },
+            points: [['x', [0, eff_data]]]
+          },
+        ]
+      });
+    }
+
+    function showChartRFT(data){
+        const per_rft = Number(data.dashboard_indicators[0].per_rft || 0, 10);
+        var chart = JSC.chart('chartdiv-rft', {
+        debug: false,
+        legend_visible: false,
+        defaultTooltip_enabled: false,
+        xAxis_spacingPercentage: 0.4,
+        yAxis: [
+          {
+            id: 'ax1',
+            defaultTick: { padding: 10, enabled: false },
+            customTicks: [0, 30, 60, 90,100],
+            line: {
+              width: 10,
+
+              /*Defining the option will enable it.*/
+              breaks: {},
+
+              /*Palette is defined at series level with an ID referenced here.*/
+              color: 'smartPalette:pal1'
+            },
+            scale_range: [0, 100]
+          }
+        ],
+        defaultSeries: {
+          type: 'gauge column roundcaps',
+          shape: {
+            label: {
+              text: '%max',
+              align: 'center',
+              verticalAlign: 'middle',
+              style_fontSize: 28
+            }
+          }
+        },
+        series: [
+          {
+            type: 'column roundcaps',
+            name: 'Temperatures',
+            yAxis: 'ax1',
+            palette: {
+              id: 'pal1',
+              pointValue: '%yValue',
+              ranges: [
+                { value: 0, color: '#FF5353' },
+                { value: 30, color: '#FFD221' },
+                { value: 60, color: '#77E6B4' },
+                { value: [90,100], color: '#21D683' }
+              ]
+            },
+            points: [['x', [0, per_rft]]]
+          },
+        ]
+      });
+    }
+
+    function showChartDeffect(data){
+        const per_defect = Number(data.dashboard_indicators[0].per_defect || 0, 10);
+        var chart = JSC.chart('chartdiv-deffect', {
+        debug: false,
+        legend_visible: false,
+        defaultTooltip_enabled: false,
+        xAxis_spacingPercentage: 0.4,
+        yAxis: [
+          {
+            id: 'ax1',
+            defaultTick: { padding: 10, enabled: false },
+            customTicks: [0, 30, 60, 90,100],
+            line: {
+              width: 10,
+
+              /*Defining the option will enable it.*/
+              breaks: {},
+
+              /*Palette is defined at series level with an ID referenced here.*/
+              color: 'smartPalette:pal1'
+            },
+            scale_range: [0, 100]
+          }
+        ],
+        defaultSeries: {
+          type: 'gauge column roundcaps',
+          shape: {
+            label: {
+              text: '%max',
+              align: 'center',
+              verticalAlign: 'middle',
+              style_fontSize: 28
+            }
+          }
+        },
+        series: [
+          {
+            type: 'column roundcaps',
+            name: 'Temperatures',
+            yAxis: 'ax1',
+            palette: {
+              id: 'pal1',
+              pointValue: '%yValue',
+              ranges: [
+                { value: 0, color: '#FF5353' },
+                { value: 30, color: '#FFD221' },
+                { value: 60, color: '#77E6B4' },
+                { value: [90,100], color: '#21D683' }
+              ]
+            },
+            points: [['x', [0, per_defect]]]
+          },
+        ]
+      });
+    }
 
  </script>
 
-
-<!-- CHART EFFICIENCY -->
-<script>
-      var chart = JSC.chart('chartdiv-efficiency', {
-        debug: false,
-        legend_visible: false,
-        defaultTooltip_enabled: false,
-        xAxis_spacingPercentage: 0.4,
-        yAxis: [
-          {
-            id: 'ax1',
-            defaultTick: { padding: 10, enabled: false },
-            customTicks: [350, 600, 700, 800, 850],
-            line: {
-              width: 10,
-
-              /*Defining the option will enable it.*/
-              breaks: {},
-
-              /*Palette is defined at series level with an ID referenced here.*/
-              color: 'smartPalette:pal1'
-            },
-            scale_range: [350, 850]
-          }
-        ],
-        defaultSeries: {
-          type: 'gauge column roundcaps',
-          shape: {
-            label: {
-              text: '%max',
-              align: 'center',
-              verticalAlign: 'middle',
-              style_fontSize: 28
-            }
-          }
-        },
-        series: [
-          {
-            type: 'column roundcaps',
-            name: 'Temperatures',
-            yAxis: 'ax1',
-            palette: {
-              id: 'pal1',
-              pointValue: '%yValue',
-              ranges: [
-                { value: 350, color: '#FF5353' },
-                { value: 600, color: '#FFD221' },
-                { value: 700, color: '#77E6B4' },
-                { value: [800, 850], color: '#21D683' }
-              ]
-            },
-            points: [['x', [350, 720]]]
-          },
-        ]
-      });
-</script>
-
-<!-- CHART RFT -->
-<script>
-      var chart = JSC.chart('chartdiv-rft', {
-        debug: false,
-        legend_visible: false,
-        defaultTooltip_enabled: false,
-        xAxis_spacingPercentage: 0.4,
-        yAxis: [
-          {
-            id: 'ax1',
-            defaultTick: { padding: 10, enabled: false },
-            customTicks: [350, 600, 700, 800, 850],
-            line: {
-              width: 10,
-
-              /*Defining the option will enable it.*/
-              breaks: {},
-
-              /*Palette is defined at series level with an ID referenced here.*/
-              color: 'smartPalette:pal1'
-            },
-            scale_range: [350, 850]
-          }
-        ],
-        defaultSeries: {
-          type: 'gauge column roundcaps',
-          shape: {
-            label: {
-              text: '%max',
-              align: 'center',
-              verticalAlign: 'middle',
-              style_fontSize: 28
-            }
-          }
-        },
-        series: [
-          {
-            type: 'column roundcaps',
-            name: 'Temperatures',
-            yAxis: 'ax1',
-            palette: {
-              id: 'pal1',
-              pointValue: '%yValue',
-              ranges: [
-                { value: 350, color: '#FF5353' },
-                { value: 600, color: '#FFD221' },
-                { value: 700, color: '#77E6B4' },
-                { value: [800, 850], color: '#21D683' }
-              ]
-            },
-            points: [['x', [350, 720]]]
-          },
-        ]
-      });
-</script>
-
-<!-- CHART DEFFECT -->
-<script>
-      var chart = JSC.chart('chartdiv-deffect', {
-        debug: false,
-        legend_visible: false,
-        defaultTooltip_enabled: false,
-        xAxis_spacingPercentage: 0.4,
-        yAxis: [
-          {
-            id: 'ax1',
-            defaultTick: { padding: 10, enabled: false },
-            customTicks: [350, 600, 700, 800, 850],
-            line: {
-              width: 10,
-
-              /*Defining the option will enable it.*/
-              breaks: {},
-
-              /*Palette is defined at series level with an ID referenced here.*/
-              color: 'smartPalette:pal1'
-            },
-            scale_range: [350, 850]
-          }
-        ],
-        defaultSeries: {
-          type: 'gauge column roundcaps',
-          shape: {
-            label: {
-              text: '%max',
-              align: 'center',
-              verticalAlign: 'middle',
-              style_fontSize: 28
-            }
-          }
-        },
-        series: [
-          {
-            type: 'column roundcaps',
-            name: 'Temperatures',
-            yAxis: 'ax1',
-            palette: {
-              id: 'pal1',
-              pointValue: '%yValue',
-              ranges: [
-                { value: 350, color: '#FF5353' },
-                { value: 600, color: '#FFD221' },
-                { value: 700, color: '#77E6B4' },
-                { value: [800, 850], color: '#21D683' }
-              ]
-            },
-            points: [['x', [350, 720]]]
-          },
-        ]
-      });
-</script>
-
-{{-- FOOTER --}}
-
-<script>
-  const datelog = date("Y-m-d 07:00:00");
-  const datenow = date("Y-m-d H:i:s");
-  const timenow = date("H:i:s");
-  const awal  = strtotime(datelog);
-  const akhir = strtotime(datenow); // waktu sekarang
-  const diff  = akhir - awal;
-  const jam   = floor(diff / (60 * 60));
-  const minutes   = floor(diff / 60);
-  const menit = diff - jam * (60 * 60);
-  const menitkerja = jamker * 60;
-  let min = 0;
-  let min_ = 0;
-  if (jam >= 6) {
-    min = minutes - 60;
-  } else {
-    min = minutes;
-  }
-
-  if (min > menitkerja) {
-    min_ = menitkerja;
-  } else {
-    min_ = min;
-  }
-
-  const m_prod = actual * smv;
-  const m_tersedia = menpower * min_;
-  const percen_effi = m_tersedia > 0 ? m_prod / m_tersedia * 100 : 0;
-
-  const per_effi = round(percen_effi, 2);
-
-
-  var data = per_effi;
-   if (per_effi >= 75) {
-    var warna = "#49FF00";
-   }else{
-    var warna = "#ff0000";
-    }
-  var options1 = {
-    chart: {
-      height: 320,
-      type: "radialBar",
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 3000,
-        animateGradually: {
-          enabled: true,
-          delay: 3500
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 3000
-        }
-      }
-    },
-    series: [data],
-    colors: [warna],
-    plotOptions: {
-      radialBar: {
-        startAngle: -135,
-        endAngle: 135,
-        track: {
-          background: '#333',
-          startAngle: -135,
-          endAngle: 135,
-        },
-        dataLabels: {
-          name: {
-            show: false,
-          },
-          value: {
-            color: "#fff",
-            fontSize: "42px",
-            show: true
-          }
-        }
-      }
-    },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shade: 'dark',
-        type: "horizontal",
-        shadeIntensity: 0.5,
-        gradientToColors: undefined,
-        inverseColors: true,
-        opacityFrom: 1,
-        opacityTo: 1,
-        stops: [0, 100],
-        colorStops: []
-      }
-    },
-    stroke: {
-      lineCap: "butt"
-    },
-    labels: ["Progress"]
-  };
-
-  new ApexCharts(document.querySelector("#chart_eff_line"), options1).render();
-</script>
-
-
-<script>
-  if (actual == 0) {
-    actual = 1;
-  } else {
-    actual = 200;
-  }
-  var percen_deffect = rfts / actual * 100;
-  var per_deffect = round(percen_deffect, 2);
-  var data = rfts;
-  var options1 = {
-    chart: {
-      height: 320,
-      type: "radialBar",
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 3000,
-        animateGradually: {
-          enabled: true,
-          delay: 3500
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 3000
-        }
-      }
-    },
-    series: [data],
-    colors: ["#49FF00"],
-    plotOptions: {
-      radialBar: {
-        startAngle: -135,
-        endAngle: 135,
-        track: {
-          background: '#333',
-          startAngle: -135,
-          endAngle: 135,
-        },
-        dataLabels: {
-          name: {
-            show: false,
-          },
-          value: {
-            color: "#fff",
-            fontSize: "42px",
-            show: true
-          }
-        }
-      }
-    },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shade: 'dark',
-        type: "horizontal",
-        shadeIntensity: 0.5,
-        gradientToColors: undefined, // optional, if not defined - uses the shades of same color in series
-        inverseColors: true,
-        opacityFrom: 1,
-        opacityTo: 1,
-        stops: [0, 100],
-        colorStops: []
-      }
-    },
-    stroke: {
-      lineCap: "butt"
-    },
-    labels: ["Progress"]
-  };
-
-  new ApexCharts(document.querySelector("#chart_rft_line"), options1).render();
-</script>
-
-<script>
-  if (actual == 0) {
-    actual = 1;
-  } else {
-    actual = actual;
-  }
-  const percen_deffect = deffect / actual * 100;
-  const per_deffect = round(percen_deffect, 2);
-
-  var data = defects;
-  var options1 = {
-    chart: {
-      height: 320,
-      type: "radialBar",
-    },
-    series: [data],
-    colors: ["#FD0101"],
-    plotOptions: {
-      radialBar: {
-        startAngle: -135,
-        endAngle: 135,
-        track: {
-          background: '#333',
-          startAngle: -135,
-          endAngle: 135,
-        },
-        dataLabels: {
-          name: {
-            show: false,
-          },
-          value: {
-            color: "#fff",
-            fontSize: "42px",
-            show: true
-          }
-        }
-      }
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shade: "dark",
-        type: "horizontal",
-        gradientToColors: undefined,
-        stops: [0, 100]
-      }
-    },
-    stroke: {
-      lineCap: "butt"
-    },
-    labels: ["Progress"]
-  };
-
-  new ApexCharts(document.querySelector("#chart_def_line"), options1).render();
-</script>
