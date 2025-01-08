@@ -215,7 +215,7 @@
                     <div>
                         <label class="form-label">Kode Numbering :</label>
                         <textarea class="form-control" name="kode_numbering" id="kode_numbering" wire:model="kodeNumbering" cols="30" rows="10"></textarea>
-                        <div class="form-text">Contoh : 2024_1_1 2024_1_2 2024_1_3</div>
+                        <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
                     </div>
                 </div>
                 <div class="modal-footer">

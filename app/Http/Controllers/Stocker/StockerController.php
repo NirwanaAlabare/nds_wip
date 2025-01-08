@@ -20,6 +20,7 @@ use App\Models\DCIn;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Reject;
+use App\Models\SignalBit\OutputPacking;
 use App\Exports\Stocker\StockerListExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -3917,6 +3918,10 @@ class StockerController extends Controller
                 "so_det_id" => $request->size,
             ]);
 
+            $outputPacking = OutputPacking::whereIn("kode_numbering", $yearSequenceArr)->update([
+                "so_det_id" => $request->size,
+            ]);
+
             return array(
                 "status" => 200,
                 "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
@@ -3930,6 +3935,72 @@ class StockerController extends Controller
             return array(
                 "status" => 400,
                 "message" => "Maksimal QTY '5000'"
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Gagal di Update</b>"
+        );
+    }
+
+    public function modifyYearSequenceDelete(Request $request) {
+        $request->validate([
+            "year" => "required",
+            "sequence" => "required",
+            "range_awal" => "required|numeric|gt:0",
+            "range_akhir" => "required|numeric|gte:range_awal"
+        ]);
+
+        $yearSequences = YearSequence::where("year", $request->year)->
+            where("year_sequence", $request->sequence)->
+            whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
+            get();
+
+        $output = collect(
+            DB::connection("mysql_sb")->select("
+                select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                UNION
+                select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                UNION
+                select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+            ")
+        );
+
+        if ($output->count() < 1) {
+            $yearSequenceArr = [];
+            foreach ($yearSequences as $yearSequence) {
+                array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+            }
+
+            if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
+                $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
+                    "form_cut_id" => null,
+                    "so_det_id" => null,
+                    "size" => null,
+                    "number" => null,
+                    "id_qr_stocker" => null,
+                ]);
+
+                return array(
+                    "status" => 200,
+                    "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."' <br> <b>Berhasil di HAPUS</b>"
+                );
+            } else if (count($yearSequenceArr) < 1) {
+                return array(
+                    "status" => 400,
+                    "message" => "Gagal di hapus"
+                );
+            } else if (count($yearSequenceArr) > 5000) {
+                return array(
+                    "status" => 400,
+                    "message" => "Maksimal QTY '5000'"
+                );
+            }
+        } else {
+            return array(
+                "status" => 400,
+                "message" => "Range sudah memiliki input"
             );
         }
 
