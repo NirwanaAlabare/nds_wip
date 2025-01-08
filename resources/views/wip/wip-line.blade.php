@@ -204,7 +204,7 @@ swiper-container {
                         <div class="col-md-4">
                             <div class="card" style="height: 100px;">
                                 <div class="card-body" style="display: flex; text-align: start; justify-content: center; flex-direction: column;">
-                                    <p class="card-title mt-2 " id="current-time"></p>
+                                    <p class="card-title mt-2" id="current-time"></p>
                                     <p class="card-text" id="user-name">-</p>
                                 </div>
                             </div>
@@ -408,7 +408,7 @@ swiper-container {
                         <div class="col-md-3">
                             <div class="card" style="height: 100px;">
                                <div class="card-body" style="display: flex; text-align: start; justify-content: center; flex-direction: column;">
-                                    <p class="card-title" id="current-time-2"></p>
+                                    <p class="card-title" style="font-size: 23px" id="current-time-2"></p>
                                     <p class="card-text" id="user-name-2"></p>
                                 </div>
                             </div>
@@ -440,7 +440,7 @@ swiper-container {
                                         <img src="/nds_wip/public/assets/dist/img/icon/checked.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-2"></p>
+                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-2"></p>
                                         <p  style="color: #64748b; font-size: 19px;">ACTUAL</p>
                                     </div>
                                 </div>
@@ -449,21 +449,28 @@ swiper-container {
                                         <img src="/nds_wip/public/assets/dist/img/icon/target.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="day-target-2"></p>
+                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="day-target-2"></p>
                                         <p  style="color: #64748b; font-size: 19px;">DAY TARGET</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card px-4 py-3" style="height: 220px; background-color: #FFFFFF; flex-direction: column; gap: 15px; justify-content: center;">
+                            <div class="card px-4 py-3" style="height: 220px; background-color: #FFFFFF; flex-direction: column; gap: 1px; justify-content: center;">
                                 <div style="display: flex; align-items: center; justify-content: center;">
                                     <div style="height: 80px; width: 100px; background-color: #1A5CD8; display: flex; align-items: center; justify-content: center; border-radius: 20%;">
                                         <img src="/nds_wip/public/assets/dist/img/icon/checked.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="cumulative-target-2"></p>
-                                        <p  style="color: #64748b; font-size: 16px;">CUMMULATIVE TARGET</p>
+                                        <div>
+                                            <div style="display: flex; width: 100%; justify-content: space-between">
+                                                <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="cumulative-target-2"></p>
+                                                <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
+                                                    <p class="card-title" style="font-size: 28px; color: #282828; line-height: 0px;" id="variation-page-2"></p>
+                                                </div>
+                                            </div>
+                                            <p  style="color: #64748b; font-size: 19px;">REALTIME TARGET</p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: center;">
@@ -471,7 +478,7 @@ swiper-container {
                                         <img src="/nds_wip/public/assets/dist/img/icon/target.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="req-hour-target-2"></p>
+                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="req-hour-target-2"></p>
                                         <p  style="color: #64748b; font-size: 19px;">REQ HOUR TARGET</p>
                                     </div>
                                 </div>
@@ -479,13 +486,13 @@ swiper-container {
                         </div>
                         <div class="col-md-4">
 
-                        <div class="card px-4 py-3" style="height: 220px; background-color: #FFFFFF; flex-direction: column; gap: 15px; justify-content: center;">
+                        <div class="card px-4 py-3" style="height: 220px; background-color: #FFFFFF; flex-direction: column; gap: 1px; justify-content: center;">
                                 <div style="display: flex; align-items: center; justify-content: center;">
                                     <div style="height: 80px; width: 100px; background-color: #F3B03B; display: flex; align-items: center; justify-content: center; border-radius: 20%;">
                                         <img src="/nds_wip/public/assets/dist/img/icon/checked.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="deffect-garment-qty-2"></p>
+                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="deffect-garment-qty-2"></p>
                                         <p  style="color: #64748b; font-size: 16px;">DEFFECT GARMENT QTY</p>
                                     </div>
                                 </div>
@@ -494,38 +501,38 @@ swiper-container {
                                         <img src="/nds_wip/public/assets/dist/img/icon/target.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title" style="font-size: 50px; color: #282828; line-height: 40px;" id="rework-balance-2"></p>
+                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="rework-balance-2"></p>
                                         <p  style="color: #64748b; font-size: 19px;">REWORK BALANCE</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card px-4" style="height: 220px; background-color: #FFFFFF;">
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                            <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div id="chartdiv-efficiency"></div>
-                                    <div style="position: absolute; top: 8%; left: 12%; transform: translate(-50%, -50%);">
-                                        <p style="color: #64748b; font-size: 15px; margin-top:20px;">EFFICIENCY</p>
+                                    <div style="position: absolute; bottom: -15%; left: 49%;  transform: translate(-50%, -50%);">
+                                        <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">EFFICIENCY</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card px-4" style="height: 220px; background-color: #FFFFFF;">
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                            <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div id="chartdiv-rft"></div>
-                                    <div style="position: absolute; top: 8%; left: 1%; transform: translate(-50%, -50%);">
-                                        <p style="color: #64748b; font-size: 15px; margin-top:20px;">RFT</p>
+                                    <div style="position: absolute; bottom: -15%; left: 50%;  transform: translate(-50%, -50%);">
+                                        <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">RFT</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card px-4" style="height: 220px; background-color: #FFFFFF;">
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                            <div class="card px-4" style="height: 250px; background-color: #FFFFFF; position: relative;">
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                 <div id="chartdiv-deffect"></div>
-                                    <div style="position: absolute; top: 8%; left: 12%; transform: translate(-50%, -50%);">
-                                        <p style="color: #64748b; font-size: 15px; margin-top:20px;">DEFFECT RATE</p>
+                                    <div style="position: absolute; bottom: -15%; left: 50%;  transform: translate(-50%, -50%);">
+                                        <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">DEFFECT RATE</p>
                                     </div>
                                 </div>
                             </div>
@@ -544,7 +551,7 @@ swiper-container {
                         <div class="col-md-3">
                             <div class="card" style="height: 100px;">
                                 <div class="card-body" style="display: flex; text-align: start; justify-content: center; flex-direction: column;">
-                                <p class="card-title" id="current-time-3"></p>
+                                <p class="card-title" style="font-size: 23px" id="current-time-3"></p>
                                 <p class="card-text" id="user-name-3"></p>
                                 </div>
                             </div>
@@ -963,41 +970,35 @@ swiper-container {
     }
 
     function updateTable10(data) {
-        // Mendefinisikan variabel untuk kolom tabel
         const jamKer = data.jamkerl1 || 0;
         const targetFloor = data.target_floor || 0;
         const targetFloorDom = data.target_floordom || 0;
         const output = data.output16 || 0;
         const defect = data.deffect16 || 0;
 
-        // Hitung nilai Target
         const target = jamKer < 9
             ? 0
             : jamKer > 9
             ? targetFloor
             : targetFloorDom;
 
-        // Hitung Variance
         const variance = target - output;
         const varianceDisplay = Math.abs(variance);
 
-        // Hitung Efficiency
         const efficiency = target === 0 ? 0 : (output / target) * 100;
 
-        // Hitung Defect Rate
         const defectRate = target === 0 ? 0 : (defect / target) * 100;
 
-        // Update tabel
-        $("#hour-10").text("16:00 - 17:00"); // Jam tetap
-        $("#target-10").text(target); // Target
-        $("#output-10").text(output); // Output
+        $("#hour-10").text("16:00 - 17:00");
+        $("#target-10").text(target);
+        $("#output-10").text(output);
         $("#variation-10").html(`
             ${varianceDisplay}
-            <ion-icon name="${variance > 0 ? 'caret-down-outline' : 'caret-up-outline'}"
+         <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `); // Variance dengan indikator panah
-        $("#efficiency-10").text(`${efficiency.toFixed(2)} %`); // Efficiency
-        $("#deffect-rate-10").text(`${defectRate.toFixed(2)} %`); // Defect Rate
+        `);
+        $("#efficiency-10").text(`${efficiency.toFixed(2)} %`);
+        $("#deffect-rate-10").text(`${defectRate.toFixed(2)} %`);
     }
 
     function variation1(data) {
@@ -1052,25 +1053,53 @@ swiper-container {
 
     function commulation2(data) {
         const target_menit = data.target_menit || 0;
+        const jamker = data.jamkerl1 || 0;
+
         const datelog = new Date();
+        datelog.setHours(7, 0, 0, 0);
         const datenow = new Date();
 
-        // Menghitung selisih waktu dalam menit
-        const diff = (datenow - datelog) / 1000; // konversi ke detik
+        const diff = (datenow - datelog) / 1000;
         const minutes = Math.floor(diff / 60);
         const jam = Math.floor(minutes / 60);
+
         let min = minutes;
 
-        // Jika lebih dari 6 jam, kurangi menit dengan 60
         if (jam >= 6) {
             min = minutes - 60;
         }
 
-        // Cumulative calculation
         const cumulative = Math.round(Math.min(min, target_menit) * target_menit, 0);
-
-        // Menampilkan hasil ke elemen dengan id cumulative-target-2
         document.getElementById("cumulative-target-2").textContent = cumulative;
+
+    }
+
+
+    function variance2(data) {
+        const target_menit = data.target_menit || 0;
+        const actual = data.actuall1 || 0;
+        const datelog = new Date();
+        const datenow = new Date();
+
+        const diff = (datenow - datelog) / 1000;
+        const minutes = Math.floor(diff / 60);
+        const jam = Math.floor(minutes / 60);
+        let min = minutes;
+
+        if (jam >= 6) {
+            min = minutes - 60;
+        }
+
+        const cumulative = Math.round(Math.min(min, target_menit) * target_menit, 0);
+        const variance = cumulative - actual;
+        const varianceDisplay = Math.abs(variance);
+        console.log(variance);
+        $("#variation-page-2").html(`
+            ${varianceDisplay}
+           <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
+                    style="color: ${variance > 0 ? 'red' : '#3ee706'};"></ion-icon>
+        `);
+        $("#variation-box").css('border', variance > 0 ? '1px solid red' : '1px solid #3ee706');
     }
 
     function showingalldata(data) {
@@ -1097,9 +1126,10 @@ swiper-container {
                             $("#actual-2").text(data.actuall1 || "0");
                             $("#day-target-2").text(data.day_target1 || "0");
                             $("#req-hour-target-2").text(data.target_floor || "0");
-                            $("#deffect-garment-qty-2").text(data.deffectl1 || "0");
+                            $("#deffect-garment-qty-2").text(data.deffectl1 - data.rework || "0");
                             $("#rework-balance-2").text(data.rework || "0");
                             commulation2(data);
+                            variance2(data);
 
                             // PAGES 3
                             $("#user-name-3").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
@@ -1261,36 +1291,47 @@ swiper-container {
     });
 
     function updateJakartaTime() {
-        // Buat objek waktu sekarang
-        const now = new Date();
+    // Buat objek waktu sekarang
+    const now = new Date();
 
-        // Format waktu ke zona waktu Jakarta (Asia/Jakarta)
-        const formatter = new Intl.DateTimeFormat("id-ID", {
-            timeZone: "Asia/Jakarta",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
+    // Format waktu ke zona waktu Jakarta (Asia/Jakarta)
+    const formatter = new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
 
-        // Format waktu menjadi array [tanggal, waktu]
-        const parts = formatter.formatToParts(now);
+    // Format waktu menjadi array parts
+    const parts = formatter.formatToParts(now);
 
-        // Ambil bagian tanggal dan waktu
-        const formattedDate = `${parts[4].value}-${parts[2].value}-${parts[0].value}`;
-        const formattedTime = `${parts[6].value}:${parts[8].value}:${parts[10].value}`;
+    // Ambil bagian tanggal dengan format: 25 Jan 2025
+    const day = parts.find(part => part.type === "day").value;
+    const month = parts.find(part => part.type === "month").value;
+    const year = parts.find(part => part.type === "year").value;
 
-        // Gabungkan dan tampilkan
-        document.getElementById("current-time").textContent = `${formattedDate} ${formattedTime}`;
-        document.getElementById("current-time-2").textContent = `${formattedDate} ${formattedTime}`;
-        document.getElementById("current-time-3").textContent = `${formattedDate} ${formattedTime}`;
+    const formattedDate = `${day} ${month} ${year}`;
 
-        // Meminta frame berikutnya
-        requestAnimationFrame(updateJakartaTime);
-    }
-    updateJakartaTime();
+    // Ambil bagian waktu
+    const hour = parts.find(part => part.type === "hour").value;
+    const minute = parts.find(part => part.type === "minute").value;
+    const second = parts.find(part => part.type === "second").value;
+
+    const formattedTime = `${hour}:${minute}:${second}`;
+
+    // Gabungkan dan tampilkan
+    document.getElementById("current-time").textContent = `${formattedDate} - ${formattedTime}`;
+    document.getElementById("current-time-2").textContent = `${formattedDate} - ${formattedTime}`;
+    document.getElementById("current-time-3").textContent = `${formattedDate} - ${formattedTime}`;
+
+    // Meminta frame berikutnya
+    requestAnimationFrame(updateJakartaTime);
+}
+updateJakartaTime();
+
 
     function updateRealtimeDiff() {
         // Waktu awal (07:00:00 hari ini)

@@ -61,10 +61,11 @@ class DashboardWipLineController extends Controller
         $data['target_floor'] = $this->cari_target_floor($tanggal, $lineId);
 
         $data['target_floordom'] = $this->cari_target_floordom($tanggal, $lineId);
-        $data['jamkerl1'] = $this->cari_jamker($tanggal, $lineId);
+        $data['jamkerl1'] = $this->cari_jamker($lineId);
         $data['actuall1'] = $this->cari_actual($tanggal, $lineId);
         $data['day_target1'] = $this->cari_day_target($tanggal, $lineId);
         $data['deffectl1'] = $this->cari_deffect($tanggal, $lineId);
+        $data['target_menit'] = $this->cari_target_floor_menit($lineId);
 
         $data['output7'] = $this->cari_output_jam7($tanggal, $lineId);
         $data['output8'] = $this->cari_output_jam8($tanggal, $lineId);
@@ -272,14 +273,6 @@ class DashboardWipLineController extends Controller
         ->select("SELECT (target + sisa) target from (select FLOOR(COALESCE(plan_target,0)/COALESCE(jam_kerja,1)) target, MOD(COALESCE(plan_target,0),COALESCE(jam_kerja,1)) sisa from (select * from (select tanggal from dim_date) a left join
         (SELECT tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '".$lineId."') b on b.tgl_plan = a.tanggal where a.tanggal = '".$tanggal."') a) a");
         return isset($query[0]) ? $query[0]->target : null;
-    }
-
-    function cari_jamker($tanggal, $lineId)
-    {
-        $query = DB::connection('mysql_dsb')
-        ->select("SELECT COALESCE(sum(jam_kerja),0) as jam_kerja from master_plan where tgl_plan = '".$tanggal."' and sewing_line = '".$lineId."'");
-
-        return isset($query[0]) ? $query[0]->jam_kerja : null;
     }
 
     function cari_actual($tanggal, $lineId)
@@ -555,5 +548,21 @@ class DashboardWipLineController extends Controller
         return $query;
     }
 
+    function cari_target_floor_menit($lineId)
+    {
+        $query = DB::connection('mysql_dsb')
+        ->select("SELECT COALESCE(plan_target,0)/COALESCE((jam_kerja * 60),1) target from (select sum(plan_target) plan_target, sum(jam_kerja) jam_kerja from (select tanggal from dim_date) a left join
+                (SELECT tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where cancel != 'Y' and sewing_line = '".$lineId."') b on b.tgl_plan = a.tanggal where a.tanggal = CURRENT_DATE()) a");
+
+
+        return isset($query[0]) ? $query[0]->target : null;
+    }
+
+    function cari_jamker($lineId)
+    {
+        $query = DB::connection('mysql_dsb')
+        ->select("SELECT COALESCE(sum(jam_kerja),0) as jam_kerja from master_plan where cancel != 'Y' and tgl_plan = CURRENT_DATE() and sewing_line = '".$lineId."'");
+        return isset($query[0]) ? $query[0]->jam_kerja : null;
+    }
 
 }
