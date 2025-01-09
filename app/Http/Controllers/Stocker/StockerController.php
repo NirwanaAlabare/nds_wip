@@ -2268,6 +2268,8 @@ class StockerController extends Controller
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
                         )
                     GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
                         year_sequence_num.updated_at
                     ORDER BY
                         year_sequence_num.updated_at DESC
@@ -2345,6 +2347,8 @@ class StockerController extends Controller
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
                         )
                     GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
                         year_sequence_num.updated_at
                     ORDER BY
                         year_sequence_num.updated_at DESC
