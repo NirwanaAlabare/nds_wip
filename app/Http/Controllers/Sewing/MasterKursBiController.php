@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Sewing;
 
+use App\Http\Controllers\Controller;
 use App\Models\Summary\MasterKursBi;
 use App\Models\Summary\DataDetailProduksiDay;
 use Illuminate\Http\Request;

@@ -58,6 +58,7 @@ use App\Http\Controllers\DC\LoadingLineController;
 use App\Http\Controllers\DC\BonLoadingController;
 
 // Sewing
+use App\Http\Controllers\Sewing\MasterLineController;
 use App\Http\Controllers\Sewing\MasterPlanController;
 use App\Http\Controllers\Sewing\MasterDefectController;
 use App\Http\Controllers\Sewing\ReportController;
@@ -800,6 +801,16 @@ Route::middleware('auth')->group(function () {
     });
 
     // Sewing :
+    // Master Line
+    Route::controller(MasterLineController::class)->prefix("master-line")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('master-line');
+        Route::get('show/{line?}/{date?}', 'show')->name('master-line-detail');
+        Route::get('create', 'create')->name('create-master-line');
+        Route::post('store', 'store')->name('store-master-line');
+        Route::put('update', 'update')->name('update-master-line');
+        Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-line');
+    });
+
     // Master Plan
     Route::controller(MasterPlanController::class)->prefix("master-plan")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('master-plan');
