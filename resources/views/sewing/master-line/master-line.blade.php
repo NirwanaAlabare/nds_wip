@@ -80,9 +80,10 @@
                                 <select class="form-select select2bs4-create-modal" name="employee_id" id="employee_id">
                                     <option value="">Pilih Leader</option>
                                     @foreach ($employees as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" class="form-control" name="employee_nik" id="employee_nik" readonly>
                                 <input type="hidden" class="form-control" name="employee_name" id="employee_name" readonly>
                             </div>
                         </div>
@@ -131,9 +132,10 @@
                                 <select class="form-select select2bs4-edit-modal" name="edit_employee_id" id="edit_employee_id">
                                     <option value="">Pilih Leader</option>
                                     @foreach ($employees as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" class="form-control" name="edit_employee_nik" id="edit_employee_nik" readonly>
                                 <input type="hidden" class="form-control" name="edit_employee_name" id="edit_employee_name" readonly>
                             </div>
                         </div>
@@ -222,7 +224,6 @@
                         `;
                     }
                 },
-
             ]
         });
 
@@ -236,6 +237,7 @@
         })
 
         $("#employee_id").on("change", function () {
+            $("#employee_nik").val($("#employee_id").find(":selected").attr("data-nik"));
             $("#employee_name").val($("#employee_id").find(":selected").attr("data-name"));
         })
 
@@ -245,6 +247,7 @@
         })
 
         $("#edit_employee_id").on("change", function () {
+            $("#edit_employee_nik").val($("#edit_employee_id").find(":selected").attr("data-nik"));
             $("#edit_employee_name").val($("#edit_employee_id").find(":selected").attr("data-name"));
         })
     </script>

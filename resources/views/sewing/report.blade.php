@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
     <!-- Select2 -->
@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-    <div class="container-fluid">
+    <div>
         <div class="card">
             <div class="card-body">
                 @if ($type == "output")

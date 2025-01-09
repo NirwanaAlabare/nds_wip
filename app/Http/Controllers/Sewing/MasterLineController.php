@@ -68,6 +68,7 @@ class MasterLineController extends Controller
             "line_id" => "required",
             "line_name" => "required",
             "employee_id" => "required",
+            "employee_nik" => "required",
             "employee_name" => "required",
         ]);
 
@@ -76,6 +77,7 @@ class MasterLineController extends Controller
             "line_id" => $validatedRequest["line_id"],
             "line_name" => $validatedRequest["line_name"],
             "employee_id" => $validatedRequest["employee_id"],
+            "employee_nik" => $validatedRequest["employee_nik"],
             "employee_name" => $validatedRequest["employee_name"],
             "created_by" => Auth::user()->id,
             "created_by_username" => Auth::user()->username,
@@ -115,6 +117,7 @@ class MasterLineController extends Controller
             "edit_line_id" => "required",
             "edit_line_name" => "required",
             "edit_employee_id" => "required",
+            "edit_employee_nik" => "required",
             "edit_employee_name" => "required",
         ]);
 
@@ -123,6 +126,7 @@ class MasterLineController extends Controller
             "line_id" => $validatedRequest["edit_line_id"],
             "line_name" => $validatedRequest["edit_line_name"],
             "employee_id" => $validatedRequest["edit_employee_id"],
+            "employee_nik" => $validatedRequest["edit_employee_nik"],
             "employee_name" => $validatedRequest["edit_employee_name"]
         ]);
 
