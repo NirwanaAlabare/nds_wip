@@ -229,7 +229,7 @@ swiper-container {
                         </div>
 
                         <div class="col-lg-9">
-                            <div class="card">
+                            <div class="h-100 card">
                                 <div class="card-body">
                                     <table class="table border-collapse" style="background-color: #072c66; text-align: center;border-radius: 10px;" style="max-height: 10vh !important;">
                                         <thead class="thead-custom">
@@ -331,7 +331,7 @@ swiper-container {
                         </div>
 
                         <div class="col-lg-3">
-                            <div class="card">
+                            <div class="h-100 card">
                                 <div class="card-body">
                                 <div>
                                         <div class="" style="height: 40.7px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
@@ -389,7 +389,7 @@ swiper-container {
                                         <div class="" style="height: 40.7px; background-color: #072c66; display: flex; align-items: center; justify-content: center; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: 0px; border-bottom: 3px solid #FFFFFF; border-left: 3px solid #FFFFFF; border-right: 3px solid #FFFFFF; color:#FFFFFF;">
                                             <h5 id="deffect1" style="font-size: 20px; color:#FFFFFF; font-weight: bold">
                                             </h5>
-                                        </div>
+                                        </div >
                                 </div>
                                 </div>
                             </div>
@@ -455,9 +455,13 @@ swiper-container {
                                     <div style="height: 80px; width: 100px; background-color: #1AD87F; display: flex; align-items: center; justify-content: center; border-radius: 20%;">
                                         <img src="/nds_wip/public/assets/dist/img/icon/target.png" alt="AdminLTE Logo" class="" style="height: 40px; width: 40px;">
                                     </div>
-                                    <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
-                                        <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="day-target-2"></p>
-                                        <p  style="color: #64748b; font-size: 19px;">DAY TARGET</p>
+                                    <div style="display: flex; flex-direction: column; width: 40%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
+                                        <p class="card-title mt-3" style="font-size: 40px; color: #282828; line-height: 40px;" id="day-target-2"></p>
+                                        <p  style="color: #64748b; font-size: 16px;">DAY TARGET</p>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; width: 60%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
+                                        <p class="card-title mt-3" style="font-size: 40px; color: #282828; line-height: 40px;" id="cumulative-target-2"></p>
+                                        <p  style="color: #64748b; font-size: 16px;">REALTIME TARGET</p>
                                     </div>
                                 </div>
                             </div>
@@ -471,12 +475,12 @@ swiper-container {
                                     <div style="display: flex; flex-direction: column; width: 100%; margin-left:20px; margin-vertical:0px; padding-vertical:0px">
                                         <div>
                                             <div style="display: flex; width: 100%; justify-content: space-between">
-                                                <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="cumulative-target-2"></p>
-                                                {{-- <div class="shadow" id="variation-box" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
-                                                    <p class="card-title" style="font-size: 28px; color: #282828; line-height: 0px;" id="variation-page-2"></p>
-                                                </div> --}}
+                                                <p class="card-title mt-3" style="font-size: 50px; color: #282828; line-height: 40px;" id="actual-hour-now"></p>
+                                                <div class="shadow" id="variation-box2" style="display: flex; justify-content: center; align-items: center; width: auto; height: 40px; border-top-left-radius: 25px; border-bottom-left-radius: 25px; border-top-right-radius: 25px; border-bottom-right-radius: 25px; padding:10px; border: 1px solid #3ee706">
+                                                    <p class="card-title" style="font-size: 28px; color: #282828; line-height: 0px;" id="variation-hour-now"></p>
+                                                </div>
                                             </div>
-                                            <p  style="color: #64748b; font-size: 19px;">REALTIME TARGET</p>
+                                            <p  style="color: #64748b; font-size: 19px;">HOUR OUTPUT</p>
                                         </div>
                                     </div>
                                 </div>
@@ -584,7 +588,7 @@ swiper-container {
                         </div>
 
                         <div class="col-lg-8">
-                            <div class="card">
+                            <div class="h-100 card">
                                 <div class="card-body d-flex justify-content-center align-items-center">
                                     <div class="show-defect-area" id="show-defect-area">
                                         <div class="position-relative d-flex flex-column justify-content-center align-items-center">
@@ -601,7 +605,7 @@ swiper-container {
                         </div>
 
                         <div class="col-lg-4">
-                                <div class="card">
+                                <div class="h-100 card">
                                     <div class="card-body">
                                             <div class="p-0 m-0" style="height: 40px;  background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                                 <h5  style="font-size: 18px; color:#072c66; font-weight: bold;">
@@ -1062,6 +1066,7 @@ swiper-container {
 
     function commulation2(data) {
         const target_menit = data.target_menit || 0;
+        const actual_now = data.current_actual || 0;
         const jamker = data.jamkerl1 || 0;
 
         const datelog = new Date();
@@ -1080,6 +1085,7 @@ swiper-container {
 
         const cumulative = Math.round(min * target_menit, 0);
         document.getElementById("cumulative-target-2").textContent = cumulative;
+        document.getElementById("actual-hour-now").textContent = actual_now;
 
     }
 
@@ -1087,6 +1093,9 @@ swiper-container {
     function variance2(data) {
         const target_menit = data.target_menit || 0;
         const day_target = data.day_target1 || 0;
+        const current_actual = data.current_actual || 0;
+        const target_hour = data.target_floor || 0;
+        const variation_hour_now = target_hour - current_actual;
         const actual = data.actuall1 || 0;
         const datelog = new Date();
         datelog.setHours(7, 0, 0, 0);
@@ -1105,13 +1114,23 @@ swiper-container {
         const cumulative = Math.round(min * target_menit, 0);
         const variance = day_target - actual;
         const varianceDisplay = Math.abs(variance);
+        const varianceDisplayHour = Math.abs(variation_hour_now);
         console.log(variance);
         $("#variation-page-2").html(`
             ${varianceDisplay}
            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : '#3ee706'};"></ion-icon>
         `);
+
         $("#variation-box").css('border', variance > 0 ? '1px solid red' : '1px solid #3ee706');
+
+        $("#variation-hour-now").html(`
+            ${varianceDisplayHour}
+           <i class="fa ${variation_hour_now > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
+                    style="color: ${variation_hour_now > 0 ? 'red' : '#3ee706'};"></ion-icon>
+        `);
+
+        $("#variation-box2").css('border', variation_hour_now > 0 ? '1px solid red' : '1px solid #3ee706');
     }
 
     function showingalldata(data) {
@@ -1400,7 +1419,7 @@ updateJakartaTime();
           {
             id: 'ax1',
             defaultTick: { padding: 10, enabled: false },
-            customTicks: [0, 30, 60, 90,100],
+            customTicks: [0, 50, 75, 85,100],
             line: {
               width: 10,
 
@@ -1434,9 +1453,9 @@ updateJakartaTime();
               pointValue: '%yValue',
               ranges: [
                 { value: 0, color: '#FF5353' },
-                { value: 30, color: '#FFD221' },
-                { value: 60, color: '#77E6B4' },
-                { value: [90,100], color: '#21D683' }
+                { value: 50, color: '#FFD221' },
+                { value: 75, color: '#77E6B4' },
+                { value: [85,100], color: '#21D683' }
               ]
             },
             points: [['x', [0, eff_data]]]
@@ -1456,7 +1475,7 @@ updateJakartaTime();
           {
             id: 'ax1',
             defaultTick: { padding: 10, enabled: false },
-            customTicks: [0, 30, 60, 90,100],
+            customTicks: [0, 50, 75, 85,100],
             line: {
               width: 10,
 
@@ -1490,9 +1509,9 @@ updateJakartaTime();
               pointValue: '%yValue',
               ranges: [
                 { value: 0, color: '#FF5353' },
-                { value: 30, color: '#FFD221' },
-                { value: 60, color: '#77E6B4' },
-                { value: [90,100], color: '#21D683' }
+                { value: 50, color: '#FFD221' },
+                { value: 75, color: '#77E6B4' },
+                { value: [85,100], color: '#21D683' }
               ]
             },
             points: [['x', [0, per_rft]]]
@@ -1512,7 +1531,7 @@ updateJakartaTime();
           {
             id: 'ax1',
             defaultTick: { padding: 10, enabled: false },
-            customTicks: [0, 30, 60, 90,100],
+            customTicks: [0, 2, 3, 15],
             line: {
               width: 10,
 
@@ -1522,7 +1541,7 @@ updateJakartaTime();
               /*Palette is defined at series level with an ID referenced here.*/
               color: 'smartPalette:pal1'
             },
-            scale_range: [0, 100]
+            scale_range: [0, 15]
           }
         ],
         defaultSeries: {
@@ -1545,10 +1564,10 @@ updateJakartaTime();
               id: 'pal1',
               pointValue: '%yValue',
               ranges: [
-                { value: 0, color: '#FF5353' },
-                { value: 30, color: '#FFD221' },
-                { value: 60, color: '#77E6B4' },
-                { value: [90,100], color: '#21D683' }
+                { value: 0, color: '#21D683' },
+                { value: 2, color: '#FFD221' },
+                { value: 3, color: '#FF5353' },
+                { value: 15, color: '#FF5353' }
               ]
             },
             points: [['x', [0, per_defect]]]
