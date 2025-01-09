@@ -36,6 +36,8 @@
             <th>Ukuran</th>
             <th>Curr</th>
             <th>Price</th>
+            <th>Rate</th>
+            <th>Price IDR</th>
             <th>Keterangan</th>
             <th>Nama User</th>
             <th>Approve By</th>
@@ -72,6 +74,8 @@
                 <td>{{ $item->size }}</td>
                 <td>{{ $item->curr }}</td>
                 <td>{{ $item->price }}</td>
+                <td>{{ $item->rates }}</td>
+                <td>{{ $item->price_idr }}</td>
                 <td>{{ $item->deskripsi }}</td>
                 <td>{{ $item->username }}</td>
                 <td>{{ $item->confirm_by }}</td>
