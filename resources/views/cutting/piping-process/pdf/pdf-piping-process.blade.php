@@ -45,7 +45,7 @@
 <body>
     <table>
         <tr>
-            <td style="border: 1px solid black; vertical-align: middle;" rowspan="8">
+            <td style="border: 1px solid black; vertical-align: middle;" rowspan="9">
                 <center>
                     <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($pipingProcess->kode_piping)) !!}">
                 </center>
@@ -72,18 +72,7 @@
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Color </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">
-                <?php
-                    $colors = explode(", ", $pipingProcess->masterPiping->color);
-
-                    foreach ($colors as $color) {
-                        echo $color;
-                        ?>
-                            <br>
-                        <?php
-                    }
-                ?>
-            </td>
+            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->color }}</td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Panjang Roll </td>
@@ -94,6 +83,11 @@
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Lebar Roll </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
             <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->lebar_roll_piping." ".$pipingProcess->lebar_roll_piping_unit }}</td>
+        </tr>
+        <tr>
+            <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">Qty Roll </td>
+            <td style="border-none; border-top: 1px solid black; border-bottom: 1px solid black;"> : </td>
+            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">{{ $pipingProcess->output_total_roll." ".$pipingProcess->output_total_roll_unit }}</td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">Qty Awal </td>
