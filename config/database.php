@@ -82,6 +82,7 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
+
         'mysql_dsb' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),

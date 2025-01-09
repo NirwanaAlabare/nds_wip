@@ -720,6 +720,12 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @sewing
                                 <li>
+                                    <a href="{{ route('master-line') }}"
+                                        class="dropdown-item {{ $subPage == 'master-line' ? 'active' : '' }}">
+                                        Master Line <i class="fa-solid fa-people-group"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('master-plan') }}"
                                         class="dropdown-item {{ $subPage == 'master-plan' ? 'active' : '' }}">
                                         Master Plan <i class="fa-solid fa-gears"></i>
