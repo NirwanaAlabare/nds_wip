@@ -24,6 +24,8 @@
     </tr>
     <tr>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Line</th>
+        <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">NIK</th>
+        <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Leader</th>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">WS Number</th>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Style</th>
         <th colspan="5" style="vertical-align: middle; text-align: center; font-weight: 800;">Output</th>
@@ -98,6 +100,8 @@
                             </a>
                         </td>
                     @endif
+                    <td>{{ $line->leader_nik }}</td>
+                    <td>{{ $line->leader_name }}</td>
                     <td>{{ $line->kpno }}</td>
                     <td>{{ $line->styleno }}</td>
                     <td style="text-align: center;">
@@ -174,7 +178,7 @@
             $targetFromEfficiency = $summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
         @endphp
         <tr>
-            <th colspan="11" style="font-weight: bold;text-align: center;">Summary</th>
+            <th colspan="13" style="font-weight: bold;text-align: center;">Summary</th>
             <th style="font-weight: bold;text-align: center;">{{ $summaryActual }}</th>
             <th style="font-weight: bold;text-align: center;">{{ $targetFromEfficiency }}</th>
             <th style="font-weight: bold;text-align: center; {{ $summaryEfficiency < 85 ? 'color: #f51818;' : 'color: #018003;' }}">{{ $summaryEfficiency }} %</th>
