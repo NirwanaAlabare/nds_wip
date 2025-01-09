@@ -2573,6 +2573,8 @@ class StockerController extends Controller
                         ".$shade_filter."
                         ".$ratio_filter."
                     GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
                         year_sequence_num.updated_at
                     HAVING
                         stocker_input.form_cut_id is not null
@@ -2676,6 +2678,8 @@ class StockerController extends Controller
                         ".$shade_filter."
                         ".$ratio_filter."
                     GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
                         year_sequence_num.updated_at
                     HAVING
                         stocker_input.form_cut_id is not null
@@ -3918,19 +3922,19 @@ class StockerController extends Controller
                     "size" => $request->size_text,
                 ]);
 
-                $rft = Rft::whereIn("kode_numbering", $yearSequenceArr)->update([
+                $rft = DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
-                $defect = Defect::whereIn("kode_numbering", $yearSequenceArr)->update([
+                $defect = DB::connection("mysql_sb")->table("output_defects")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
-                $reject = Reject::whereIn("kode_numbering", $yearSequenceArr)->update([
+                $reject = DB::connection("mysql_sb")->table("output_rejects")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
-                $outputPacking = OutputPacking::whereIn("kode_numbering", $yearSequenceArr)->update([
+                $outputPacking = DB::connection("mysql_sb")->table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
