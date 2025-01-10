@@ -44,7 +44,7 @@ order by a.created_by asc, ws asc, color asc, dest asc, urutan asc
             return DataTables::of($data_input)->toJson();
         }
 
-        $data_bulan = DB::select("SELECT bulan isi, nama_bulan tampil FROM `dim_date` where tahun = '2024'
+        $data_bulan = DB::select("SELECT bulan isi, nama_bulan tampil FROM `dim_date` where tahun = '2025'
 GROUP BY bulan
 order by cast(bulan as UNSIGNED) asc");
 
@@ -91,13 +91,13 @@ coalesce(qty_order,0) y
 from
 (
 select nama_bulan, bulan from dim_date
-where tahun = '2024'
+where tahun = '2025'
 group by bulan
 order by cast(bulan as int) asc ) a
 left join
 (
 select month(tgl_shipment) bulan,sum(qty_po) qty_order from ppic_master_so
-where year(tgl_shipment) = '2024'
+where year(tgl_shipment) = '2025'
 group by month(tgl_shipment)
 ) b on a.bulan = b.bulan");
         return json_encode($data_order);
