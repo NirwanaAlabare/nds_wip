@@ -47,7 +47,7 @@ class PipingLoadingController extends Controller
                     return $row->pipingProcess->masterPiping->style;
                 })->
                 addColumn('color', function ($row) {
-                    return $row->pipingProcess->masterPiping->color;
+                    return $row->pipingProcess->color;
                 })->
                 addColumn('part', function ($row) {
                     return $row->pipingProcess->masterPiping->part;

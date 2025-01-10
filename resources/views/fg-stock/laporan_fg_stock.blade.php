@@ -140,6 +140,7 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -482,34 +483,190 @@
                     });
                 } else
                 if (cbojns_lap == 'Mutasi') {
+                    const startTime = new Date().getTime();
+                    // Fetch all data from the server
                     $.ajax({
-                        type: "get",
-                        url: '{{ route('export_excel_mutasi_fg_stok') }}',
+                        type: "POST",
+                        url: '{{ route('export_excel_mutasi_fg_stock') }}',
                         data: {
                             from: from,
                             to: to
                         },
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-                        success: function(response) {
-                            {
-                                swal.close();
-                                Swal.fire({
-                                    title: 'Data Sudah Di Export!',
-                                    icon: "success",
-                                    showConfirmButton: true,
-                                    allowOutsideClick: false
+                        success: function(data) {
+                            // Create a new workbook and a worksheet
+                            const workbook = new ExcelJS.Workbook();
+                            const worksheet = workbook.addWorksheet("Mutasi FG Stock ");
+
+                            // Add a main title row above the Tgl Transaksi
+                            const mainTitleRow = worksheet.addRow(["Laporan Mutasi FG Stock"]);
+                            // Center align the main title row
+                            worksheet.getCell(`A${mainTitleRow.number}`).alignment = {
+                                horizontal: 'center',
+                                vertical: 'middle'
+                            };
+                            // Optionally, you can merge cells for the main title
+                            worksheet.mergeCells(`A${mainTitleRow.number}:E${mainTitleRow.number}`);
+                            mainTitleRow.font = {
+                                bold: true,
+                                size: 14
+                            };
+
+                            // Add a title row for Tgl Transaksi without borders
+                            const titleRow = worksheet.addRow([`Tgl Transaksi: ${from} - ${to}`]);
+                            // Center align the title row
+                            worksheet.getCell(`A${titleRow.number}`).alignment = {
+                                horizontal: 'center',
+                                vertical: 'middle'
+                            };
+                            // Set border to null for the title row
+                            titleRow.eachCell((cell) => {
+                                cell.border = null;
+                            });
+
+                            worksheet.addRow([]);
+                            const headers = [
+                                "No", "ID SO Det", "Buyer", "Product Group", "Product Item",
+                                "WS", "Brand", "Style",
+                                "Color", "Size", "Dest",
+                                "Grade", "No. Carton", "Lokasi",
+                                "Saldo Awal", "Penerimaan", "Pengeluaran", "Saldo Akhir",
+                            ];
+
+                            const headerRow = worksheet.addRow(headers);
+
+
+                            // Set background color for header row
+
+                            headerRow.eachCell((cell) => {
+
+                                cell.fill = {
+
+                                    type: 'pattern',
+
+                                    pattern: 'solid',
+
+                                    fgColor: {
+                                        argb: 'FFFF00'
+                                    }, // Yellow background
+
+                                    bgColor: {
+                                        argb: 'FFFF00'
+                                    } // Optional: set background color
+
+                                };
+
+                                cell.font = {
+
+                                    bold: true
+
+                                };
+
+                            });
+
+                            // Add data rows
+                            data.forEach(function(row) {
+                                worksheet.addRow([
+                                    row.no_urut,
+                                    row.id_so_det,
+                                    row.buyer,
+                                    row.product_group,
+                                    row.product_item,
+                                    row.ws,
+                                    row.brand,
+                                    row.styleno,
+                                    row.color,
+                                    row.size,
+                                    row.dest,
+                                    row.grade,
+                                    row.no_carton,
+                                    row.lokasi,
+                                    row.qty_awal,
+                                    row.qty_in,
+                                    row.qty_out,
+                                    row.saldo_akhir
+                                ]);
+                            });
+
+                            // Apply border style to all cells except title and A3
+
+                            worksheet.eachRow({
+                                includeEmpty: true
+                            }, function(row, rowNumber) {
+                                if (rowNumber !== mainTitleRow.number && rowNumber !== titleRow
+                                    .number &&
+                                    rowNumber !== 3) {
+                                    row.eachCell({
+                                        includeEmpty: true
+                                    }, function(cell, colNumber) {
+                                        cell.border = {
+                                            top: {
+                                                style: 'thin'
+                                            },
+                                            left: {
+                                                style: 'thin'
+                                            },
+                                            bottom: {
+                                                style: 'thin'
+                                            },
+                                            right: {
+                                                style: 'thin'
+                                            }
+                                        };
+                                    });
+                                }
+                            });
+                            // Auto-adjust column widths for specific columns
+                            const columnsToAdjust = [6, 5, 7,
+                                8
+                            ];
+                            columnsToAdjust.forEach(colIndex => {
+                                let maxLength = 0;
+                                worksheet.getColumn(colIndex).eachCell({
+                                    includeEmpty: true
+                                }, cell => {
+                                    if (cell.value) {
+                                        maxLength = Math.max(maxLength, cell.value.toString()
+                                            .length);
+                                    }
                                 });
-                                var blob = new Blob([response]);
-                                var link = document.createElement('a');
+                                worksheet.getColumn(colIndex).width = maxLength + 2; // Add padding
+                            });
+
+                            // Export the workbook
+                            workbook.xlsx.writeBuffer().then(function(buffer) {
+                                const blob = new Blob([buffer], {
+                                    type: "application/octet-stream"
+                                });
+                                const link = document.createElement('a');
                                 link.href = window.URL.createObjectURL(blob);
-                                link.download = from + " sampai " +
-                                    to + "Laporan Mutasi FG Stock.xlsx";
+                                link.download = "Laporan Mutasi FG Stock.xlsx";
                                 link.click();
 
-                            }
+                                // Calculate the elapsed time
+                                const endTime = new Date().getTime();
+                                const elapsedTime = Math.round((endTime - startTime) /
+                                    1000); // Convert to seconds
+
+                                // Close the loading notification
+                                Swal.close();
+
+                                // Show success message with elapsed time
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: `Data has been successfully exported in ${elapsedTime} seconds.`,
+                                    icon: 'success',
+                                    confirmButtonText: 'Okay'
+                                });
+                            });
                         },
+                        error: function() {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'There was an error exporting the data.',
+                                icon: 'error',
+                                confirmButtonText: 'Okay'
+                            });
+                        }
                     });
                 }
 

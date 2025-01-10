@@ -123,8 +123,8 @@
                                             {{ ucfirst(str_replace("_", " ", $line->username)) }}
                                         </a>
                                     </td>
-                                    <td rowspan="{{ $currentRowSpan }}">{{ $line->leader_nik }}</td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="text-nowrap">{{ $line->leader_name }}</td>
+                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">{{ $line->leader_nik }}</td>
+                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">{{ $line->leader_name }}</td>
                                 @endif
                                 <td>{{ $line->kpno }}</td>
                                 <td>{{ $line->styleno }}</td>
