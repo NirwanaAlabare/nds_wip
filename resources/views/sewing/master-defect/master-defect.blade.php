@@ -244,8 +244,14 @@
                                 </a>
                             </div>
                         `;
-                    }
+                    },
                 },
+                {
+                    targets: [3],
+                    render: (data, type, row, meta) => {
+                        return formatDateTime(data);
+                    }
+                }
             ],
         });
 
@@ -297,6 +303,12 @@
                         `;
                     }
                 },
+                {
+                    targets: [2],
+                    render: (data, type, row, meta) => {
+                        return formatDateTime(data);
+                    }
+                }
             ],
         });
 
