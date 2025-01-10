@@ -309,7 +309,7 @@
                                         <div class="d-flex h-100 flex-column justify-content-between">
                                             <img src="{{ asset('dist/img/work-progress.png') }}" class="img-fluid p-3"
                                                 alt="qr code image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">WIP</p>
+                                            <p class="text-center fw-bold text-uppercase text-dark">DASHBOARD SEWING</p>
                                         </div>
                                     </div>
                                 </div>

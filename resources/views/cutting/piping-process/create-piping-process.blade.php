@@ -1437,7 +1437,7 @@
                 if (jenisPotongPiping.value == "straight") {
                     estOutputRoll.value = Math.floor((qtyKonversiValue*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1))
                 } else if (jenisPotongPiping.value == "bias") {
-                    estOutputRoll.value = Math.floor(((Math.sqrt(((qtyKonversiValue/2)*(qtyKonversiValue/2))+(lebarKainValue*lebarKainValue))*2)*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1));
+                    estOutputRoll.value = Math.floor(((Math.sqrt(((qtyKonversiValue/2)*(qtyKonversiValue/2))+(lebarCuttableValue*lebarCuttableValue))*2)*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1));
                 }
 
                 // Est. Output Total Roll

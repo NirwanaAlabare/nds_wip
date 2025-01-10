@@ -61,6 +61,8 @@
                 <thead>
                     <tr>
                         <th rowspan="2" class="align-middle text-center">Line</th>
+                        <th rowspan="2" class="align-middle text-center">NIK</th>
+                        <th rowspan="2" class="align-middle text-center">Leader</th>
                         <th rowspan="2" class="align-middle text-center">WS Number</th>
                         <th rowspan="2" class="align-middle text-center">Style</th>
                         <th colspan="5" class="text-center">Output</th>
@@ -122,6 +124,8 @@
                                         </a>
                                     </td>
                                 @endif
+                                <td>{{ $line->leader_nik }}</td>
+                                <td class="text-nowrap">{{ $line->leader_name }}</td>
                                 <td>{{ $line->kpno }}</td>
                                 <td>{{ $line->styleno }}</td>
                                 <td class="fw-bold text-center">
@@ -200,7 +204,7 @@
                         $targetFromEfficiency = $summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
                     @endphp
                     <tr>
-                        <th colspan="11" class="fs-5 text-center">Summary</th>
+                        <th colspan="13" class="fs-5 text-center">Summary</th>
                         <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
                         <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
                         <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
@@ -220,6 +224,8 @@
                         <th rowspan="2" class="align-middle text-center">WS Number</th>
                         <th rowspan="2" class="align-middle text-center">Style</th>
                         <th rowspan="2" class="align-middle text-center">Line</th>
+                        <th rowspan="2" class="align-middle text-center">NIK</th>
+                        <th rowspan="2" class="align-middle text-center">Leader</th>
                         <th colspan="5" class="text-center">Output</th>
                         <th colspan="3" class="text-center">Rate</th>
                         <th colspan="3" class="text-center">Total</th>
@@ -281,6 +287,12 @@
                                     <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
                                         {{ ucfirst(str_replace("_", " ", $order->username)) }}
                                     </a>
+                                </td>
+                                <td>
+                                    {{ $order->leader_nik }}
+                                </td>
+                                <td class="text-nowrap">
+                                    {{ $order->leader_name }}
                                 </td>
                                 <td class="fw-bold text-center">
                                     {{ $order->rft < 1 ? '0' : num($order->rft) }}
@@ -439,6 +451,9 @@
                                     <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
                                         {{ ucfirst(str_replace("_", " ", $order->username)) }}
                                     </a>
+                                </td>
+                                <td>
+                                    {{ $order->leader_name }}
                                 </td>
                                 <td class="fw-bold text-center">
                                     {{ $order->rft < 1 ? '0' : num($order->rft) }}

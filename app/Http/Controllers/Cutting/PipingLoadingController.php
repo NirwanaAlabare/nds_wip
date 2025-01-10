@@ -76,21 +76,6 @@ class PipingLoadingController extends Controller
         return view('cutting.piping-loading.create-piping-loading', ['lines' => $lines, 'page' => 'dashboard-cutting', "subPageGroup" => "cutting-piping", "subPage" => "piping-loading"]);
     }
 
-    public function process($id = 0)
-    {
-        $pipingProcess = PipingProcess::find($id);
-
-        if (!$pipingProcess) {
-            session()->forget('currentPipingProcess');
-
-            return redirect()->route('create-piping-process');
-        }
-
-        $buyers = DB::connection('mysql_sb')->table('mastersupplier')->select('Id_Supplier as id', 'Supplier as buyer')->leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->where('tipe_sup', 'C')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('Supplier', 'asc')->groupBy('Id_Supplier')->get();
-
-        return view('cutting.piping-process.create-piping-process', ['piping' => $pipingProcess, 'buyers' => $buyers, 'page' => 'dashboard-cutting', "subPageGroup" => "cutting-piping", "subPage" => "piping-process"]);
-    }
-
     public function createNew() {
         session()->forget('currentPipingProcess');
 
@@ -164,8 +149,7 @@ class PipingLoadingController extends Controller
             master_piping.buyer,
             master_piping.act_costing_ws,
             master_piping.style,
-            master_piping.color,
-            master_piping.color,
+            piping_process.color,
             piping_process.group,
             piping_process.lot,
             master_piping.part,

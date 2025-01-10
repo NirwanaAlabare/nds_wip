@@ -76,7 +76,7 @@
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus fa-sm"></i> Tambah Master Plan - {{ strtoupper(str_replace("_", " ", $line)) }}, {{ $date }}</h5>
                 <div class="d-flex justify-content-end align-items-center gap-1">
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>
                     </div>
                 </div>
             </div>

@@ -76,6 +76,46 @@ class MasterPipingController extends Controller
         );
     }
 
+    public function update(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+            "panjang" => "required|gt:0",
+            "unit" => "required"
+        ]);
+
+        $masterPiping = MasterPiping::find($validatedRequest["id"]);
+
+        if ($masterPiping) {
+            if (!($masterPiping->pipingProcesses && $masterPiping->pipingProcesses->count() > 0)) {
+                $updateMasterPiping = MasterPiping::where("id", $validatedRequest["id"])->update([
+                    "panjang" => $validatedRequest["panjang"],
+                    "unit" => $validatedRequest["unit"],
+                ]);
+
+                if ($updateMasterPiping) {
+
+                    return array(
+                        "status" => 200,
+                        "message" => "Data Master Piping berhasil diupdate.",
+                        "additional" => [],
+                    );
+                }
+            } else {
+                return array(
+                    "status" => 400,
+                    "message" => "Master Piping sudah memiliki Proses",
+                    "additional" => [],
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi Kesalahan",
+            "additional" => [],
+        );
+    }
+
     public function list(Request $request) {
         $data = null;
         switch ($request->data) {

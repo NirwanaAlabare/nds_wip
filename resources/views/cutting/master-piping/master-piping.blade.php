@@ -54,6 +54,58 @@
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    <form action="{{ route('update-master-piping') }}" method="post" id="update-master-piping" onsubmit="submitForm(this, event)">
+        @method('PUT')
+        <div class="modal fade" id="editMasterPipingModal" tabindex="-1" aria-labelledby="editMasterPipingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb">
+                        <h1 class="modal-title fs-5" id="editMasterPipingModalLabel"><i class="fa fa-edit"></i> Edit Master Piping</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3 d-none">
+                            <label class="form-label">ID</label>
+                            <input type="text" class="form-control" id="edit_id" name="id" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Buyer</label>
+                            <input type="text" class="form-control" id="edit_buyer" name="buyer" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No. WS</label>
+                            <input type="text" class="form-control" id="edit_act_costing_ws" name="act_costing_ws" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Style</label>
+                            <input type="text" class="form-control" id="edit_style" name="style" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Color</label>
+                            <input type="text" class="form-control" id="edit_color" name="color" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Part</label>
+                            <input type="text" class="form-control" id="edit_part" name="part" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Panjang</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control" id="edit_panjang" name="panjang">
+                                <input type="text" class="form-control" id="edit_unit" name="unit">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> BATAL</button>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> SIMPAN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
 @endsection
 
 @section('custom-script')
@@ -154,7 +206,7 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMasterPipingModal\");' disabled><i class='fa fa-edit'></i></button>";
+                        let btnEdit = "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMasterPipingModal\");'><i class='fa fa-edit'></i></button>";
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
                     }

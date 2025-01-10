@@ -65,7 +65,7 @@
                 </table>
             </div>
             <h5 class="fw-bold text-sb my-3">Update To : </h5>
-            <div class="row justify-content-center align-items-end g-3">
+            <div class="row justify-content-center align-items-end g-3" id="non-stocker-info">
                 <div class="col-md-3">
                     <label class="form-label"><small><b>No. WS</b></small></label>
                     <select class="form-select select2bs4" name="id_ws" id="id_ws">
@@ -96,26 +96,59 @@
                         <option value="">Pilih Size</option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label"><small><b>Range Awal</b></small></label>
-                    <input type="number" class="form-control form-control-sm" value="" readonly id="range_awal_info">
+            </div>
+            <div class="row justify-content-center align-items-end g-3" id="stocker-info">
+                <div class="col-md-3 d-none">
+                    <label class="form-label"><small><b>ID WS</b></small></label>
+                    <input type="text" class="form-control" id="stocker_id_ws" readonly>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label"><small><b>Range Akhir</b></small></label>
-                    <input type="number" class="form-control form-control-sm" value="" readonly id="range_akhir_info">
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>No. WS</b></small></label>
+                    <input type="text" class="form-control" id="stocker_ws" readonly>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label"><small><b>Total Update</b></small></label>
-                    <input type="number" class="form-control form-control-sm" value="" readonly id="total_update">
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Style</b></small></label>
+                    <input type="text" class="form-control" id="stocker_style" readonly>
                 </div>
-                <div class="col-md-12">
-                    <div class="d-flex justify-content-between mt-3">
-                        <button class="btn btn-sm btn-primary fw-bold"><i class="fa fa-reply"></i> Kembali</button>
-                        <div class="d-flex gap-3">
-                            <button class="btn btn-sm btn-danger fw-bold" onclick="deleteYearSequence()"><i class="fa fa-trash"></i> DELETE</button>
-                            <button class="btn btn-sm btn-success fw-bold" onclick="updateYearSequence()"><i class="fa fa-save"></i> UPDATE</button>
-                        </div>
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Color</b></small></label>
+                    <input type="text" class="form-control" id="stocker_color" readonly>
+                </div>
+                <div class="col-md-3 d-none">
+                    <label class="form-label"><small><b>SO Detail ID</b></small></label>
+                    <input type="text" class="form-control" id="stocker_so_det_id" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Size</b></small></label>
+                    <input type="text" class="form-control" id="stocker_size" readonly>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Stocker</b></small></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="" id="stocker" onkeyup="checkStocker()" onchange="checkStocker()">
+                        <button type="button" class="btn btn-success" onclick="getStocker()">Get</button>
                     </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Range Awal</b></small></label>
+                    <input type="number" class="form-control" value="" readonly id="range_awal_info">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Range Akhir</b></small></label>
+                    <input type="number" class="form-control" value="" readonly id="range_akhir_info">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Total Update</b></small></label>
+                    <input type="number" class="form-control" value="" readonly id="total_update">
+                </div>
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-primary fw-bold"><i class="fa fa-reply"></i> Kembali</button>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-danger fw-bold" onclick="deleteYearSequence()"><i class="fa fa-trash"></i> DELETE</button>
+                    <button class="btn btn-success fw-bold" onclick="updateYearSequence()"><i class="fa fa-save"></i> UPDATE</button>
                 </div>
             </div>
         </div>
@@ -150,6 +183,8 @@
             getSequence();
 
             $("#id_ws").val("").trigger("change");
+
+            $("#stocker").val("").trigger("change");
 
             $("#total_update").val(currentRangeTable.page.info().recordsTotal);
         });
@@ -205,14 +240,14 @@
             })
         }
 
-        $("#id_ws").on("change", () => {
-            updateWs("ws");
-            updateColorList()
+        $("#id_ws").on("change", async () => {
+            await updateWs("ws");
+            await updateColorList()
         })
 
-        $("#style").on("change", () => {
-            updateWs("style");
-            updateColorList()
+        $("#style").on("change", async () => {
+            await updateWs("style");
+            await updateColorList()
         })
 
         // Update WS Select Option
@@ -376,6 +411,7 @@
                             url: '{{ route('update-year-sequence') }}',
                             method: "POST",
                             data: {
+                                "stocker": $("#stocker").val(),
                                 "year": $("#year").val(),
                                 "sequence": $("#sequence").val(),
                                 "range_awal": $("#range_awal").val(),
@@ -512,6 +548,60 @@
             } else {
                 Swal.fire("Harap cek range QR", "", "info");
             }
+        }
+
+        function checkStocker() {
+            if ($("#stocker").val()) {
+                document.getElementById("non-stocker-info").classList.add("d-none");
+                document.getElementById("stocker-info").classList.remove("d-none");
+
+                $("#stocker_ws").val("");
+                $("#stocker_style").val("");
+                $("#stocker_color").val("");
+                $("#stocker_size").val("");
+            } else {
+                document.getElementById("stocker-info").classList.add("d-none");
+                document.getElementById("non-stocker-info").classList.remove("d-none");
+
+                $("#id_ws").val(null).trigger("change");
+                $("#color").val(null).trigger("change");
+                $("#size").val(null).trigger("change");
+            }
+        }
+
+        function getStocker() {
+            let stockerValue = $("#stocker").val();
+
+            $("#stocker_id_ws").val("");
+            $("#stocker_ws").val("");
+            $("#stocker_style").val("");
+            $("#stocker_color").val("");
+            $("#stocker_so_det_id").val("");
+            $("#stocker_size").val("");
+
+            $.ajax({
+                type: "get",
+                url: "{{ route("get-stocker") }}",
+                data: {
+                    stocker: stockerValue
+                },
+                dataType: "json",
+                success: async function (response) {
+                    console.log(response);
+
+                    if (response) {
+                        $("#stocker_id_ws").val(response.act_costing_id);
+                        $("#stocker_ws").val(response.act_costing_ws);
+                        $("#stocker_style").val(response.style);
+                        $("#stocker_color").val(response.color);
+                        $("#stocker_so_det_id").val(response.so_det_id);
+                        $("#stocker_size").val(response.size);
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
         }
     </script>
 @endsection
