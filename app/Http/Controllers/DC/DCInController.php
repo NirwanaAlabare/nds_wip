@@ -35,10 +35,6 @@ class DCInController extends Controller
                 $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
             }
 
-            if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
-            }
-
             $data_input = DB::select("
                 SELECT
                     UPPER(a.id_qr_stocker) id_qr_stocker,
@@ -198,6 +194,57 @@ class DCInController extends Controller
         // ");
 
         return $data_input;
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $additionalQuery = '';
+
+        if ($request->from) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $request->from . "' ";
+        }
+
+        if ($request->to) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $request->to . "' ";
+        }
+
+        $data_input = DB::select("
+            SELECT
+                UPPER(a.id_qr_stocker) id_qr_stocker,
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                a.tgl_trans,
+                s.act_costing_ws,
+                s.color,
+                p.buyer,
+                p.style,
+                a.qty_awal,
+                a.qty_reject,
+                a.qty_replace,
+                (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+                a.tujuan,
+                a.lokasi,
+                a.tempat,
+                a.created_at,
+                a.user,
+                f.no_cut,
+                COALESCE(msb.size, s.size) size,
+                mp.nama_part
+            from
+                dc_in_input a
+                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                left join form_cut_input f on f.id = s.form_cut_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on pd.part_id = p.id
+                left join master_part mp on mp.id = pd.master_part_id
+            where
+                a.tgl_trans is not null
+                ".$additionalQuery."
+            order by
+                a.tgl_trans desc
+        ");
+
+        return Excel::download(new ExportLaporanRoll($request->from, $request->to, $request->supplier, $request->id_ws), 'Laporan pemakaian cutting '.$request->dateFrom.' - '.$request->dateTo.' ('.Carbon::now().').xlsx');
     }
 
     public function detail_dc_in(Request $request)

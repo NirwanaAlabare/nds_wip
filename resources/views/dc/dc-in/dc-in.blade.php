@@ -13,8 +13,7 @@
 
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <form action="{{ route('store-secondary-inhouse') }}" method="post" onsubmit="submitForm(this, event)"
-            name='form' id='form'>
+        <form action="{{ route('store-dc-in') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
             @method('POST')
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
@@ -148,6 +147,9 @@
             </ul>
             <br>
             <div class="table-responsive" id="list-dc">
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-success btn-sm mb-3" onclick="exportExcel('list')"><i class="fa fa-file-excel"></i> Excel</button>
+                </div>
                 <table id="datatable-input" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead>
                         <tr>
@@ -196,6 +198,9 @@
             </div>
 
             <div class="table-responsive" id="detail-dc">
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-success btn-sm mb-3" onclick="exportExcel('detail')"><i class="fa fa-file-excel"></i> Excel</button>
+                </div>
                 <table id="datatable-detail" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
@@ -692,6 +697,73 @@
             }
 
             datatableReload();
+        }
+
+        function exportExcel(type) {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            if (type == 'list') {
+
+                $.ajax({
+                    url: "{{ route("dc-export-excel") }}",
+                    type: "get",
+                    data: {
+                        from : $("#tgl-awal").val(),
+                        to : $("#tgl-akhir").val(),
+                    },
+                    xhrFields: { responseType : 'blob' },
+                    success: function (response) {
+                        Swal.close();
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Success',
+                            position: 'topCenter'
+                        });
+
+                        var blob = new Blob([res]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "DC IN List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.click();
+                    }
+                });
+            } else if (type == 'detail') {
+
+                $.ajax({
+                    url: "{{ route("dc-detail-export-excel") }}",
+                    type: "get",
+                    data: {
+                        from : $("#tgl-awal").val(),
+                        to : $("#tgl-akhir").val(),
+                    },
+                    xhrFields: { responseType : 'blob' },
+                    success: function (response) {
+                        Swal.close();
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Success',
+                            position: 'topCenter'
+                        });
+
+                        var blob = new Blob([res]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "DC IN Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.click();
+                    }
+                });
+            }
+
+            Swal.close()
         }
 
         function reset() {
