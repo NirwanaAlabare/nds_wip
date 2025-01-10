@@ -29,7 +29,7 @@ class MasterLineController extends Controller
             "nik"
         )->
         where("status_aktif", "AKTIF")->
-        where("status_jabatan", "LEADER")->
+        whereIn("status_jabatan", ["LEADER", "SPV", "CHIEF"])->
         where("sewing_nonsewing", "SEWING")->
         orderBy("enroll_id", "asc")->
         get();
@@ -52,7 +52,7 @@ class MasterLineController extends Controller
                 "nik"
             )->
             where("status_aktif", "AKTIF")->
-            where("status_jabatan", "LEADER")->
+            whereIn("status_jabatan", ["LEADER", "SPV", "CHIEF"])->
             where("sewing_nonsewing", "SEWING")->
             orderBy("enroll_id", "asc")->
             get();
