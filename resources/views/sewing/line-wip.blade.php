@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ["containerFluid" => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -158,7 +158,6 @@
             processing: true,
             serverSide: false,
             pageLength: 100,
-            scrollX: '400px',
             scrollY: '400px',
             ajax: {
                 headers: {

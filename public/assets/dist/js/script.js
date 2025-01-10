@@ -106,7 +106,7 @@ function formatDateTime(date) {
     var month = "0" + (dateObj.getMonth()+1);
     var year = dateObj.getFullYear();
 
-    var dateMonthYear = year+"-"+month+"-"+date.substr(-2);
+    var dateMonthYear = year+"-"+month.substr(-2)+"-"+date.substr(-2);
 
     // Hours part from the timestamp
     var hours = "0" + dateObj.getHours();
