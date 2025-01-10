@@ -21,14 +21,14 @@
                 <div class="d-flex align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" name="from" id="from" value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control" name="from" id="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                     </div>
                     <span class="mb-2">
                         -
                     </span>
                     <div>
                         <label class="form-label">Sampai</label>
-                        <input type="date" class="form-control" name="to" id="to" value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control" name="to" id="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                     </div>
                 </div>
                 <div>

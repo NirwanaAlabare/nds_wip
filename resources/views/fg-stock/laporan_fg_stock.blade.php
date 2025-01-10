@@ -43,7 +43,7 @@
                             value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
-                        <a onclick="notif()" class="btn btn-outline-primary position-relative btn-sm">
+                        <a onclick="cari()" class="btn btn-outline-primary position-relative btn-sm">
                             <i class="fas fa-search fa-sm"></i>
                             Cari
                         </a>
@@ -55,29 +55,80 @@
                         </a>
                     </div>
                 </div>
+
+                <div class="table-responsive" id="table_penerimaan" style="display: none;">
+                    <table id="datatable_penerimaan" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                        <thead class="table-primary">
+                            <tr style='text-align:center; vertical-align:middle'>
+                                <th>No. Trans</th>
+                                <th>Tgl. Trans</th>
+                                <th>Lokasi</th>
+                                <th>No. Karton</th>
+                                <th>Buyer</th>
+                                <th>Brand</th>
+                                <th>Style</th>
+                                <th>Grade</th>
+                                <th>WS</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th>Qty</th>
+                                <th>Sumber</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <div class="table-responsive" id="table_pengeluaran" style="display: none;">
+                    <table id="datatable_pengeluaran"
+                        class="table table-bordered table-sm w-100 table-hover display nowrap">
+                        <thead class="table-primary">
+                            <tr style='text-align:center; vertical-align:middle'>
+                                <th>No. Trans</th>
+                                <th>Tgl. Trans</th>
+                                <th>Lokasi</th>
+                                <th>No. Karton</th>
+                                <th>Buyer</th>
+                                <th>Brand</th>
+                                <th>Style</th>
+                                <th>Grade</th>
+                                <th>WS</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th>Qty</th>
+                                <th>Tujuan</th>
+                                <th>Tujuan Pengeluaran</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <div class="table-responsive" id="table_mutasi" style="display: none;">
+                    <table id="datatable_mutasi" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                        <thead class="table-primary">
+                            <tr style='text-align:center; vertical-align:middle'>
+                                <th>ID So Det</th>
+                                <th>Buyer</th>
+                                <th>Product Group</th>
+                                <th>Product Item</th>
+                                <th>WS</th>
+                                <th>Brand</th>
+                                <th>Style</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th>Dest</th>
+                                <th>Grade</th>
+                                <th>No. Carton</th>
+                                <th>Lokasi</th>
+                                <th>Saldo Awal</th>
+                                <th>Penerimaan</th>
+                                <th>Pengeluaran</th>
+                                <th>Saldo Akhir</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
             </div>
-
-
-            {{-- <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100 table-hover display nowrap">
-                    <thead class="table-primary">
-                        <tr style='text-align:center; vertical-align:middle'>
-                            <th>No. Trans</th>
-                            <th>Tgl. Trans</th>
-                            <th>Lokasi</th>
-                            <th>No. Karton</th>
-                            <th>Buyer</th>
-                            <th>Style</th>
-                            <th>Grade</th>
-                            <th>WS</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Qty</th>
-                            <th>Sumber</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div> --}}
         </div>
     </div>
 @endsection
@@ -104,6 +155,246 @@
         });
     </script>
     <script>
+        $(document).ready(function() {
+
+            $('#cbojns_lap').val('').trigger('change');
+
+            let datatablePenerimaan = $('#datatable_penerimaan').DataTable();
+            let datatablePengeluaran = $('#datatable_pengeluaran').DataTable();
+            let datatableMutasi = $('#datatable_mutasi').DataTable();
+
+            $('#cbojns_lap').change(function() {
+                // Clear all tables
+                datatablePenerimaan.clear().draw();
+                datatablePengeluaran.clear().draw();
+                datatableMutasi.clear().draw();
+                // Hide all tables initially
+                $('#table_penerimaan').hide();
+                $('#table_pengeluaran').hide();
+                $('#table_mutasi').hide();
+                // Show the appropriate table based on the selected value
+                var selectedValue = $(this).val();
+                if (selectedValue === 'Penerimaan') {
+                    $('#table_penerimaan').show();
+                } else if (selectedValue === 'Pengeluaran') {
+                    $('#table_pengeluaran').show();
+                } else if (selectedValue === 'Mutasi') {
+                    $('#table_mutasi').show();
+                }
+            });
+        });
+
+        function cari() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
+            let cbojns_lap = document.getElementById("cbojns_lap").value;
+            if (cbojns_lap == '') {
+                Swal.fire({
+                    title: 'Jenis Laporan Belum Di isi!',
+                    icon: "warning",
+                    showConfirmButton: true,
+                });
+            } else if (cbojns_lap == 'Penerimaan') {
+                let datatable = $("#datatable_penerimaan").DataTable({
+                    ordering: false,
+                    processing: true,
+                    serverSide: true,
+                    paging: true,
+                    searching: true,
+                    destroy: true,
+                    scrollX: true,
+                    ajax: {
+                        url: '{{ route('bpb-fg-stock') }}',
+                        data: function(d) {
+                            d.dateFrom = $('#tgl-awal').val();
+                            d.dateTo = $('#tgl-akhir').val();
+                        },
+                    },
+                    columns: [{
+                            data: 'no_trans'
+
+                        }, {
+                            data: 'tgl_terima_fix'
+                        },
+                        {
+                            data: 'lokasi'
+                        },
+                        {
+                            data: 'no_carton'
+                        },
+                        {
+                            data: 'buyer'
+                        },
+                        {
+                            data: 'brand'
+                        },
+                        {
+                            data: 'styleno'
+                        },
+                        {
+                            data: 'grade'
+                        },
+                        {
+                            data: 'ws'
+                        },
+                        {
+                            data: 'color'
+                        },
+                        {
+                            data: 'size'
+                        },
+                        {
+                            data: 'qty'
+                        },
+                        {
+                            data: 'sumber_pemasukan'
+                        },
+                    ],
+                    columnDefs: [{
+                        "className": "dt-center",
+                        "targets": "_all"
+                    }, ]
+                });
+            } else if (cbojns_lap == 'Pengeluaran') {
+                let datatable = $("#datatable_pengeluaran").DataTable({
+                    ordering: false,
+                    processing: true,
+                    serverSide: true,
+                    paging: true,
+                    searching: true,
+                    destroy: true,
+                    scrollX: true,
+                    ajax: {
+                        url: '{{ route('bppb-fg-stock') }}',
+                        data: function(d) {
+                            d.dateFrom = $('#tgl-awal').val();
+                            d.dateTo = $('#tgl-akhir').val();
+                        },
+                    },
+                    columns: [{
+                            data: 'no_trans_out'
+
+                        }, {
+                            data: 'tgl_pengeluaran_fix'
+                        },
+                        {
+                            data: 'lokasi'
+                        },
+                        {
+                            data: 'no_carton'
+                        },
+                        {
+                            data: 'buyer'
+                        },
+                        {
+                            data: 'brand'
+                        },
+                        {
+                            data: 'styleno'
+                        },
+                        {
+                            data: 'grade'
+                        },
+                        {
+                            data: 'ws'
+                        },
+                        {
+                            data: 'color'
+                        },
+                        {
+                            data: 'size'
+                        },
+                        {
+                            data: 'qty_out'
+                        },
+                        {
+                            data: 'tujuan'
+                        },
+                        {
+                            data: 'tujuan_pengeluaran'
+                        },
+                    ],
+                    columnDefs: [{
+                        "className": "dt-center",
+                        "targets": "_all"
+                    }, ]
+                });
+            } else if (cbojns_lap == 'Mutasi') {
+                let datatable = $("#datatable_mutasi").DataTable({
+                    ordering: false,
+                    processing: true,
+                    serverSide: true,
+                    paging: true,
+                    searching: true,
+                    destroy: true,
+                    scrollX: true,
+                    ajax: {
+                        url: '{{ route('rep_mutasi_fg_stock') }}',
+                        data: function(d) {
+                            d.dateFrom = $('#tgl-awal').val();
+                            d.dateTo = $('#tgl-akhir').val();
+                        },
+                    },
+                    columns: [{
+                            data: 'id_so_det'
+
+                        }, {
+                            data: 'buyer'
+                        },
+                        {
+                            data: 'product_group'
+                        },
+                        {
+                            data: 'product_item'
+                        },
+                        {
+                            data: 'ws'
+                        },
+                        {
+                            data: 'brand'
+                        },
+                        {
+                            data: 'styleno'
+                        },
+                        {
+                            data: 'color'
+                        },
+                        {
+                            data: 'size'
+                        },
+                        {
+                            data: 'dest'
+                        },
+                        {
+                            data: 'grade'
+                        },
+                        {
+                            data: 'no_carton'
+                        },
+                        {
+                            data: 'lokasi'
+                        },
+                        {
+                            data: 'qty_awal'
+                        },
+                        {
+                            data: 'qty_in'
+                        },
+                        {
+                            data: 'qty_out'
+                        },
+                        {
+                            data: 'saldo_akhir'
+                        },
+                    ],
+                    columnDefs: [{
+                        "className": "dt-center",
+                        "targets": "_all"
+                    }, ]
+                });
+            }
+        }
+
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
@@ -112,9 +403,7 @@
             let from = document.getElementById("tgl-awal").value;
             let to = document.getElementById("tgl-akhir").value;
             let cbojns_lap = document.getElementById("cbojns_lap").value;
-
             console.log(cbojns_lap);
-
             if (cbojns_lap == '') {
                 Swal.fire({
                     title: 'Jenis Laporan Belum Di isi!',
@@ -161,8 +450,7 @@
                             }
                         },
                     });
-                } else
-                if (cbojns_lap == 'Pengeluaran') {
+                } else if (cbojns_lap == 'Pengeluaran') {
                     $.ajax({
                         type: "get",
                         url: '{{ route('export_excel_bppb_fg_stok') }}',
