@@ -180,12 +180,9 @@
                         // handle the scanned code as you like, for example:
                         console.log(`Code matched = ${decodedText}`, decodedResult);
 
-                        // store to input text
-                        let breakDecodedText = decodedText.split('-');
+                        document.getElementById('kode_piping').value = decodedText;
 
-                        document.getElementById('kode_piping').value = breakDecodedText[0];
-
-                        getScannedItem(breakDecodedText[0]);
+                        getScannedItem(decodedText);
 
                         clearScan();
                     };

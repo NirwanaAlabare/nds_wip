@@ -50,7 +50,7 @@
                     <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($pipingProcess->kode_piping)) !!}">
                 </center>
             </td>
-            <td style="border: 1px solid black;" colspan="3">
+            <td style="border: 1px solid black;" colspan="6">
                 <b>Stocker Piping</b>
             </td>
         </tr>
@@ -58,41 +58,45 @@
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">ID Piping </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
             <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->kode_piping }}</td>
+
+            <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Date </td>
+            <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
+            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ /*localDateFormat($pipingProcess->tanggal)*/ $pipingProcess->tanggal }}</td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Buyer </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->masterPiping->buyer }}</td>
+            <td colspan="4" style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->masterPiping->buyer }}</td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Worksheet </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->masterPiping->act_costing_ws }}</td>
+            <td colspan="4" style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->masterPiping->act_costing_ws }}</td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Color </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->color }}</td>
+            <td colspan="4" style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->color }}</td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Panjang Roll </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->panjang_roll_piping." ".$pipingProcess->panjang_roll_piping_unit }}</td>
+            <td colspan="4" style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->panjang_roll_piping." ".$pipingProcess->panjang_roll_piping_unit }}</td>
         </tr>
         <tr>
             <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">Lebar Roll </td>
             <td style="border-none; border-top: 1px solid black; border-bottom:1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->lebar_roll_piping." ".$pipingProcess->lebar_roll_piping_unit }}</td>
+            <td colspan="4" style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom:1px solid black;">{{ $pipingProcess->lebar_roll_piping." ".$pipingProcess->lebar_roll_piping_unit }}</td>
         </tr>
         <tr>
-            <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">Qty Roll </td>
+            <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">Qty Roll Awal </td>
             <td style="border-none; border-top: 1px solid black; border-bottom: 1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">{{ $pipingProcess->output_total_roll." ".$pipingProcess->output_total_roll_unit }}</td>
+            <td colspan="4" style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">{{ $pipingProcess->output_total_roll." ".$pipingProcess->output_total_roll_unit }}</td>
         </tr>
         <tr>
-            <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">Qty Awal </td>
+            <td style="border-none; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">Qty PCS </td>
             <td style="border-none; border-top: 1px solid black; border-bottom: 1px solid black;"> : </td>
-            <td style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">{{ $pipingProcess->estimasi_output_total." ".$pipingProcess->estimasi_output_total_unit }}</td>
+            <td colspan="4" style="border-none; border-right: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">{{ $pipingProcess->estimasi_output_total." ".$pipingProcess->estimasi_output_total_unit }}</td>
         </tr>
     </table>
 </body>
