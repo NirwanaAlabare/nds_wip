@@ -395,7 +395,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_trans_fix',
                 },
                 {
@@ -699,7 +700,7 @@
             datatableReload();
         }
 
-        function exportExcel(type) {
+        async function exportExcel(type) {
             Swal.fire({
                 title: "Exporting",
                 html: "Please Wait...",
@@ -711,15 +712,15 @@
 
             if (type == 'list') {
 
-                $.ajax({
-                    url: "{{ route("dc-export-excel") }}",
+                await $.ajax({
+                    url: "{{ route("dc-in-export-excel") }}",
                     type: "get",
                     data: {
                         from : $("#tgl-awal").val(),
                         to : $("#tgl-akhir").val(),
                     },
                     xhrFields: { responseType : 'blob' },
-                    success: function (response) {
+                    success: function (res) {
                         Swal.close();
 
                         iziToast.success({
@@ -737,15 +738,15 @@
                 });
             } else if (type == 'detail') {
 
-                $.ajax({
-                    url: "{{ route("dc-detail-export-excel") }}",
+                await $.ajax({
+                    url: "{{ route("dc-in-detail-export-excel") }}",
                     type: "get",
                     data: {
                         from : $("#tgl-awal").val(),
                         to : $("#tgl-akhir").val(),
                     },
                     xhrFields: { responseType : 'blob' },
-                    success: function (response) {
+                    success: function (res) {
                         Swal.close();
 
                         iziToast.success({
