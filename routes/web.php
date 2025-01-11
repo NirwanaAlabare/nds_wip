@@ -704,6 +704,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-secondary-in');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-in');
         Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
+
+        Route::get('/export-excel', 'exportExcel')->name('secondary-in-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-in-detail-export-excel');
     });
 
     // Rack

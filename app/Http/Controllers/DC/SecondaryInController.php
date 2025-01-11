@@ -11,6 +11,8 @@ use App\Models\SecondaryIn;
 use App\Models\Trolley;
 use App\Models\TrolleyStocker;
 use App\Models\Stocker;
+use App\Exports\DC\ExportSecondaryIn;
+use App\Exports\DC\ExportSecondaryInDetail;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
@@ -432,6 +434,16 @@ class SecondaryInController extends Controller
             'table' => 'datatable-input',
             'additional' => [],
         );
+    }
+
+    public function exportExcel(Request $request)
+    {
+        return Excel::download(new ExportSecondaryIn($request->from, $request->to), 'Laporan sec in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+    }
+
+    public function exportExcelDetail(Request $request)
+    {
+        return Excel::download(new ExportSecondaryInDetail($request->from, $request->to), 'Laporan sec in detail '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     // public function export_excel_mut_karyawan(Request $request)
