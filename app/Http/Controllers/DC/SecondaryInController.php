@@ -5,7 +5,6 @@ namespace App\Http\Controllers\DC;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Exports\ExportLaporanMutasiKaryawan;
 use App\Models\RackDetailStocker;
 use App\Models\SecondaryIn;
 use App\Models\Trolley;

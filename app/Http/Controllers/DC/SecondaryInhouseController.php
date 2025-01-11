@@ -5,8 +5,9 @@ namespace App\Http\Controllers\DC;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Exports\ExportLaporanMutasiKaryawan;
 use App\Models\SecondaryInhouse;
+use App\Exports\DC\ExportSecondaryInHouse;
+use App\Exports\DC\ExportSecondaryInHouseDetail;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
@@ -289,8 +290,13 @@ class SecondaryInhouseController extends Controller
         );
     }
 
-    // public function export_excel_mut_karyawan(Request $request)
-    // {
-    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    // }
+    public function exportExcel(Request $request)
+    {
+        return Excel::download(new ExportSecondaryInHouse($request->from, $request->to), 'Laporan sec inhouse '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+    }
+
+    public function exportExcelDetail(Request $request)
+    {
+        return Excel::download(new ExportSecondaryInHouseDetail($request->from, $request->to), 'Laporan sec inhouse detail '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+    }
 }

@@ -8,9 +8,8 @@
         <th><b>Part</b></th>
         <th><b>Size</b></th>
         <th><b>No. Cut</b></th>
-        <th><b>Tujuan Awal</b></th>
-        <th><b>Lokasi Awal</b></th>
-        <th><b>Lokasi Rak</b></th>
+        <th><b>Tujuan Asal</b></th>
+        <th><b>Lokasi Asal</b></th>
         <th><b>Qty Awal</b></th>
         <th><b>Qty Reject</b></th>
         <th><b>Qty Replace</b></th>
@@ -42,7 +41,6 @@
             <td>{{ $d->no_cut }}</td>
             <td>{{ $d->tujuan }}</td>
             <td>{{ $d->lokasi }}</td>
-            <td>{{ $d->lokasi_rak }}</td>
             <td>{{ $d->qty_awal }}</td>
             <td>{{ $d->qty_reject }}</td>
             <td>{{ $d->qty_replace }}</td>
@@ -52,7 +50,7 @@
         </tr>
     @endforeach
     <tr>
-        <td colspan="11">Total</td>
+        <td colspan="10">Total</td>
         <td>{{ $totalQtyAwal }}</td>
         <td>{{ $totalQtyReject }}</td>
         <td>{{ $totalQtyReplace }}</td>

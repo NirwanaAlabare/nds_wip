@@ -868,7 +868,7 @@
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "DC IN List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.download = "Secondary IN List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                         link.click();
                     }
                 });
@@ -894,7 +894,7 @@
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "DC IN Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.download = "Secondary IN Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                         link.click();
                     }
                 });

@@ -233,6 +233,9 @@
             <br>
             <br>
             <div class="table-responsive" id = "show_datatable_input">
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-sm btn-success" onclick="exportExcel('list')"><i class="fa fa-file-excel"></i> Export</button>
+                </div>
                 <table id="datatable-input" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
@@ -272,6 +275,9 @@
             </div>
 
             <div class="table-responsive" id = "show_datatable_detail">
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-sm btn-success" onclick="exportExcel('detail')"><i class="fa fa-file-excel"></i> Export</button>
+                </div>
                 <table id="datatable-detail" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
@@ -779,6 +785,73 @@
             document.getElementById("show_datatable_input").style.display = 'none';
             document.getElementById("show_datatable_detail").style.display = 'block';
             $('#datatable-detail').DataTable().ajax.reload();
+        }
+
+        async function exportExcel(type) {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            if (type == 'list') {
+
+                await $.ajax({
+                    url: "{{ route("secondary-inhouse-export-excel") }}",
+                    type: "get",
+                    data: {
+                        from : $("#tgl-awal").val(),
+                        to : $("#tgl-akhir").val(),
+                    },
+                    xhrFields: { responseType : 'blob' },
+                    success: function (res) {
+                        Swal.close();
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Success',
+                            position: 'topCenter'
+                        });
+
+                        var blob = new Blob([res]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Secondary Inhouse List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.click();
+                    }
+                });
+            } else if (type == 'detail') {
+
+                await $.ajax({
+                    url: "{{ route("secondary-inhouse-detail-export-excel") }}",
+                    type: "get",
+                    data: {
+                        from : $("#tgl-awal").val(),
+                        to : $("#tgl-akhir").val(),
+                    },
+                    xhrFields: { responseType : 'blob' },
+                    success: function (res) {
+                        Swal.close();
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Success',
+                            position: 'topCenter'
+                        });
+
+                        var blob = new Blob([res]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Secondary Inhouse Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.click();
+                    }
+                });
+            }
+
+            Swal.close()
         }
     </script>
 @endsection
