@@ -137,10 +137,10 @@ class PipingProcessController extends Controller
                     "method" => "required",
                 ]);
 
-                $idItem = $validatedRequest["method"] == "single" ? $request->id_item : implode(", ", array_unique($request->id_item_rolls));
-                $group = $validatedRequest["method"] == "single" ? $request->group_item : implode(", ", array_unique($request->group_rolls));
-                $lot = $validatedRequest["method"] == "single" ? $request->lot_item : implode(", ", array_unique($request->lot_rolls));
-                $noRoll = $validatedRequest["method"] == "single" ? $request->no_roll_item : implode(", ", array_unique($request->no_rolls));
+                $idItem = $validatedRequest["method"] == "single" ? $request->id_item : implode(", ", array_unique(array_filter($request->id_item_rolls)));
+                $group = $validatedRequest["method"] == "single" ? $request->group_item : implode(", ", array_unique(array_filter($request->group_rolls)));
+                $lot = $validatedRequest["method"] == "single" ? $request->lot_item : implode(", ", array_unique(array_filter($request->lot_rolls)));
+                $noRoll = $validatedRequest["method"] == "single" ? $request->no_roll_item : implode(", ", array_unique(array_filter($request->no_rolls)));
                 $qty = $validatedRequest["method"] == "single" ? $request->qty_item : $request->total_qty;
                 $unit = $validatedRequest["method"] == "single" ? $request->unit_item : $request->total_unit;
                 $totalRoll = $validatedRequest["method"] == "single" ? 1 : $request->total_roll;
@@ -182,20 +182,22 @@ class PipingProcessController extends Controller
                         ]);
                     } else if ($validatedRequest["method"] == "multi") {
                         for ($i = 1; $i <= count($request->id_rolls); $i++) {
-                            array_push($storePipingProcessDetailArr, [
-                                "piping_process_id" => $validatedRequest["id"],
-                                "id_roll" => $request->id_rolls[$i],
-                                "id_item" => $request->id_item_rolls[$i],
-                                "color_act" => $request->color_rolls[$i],
-                                "group" => $request->group_rolls[$i],
-                                "lot" => $request->lot_rolls[$i],
-                                "no_roll" => $request->no_rolls[$i],
-                                "form_cut_id" => $request->id_form_rolls[$i],
-                                "qty" => $request->qty_rolls[$i],
-                                "unit" => $request->unit_rolls[$i],
-                                "created_by" => Auth::user()->id,
-                                "created_by_username" => Auth::user()->username
-                            ]);
+                            if ($request->id_rolls[$i] && $request->id_form_rolls[$i]) {
+                                array_push($storePipingProcessDetailArr, [
+                                    "piping_process_id" => $validatedRequest["id"],
+                                    "id_roll" => $request->id_rolls[$i],
+                                    "id_item" => $request->id_item_rolls[$i],
+                                    "color_act" => $request->color_rolls[$i],
+                                    "group" => $request->group_rolls[$i],
+                                    "lot" => $request->lot_rolls[$i],
+                                    "no_roll" => $request->no_rolls[$i],
+                                    "form_cut_id" => $request->id_form_rolls[$i],
+                                    "qty" => $request->qty_rolls[$i],
+                                    "unit" => $request->unit_rolls[$i],
+                                    "created_by" => Auth::user()->id,
+                                    "created_by_username" => Auth::user()->username
+                                ]);
+                            }
                         }
                     }
 

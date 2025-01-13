@@ -12,7 +12,11 @@ use App\Models\Stocker;
 use App\Models\Trolley;
 use App\Models\TrolleyStocker;
 
+use App\Exports\DC\ExportDcIn;
+use App\Exports\DC\ExportDcInDetail;
+
 use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use DB;
 
@@ -29,10 +33,6 @@ class DCInController extends Controller
 
             if ($request->dateFrom) {
                 $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
-            }
-
-            if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
             }
 
             if ($request->dateTo) {
@@ -200,6 +200,11 @@ class DCInController extends Controller
         return $data_input;
     }
 
+    public function exportExcel(Request $request)
+    {
+        return Excel::download(new ExportDcIn($request->from, $request->to), 'Laporan dc in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+    }
+
     public function detail_dc_in(Request $request)
     {
         $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
@@ -233,6 +238,11 @@ class DCInController extends Controller
         }
 
         return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function exportExcelDetail(Request $request)
+    {
+        return Excel::download(new ExportDcInDetail($request->from, $request->to), 'Laporan dc in detail '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     public function show_data_header(Request $request)

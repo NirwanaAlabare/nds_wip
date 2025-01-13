@@ -683,6 +683,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
         Route::put('/update_mass_tmp_dc_in', 'update_mass_tmp_dc_in')->name('update_mass_tmp_dc_in');
         Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+
+        Route::get('/export-excel', 'exportExcel')->name('dc-in-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
     });
 
     // Secondary INHOUSE
@@ -692,6 +695,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-secondary-inhouse');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
         Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
+
+        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
     });
 
     // Secondary IN
@@ -701,6 +707,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-secondary-in');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-in');
         Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
+
+        Route::get('/export-excel', 'exportExcel')->name('secondary-in-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-in-detail-export-excel');
     });
 
     // Rack
