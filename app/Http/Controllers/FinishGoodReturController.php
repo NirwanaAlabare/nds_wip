@@ -356,7 +356,7 @@ order by po asc, no_carton asc ");
 
                 $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
                 bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,remark)
-        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','Y','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','1384','RETUR') ");
+        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','1384','N','Y','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','1384','RETUR') ");
 
                 // $update_karton =  DB::update("
                 //     update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
