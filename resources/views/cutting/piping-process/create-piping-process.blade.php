@@ -377,7 +377,7 @@
                         <div class="col-12">
                             <label class="form-label">Arah Potong Roll</label>
                             <select class="form-select" id="arah_potong" name="arah_potong" onchange="calculate()">
-                                <option value="" {{ $currentPiping ? ($currentPiping->arah_potong == "" ? "selected" : "") : "" }}>Pilih Arah Potong</option>
+                                <option value="" {{ $currentPiping ? ($currentPiping->arah_potong == "" ? "selected" : "") : "" }} disabled>Pilih Arah Potong</option>
                                 <option value="vertical" {{ $currentPiping ? ($currentPiping->arah_potong == "vertical" ? "selected" : "") : "" }}>Vertikal</option>
                                 <option value="horizontal" {{ $currentPiping ? ($currentPiping->arah_potong == "horizontal" ? "selected" : "") : "" }}>Horizontal</option>
                             </select>
@@ -457,7 +457,7 @@
                         <div class="col-4 col-md-3">
                             <label class="form-label">Jenis Potong Piping</label>
                             <select class="form-select" id="jenis_potong_piping" name="jenis_potong_piping" onchange="calculate()">
-                                <option value="" {{ $currentPiping ? ($currentPiping->jenis_potong_piping == "" ? "selected" : "") : "" }}>Pilih Jenis Potong</option>
+                                <option value="" {{ $currentPiping ? ($currentPiping->jenis_potong_piping == "" ? "selected" : "") : "" }} disabled>Pilih Jenis Potong</option>
                                 <option value="straight" {{ $currentPiping ? ($currentPiping->jenis_potong_piping == "straight" ? "selected" : "") : "" }}>Straigth</option>
                                 <option value="bias" {{ $currentPiping ? ($currentPiping->jenis_potong_piping == "bias" ? "selected" : "") : "" }}>Bias</option>
                             </select>
@@ -1435,7 +1435,11 @@
                 let panjangRollPipingValue = panjangRollPiping.value ? Number(panjangRollPiping.value) : 0;
 
                 if (jenisPotongPiping.value == "straight") {
-                    estOutputRoll.value = Math.floor((qtyKonversiValue*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1))
+                    if (arahPotongRoll.value == "horizontal") {
+                        estOutputRoll.value = Math.floor(((qtyKonversiValue*lebarKainValue)*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1))
+                    } else {
+                        estOutputRoll.value = Math.floor((qtyKonversiValue*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1))
+                    }
                 } else if (jenisPotongPiping.value == "bias") {
                     estOutputRoll.value = Math.floor(((Math.sqrt(((qtyKonversiValue/2)*(qtyKonversiValue/2))+(lebarCuttableValue*lebarCuttableValue))*2)*100)/(panjangRollPipingValue ? panjangRollPipingValue : 1));
                 }
