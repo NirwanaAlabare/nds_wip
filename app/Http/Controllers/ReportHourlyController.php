@@ -313,6 +313,8 @@ a.tgl_trans,
 concat((DATE_FORMAT(tgl_trans,  '%d')), '-',left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')) tgl_trans_fix,
 concat((DATE_FORMAT(mp.tgl_plan,  '%d')), '-',left(DATE_FORMAT(mp.tgl_plan,  '%M'),3),'-',DATE_FORMAT(mp.tgl_plan,  '%Y')) tgl_plan_fix,
 u.name sewing_line,
+ol.employee_nik nik_leader,
+ol.employee_name nm_leader,
 ms.supplier buyer,
 ac.kpno,
 ac.styleno,
@@ -564,6 +566,7 @@ left join
         ) AS tbl_tgl
         ) c on a.tgl_skrg = c.update_date_skrg
 ) td on u.name = td.sewing_line and ac.styleno = td.styleno
+left join output_leader_line ol on a.tgl_trans = ol.tanggal and u.name	= ol.line_name
 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
 order by a.tgl_trans asc, u.name asc, ac.kpno asc
 ");

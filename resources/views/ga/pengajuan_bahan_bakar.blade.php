@@ -224,7 +224,7 @@
         <form action="{{ route('store-ga-trans') }}" method="post" onsubmit="submitForm(this, event)"
             name='form_trans' id='form_trans'>
             @method('POST')
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-success">
                         <h3 class="modal-title fs-5">Tambah Transaksi</h3>
@@ -349,7 +349,7 @@
         <form action="{{ route('update_ga_realisasi') }}" method="post" onsubmit="submitForm(this, event)"
             name='form_update_trans' id='form_update_trans'>
             @method('POST')
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-success">
                         <h3 class="modal-title fs-5">Update Realisasi</h3>
@@ -508,7 +508,7 @@
         <form action="{{ route('update_ga_trans') }}" method="post" onsubmit="submitForm(this, event)"
             name='form_edit_trans' id='form_update_trans'>
             @method('POST')
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-warning">
                         <h3 class="modal-title fs-5">Edit Transaksi</h3>

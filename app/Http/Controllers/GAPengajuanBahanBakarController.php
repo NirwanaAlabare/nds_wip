@@ -324,7 +324,7 @@ class GAPengajuanBahanBakarController extends Controller
 
     public function show_getjns(Request $request)
     {
-        $data_jns = DB::select("select concat(merk, ' ', warna) jns_kendaraan, jns_bhn_bakar from ga_master_kendaraan
+        $data_jns = DB::select("select concat(merk, ' ', tipe, ' ', warna) jns_kendaraan, jns_bhn_bakar from ga_master_kendaraan
         where plat_no = '" . $request->cbo_no_kendaraan . "'");
 
         return json_encode($data_jns ? $data_jns[0] : '-');
@@ -333,7 +333,7 @@ class GAPengajuanBahanBakarController extends Controller
 
     public function show_ga_get_jns_edit(Request $request)
     {
-        $data_jns = DB::select("select concat(merk, ' ', warna) jns_kendaraan, jns_bhn_bakar from ga_master_kendaraan
+        $data_jns = DB::select("select concat(merk, ' ', tipe, ' ', warna) jns_kendaraan, jns_bhn_bakar from ga_master_kendaraan
         where plat_no = '" . $request->cbo_no_kendaraan . "'");
 
         return json_encode($data_jns ? $data_jns[0] : '-');
