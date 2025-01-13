@@ -17,7 +17,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
 
-class ExportSecondaryIn implements FromView, WithEvents, ShouldAutoSize
+class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
 {
     use Exportable;
 
