@@ -237,7 +237,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     GROUP BY
                         stocker_input.form_cut_id,
                         stocker_input.so_det_id,
-                        stocker_input.group_stocker
+                        stocker_input.group_stocker,
+                        stocker_input.ratio
                     ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
                     AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
