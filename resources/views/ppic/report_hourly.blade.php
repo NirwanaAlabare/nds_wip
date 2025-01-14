@@ -533,7 +533,7 @@
 
                         // Apply a class to change the font color
 
-                        $('td:eq(32)', row).css({
+                        $('td:eq(33)', row).css({
 
                             'color': 'red',
 
@@ -542,7 +542,7 @@
                         });
 
                     } else {
-                        $('td:eq(32)', row).css({
+                        $('td:eq(33)', row).css({
 
                             'color': 'green',
 
@@ -555,7 +555,7 @@
 
                         // Apply a class to change the font color
 
-                        $('td:eq(31)', row).css({
+                        $('td:eq(32)', row).css({
 
                             'color': 'red',
 
@@ -564,7 +564,7 @@
                         });
 
                     } else {
-                        $('td:eq(31)', row).css({
+                        $('td:eq(32)', row).css({
 
                             'color': 'green',
 
