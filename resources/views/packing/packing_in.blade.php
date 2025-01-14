@@ -129,6 +129,7 @@
                             <th>WS</th>
                             <th>Color</th>
                             <th>Size</th>
+                            <th>Dest</th>
                             <th>Qty</th>
                             <th>User</th>
                             <th>Created At</th>
@@ -136,7 +137,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="9"></th>
+                            <th colspan="10"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
@@ -219,7 +220,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(9)
+                    .column(10)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -227,7 +228,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(9).footer()).html(sumTotal);
+                $(api.column(10).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
@@ -270,6 +271,9 @@
                 },
                 {
                     data: 'size'
+                },
+                {
+                    data: 'dest'
                 },
                 {
                     data: 'qty'
