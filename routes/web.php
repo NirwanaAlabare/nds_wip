@@ -608,7 +608,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
         Route::get('/stocker-list-total', 'stockerListTotal')->name('stocker-list-total');
         Route::get('/stocker-list/export', 'stockerListExport')->name('stocker-list-export');
-        Route::get('/stocker-list/detail/{form_cut_id?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
+        Route::get('/stocker-list/detail/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
+        Route::get('/stocker-list/detail/export/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}', 'stockerListDetailExport')->name('stocker-list-detail-export');
         Route::get('/stocker-list/check-year-sequence', 'checkYearSequenceNumber')->name('check-year-sequence-number');
         Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
         Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');
