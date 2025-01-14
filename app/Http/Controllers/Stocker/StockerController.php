@@ -22,6 +22,7 @@ use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\OutputPacking;
 use App\Exports\Stocker\StockerListExport;
+use App\Exports\Stocker\StockerListDetailExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -2511,6 +2512,7 @@ class StockerController extends Controller
                             stocker_input.form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.so_det_id,
+                            master_sb_ws.ws ws,
                             master_sb_ws.buyer buyer,
                             master_sb_ws.styleno style,
                             master_sb_ws.color,
@@ -2540,7 +2542,8 @@ class StockerController extends Controller
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.so_det_id,
-                            stocker_input.group_stocker
+                            stocker_input.group_stocker,
+                            stocker_input.ratio
                         ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
                         AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
@@ -2707,8 +2710,8 @@ class StockerController extends Controller
         return Excel::download(new StockerListExport($dateFrom, $dateTo, $request->tanggal_filter, $request->no_form_filter, $request->no_cut_filter, $request->color_filter, $request->size_filter, $request->dest_filter, $request->qty_filter, $request->year_sequence_filter, $request->numbering_range_filter, $request->buyer_filter, $request->ws_filter, $request->style_filter, $request->stocker_filter, $request->part_filter, $request->group_filter, $request->shade_filter, $request->ratio_filter, $request->stocker_range_filter), 'production_excel.xlsx');
     }
 
-    public function stockerListDetail($form_cut_id, $so_det_id) {
-        if ($form_cut_id && $so_det_id) {
+    public function stockerListDetail($form_cut_id, $group_stocker, $ratio, $so_det_id) {
+        if ($form_cut_id && $group_stocker && $ratio && $so_det_id) {
             $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
             $years = array_reverse(range(1999, date('Y')));
 
@@ -2745,6 +2748,8 @@ class StockerController extends Controller
                 WHERE
                     (form_cut_input.cancel is null or form_cut_input.cancel != 'Y') AND
                     stocker_input.form_cut_id = '".$form_cut_id."' AND
+                    stocker_input.group_stocker = '".$group_stocker."' AND
+                    stocker_input.ratio = '".$ratio."' AND
                     stocker_input.so_det_id = '".$so_det_id."'
                 GROUP BY
                     stocker_input.form_cut_id,
@@ -2772,7 +2777,9 @@ class StockerController extends Controller
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
                 whereRaw("
                     year_sequence.form_cut_id = '".$form_cut_id."' and
-                    year_sequence.so_det_id = '".$so_det_id."'
+                    year_sequence.so_det_id = '".$so_det_id."' and
+                    year_sequence.number >= '".$stockerList[0]->range_awal."' and
+                    year_sequence.number <= '".$stockerList[0]->range_akhir."'
                 ")->
                 get();
 
@@ -2798,6 +2805,12 @@ class StockerController extends Controller
         }
 
         return redirect()->route('stocker-list');
+    }
+
+    public function stockerListDetailExport($form_cut_id, $group_stocker, $ratio, $so_det_id) {
+        ini_set("max_execution_time", 36000);
+
+        return Excel::download(new StockerListDetailExport($form_cut_id, $group_stocker, $ratio, $so_det_id), 'stocker-list.xlsx');
     }
 
     public function setMonthCountNumber(Request $request) {
@@ -3199,7 +3212,8 @@ class StockerController extends Controller
                     GROUP BY
                         stocker_input.form_cut_id,
                         stocker_input.so_det_id,
-                        stocker_input.group_stocker
+                        stocker_input.group_stocker,
+                        stocker_input.ratio
                     ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
                     AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)

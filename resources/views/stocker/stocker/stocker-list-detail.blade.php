@@ -32,6 +32,18 @@
                 </div>
                 <div class="col-md-3 d-none">
                     <div class="mb-3">
+                        <label class="form-label">Group Stocker</label>
+                        <input type="text" class="form-control" name="group_stocker" id="group_stocker" value="{{ $stockerList->group_stocker }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3 d-none">
+                    <div class="mb-3">
+                        <label class="form-label">Ratio</label>
+                        <input type="text" class="form-control" name="ratio" id="ratio" value="{{ $stockerList->ratio }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3 d-none">
+                    <div class="mb-3">
                         <label class="form-label">SO Detail ID</label>
                         <input type="text" class="form-control" name="so_det_id" id="so_det_id" value="{{ $stockerList->so_det_id }}" readonly>
                     </div>
@@ -111,9 +123,12 @@
     </div>
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold">
-                <i class="fa-solid fa-hashtag"></i> Number List
-            </h5>
+            <div class="d-flex justify-content-between">
+                <h5 class="card-title fw-bold">
+                    <i class="fa-solid fa-hashtag"></i> Number List
+                </h5>
+                <button type="button" class="btn btn-success btn-sm" onclick="exportExcel('year_sequence')"><i class="fa fa-file-excel"></i> Export</button>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -572,6 +587,52 @@
             if (rangeAwal > 0 && rangeAkhir > rangeAwal) {
                 $("#set_qty").val(rangeAkhir - rangeAwal + 1);
             }
+        }
+
+        async function exportExcel(type) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            if (type == 'year_sequence') {
+                await $.ajax({
+                    url: "{{ route("stocker-list-detail-export") }}/"+$('#form_cut_id').val()+"/"+$('#group_stocker').val()+"/"+$('#ratio').val()+"/"+$('#so_det_id').val(),
+                    type: "get",
+                    xhrFields:{
+                        responseType: 'blob'
+                    },
+                    success: function (res) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res]);
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Stocker List.xlsx";
+                            link.click();
+
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'Data Stocker Number List berhasil di export.',
+                                position: 'topCenter'
+                            });
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Data Stocker Number List gagal di export.',
+                            position: 'topCenter'
+                        });
+
+                        console.error(jqXHR);
+                    }
+                });
+            }
+
+            document.getElementById("loading").classList.add("d-none");
         }
     </script>
 @endsection
