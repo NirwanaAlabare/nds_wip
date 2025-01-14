@@ -3352,7 +3352,7 @@
 
                             res.forEach(item => {
                                 tglArr.push(item.tgl_produksi.substr(-2));
-                                efficiencyArr.push(item.mins_prod_total / item.mins_avail * 100);
+                                efficiencyArr.push((item.mins_prod_total) / item.mins_avail * 100);
                                 targetEfficiencyArr.push(item.target_efficiency);
                                 rftArr.push(item.rft);
                             });

@@ -20,11 +20,8 @@ class DashboardController extends Controller
         return Redirect::to('/home');
     }
 
-
     public function index() {
-
         return view('cutting.chart.dashboard-chart');
-
     }
 
     // Marker
@@ -155,6 +152,7 @@ class DashboardController extends Controller
         );
     }
 
+    // Cutting
     public function cutting(Request $request) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
@@ -256,40 +254,40 @@ class DashboardController extends Controller
                         marker_input.style
                 ) form_marker on form_marker.act_costing_ws = master_sb.ws and form_marker.style = master_sb.styleno
                 LEFT JOIN
-                        (
+                    (
+                        select
+                            marker_input.act_costing_ws,
+                            marker_input.style,
+                            ROUND(SUM(marker_detail.total_ratio * form.total_lembar)) total_lembar
+                        from
+                            marker_input
+                        left join (
                             select
-                                marker_input.act_costing_ws,
-                                marker_input.style,
-                                ROUND(SUM(marker_detail.total_ratio * form.total_lembar)) total_lembar
+                                form_cut_input.id_marker,
+                                SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply,0)) total_lembar
                             from
-                                marker_input
-                            left join (
-                                select
-                                    form_cut_input.id_marker,
-                                    SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply,0)) total_lembar
-                                from
-                                    form_cut_input
-                                    left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
-                                where
-                                    form_cut_input.status = 'SELESAI PENGERJAAN' AND
-                                    ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
-                                    and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                                group by
-                                    form_cut_input.id_marker
-                            ) form on form.id_marker = marker_input.kode
-                            left join (
-                                select
-                                    marker_input_detail.marker_id,
-                                    sum(marker_input_detail.ratio) total_ratio
-                                from
-                                    marker_input_detail
-                                group by
-                                    marker_input_detail.marker_id
-                            ) marker_detail on marker_detail.marker_id = marker_input.id
+                                form_cut_input
+                                left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
+                            where
+                                form_cut_input.status = 'SELESAI PENGERJAAN' AND
+                                ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
+                                and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                             group by
-                                marker_input.act_costing_ws,
-                                marker_input.style
-                        ) form_cut_all on form_cut_all.act_costing_ws = master_sb.ws and form_cut_all.style = master_sb.styleno
+                                form_cut_input.id_marker
+                        ) form on form.id_marker = marker_input.kode
+                        left join (
+                            select
+                                marker_input_detail.marker_id,
+                                sum(marker_input_detail.ratio) total_ratio
+                            from
+                                marker_input_detail
+                            group by
+                                marker_input_detail.marker_id
+                        ) marker_detail on marker_detail.marker_id = marker_input.id
+                        group by
+                            marker_input.act_costing_ws,
+                            marker_input.style
+                    ) form_cut_all on form_cut_all.act_costing_ws = master_sb.ws and form_cut_all.style = master_sb.styleno
             ");
 
             return DataTables::of($form)->toJson();
@@ -310,6 +308,107 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function cuttingFormList(Request $request) {
+        $mejaId = $request->meja_id ? $request->meja_id : null;
+        $date = $request->date ? $request->date : date("Y-m-d");
+
+        $data = DB::select("
+            SELECT
+                form_cut_input.no_form,
+                marker_input.panel,
+                marker_input.style,
+                marker_input.color,
+                marker_detail.total_ratio,
+                form_cut_input.total_lembar,
+                (marker_detail.total_ratio * form_cut_input.total_lembar) total_output,
+                form_cut_input.`status`
+            FROM
+                form_cut_input
+                left join marker_input on marker_input.kode = form_cut_input.id_marker
+                left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
+                left join users as meja on meja.id = form_cut_input.no_meja
+            WHERE
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '".$date."'
+                and
+                meja.username = '".$mejaId."'
+        ");
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function cuttingWorksheetList(Request $request) {
+        $mejaId = $request->meja_id ? $request->meja_id : null;
+        $date = $request->date ? $request->date : date("Y-m-d");
+
+        $data = DB::select("
+            SELECT
+                marker_input.act_costing_ws,
+                marker_input.buyer,
+                marker_input.style,
+                marker_input.color,
+                marker_input.panel,
+                marker_detail.total_ratio,
+                form_cut_input.total_lembar,
+                SUM(marker_detail.total_ratio * form_cut_input.total_lembar) output,
+                form_cut_input.`status`
+            FROM
+                form_cut_input
+                left join marker_input on marker_input.kode = form_cut_input.id_marker
+                left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
+                left join users as meja on meja.id = form_cut_input.no_meja
+            WHERE
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '".$date."'
+                and
+                meja.username = '".$mejaId."'
+            GROUP BY
+                marker_input.act_costing_id,
+                marker_input.color,
+                marker_input.panel,
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut),
+                meja.id
+        ");
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function cuttingWorksheetTotal(Request $request) {
+        $mejaId = $request->meja_id ? $request->meja_id : null;
+        $date = $request->date ? $request->date : date("Y-m-d");
+
+        $data = DB::select("
+            SELECT
+                SUM(output) total_output
+            FROM (
+                SELECT
+                    marker_input.act_costing_ws,
+                    marker_input.buyer,
+                    marker_input.style,
+                    marker_input.color,
+                    marker_input.panel,
+                    marker_detail.total_ratio,
+                    form_cut_input.total_lembar,
+                    SUM(marker_detail.total_ratio * form_cut_input.total_lembar) output,
+                    form_cut_input.`status`
+                FROM
+                    form_cut_input
+                    left join marker_input on marker_input.kode = form_cut_input.id_marker
+                    left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
+                    left join users as meja on meja.id = form_cut_input.no_meja
+                WHERE
+                    COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '".$date."'
+                    and
+                    meja.username = '".$mejaId."'
+                GROUP BY
+                    marker_input.act_costing_id,
+                    marker_input.color,
+                    marker_input.panel,
+                    COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut),
+                    meja.id
+            ) output
+        ");
+
+        return $data;
+    }
 
     public function cutting_chart(Request $request) {
         ini_set("max_execution_time", 0);
@@ -371,6 +470,7 @@ class DashboardController extends Controller
         ")->
         groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
         get();
+
         broadcast(new CuttingChartUpdatedAll($query, $date));
         return json_encode($query);
 
@@ -445,7 +545,58 @@ class DashboardController extends Controller
         ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
         ->get();
 
-        broadcast(new CuttingChartUpdated($query, $mejaId, $date));
+        $data_spreading = DB::select("
+            SELECT
+                a.id,
+                a.no_meja,
+                a.id_marker,
+                a.no_form,
+                COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) tgl_form_cut,
+                b.id marker_id,
+                b.act_costing_ws ws,
+                CONCAT(b.panel, ' - ', b.urutan_marker) panel,
+                b.color color,
+                a.status,
+                UPPER(users.name) nama_meja,
+                b.panjang_marker panjang_marker,
+                UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                b.comma_marker comma_marker,
+                UPPER(b.unit_comma_marker) unit_comma_marker,
+                b.lebar_marker lebar_marker,
+                UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
+                COALESCE(a.qty_ply, 0) qty_ply,
+                COALESCE(b.gelar_qty, 0) gelar_qty,
+                COALESCE(a.total_lembar, '0') total_lembar,
+                b.po_marker po_marker,
+                b.urutan_marker urutan_marker,
+                b.cons_marker cons_marker,
+                UPPER(b.tipe_marker) tipe_marker,
+                cutting_plan.app,
+                a.tipe_form_cut,
+                COALESCE(b.notes, '-') notes,
+                GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
+            FROM cutting_plan
+            left join form_cut_input a on a.id = cutting_plan.form_cut_id
+            left outer join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+            left outer join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
+            left join master_size_new on marker_input_detail.size = master_size_new.size
+            left join users on users.id = a.no_meja
+            where
+                a.id is not null
+                AND a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                and (cutting_plan.tgl_plan >= '" . $date . "' or a.updated_at >= '". $date ."')
+                and users.username
+            GROUP BY a.id
+            ORDER BY
+                FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
+                FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                FIELD(cutting_plan.app, 'Y', 'N', null),
+                a.no_form desc,
+                a.updated_at desc
+        ");
+
+        broadcast(new CuttingChartUpdated($query, $mejaId, $date, $dataSpreading));
 
         return response()->json($query);
     }
@@ -834,7 +985,7 @@ class DashboardController extends Controller
                     IFNULL( rfts_1.mins_prod, 0 ) additional_mins_prod,
                     SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 ) mins_prod_total,
                     (SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 ) mins_avail,
-                    (SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 ) / (SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 )) * 100 efficiency
+                    ((SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 )) / ((SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 )) * 100) efficiency
                 ")->
                 leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id, DATE(rfts.updated_at) tgl_output from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and status = 'NORMAL' and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)) as rfts"), function ($join) { $join->on("master_plan.id", "=", "rfts.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "rfts.tgl_output"); })->
                 leftJoin(DB::raw("(SELECT count(defects.id) defect, master_plan.id master_plan_id, DATE(defects.updated_at) tgl_output from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and (MONTH(defects.updated_at) = '".$month."' AND YEAR(defects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at)) as defects"), function ($join) { $join->on("master_plan.id", "=", "defects.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "defects.tgl_output"); })->
@@ -857,11 +1008,12 @@ class DashboardController extends Controller
                                 output_rfts rfts
                             inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
-                                (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and
-                                (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."')
+                                rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 00:00:00'
+						        AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
-                            having tgl_plan != tgl_output
+                            having
+                                tgl_plan != tgl_output
                         ) back_output
                     GROUP BY
                         back_output.tgl_output
@@ -871,6 +1023,8 @@ class DashboardController extends Controller
                     MONTH(master_plan.tgl_plan) = '".$month."'
                     AND
                     YEAR(master_plan.tgl_plan) = '".$year."'
+                    AND
+                    master_plan.tgl_plan <= '".date("Y-m-d")."'
                 )")->
                 groupBy("master_plan.tgl_plan")->
                 get();
