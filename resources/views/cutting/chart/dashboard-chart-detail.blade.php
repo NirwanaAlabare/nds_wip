@@ -167,7 +167,8 @@
                             <div class="header-top">
                                 <h1 class="header-title">Dashboard Cutting Chart Progress</h1>
                             </div>
-                            <p class="description">Laporan progress cutting <strong id="selected-date">{{ localeDateFormat($tglPlan) }}</strong></p>
+                            <p class="description">Laporan progress cutting <strong
+                                    id="selected-date">{{ localeDateFormat($tglPlan) }}</strong></p>
                         </div>
                         <div class="item-checklist-box w-50">
                             <label class="PillList-item">
@@ -190,7 +191,7 @@
                         <div class="card-body">
                             <div>
                                 <div class="d-flex justify-content-between align-items-end">
-                                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace("_", " ", $mejaId)) }}</p>
+                                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
                                     <div class="d-flex flex-column align-items-end">
                                         <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
                                         <p class="mb-0 fw-bold clock"></p>
@@ -226,7 +227,7 @@
                     <div class="card m-3 w-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-middle mb-3">
-                                <p class="mb-0 fw-bold">{{ strtoupper(str_replace("_", " ", $mejaId)) }}</p>
+                                <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
                                 <div class="d-flex flex-column align-items-end">
                                     <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
                                     <p class="mb-0 fw-bold clock"></p>
@@ -254,7 +255,7 @@
                         <div class="card-body">
                             <div>
                                 <div class="d-flex justify-content-between align-items-middle">
-                                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace("_", " ", $mejaId)) }}</p>
+                                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
                                     <div class="d-flex flex-column align-items-end">
                                         <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
                                         <p class="mb-0 fw-bold clock"></p>
@@ -314,11 +315,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
     <!-- Chart.JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js" integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js"
+        integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <script>
-
-
         const swiper = new Swiper('.swiper', {
             direction: 'vertical',
             loop: true,
@@ -350,8 +351,7 @@
                     d.date = @json($tglPlan);
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
@@ -376,8 +376,7 @@
                     data: 'status'
                 }
             ],
-            columnDefs: [
-                {
+            columnDefs: [{
                     targets: [5],
                     className: "text-center",
                     render: (data, type, row, meta) => {
@@ -409,7 +408,8 @@
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
                             case "PENGERJAAN FORM CUTTING SPREAD":
-                                icon = `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
+                                icon =
+                                    `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
                                 break;
                             case "SELESAI PENGERJAAN":
                                 icon = `<i class="fas fa-check fa-lg" style="color: #087521;"></i>`;
@@ -439,8 +439,7 @@
                     d.date = @json($tglPlan);
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'act_costing_ws'
                 },
                 {
@@ -459,17 +458,16 @@
                     data: 'output'
                 },
             ],
-            columnDefs: [
-                {
-                    targets: [5],
-                    className: "text-center",
-                    render: (data, type, row, meta) => {
-                        return data ? data : '-';
-                    }
-                },
-            ],
+            columnDefs: [{
+                targets: [5],
+                className: "text-center",
+                render: (data, type, row, meta) => {
+                    return data ? data : '-';
+                }
+            }, ],
             footerCallback: async function(row, data, start, end, display) {
-                var api = this.api(),data;
+                var api = this.api(),
+                    data;
 
                 $(api.column(0).footer()).html('Total');
                 $(api.column(5).footer()).html("...");
@@ -479,8 +477,8 @@
                     dataType: 'json',
                     dataSrc: 'data',
                     data: {
-                        meja_id : @json($mejaId),
-                        date : @json($tglPlan)
+                        meja_id: @json($mejaId),
+                        date: @json($tglPlan)
                     },
                     success: function(response) {
                         console.log(response);
@@ -523,10 +521,13 @@
 
         // Update the clock immediately
         updateClock();
+
+        var clockInterval = setInterval(updateClock, 1000);
     </script>
 
     <!-- SOCKET.IO configuration -->
-    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous"></script>
     <script>
         window.laravel_echo_port = '{{ env('LARAVEL_ECHO_PORT') }}';
     </script>
@@ -690,7 +691,7 @@
                         generateCheckboxes(uniqueNoMejaId, selectedCheckboxes);
 
                         const checkboxesAfterLoad = checkboxContainer.querySelectorAll(
-                        'input[type="checkbox"]');
+                            'input[type="checkbox"]');
                         checkboxesAfterLoad.forEach(checkbox => {
                             const icon = checkbox.parentElement.querySelector('.Icon i');
                             if (selectedCheckboxes.includes(checkbox.value)) {
@@ -793,13 +794,17 @@
                         const ctx = document.getElementById('myChart').getContext('2d');
                         myChart = new Chart(ctx, config);
                         const totalForms = totalCompleted + totalIncompleted;
-                        const completedPercentage = totalForms > 0 ? (totalCompleted / totalForms * 100).toFixed(2) : 0;
-                        const incompletedPercentage = totalForms > 0 ? (totalIncompleted / totalForms * 100).toFixed(2) : 0;
+                        const completedPercentage = totalForms > 0 ? (totalCompleted / totalForms * 100)
+                            .toFixed(2) : 0;
+                        const incompletedPercentage = totalForms > 0 ? (totalIncompleted / totalForms * 100)
+                            .toFixed(2) : 0;
                         const doughnutData = {
                             labels: ['Completed', 'Incompleted'],
                             datasets: [{
                                 data: [completedPercentage, incompletedPercentage],
-                                backgroundColor: [Utils.CHART_COLORS.green, Utils.CHART_COLORS.orange],
+                                backgroundColor: [Utils.CHART_COLORS.green, Utils.CHART_COLORS
+                                    .orange
+                                ],
                             }]
                         };
 
@@ -881,7 +886,8 @@
 
             if (myChart && myDoughnutChart && data) {
                 // Cek apakah data yang diterima valid
-                if (data.completed_form !== undefined && data.incomplete_form !== undefined && data.total_form !== undefined) {
+                if (data.completed_form !== undefined && data.incomplete_form !== undefined && data.total_form !==
+                    undefined) {
 
                     // Update "Completed form" dan "Total form" pada Bar Chart
                     const completedForm = parseInt(data.completed_form);
