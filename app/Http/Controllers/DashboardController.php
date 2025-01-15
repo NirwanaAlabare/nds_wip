@@ -545,7 +545,7 @@ class DashboardController extends Controller
         ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
         ->get();
 
-        $data_spreading = DB::select("
+        $dataSpreading = DB::select("
             SELECT
                 a.id,
                 a.no_meja,
