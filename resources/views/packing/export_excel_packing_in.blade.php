@@ -23,6 +23,7 @@
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">WS</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Size</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Dest</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">User</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Tgl. Input</th>
@@ -44,6 +45,7 @@
                 <td>{{ $item->ws }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
+                <td>{{ $item->dest }}</td>
                 <td>{{ $item->qty }}</td>
                 <td>{{ $item->created_by }}</td>
                 <td>{{ $item->created_at }}</td>
