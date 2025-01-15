@@ -154,13 +154,15 @@
                                 </td>
                                 @if ($currentLine != $line->username)
                                     @php
-                                        if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
-                                            $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
-                                            $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
-                                        } else {
-                                            $cumulativeTarget = $line->cumulative_target ?? 0;
-                                            $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
-                                        }
+                                        // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
+                                        //     $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
+                                        //     $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
+                                        // } else {
+                                        //     $cumulativeTarget = $line->cumulative_target ?? 0;
+                                        //     $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
+                                        // }
+                                        $cumulativeTarget = $lines->where("username", $line->username)->max("cumulative_target")  ?? 0;
+                                        $cumulativeMinsAvail =  $lines->where("username", $line->username)->max("cumulative_mins_avail") ?? 0;
 
                                         $currentActual = $lines->where("username", $line->username)->sum("total_actual") ?? 0;
                                         $currentMinsProd = $lines->where("username", $line->username)->sum("mins_prod") ?? 0;

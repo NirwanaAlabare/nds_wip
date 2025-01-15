@@ -39,7 +39,7 @@ class ReportProduction extends Component
 
         $lines = UserLine::with([
             "masterPlans" => function ($query) {
-                $query->whereBetween('master_plan.tgl_plan', [date('Y-m-d', strtotime('-1 days', strtotime($this->date))), $this->date]);
+                $query->whereBetween('master_plan.tgl_plan', [date('Y-m-d', strtotime('-7 days', strtotime($this->date))), $this->date]);
             },
             "masterPlans.rfts" => function ($query) {
                 $query->whereRaw('output_rfts.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
