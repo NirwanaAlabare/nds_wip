@@ -1701,8 +1701,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
-        Route::get('/', 'index')->name('dashboard-chart');
-        Route::get('/{mejaId?}', 'show')->name('dashboard-chart-detail');
+        Route::get('/', 'cuttingMeja')->name('dashboard-chart');
+        Route::get('/{mejaId?}', 'cuttingMejaDetail')->name('dashboard-chart-detail');
 
         // TEST TRIGGER SOCKET.IO
         Route::get('/trigger/all/{date?}', 'cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
@@ -1726,6 +1726,7 @@ Route::get('/cutting-form-list', [DashboardController::class, 'cuttingFormList']
 Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware('auth')->name('cutting-form-chart');
 Route::get('/cutting-worksheet-list', [DashboardController::class, 'cuttingWorksheetList'])->middleware('auth')->name('cutting-worksheet-list');
 Route::get('/cutting-worksheet-total', [DashboardController::class, 'cuttingWorksheetTotal'])->middleware('auth')->name('cutting-worksheet-total');
+Route::get('/cutting-output-list', [DashboardController::class, 'cuttingOutputList'])->middleware('auth')->name('cutting-output-list');
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
