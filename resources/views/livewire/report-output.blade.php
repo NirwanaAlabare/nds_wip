@@ -154,15 +154,21 @@
                                 </td>
                                 @if ($currentLine != $line->username)
                                     @php
-                                        // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
-                                        //     $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
-                                        //     $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
-                                        // } else {
-                                        //     $cumulativeTarget = $line->cumulative_target ?? 0;
-                                        //     $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
-                                        // }
-                                        $cumulativeTarget = $lines->where("username", $line->username)->max("cumulative_target")  ?? 0;
-                                        $cumulativeMinsAvail =  $lines->where("username", $line->username)->max("cumulative_mins_avail") ?? 0;
+                                        // Legacy :
+                                            // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
+                                            //     $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
+                                            //     $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
+                                            // } else {
+                                            //     $cumulativeTarget = $line->cumulative_target ?? 0;
+                                            //     $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
+                                            // }
+                                        if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00')) {
+                                            $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
+                                            $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
+                                        } else {
+                                            $cumulativeTarget = $lines->where("username", $line->username)->max("cumulative_target")  ?? 0;
+                                            $cumulativeMinsAvail =  $lines->where("username", $line->username)->max("cumulative_mins_avail") ?? 0;
+                                        }
 
                                         $currentActual = $lines->where("username", $line->username)->sum("total_actual") ?? 0;
                                         $currentMinsProd = $lines->where("username", $line->username)->sum("mins_prod") ?? 0;
@@ -289,12 +295,6 @@
                                     <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
                                         {{ ucfirst(str_replace("_", " ", $order->username)) }}
                                     </a>
-                                </td>
-                                <td>
-                                    {{ $order->leader_nik }}
-                                </td>
-                                <td class="text-nowrap">
-                                    {{ $order->leader_name }}
                                 </td>
                                 <td class="fw-bold text-center">
                                     {{ $order->rft < 1 ? '0' : num($order->rft) }}
@@ -453,9 +453,6 @@
                                     <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
                                         {{ ucfirst(str_replace("_", " ", $order->username)) }}
                                     </a>
-                                </td>
-                                <td>
-                                    {{ $order->leader_name }}
                                 </td>
                                 <td class="fw-bold text-center">
                                     {{ $order->rft < 1 ? '0' : num($order->rft) }}

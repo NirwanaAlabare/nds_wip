@@ -28,6 +28,7 @@ class OutputExport implements FromView, ShouldAutoSize
         $masterPlanDateFilter = " = '".$this->date."'";
         $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->date)))."' and '".$this->date."'";
         $outputFilter = " between '".$this->date." 00:00:00' and '".$this->date." 23:59:59'";
+        $leaderDate = $this->date;
 
         $selectFilter = $masterPlanDateFilter1;
 
@@ -55,9 +56,9 @@ class OutputExport implements FromView, ShouldAutoSize
                 MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( DATE(master_plan.tgl_plan) ) ELSE 0 END) tgl_plan,
                 GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( defects.last_defect ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rejects.last_reject ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) latest_output")->
             leftJoin("userpassword", "userpassword.username", "=", "master_plan.sewing_line")->
-            leftJoin("output_leader_line", function ($join) {
+            leftJoin("output_leader_line", function ($join)  use ($leaderDate) {
                 $join->on("output_leader_line.line_id", "=", "userpassword.line_id");
-                $join->on("output_leader_line.tanggal", "=", "master_plan.tgl_plan");
+                $join->on("output_leader_line.tanggal", "=", DB::raw("'".$leaderDate."'"));
             })->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             join(DB::raw("(

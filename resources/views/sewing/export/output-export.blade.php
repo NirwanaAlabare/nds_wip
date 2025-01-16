@@ -99,9 +99,9 @@
                                 {{ ucfirst(str_replace("_", " ", $line->username)) }}
                             </a>
                         </td>
+                        <td rowspan="{{ $currentRowSpan }}" style="text-align: center; vertical-align: middle;" >{{ $line->leader_nik }}</td>
+                        <td rowspan="{{ $currentRowSpan }}" style="text-align: center; vertical-align: middle;" >{{ $line->leader_name }}</td>
                     @endif
-                    <td>{{ $line->leader_nik }}</td>
-                    <td>{{ $line->leader_name }}</td>
                     <td>{{ $line->kpno }}</td>
                     <td>{{ $line->styleno }}</td>
                     <td style="text-align: center;">
