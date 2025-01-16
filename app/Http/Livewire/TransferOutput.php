@@ -4,6 +4,8 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\SignalBit\UserLine;
+use App\Models\SignalBit\UserSbWip;
+use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\MasterPlan;
 use DB;
 
@@ -21,6 +23,15 @@ class TransferOutput extends Component
     public $toLine;
     public $toMasterPlans;
     public $toSoDet;
+
+    public $transferRftQty;
+    public $transferRftSize;
+    public $transferDefectQty;
+    public $transferDefectSize;
+    public $transferReworkQty;
+    public $transferReworkSize;
+    public $transferRejectQty;
+    public $transferRejectSize;
 
     public $fromMasterPlanOutput;
     public $toMasterPlanOutput;
@@ -50,6 +61,10 @@ class TransferOutput extends Component
         $this->toMasterPlan = null;
         $this->toSelectedMasterPlan = null;
         $this->toSoDet = null;
+
+        // Qty
+        $this->transferRftQty = null;
+        $this->transferRftSize = null;
 
         $this->kodeNumbering = null;
 
@@ -296,6 +311,61 @@ class TransferOutput extends Component
         }
     }
 
+    public function transferRftDetail()
+    {
+        if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+            if ($this->transferRftQty && $this->transferRftSize) {
+                $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
+                $fromLine = $userList->where("username", $this->fromLine)->first();
+                $toLine = $userList->where("username", $this->toLine)->first();
+
+                // Rft list
+                $rfts = Rft::selectRaw("output_rfts.*")->
+                    leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->
+                    leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->
+                    leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                    where("userpassword.username", $this->fromLine)->
+                    where("master_plan_id", $this->fromSelectedMasterPlan)->
+                    where("so_det.size", $this->transferRftSize)->
+                    orderBy("output_rfts.updated_at", "desc")->
+                    limit($this->transferRftQty)->
+                    get();
+
+                // To So Det List
+                $this->toSoDet = MasterPlan::selectRaw("
+                        so_det.id,
+                        so_det.color,
+                        so_det.size
+                    ")->
+                    leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+                    leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+                    leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+                    whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
+                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("so_det.color = master_plan.color")->
+                    groupBy("so_det.color", "so_det.size")->
+                    orderBy("so_det.id")->
+                    get();
+
+                $toSoDet = $this->toSoDet->where("size", $this->transferRftSize)->first();
+
+                foreach ($rfts as $rft) {
+                    $rft->timestamps = false;
+                    $rft->master_plan_id = $this->toSelectedMasterPlan;
+                    $rft->created_by = $toLine->id;
+                    $rft->so_det_id = $toSoDet->id;
+                    $rft->save();
+                }
+
+                $this->emit('alert', 'success', $rfts->count()." RFT Berhasil di Transfer");
+            } else {
+                $this->emit('alert', 'error', "Harap pilih size dan tentukan qty yang akan di transfer");
+            }
+        } else {
+            $this->emit('alert', 'error', "Harap pilih line dan masterplan dengan lengkap");
+        }
+    }
+
     public function transferDefect()
     {
         if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
@@ -385,6 +455,128 @@ class TransferOutput extends Component
         }
     }
 
+    public function transferDefectDetail()
+    {
+        if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+            if ($this->transferDefectQty && $this->transferDefectSize) {
+                $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
+                $fromLine = $userList->where("username", $this->fromLine)->first();
+                $toLine = $userList->where("username", $this->toLine)->first();
+
+                // Defects list
+                $defects = Defect::selectRaw("output_defects.*")->
+                    leftJoin("so_det", "so_det.id", "=", "output_defects.so_det_id")->
+                    leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->
+                    leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                    where("userpassword.username", $this->fromLine)->
+                    where("master_plan_id", $this->fromSelectedMasterPlan)->
+                    where("so_det.size", $this->transferDefectSize)->
+                    where("output_defects.defect_status", "defect")->
+                    orderBy("output_defects.updated_at", "desc")->
+                    limit($this->transferDefectQty)->
+                    get();
+
+                // To So Det List
+                $this->toSoDet = MasterPlan::selectRaw("
+                        so_det.id,
+                        so_det.color,
+                        so_det.size
+                    ")->
+                    leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+                    leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+                    leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+                    whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
+                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("so_det.color = master_plan.color")->
+                    groupBy("so_det.color", "so_det.size")->
+                    orderBy("so_det.id")->
+                    get();
+
+                $toSoDet = $this->toSoDet->where("size", $this->transferDefectSize)->first();
+
+                foreach ($defects as $defect) {
+                    $defect->timestamps = false;
+                    $defect->master_plan_id = $this->toSelectedMasterPlan;
+                    $defect->created_by = $toLine->id;
+                    $defect->so_det_id = $toSoDet->id;
+                    $defect->save();
+                }
+
+                $this->emit('alert', 'success', $defects->count()." Defect Berhasil di Transfer");
+            } else {
+                $this->emit('alert', 'error', "Harap pilih size dan tentukan qty yang akan di transfer");
+            }
+        } else {
+            $this->emit('alert', 'error', "Harap pilih line dan masterplan dengan lengkap");
+        }
+    }
+
+    public function transferReworkDetail()
+    {
+        if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+            if ($this->transferReworkQty && $this->transferReworkSize) {
+                $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
+                $fromLine = $userList->where("username", $this->fromLine)->first();
+                $toLine = $userList->where("username", $this->toLine)->first();
+
+                // Defect Rework list
+                $defects = Defect::selectRaw("output_defects.*")->
+                    leftJoin("so_det", "so_det.id", "=", "output_defects.so_det_id")->
+                    leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->
+                    leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                    where("userpassword.username", $this->fromLine)->
+                    where("master_plan_id", $this->fromSelectedMasterPlan)->
+                    where("so_det.size", $this->transferReworkSize)->
+                    where("output_defects.defect_status", "reworked")->
+                    orderBy("output_defects.updated_at", "desc")->
+                    limit($this->transferReworkQty)->
+                    get();
+
+                // To So Det List
+                $this->toSoDet = MasterPlan::selectRaw("
+                        so_det.id,
+                        so_det.color,
+                        so_det.size
+                    ")->
+                    leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+                    leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+                    leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+                    whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
+                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("so_det.color = master_plan.color")->
+                    groupBy("so_det.color", "so_det.size")->
+                    orderBy("so_det.id")->
+                    get();
+
+                $toSoDet = $this->toSoDet->where("size", $this->transferReworkSize)->first();
+
+                $reworkIds = [];
+                foreach ($defects as $defect) {
+                    $defect->timestamps = false;
+                    $defect->master_plan_id = $this->toSelectedMasterPlan;
+                    $defect->created_by = $toLine->id;
+                    $defect->so_det_id = $toSoDet->id;
+                    $defect->save();
+
+                    array_push($reworkIds, $defect->rework->id);
+                }
+
+                // RFT Rework
+                DB::connection("mysql_sb")->table("output_rfts")->whereIn("rework_id", $reworkIds)->update([
+                    "master_plan_id" => $this->toSelectedMasterPlan,
+                    "created_by" => $toLine->id,
+                    "so_det_id" => $toSoDet->id,
+                ]);
+
+                $this->emit('alert', 'success', $defects->count()." Rework Berhasil di Transfer");
+            } else {
+                $this->emit('alert', 'error', "Harap pilih size dan tentukan qty yang akan di transfer");
+            }
+        } else {
+            $this->emit('alert', 'error', "Harap pilih line dan masterplan dengan lengkap");
+        }
+    }
+
     public function transferReject()
     {
         if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
@@ -455,6 +647,71 @@ class TransferOutput extends Component
             }
         } else {
             $this->emit("alert", "warning", "Harap pilih line dan master plan dengan lengkap");
+        }
+    }
+
+    public function transferRejectDetail()
+    {
+        if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+            if ($this->transferRejectQty && $this->transferRejectSize) {
+                $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
+                $fromLine = $userList->where("username", $this->fromLine)->first();
+                $toLine = $userList->where("username", $this->toLine)->first();
+
+                // Reject list
+                $rejects = Reject::selectRaw("output_rejects.*")->
+                    leftJoin("so_det", "so_det.id", "=", "output_rejects.so_det_id")->
+                    leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rejects.created_by")->
+                    leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                    where("userpassword.username", $this->fromLine)->
+                    where("master_plan_id", $this->fromSelectedMasterPlan)->
+                    where("so_det.size", $this->transferRejectSize)->
+                    orderBy("output_rejects.updated_at", "desc")->
+                    limit($this->transferRejectQty)->
+                    get();
+
+                // To So Det List
+                $this->toSoDet = MasterPlan::selectRaw("
+                        so_det.id,
+                        so_det.color,
+                        so_det.size
+                    ")->
+                    leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+                    leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+                    leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+                    whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
+                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("so_det.color = master_plan.color")->
+                    groupBy("so_det.color", "so_det.size")->
+                    orderBy("so_det.id")->
+                    get();
+
+                $toSoDet = $this->toSoDet->where("size", $this->transferRejectSize)->first();
+
+                $defectIds = [];
+                foreach ($rejects as $reject) {
+                    $reject->timestamps = false;
+                    $reject->master_plan_id = $this->toSelectedMasterPlan;
+                    $reject->created_by = $toLine->id;
+                    $reject->so_det_id = $toSoDet->id;
+                    $reject->save();
+
+                    array_push($defectIds, $reject->defect_id);
+                }
+
+                // Defect Reject
+                DB::connection("mysql_sb")->table("output_defects")->whereIn("id", $defectIds)->update([
+                    "master_plan_id" => $this->toSelectedMasterPlan,
+                    "created_by" => $toLine->id,
+                    "so_det_id" => $toSoDet->id,
+                ]);
+
+                $this->emit('alert', 'success', $rejects->count()." Reject Berhasil di Transfer");
+            } else {
+                $this->emit('alert', 'error', "Harap pilih size dan tentukan qty yang akan di transfer");
+            }
+        } else {
+            $this->emit('alert', 'error', "Harap pilih line dan masterplan dengan lengkap");
         }
     }
 
@@ -562,6 +819,7 @@ class TransferOutput extends Component
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
             groupBy("so_det.color", "so_det.size")->
+            orderBy("so_det.id")->
             get();
         }
 
@@ -609,6 +867,7 @@ class TransferOutput extends Component
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
             groupBy("so_det.color", "so_det.size")->
+            orderBy("so_det.id")->
             get();
         }
 
