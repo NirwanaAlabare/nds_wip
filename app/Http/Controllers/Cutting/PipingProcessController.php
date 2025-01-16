@@ -23,8 +23,8 @@ class PipingProcessController extends Controller
 
             return DataTables::eloquent($data)->
                 filter(function ($query) {
-                    $tglAwal = request('tgl_awal');
-                    $tglAkhir = request('tgl_akhir');
+                    $tglAwal = request('dateFrom');
+                    $tglAkhir = request('dateTo');
 
                     if ($tglAwal) {
                         $query->whereRaw("piping_process.updated_at >= '" . $tglAwal . " 00:00:00'");
@@ -324,14 +324,26 @@ class PipingProcessController extends Controller
     }
 
     public function destroy($id = 0) {
-        $destroyPipingProcess = PipingProcess::find($id)->delete();
+        $pipingLoading = PipingLoading::where("piping_process_id", $id)->first();
 
-        if ($destroyPipingProcess) {
-            $destroyPipingProcessDetail = PipingProcessDetail::where("piping_process_id", $id)->delete();
+        if ($pipingLoading) {
+            $destroyPipingProcess = PipingProcess::find($id)->delete();
+
+            if ($destroyPipingProcess) {
+                $destroyPipingProcessDetail = PipingProcessDetail::where("piping_process_id", $id)->delete();
+
+                return array(
+                    'status' => 200,
+                    'message' => 'Piping Process berhasil dihapus',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
 
             return array(
-                'status' => 200,
-                'message' => 'Piping Process berhasil dihapus',
+                'status' => 400,
+                'message' => 'Piping Process gagal dihapus',
                 'redirect' => '',
                 'table' => 'datatable',
                 'additional' => [],
@@ -340,7 +352,7 @@ class PipingProcessController extends Controller
 
         return array(
             'status' => 400,
-            'message' => 'Piping Process gagal dihapus',
+            'message' => 'Piping Process sudah diloading',
             'redirect' => '',
             'table' => 'datatable',
             'additional' => [],
