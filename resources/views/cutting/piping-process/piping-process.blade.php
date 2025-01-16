@@ -173,9 +173,10 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         let btnEdit = "<a href='{{ route('process-piping-process') }}/"+data+"' class='btn btn-primary btn-sm'><i class='fa fa-search-plus'></i></a>";
+                        let btnDelete = `<a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-piping-process') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`;
                         let btnPdf = "<a href='{{ route('pdf-piping-process') }}/"+data+"' class='btn btn-secondary btn-sm'><i class='fa-solid fa-print'></i></a>";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnPdf + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnDelete + btnPdf + `</div>`;
                     }
                 },
                 {

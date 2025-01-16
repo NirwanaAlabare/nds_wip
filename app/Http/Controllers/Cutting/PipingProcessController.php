@@ -323,6 +323,30 @@ class PipingProcessController extends Controller
         );
     }
 
+    public function destroy($id = 0) {
+        $destroyPipingProcess = PipingProcess::find($id)->delete();
+
+        if ($destroyPipingProcess) {
+            $destroyPipingProcessDetail = PipingProcessDetail::where("piping_process_id", $id)->delete();
+
+            return array(
+                'status' => 200,
+                'message' => 'Piping Process berhasil dihapus',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Piping Process gagal dihapus',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
     public function generate() {
         $latestPipingProcess = PipingProcess::select("kode_piping")->orderBy("id", "desc")->first();
 

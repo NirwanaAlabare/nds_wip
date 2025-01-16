@@ -472,6 +472,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create/new', 'createNew')->name('create-new-piping-process');
         Route::get('/process/{id?}', 'process')->name('process-piping-process');
         Route::post('/store', 'store')->name('store-piping-process');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-piping-process');
         Route::get('/take-piping/{id?}', 'takePiping')->name('take-piping-process');
         Route::get('/pdf/{id?}', 'pdf')->name('pdf-piping-process');
 
