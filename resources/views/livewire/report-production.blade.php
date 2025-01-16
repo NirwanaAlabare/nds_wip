@@ -75,6 +75,15 @@
                         $summaryTarget = 0;
                         $summaryMinsProd = 0;
                         $summaryMinsAvail = 0;
+
+                        // Calculate realtime mins avail and real time target
+                        if(strtotime(date('Y-m-d H:i:s')) <= strtotime($date.' 13:00:00')) {
+                            $minsAvailNow = count($lineData) > 0 ? $lineDataCurrent->max('man_power') * floor(strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60 : 0;
+                            $targetNow = count($lineData)  > 0 && $lineDataCurrent->avg('smv') > 0 ? floor($lineDataCurrent->max('man_power') * (floor(strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60) / $lineDataCurrent->avg('smv')) : 0;
+                        } else {
+                            $minsAvailNow = count($lineData) > 0 ? $lineDataCurrent->max('man_power') * floor(((strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) : 0;
+                            $targetNow = count($lineData)  > 0 && $lineDataCurrent->avg('smv') > 0 ? floor($lineDataCurrent->max('man_power') * floor(((strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) / $lineDataCurrent->avg('smv')) : 0;
+                        }
                     @endphp
                     @for ($i = 0; $i < count($hours); $i++)
                         @php
@@ -115,7 +124,6 @@
                                 $totalActual += $totalActualThis;
                                 $minsProd += $totalActualThis * $line->smv;
                                 $minsAvail += ($line->tgl_plan == $date ? ($line->man_power) : 0) * ($line->tgl_plan == $date ? ($line->jam_kerja) : 0) * 60;
-                                $lastUpdate = max([$rft->max('updated_at'), $rework->max('updated_at')]) ? max([$rft->max('updated_at'), $rework->max('updated_at')])->format("Y-m-d H:i:s") : date("Y-m-d H:i:s");
                             }
 
                             // Sum output and mins prod
@@ -123,23 +131,14 @@
                             $summaryMinsProd += $minsProd;
                             $summaryTarget = $planTarget;
 
-                            // Calculate realtime mins avail and real time target
-                            if(strtotime($lastUpdate) <= strtotime($date.' 13:00:00')) {
-                                $minsAvailNow = count($lineData) > 0 ? $lineDataCurrent->max('man_power') * floor(strtotime($lastUpdate) - strtotime(date('Y-m-d').' 07:00:00'))/60 : 0;
-                                $targetNow = count($lineData)  > 0 && $lineDataCurrent->avg('smv') > 0 ? floor($lineDataCurrent->max('man_power') * (floor(strtotime($lastUpdate) - strtotime(date('Y-m-d').' 07:00:00'))/60) / $lineDataCurrent->avg('smv')) : 0;
+                            // Calculate mins avail summary and target summary
+                            if (strtotime(date('Y-m-d H:i:s')) >= strtotime($date.' 16:00:00')) {
+                                $summaryMinsAvail = $minsAvail;
+                                $summaryTarget = $planTarget;
                             } else {
-                                $minsAvailNow = count($lineData) > 0 ? $lineDataCurrent->max('man_power') * floor(((strtotime($lastUpdate) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) : 0;
-                                $targetNow = count($lineData)  > 0 && $lineDataCurrent->avg('smv') > 0 ? floor($lineDataCurrent->max('man_power') * floor(((strtotime($lastUpdate) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) / $lineDataCurrent->avg('smv')) : 0;
-                            }
-
-                            // // Calculate mins avail summary and target summary
-                            // if (strtotime(date('Y-m-d H:i:s')) >= strtotime($date.' 16:00:00')) {
-                            //     $summaryMinsAvail = $minsAvail;
-                            //     $summaryTarget = $planTarget;
-                            // } else {
                                 $summaryMinsAvail = $minsAvailNow;
                                 $summaryTarget = $targetNow;
-                            // }
+                            }
 
                             // Calculate efficiency
                             $cumulativeEfficiency = $summaryMinsAvail > 0 ? round((($summaryMinsProd/$summaryMinsAvail) * 100), 2) : 0 ;
