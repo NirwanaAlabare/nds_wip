@@ -26,7 +26,7 @@ class OutputExport implements FromView, ShouldAutoSize
     public function view(): View
     {
         $masterPlanDateFilter = " = '".$this->date."'";
-        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->date)))."' and '".$this->date."'";
+        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-7 days', strtotime($this->date)))."' and '".$this->date."'";
         $outputFilter = " between '".$this->date." 00:00:00' and '".$this->date." 23:59:59'";
         $leaderDate = $this->date;
 

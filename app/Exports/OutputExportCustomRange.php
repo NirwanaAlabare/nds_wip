@@ -28,7 +28,7 @@ class OutputExportCustomRange implements FromView, ShouldAutoSize
     public function view(): View
     {
         $masterPlanDateFilter = " between '".$this->dateFrom."' and '".$this->dateTo."'";
-        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
+        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-7 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
         $outputFilter = " between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'";
         $leaderDate = $this->dateTo;
 
