@@ -341,7 +341,7 @@ class TransferOutput extends Component
                     leftJoin("so", "so.id_cost", "=", "act_costing.id")->
                     leftJoin("so_det", "so_det.id_so", "=", "so.id")->
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
-                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
                     groupBy("so_det.color", "so_det.size")->
                     orderBy("so_det.id")->
@@ -486,7 +486,7 @@ class TransferOutput extends Component
                     leftJoin("so", "so.id_cost", "=", "act_costing.id")->
                     leftJoin("so_det", "so_det.id_so", "=", "so.id")->
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
-                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
                     groupBy("so_det.color", "so_det.size")->
                     orderBy("so_det.id")->
@@ -542,7 +542,7 @@ class TransferOutput extends Component
                     leftJoin("so", "so.id_cost", "=", "act_costing.id")->
                     leftJoin("so_det", "so_det.id_so", "=", "so.id")->
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
-                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
                     groupBy("so_det.color", "so_det.size")->
                     orderBy("so_det.id")->
@@ -680,7 +680,7 @@ class TransferOutput extends Component
                     leftJoin("so", "so.id_cost", "=", "act_costing.id")->
                     leftJoin("so_det", "so_det.id_so", "=", "so.id")->
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
-                    whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+                    whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
                     groupBy("so_det.color", "so_det.size")->
                     orderBy("so_det.id")->
