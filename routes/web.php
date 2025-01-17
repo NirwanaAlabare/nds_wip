@@ -1594,7 +1594,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_fg_retur_summary', 'export_excel_fg_retur_summary')->name('export_excel_fg_retur_summary');
     });
 
-
     // Report Doc
     // Laporan BC
     Route::controller(ReportDocController::class)->prefix("report_doc_laporan")->middleware('bc')->group(function () {
@@ -1603,9 +1602,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_doc_lap_wip', 'export_excel_doc_lap_wip')->name('export_excel_doc_lap_wip');
     });
 
-
     // PPIC
-
     // Dashboard
     Route::controller(PPICDashboardController::class)->middleware('packing')->group(function () {
         Route::get('/dashboard_ppic', 'dashboard_ppic')->name('dashboard-ppic');
@@ -1650,7 +1647,6 @@ Route::middleware('auth')->group(function () {
         // Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
         // Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
     });
-
 
     // GA
     // Pengajuan
@@ -1728,6 +1724,9 @@ Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart
 Route::get('/cutting-worksheet-list', [DashboardController::class, 'cuttingWorksheetList'])->middleware('auth')->name('cutting-worksheet-list');
 Route::get('/cutting-worksheet-total', [DashboardController::class, 'cuttingWorksheetTotal'])->middleware('auth')->name('cutting-worksheet-total');
 Route::get('/cutting-output-list', [DashboardController::class, 'cuttingOutputList'])->middleware('auth')->name('cutting-output-list');
+Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware('auth')->name('cutting-output-list-panels');
+Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware('auth')->name('cutting-output-list-data');
+Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware('auth')->name('cutting-stock-list-data');
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');

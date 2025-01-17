@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ['navbar' => false, "containerFluid" => true])
 
 @section('custom-link')
     <!-- Select2 -->
@@ -145,6 +145,21 @@
             font-weight: bold;
         }
 
+        .cutting-chart-container {
+            width: 100%;
+            height: 100%;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .cutting-chart {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
         /* SWIPPER */
         swiper-container {
             width: 100%;
@@ -171,6 +186,11 @@
 @endsection
 
 @section('content')
+    <div class="loading-container-fullscreen d-none" id="loading-cutting-form">
+        <div class="loading-container">
+            <div class="loading"></div>
+        </div>
+    </div>
     <div>
         <div id="realtimeUpdateWrap"></div>
         <div class="card">
@@ -208,14 +228,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-none mb-3" id="loading-cutting-form">
-                    <div class="loading-container">
-                        <div class="loading"></div>
-                    </div>
-                </div>
-                <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true">
+                <swiper-container class="mySwiper" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
                     <swiper-slide>
-                        <div class="card px-3">
+                        <div class="card w-100 mx-3 mt-3">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-end">
                                     <p class="mb-0 fw-bold">Progress Form</p>
@@ -224,20 +239,20 @@
                                         <p class="mb-0 fw-bold clock"></p>
                                     </div>
                                 </div>
-                                <canvas id="myChart" width="1000" height="450"></canvas>
+                                <canvas id="myChart"></canvas>
                             </div>
                         </div>
                     </swiper-slide>
                     <swiper-slide>
-                        <div class="card m-3 w-100">
+                        <div class="card w-100 mx-3 mt-3">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-end">
-                                    <div class="d-flex flex-column align-items-start">
+                                    <div class="d-flex flex-column gap-1 align-items-start">
                                         <p class="mb-0 fw-bold">Output Cutting</p>
-                                        <p class="mb-0 fw-bold" id="panel">BODY</p>
-                                        <input type="hidden" id="set-panel" value="BODY">
+                                        <select class="form-select form-select-sm select2bs4" id="panel" onchange="datatableCuttingReload()">
+                                        </select>
                                     </div>
-                                    <div class="d-flex flex-column align-items-end">
+                                    <div class="d-flex flex-column gap-1 align-items-end">
                                         <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
                                         <p class="mb-0 fw-bold clock"></p>
                                     </div>
@@ -253,6 +268,55 @@
                                                 <th>Balance Kemarin</th>
                                                 <th>Qty Output</th>
                                                 <th>Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </swiper-slide>
+                    <swiper-slide class="flex-column">
+                        <div class="d-flex justify-content-between align-items-end w-100 mx-3 px-3 mb-3">
+                            <p class="mb-0 fw-bold">Output Cutting</p>
+                            <div class="d-flex flex-column align-items-end">
+                                <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
+                                <p class="mb-0 fw-bold clock"></p>
+                            </div>
+                        </div>
+                        <swiper-container class="mySwiper1" autoplay-delay="5000" space-between="30" slides-per-view="3">
+                            <swiper-slide>
+                                <div class="cutting-chart-container">
+                                    <div class="cutting-chart"></div>
+                                </div>
+                            </swiper-slide>
+                        </swiper-container>
+                    </swiper-slide>
+                    <swiper-slide>
+                        <div class="card w-100 mx-3 mt-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-end mb-3">
+                                    <div class="d-flex flex-column gap-1 align-items-start">
+                                        <p class="mb-0 fw-bold">STOK MATERIAL</p>
+                                    </div>
+                                    <div class="d-flex flex-column gap-1 align-items-end">
+                                        <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
+                                        <p class="mb-0 fw-bold clock"></p>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover w-100" id="datatable-cutting-stock">
+                                        <thead>
+                                            <tr>
+                                                <th>No. WS</th>
+                                                <th>Style</th>
+                                                <th>Color</th>
+                                                <th>Detail Item</th>
+                                                <th>Saldo Awal</th>
+                                                <th>Roll In</th>
+                                                <th>Roll Use</th>
+                                                <th>Stok Roll</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -282,15 +346,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
     <!-- Chart.JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js"
-        integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js" integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     {{-- Swiper JS --}}
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
 
     <script>
+        $(document).ready(async function () {
+            await getPanelList();
+
+            await initCuttingChart();
+        });
+
         const swiper = new Swiper('.swiper', {
             direction: 'vertical',
             loop: true,
@@ -334,6 +402,35 @@
         // Clock Interval
         var clockInterval = setInterval(updateClock, 1000);
 
+        // Get Panel List
+        function getPanelList() {
+            return $.ajax({
+                url: '{{ route('cutting-output-list-panels') }}',
+                type: 'get',
+                data: {
+                    date: $("#cutting-form-date-filter").val()
+                },
+                success: function (res) {
+                    if (res && res.length > 0) {
+                        let selectElement = document.getElementById("panel");
+
+                        for (let i = 0; i < res.length; i++) {
+                            let option = document.createElement("option");
+                            option.value = res[i].panel;
+                            option.innerHTML = res[i].panel;
+
+                            selectElement.appendChild(option);
+                        }
+
+                        $("#panel").val(res[0].panel).trigger("change");
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
         var datatableCutting = $("#datatable-cutting").DataTable({
             serverSide: false,
             processing: true,
@@ -344,6 +441,7 @@
                 url: '{{ route('cutting-output-list') }}',
                 dataType: 'json',
                 data: function (d) {
+                    d.date = $("#cutting-form-date-filter").val();
                     d.panel = $("#panel").val();
                 }
             },
@@ -386,11 +484,188 @@
                     targets: [4,6],
                     className: "text-nowrap align-middle",
                     render: (data, type, row, meta) => {
-                        return '<span class="'+(data <= 0 ? "text-success" : "text-danger")+'">'+(data ? (data > 0 ? "-" : (data < 0 ? "+" : ""))+" "+Number(data).toLocaleString("ID-id").replace("-", "") : 0)+'</span>';
+                        return '<span class="'+(data <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(data ? (data > 0 ? "-"+Number(data).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>';
                     }
                 },
             ],
         });
+
+        function datatableCuttingReload() {
+            datatableCutting.ajax.reload();
+        }
+
+        function initCuttingChart() {
+            $.ajax({
+                url: "{{ route("cutting-output-list-data") }}",
+                type: "get",
+                data: {
+                    date: $("#cutting-form-date-filter").val()
+                },
+                dataType: "json",
+                success: async function (response) {
+                    console.log(response, response.length);
+
+                    if (response && response.length > 0) {
+                        let panelDataGroup = []
+                        response.reduce(function(res, value) {
+                            if (!panelDataGroup[value.panel]) {
+                                panelDataGroup[value.panel] = { panel: value.panel, total_plan: 0, total_complete: 0 };
+                                panelDataGroup.push(panelDataGroup[value.panel])
+                            }
+                            panelDataGroup[value.panel].total_plan += value.total_plan;
+                            panelDataGroup[value.panel].total_complete += value.total_complete;
+
+                            return res;
+                        }, {});
+
+                        for (let i = 0; i < panelDataGroup.length; i++) {
+                            let totalPlan = (panelDataGroup[i]["total_plan"]-panelDataGroup[i]["total_complete"])/panelDataGroup[i]["total_plan"]*100;
+                            let totalComplete = panelDataGroup[i]["total_complete"]/panelDataGroup[i]["total_plan"]*100;
+
+                            await cloneAndAppendSlide(panelDataGroup[i]["panel"], totalPlan, totalComplete)
+                        };
+
+                        document.querySelector('.mySwiper1 .swiper-slide-active').remove();
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        async function cloneAndAppendSlide(panel, totalPlan, totalComplete) {
+            let panelVal = panel ? panel : "-";
+            let totalPlanVal = totalPlan ? totalPlan : 0;
+            let totalCompleteVal = totalComplete ? totalComplete : 0;
+
+            // Get the Swiper container
+            let swiperContainer = document.querySelector('.mySwiper1');
+
+            // Get the first swiper-slide (or you can specify another one by index)
+            let firstSlide = swiperContainer.querySelector('.swiper-slide-active');
+
+            // Clone the swiper-slide
+            let clonedSlide = firstSlide.cloneNode(true);
+            clonedSlide.classList.remove("swiper-slide-active");
+            clonedSlide.classList.add("swiper-slide");
+
+            // Find the canvas element inside the cloned slide
+            let canvas = clonedSlide.querySelector('.cutting-chart');
+            if (!canvas) {
+                console.error('Canvas element not found in the cloned slide!');
+            } else {
+                console.log('Canvas found:', canvas);
+
+                var options = {
+                    series: [totalPlan.round(2), totalComplete.round(2)],
+                    labels: ["Incomplete", "Complete"],
+                    colors: ['#ed841a', '#1a80ed'],
+                    chart: {
+                        width: '400',
+                        type: 'donut',
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function (val) {
+                            return val + "%"
+                        },
+                        style: {
+                            fontSize: '15px',
+                            fontFamily: 'Helvetica, Arial, sans-serif',
+                            fontWeight: '800',
+                            color: '#fff'
+                        },
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
+                                return value + " %";
+                            }
+                        }
+                    },
+                    plotOptions: {
+                        pie: {
+                            customScale: 0.9,
+                            donut: {
+                                size: '50%'
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        text: panelVal,
+                        align: "center"
+                    },
+                };
+
+                var chart = new ApexCharts(canvas, options);
+                chart.render();
+            }
+
+            // Append the cloned slide to the swiper container
+            swiperContainer.appendChild(clonedSlide);
+
+            // Re-initialize Swiper after appending the new slide
+            setTimeout(() => {
+                if (swiperContainer.swiper) {
+                    swiperContainer.swiper.update();
+                }
+            }, 100); // Delay to ensure swiper updates correctly
+        }
+
+        var datatableCuttingStock = $("#datatable-cutting-stock").DataTable({
+            serverSide: false,
+            processing: true,
+            ordering: false,
+            paging: false,
+            searching: false,
+            ajax: {
+                url: '{{ route('cutting-stock-list-data') }}',
+                dataType: 'json',
+                data: function (d) {
+                    d.date = $("#cutting-form-date-filter").val()
+                }
+            },
+            columns: [
+                {
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'style',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'detail_item',
+                },
+                {
+                    data: 'saldo_awal',
+                },
+                {
+                    data: 'roll_in',
+                },
+                {
+                    data: 'roll_user',
+                },
+                {
+                    data: 'stock_roll',
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap align-middle"
+                }
+            ],
+        });
+
+        function datatableCuttingStockReload() {
+            datatableCuttingStock.ajax.reload();
+        }
     </script>
 
     <!-- SOCKET.IO configuration -->
@@ -459,16 +734,11 @@
         });
 
 
-
         function generateCheckboxes(noMejaId, selectedCheckboxesIds) {
-
-
             const checkboxContainer = document.querySelector('.item-checklist-box');
             const currentDate = $("#cutting-form-date-filter").val();
             // Simpan checkbox yang sudah dipilih
-            const selectedCheckboxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked'))
-                .map(checkbox => checkbox.value);
-
+            const selectedCheckboxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
 
             checkboxContainer.innerHTML = ''; // Menghapus konten lama
             noMejaId.forEach((meja, index) => {
@@ -555,24 +825,18 @@
                             myChart = null;
                         }
                         res.forEach(item => {
-                            const formattedMeja = item.no_meja ?
-                                item.no_meja.toUpperCase().replace('_', ' ') :
-                                'UNKNOWN';
+                            const formattedMeja = item.no_meja ? item.no_meja.toUpperCase().replace('_', ' ') : 'UNKNOWN';
                             noMejaId.push(item.no_meja ? item.no_meja : 0);
                             mejaArr.push(formattedMeja);
                             totalFormArr.push(item.total_form ? item.total_form : 0);
-                            completedFormArr.push(item.completed_form ? parseInt(item.completed_form) :
-                                0);
-                            incompletedFormArr.push(item.incomplete_form ? parseInt(item
-                                .incomplete_form) : 0);
+                            completedFormArr.push(item.completed_form ? parseInt(item.completed_form) : 0);
+                            incompletedFormArr.push(item.incomplete_form ? parseInt(item.incomplete_form) : 0);
 
                             totalCompleted += item.completed_form ? parseInt(item.completed_form) : 0;
-                            totalIncompleted += item.incomplete_form ? parseInt(item.incomplete_form) :
-                                0;
+                            totalIncompleted += item.incomplete_form ? parseInt(item.incomplete_form) : 0;
                         });
 
-                        const checkboxesAfterLoad = checkboxContainer.querySelectorAll(
-                            'input[type="checkbox"]');
+                        const checkboxesAfterLoad = checkboxContainer.querySelectorAll('input[type="checkbox"]');
                         checkboxesAfterLoad.forEach(checkbox => {
                             const icon = checkbox.parentElement.querySelector('.Icon i');
                             if (selectedCheckboxes.includes(checkbox.value)) {
@@ -677,17 +941,13 @@
                         const ctx = document.getElementById('myChart').getContext('2d');
                         myChart = new Chart(ctx, config);
                         const totalForms = totalCompleted + totalIncompleted;
-                        const completedPercentage = totalForms > 0 ? (totalCompleted / totalForms * 100)
-                            .toFixed(2) : 0;
-                        const incompletedPercentage = totalForms > 0 ? (totalIncompleted / totalForms * 100)
-                            .toFixed(2) : 0;
+                        const completedPercentage = totalForms > 0 ? (totalCompleted / totalForms * 100).toFixed(2) : 0;
+                        const incompletedPercentage = totalForms > 0 ? (totalIncompleted / totalForms * 100).toFixed(2) : 0;
                         const doughnutData = {
                             labels: ['Completed', 'Incompleted'],
                             datasets: [{
                                 data: [completedPercentage, incompletedPercentage],
-                                backgroundColor: [Utils.CHART_COLORS.green, Utils.CHART_COLORS
-                                    .orange
-                                ],
+                                backgroundColor: [Utils.CHART_COLORS.green, Utils.CHART_COLORS.orange],
                             }]
                         };
 
@@ -827,8 +1087,7 @@
                 if (selectedCheckboxes.length > 0) {
                     loadCuttingFormChart(selectedCheckboxes, currentDate); // Kirim array string
                 } else {
-                    loadCuttingFormChart(selectedCheckboxes,
-                        currentDate); // Atau lakukan sesuatu jika semua uncheck
+                    loadCuttingFormChart(selectedCheckboxes, currentDate); // Atau lakukan sesuatu jika semua uncheck
                 }
             }
         });
