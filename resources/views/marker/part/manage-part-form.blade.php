@@ -15,7 +15,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-folder-plus fa-sm"></i> Tambah Form ke Part
+                    <i class="fa-solid fa-file-circle-plus"></i> Tambah Form ke Part
                 </h5>
                 <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke Part
@@ -136,7 +136,7 @@
             </div>
         </div>
         <div class="col-12 mb-3">
-            <div class="card card-info h-100">
+            <div class="card card-success h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
                         <i class="fa fa-check"></i> Form Cut In :
@@ -148,7 +148,7 @@
                             <p class="mb-0">Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end fw-bold" onclick="removePartForm()">
+                            <button class="btn btn-primary btn-sm float-end fw-bold" onclick="removePartForm()">
                                 <i class="fa fa-arrow-left fa-sm"></i> FORM OUT
                             </button>
                         </div>
@@ -272,8 +272,7 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() +
-                            "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 },
                 {

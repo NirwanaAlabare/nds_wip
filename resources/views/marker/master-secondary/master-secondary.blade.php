@@ -10,7 +10,7 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-location-arrow fa-sm"></i> Master Secondary</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-regular fa-square-plus"></i> Master Secondary</h5>
         </div>
         <div class="card-body">
             <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal"

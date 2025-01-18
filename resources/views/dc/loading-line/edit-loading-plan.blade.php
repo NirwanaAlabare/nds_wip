@@ -17,7 +17,7 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold">
-                        <i class="fa fa-edit"></i> Edit Loading Line
+                        <i class="fa fa-edit"></i> Edit Loading Plan
                     </h5>
                     <a href="{{ route('loading-line') }}" class="btn btn-sm btn-primary">
                         <i class="fa fa-reply"></i> Kembali ke Loading Line
@@ -34,9 +34,7 @@
                         <label><small>Kode</small></label>
                         <input type="text" class="form-control" value="{{ $loadingLinePlan->kode }}" name="kode" id="kode" readonly>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-6">
                         <div class="mb-1">
                             <div class="form-group">
                                 @php
@@ -48,7 +46,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No. WS</small></label>
@@ -57,13 +55,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
                         <div class="mb-1">
                             <label class="form-label"><small>Buyer</small></label>
                             <input type="text" class="form-control" id="buyer" name="buyer" value="{{ $loadingLinePlan->buyer }}" readonly>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
                         <div class="mb-1">
                             <label class="form-label"><small>Style</small></label>
                             <input type="text" class="form-control" id="style" name="style" value="{{ $loadingLinePlan->style }}" readonly>
@@ -100,7 +98,10 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-success btn-block btn-sm fw-bold mt-3" id="submit-button"><i class="fa fa-save"></i> SIMPAN</button>
+                <div class="d-flex justify-content-between">
+                    <a type="button" href="{{ route('loading-line') }}" class="btn btn-danger fw-bold mt-3"><i class="fa fa-times"></i> Batal</a>
+                    <button type="submit" class="btn btn-success fw-bold mt-3" id="submit-button"><i class="fa fa-save"></i> Simpan</button>
+                </div>
             </div>
         </div>
     </form>

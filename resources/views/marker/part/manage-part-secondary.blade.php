@@ -90,8 +90,7 @@
                             <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Part</b></small></label>
-                                    <select class="form-control select2bs4" id="txtpart" name="txtpart"
-                                        style="width: 100%;">
+                                    <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
                                         <option selected="selected" value="">Pilih Part</option>
                                         @foreach ($data_part as $datapart)
                                             <option value="{{ $datapart->id }}">
@@ -115,8 +114,7 @@
                             <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Tujuan</b></small></label>
-                                    <select class="form-control select2bs4" id="cbotuj" name="cbotuj"
-                                        style="width: 100%;" onchange="getproses();">
+                                    <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;" onchange="getproses();">
                                         <option selected="selected" value="">Pilih Tujuan</option>
                                         @foreach ($data_tujuan as $datatujuan)
                                             <option value="{{ $datatujuan->isi }}">
@@ -257,18 +255,10 @@
                         targets: [0],
                         className: "text-center",
                         render: (data, type, row, meta) => {
-                            if (row.total_stocker > 0) {
-                                return `
-                                    <button class='btn btn-secondary btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' disabled>
-                                        <i class='fa fa-trash'></i>
-                                    </button>
-                                `;
-                            }
-
                             return `
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' `+(row.total_stocker > 0 ? 'disabled' : '')+`>
+                                <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' `+(row.total_stocker > 0 ? 'disabled' : '')+`>
                                     <i class='fa fa-trash'></i>
-                                </a>
+                                </button>
                             `;
                         }
                     },

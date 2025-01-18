@@ -62,7 +62,7 @@
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h5 class="modal-title fs-5" id="manageCutPlanModalLabel"><i class="fa fa-edit"></i> Edit Plan Form Cut</h5>
+                        <h5 class="modal-title fs-5" id="manageCutPlanModalLabel"><i class="fa fa-edit"></i> Edit Cutting Plan</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -253,10 +253,10 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-info btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                                <a class='btn btn-sb btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
                                     <i class='fa fa-search'></i>
                                 </a>
-                                <a class='btn btn-primary btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
+                                <a class='btn btn-sb-secondary btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
                                     <i class='fa fa-edit'></i>
                                 </a>
                             </div>

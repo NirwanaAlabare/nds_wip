@@ -21,7 +21,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-receipt fa-sm"></i> Worksheet List</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file-invoice"></i> Worksheet List</h5>
                 <div class="d-flex justify-content-end gap-1">
                     <button type="button" class="btn btn-success" onclick="exportExcel(this);"><i class="fa fa-file-excel"></i></button>
                     <select class="form-select form-select-sm select2bs4 w-auto" id="ws-month-filter" readonly value="{{ date('m') }}">

@@ -11,7 +11,7 @@
     {{-- Complete Stocker Data --}}
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-shirt"></i> Stock DC WIP</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-shuffle"></i> Stock DC WIP</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
