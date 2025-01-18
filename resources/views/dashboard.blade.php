@@ -2733,7 +2733,6 @@
                     serverSide: false,
                     processing: true,
                     ordering: false,
-                    scrollX: '500px',
                     scrollY: '500px',
                     pageLength: 50,
                     ajax: {
@@ -3041,11 +3040,27 @@
                 $('#dc-month-filter').val((today.getMonth() + 1)).trigger("change");
                 $('#dc-year-filter').val(todayYear).trigger("change");
 
+                $('#datatable-dc thead tr').clone(true).appendTo('#datatable-dc thead');
+                $('#datatable-dc thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableDc.column(i).search() !== this.value) {
+                            datatableDc
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
                 var datatableDc = $("#datatable-dc").DataTable({
                     serverSide: false,
                     processing: true,
                     ordering: false,
                     pageLength: 50,
+                    scrollY: '500px',
                     ajax: {
                         url: '{{ route('dashboard-dc') }}',
                         dataType: 'json',
@@ -3118,21 +3133,6 @@
                             $('td.colorize', row).css('font-weight', '600');
                         }
                     }
-                });
-
-                $('#datatable-dc thead tr').clone(true).appendTo('#datatable-dc thead');
-                $('#datatable-dc thead tr:eq(1) th').each(function(i) {
-                    var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-                    $('input', this).on('keyup change', function() {
-                        if (datatableDc.column(i).search() !== this.value) {
-                            datatableDc
-                                .column(i)
-                                .search(this.value)
-                                .draw();
-                        }
-                    });
                 });
 
                 $('#dc-month-filter').on('change', () => {
