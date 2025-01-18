@@ -17,20 +17,20 @@
         <div class="card-body">
             <div class="mb-3">
                 <a href="{{ route('allocate-trolley') }}" class="btn btn-success btn-sm">
-                    <i class="fa fa-plus"></i> Alokasi Trolley
+                    <i class="fa fa-plus"></i> Alokasi
                 </a>
             </div>
             <div class="table-responsive">
                 <table class="table table-bordered w-100" id="datatable">
                     <thead>
                         <tr>
-                            <th>Act</th>
+                            <th class="text-center">Action</th>
                             <th>Trolley</th>
                             <th>WS Number</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Qty</th>
-                            <th>Send</th>
+                            <th class="text-center">Send</th>
                         </tr>
                     </thead>
                     <tbody>
