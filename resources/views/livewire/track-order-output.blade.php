@@ -13,7 +13,7 @@
         <div class="col-12 col-lg-6 col-xl-5">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateFrom" value="{{ $dateFromFilter }}">
+                    <input type="date" class="form-control form-control-sm" id="dateFrom" wire:model="dateFromFilter">
                 </div>
                 <div> - </div>
                 <div wire:ignore>
@@ -147,6 +147,7 @@
                                                 } else {
                                                     $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
                                                 }
+
                                                 $thisRowOutput += $thisOutput;
                                             @endphp
 
