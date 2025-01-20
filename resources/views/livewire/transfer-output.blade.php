@@ -188,7 +188,7 @@
     </div>
     <div class="row g-3 mt-3">
         <div class="col-6 col-md-6">
-            <button class="btn btn-sb w-100 h-100 fw-bold" wire:click="transferAll()">TRANSFER ALL <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+            <button class="btn btn-sb w-100 h-100 fw-bold" onclick="transferAll()">TRANSFER ALL <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
         <div class="col-6 col-md-6">
             <button class="btn btn-sb-secondary w-100 h-100 fw-bold" data-bs-toggle="modal" data-bs-target="#transferNumberingModal">TRANSFER NUMBERING <i class="fa-solid fa-arrow-right fa-sm"></i></button>
@@ -214,7 +214,7 @@
     <div class="modal fade" id="transferNumberingModal" tabindex="-1" aria-labelledby="transferNumberingModalLabel" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-sb-secondary text-light">
                     <h1 class="modal-title fs-5" id="transferNumberingModalLabel">Transfer Numbering</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -243,8 +243,8 @@
                 <div class="modal-body">
                     <div>
                         <label class="form-label">Size :</label>
-                        <select class="form-control" name="size_rft" id="size_rft" wire:model="transferRftSize" placeholder="ALL">
-                            <option value="">All</option>
+                        <select class="form-control" name="size_rft" id="size_rft" wire:model="transferRftSize" placeholder="Pilih Size">
+                            <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
                                     <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
@@ -254,7 +254,7 @@
                     </div>
                     <div>
                         <label class="form-label">Total :</label>
-                        <input type="number" class="form-control" name="transfer_rft_qty" id="transfer_rft_qty" wire:model="transferRftQty" placeholder="ALL">
+                        <input type="number" class="form-control" name="transfer_rft_qty" id="transfer_rft_qty" wire:model="transferRftQty" placeholder="Qty">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -276,8 +276,8 @@
                 <div class="modal-body">
                     <div>
                         <label class="form-label">Size :</label>
-                        <select class="form-control" name="size_defect" id="size_defect" wire:model="transferDefectSize" placeholder="ALL">
-                            <option value="">All</option>
+                        <select class="form-control" name="size_defect" id="size_defect" wire:model="transferDefectSize" placeholder="Pilih Size">
+                            <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
                                     <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
@@ -287,7 +287,7 @@
                     </div>
                     <div>
                         <label class="form-label">Total :</label>
-                        <input type="number" class="form-control" name="transfer_defect_qty" id="transfer_defect_qty" wire:model="transferDefectQty" placeholder="ALL">
+                        <input type="number" class="form-control" name="transfer_defect_qty" id="transfer_defect_qty" wire:model="transferDefectQty" placeholder="Qty">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -309,8 +309,8 @@
                 <div class="modal-body">
                     <div>
                         <label class="form-label">Size :</label>
-                        <select class="form-control" name="size_rework" id="size_rework" wire:model="transferReworkSize" placeholder="ALL">
-                            <option value="">All</option>
+                        <select class="form-control" name="size_rework" id="size_rework" wire:model="transferReworkSize" placeholder="Pilih Size">
+                            <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
                                     <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
@@ -320,7 +320,7 @@
                     </div>
                     <div>
                         <label class="form-label">Total :</label>
-                        <input type="number" class="form-control" name="transfer_rework_qty" id="transfer_rework_qty" wire:model="transferReworkQty" placeholder="ALL">
+                        <input type="number" class="form-control" name="transfer_rework_qty" id="transfer_rework_qty" wire:model="transferReworkQty" placeholder="Qty">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -342,8 +342,8 @@
                 <div class="modal-body">
                     <div>
                         <label class="form-label">Size :</label>
-                        <select class="form-control" name="size_reject" id="size_reject" wire:model="transferRejectSize" placeholder="ALL">
-                            <option value="">All</option>
+                        <select class="form-control" name="size_reject" id="size_reject" wire:model="transferRejectSize" placeholder="Pilih Size">
+                            <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
                                     <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
@@ -353,7 +353,7 @@
                     </div>
                     <div>
                         <label class="form-label">Total :</label>
-                        <input type="number" class="form-control" name="transfer_reject_qty" id="transfer_reject_qty" wire:model="transferRejectQty" placeholder="ALL">
+                        <input type="number" class="form-control" name="transfer_reject_qty" id="transfer_reject_qty" wire:model="transferRejectQty" placeholder="Qty">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -364,3 +364,25 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+    <script>
+        function transferAll() {
+            Swal.fire({
+                icon: "warning",
+                title: "Transfer",
+                html: "Transfer Semua Output?",
+                showConfirmButton: true,
+                confirmButtonText: "Transfer",
+                showCancelButton: true,
+                cancelButtonText: "Batal",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    @this.transferAll();
+
+                    Livewire.emit('loadingStart');
+                }
+            });
+        }
+    </script>
+@endpush

@@ -324,6 +324,7 @@ class TransferOutput extends Component
                     leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->
                     leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->
                     leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                    where("output_rfts.status", "NORMAL")->
                     where("userpassword.username", $this->fromLine)->
                     where("master_plan_id", $this->fromSelectedMasterPlan)->
                     where("so_det.size", $this->transferRftSize)->
