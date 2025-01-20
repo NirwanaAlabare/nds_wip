@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\Redirect;
 use App\Models\Rack;
 use App\Models\Stocker;
 use App\Models\Marker;
-use App\Models\DCIn;
 use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
+use App\Models\DCIn;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\CuttingChartUpdated;
 use App\Events\CuttingChartUpdatedAll;
@@ -824,10 +825,391 @@ class DashboardController extends Controller
                                 marker_input.panel
                     ) form_cut_all ON form_cut_all.act_costing_ws = form_marker.act_costing_ws AND form_cut_all.style = form_marker.style AND form_cut_all.color = form_marker.color AND form_cut_all.panel = form_marker.panel
                 WHERE
-                    form_marker.panel LIKE '%".$panel."%'
+                    form_marker.panel = '".$panel."'
             ");
 
             return DataTables::of($data)->toJson();
+        }
+
+        public function cuttingOutputListPanels(Request $request) {
+            $date = $request->date ? $request->date : date('Y-m-d');
+
+            $data = DB::select("
+                SELECT
+                    form_marker.act_costing_ws,
+                    form_marker.style,
+                    form_marker.color,
+                    form_marker.panel,
+                    COALESCE ( form_marker.tanggal, 0 ) tanggal,
+                    COALESCE ( form_marker.total_plan, 0 ) total_plan,
+                    COALESCE ( form_cut_all.total_balance, 0 ) balance_plan,
+                    COALESCE ( form_marker.total_complete, 0 ) total_complete,
+                    (COALESCE ( form_marker.total_plan, 0 ) + COALESCE ( form_cut_all.total_balance, 0 )) - COALESCE ( form_marker.total_complete, 0 ) balance
+                FROM
+                (
+                    SELECT
+                        marker_input.act_costing_ws,
+                        marker_input.style,
+                        marker_input.color,
+                        marker_input.panel,
+                        form_cut_plan.tanggal,
+                        SUM( marker_detail.total_ratio * form_cut_plan.total_lembar ) total_plan,
+                        SUM( marker_detail.total_ratio * form_cut_complete.total_lembar ) total_complete
+                    FROM
+                        marker_input
+                        INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
+                        INNER JOIN (
+                            SELECT
+                                form_cut_input.id_marker,
+                                (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
+                            FROM
+                                form_cut_input
+                                LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                            WHERE
+                                ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 6 MONTH )
+                                AND (
+                                    cutting_plan.tgl_plan = '".$date."'
+                                    OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
+                                )
+                            GROUP BY
+                                form_cut_input.id_marker
+                        ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                        LEFT JOIN (
+                            SELECT
+                                form_cut_input.id_marker,
+                                ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
+                                    SUM(
+                                    COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
+                            FROM
+                                form_cut_input
+                                LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                            WHERE
+                                ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 6 MONTH )
+                                AND (
+                                    cutting_plan.tgl_plan = '".$date."'
+                                    OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
+                                )
+                                AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                            GROUP BY
+                                form_cut_input.id_marker
+                        ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                        WHERE
+                            ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
+                        GROUP BY
+                            marker_input.act_costing_ws,
+                            marker_input.style,
+                            marker_input.color,
+                            marker_input.panel
+                    ) form_marker
+                    LEFT JOIN (
+                        SELECT
+                            marker_input.act_costing_ws,
+                            marker_input.style,
+                            marker_input.color,
+                            marker_input.panel,
+                            form_cut_plan.tanggal,
+                            SUM( marker_detail.total_ratio * form_cut_plan.total_lembar ) total_plan,
+                            SUM( marker_detail.total_ratio * form_cut_complete.total_lembar ) total_complete,
+                            SUM( marker_detail.total_ratio * form_cut_plan.total_lembar ) - SUM( marker_detail.total_ratio * form_cut_complete.total_lembar ) total_balance
+                        FROM
+                            marker_input
+                            INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
+                            INNER JOIN (
+                                SELECT
+                                    form_cut_input.id_marker,
+                                    cutting_plan.tgl_plan tanggal,
+                                    SUM(COALESCE ( form_cut_input.qty_ply, 0)) total_lembar
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                    AND (
+                                        cutting_plan.tgl_plan <= '".$date."'
+                                    )
+                                GROUP BY
+                                    form_cut_input.id_marker
+                            ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                            LEFT JOIN (
+                                SELECT
+                                    form_cut_input.id_marker,
+                                    cutting_plan.tgl_plan tanggal,
+                                    SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply, 0 )) total_lembar
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                    AND ( cutting_plan.tgl_plan <= '".$date."' )
+                                    AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                GROUP BY
+                                    form_cut_input.id_marker
+                            ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                            WHERE
+                                ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
+                            GROUP BY
+                                marker_input.act_costing_ws,
+                                marker_input.style,
+                                marker_input.color,
+                                marker_input.panel
+                    ) form_cut_all ON form_cut_all.act_costing_ws = form_marker.act_costing_ws AND form_cut_all.style = form_marker.style AND form_cut_all.color = form_marker.color AND form_cut_all.panel = form_marker.panel
+                GROUP BY
+                    form_marker.panel
+            ");
+
+            return $data;
+        }
+
+        public function cuttingOutputListData(Request $request) {
+            $date = $request->date ? $request->date : date('Y-m-d');
+
+            $data = DB::select("
+                SELECT
+                    form_marker.act_costing_ws,
+                    form_marker.style,
+                    form_marker.color,
+                    form_marker.panel,
+                    COALESCE ( form_marker.tanggal, 0 ) tanggal,
+                    COALESCE ( form_marker.total_plan, 0 ) total_plan,
+                    COALESCE ( form_cut_all.total_balance, 0 ) balance_plan,
+                    COALESCE ( form_marker.total_complete, 0 ) total_complete,
+                    (COALESCE ( form_marker.total_plan, 0 ) + COALESCE ( form_cut_all.total_balance, 0 )) - COALESCE ( form_marker.total_complete, 0 ) balance
+                FROM
+                (
+                    SELECT
+                        marker_input.act_costing_ws,
+                        marker_input.style,
+                        marker_input.color,
+                        marker_input.panel,
+                        form_cut_plan.tanggal,
+                        SUM( marker_detail.total_ratio * form_cut_plan.total_lembar ) total_plan,
+                        SUM( marker_detail.total_ratio * form_cut_complete.total_lembar ) total_complete
+                    FROM
+                        marker_input
+                        INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
+                        INNER JOIN (
+                            SELECT
+                                form_cut_input.id_marker,
+                                (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
+                            FROM
+                                form_cut_input
+                                LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                            WHERE
+                                ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 6 MONTH )
+                                AND (
+                                    cutting_plan.tgl_plan = '".$date."'
+                                    OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
+                                )
+                            GROUP BY
+                                form_cut_input.id_marker
+                        ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                        LEFT JOIN (
+                            SELECT
+                                form_cut_input.id_marker,
+                                ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
+                                    SUM(
+                                    COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
+                            FROM
+                                form_cut_input
+                                LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                            WHERE
+                                ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 6 MONTH )
+                                AND (
+                                    cutting_plan.tgl_plan = '".$date."'
+                                    OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
+                                )
+                                AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                            GROUP BY
+                                form_cut_input.id_marker
+                        ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                        WHERE
+                            ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
+                        GROUP BY
+                            marker_input.act_costing_ws,
+                            marker_input.style,
+                            marker_input.color,
+                            marker_input.panel
+                    ) form_marker
+                    LEFT JOIN (
+                        SELECT
+                            marker_input.act_costing_ws,
+                            marker_input.style,
+                            marker_input.color,
+                            marker_input.panel,
+                            form_cut_plan.tanggal,
+                            SUM( marker_detail.total_ratio * form_cut_plan.total_lembar ) total_plan,
+                            SUM( marker_detail.total_ratio * form_cut_complete.total_lembar ) total_complete,
+                            SUM( marker_detail.total_ratio * form_cut_plan.total_lembar ) - SUM( marker_detail.total_ratio * form_cut_complete.total_lembar ) total_balance
+                        FROM
+                            marker_input
+                            INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
+                            INNER JOIN (
+                                SELECT
+                                    form_cut_input.id_marker,
+                                    cutting_plan.tgl_plan tanggal,
+                                    SUM(COALESCE ( form_cut_input.qty_ply, 0)) total_lembar
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                    AND (
+                                        cutting_plan.tgl_plan <= '".$date."'
+                                    )
+                                GROUP BY
+                                    form_cut_input.id_marker
+                            ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                            LEFT JOIN (
+                                SELECT
+                                    form_cut_input.id_marker,
+                                    cutting_plan.tgl_plan tanggal,
+                                    SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply, 0 )) total_lembar
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                    AND ( cutting_plan.tgl_plan <= '".$date."' )
+                                    AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                GROUP BY
+                                    form_cut_input.id_marker
+                            ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                            WHERE
+                                ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
+                            GROUP BY
+                                marker_input.act_costing_ws,
+                                marker_input.style,
+                                marker_input.color,
+                                marker_input.panel
+                    ) form_cut_all ON form_cut_all.act_costing_ws = form_marker.act_costing_ws AND form_cut_all.style = form_marker.style AND form_cut_all.color = form_marker.color AND form_cut_all.panel = form_marker.panel
+            ");
+
+            return $data;
+        }
+
+        public function cuttingStockListData(Request $request) {
+            $date = $request->date ? $request->date : date('Y-m-d');
+
+            $pemakaianRoll = DB::connection("mysql_sb")->select("
+                select a.*,b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur, coalesce(b.no_ws_aktual, a.no_ws) no_ws_aktual from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws, ac.styleno,ms.supplier buyer,a.id_item,
+                REPLACE(mi.itemdesc, '\"', '\\\\\"') itemdesc, mi.color, a.qty qty_req,a.unit
+                from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
+                inner join jo_det jod on a.id_jo=jod.id_jo
+                inner join so on jod.id_so=so.id
+                inner join act_costing ac on so.id_cost=ac.id
+                inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
+                inner join masteritem mi on a.id_item=mi.id_item
+                where bppbno like '%RQ-F%' and a.id_supplier = '432' and bppbdate = '".$date."'
+                group by a.id_item,a.bppbno
+                order by bppbdate,bppbno desc) a left join
+                (select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate = '".$date."' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY a.no_bppb,no_req,id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
+                (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate = '".$date."' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY a.no_dok,no_invoice,id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
+                order by a.no_ws, a.color
+            ");
+
+            // $cutting = collect(
+            //     DB::select("
+            //         SELECT
+            //             a.no_bppb,
+            //             a.no_req,
+            //             cutting.id_item,
+            //             sum( qty_out ) qty_out,
+            //             COUNT( cutting.id_roll ) total_roll,
+            //             ROUND ( (CASE WHEN satuan = 'YRD' OR satuan = 'YARD' THEN sum( cutting.total_qty ) * 1.09361 ELSE sum( cutting.total_qty ) END ) , 2) total_qty_roll,
+            //             ROUND ( (CASE WHEN satuan = 'YRD' OR satuan = 'YARD' THEN sum( cutting.total_pemakaian_roll ) * 1.09361 ELSE sum( cutting.total_pemakaian_roll ) END ) , 2) total_pakai_roll,
+            //             cutting.satuan
+            //         FROM
+            //             whs_bppb_h a
+            //             INNER JOIN ( SELECT bppbno, bppbdate FROM bppb_req WHERE bppbno LIKE '%RQ-F%' AND id_supplier = '432' AND bppbdate between '".$dateFrom."' and '".$dateTo."'  GROUP BY bppbno ) b ON b.bppbno = a.no_req
+            //             INNER JOIN ( select whs_bppb_det.id_roll, whs_bppb_det.id_item, whs_bppb_det.no_bppb, whs_bppb_det.satuan, whs_bppb_det.qty_out, COUNT(form_cut_input_detail.id) total_roll, MAX(CAST(form_cut_input_detail.qty as decimal(11,3))) total_qty, SUM(form_cut_input_detail.total_pemakaian_roll) total_pemakaian_roll from whs_bppb_det inner join form_cut_input_detail on form_cut_input_detail.id_roll = whs_bppb_det.id_roll group by whs_bppb_det.id_roll ) as cutting on cutting.no_bppb = a.no_bppb
+            //         WHERE
+            //             a.STATUS != 'Cancel'
+            //         GROUP BY
+            //             a.no_bppb,
+            //             no_req,
+            //             id_item
+            //     ")
+            // );
+
+            return DataTables::of($pemakaianRoll)->
+                addColumn('total_roll_cutting', function ($row) {
+                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+
+                    $rollIds = $rollIdsArr->pluck("id_roll");
+
+                    $rolls = FormCutInputDetail::selectRaw("
+                            id_roll,
+                            id_item,
+                            detail_item,
+                            lot,
+                            COALESCE(roll_buyer, roll) roll,
+                            MAX(qty) qty,
+                            unit,
+                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                        ")->
+                        whereNotNull("id_roll")->
+                        whereIn("id_roll", $rollIds)->
+                        groupBy("id_item", "id_roll")->
+                        get();
+
+                    return $rolls->count();
+                })->
+                addColumn('total_roll_balance', function ($row) {
+                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+
+                    $rollIds = $rollIdsArr->pluck("id_roll");
+
+                    $rolls = FormCutInputDetail::selectRaw("
+                            id_roll,
+                            id_item,
+                            detail_item,
+                            lot,
+                            COALESCE(roll_buyer, roll) roll,
+                            MAX(qty) qty,
+                            unit,
+                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                        ")->
+                        whereNotNull("id_roll")->
+                        whereIn("id_roll", $rollIds)->
+                        groupBy("id_item", "id_roll")->
+                        get();
+
+                    $balance = $rolls ? $row->roll_out - $rolls->count() : $row->roll_out;
+
+                    return $balance > 0 ? $balance : ($balance < 0 ? str_replace("-", "+", round($balance, 2)) : round($balance, 2));
+                })->
+                addColumn('total_pakai_balance', function ($row) {
+                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+
+                    $rollIds = $rollIdsArr->pluck("id_roll");
+
+                    $rolls = FormCutInputDetail::selectRaw("
+                            id_roll,
+                            id_item,
+                            detail_item,
+                            lot,
+                            COALESCE(roll_buyer, roll) roll,
+                            MAX(qty) qty,
+                            unit,
+                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                        ")->
+                        whereNotNull("id_roll")->
+                        whereIn("id_roll", $rollIds)->
+                        groupBy("id_item", "id_roll")->
+                        get();
+
+                    $balance = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
+
+                    return $balance > 0 ? round($balance, 2) : ($balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
+                })->
+                toJson();
         }
     // End of Cutting
 

@@ -87,12 +87,12 @@
                     <label class="form-label"><small>Qty</small></label>
                     <input type="text" class="form-control form-control-sm" id="stocker_qty" name="stocker_qty" readonly>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label"><small>Range</small></label>
                     <input type="text" class="form-control form-control-sm" id="stocker_range" name="stocker_range" readonly>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-sm btn-success btn-block" onclick="addRackStocker()"><i class="fa fa-plus"></i></button>
+                <div class="col-md-3">
+                    <button class="btn btn-sm btn-success btn-block" onclick="addRackStocker()"><i class="fa fa-save"></i> Simpan</button>
                 </div>
             </div>
         </div>

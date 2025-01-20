@@ -14,7 +14,7 @@
     <!-- Card Container -->
     <div class="card card-sb">
         <div class="card-header">
-            <h3 class="card-title fw-bold"><i class="fa fa-note-sticky"></i> Bon Loading</h3>
+            <h3 class="card-title fw-bold"><i class="fa-solid fa-ticket-simple"></i> Bon Loading</h3>
         </div>
         <div class="card-body">
             <form action="{{ route("store-bon-loading-line") }}" method="post" onsubmit="storeBonLoading(this, event)" id="bon-loading-form">

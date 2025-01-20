@@ -222,7 +222,7 @@
                                     <i class='fa fa-plus-circle'></i>
                                 </a>
                                 <a href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
-                                    <i class="fa-solid fa-folder-plus"></i>
+                                    <i class="fa-solid fa-file-circle-plus"></i>
                                 </a>
                                 <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>

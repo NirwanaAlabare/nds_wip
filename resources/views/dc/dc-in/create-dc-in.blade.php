@@ -50,7 +50,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-sb">Simpan </button>
+                        <button type="submit" class="btn btn-success mt-3">Simpan</button>
                     </div>
                 </div>
             </div>
@@ -251,9 +251,13 @@
                     <table id="datatable-scan" class="table table-bordered table-sm w-100 display nowrap">
                         <thead>
                             <tr>
-                                <th>Act</th>
+                                <th>Action</th>
                                 <th>
-                                    <input type="checkbox" class="form-check" id="check-all-stocker" style="scale: 1.5;" onchange="checkAll(this)">
+                                    <div class="d-flex justify-content-center ms-3">
+                                        <div class="form-check mt-1 mb-0">
+                                            <input class="form-check-input" type="checkbox" id="check-all-stocker" onchange="checkAll(this)" style="scale: 1.5;">
+                                        </div>
+                                    </div>
                                 </th>
                                 <th>Stocker</th>
                                 <th>Size</th>
@@ -271,12 +275,17 @@
                         <p class="my-3">
                             Selected : <span id="checked-stocker-count" class="fw-bold">0</span>
                         </p>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm my-3" onclick="editCheckedTmpDcIn()">
-                            <i class="fa fa-edit"></i> Edit Selected Stocker
-                        </button>
+                        <div class="d-flex gap-3">
+                            <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm my-3" onclick="editCheckedTmpDcIn()">
+                                <i class="fa fa-edit"></i> Edit Selected Stocker
+                            </button>
+                            <button type="button"  class="btn btn-danger btn-sm my-3" onclick="deleteCheckedTmpDcIn()">
+                                <i class="fa fa-trash"></i> Delete Selected Stocker
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-sb btn-block">Simpan </button>
+                <button type="submit" class="btn btn-success btn-block"><i class="fa fa-save"></i> Simpan DC IN</button>
             </div>
         </div>
     </form>
@@ -941,6 +950,64 @@
                 }).then(() => {
                     $('#updateMassTmpDcModal').modal('hide');
                 });
+            }
+        }
+
+        function deleteCheckedTmpDcIn() {
+            let tmpDcStockCheck = document.getElementsByClassName('tmp_dc_stock_check');
+
+            let checkedTmpDcStock = [];
+            for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                if (tmpDcStockCheck[i].checked) {
+                    checkedTmpDcStock.push(tmpDcStockCheck[i].value);
+                }
+            }
+
+            if (checkedTmpDcStock.length > 0) {
+                Swal.fire({
+                    icon:'error',
+                    title: 'Hapus Data?',
+                    html: 'Hapus stock dc yang dipilih',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Hapus',
+                    confirmButtonColor: 'red',
+                    showCancelButton: true
+                }).then(async (result) => {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.remove("d-none");
+                    }
+
+                    await $.ajax({
+                        url: '{{ route('delete_mass_tmp_dc_in') }}',
+                        type: "delete",
+                        data: {
+                            ids: checkedTmpDcStock.toString()
+                        },
+                        dataType: "json",
+                        success: function (res) {
+                            Swal.fire({
+                                icon: (res.status == 200 ? 'success' : 'error'),
+                                title: (res.status == 200 ? 'Berhasil' : 'Gagal'),
+                                html: res.message,
+                            }).then((result) => {
+                                getdatatmp();
+                            });
+                        },
+                        error: function (jqXHR) {
+                            console.error(jqXHR);
+                        }
+                    });
+
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                })
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis stocker yang akan di hapus',
+                })
             }
         }
     </script>

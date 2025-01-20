@@ -27,7 +27,6 @@ class DCInController extends Controller
         $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
 
         $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
-        // dd($data_rak);
         if ($request->ajax()) {
             $additionalQuery = '';
 
@@ -798,6 +797,31 @@ class DCInController extends Controller
             'table' => 'datatable-scan',
             'additional' => [],
             'callback' => 'resetCheckedStocker()'
+        );
+    }
+
+    public function delete_mass_tmp_dc_in(Request $request)
+    {
+        ini_set('max_execution_time', 36000);
+
+        $massStockerIds = explode(",", $request->ids);
+
+        if (count($massStockerIds) > 0) {
+            $delete_tmp_dc_in = DB::table("tmp_dc_in_input_new")->
+                whereIn("id_qr_stocker", $massStockerIds)->
+                delete();
+
+            if ($delete_tmp_dc_in) {
+                return array(
+                    "status" => 200,
+                    "message" => "Stock DC berhasil dihapus"
+                );
+            }
+        }
+
+        return array(
+            "status" => 200,
+            "message" => "Stock DC gagal dihapus"
         );
     }
 

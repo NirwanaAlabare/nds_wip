@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-note-sticky"></i> Stocker List</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-list-ul"></i> Stocker List</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">

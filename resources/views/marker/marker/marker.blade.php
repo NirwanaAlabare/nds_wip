@@ -29,7 +29,7 @@
     <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel" aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
-            <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 35%;">
+            <div class="modal-dialog modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
                         <h1 class="modal-title fs-5" id="editMarkerModalLabel"></h1>
@@ -436,24 +436,35 @@
         };
 
         function cancel(id_c) {
-            let html = $.ajax({
-                type: "POST",
-                url: '{{ route('update_status') }}',
-                data: {
-                    id_c: id_c
-                },
-                async: false
-            }).responseText;
+            Swal.fire({
+                icon: 'error',
+                title: 'Hapus Data',
+                showConfirmButton: true,
+                confirmButtonText: "Hapus",
+                confirmButtonColor: "red",
+                showCancelButton: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let html = $.ajax({
+                        type: "POST",
+                        url: '{{ route('update_status') }}',
+                        data: {
+                            id_c: id_c
+                        },
+                        async: false
+                    }).responseText;
 
-            swal.fire({
-                position: 'mid-end',
-                icon: 'info',
-                title: 'Data Sudah Di Ubah',
-                showConfirmButton: false,
-                timer: 1000
+                    swal.fire({
+                        position: 'mid-end',
+                        icon: 'info',
+                        title: 'Data Sudah Di Ubah',
+                        showConfirmButton: false,
+                        timer: 5000
+                    });
+
+                    datatable.ajax.reload();
+                }
             });
-
-            datatable.ajax.reload();
         };
 
         function printMarker(kodeMarker) {

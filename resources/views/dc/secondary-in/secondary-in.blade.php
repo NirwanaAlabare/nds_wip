@@ -14,8 +14,7 @@
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <form action="{{ route('store-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='form'
-            id='form'>
+        <form action="{{ route('store-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
             @method('POST')
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
@@ -29,8 +28,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input"
-                                            name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
+                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
                                             onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()"
                                             autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
@@ -54,31 +52,26 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No Stocker</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker'
-                                        name='txtno_stocker' value = '' readonly>
-                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form'
-                                        name='txtno_form' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker' name='txtno_stocker' value='' readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form' name='txtno_form' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>WS</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws'
-                                        value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Buyer</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtbuyer'
-                                        name='txtbuyer' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No Cut</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_cut'
-                                        name='txtno_cut' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_cut' name='txtno_cut' value='' readonly>
                                 </div>
                             </div>
                         </div>
@@ -87,29 +80,25 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Style</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtstyle'
-                                        name='txtstyle' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtstyle' name='txtstyle' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Color</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtcolor'
-                                        name='txtcolor' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtcolor' name='txtcolor' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Size</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtsize'
-                                        name='txtsize' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtsize' name='txtsize' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Part</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtpart'
-                                        name='txtpart' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value='' readonly>
                                 </div>
                             </div>
                         </div>
@@ -118,15 +107,13 @@
                             <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txttujuan'
-                                        name='txttujuan' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtalokasi'
-                                        name='txtalokasi' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value='' readonly>
                                 </div>
                             </div>
                         </div>
@@ -135,15 +122,13 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty Awal</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyawal'
-                                        name='txtqtyawal' value = '' readonly>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyawal' name='txtqtyawal' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject'
-                                        name='txtqtyreject' value = '' oninput='sum();'
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value='' oninput='sum();'
                                         style = 'border-color:blue;'>
                                 </div>
                             </div>
@@ -151,16 +136,14 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace'
-                                        name='txtqtyreplace' value = '0' oninput='sum();'
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();'
                                         style = 'border-color:blue;'>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty In</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyin'
-                                        name='txtqtyin' value = '' readonly style = 'border-color:green;'>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value='' readonly style = 'border-color:green;'>
                                 </div>
                             </div>
 
@@ -170,8 +153,7 @@
                             <div class='col-md-6' id="rak-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Rak</small></label>
-                                    <select class="form-control select2bs4" name="cborak" id="cborak"
-                                        style="width: 100%;">
+                                    <select class="form-control select2bs4" name="cborak" id="cborak" style="width: 100%;">
                                         <option selected="selected" value="">Pilih Rak Tujuan</option>
                                         @foreach ($data_rak as $datarak)
                                             <option value="{{ $datarak->isi }}">
@@ -184,8 +166,7 @@
                             <div class='col-md-6' id="trolley-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Trolley</small></label>
-                                    <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley"
-                                        style="width: 100%;">
+                                    <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley" style="width: 100%;">
                                         <option selected="selected" value="">Pilih Trolley Tujuan</option>
                                         @foreach ($data_trolley as $datatrolley)
                                             <option value="{{ $datatrolley->isi }}">
@@ -198,8 +179,7 @@
                             <div class='col-md-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Keterangan</small></label>
-                                    <input type='text' class='form-control' id='txtket' name='txtket'
-                                        value = '' style = 'border-color:blue;' autocomplete="off">
+                                    <input type='text' class='form-control' id='txtket' name='txtket' value='' style = 'border-color:blue;' autocomplete="off">
                                 </div>
                             </div>
                         </div>
@@ -222,13 +202,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal"
