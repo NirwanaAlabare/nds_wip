@@ -1095,8 +1095,8 @@ class DashboardController extends Controller
             $date = $request->date ? $request->date : date('Y-m-d');
 
             $pemakaianRoll = DB::connection("mysql_sb")->select("
-                select a.*,b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws,ac.styleno,ms.supplier buyer,a.id_item,
-                REPLACE(mi.itemdesc, '\"', '\\\\\"') itemdesc,a.qty qty_req,a.unit
+                select a.*,b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur, coalesce(b.no_ws_aktual, a.no_ws) no_ws_aktual from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws, ac.styleno,ms.supplier buyer,a.id_item,
+                REPLACE(mi.itemdesc, '\"', '\\\\\"') itemdesc, mi.color, a.qty qty_req,a.unit
                 from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
                 inner join jo_det jod on a.id_jo=jod.id_jo
                 inner join so on jod.id_so=so.id
@@ -1106,8 +1106,9 @@ class DashboardController extends Controller
                 where bppbno like '%RQ-F%' and a.id_supplier = '432' and bppbdate = '".$date."'
                 group by a.id_item,a.bppbno
                 order by bppbdate,bppbno desc) a left join
-                (select a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate = '".$date."' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY a.no_bppb,no_req,id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
+                (select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate = '".$date."' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY a.no_bppb,no_req,id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
                 (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate = '".$date."' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY a.no_dok,no_invoice,id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
+                order by a.no_ws, a.color
             ");
 
             // $cutting = collect(
