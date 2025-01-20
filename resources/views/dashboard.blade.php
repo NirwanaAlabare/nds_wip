@@ -40,7 +40,7 @@
         @endif
 
         @if ($page == 'dashboard-stocker')
-            @include('stocker.dashboard', ["months" => $months, "years" => $years])
+            {{-- @include('stocker.dashboard', ["months" => $months, "years" => $years]) --}}
         @endif
 
         @if ($page == 'dashboard-dc')
