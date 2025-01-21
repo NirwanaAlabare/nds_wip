@@ -1108,6 +1108,7 @@ class DashboardController extends Controller
                 order by bppbdate,bppbno desc) a left join
                 (select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate = '".$date."' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY a.no_bppb,no_req,id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
                 (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate = '".$date."' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY a.no_dok,no_invoice,id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
+                where COALESCE(total_roll,0) > 0
                 order by a.no_ws, a.color
             ");
 
@@ -1136,6 +1137,132 @@ class DashboardController extends Controller
             // );
 
             return DataTables::of($pemakaianRoll)->
+                addColumn('saldo_awal', function ($row) use ($date) {
+                    $pemakaianRoll = collect(DB::connection("mysql_sb")->select("
+                        SELECT
+                            a.*,
+                            b.no_bppb no_out,
+                            COALESCE ( total_roll, 0 ) roll_out,
+                            ROUND( COALESCE ( qty_out, 0 ), 2 ) qty_out,
+                            c.no_dok no_retur,
+                            COALESCE ( total_roll_ri, 0 ) roll_retur,
+                            ROUND( COALESCE ( qty_out_ri, 0 ), 2 ) qty_retur,
+                            COALESCE ( b.no_ws_aktual, a.no_ws ) no_ws_aktual
+                        FROM
+                            (
+                            SELECT
+                                bppbno,
+                                bppbdate,
+                                s.supplier tujuan,
+                                ac.kpno no_ws,
+                                ac.styleno,
+                                ms.supplier buyer,
+                                a.id_item,
+                                REPLACE ( mi.itemdesc, '\"', '\\\\\"' ) itemdesc,
+                                mi.color,
+                                a.qty qty_req,
+                                a.unit
+                            FROM
+                                bppb_req a
+                                INNER JOIN mastersupplier s ON a.id_supplier = s.id_supplier
+                                INNER JOIN jo_det jod ON a.id_jo = jod.id_jo
+                                INNER JOIN so ON jod.id_so = so.id
+                                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                                INNER JOIN mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                                INNER JOIN masteritem mi ON a.id_item = mi.id_item
+                            WHERE
+                                bppbno LIKE '%RQ-F%'
+                                AND a.id_supplier = '432'
+                                AND bppbdate < '".$date."'
+                                AND a.id_item = '".$row->id_item."'
+                            GROUP BY
+                                a.id_item,
+                                a.bppbno
+                            ORDER BY
+                                bppbdate,
+                                bppbno DESC
+                            ) a
+                            LEFT JOIN (
+                                SELECT
+                                    a.no_ws_aktual,
+                                    a.no_bppb,
+                                    no_req,
+                                    id_item,
+                                    COUNT( id_roll ) total_roll,
+                                    sum( qty_out ) qty_out,
+                                    satuan
+                                FROM
+                                    whs_bppb_h a
+                                    INNER JOIN ( SELECT bppbno, bppbdate FROM bppb_req WHERE bppbno LIKE '%RQ-F%' AND id_supplier = '432' AND bppbdate < '".$date."' GROUP BY bppbno ) b ON b.bppbno = a.no_req
+                                    INNER JOIN whs_bppb_det c ON c.no_bppb = a.no_bppb
+                                WHERE
+                                    a.STATUS != 'Cancel'
+                                    AND c.STATUS = 'Y'
+                                    AND id_item = '".$row->id_item."'
+                                GROUP BY
+                                    a.no_bppb,
+                                    no_req,
+                                    id_item
+                                HAVING
+                                    COUNT( id_roll ) > 0
+                            ) b ON b.no_req = a.bppbno AND b.id_item = a.id_item
+                            LEFT JOIN (
+                                SELECT
+                                    a.no_dok,
+                                    no_invoice no_req,
+                                    id_item,
+                                    COUNT( no_barcode ) total_roll_ri,
+                                    sum( qty_sj ) qty_out_ri,
+                                    satuan
+                                FROM
+                                    (
+                                    SELECT * FROM
+                                        whs_inmaterial_fabric
+                                    WHERE no_dok LIKE '%RI%' AND supplier = 'Production - Cutting' ) a
+                                        INNER JOIN ( SELECT bppbno, bppbdate FROM bppb_req WHERE bppbno LIKE '%RQ-F%' AND id_supplier = '432' AND bppbdate < '".$date."' and id_item = '".$row->id_item."' GROUP BY bppbno ) b ON b.bppbno = a.no_invoice
+                                        INNER JOIN whs_lokasi_inmaterial c ON c.no_dok = a.no_dok
+                                    GROUP BY
+                                        a.no_dok,
+                                        no_invoice,
+                                        id_item
+                                ) c ON c.no_req = a.bppbno
+                            AND c.id_item = a.id_item
+                        ORDER BY
+                            a.no_ws,
+                            a.color
+                    "));
+
+                    $saldoAwal = $pemakaianRoll->sum("roll_out");
+                    $saldoBalance = $saldoAwal;
+                    $totalRollCutting = 0;
+
+                    foreach ($pemakaianRoll as $roll) {
+                        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$roll->bppbno."' and b.id_item = '".$roll->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+
+                        $rollIds = $rollIdsArr->pluck("id_roll");
+
+                        $rolls = FormCutInputDetail::selectRaw("
+                            id_roll,
+                            id_item,
+                            detail_item,
+                            lot,
+                            COALESCE(roll_buyer, roll) roll,
+                            MAX(qty) qty,
+                            unit,
+                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                        ")->
+                        whereNotNull("id_roll")->
+                        whereIn("id_roll", $rollIds)->
+                        groupBy("id_item", "id_roll")->
+                        get();
+
+                        $totalRollCutting += $rolls->count();
+                        $saldoBalance -= $rolls->count();
+                    }
+
+                    return $saldoAwal;
+                })->
                 addColumn('total_roll_cutting', function ($row) {
                     $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 

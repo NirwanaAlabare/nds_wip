@@ -173,6 +173,11 @@
                                         Pemakaian Kain <i class="fa fa-file"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('dashboard-chart') }}" class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}" target="_blank">
+                                        Dashboard <i class="fa-solid fa-pager"></i>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">

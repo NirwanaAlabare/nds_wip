@@ -14,8 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .myDoughnutChartDiv {
-            width: 300px;
-            height: 300px;
+            width: 100%;
         }
 
         .myPieChartDiv {
@@ -196,18 +195,16 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-evenly" style="gap: 20px">
-                    <div class="card" style="width: 70%; height: 340px">
+                    <div class="card w-100">
                         <div class="card-body">
                             <div class="header">
                                 <div class="header-top">
                                     <h1 class="header-title">Dashboard Cutting Chart Progress</h1>
                                 </div>
                                 <div class="mb-1">
-                                    <input type="date" class='form-control' id='cutting-form-date-filter'
-                                        value="{{ date('Y-m-d') }}">
+                                    <input type="date" class='form-control' id='cutting-form-date-filter' value="{{ date('Y-m-d') }}">
                                 </div>
-                                <p class="description">Laporan progress cutting tanggal <strong
-                                        id="selected-date">{{ date('Y-m-d') }}</strong></p>
+                                <p class="description">Laporan progress cutting tanggal <strong id="selected-date">{{ date('Y-m-d') }}</strong></p>
                             </div>
                             <div class="item-checklist-box col-12 col-md-6 col-lg-12">
                                 <label class="PillList-item">
@@ -218,17 +215,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="wrapperDoughnut">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="myDoughnutChartDiv">
-                                    <canvas id="myDoughnutChart" width="50" height="50"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-                <swiper-container class="mySwiper" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
+                <swiper-container class="mySwiper swiper-no-swiping" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
                     <swiper-slide>
                         <div class="card w-100 mx-3 mt-3">
                             <div class="card-body">
@@ -239,7 +227,18 @@
                                         <p class="mb-0 fw-bold clock"></p>
                                     </div>
                                 </div>
-                                <canvas id="myChart"></canvas>
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <canvas id="myChart"></canvas>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="wrapperDoughnut">
+                                            <div class="myDoughnutChartDiv">
+                                                <canvas id="myDoughnutChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </swiper-slide>
@@ -321,6 +320,15 @@
                                         </thead>
                                         <tbody>
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="4">Total</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
@@ -628,39 +636,104 @@
                 data: function (d) {
                     d.date = $("#cutting-form-date-filter").val()
                 }
-            },
+        },
             columns: [
                 {
-                    data: 'act_costing_ws',
+                    data: 'no_ws_aktual',
                 },
                 {
-                    data: 'style',
+                    data: 'styleno',
                 },
                 {
                     data: 'color',
                 },
                 {
-                    data: 'detail_item',
+                    data: 'itemdesc',
                 },
                 {
                     data: 'saldo_awal',
                 },
                 {
-                    data: 'roll_in',
+                    data: 'roll_out',
                 },
                 {
-                    data: 'roll_user',
+                    data: 'total_roll_cutting',
                 },
                 {
-                    data: 'stock_roll',
+                    data: 'total_roll_balance',
                 },
             ],
             columnDefs: [
                 {
                     targets: "_all",
                     className: "text-nowrap align-middle"
+                },
+                {
+                    targets: [3],
+                    className: "text-nowrap align-middle",
+                    render: (data, type, row, meta) => {
+                        return `<div style="max-width: 200px; overflow:hidden">`+(data.length > 20 ? data.substr(0, 20)+`...` : data)+`</div>`
+                    }
+                },
+                {
+                    targets: [7],
+                    render: (data, type, row, meta) => {
+                        return data + row.saldo_awal;
+                    }
                 }
             ],
+            footerCallback: async function (row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(4).footer()).html("...");
+                $(api.column(5).footer()).html("...");
+                $(api.column(6).footer()).html("...");
+                $(api.column(7).footer()).html("...");
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumSaldoAwal = api
+                    .column(4)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollIn = api
+                    .column(5)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollUse = api
+                    .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumStokRoll = api
+                    .column(7)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(4).footer()).html(sumSaldoAwal);
+                $(api.column(5).footer()).html(sumRollIn);
+                $(api.column(6).footer()).html(sumRollUse);
+                $(api.column(7).footer()).html(sumStokRoll+sumSaldoAwal);
+            }
         });
 
         function datatableCuttingStockReload() {
@@ -958,7 +1031,7 @@
                                 plugins: {
                                     title: {
                                         display: true,
-                                        text: 'Komulatif Completed vs Incompleted (%)'
+                                        text: 'Kumulatif Completed vs Incompleted (%)'
                                     },
                                     datalabels: { // Plugin untuk menampilkan label
                                         color: '#fff', // Warna teks label
