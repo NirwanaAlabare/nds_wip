@@ -249,7 +249,7 @@ class RollController extends Controller
                     b.pemakaian_lembar,
                     b.total_pemakaian_roll,
                     ROUND((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty), 2) short_roll,
-                    CONCAT(ROUND((((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty))/(SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) * 100), 2), ' %') short_roll_percentage,
+                    CONCAT(ROUND((((SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) - MAX(b.qty))/(SUM(b.total_pemakaian_roll) + MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END)) * 100), 2)) short_roll_percentage,
                     a.operator
                 FROM
                     form_cut_input a
@@ -338,7 +338,7 @@ class RollController extends Controller
                     form_cut_piping.piping pemakaian_lembar,
                     form_cut_piping.piping total_pemakaian_roll,
                     ROUND(( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty, 2 ) short_roll,
-                    CONCAT( ROUND((( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty ) / form_cut_piping.qty * 100, 2 ), ' %' ) short_roll_percentage,
+                    CONCAT( ROUND((( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty ) / form_cut_piping.qty * 100, 2 ) ) short_roll_percentage,
                     form_cut_piping.operator
                 FROM
                     form_cut_piping
