@@ -557,6 +557,20 @@
                 {
                     targets: "_all",
                     className: "text-nowrap"
+                },
+                {
+                    targets: [53],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return Number(data).round(2)
+                    }
+                },
+                {
+                    targets: [54],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return (Number(data).round(2))+" %"
+                    }
                 }
             ],
         });
