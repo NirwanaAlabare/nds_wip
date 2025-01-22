@@ -216,7 +216,7 @@
                         </div>
                     </div>
                 </div>
-                <swiper-container class="mySwiper swiper-no-swiping" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
+                <swiper-container class="mySwiper" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
                     <swiper-slide>
                         <div class="card w-100 mx-3 mt-3">
                             <div class="card-body">
@@ -284,7 +284,7 @@
                                 <p class="mb-0 fw-bold clock"></p>
                             </div>
                         </div>
-                        <swiper-container class="mySwiper1" autoplay-delay="5000" space-between="30" slides-per-view="3">
+                        <swiper-container class="mySwiper1" autoplay-delay="3000" space-between="30" slides-per-view="3">
                             <swiper-slide>
                                 <div class="cutting-chart-container">
                                     <div class="cutting-chart"></div>
