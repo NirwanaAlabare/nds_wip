@@ -291,6 +291,7 @@
                         'styleFilter': $('#style_filter').val(),
                         'colorFilter': $('#color_filter').val(),
                         'sizeFilter': $('#size_filter').val(),
+                        'search' : $('#line_wip_table_filter input').val()
                     },
                     success: function(response) {
                         console.log(response);

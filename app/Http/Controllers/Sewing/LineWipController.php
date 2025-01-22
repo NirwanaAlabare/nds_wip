@@ -309,6 +309,7 @@ class LineWipController extends Controller
         $styleFilter = "";
         $colorFilter = "";
         $sizeFilter = "";
+        $searchFilter = "";
 
         if ($request->lineNameFilter) {
             $lineNameFilter1 = "AND userpassword.username LIKE '%".($request->lineNameFilter)."%'";
@@ -334,6 +335,25 @@ class LineWipController extends Controller
 
         if ($request->sizeFilter) {
             $sizeFilter = "AND master_sb_ws.size LIKE '%".($request->sizeFilter)."%'";
+        }
+
+        if ($request->search) {
+            $searchFilter = "
+                AND 
+                (
+                    ppic_master.tanggal LIKE '%".$request->search."%' OR
+                    ppic_master.id_ws LIKE '%".$request->search."%' OR
+                    ppic_master.ws LIKE '%".$request->search."%' OR
+                    ppic_master.styleno LIKE '%".$request->search."%' OR
+                    ppic_master.color LIKE '%".$request->search."%' OR
+                    ppic_master.size LIKE '%".$request->search."%' OR
+                    ppic_master.id_so_det LIKE '%".$request->search."%' OR
+                    loading_stock.line_id LIKE '%".$request->search."%' OR
+                    loading_stock.nama_line LIKE '%".$request->search."%' OR
+                    loading_stock.loading_qty LIKE '%".$request->search."%' OR
+                    transfer_garment.total_transfer_garment LIKE '%".$request->search."%'
+                )
+            ";
         }
 
         $ppicList = collect(
@@ -574,6 +594,7 @@ class LineWipController extends Controller
                     ".$lineIdFilter."
                     ".$lineNameFilter2."
                     ".$lineNameFilter3."
+                    ".$searchFilter."
                 GROUP BY
                     ppic_master.id_ws,
                     ppic_master.color,
