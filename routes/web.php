@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 
 // User
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ManageUserController;
 
 // Dashboard WIP Line
 use App\Http\Controllers\DashboardWipLineController;
@@ -1682,22 +1683,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-approval-bahan-bakar');
     });
 
-
-    Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-complete');
-        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
-    });
-
-    Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-incomplete');
-        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
-    });
-
-    Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-wip');
-        Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
-    });
-
     Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
         Route::get('/', 'cuttingMeja')->name('dashboard-chart');
         Route::get('/{mejaId?}', 'cuttingMejaDetail')->name('dashboard-chart-detail');
@@ -1705,6 +1690,12 @@ Route::middleware('auth')->group(function () {
         // TEST TRIGGER SOCKET.IO
         Route::get('/trigger/all/{date?}', 'cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
         Route::get('/trigger/{date?}/{mejaId?}', 'cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
+    });
+
+    // Manage User
+    Route::controller(ManageUserController::class)->prefix("manage-user")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-user');
+        Route::post('/store', 'store')->name('store-user');
     });
 });
 
