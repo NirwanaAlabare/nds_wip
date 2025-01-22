@@ -12,7 +12,6 @@
 @endsection
 
 @section('content')
-
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-circle-exclamation"></i> Master Defect</h5>

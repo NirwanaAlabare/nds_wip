@@ -35,15 +35,25 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('role', function (...$roles) {
             $user = auth()->user();
 
-            if ($user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
-                return true;
-            }
+            if (in_array("superadmin", $roles)) {
+                if ($user->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
+                    return true;
+                }
+            } else if (in_array("admin", $roles)) {
+                if ($user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
+                    return true;
+                }
+            } else {
+                if ($user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
+                    return true;
+                }
 
-            foreach($roles as $role) {
-                // Check if user has the role This check will depend on how your roles are set up
-                foreach ($user->roles as $userRole) {
-                    if ($userRole->accesses->whereIn("access", [$role, "all"])->count() > 0) {
-                        return true;
+                foreach($roles as $role) {
+                    // Check if user has the role This check will depend on how your roles are set up
+                    foreach ($user->roles as $userRole) {
+                        if ($userRole->accesses->whereIn("access", [$role, "all"])->count() > 0) {
+                            return true;
+                        }
                     }
                 }
             }

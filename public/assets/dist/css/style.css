@@ -610,4 +610,10 @@ table.sticky-table tr th, table.sticky-table tr td {
     .modal-dialog-scrollable .modal-body {
         max-height: 65vh !important;
     }
+
+    .navbar-nav .nav-item {
+        margin: 3px;
+        background: inherit;
+        border-radius: 3px;
+    }
 }
