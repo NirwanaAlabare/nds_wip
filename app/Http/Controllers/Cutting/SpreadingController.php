@@ -33,11 +33,11 @@ class SpreadingController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= "( cutting_plan.tgl_plan >= '".$request->dateFrom."' OR COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) >= '" . $request->dateFrom . "')";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) <= '" . $request->dateTo . "' ";
+                $additionalQuery .= "( cutting_plan.tgl_plan <= '".$request->dateTo."' OR COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) <= '" . $request->dateTo . "')";
             }
 
             $keywordQuery = "";

@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ["navbar" => false, "containerFluid" => true])
 
 @section('custom-link')
     <!-- Select2 -->
@@ -156,8 +156,13 @@
 @endsection
 
 @section('content')
+    <div class="loading-container-fullscreen d-none" id="loading-cutting-form">
+        <div class="loading-container">
+            <div class="loading"></div>
+        </div>
+    </div>
     <div id="realtimeUpdateWrap"></div>
-    <button type="button" onclick="window.history.back()" class="btn btn-primary mb-3">Kembali</button>
+    <button type="button" onclick="window.history.back()" class="btn btn-primary mb-3 d-none">Kembali</button>
     <div class="card card-sb">
         <div class="card-body">
             <div class="d-flex">
@@ -178,11 +183,6 @@
                             </label>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="d-none mb-3" id="loading-cutting-form">
-                <div class="loading-container">
-                    <div class="loading"></div>
                 </div>
             </div>
             <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true">
@@ -351,7 +351,8 @@
                     d.date = @json($tglPlan);
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -376,18 +377,55 @@
                     data: 'status'
                 }
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [5],
                     className: "text-center",
                     render: (data, type, row, meta) => {
-                        return data ? data : '-';
+                        var color = 'black';
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        } else {
+                            if (row.app != 'Y') {
+                                color = '#616161';
+                            }
+                        }
+
+                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : '-') + '</span>';
                     }
                 },
                 {
                     targets: [6],
                     className: "text-center",
                     render: (data, type, row, meta) => {
-                        return data ? data : '-';
+                        var color = 'black';
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        } else {
+                            if (row.app != 'Y') {
+                                color = '#616161';
+                            }
+                        }
+
+                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : '-') + '</span>';
                     }
                 },
                 {
@@ -419,6 +457,31 @@
                         return icon;
                     }
                 },
+                {
+                    targets: '_all',
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        var color = 'black';
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        } else {
+                            if (row.app != 'Y') {
+                                color = '#616161';
+                            }
+                        }
+
+                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : "-") + '</span>';
+                    }
+                }
             ],
         });
 
@@ -439,7 +502,8 @@
                     d.date = @json($tglPlan);
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'act_costing_ws'
                 },
                 {
@@ -568,6 +632,8 @@
         }
 
         $(document).ready(async function() {
+            document.getElementById("loading-cutting-form").classList.remove("d-none");
+
             await loadCuttingFormChart([mejaId], tglPlan);
 
             const selectedDateElement = document.getElementById('selected-date');
@@ -580,6 +646,8 @@
             dateInput.addEventListener('input', updateDescription);
 
             updateDescription();
+
+            document.getElementById("loading-cutting-form").classList.add("d-none");
         });
 
         function generateCheckboxes(noMejaId, selectedCheckboxesIds) {
@@ -633,7 +701,6 @@
 
 
         function loadCuttingFormChart(selectedCheckboxes, currentDate) {
-            document.getElementById("loading-cutting-form").classList.remove("d-none");
             const checkboxContainer = document.querySelector('.item-checklist-box');
 
             if (!checkboxContainer) {
@@ -671,27 +738,21 @@
                             myChart = null;
                         }
                         res.forEach(item => {
-                            const formattedMeja = item.no_meja ?
-                                item.no_meja.toUpperCase().replace('_', ' ') :
-                                'UNKNOWN';
+                            const formattedMeja = item.no_meja ? item.no_meja.toUpperCase().replace('_', ' ') : 'UNKNOWN';
                             noMejaId.push(item.no_meja ? item.no_meja : 0);
                             mejaArr.push(formattedMeja);
                             totalFormArr.push(item.total_form ? item.total_form : 0);
-                            completedFormArr.push(item.completed_form ? parseInt(item.completed_form) :
-                                0);
-                            incompletedFormArr.push(item.incomplete_form ? parseInt(item
-                                .incomplete_form) : 0);
+                            completedFormArr.push(item.completed_form ? parseInt(item.completed_form) : 0);
+                            incompletedFormArr.push(item.incomplete_form ? parseInt(item.incomplete_form) : 0);
 
                             totalCompleted += item.completed_form ? parseInt(item.completed_form) : 0;
-                            totalIncompleted += item.incomplete_form ? parseInt(item.incomplete_form) :
-                                0;
+                            totalIncompleted += item.incomplete_form ? parseInt(item.incomplete_form) :0;
                         });
 
                         const uniqueNoMejaId = Array.from(new Set([mejaId]));
                         generateCheckboxes(uniqueNoMejaId, selectedCheckboxes);
 
-                        const checkboxesAfterLoad = checkboxContainer.querySelectorAll(
-                            'input[type="checkbox"]');
+                        const checkboxesAfterLoad = checkboxContainer.querySelectorAll('input[type="checkbox"]');
                         checkboxesAfterLoad.forEach(checkbox => {
                             const icon = checkbox.parentElement.querySelector('.Icon i');
                             if (selectedCheckboxes.includes(checkbox.value)) {
@@ -738,7 +799,8 @@
                         });
                         const data = {
                             labels: labels,
-                            datasets: [{
+                            datasets: [
+                                {
                                     label: 'Total form',
                                     data: totalFormArr,
                                     backgroundColor: Utils.CHART_COLORS.blue,
