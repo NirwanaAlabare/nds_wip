@@ -312,9 +312,9 @@ class LineWipController extends Controller
         $searchFilter = "";
 
         if ($request->lineNameFilter) {
-            $lineNameFilter1 = "AND userpassword.username LIKE '%".($request->lineNameFilter)."%'";
-            $lineNameFilter2 = "AND nama_line LIKE '%".($request->lineNameFilter)."%'";
-            $lineNameFilter3 = "AND line LIKE '%".($request->lineNameFilter)."%'";
+            $lineNameFilter1 = "AND userpassword.username LIKE '%".(str_replace(" ", "_", $request->lineNameFilter))."%'";
+            $lineNameFilter2 = "AND nama_line LIKE '%".(str_replace(" ", "_", $request->lineNameFilter))."%'";
+            $lineNameFilter3 = "AND line LIKE '%".(str_replace(" ", "_", $request->lineNameFilter))."%'";
         }
 
         if ($request->tanggalFilter) {
@@ -326,7 +326,7 @@ class LineWipController extends Controller
         }
 
         if ($request->styleFilter) {
-            $styleFilter = "AND master_sb_ws.style LIKE '%".($request->styleFilter)."%'";
+            $styleFilter = "AND master_sb_ws.styleno LIKE '%".($request->styleFilter)."%'";
         }
 
         if ($request->colorFilter) {
@@ -339,7 +339,7 @@ class LineWipController extends Controller
 
         if ($request->search) {
             $searchFilter = "
-                AND 
+                AND
                 (
                     ppic_master.tanggal LIKE '%".$request->search."%' OR
                     ppic_master.id_ws LIKE '%".$request->search."%' OR
@@ -604,7 +604,6 @@ class LineWipController extends Controller
                     ppic_master.id_so_det is not null
                     ".$lineIdFilter."
                     ".$lineNameFilter2."
-                    ".$lineNameFilter3."
                 ORDER BY
                     ppic_master.id_so_det
             "));

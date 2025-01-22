@@ -158,6 +158,7 @@
             processing: true,
             serverSide: false,
             pageLength: 100,
+            scrollX: '400px',
             scrollY: '400px',
             ajax: {
                 headers: {
