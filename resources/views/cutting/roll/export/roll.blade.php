@@ -49,6 +49,7 @@
             <th style="background-color: #f5dda9">No. Roll</th>
             <th style="background-color: #f5dda9">Lot</th>
             <th style="background-color: #f5dda9">Group</th>
+            <th style="background-color: #f5dda9">Status Roll</th>
             <th style="background-color: #f5dda9">Qty Roll</th>
             <th style="background-color: #f5dda9">Unit Roll</th>
             <th style="background-color: #f5dda9">Berat Amparan (KGM)</th>
@@ -167,6 +168,7 @@
                 <td>{{ $item->status == "extension complete" ? "SAMBUNGAN" : $item->roll }}</td>
                 <td>{{ $item->lot }}</td>
                 <td>{{ $item->group_roll }}</td>
+                <td>{{ $item->status_roll }}</td>
                 @if ($item->status != 'extension complete')
                     <td>{{ $latestStatus != 'extension complete' ? $item->qty_roll : $latestQty }}</td>
                     <td>{{ $item->unit_roll }}</td>

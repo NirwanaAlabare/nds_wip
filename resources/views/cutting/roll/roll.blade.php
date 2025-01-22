@@ -32,7 +32,7 @@
                             <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-lg-6">
                         <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
                             <div class="mb-3">
                                 <select class="form-select form-select-sm select2bs4" style="min-width:200px;" name="supplier" id="supplier">
@@ -91,6 +91,7 @@
                                 <th>No. Roll</th>
                                 <th>Lot</th>
                                 <th>Group</th>
+                                <th>Status Roll</th>
                                 <th>Qty Roll</th>
                                 <th>Unit Roll</th>
                                 <th>Berat Amparan (KGM)</th>
@@ -484,6 +485,9 @@
                 },
                 {
                     data: "group_roll"
+                },
+                {
+                    data: "status_roll"
                 },
                 {
                     data: "qty_roll"

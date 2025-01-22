@@ -214,12 +214,22 @@ class RollController extends Controller
                     a.unit_comma_p_act unit_comma_actual,
                     a.l_act lebar_actual,
                     a.unit_l_act unit_lebar_actual,
-                    COALESCE ( id_roll, '-' ) id_roll,
-                    id_item,
-                    detail_item,
+                    COALESCE ( b.id_roll, '-' ) id_roll,
+                    b.id_item,
+                    b.detail_item,
                     COALESCE ( b.roll_buyer, b.roll ) roll,
                     COALESCE ( b.lot, '-' ) lot,
                     COALESCE ( b.group_roll, '-' ) group_roll,
+                    COALESCE(scanned_item.qty_in, b.qty) qty_in,
+                    (
+                        CASE WHEN
+                            b.status != 'extension' AND b.status != 'extension complete'
+                        THEN
+                            (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
+                        ELSE
+                            'Sambungan'
+                        END
+                    ) status_roll,
                     b.qty qty_roll,
                     b.unit unit_roll,
                     COALESCE ( b.berat_amparan, '-' ) berat_amparan,
@@ -244,6 +254,7 @@ class RollController extends Controller
                 FROM
                     form_cut_input a
                     LEFT JOIN form_cut_input_detail b ON a.id = b.form_cut_id
+                    LEFT JOIN form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
                     LEFT JOIN users meja ON meja.id = a.no_meja
                     LEFT JOIN (
                         SELECT
@@ -256,12 +267,13 @@ class RollController extends Controller
                             marker_input.id
                     ) mrk ON a.id_marker = mrk.kode
                     LEFT JOIN (select id_act_cost, buyer, qty from master_sb_ws group by id_act_cost) msb ON msb.id_act_cost = mrk.act_costing_id
+                    LEFT JOIN scanned_item on scanned_item.id_roll = b.id_roll
                 WHERE
                     ( a.cancel = 'N' OR a.cancel IS NULL )
                     AND ( mrk.cancel = 'N' OR mrk.cancel IS NULL )
                     AND a.status = 'SELESAI PENGERJAAN'
                     AND b.STATUS != 'not completed'
-                    AND id_item IS NOT NULL
+                    AND b.id_item IS NOT NULL
                     ".$additionalQuery."
                     ".$keywordQuery."
                 GROUP BY
@@ -305,6 +317,8 @@ class RollController extends Controller
                     COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
                     scanned_item.lot,
                     '-' group_roll,
+                    COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_in,
+                    'Piping' status_roll,
                     form_cut_piping.qty qty_roll,
                     form_cut_piping.unit unit_roll,
                     0 berat_amparan,
