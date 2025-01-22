@@ -321,18 +321,24 @@ class DashboardController extends Controller
                     marker_input.style,
                     marker_input.color,
                     marker_detail.total_ratio,
-                    form_cut_input.total_lembar,
-                    (marker_detail.total_ratio * form_cut_input.total_lembar) total_output,
+                    COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran) total_lembar,
+                    COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran)) total_output,
                     form_cut_input.`status`
                 FROM
                     form_cut_input
+                    left join (select form_cut_id, SUM(lembar_gelaran) total_gelaran FROM form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
                     left join marker_input on marker_input.kode = form_cut_input.id_marker
                     left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
                     left join users as meja on meja.id = form_cut_input.no_meja
+                    left join cutting_plan on cutting_plan.form_cut_id = form_cut_input.id
                 WHERE
-                    COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '".$date."'
+                    (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."'))
                     and
                     meja.username = '".$mejaId."'
+                ORDER BY
+                    FIELD(form_cut_input.status, 'PENGERJAAN FORM CUTTING SPREAD', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'SPREADING', 'SELESAI PENGERJAAN'),
+                    FIELD(form_cut_input.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                    FIELD(cutting_plan.app, 'Y', 'N', null)
             ");
 
             return DataTables::of($data)->toJson();
@@ -350,16 +356,18 @@ class DashboardController extends Controller
                     marker_input.color,
                     marker_input.panel,
                     marker_detail.total_ratio,
-                    form_cut_input.total_lembar,
-                    SUM(marker_detail.total_ratio * form_cut_input.total_lembar) output,
+                    COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran) total_lembar,
+                    COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran)) output,
                     form_cut_input.`status`
                 FROM
                     form_cut_input
+                    left join (select form_cut_id, SUM(lembar_gelaran) total_gelaran FROM form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
                     left join marker_input on marker_input.kode = form_cut_input.id_marker
                     left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
                     left join users as meja on meja.id = form_cut_input.no_meja
+                    left join cutting_plan on form_cut_input.id = cutting_plan.form_cut_id
                 WHERE
-                    COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '".$date."'
+                    (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."'))
                     and
                     meja.username = '".$mejaId."'
                 GROUP BY
@@ -388,16 +396,18 @@ class DashboardController extends Controller
                         marker_input.color,
                         marker_input.panel,
                         marker_detail.total_ratio,
-                        form_cut_input.total_lembar,
-                        SUM(marker_detail.total_ratio * form_cut_input.total_lembar) output,
+                        COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran) total_lembar,
+                        COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran)) output,
                         form_cut_input.`status`
                     FROM
                         form_cut_input
+                        left join (select form_cut_id, SUM(lembar_gelaran) total_gelaran FROM form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
                         left join marker_input on marker_input.kode = form_cut_input.id_marker
                         left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
                         left join users as meja on meja.id = form_cut_input.no_meja
+                        left join cutting_plan on form_cut_input.id = cutting_plan.form_cut_id
                     WHERE
-                        COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '".$date."'
+                        (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."'))
                         and
                         meja.username = '".$mejaId."'
                     GROUP BY
