@@ -1,12 +1,12 @@
 /* MyCustom Styles */
 @font-face {
     font-family: Nunito;
-    src: url(/nds_wip_local/public/assets/fonts/Nunito/Nunito-VariableFont_wght.ttf);
+    src: url(/nds_wip/public/assets/fonts/Nunito/Nunito-VariableFont_wght.ttf);
 }
 
 @font-face {
     font-family: Roboto;
-    src: url(/nds_wip_local/public/assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf);
+    src: url(/nds_wip/public/assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf);
 }
 
 /* General */
