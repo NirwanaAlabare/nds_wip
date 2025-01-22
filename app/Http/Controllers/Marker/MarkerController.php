@@ -172,7 +172,7 @@ class MarkerController extends Controller
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
         }
 
-        $sizes = $sizeQuery->groupBy("id_act_cost", "color", "id_so_det")->orderBy("master_size_new.urutan")->get();
+        $sizes = $sizeQuery->groupBy("id_so_det")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
