@@ -154,19 +154,25 @@ class MarkerController extends Controller
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
-            ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color);
+            ")->
+            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
+            where("master_sb_ws.color", $request->color);
 
         $thisMarkerDetail = MarkerDetail::where("marker_id", $request->marker_id)->count();
         if ($thisMarkerDetail > 0) {
             $sizeQuery->leftJoin('marker_input_detail', function ($join) use ($request) {
                     $join->on('marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det');
                     $join->on('marker_input_detail.marker_id', '=', DB::raw($request->marker_id));
-                })->leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
+                })->
+                leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->
+                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
         } else {
-            $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
+            $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
         }
 
-        $sizes = $sizeQuery->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
+        $sizes = $sizeQuery->groupBy("id_act_cost", "color", "id_so_det")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),

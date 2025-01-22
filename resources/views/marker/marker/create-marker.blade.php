@@ -450,6 +450,10 @@
             ],
             columnDefs: [
                 {
+                    targets: [0,1,2],
+                    className: "text-nowrap"
+                },
+                {
                     // Size Input
                     targets: [3],
                     className: "d-none",
