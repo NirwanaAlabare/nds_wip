@@ -9,7 +9,7 @@ use App\Models\Auth\Access;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\UpdateUserDetailRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
@@ -45,7 +45,7 @@ class ManageUserController extends Controller
         $roles = Role::all();
         $accesses = Access::all();
 
-        return view("users.users", ["roles" => $roles, "accesses" => $accesses]);
+        return view("users.users", ["roles" => $roles, "accesses" => $accesses, "page" => "dashboard-manage-user", "subPageGroup" => "manage-user", "subPage" => "manage-user"]);
     }
 
     /**
@@ -88,7 +88,8 @@ class ManageUserController extends Controller
             return array(
                 'status' => '200',
                 'message' => 'User Created',
-                'redirect' => 'reload',
+                'table' => 'manage-user-table',
+                'redirect' => '',
                 'additional' => [],
             );
         }
@@ -130,29 +131,31 @@ class ManageUserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateUserRequest $request, User $user, $id)
+    public function update(UpdateUserDetailRequest $request)
     {
         $validatedRequest = $request->validated();
 
-        if ($validatedRequest["password"]) {
-            $updateUser = User::where("id", $id)->update([
-                "name" => $validatedRequest["name"],
-                "username" => $validatedRequest["username"],
-                "password" => Hash::make($validatedRequest["password"])
+        if ($validatedRequest["edit_password"]) {
+            $updateUser = User::where("id", $validatedRequest["edit_id"])->update([
+                "name" => $validatedRequest["edit_name"],
+                "username" => $validatedRequest["edit_username"],
+                "password" => Hash::make($validatedRequest["edit_password"]),
+                "type" => $validatedRequest["edit_type"]
             ]);
         } else {
-            $updateUser = User::where("id", $id)->update([
-                "name" => $validatedRequest["name"],
-                "username" => $validatedRequest["username"]
+            $updateUser = User::where("id", $validatedRequest["edit_id"])->update([
+                "name" => $validatedRequest["edit_name"],
+                "username" => $validatedRequest["edit_username"],
+                "type" => $validatedRequest["edit_type"]
             ]);
         }
 
         if ($updateUser) {
-            if (count($request['roles']) > 0) {
+            if ($request['edit_roles'] && count($request['edit_roles']) > 0) {
                 $roleArray = [];
 
-                for ($i = 0; $i < count($request['roles']); $i++) {
-                    array_push($roleArray, ["user_id" => $create->id, "role_id" => $request['roles'][$i]]);
+                for ($i = 0; $i < count($request['edit_roles']); $i++) {
+                    array_push($roleArray, ["user_id" => $validatedRequest["edit_id"], "role_id" => $request['edit_roles'][$i]]);
                 }
 
                 UserRole::insert($roleArray);
@@ -161,7 +164,8 @@ class ManageUserController extends Controller
             return array(
                 'status' => '200',
                 'message' => 'Profile updated',
-                'redirect' => 'reload',
+                'table' => 'manage-user-table',
+                'redirect' => '',
                 'additional' => [],
             );
         }
@@ -191,6 +195,7 @@ class ManageUserController extends Controller
                 return array(
                     'status' => '200',
                     'message' => 'User Deleted',
+                    'table' => 'manage-user-table',
                     'redirect' => '',
                     'additional' => [],
                 );
@@ -200,6 +205,41 @@ class ManageUserController extends Controller
         return array(
             'status' => '400',
             'message' => 'Delete User failed',
+            'redirect' => '',
+            'additional' => [],
+        );
+    }
+
+    public function getUserRole(Request $request) {
+        $userRole = UserRole::with(["role", "role.accesses"])->where("user_id", $request->id);
+
+        return DataTables::eloquent($userRole)
+            ->addColumn('role', function ($row) {
+                return $row->role->nama_role;
+            })
+            ->addColumn('accesses', function ($row) {
+                return $row->role->accesses->implode("access", ", ");
+            })
+            ->rawColumns(['roles', 'accesses'])->
+            toJson();
+    }
+
+    public function destroyUserRole($id = 0) {
+        $deleteUserRole = UserRole::where("id", $id)->delete();
+
+        if ($deleteUserRole) {
+            return array(
+                'status' => '200',
+                'message' => 'Role Deleted',
+                'table' => 'user-role-table',
+                'redirect' => '',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => '400',
+            'message' => 'Delete Role failed',
             'redirect' => '',
             'additional' => [],
         );

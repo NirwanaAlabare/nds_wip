@@ -110,15 +110,15 @@
 
     {{-- Edit User Modal --}}
     <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
-                <form action="#" method="post" onsubmit="submitForm(this, event)">
-                    @method('PUT')
-                    <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="editUserLabel"><i class="fa fa-edit"></i> Edit User</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="editUserLabel"><i class="fa fa-edit"></i> Edit User</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route("update-user-detail") }}" method="post" onsubmit="submitForm(this, event)">
+                        @method('PUT')
                         <input type="hidden" name="edit_id" id="edit_id">
                         <div class="mb-3">
                             <label class="form-label">Name</label>
@@ -131,6 +131,7 @@
                         <div class="mb-3">
                             <label class="form-label">New Password</label>
                             <input type="password" class="form-control" name="edit_password" id="edit_password" value="">
+                            <div class="form-text" id="basic-addon4">*Kosongkan jika tidak akan diubah</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Type</label>
@@ -150,7 +151,7 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Roles</label>
+                            <label class="form-label">Add Roles</label>
                             <select class="form-select select2bs4-edit" name="edit_roles[]" id="edit_roles" multiple="multiple">
                                 <option value=""></option>
                                 @foreach ($roles as $role)
@@ -158,12 +159,32 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
-                        <button type="submit" class="btn btn-success fw-bold"><i class="fa fa-save"></i> Simpan</button>
-                    </div>
-                </form>
+                        <div class="mb-3">
+                            <label class="form-label">Roles</label>
+                            <div class="table-responsive">
+                                <table class="table table-bordered w-100" id="user-role-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Action</th>
+                                            <th>Role</th>
+                                            <th>Access</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="3">No Data</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mb-3">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                            <button type="submit" class="btn btn-success fw-bold"><i class="fa fa-save"></i> Simpan</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -213,7 +234,7 @@
                     data: 'username'
                 },
                 {
-                    data: 'x'
+                    data: 'roles'
                 },
                 {
                     data: 'accesses',
@@ -236,10 +257,10 @@
 
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editUserModal" onclick='editData(` + JSON.stringify(row) + `, "editUserModal", [{"function" : "dataTableUserReload()"}]);'>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editUserModal" onclick='editData(` + JSON.stringify(row) + `, "editUserModal", [{"function" : "dataTableUserReload(); dataTableUserRoleReload();"}]);'>
                                     <i class='fa fa-edit'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='' onclick='deleteData(this)'>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user') }}/`+data+`' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>
@@ -258,6 +279,68 @@
 
         function dataTableUserReload() {
             $('#manage-user-table').DataTable().ajax.reload();
+        }
+
+        // Edit Role
+        $('#user-role-table').DataTable({
+            searching: false,
+            paging: false,
+            ordering: false,
+            processing: true,
+            serverside: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('get-user-role') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function (d) {
+                    d.id = $("#edit_id").val();
+                }
+            },
+            columns: [
+                {
+                    data: 'id',
+                },
+                {
+                    data: 'role'
+                },
+                {
+                    data: 'accesses'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                // Act Column
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        let buttonDelete = "<button type='button' class='btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>";
+
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user-role') }}/`+data+`' onclick='deleteData(this)'>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: [1,2],
+                    render: (data, type, row, meta) => {
+                        return data.toUpperCase();
+                    }
+                }
+            ]
+        });
+
+        function dataTableUserRoleReload() {
+            $('#user-role-table').DataTable().ajax.reload();
         }
     </script>
 @endsection

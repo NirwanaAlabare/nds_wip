@@ -1696,6 +1696,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(ManageUserController::class)->prefix("manage-user")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('manage-user');
         Route::post('/store', 'store')->name('store-user');
+        Route::put('/update', 'update')->name('update-user-detail');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-user');
+
+        Route::get('/get-user-role', 'getUserRole')->name('get-user-role');
+        Route::delete('/destroy-user-role/{id?}', 'destroyUserRole')->name('destroy-user-role');
     });
 });
 
@@ -1724,6 +1729,7 @@ Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
 Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
+Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
 
 // Route::get('/dashboard-chart', function () {
 //    return view('cutting.chart.dashboard-chart');

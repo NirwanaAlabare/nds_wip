@@ -1002,6 +1002,19 @@
                     </li>
                 @endif
 
+                @if ($page == 'dashboard-manage-user')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'manage-user' ? 'active' : '' }}">User</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('manage-user') }}" class="dropdown-item {{ $subPage == 'manage-user' ? 'active' : '' }}">
+                                    User <i class="fa-solid fa-user-group"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
                 {{-- <li class="dropdown-divider"></li> --}}
                 <!-- Level two dropdown-->
                     {{-- <li class="dropdown-submenu dropdown-hover">

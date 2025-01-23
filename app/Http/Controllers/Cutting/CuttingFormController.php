@@ -486,7 +486,7 @@ class CuttingFormController extends Controller
     {
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "PENGERJAAN FORM CUTTING",
-            "waktu_mulai" => ($request->startTime ? $request->startTime : Carbon::now())
+            "waktu_mulai" => (($request->startTime == null || $request->startTime == "" || !preg_match("/^([01]?[0-9]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])$/", $request->startTime)) ? Carbon::now() : $request->startTime)
         ]);
 
         if ($updateFormCutInput) {

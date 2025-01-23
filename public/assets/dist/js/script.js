@@ -466,7 +466,7 @@ function submitForm(e, evt) {
 }
 
 // Edit data modal
-function editData(e, modal, addons = []) {
+async function editData(e, modal, addons = []) {
     let data = e;
 
     for (let key in data) {
@@ -482,15 +482,15 @@ function editData(e, modal, addons = []) {
             if ([...document.getElementById('edit_' + key).classList].some(className => className.includes('select2'))) {
                 $('#edit_' + key).val(data[key]).trigger('change.select2');
             }
-        } else {
-            if (addons.length > 0) {
-                for (let i = 0; i < addons.length; i++) {
-                    if (typeof addons == "object") {
-                        for (let addonsKey in addons[i]) {
-                            if (addonsKey == "function") {
-                                eval(addons[i][addonsKey]);
-                            }
-                        }
+        }
+    }
+
+    if (addons.length > 0) {
+        for (let i = 0; i < addons.length; i++) {
+            if (typeof addons == "object") {
+                for (let addonsKey in addons[i]) {
+                    if (addonsKey == "function") {
+                        eval(addons[i][addonsKey]);
                     }
                 }
             }
@@ -537,7 +537,7 @@ function deleteData(e) {
                                 position: 'topCenter'
                             });
 
-                            $('.modal').modal('hide');
+                            // $('.modal').modal('hide');
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -546,10 +546,13 @@ function deleteData(e) {
                             });
                         }
 
+                        console.log("table", res, res.table);
                         if (res.table) {
                             $('#' + res.table).DataTable().ajax.reload();
-                        } else {
-                            location.reload();
+                        }
+
+                        if (res.callback != '') {
+                            eval(res.callback);
                         }
                     }, error: function (jqXHR) {
                         if (document.getElementById("loading")) {
