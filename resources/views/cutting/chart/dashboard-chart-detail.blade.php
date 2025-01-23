@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .myDoughnutChartDiv {
@@ -217,7 +217,7 @@
                         <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
                     </div>
                 </div>
-                <table class="table table-bordered mt-3" id="datatable-detail-form" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
+                <table class="table table-bordered w-100 mt-3" id="datatable-detail-form" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
                     <thead>
                         <tr>
                             <th colspan="8" style="border-radius: 10px 10px 0 0;" class="text-center">DETAIL FORM</th>
@@ -283,7 +283,7 @@
                         <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
                     </div>
                 </div>
-                <table class="table table-bordered mt-3" id="datatable-detail-form-ws" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
+                <table class="table table-bordered w-100 mt-3" id="datatable-detail-form-ws" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
                     <thead>
                         <tr>
                             <th colspan="6" class="text-center" style="border-radius: 10px 10px 0 0;">OUTPUT</th>
@@ -362,6 +362,7 @@
             searching: false,
             paging: false,
             serverSide: true,
+            info:false,
             ajax: {
                 url: '{{ route('cutting-form-list') }}',
                 data: function(d) {
@@ -513,6 +514,7 @@
             searching: false,
             paging: false,
             serverSide: true,
+            info:false,
             ajax: {
                 url: '{{ route('cutting-worksheet-list') }}',
                 data: function(d) {
