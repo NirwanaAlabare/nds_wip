@@ -52,7 +52,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered table-hover" id="line_wip_table">
+                    <table class="table table-sm table-bordered table-hover w-100" id="line_wip_table">
                         <thead>
                             <tr>
                                 <th>Line</th>

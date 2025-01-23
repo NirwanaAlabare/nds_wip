@@ -1004,7 +1004,7 @@
 
                 @if ($page == 'dashboard-manage-user')
                     <li class="nav-item dropdown">
-                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'manage-user' ? 'active' : '' }}">User</a>
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'manage-user' ? 'active' : '' }}">Manage</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('manage-user') }}" class="dropdown-item {{ $subPage == 'manage-user' ? 'active' : '' }}">

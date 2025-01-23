@@ -20,7 +20,7 @@
         </div>
         <div class="card-body">
             <div>
-                <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal"><i class="fa fa-plus"></i> Baru</button>
+                <button class="btn btn-sm btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal"><i class="fa fa-plus"></i> Baru</button>
                 <div class="d-flex gap-3 mb-3">
                     <div class="mb-3">
                         <label><small>Tanggal Awal</small></label>
@@ -51,14 +51,14 @@
 
     {{-- Create User Type --}}
     <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
-                <form action="{{ route('store-user') }}" method="post" onsubmit="submitForm(this, event)">
-                    <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="createUserLabel"><i class="fa fa-plus-square"></i> Tambah User</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="createUserLabel"><i class="fa fa-plus"></i> Tambah User</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('store-user') }}" method="post" onsubmit="submitForm(this, event)">
                         <div class="mb-3">
                             <label class="form-label">Name</label>
                             <input type="text" class="form-control" name="name" id="name" value="">
@@ -98,12 +98,12 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
-                        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
-                    </div>
-                </form>
+                        <div class="d-flex justify-content-end gap-3">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                            <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -252,15 +252,17 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
+                        let userId = '{{ Auth::user()->id }}';
                         let buttonEdit = "<button type='button' class='btn btn-primary btn-sm' ><i class='fa fa-edit'></i></button>";
                         let buttonDelete = "<button type='button' class='btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>";
+                        let disabled = userId == data ? true : false;
 
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editUserModal" onclick='editData(` + JSON.stringify(row) + `, "editUserModal", [{"function" : "dataTableUserReload(); dataTableUserRoleReload();"}]);'>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editUserModal" onclick='editData(` + JSON.stringify(row) + `, "editUserModal", [{"function" : "dataTableUserReload(); dataTableUserRoleReload();"}]);' `+(disabled ? "disabled" : "")+`>
                                     <i class='fa fa-edit'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user') }}/`+data+`' onclick='deleteData(this)'>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user') }}/`+data+`' onclick='deleteData(this)' `+(disabled ? "disabled" : "")+`>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>
