@@ -12,6 +12,10 @@
     <!-- Apex Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        * {
+            font-size: 16px;
+        }
+
         .myDoughnutChartDiv {
             width: 300px;
             height: 300px;
@@ -134,16 +138,19 @@
         swiper-container {
             width: 100%;
             height: 100%;
-            background-color: #ffffff !important;
+            background-color: inherit;
         }
 
         swiper-slide {
             text-align: left;
             font-size: 18px;
-            background: #ffffff;
+            background: rgb(85,76,245);
+            background: linear-gradient(180deg, rgba(85,76,245,1) 0%, rgba(120,120,255,1) 40%, rgba(0,189,255,1) 100%);
+            color: #fbfbfb;
             display: flex;
             justify-content: center;
             align-items: center;
+            border-radius: 10px;
         }
 
         swiper-slide img {
@@ -160,6 +167,10 @@
         .chart-canvas {
             height: 100% !important; /* Ensures canvas takes up all available height */
             width: 100% !important;  /* Ensures canvas maintains full width */
+        }
+
+        #datatable-detail-form-ws th, #datatable-detail-form-ws td {
+            font-size: 16px !important;
         }
     </style>
 @endsection
@@ -200,16 +211,16 @@
         <swiper-slide>
             <div class="w-100 p-3">
                 <div class="d-flex justify-content-between align-items-end">
-                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
+                    <p class="mb-0 fw-bold" style="font-size: 30px;">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
                     <div class="d-flex flex-column align-items-end">
-                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
-                        <p class="mb-0 fw-bold clock"></p>
+                        <p class="mb-0 fw-bold" style="font-size: 18px;">{{ localeDateFormat($tglPlan) }}</p>
+                        <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
                     </div>
                 </div>
-                <table class="table table-bordered mt-3" id="datatable-detail-form">
+                <table class="table table-bordered mt-3" id="datatable-detail-form" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
                     <thead>
                         <tr>
-                            <th colspan="8" class="text-center">DETAIL FORM</th>
+                            <th colspan="8" style="border-radius: 10px 10px 0 0;" class="text-center">DETAIL FORM</th>
                         </tr>
                         <tr>
                             <th>NO. FORM</th>
@@ -232,11 +243,11 @@
         </swiper-slide>
         <swiper-slide>
             <div class="w-100 p-3">
-                <div class="d-flex justify-content-between align-items-middle mb-3">
-                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
-                    <div class="d-flex flex-column align-items-end">
-                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
-                        <p class="mb-0 fw-bold clock"></p>
+                <div class="d-flex justify-content-between align-items-end mb-3" style="margin: 0 25px;">
+                    <p class="mb-0 fw-bold" style="font-size: 30px;">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
+                    <div class="d-flex flex-column align-items-end date-format">
+                        <p class="mb-0 fw-bold" style="font-size: 18px;">{{ localeDateFormat($tglPlan) }}</p>
+                        <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
                     </div>
                 </div>
                 <div class="row justify-content-center align-items-start ms-3 me-1">
@@ -265,17 +276,17 @@
         </swiper-slide>
         <swiper-slide>
             <div class="w-100 p-3">
-                <div class="d-flex justify-content-between align-items-middle">
-                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
+                <div class="d-flex justify-content-between align-items-end">
+                    <p class="mb-0 fw-bold" style="font-size: 30px;">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
                     <div class="d-flex flex-column align-items-end">
-                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
-                        <p class="mb-0 fw-bold clock"></p>
+                        <p class="mb-0 fw-bold" style="font-size: 18px;">{{ localeDateFormat($tglPlan) }}</p>
+                        <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
                     </div>
                 </div>
-                <table class="table table-bordered mt-3" id="datatable-detail-form-ws">
+                <table class="table table-bordered mt-3" id="datatable-detail-form-ws" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
                     <thead>
                         <tr>
-                            <th colspan="6" class="text-center">OUTPUT</th>
+                            <th colspan="6" class="text-center" style="border-radius: 10px 10px 0 0;">OUTPUT</th>
                         </tr>
                         <tr>
                             <th>WS</th>
@@ -293,8 +304,8 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="5" class="text-center fw-bold">Total</td>
-                            <td class="fw-bold">...</td>
+                            <td colspan="5" class="text-center fw-bold" style="border-radius: 0 0 0 10px;">TOTAL</td>
+                            <td class="fw-bold" style="border-radius: 0 0 10px 0;">...</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -387,7 +398,7 @@
             columnDefs: [
                 {
                     targets: [5],
-                    className: "text-center",
+                    className: "text-center text-nowrap",
                     render: (data, type, row, meta) => {
                         var color = 'black';
 
@@ -412,7 +423,7 @@
                 },
                 {
                     targets: [6],
-                    className: "text-center",
+                    className: "text-center text-nowrap",
                     render: (data, type, row, meta) => {
                         var color = 'black';
 
@@ -437,7 +448,7 @@
                 },
                 {
                     targets: [7],
-                    className: "text-center align-middle",
+                    className: "text-center align-middle text-nowrap",
                     render: (data, type, row, meta) => {
                         icon = "";
 
@@ -556,7 +567,7 @@
 
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
-                            $(api.column(0).footer()).html('Total');
+                            $(api.column(0).footer()).html('TOTAL');
                             $(api.column(5).footer()).html(response[0]['total_output']);
                         }
                     },
@@ -833,7 +844,11 @@
                                 plugins: {
                                     title: {
                                         display: true,
-                                        text: 'Form Cutting'
+                                        text: 'Form Cutting',
+                                        font: {
+                                            weight: 'bold',
+                                            size: 18 // Ukuran font
+                                        }
                                     },
                                     datalabels: {
                                         color: '#fff', // Warna teks
@@ -847,11 +862,15 @@
                                         },
                                         font: {
                                             weight: 'bold',
-                                            size: 14 // Ukuran font
+                                            size: 32 // Ukuran font
                                         }
                                     },
                                     legend: {
                                         position: 'top', // Posisi legend
+                                        font: {
+                                            weight: 'bold',
+                                            size: 18 // Ukuran font label
+                                        },
                                     }
                                 },
                                 responsive: true,
@@ -863,10 +882,8 @@
                         const ctx = document.getElementById('myChart').getContext('2d');
                         myChart = new Chart(ctx, config);
                         const totalForms = totalCompleted + totalIncompleted;
-                        const completedPercentage = totalForms > 0 ? (totalCompleted / totalForms * 100)
-                            .toFixed(2) : 0;
-                        const incompletedPercentage = totalForms > 0 ? (totalIncompleted / totalForms * 100)
-                            .toFixed(2) : 0;
+                        const completedPercentage = totalForms > 0 ? (totalCompleted / totalForms * 100).toFixed(2) : 0;
+                        const incompletedPercentage = totalForms > 0 ? (totalIncompleted / totalForms * 100).toFixed(2) : 0;
                         const doughnutData = {
                             labels: ['Completed', 'Incompleted'],
                             datasets: [{
@@ -884,7 +901,11 @@
                                 plugins: {
                                     title: {
                                         display: true,
-                                        text: 'Progress (%)'
+                                        text: 'Progress (%)',
+                                        font: {
+                                            weight: 'bold',
+                                            size: 18 // Ukuran font label
+                                        }
                                     },
                                     datalabels: { // Plugin untuk menampilkan label
                                         color: '#fff', // Warna teks label
@@ -893,7 +914,7 @@
                                         },
                                         font: {
                                             weight: 'bold',
-                                            size: 14 // Ukuran font label
+                                            size: 16 // Ukuran font label
                                         },
                                         anchor: 'center', // Posisi label
                                         align: 'center', // Penyelarasan label
@@ -909,6 +930,10 @@
                                     },
                                     legend: {
                                         position: 'top',
+                                        font: {
+                                            weight: 'bold',
+                                            size: 18 // Ukuran font label
+                                        },
                                     }
                                 },
                                 responsive: true,

@@ -1,4 +1,4 @@
-@extends('layouts.index', ['navbar' => false, "containerFluid" => true])
+@extends('layouts.index', ['navbar' => false, "containerFluid" => true, "footer" => false])
 
 @section('custom-link')
     <!-- Select2 -->
@@ -190,7 +190,7 @@
             <div class="loading"></div>
         </div>
     </div>
-    <div>
+    <div class="d-none">
         <div id="realtimeUpdateWrap"></div>
         <div class="card">
             <div class="card-body">
@@ -216,128 +216,128 @@
                         </div>
                     </div>
                 </div>
-                <swiper-container class="mySwiper" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
-                    <swiper-slide>
-                        <div class="card w-100 mx-3 mt-3">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-end">
-                                    <p class="mb-0 fw-bold">Progress Form</p>
-                                    <div class="d-flex flex-column align-items-end">
-                                        <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
-                                        <p class="mb-0 fw-bold clock"></p>
-                                    </div>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-8">
-                                        <canvas id="myChart"></canvas>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="wrapperDoughnut">
-                                            <div class="myDoughnutChartDiv">
-                                                <canvas id="myDoughnutChart"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </swiper-slide>
-                    <swiper-slide>
-                        <div class="card w-100 mx-3 mt-3">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-end">
-                                    <div class="d-flex flex-column gap-1 align-items-start">
-                                        <p class="mb-0 fw-bold">Output Cutting</p>
-                                        <select class="form-select form-select-sm select2bs4" id="panel" onchange="datatableCuttingReload()">
-                                        </select>
-                                    </div>
-                                    <div class="d-flex flex-column gap-1 align-items-end">
-                                        <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
-                                        <p class="mb-0 fw-bold clock"></p>
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover w-100" id="datatable-cutting">
-                                        <thead>
-                                            <tr>
-                                                <th>No. WS</th>
-                                                <th>Style</th>
-                                                <th>Color</th>
-                                                <th>Qty Target</th>
-                                                <th>Balance Kemarin</th>
-                                                <th>Qty Output</th>
-                                                <th>Balance</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </swiper-slide>
-                    <swiper-slide class="flex-column">
-                        <div class="d-flex justify-content-between align-items-end w-100 mx-3 px-3 mb-3">
-                            <p class="mb-0 fw-bold">Output Cutting</p>
-                            <div class="d-flex flex-column align-items-end">
-                                <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
-                                <p class="mb-0 fw-bold clock"></p>
-                            </div>
-                        </div>
-                        <swiper-container class="mySwiper1" autoplay-delay="3000" space-between="30" slides-per-view="3">
-                            <swiper-slide>
-                                <div class="cutting-chart-container">
-                                    <div class="cutting-chart"></div>
-                                </div>
-                            </swiper-slide>
-                        </swiper-container>
-                    </swiper-slide>
-                    <swiper-slide>
-                        <div class="card w-100 mx-3 mt-3">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-end mb-3">
-                                    <div class="d-flex flex-column gap-1 align-items-start">
-                                        <p class="mb-0 fw-bold">STOK MATERIAL</p>
-                                    </div>
-                                    <div class="d-flex flex-column gap-1 align-items-end">
-                                        <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
-                                        <p class="mb-0 fw-bold clock"></p>
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover w-100" id="datatable-cutting-stock">
-                                        <thead>
-                                            <tr>
-                                                <th>No. WS</th>
-                                                <th>Style</th>
-                                                <th>Color</th>
-                                                <th>Detail Item</th>
-                                                <th>Saldo Awal</th>
-                                                <th>Roll In</th>
-                                                <th>Roll Use</th>
-                                                <th>Stok Roll</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <td colspan="4">Total</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </swiper-slide>
-                </swiper-container>
             </div>
         </div>
     </div>
+    <swiper-container class="mySwiper" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
+        <swiper-slide>
+            <div class="card w-100 mx-3 mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-end">
+                        <p class="mb-0 fw-bold">Progress Form</p>
+                        <div class="d-flex flex-column align-items-end">
+                            <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
+                            <p class="mb-0 fw-bold clock"></p>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <canvas id="myChart"></canvas>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="wrapperDoughnut">
+                                <div class="myDoughnutChartDiv">
+                                    <canvas id="myDoughnutChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </swiper-slide>
+        <swiper-slide>
+            <div class="card w-100 mx-3 mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div class="d-flex flex-column gap-1 align-items-start">
+                            <p class="mb-0 fw-bold">Output Cutting</p>
+                            <select class="form-select form-select-sm select2bs4" id="panel" onchange="datatableCuttingReload()">
+                            </select>
+                        </div>
+                        <div class="d-flex flex-column gap-1 align-items-end">
+                            <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
+                            <p class="mb-0 fw-bold clock"></p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover w-100" id="datatable-cutting">
+                            <thead>
+                                <tr>
+                                    <th>No. WS</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Qty Target</th>
+                                    <th>Balance Kemarin</th>
+                                    <th>Qty Output</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </swiper-slide>
+        <swiper-slide class="flex-column">
+            <div class="d-flex justify-content-between align-items-end w-100 mx-3 px-3 mb-3">
+                <p class="mb-0 fw-bold">Output Cutting</p>
+                <div class="d-flex flex-column align-items-end">
+                    <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
+                    <p class="mb-0 fw-bold clock"></p>
+                </div>
+            </div>
+            <swiper-container class="mySwiper1" autoplay-delay="3000" space-between="30" slides-per-view="3">
+                <swiper-slide>
+                    <div class="cutting-chart-container">
+                        <div class="cutting-chart"></div>
+                    </div>
+                </swiper-slide>
+            </swiper-container>
+        </swiper-slide>
+        <swiper-slide>
+            <div class="card w-100 mx-3 mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-end mb-3">
+                        <div class="d-flex flex-column gap-1 align-items-start">
+                            <p class="mb-0 fw-bold">STOK MATERIAL</p>
+                        </div>
+                        <div class="d-flex flex-column gap-1 align-items-end">
+                            <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
+                            <p class="mb-0 fw-bold clock"></p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover w-100" id="datatable-cutting-stock">
+                            <thead>
+                                <tr>
+                                    <th>No. WS</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Detail Item</th>
+                                    <th>Saldo Awal</th>
+                                    <th>Roll In</th>
+                                    <th>Roll Use</th>
+                                    <th>Stok Roll</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4">Total</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </swiper-slide>
+    </swiper-container>
 @endsection
 
 @section('custom-script')
