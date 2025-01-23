@@ -1,4 +1,4 @@
-@extends('layouts.index', ["navbar" => false, "containerFluid" => true])
+@extends('layouts.index', ["navbar" => false, "containerFluid" => true, "footer" => false])
 
 @section('custom-link')
     <!-- Select2 -->
@@ -152,6 +152,15 @@
             height: 100%;
             object-fit: cover;
         }
+
+        .card {
+            height: 100%; /* Ensures card takes full available height */
+        }
+
+        .chart-canvas {
+            height: 100% !important; /* Ensures canvas takes up all available height */
+            width: 100% !important;  /* Ensures canvas maintains full width */
+        }
     </style>
 @endsection
 
@@ -163,17 +172,16 @@
     </div>
     <div id="realtimeUpdateWrap"></div>
     <button type="button" onclick="window.history.back()" class="btn btn-primary mb-3 d-none">Kembali</button>
-    <div class="card card-sb">
+    <div class="card card-sb d-none">
         <div class="card-body">
             <div class="d-flex">
-                <div class="card " style="width: 100%;">
+                <div class="card d-none" style="width: 100%;">
                     <div class="card-body mb-1 pb-1 d-flex justify-content-between">
                         <div class="header">
                             <div class="header-top">
                                 <h1 class="header-title">Dashboard Cutting Chart Progress</h1>
                             </div>
-                            <p class="description">Laporan progress cutting <strong
-                                    id="selected-date">{{ localeDateFormat($tglPlan) }}</strong></p>
+                            <p class="description">Laporan progress cutting <strong id="selected-date">{{ localeDateFormat($tglPlan) }}</strong></p>
                         </div>
                         <div class="item-checklist-box w-50">
                             <label class="PillList-item">
@@ -185,115 +193,114 @@
                     </div>
                 </div>
             </div>
-            <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true">
-                <swiper-slide>
-                    <div class="card m-3 w-100">
-                        <div class="card-body">
-                            <div>
-                                <div class="d-flex justify-content-between align-items-end">
-                                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
-                                    <div class="d-flex flex-column align-items-end">
-                                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
-                                        <p class="mb-0 fw-bold clock"></p>
-                                    </div>
-                                </div>
-                                <table class="table table-bordered" id="datatable-detail-form">
-                                    <thead>
-                                        <tr>
-                                            <th colspan="8" class="text-center">DETAIL FORM</th>
-                                        </tr>
-                                        <tr>
-                                            <th>NO. FORM</th>
-                                            <th>PANEL</th>
-                                            <th>STYLE</th>
-                                            <th>COLOR</th>
-                                            <th>RASIO</th>
-                                            <th>QTY PLY</th>
-                                            <th>OUTPUT</th>
-                                            <th>STATUS</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="8" class="text-center">Data Not Available</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </swiper-slide>
-                <swiper-slide>
-                    <div class="card m-3 w-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-middle mb-3">
-                                <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
-                                <div class="d-flex flex-column align-items-end">
-                                    <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
-                                    <p class="mb-0 fw-bold clock"></p>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-evenly" style="gap: 20px">
-                                <div class="card" style="width: 100%; height: 340px">
-                                    <canvas id="myChart" width="1000" height="450"></canvas>
-                                </div>
-                                <div class="wrapperDoughnut">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="myDoughnutChartDiv">
-                                                <canvas id="myDoughnutChart" width="50" height="50"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </swiper-slide>
-                <swiper-slide>
-                    <div class="card m-3 w-100">
-                        <div class="card-body">
-                            <div>
-                                <div class="d-flex justify-content-between align-items-middle">
-                                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
-                                    <div class="d-flex flex-column align-items-end">
-                                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
-                                        <p class="mb-0 fw-bold clock"></p>
-                                    </div>
-                                </div>
-                                <table class="table table-bordered" id="datatable-detail-form-ws">
-                                    <thead>
-                                        <tr>
-                                            <th colspan="6" class="text-center">DETAIL FORM</th>
-                                        </tr>
-                                        <tr>
-                                            <th>WS</th>
-                                            <th>BUYER</th>
-                                            <th>STYLE</th>
-                                            <th>COLOR</th>
-                                            <th>PANEL</th>
-                                            <th>OUTPUT</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="6" class="text-center">Data Not Available</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="5" class="text-center fw-bold">Total</td>
-                                            <td class="fw-bold">...</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </swiper-slide>
-            </swiper-container>
         </div>
     </div>
+
+    <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true">
+        <swiper-slide>
+            <div class="w-100 p-3">
+                <div class="d-flex justify-content-between align-items-end">
+                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
+                    <div class="d-flex flex-column align-items-end">
+                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
+                        <p class="mb-0 fw-bold clock"></p>
+                    </div>
+                </div>
+                <table class="table table-bordered mt-3" id="datatable-detail-form">
+                    <thead>
+                        <tr>
+                            <th colspan="8" class="text-center">DETAIL FORM</th>
+                        </tr>
+                        <tr>
+                            <th>NO. FORM</th>
+                            <th>PANEL</th>
+                            <th>STYLE</th>
+                            <th>COLOR</th>
+                            <th>RASIO</th>
+                            <th>QTY PLY</th>
+                            <th>OUTPUT</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" class="text-center">Data Not Available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </swiper-slide>
+        <swiper-slide>
+            <div class="w-100 p-3">
+                <div class="d-flex justify-content-between align-items-middle mb-3">
+                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
+                    <div class="d-flex flex-column align-items-end">
+                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
+                        <p class="mb-0 fw-bold clock"></p>
+                    </div>
+                </div>
+                <div class="row justify-content-center align-items-start ms-3 me-1">
+                    <div class="col-md-8 col-12">
+                        <div class="card h-100">
+                            <div class="d-flex justify-content-center">
+                                <div style="width: 90%; height: 100%;">
+                                    <canvas id="myChart" class="chart-canvas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-center">
+                                    <div class="myDoughnutChartDiv mb-3" style="height: 100%;">
+                                        <canvas id="myDoughnutChart" class="chart-canvas" style="margin-top: 10px;margin-bottom: 11px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </swiper-slide>
+        <swiper-slide>
+            <div class="w-100 p-3">
+                <div class="d-flex justify-content-between align-items-middle">
+                    <p class="mb-0 fw-bold">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
+                    <div class="d-flex flex-column align-items-end">
+                        <p class="mb-0 fw-bold">{{ localeDateFormat($tglPlan) }}</p>
+                        <p class="mb-0 fw-bold clock"></p>
+                    </div>
+                </div>
+                <table class="table table-bordered mt-3" id="datatable-detail-form-ws">
+                    <thead>
+                        <tr>
+                            <th colspan="6" class="text-center">OUTPUT</th>
+                        </tr>
+                        <tr>
+                            <th>WS</th>
+                            <th>BUYER</th>
+                            <th>STYLE</th>
+                            <th>COLOR</th>
+                            <th>PANEL</th>
+                            <th>OUTPUT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center">Data Not Available</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-center fw-bold">Total</td>
+                            <td class="fw-bold">...</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </swiper-slide>
+    </swiper-container>
 @endsection
 
 @section('custom-script')

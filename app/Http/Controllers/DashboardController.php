@@ -356,8 +356,8 @@ class DashboardController extends Controller
                     marker_input.color,
                     marker_input.panel,
                     marker_detail.total_ratio,
-                    COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran) total_lembar,
-                    COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran)) output,
+                    SUM(COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran)) total_lembar,
+                    SUM(COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran))) output,
                     form_cut_input.`status`
                 FROM
                     form_cut_input
@@ -396,8 +396,8 @@ class DashboardController extends Controller
                         marker_input.color,
                         marker_input.panel,
                         marker_detail.total_ratio,
-                        COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran) total_lembar,
-                        COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran)) output,
+                        SUM(COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran)) total_lembar,
+                    SUM(COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran))) output,
                         form_cut_input.`status`
                     FROM
                         form_cut_input
