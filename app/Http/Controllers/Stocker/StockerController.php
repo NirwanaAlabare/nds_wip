@@ -3901,7 +3901,7 @@ class StockerController extends Controller
             "range_akhir" => "required|numeric|gte:range_awal"
         ]);
 
-        if ($request->size && $request->size_text) {
+        if ($request->size != null && $request->size_text != null) {
             $yearSequences = YearSequence::where("year", $request->year)->
                 where("year_sequence", $request->sequence)->
                 whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
