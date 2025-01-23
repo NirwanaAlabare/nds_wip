@@ -734,8 +734,7 @@ class MarkerController extends Controller
     public function update(Marker $marker, Request $request, $id)
     {
         $markerStocker = Marker::select("marker_input.id", "stocker_input.id")->
-            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
-            leftJoin("stocker_input", "stocker_input.form_cut_id", "=", "form_cut_input.id" )->
+            join("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
             where("marker_input.id", $id)->
             get();
 
