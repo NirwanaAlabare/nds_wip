@@ -14,8 +14,6 @@ class CuttingFormObserver
      */
     public function created(FormCutInput $formCutInput)
     {
-        dd("observer form cut creat");
-        Log::info("observer form cut");
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
         app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput->alokasiMeja->username);
 
@@ -29,8 +27,6 @@ class CuttingFormObserver
      */
     public function updated(FormCutInput $formCutInput)
     {
-        dd("observer form cut upda");
-        Log::info("observer form cut");
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
         app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput->alokasiMeja->username);
 
@@ -44,8 +40,6 @@ class CuttingFormObserver
      */
     public function deleted(FormCutInput $formCutInput)
     {
-        dd("observer form cut del");
-        Log::info("observer form cut");
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
         app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput->alokasiMeja->username);
 
