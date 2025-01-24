@@ -149,7 +149,7 @@
             color: #fbfbfb;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: start;
             border-radius: 10px;
             min-height: 95vh;
         }
@@ -211,9 +211,9 @@
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true">
         <swiper-slide>
             <div class="w-100 p-3">
-                <div class="d-flex justify-content-evenly align-items-end">
+                <div class="d-flex justify-content-between align-items-center">
                     <p class="mb-0 fw-bold" style="font-size: 30px;">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
-                    <p>DETAIL FORM</p>
+                    <p class="mb-0 fw-bold" style="font-size: 20px;">DETAIL FORM</p>
                     <div class="d-flex flex-column align-items-end">
                         <p class="mb-0 fw-bold" style="font-size: 18px;">{{ localeDateFormat($tglPlan) }}</p>
                         <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
@@ -222,14 +222,14 @@
                 <table class="table table-bordered w-100 mt-3" id="datatable-detail-form" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
                     <thead>
                         <tr>
-                            <th>NO. FORM</th>
+                            <th style="border-radius: 0 10px 0 0">NO. FORM</th>
                             <th>PANEL</th>
                             <th>STYLE</th>
                             <th>COLOR</th>
                             <th>RASIO</th>
                             <th>QTY PLY</th>
                             <th>OUTPUT</th>
-                            <th>STATUS</th>
+                            <th style="border-radius: 0 0 0 10px">STATUS</th>
                         </tr>
                     </thead>
                     <tbody>
