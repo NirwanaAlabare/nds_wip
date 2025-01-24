@@ -733,11 +733,6 @@ class MarkerController extends Controller
      */
     public function update(Marker $marker, Request $request, $id)
     {
-        $markerStocker = Marker::select("marker_input.id", "form_cut_input.id")->
-            join("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
-            where("marker_input.id", $id)->
-            get();
-
         $validatedRequest = $request->validate([
             "tgl_cutting" => "required",
             "ws_id" => "required",
@@ -767,9 +762,19 @@ class MarkerController extends Controller
             $totalQty += $qty;
         }
 
+        $updateMarkerPanel = false;
         if ($totalQty > 0) {
-            if ($markerStocker->count() < 1) {
-                $markerUpdate = Marker::where('id', $id)->update([
+
+            // Marker Panel Additional Validation
+            $markerPartForm = Marker::select("marker_input.id", "form_cut_input.id", "form_cut_input.no_form")->
+                join("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+                join("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                where("marker_input.id", $id)->
+                get();
+
+            $updateMarkerArr = [];
+            if ($markerPartForm->count() < 1) {
+                $updateMarkerArr = [
                     'tgl_cutting' => $validatedRequest['tgl_cutting'],
                     'act_costing_id' => $validatedRequest['ws_id'],
                     'act_costing_ws' => $validatedRequest['ws'],
@@ -794,9 +799,43 @@ class MarkerController extends Controller
                     'notes' => $request['notes'],
                     'cons_piping' => $validatedRequest['cons_piping'],
                     'cancel' => 'N',
-                ]);
+                ];
+
+                $updateMarkerPanel = true;
+            } else {
+                $updateMarkerArr = [
+                    'tgl_cutting' => $validatedRequest['tgl_cutting'],
+                    'act_costing_id' => $validatedRequest['ws_id'],
+                    'act_costing_ws' => $validatedRequest['ws'],
+                    'buyer' => $validatedRequest['buyer'],
+                    'style' => $validatedRequest['style'],
+                    'cons_ws' => $validatedRequest['cons_ws'],
+                    'color' => $validatedRequest['color'],
+                    'panjang_marker' => $validatedRequest['p_marker'],
+                    'unit_panjang_marker' => $validatedRequest['p_unit'],
+                    'comma_marker' => $validatedRequest['comma_marker'],
+                    'unit_comma_marker' => $validatedRequest['comma_unit'],
+                    'lebar_marker' => $validatedRequest['l_marker'],
+                    'unit_lebar_marker' => $validatedRequest['l_unit'],
+                    'gelar_qty' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'po_marker' => $validatedRequest['po'],
+                    'urutan_marker' => $validatedRequest['no_urut_marker'],
+                    'cons_marker' => $validatedRequest['cons_marker'],
+                    'gramasi' => $validatedRequest['gramasi'],
+                    'tipe_marker' => $validatedRequest['tipe_marker'],
+                    'notes' => $request['notes'],
+                    'cons_piping' => $validatedRequest['cons_piping'],
+                    'cancel' => 'N',
+                ];
+
+                $updateMarkerPanel = false;
+            }
+            if ($updateMarkerArr) {
+                $markerUpdate = Marker::where('id', $id)->update($updateMarkerArr);
             }
 
+            // Marker Ratio
             $timestamp = Carbon::now();
             $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
@@ -825,7 +864,7 @@ class MarkerController extends Controller
 
             return array(
                 "status" => 200,
-                "message" => $id,
+                "message" => "Ratio Marker ".$id." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <b>'".$markerPartForm->implode("no_form", ", ")."'</b>)"),
                 "redirect" => route('marker'),
                 "additional" => [],
             );
