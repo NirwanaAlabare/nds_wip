@@ -6,6 +6,12 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use App\Models\FormCutInput;
+use App\Observers\CuttingFormObserver;
+use App\Models\FormCutInputDetail;
+use App\Observers\CuttingFormDetailObserver;
+use App\Models\FormCutInputDetailLap;
+use App\Observers\CuttingFormDetailLapObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -27,6 +33,8 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        FormCutInput::observe(CuttingFormObserver::class);
+        FormCutInputDetail::observe(CuttingFormDetailObserver::class);
+        FormCutInputDetailLap::observe(CuttingFormDetailLapObserver::class);
     }
 }

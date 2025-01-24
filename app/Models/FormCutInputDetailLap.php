@@ -12,4 +12,9 @@ class FormCutInputDetailLap extends Model
     protected $table = "form_cut_input_detail_lap";
 
     protected $guarded = [];
+
+    public function formCutInputDetail()
+    {
+        return $this->belongsTo(FormCutInputDetail::class, 'form_cut_input_detail_id', 'id');
+    }
 }
