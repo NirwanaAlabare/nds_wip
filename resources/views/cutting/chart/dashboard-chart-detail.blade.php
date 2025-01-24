@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
-            font-size: 15px;
+            font-size: 14.5px;
         }
 
         .myDoughnutChartDiv {
@@ -171,7 +171,7 @@
         }
 
         #datatable-detail-form-ws th, #datatable-detail-form-ws td {
-            font-size: 16px !important;
+            font-size: 15px !important;
         }
     </style>
 @endsection
@@ -213,7 +213,7 @@
             <div class="w-100 p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <p class="mb-0 fw-bold" style="font-size: 30px;">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
-                    <p class="mb-0 fw-bold" style="font-size: 20px;">DETAIL FORM</p>
+                    <p class="mb-0 fw-bold" style="font-size: 20px; padding-left: 50px;">DETAIL FORM</p>
                     <div class="d-flex flex-column align-items-end">
                         <p class="mb-0 fw-bold" style="font-size: 18px;">{{ localeDateFormat($tglPlan) }}</p>
                         <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
@@ -222,14 +222,14 @@
                 <table class="table table-bordered w-100 mt-3" id="datatable-detail-form" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
                     <thead>
                         <tr>
-                            <th style="border-radius: 0 10px 0 0">NO. FORM</th>
+                            <th style="border-radius: 10px 0 0 0">NO. FORM</th>
                             <th>PANEL</th>
                             <th>STYLE</th>
                             <th>COLOR</th>
                             <th>RASIO</th>
                             <th>QTY PLY</th>
                             <th>OUTPUT</th>
-                            <th style="border-radius: 0 0 0 10px">STATUS</th>
+                            <th style="border-radius: 0 10px 0 0">STATUS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -543,7 +543,7 @@
                 targets: [5],
                 className: "text-center",
                 render: (data, type, row, meta) => {
-                    return data ? data : '-';
+                    return  '<span class="fw-bold" style="font-size: 16px;">'+(data ? data : '-')+'</span>';
                 }
             }, ],
             footerCallback: async function(row, data, start, end, display) {
