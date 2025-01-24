@@ -33,8 +33,8 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        FormCutInput::observe(CuttingFormObserver::class);
-        FormCutInputDetail::observe(CuttingFormDetailObserver::class);
-        FormCutInputDetailLap::observe(CuttingFormDetailLapObserver::class);
+        // FormCutInput::observe(CuttingFormObserver::class);
+        // FormCutInputDetail::observe(CuttingFormDetailObserver::class);
+        // FormCutInputDetailLap::observe(CuttingFormDetailLapObserver::class);
     }
 }
