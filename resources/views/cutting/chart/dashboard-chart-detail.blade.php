@@ -151,6 +151,7 @@
             justify-content: center;
             align-items: center;
             border-radius: 10px;
+            min-height: 95vh;
         }
 
         swiper-slide img {
@@ -210,8 +211,9 @@
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true">
         <swiper-slide>
             <div class="w-100 p-3">
-                <div class="d-flex justify-content-between align-items-end">
+                <div class="d-flex justify-content-evenly align-items-end">
                     <p class="mb-0 fw-bold" style="font-size: 30px;">{{ strtoupper(str_replace('_', ' ', $mejaId)) }}</p>
+                    <p>DETAIL FORM</p>
                     <div class="d-flex flex-column align-items-end">
                         <p class="mb-0 fw-bold" style="font-size: 18px;">{{ localeDateFormat($tglPlan) }}</p>
                         <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
@@ -219,9 +221,6 @@
                 </div>
                 <table class="table table-bordered w-100 mt-3" id="datatable-detail-form" style="background: #fbfbfb; color: #3e3e3e; border-radius: 10px;">
                     <thead>
-                        <tr>
-                            <th colspan="8" style="border-radius: 10px 10px 0 0;" class="text-center">DETAIL FORM</th>
-                        </tr>
                         <tr>
                             <th>NO. FORM</th>
                             <th>PANEL</th>
@@ -250,23 +249,21 @@
                         <p class="mb-0 fw-bold clock" style="font-size: 18px;"></p>
                     </div>
                 </div>
-                <div class="row justify-content-center align-items-start ms-3 me-1">
-                    <div class="col-md-8 col-12">
-                        <div class="card h-100">
+                <div class="row justify-content-center ms-3 me-1">
+                    <div class="col-md-8 col-12 d-flex">
+                        <div class="card w-100">
                             <div class="d-flex justify-content-center">
-                                <div style="width: 90%; height: 100%;">
+                                <div style="width: 90%;">
                                     <canvas id="myChart" class="chart-canvas"></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-12">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-center">
-                                    <div class="myDoughnutChartDiv mb-3" style="height: 100%;">
-                                        <canvas id="myDoughnutChart" class="chart-canvas" style="margin-top: 10px;margin-bottom: 11px;"></canvas>
-                                    </div>
+                    <div class="col-md-4 col-12 d-flex">
+                        <div class="card w-100">
+                            <div class="card-body d-flex justify-content-center align-items-center">
+                                <div class="myDoughnutChartDiv mb-3">
+                                    <canvas id="myDoughnutChart" class="chart-canvas" style="margin-top: 10px;margin-bottom: 11px;"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -869,13 +866,18 @@
                                     },
                                     legend: {
                                         position: 'top', // Posisi legend
-                                        font: {
-                                            weight: 'bold',
-                                            size: 18 // Ukuran font label
-                                        },
+                                        labels: {
+                                            // This more specific font property overrides the global property
+                                            font: {
+                                                weight: 'bold',
+                                                size: 18 // Ukuran font label
+                                            },
+                                        }
                                     }
                                 },
                                 responsive: true,
+                                aspectRatio: 2,
+                                maintainAspectRatio: true
                             },
                             plugins: [ChartDataLabels],
                         };
@@ -932,14 +934,16 @@
                                     },
                                     legend: {
                                         position: 'top',
-                                        font: {
-                                            weight: 'bold',
-                                            size: 18 // Ukuran font label
-                                        },
+                                        labels: {
+                                            // This more specific font property overrides the global property
+                                            font: {
+                                                weight: 'bold',
+                                                size: 18 // Ukuran font label
+                                            },
+                                        }
                                     }
                                 },
-                                responsive: true,
-                                aspectRatio: 1,
+                                responsive: true
                             },
                             plugins: [ChartDataLabels],
                         };
