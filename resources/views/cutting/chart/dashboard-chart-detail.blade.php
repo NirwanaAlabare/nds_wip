@@ -17,8 +17,8 @@
         }
 
         .myDoughnutChartDiv {
-            width: 300px;
-            height: 300px;
+            width: 350px;
+            height: 350px;
         }
 
         .myPieChartDiv {
@@ -253,7 +253,7 @@
                     <div class="col-md-8 col-12 d-flex">
                         <div class="card w-100">
                             <div class="d-flex justify-content-center">
-                                <div style="width: 90%;">
+                                <div style="width: 95%;">
                                     <canvas id="myChart" class="chart-canvas"></canvas>
                                 </div>
                             </div>
@@ -301,8 +301,8 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="5" class="text-center fw-bold" style="border-radius: 0 0 0 10px;">TOTAL</td>
-                            <td class="fw-bold" style="border-radius: 0 0 10px 0;">...</td>
+                            <td colspan="5" class="text-center align-middle fw-bold" style="border-radius: 0 0 0 10px;">TOTAL</td>
+                            <td class="fw-bold" style="font-size: 17.5px !important; border-radius: 0 0 10px 0;">...</td>
                         </tr>
                     </tfoot>
                 </table>
