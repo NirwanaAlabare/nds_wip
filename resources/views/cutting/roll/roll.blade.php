@@ -559,17 +559,35 @@
                     className: "text-nowrap"
                 },
                 {
+                    targets: [35],
+                    render: (data, type, row, meta) => {
+                        return row.status != "extension complete" && row.status != "extension" ? row.qty_awal : '-';
+                    }
+                },
+                {
+                    targets: [36, 37, 38],
+                    render: (data, type, row, meta) => {
+                        return row.status != "extension complete" && row.status != "extension" ? data : '-';
+                    }
+                },
+                {
+                    targets: [42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52],
+                    render: (data, type, row, meta) => {
+                        return row.status != "extension complete" && row.status != "extension" ? data : '-';
+                    }
+                },
+                {
                     targets: [53],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return Number(data).round(2)
+                        return row.status != "extension complete" && row.status != "extension" ? Number(data).round(2) : '-';
                     }
                 },
                 {
                     targets: [54],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return (Number(data).round(2))+" %"
+                        return row.status != "extension complete" && row.status != "extension" ? (Number(data).round(2))+" %" : '-';
                     }
                 }
             ],
