@@ -107,8 +107,9 @@ class DashboardWipLineController extends Controller
         $data['datajam15'] = $this->cari_datajam15($lineId);
 
         $data['dashboard_indicators'] = $this->show_chart_dashboard($lineId);
+        $data['dashboard_indicators2'] = $this->show_chart_dashboard2($lineId);
 
-        broadcast(new TriggerWipLine($data, $lineId));
+        // broadcast(new TriggerWipLine($data, $lineId));
         return response()->json(
             [
                 'message' => 'Data diterima',
@@ -130,9 +131,7 @@ class DashboardWipLineController extends Controller
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja, man_power, smv from master_plan where sewing_line = '" .
                 $line .
                 "' and tgl_plan = CURRENT_DATE()) b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '00:00' and DATE_FORMAT(created_at, '%H:%i') < '08:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 00:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 08:00')) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -149,14 +148,22 @@ class DashboardWipLineController extends Controller
     function cari_datajam8($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 1)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 1)) target from (
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(1 > jam,jam,1) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a)
+)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(1 > jam,jam,1) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a)
+)) target from (
             select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '08:00' and DATE_FORMAT(created_at, '%H:%i') <= '09:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 08:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 09:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -164,7 +171,7 @@ class DashboardWipLineController extends Controller
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '08:00' and DATE_FORMAT(created_at, '%H:%i') <= '09:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '08:00' and DATE_FORMAT(created_at, '%H:%i') < '09:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -173,14 +180,20 @@ class DashboardWipLineController extends Controller
     function cari_datajam9($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 1)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 1)) target from (
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(2 > jam,jam,2) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(2 > jam,jam,2) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) target from (
             select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '09:00' and DATE_FORMAT(created_at, '%H:%i') <= '10:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 09:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 10:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -188,7 +201,7 @@ class DashboardWipLineController extends Controller
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '09:00' and DATE_FORMAT(created_at, '%H:%i') <= '10:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '09:00' and DATE_FORMAT(created_at, '%H:%i') < '10:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -197,14 +210,20 @@ class DashboardWipLineController extends Controller
     function cari_datajam10($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 1)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 1)) target from (
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(3 > jam,jam,3) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(3 > jam,jam,3) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) target from (
             select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '10:00' and DATE_FORMAT(created_at, '%H:%i') <= '11:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 10:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 11:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -212,7 +231,7 @@ class DashboardWipLineController extends Controller
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '10:00' and DATE_FORMAT(created_at, '%H:%i') <= '11:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '10:00' and DATE_FORMAT(created_at, '%H:%i') < '11:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -221,14 +240,20 @@ class DashboardWipLineController extends Controller
     function cari_datajam11($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 1)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 1)) target from (
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(4 > jam,jam,4) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(4 > jam,jam,4) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) target from (
             select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '11:00' and DATE_FORMAT(created_at, '%H:%i') <= '12:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 11:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 12:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -236,7 +261,7 @@ class DashboardWipLineController extends Controller
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '11:00' and DATE_FORMAT(created_at, '%H:%i') <= '12:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '11:00' and DATE_FORMAT(created_at, '%H:%i') < '12:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -245,14 +270,20 @@ class DashboardWipLineController extends Controller
     function cari_datajam13($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 1)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 1)) target from (
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(5 > jam,jam,5) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(5 > jam,jam,5) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) target from (
             select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '12:00' and DATE_FORMAT(created_at, '%H:%i') <= '14:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 12:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 14:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -260,7 +291,7 @@ class DashboardWipLineController extends Controller
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '12:00' and DATE_FORMAT(created_at, '%H:%i') <= '14:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '12:00' and DATE_FORMAT(created_at, '%H:%i') < '14:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -269,14 +300,20 @@ class DashboardWipLineController extends Controller
     function cari_datajam14($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 1)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 1)) target from (
+            "SELECT jam_kerja,GREATEST(target,0) target1, actual_sekarang output, (GREATEST(target,0) - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (GREATEST(target,0) + sisa) target2, ((GREATEST(target,0) + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(6 > jam,jam,6) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(6 > jam,jam,6) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) target from (
             select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '14:00' and DATE_FORMAT(created_at, '%H:%i') <= '15:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 14:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 15:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -284,7 +321,7 @@ class DashboardWipLineController extends Controller
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '14:00' and DATE_FORMAT(created_at, '%H:%i') <= '15:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '14:00' and DATE_FORMAT(created_at, '%H:%i') < '15:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -293,14 +330,20 @@ class DashboardWipLineController extends Controller
     function cari_datajam15($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 1)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 1)) target from (
+            "SELECT jam_kerja,GREATEST(target,0) target1, actual_sekarang output, (GREATEST(target,0) - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (GREATEST(target,0) + sisa) target2, ((GREATEST(target,0) + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(7 > jam,jam,7) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(7 > jam,jam,7) jam from (select CASE
+    WHEN HOUR(NOW()) = 7 THEN 0
+    WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+    ELSE HOUR(NOW()) - 7
+END jam) a))) target from (
             select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
-                $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '15:00' and DATE_FORMAT(created_at, '%H:%i') <= '16:00') c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 15:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 16:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
@@ -308,7 +351,7 @@ class DashboardWipLineController extends Controller
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '15:00' and DATE_FORMAT(created_at, '%H:%i') <= '16:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '15:00' and DATE_FORMAT(created_at, '%H:%i') < '16:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -349,15 +392,17 @@ class DashboardWipLineController extends Controller
         $query = DB::connection('mysql_dsb')->select(
             "select output, IF(jam_kerja = jam_berjalan,target2,target1) target from (select jam_kerja, output, IF(target1 < 0,0,target1) target1, IF(target2 < 0,0,target2) target2 from (SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - CASE
             WHEN HOUR(NOW()) = 7 THEN 0
+            WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
             ELSE HOUR(NOW()) - 7
         END)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - CASE
-            WHEN HOUR(NOW()) = 7 THEN 0
-            ELSE HOUR(NOW()) - 7
-        END)) target from (
+        WHEN HOUR(NOW()) = 7 THEN 0
+        WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
+        ELSE HOUR(NOW()) - 7
+    END)) target from (
                 select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
                 (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja, man_power, smv from master_plan where sewing_line = '".$lineId."' and tgl_plan = CURRENT_DATE()) b on b.tgl_plan = a.tanggal left join
-                (SELECT master_plan_id,COUNT(a.id) AS actual_sekarang FROM output_rfts a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan=CURRENT_DATE () AND ((HOUR (NOW())=7 AND DATE_FORMAT(created_at,'%H:%i') BETWEEN '00:00' AND '07:59') OR (HOUR(NOW()) = 13 AND DATE_FORMAT(created_at, '%H:%i') >= '12:00' AND DATE_FORMAT(created_at, '%H:%i') <= '14:00')
-            OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13  AND DATE_FORMAT(created_at,'%H:%i') BETWEEN CONCAT(LPAD(HOUR (NOW()),2,'0'),':00') AND CONCAT(LPAD(HOUR (NOW())+1,2,'0'),':00'))) GROUP BY master_plan_id) c on c.master_plan_id = b.id
+                (SELECT master_plan_id,COUNT(a.id) AS actual_sekarang FROM output_rfts a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan >= CURRENT_DATE() -10 AND ((HOUR (NOW())=7 AND DATE_FORMAT(updated_at,'%H:%i') BETWEEN '00:00' AND '07:59') OR (HOUR(NOW()) = 13 AND DATE_FORMAT(updated_at, '%H:%i') >= '12:00' AND DATE_FORMAT(updated_at, '%H:%i') < '14:00')
+            OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13  AND DATE_FORMAT(updated_at,'%H:%i') BETWEEN CONCAT(LPAD(HOUR (NOW()),2,'0'),':00') AND CONCAT(LPAD(HOUR (NOW())+1,2,'0'),':00'))) and DATE_FORMAT(updated_at,'%Y-%m-%d') = CURRENT_DATE GROUP BY master_plan_id) c on c.master_plan_id = b.id
                 left join
                 (SELECT master_plan_id,COUNT(a.id) AS actual_sebelum FROM output_rfts a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan=CURRENT_DATE () AND (
             (HOUR(NOW()) = 7 AND DATE_FORMAT(created_at, '%H:%i') < '06:00')
@@ -366,7 +411,7 @@ class DashboardWipLineController extends Controller
         ) GROUP BY master_plan_id
     ) d on d.master_plan_id = b.id
                 left join
-                (SELECT master_plan_id,COUNT(a.id) AS defect FROM output_defects a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan=CURRENT_DATE () AND ((HOUR (NOW())=7 AND DATE_FORMAT(created_at,'%H:%i') BETWEEN '00:00' AND '07:59') OR (HOUR(NOW()) = 13 AND DATE_FORMAT(created_at, '%H:%i') >= '12:00' AND DATE_FORMAT(created_at, '%H:%i') <= '14:00')
+                (SELECT master_plan_id,COUNT(a.id) AS defect FROM output_defects a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan=CURRENT_DATE () AND ((HOUR (NOW())=7 AND DATE_FORMAT(created_at,'%H:%i') BETWEEN '00:00' AND '07:59') OR (HOUR(NOW()) = 13 AND DATE_FORMAT(created_at, '%H:%i') >= '12:00' AND DATE_FORMAT(created_at, '%H:%i') < '14:00')
             OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13  AND DATE_FORMAT(created_at,'%H:%i') BETWEEN CONCAT(LPAD(HOUR (NOW()),2,'0'),':00') AND CONCAT(LPAD(HOUR (NOW())+1,2,'0'),':00'))) GROUP BY master_plan_id) e on e.master_plan_id = b.id
                 where a.tanggal = CURRENT_DATE())a) a) a) a JOIN (SELECT
         CASE
@@ -399,7 +444,7 @@ class DashboardWipLineController extends Controller
 
     function cari_actual($tanggal, $lineId)
     {
-        $query = DB::connection('mysql_dsb')->select("SELECT count(a.id) actual from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $lineId . "' and b.tgl_plan = '" . $tanggal . "' ");
+        $query = DB::connection('mysql_dsb')->select("SELECT count(a.id) actual from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $lineId . "' and a.updated_at >= CURRENT_DATE() AND a.updated_at < CURRENT_DATE() + INTERVAL 1 DAY");
 
         return isset($query[0]) ? $query[0]->actual : null;
     }
@@ -431,7 +476,7 @@ class DashboardWipLineController extends Controller
 
     function cari_day_target($tanggal, $lineId)
     {
-        $query = DB::connection('mysql_dsb')->select("SELECT COALESCE(sum(plan_target),0) as day_target from master_plan where tgl_plan = '" . $tanggal . "' and sewing_line = '" . $lineId . "'");
+        $query = DB::connection('mysql_dsb')->select("SELECT COALESCE(sum(plan_target),0) as day_target from master_plan where tgl_plan = '" . $tanggal . "' and sewing_line = '" . $lineId . "' and cancel = 'N'");
 
         return isset($query[0]) ? $query[0]->day_target : null;
     }
@@ -667,16 +712,23 @@ class DashboardWipLineController extends Controller
         $query = DB::connection('mysql_dsb')->select(
             "SELECT effi, per_rft, per_defect from (SELECT nama_line,username,COALESCE(effi,0) effi,COALESCE(per_rft,0) per_rft,COALESCE(per_defect,0) per_defect from (select username,SUBSTR(FullName FROM 8) nama_line from userpassword where Groupp = 'sewing' order by username asc
             ) line left join
-            (SELECT sewing_line,effi,per_rft,per_defect from (SELECT a.sewing_line,plan_target,actual,rft,deffect,effi,ROUND((rft / (rft + deffect) * 100),2) per_rft, ROUND((deffect / (rft + deffect) * 100),2) per_defect FROM (select sewing_line,min_prod,(man_power * menit_real) min_tersedia, actual,plan_target, ROUND((min_prod / (man_power * menit_real) * 100),2) effi from (Select a.sewing_line,actual,min_prod,man_power,if(menit_real > (jam_kerja * 60),jam_kerja,jam_real) jam_real, if(menit_real > (jam_kerja * 60),(jam_kerja * 60),menit_real) menit_real, jam_kerja,plan_target from (SELECT a.sewing_line,sum(actual) actual,sum(min_prod) min_prod,man_power,jam_real,menit_real FROM (SELECT id,sewing_line,smv,actual,round(smv * actual,4) min_prod FROM (SELECT sewing_line,id,smv from master_plan where tgl_plan = CURRENT_DATE() ) a inner join
+            (SELECT sewing_line,effi,per_rft,per_defect from (SELECT a.sewing_line,plan_target,actual,rft,deffect,effi,ROUND((COALESCE(rft,0) / (COALESCE(rft,0) + COALESCE(deffect,0)) * 100),2) per_rft, ROUND((COALESCE(deffect,0) / (COALESCE(rft,0) + COALESCE(deffect,0)) * 100),2) per_defect FROM (select sewing_line,min_prod,(man_power * menit_real) min_tersedia, actual,plan_target, ROUND((min_prod / (man_power * menit_real) * 100),2) effi from (Select a.sewing_line,actual,min_prod,man_power,if(menit_real > (jam_kerja * 60),jam_kerja,jam_real) jam_real, if(menit_real > (jam_kerja * 60),(jam_kerja * 60),menit_real) menit_real, jam_kerja,plan_target from (SELECT a.sewing_line,sum(actual) actual,sum(min_prod) min_prod,man_power,jam_real,menit_real FROM (SELECT id,sewing_line,smv,actual,round(smv * actual,4) min_prod FROM (SELECT sewing_line,id,smv from master_plan where tgl_plan = CURRENT_DATE() ) a inner join
             (SELECT master_plan_id, count(a.id) actual from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() GROUP BY master_plan_id) b on b.master_plan_id = a.id) a inner join
             (SELECT sewing_line,man_power,jam_masuk,jam_sekarang, if(jam_kerja >= '6',jam_kerja -1,jam_kerja) jam_real, if(jam_kerja >= '6',menit_kerja -60,menit_kerja) menit_real from (SELECT sewing_line, man_power, CONCAT(CURRENT_DATE,' ','07:00:00') jam_masuk,CURRENT_DATE() as jam_sekarang, TIMESTAMPDIFF(hour,CONCAT(CURRENT_DATE,' ','07:00:00'),CURRENT_TIMESTAMP) jam_kerja,TIMESTAMPDIFF(minute,CONCAT(CURRENT_DATE,' ','07:00:00'),CURRENT_TIMESTAMP) menit_kerja from master_plan where tgl_plan = CURRENT_DATE() GROUP BY sewing_line order by sewing_line asc ) a) b on b.sewing_line = a.sewing_line GROUP BY a.sewing_line) a inner join
             (SELECT sewing_line,COALESCE(sum(jam_kerja),0) as jam_kerja,COALESCE(sum(plan_target),0) as plan_target from master_plan where tgl_plan = CURRENT_DATE() GROUP BY sewing_line) b on b.sewing_line = a.sewing_line) a) a left join
             (SELECT b.sewing_line,count(a.id) deffect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() GROUP BY b.sewing_line) b on b.sewing_line = a.sewing_line LEFT JOIN
             (select sewing_line,(rft) rft from (select a.sewing_line,COALESCE(rft,0) rft, COALESCE(deffect,0) deffect from (SELECT b.sewing_line,count(a.id) rft from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() and status = 'NORMAL' GROUP BY b.sewing_line) a left join
             (SELECT b.sewing_line,- count(a.id) deffect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() and a.defect_status = 'defect' GROUP BY b.sewing_line) b on b.sewing_line = a.sewing_line) a) c on c.sewing_line = a.sewing_line) a order by per_rft desc) b on b.sewing_line = line.username order by b.effi desc) a
-            where username = '" .
-                $lineId .
-                "'",
+            where username = '" . $lineId ."'",
+        );
+
+        return $query;
+    }
+
+    function show_chart_dashboard2($lineId)
+    {
+        $query = DB::connection('mysql_dsb')->select(
+            "SELECT round(min_prod / min_avail * 100,2) effi from (select SUM(min_prod) min_prod, man_power, MAX(updated_at) updated_at, (ABS(TIME_TO_SEC(MAX(updated_at)) -TIME_TO_SEC('07:00:00') - if(HOUR(MAX(updated_at)) >= 12,TIME_TO_SEC('01:00:00'),TIME_TO_SEC('00:00:00'))) / 3600) jam_kerja, ((ABS(TIME_TO_SEC(MAX(updated_at)) -TIME_TO_SEC('07:00:00') - if(HOUR(MAX(updated_at)) >= 12,TIME_TO_SEC('01:00:00'),TIME_TO_SEC('00:00:00'))) / 3600) * man_power * 60) min_avail from (SELECT master_plan_id,count(a.id) actual_sekarang, smv, (count(a.id) * smv) min_prod, MAX(man_power) man_power, MAX(updated_at) updated_at from output_rfts a inner join master_plan b on b.id = a.master_plan_id where  b.sewing_line = '" . $lineId ."' and DATE_FORMAT(a.updated_at,'%Y-%m-%d') = CURRENT_DATE() GROUP BY master_plan_id) a) a",
         );
 
         return $query;

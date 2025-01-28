@@ -305,7 +305,7 @@
                     {
                         targets: [0],
                         render: (data, type, row, meta) => {
-                            return "<a href = '{{ route("process-form-cut-input") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
+                            return "<a href = '{{ route("detail-cutting") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
                         }
                     },
                     {
