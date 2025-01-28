@@ -336,19 +336,7 @@
                     {
                         targets: [9],
                         render: (data, type, row, meta) => {
-                            console.log(data);
-                            let date = new Date(data);
-
-                            console.log(date);
-                            var dateString =
-                                date.getUTCFullYear() + "-" +
-                                ("0" + (date.getUTCMonth()+1)).slice(-2) + "-" +
-                                ("0" + date.getUTCDate()).slice(-2) + " " +
-                                ("0" + date.getUTCHours()).slice(-2) + ":" +
-                                ("0" + date.getUTCMinutes()).slice(-2) + ":" +
-                                ("0" + date.getUTCSeconds()).slice(-2);
-
-                            return dateString;
+                            return formatDateTime(data);
                         }
                     },
                     {
