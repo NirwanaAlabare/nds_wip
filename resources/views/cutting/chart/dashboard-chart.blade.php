@@ -287,7 +287,7 @@
                     <p class="mb-0 fw-bold clock"></p>
                 </div>
             </div>
-            <swiper-container class="mySwiper1" autoplay-delay="3000" space-between="30" slides-per-view="3">
+            <swiper-container class="mySwiper1" autoplay-delay="5000" space-between="30" slides-per-view="3">
                 <swiper-slide>
                     <div class="cutting-chart-container">
                         <div class="cutting-chart"></div>

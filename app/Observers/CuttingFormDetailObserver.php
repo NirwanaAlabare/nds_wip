@@ -15,8 +15,8 @@ class CuttingFormDetailObserver
     public function created(FormCutInputDetail $formCutInputDetail)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailDetail->formCutInputDetail->alokasiMeja->username);
-
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+        // dd(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
     }
 
     /**
@@ -28,8 +28,8 @@ class CuttingFormDetailObserver
     public function updated(FormCutInputDetail $formCutInputDetail)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailDetail->formCutInputDetail->alokasiMeja->username);
-
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+        // dd(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
     }
 
     /**
@@ -41,8 +41,8 @@ class CuttingFormDetailObserver
     public function deleted(FormCutInputDetail $formCutInputDetail)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailDetail->formCutInputDetail->alokasiMeja->username);
-
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+        // dd(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
     }
 
     /**

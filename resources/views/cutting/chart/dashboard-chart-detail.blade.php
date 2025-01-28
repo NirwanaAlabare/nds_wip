@@ -502,7 +502,7 @@
         });
 
         function datatableDetailFormReload() {
-            $("#datatable-detail-form").DataTable().ajax.reload();
+            datatableDetailForm.ajax.reload();
         }
 
         let datatableDetailFormWs = $("#datatable-detail-form-ws").DataTable({
@@ -578,7 +578,7 @@
         });
 
         function datatableDetailFormWsReload() {
-            $("#datatable-detail-form-ws").DataTable().ajax.reload();
+            datatableDetailFormWs.ajax.reload();
         }
 
         // Function to update the clock every second
@@ -655,14 +655,14 @@
 
             const selectedDateElement = document.getElementById('selected-date');
 
-            function updateDescription() {
-                const selectedDate = tglPlan;
-                selectedDateElement.textContent = formatDate(tglPlan);
-            }
+            // function updateDescription() {
+            //     const selectedDate = tglPlan;
+            //     selectedDateElement.textContent = formatDate(tglPlan);
+            // }
 
-            dateInput.addEventListener('input', updateDescription);
+            // dateInput.addEventListener('input', updateDescription);
 
-            updateDescription();
+            // updateDescription();
 
             document.getElementById("loading-cutting-form").classList.add("d-none");
         });
@@ -982,9 +982,9 @@
             });
 
         function updateChartData(data) {
-            datatableDetailFormReload();
-
             if (myChart && myDoughnutChart && data) {
+                datatableDetailFormReload();
+
                 // Cek apakah data yang diterima valid
                 if (data.completed_form !== undefined && data.incomplete_form !== undefined && data.total_form !==
                     undefined) {
@@ -1011,6 +1011,8 @@
                         `Updated data for ${data.no_meja}: total_form = ${data.total_form}, completed_form = ${data.completed_form}`
                     );
                 }
+
+                datatableDetailFormWsReload();
             }
         }
     </script>
