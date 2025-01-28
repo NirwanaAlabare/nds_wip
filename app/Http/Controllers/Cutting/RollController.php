@@ -592,7 +592,7 @@ class RollController extends Controller
                 MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
                 form_cut_input.status status_form,
                 form_cut_input_detail.status,
-                COALESCE(form_cut_input_detail.updated_at, form_cut_input_detail.created_at) updated_at
+                COALESCE(form_cut_input_detail.created_at, form_cut_input_detail.updated_at) updated_at
             ")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
             whereRaw("(form_cut_input.status != 'SELESAI PENGERJAAN' OR (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension') )")->
