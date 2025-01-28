@@ -171,7 +171,8 @@
         }
 
         #datatable-detail-form-ws th, #datatable-detail-form-ws td {
-            font-size: 15px !important;
+            font-size: 13.5px !important;
+            white-space: nowrap;
         }
     </style>
 @endsection
@@ -354,7 +355,6 @@
         });
 
         let datatableDetailForm = $("#datatable-detail-form").DataTable({
-            processing: true,
             ordering: false,
             searching: false,
             paging: false,
@@ -506,7 +506,6 @@
         }
 
         let datatableDetailFormWs = $("#datatable-detail-form-ws").DataTable({
-            processing: true,
             ordering: false,
             searching: false,
             paging: false,
