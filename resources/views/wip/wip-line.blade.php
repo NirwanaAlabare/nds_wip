@@ -137,12 +137,14 @@
 
     #chartdiv-rft {
         width: 100%;
-        height: 220px;
+        height: 210px;
+        margin-top: 15px;
     }
 
     #chartdiv-deffect {
         width: 100%;
-        height: 220px;
+        height: 210px;
+        margin-top: 15px;
     }
 
     #defno1text::after {
@@ -199,6 +201,34 @@
         top: 10px;
         margin: 0 10px;
     }
+
+    /* Container to hide overflow text */
+    .marquee-container {
+        overflow: hidden;
+        position: relative;
+        width: 100%; /* Adjust to the width of the parent container */
+        height: 25px; /* Adjust based on text size */
+    }
+
+    /* Moving text */
+    .marquee {
+        display: inline-block;
+        white-space: nowrap; /* Prevent text wrapping */
+        position: absolute;
+        left: 10%;
+        animation: marquee-infinite 30s linear infinite; /* Continuous scrolling without pause */
+    }
+
+    /* Keyframes for smooth continuous scrolling */
+    @keyframes marquee-infinite {
+        0% {
+            transform: translateX(0%); /* Start outside of the container (right) */
+        }
+        100% {
+            transform: translateX(-100%); /* End outside of the container (left) */
+        }
+    }
+
 </style>
 
 <body class=" d-flex justify-content-center align-items-center"
@@ -226,11 +256,15 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card" style="height: 100px;">
+                        <div class="card" style="height: 100px; overflow: hidden;">
                             <div class="card-body"
                                 style="display: flex; text-align: start; justify-content: center; flex-direction: column;">
-                                <p class="card-title" id="buyer-name">-</p>
-                                <p class="card-text" id="buyer-id">-</p>
+                                <div id="buyer-text">
+                                    <p class="card-title" id="buyer-name">-</p>
+                                </div>
+                                <div id="ws-text">
+                                    <p class="card-text" id="buyer-id">-</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -506,8 +540,12 @@
                         <div class="card" style="height: 100px;">
                             <div class="card-body"
                                 style="display: flex; text-align: start; justify-content: center; flex-direction: column;">
-                                <p class="card-title" id="buyer-name-2"></p>
-                                <p class="card-text" id="buyer-id-2"></p>
+                                <div id="buyer-text-2">
+                                    <p class="card-title" id="buyer-name-2">-</p>
+                                </div>
+                                <div id="ws-text-2">
+                                    <p class="card-text" id="buyer-id-2">-</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -718,8 +756,12 @@
                         <div class="card" style="height: 100px;">
                             <div class="card-body"
                                 style="display: flex; text-align: start; justify-content: center; flex-direction: column;">
-                                <p class="card-title" id="buyer-name-3"></p>
-                                <p class="card-text" id="buyer-id-3"></p>
+                                <div id="buyer-text-3">
+                                    <p class="card-title" id="buyer-name-3">-</p>
+                                </div>
+                                <div id="ws-text-3">
+                                    <p class="card-text" id="buyer-id-3">-</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -792,13 +834,13 @@
 <script src="https://code.jscharting.com/latest/jscharting.js"></script>
 
 <!-- SOCKET.IO configuration -->
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+{{-- <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
     crossorigin="anonymous"></script>
 <script>
     window.laravel_echo_port = '{{ env('LARAVEL_ECHO_PORT') }}';
 </script>
 <script src="http://{{ Request::getHost() }}:{{ config('redis.echo_port') }}/socket.io/socket.io.js"></script>
-<script src="{{ config('redis.redis_url_public') }}/js/laravel-echo-setup.js" type="text/javascript"></script>
+<script src="{{ config('redis.redis_url_public') }}/js/laravel-echo-setup.js" type="text/javascript"></script> --}}
 
 <script>
     const currentDate = new Date().toISOString().split('T')[0];
@@ -1194,7 +1236,8 @@
         // Menghitung efficiency_sum
         const efficiencySum = (actuall1 / dayTarget1) * 100;
         const roundedEfficiency = efficiencySum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
-        const eff_data = data.dashboard_indicators[0].effi || 0;
+        // const eff_data = data.dashboard_indicators[0].effi || 0;
+        const eff_data = data.dashboard_indicators2[0].effi || 0;
 
         // Menampilkan hasilnya pada elemen #efficiency1
         $("#efficiency1").html(`
@@ -1220,6 +1263,7 @@
     function commulation2(data) {
         const target_menit = data.target_menit || 0;
         const actual_now = data.current_actual || 0;
+        const targetnya = data.day_target1  || 0;
         const jamker = data.jamkerl1 || 0;
 
         const datelog = new Date();
@@ -1237,7 +1281,13 @@
         }
 
         const cumulative = Math.round(min * target_menit, 0);
-        document.getElementById("cumulative-target-2").textContent = cumulative;
+        var val_cumulative = 0;
+        if(cumulative > targetnya){
+             val_cumulative = targetnya;
+        }else{
+             val_cumulative = cumulative;
+        }
+        document.getElementById("cumulative-target-2").textContent = val_cumulative;
         document.getElementById("actual-hour-now").textContent = actual_now;
 
     }
@@ -1287,6 +1337,21 @@
     }
 
     function showingalldata(data) {
+        if (data.no_ws.length > 30) {
+            $("#buyer-text").addClass("marquee-container");
+            $("#buyer-text-2").addClass("marquee-container");
+            $("#buyer-text-3").addClass("marquee-container");
+            $("#ws-text").addClass("marquee-container");
+            $("#ws-text-2").addClass("marquee-container");
+            $("#ws-text-3").addClass("marquee-container");
+            $("#buyer-name").addClass("marquee");
+            $("#buyer-name-2").addClass("marquee");
+            $("#buyer-name-3").addClass("marquee");
+            $("#buyer-id").addClass("marquee");
+            $("#buyer-id-2").addClass("marquee");
+            $("#buyer-id-3").addClass("marquee");
+        }
+
         $("#user-name").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
         $("#buyer-name").text(data.buyer || "0");
         $("#buyer-id").text(data.no_ws || "0");
@@ -1362,14 +1427,15 @@
                                             data-x="${parseFloat(posdef.defect_area_x)}"
                                             data-y="${parseFloat(posdef.defect_area_y)}">
                                         </div>`).join('');
-
+            console.log(location.protocol);
+            let link = location.protocol !== 'https:' ? 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' : 'https://10.10.5.62:8143/erp/pages/prod_new/upload_files/';
             // Add carousel item
             const carouselItem = `
                                     <div class="${isActive}">
                                         <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 420px; padding-bottom: 20px;">
                                             ${defectPoints}
                                             <img style="opacity: .8; width: auto; height: 420px;"
-                                                src="http://10.10.5.62:8080/erp/pages/prod_new/upload_files/${gambar1.image}"
+                                                src="${link}${gambar1.image}"
                                                 class="img-fluid defect-area-img">
                                         </div>
                                     </div>`;
@@ -1441,6 +1507,25 @@
     }
 
     $(document).ready(async function() {
+        // window.Echo.channel("dashboard-wip-line-channel-" + lineId)
+        //     .listen('.UpdatedDashboardWipLineEvent', (event) => {
+        //         if (event && event.data) {
+        //             const data = event.data;
+        //             showingalldata(data);
+        //         }
+        //     });
+        getData();
+    });
+
+    var intervalData = setInterval(() => {
+        getData();
+    }, 60000);
+
+    // var intervalPage = setInterval(() => {
+    //     location.reload()
+    // }, 900000);
+
+    async function getData() {
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         var lineId = @json($id);
@@ -1448,15 +1533,6 @@
             "tanggal": formattedDate,
             "line_id": lineId
         };
-
-        window.Echo.channel("dashboard-wip-line-channel-" + lineId)
-            .listen('.UpdatedDashboardWipLineEvent', (event) => {
-                if (event && event.data) {
-                    const data = event.data;
-                    showingalldata(data);
-                }
-            });
-
 
         try {
             const response = await $.ajax({
@@ -1472,7 +1548,7 @@
         } catch (error) {
             console.error('Request failed:', error);
         }
-    });
+    }
 
     function updateJakartaTime() {
         // Buat objek waktu sekarang
@@ -1574,72 +1650,75 @@
 
 
     function showChartEfficiency(data) {
-        const eff_data = data.dashboard_indicators[0].effi || 0;
-        var chart = JSC.chart('chartdiv-efficiency', {
-            debug: false,
-            legend_visible: false,
-            defaultTooltip_enabled: false,
-            xAxis_spacingPercentage: 0.4,
-            yAxis: [{
-                id: 'ax1',
-                defaultTick: {
-                    padding: 10,
-                    enabled: false
-                },
-                customTicks: [0, 50, 75, 85, 100],
-                line: {
-                    width: 10,
+    // Ambil nilai asli dari data
+    const eff_data = data.dashboard_indicators2[0].effi || 0;
 
-                    /*Defining the option will enable it.*/
-                    breaks: {},
+    // Batasi nilai bar hanya sampai 100 (rentang 0–100)
+    const eff_data_clamped = Math.min(Math.max(eff_data, 0), 100);
 
-                    /*Palette is defined at series level with an ID referenced here.*/
-                    color: 'smartPalette:pal1'
-                },
-                scale_range: [0, 100]
-            }],
-            defaultSeries: {
-                type: 'gauge column roundcaps',
-                shape: {
-                    label: {
-                        text: '%max',
-                        align: 'center',
-                        verticalAlign: 'middle',
-                        style_fontSize: 28
-                    }
-                }
+    var chart = JSC.chart('chartdiv-efficiency', {
+        debug: false,
+        legend_visible: false,
+        defaultTooltip_enabled: false,
+        xAxis_spacingPercentage: 0.4,
+        yAxis: [{
+            id: 'ax1',
+            defaultTick: {
+                padding: 10,
+                enabled: false
             },
-            series: [{
-                type: 'column roundcaps',
-                name: 'Temperatures',
-                yAxis: 'ax1',
-                palette: {
-                    id: 'pal1',
-                    pointValue: '%yValue',
-                    ranges: [{
-                            value: 0,
-                            color: '#FF5353'
-                        },
-                        {
-                            value: 50,
-                            color: '#FFD221'
-                        },
-                        {
-                            value: 75,
-                            color: '#77E6B4'
-                        },
-                        {
-                            value: [85, 100],
-                            color: '#21D683'
-                        }
-                    ]
-                },
-                points: [
-                    ['x', [0, eff_data]]
+            customTicks: [0, 50, 75, 85, 100],
+            line: {
+                width: 8,
+                breaks: {},
+                color: 'smartPalette:pal1'
+            },
+            scale_range: [0, 100]
+        }],
+        defaultSeries: {
+            type: 'gauge column roundcaps',
+            shape: {
+                label: {
+                    // Tetap tampilkan nilai asli (contoh: 383%)
+                    text: `${eff_data}`,
+                    align: 'center',
+                    verticalAlign: 'middle',
+                    style_fontSize: 28
+                }
+            }
+        },
+        series: [{
+            type: 'column roundcaps',
+            name: 'Temperatures',
+            yAxis: 'ax1',
+            palette: {
+                id: 'pal1',
+                pointValue: '%yValue',
+                ranges: [{
+                        value: 0,
+                        color: '#FF5353'
+                    },
+                    {
+                        value: 50,
+                        color: '#FFD221'
+                    },
+                    {
+                        value: 75,
+                        color: '#77E6B4'
+                    },
+                    {
+                        value: [85, 100],
+                        color: '#21D683'
+                    }
                 ]
-            }, ]
-        });
-    }
+            },
+            points: [
+                ['x', [0, eff_data_clamped]] // Nilai bar dibatasi dalam 0-100
+            ]
+        }]
+    });
+}
+
 
     function showChartRFT(data) {
         const per_rft = Number(data.dashboard_indicators[0].per_rft || 0, 10);
@@ -1648,15 +1727,16 @@
             legend_visible: false,
             defaultTooltip_enabled: false,
             xAxis_spacingPercentage: 0.4,
+            margin: '7px',
             yAxis: [{
                 id: 'ax1',
                 defaultTick: {
-                    padding: 10,
+                    padding: 2,
                     enabled: false
                 },
-                customTicks: [0, 50, 75, 85, 100],
+                customTicks: [0, 97, 98, 100],
                 line: {
-                    width: 10,
+                    width: 8,
 
                     /*Defining the option will enable it.*/
                     breaks: {},
@@ -1689,15 +1769,15 @@
                             color: '#FF5353'
                         },
                         {
-                            value: 50,
+                            value: 97,
                             color: '#FFD221'
                         },
                         {
-                            value: 75,
+                            value: 98,
                             color: '#77E6B4'
                         },
                         {
-                            value: [85, 100],
+                            value: 100,
                             color: '#21D683'
                         }
                     ]
@@ -1716,15 +1796,16 @@
             legend_visible: false,
             defaultTooltip_enabled: false,
             xAxis_spacingPercentage: 0.4,
+            margin: '7px',
             yAxis: [{
                 id: 'ax1',
                 defaultTick: {
-                    padding: 10,
+                    padding: 5,
                     enabled: false
                 },
-                customTicks: [0, 2, 3, 15],
+                customTicks: [0, 2, 3, 100],
                 line: {
-                    width: 10,
+                    width: 8,
 
                     /*Defining the option will enable it.*/
                     breaks: {},
@@ -1732,7 +1813,7 @@
                     /*Palette is defined at series level with an ID referenced here.*/
                     color: 'smartPalette:pal1'
                 },
-                scale_range: [0, 15]
+                scale_range: [0, 100]
             }],
             defaultSeries: {
                 type: 'gauge column roundcaps',
@@ -1765,7 +1846,7 @@
                             color: '#FF5353'
                         },
                         {
-                            value: 15,
+                            value: 100,
                             color: '#FF5353'
                         }
                     ]
@@ -1776,4 +1857,6 @@
             }, ]
         });
     }
+
+
 </script>
