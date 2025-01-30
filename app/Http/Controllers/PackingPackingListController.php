@@ -859,7 +859,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             where po = '$po' and p.dest = '$dest'
             ) p on  a.po = p.po and a.dest = p.dest and a.color = p.color and a.size = p.size
-            where a.id is not null
+            where a.id is not null and a.created_by = '$user'
             )
             b on a.no_carton >= b.no_carton_awal and a.no_carton <= b.no_carton_akhir
         "
@@ -1446,7 +1446,7 @@ left join packing_master_packing_list pl on x.po = pl.po and x.id_ppic_master_so
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             where po = '$po' and p.dest = '$dest'
             ) p on  a.po = p.po and a.dest = p.dest and a.color = p.color and a.size = p.size
-            where a.id is not null
+            where a.id is not null and a.created_by = '$user'
             )
             b on a.no_carton >= b.no_carton_awal and a.no_carton <= b.no_carton_akhir
             ) x

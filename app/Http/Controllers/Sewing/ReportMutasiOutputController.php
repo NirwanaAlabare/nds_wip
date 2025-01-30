@@ -17,8 +17,17 @@ class ReportMutasiOutputController extends Controller
 
     public function index(Request $request)
     {
+        $data_buyer = DB::connection('mysql_sb')->select("SELECT supplier isi, supplier tampil
+                            from laravel_nds.ppic_master_so a
+                            inner join signalbit_erp.so_det sd on a.id_so_det = sd.id
+                            inner join signalbit_erp.so on sd.id_so = so.id
+                            inner join signalbit_erp.act_costing  ac on so.id_cost = ac.id
+                            inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                            group by supplier
+                            order by supplier asc
+                ");
 
-        return view('sewing.report.report_mutasi_output', ['page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-report", "subPage" => "report_mut_output", "containerFluid" => true,]);
+        return view('sewing.report.report_mutasi_output', ['page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-report", "subPage" => "report_mut_output", "containerFluid" => true, "data_buyer" => $data_buyer]);
     }
 
 
@@ -1117,9 +1126,9 @@ SELECT
 			'0' sa_defect_trans_rew_sewing_pck,
 			'0' sa_defect_trans_rew_spotcleaning_pck,
 			'0' sa_defect_trans_rew_mending_pck,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing_pck,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning_pck,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending_pck,
+        SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing_pck,
+        SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning_pck,
+        SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending_pck,
 		SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing_pck,
 		SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning_pck,
 		SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending_pck

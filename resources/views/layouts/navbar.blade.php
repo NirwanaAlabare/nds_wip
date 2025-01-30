@@ -174,7 +174,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('dashboard-chart') }}" class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}" target="_blank">
+                                    <a href="http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-chart" class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}" target="_blank">
                                         Dashboard <i class="fa-solid fa-pager"></i>
                                     </a>
                                 </li>
@@ -933,6 +933,12 @@
                             <li>
                                 <a href="{{ route('ppic-laporan-tracking') }}" class="dropdown-item {{ $subPage == 'ppic-laporan-tracking' ? 'active' : '' }}">
                                     Laporan Tracking <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('ppic_monitoring_order') }}"
+                                    class="dropdown-item {{ $subPage == 'ppic_monitoring_order' ? 'active' : '' }}">
+                                    Monitoring Order <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>

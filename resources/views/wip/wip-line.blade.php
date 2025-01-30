@@ -899,7 +899,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-1").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-1").text(`${defectRate.toFixed(2)} %`);
+        $("#deffect-rate-1").text(`${defectRate} %`);
     }
 
     function updateTable2(data) {
