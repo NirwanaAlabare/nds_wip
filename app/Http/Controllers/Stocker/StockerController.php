@@ -3920,11 +3920,11 @@ class StockerController extends Controller
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
-                if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                // if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
                     array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-                } else {
-                    array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
-                }
+                // } else {
+                //     array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
+                // }
             }
 
             $failMessage = "";

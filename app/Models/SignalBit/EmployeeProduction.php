@@ -17,8 +17,8 @@ class EmployeeProduction extends Model
 
     public $timestamps = true;
 
-    public function leaderLines()
+    public function employeeLines()
     {
-        return $this->hasMany(LeaderLine::class, 'employee_id', 'enroll_id');
+        return $this->hasMany(EmployeeLine::class, 'employee_id', 'enroll_id');
     }
 }

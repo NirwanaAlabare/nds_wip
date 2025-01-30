@@ -5,13 +5,13 @@ namespace App\Models\SignalBit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LeaderLine extends Model
+class EmployeeLine extends Model
 {
     use HasFactory;
 
     protected $connection = 'mysql_sb';
 
-    protected $table = 'output_leader_line';
+    protected $table = 'output_employee_line';
 
     protected $guarded = [];
 
