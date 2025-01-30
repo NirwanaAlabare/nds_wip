@@ -162,7 +162,7 @@
 
             $('#buyer_filter').val('');
             $('#buyer_filter').change();
-            // dataTableReload();
+            dataTableReload();
         });
 
         function notif() {
@@ -366,287 +366,273 @@
 
 
         function dataTableReload() {
+
+            // Check if DataTable is already initialized
+
             if ($.fn.DataTable.isDataTable('#datatable')) {
-                // Just redraw the DataTable
-                $('#datatable').DataTable().ajax.reload(null, false); // false to not reset the paging
-            } else {
-                // Re-initialize the DataTable
-                datatable = $("#datatable").DataTable({
-                    scrollY: "450px",
-                    serverSide: true,
-                    processing: true,
-                    responsive: true,
-                    scrollX: true,
-                    scrollCollapse: true,
-                    paging: false,
-                    ordering: false,
-                    autoWidth: true,
-                    searching: false,
-                    ajax: {
-                        url: '{{ route('show_lap_monitoring_order') }}',
-                        data: function(d) {
-                            d.buyer_filter = $('#buyer_filter').val();
-                            d.style_filter = $('#style_filter').val();
-                            d.reff_filter = $('#reff_filter').val();
-                            d.ws_filter = $('#ws_filter').val();
-                            d.color_filter = $('#color_filter').val();
-                            d.size_filter = $('#size_filter').val();
-                        },
-                    },
-
-                    columns: [{
-                            data: 'buyer'
-                        }, {
-                            data: 'ws'
-                        },
-                        {
-                            data: 'color'
-                        },
-                        {
-                            data: 'size'
-                        },
-                        {
-                            data: 'styleno_prod'
-                        },
-                        {
-                            data: 'reff_no'
-                        },
-                        {
-                            data: 'tgl_shipment'
-                        },
-                        {
-                            data: 'qty_po'
-                        },
-                        {
-                            data: 'final_cut'
-                        },
-                        {
-                            data: 'final_loading'
-                        },
-                        {
-                            data: 'final_output_rfts'
-                        },
-                        {
-                            data: 'final_output_rfts_packing'
-                        },
-                        {
-                            data: 'tot_scan'
-                        },
-                        {
-                            data: 'tot_fg_out'
-                        },
-                    ],
-                    columnDefs: [{
-                            targets: [7, 8, 9, 10, 11, 12, 13], // Indices of columns to align right
-                            className: 'text-right' // Apply right alignment
-                        },
-                        {
-                            "className": "align-middle",
-                            "targets": "_all"
-                        }
-                    ],
-                    createdRow: function(row, data, dataIndex) {
-                        // Set the font weight to bold for all cells
-                        $(row).find('td').css('font-weight', 'bold');
-                        // Get the specific cells for qty_po and final_cut
-                        var qtyPoCell = $(row).find('td').eq(7);
-                        var finalCutCell = $(row).find('td').eq(8);
-                        var finalLoadingCell = $(row).find('td').eq(9);
-                        var finalOutputRftsCell = $(row).find('td').eq(10);
-                        var finalOutputRftsPackingCell = $(row).find('td').eq(11);
-                        var finalScanCell = $(row).find('td').eq(12);
-                        var finalFGOutCell = $(row).find('td').eq(13);
-
-
-                        if (parseFloat(data.final_cut) < parseFloat(data.qty_po)) {
-                            finalCutCell.css('color', 'red');
-                        } else {
-                            finalCutCell.css('color', 'black');
-                        }
-
-
-                        if (parseFloat(data.final_loading) < parseFloat(data.qty_po)) {
-                            // If final_cut is less than qty_po, set text color to red for final_cut
-                            finalLoadingCell.css('color', 'red');
-                        } else {
-                            // Otherwise, set text color to black for final_cut
-                            finalLoadingCell.css('color', 'black');
-                        }
-
-                        if (parseFloat(data.final_output_rfts) < parseFloat(data.qty_po)) {
-                            // If final_cut is less than qty_po, set text color to red for final_cut
-                            finalOutputRftsCell.css('color', 'red');
-                        } else {
-                            // Otherwise, set text color to black for final_cut
-                            finalOutputRftsCell.css('color', 'black');
-                        }
-
-                        if (parseFloat(data.final_output_rfts_packing) < parseFloat(data.qty_po)) {
-                            // If final_cut is less than qty_po, set text color to red for final_cut
-                            finalOutputRftsPackingCell.css('color', 'red');
-                        } else {
-                            // Otherwise, set text color to black for final_cut
-                            finalOutputRftsPackingCell.css('color', 'black');
-                        }
-
-                        if (parseFloat(data.tot_scan) < parseFloat(data.qty_po)) {
-                            // If final_cut is less than qty_po, set text color to red for final_cut
-                            finalScanCell.css('color', 'red');
-                        } else {
-                            // Otherwise, set text color to black for final_cut
-                            finalScanCell.css('color', 'black');
-                        }
-
-                        if (parseFloat(data.tot_fg_out) < parseFloat(data.qty_po)) {
-                            // If final_cut is less than qty_po, set text color to red for final_cut
-                            finalFGOutCell.css('color', 'red');
-                        } else {
-                            // Otherwise, set text color to black for final_cut
-                            finalFGOutCell.css('color', 'black');
-                        }
-
-
-                    },
-
-                    initComplete: function(settings, json) {
-                        // Calculate totals
-                        var api = this.api();
-                        // Function to calculate the sum of a column
-                        function sumColumn(columnIndex) {
-                            return api.column(columnIndex).data().reduce(function(a, b) {
-                                return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                            }, 0);
-                        }
-
-                        // Function to calculate qty_cut based on unique ws, color, and size combinations
-                        function calculateUniqueQtyCut() {
-                            var uniqueCombinations = {};
-                            var totalQtyCut = 0;
-                            api.rows().every(function() {
-                                var data = this.data();
-                                var key = data.ws + '-' + data.color + '-' + data.size + '-' + data
-                                    .styleno_prod + '-' + data.reff_no; // Create a unique key
-                                if (!uniqueCombinations[key]) {
-                                    uniqueCombinations[key] = true; // Mark this combination as seen
-                                    totalQtyCut += parseFloat(data.qty_cut) ||
-                                        0; // Sum qty_cut for unique combinations
-                                }
-                            });
-                            return totalQtyCut;
-                        }
-
-                        // function calculateUniqueQtyLoading() {
-                        //     var uniqueCombinations = {};
-                        //     var totalQtyLoading = 0;
-                        //     api.rows().every(function() {
-                        //         var data = this.data();
-                        //         var key = data.ws + '-' + data.color + '-' + data.size + '-' + data
-                        //             .styleno_prod + '-' + data.reff_no; // Create a unique key
-                        //         if (!uniqueCombinations[key]) {
-                        //             uniqueCombinations[key] = true; // Mark this combination as seen
-                        //             totalQtyLoading += parseFloat(data.qty_loading) ||
-                        //                 0; // Sum qty_cut for unique combinations
-                        //         }
-                        //     });
-                        //     return totalQtyLoading;
-                        // }
-
-                        // function calculateUniqueQtyRfts() {
-                        //     var uniqueCombinations = {};
-                        //     var totalQtyRfts = 0;
-                        //     api.rows().every(function() {
-                        //         var data = this.data();
-                        //         var key = data.ws + '-' + data.color + '-' + data.size + '-' + data
-                        //             .styleno_prod + '-' + data.reff_no; // Create a unique key
-                        //         if (!uniqueCombinations[key]) {
-                        //             uniqueCombinations[key] = true; // Mark this combination as seen
-                        //             totalQtyRfts += parseFloat(data.output_rfts) ||
-                        //                 0; // Sum qty_cut for unique combinations
-                        //         }
-                        //     });
-                        //     return totalQtyRfts;
-                        // }
-
-                        // function calculateUniqueQtyRftsPacking() {
-                        //     var uniqueCombinations = {};
-                        //     var totalQtyRftsPacking = 0;
-                        //     api.rows().every(function() {
-                        //         var data = this.data();
-                        //         var key = data.ws + '-' + data.color + '-' + data.size + '-' + data
-                        //             .styleno_prod + '-' + data.reff_no; // Create a unique key
-                        //         if (!uniqueCombinations[key]) {
-                        //             uniqueCombinations[key] = true; // Mark this combination as seen
-                        //             totalQtyRftsPacking += parseFloat(data.output_rfts_packing) ||
-                        //                 0; // Sum qty_cut for unique combinations
-                        //         }
-                        //     });
-                        //     return totalQtyRftsPacking;
-                        // }
-                        var totalQtyPo = sumColumn(7);
-                        var totalFinalCut = sumColumn(8);
-                        var totalFinalLoading = sumColumn(9);
-                        var totalFinalOutputRfts = sumColumn(10);
-                        var totalFinalOutputRftsPacking = sumColumn(11);
-                        var totalTotScan = sumColumn(12);
-                        var totalFGOut = sumColumn(13);
-                        // Update footer with totals
-                        $('#total_qty_po').text(totalQtyPo);
-                        $('#total_final_cut').text(totalFinalCut);
-                        $('#total_final_loading').text(totalFinalLoading);
-                        $('#total_final_output_rfts').text(totalFinalOutputRfts);
-                        $('#total_final_output_rfts_packing').text(totalFinalOutputRftsPacking);
-                        $('#total_final_scan').text(totalTotScan);
-                        $('#total_final_out').text(totalFGOut);
-
-                        // Call the update_chart function with new data and totalQtyPo
-                        const newData = [{
-                                category: 'Cutting',
-                                actual: totalFinalCut,
-                                expected: totalQtyPo,
-                                color: '#FF9130'
-                            },
-
-                            {
-                                category: 'Loading',
-                                actual: totalFinalLoading,
-                                expected: totalQtyPo,
-                                color: '#87A2FF'
-                            },
-
-                            {
-                                category: 'Sewing',
-                                actual: totalFinalOutputRfts,
-                                expected: totalQtyPo,
-                                color: '#FFF574'
-                            },
-
-                            {
-                                category: 'Packing Line',
-                                actual: totalFinalOutputRftsPacking,
-                                expected: totalQtyPo,
-                                color: '#96E5D1'
-                            },
-
-                            {
-                                category: 'Packing Scan',
-                                actual: totalTotScan,
-                                expected: totalQtyPo,
-                                color: '#77B254'
-                            },
-                            {
-                                category: 'Shipment',
-                                actual: totalFGOut,
-                                expected: totalQtyPo,
-                                color: '#A19AD3'
-                            }
-
-                        ];
-                        // Call the function with new data and the total quantity for x-axis max
-                        update_chart(newData, totalQtyPo);
-
-                    }
-                });
+                // Clear the table data
+                $('#datatable').DataTable().clear().draw();
+                // Destroy the existing DataTable instance
+                $('#datatable').DataTable().destroy();
             }
+
+            // Re-initialize the DataTable
+            datatable = $("#datatable").DataTable({
+                scrollY: "250px",
+                serverSide: true,
+                processing: true,
+                responsive: true,
+                scrollX: true,
+                scrollCollapse: false,
+                paging: false,
+                ordering: false,
+                autoWidth: true,
+                searching: true,
+                ajax: {
+                    url: '{{ route('show_lap_monitoring_order') }}',
+                    data: function(d) {
+                        d.buyer_filter = $('#buyer_filter').val();
+                        d.style_filter = $('#style_filter').val();
+                        d.reff_filter = $('#reff_filter').val();
+                        d.ws_filter = $('#ws_filter').val();
+                        d.color_filter = $('#color_filter').val();
+                        d.size_filter = $('#size_filter').val();
+                    },
+                },
+
+                columns: [{
+                        data: 'buyer'
+                    }, {
+                        data: 'ws'
+                    },
+                    {
+                        data: 'color'
+                    },
+                    {
+                        data: 'size'
+                    },
+                    {
+                        data: 'styleno_prod'
+                    },
+                    {
+                        data: 'reff_no'
+                    },
+                    {
+                        data: 'tgl_shipment_fix'
+                    },
+                    {
+                        data: 'qty_po'
+                    },
+                    {
+                        data: 'final_cut'
+                    },
+                    {
+                        data: 'final_loading'
+                    },
+                    {
+                        data: 'final_output_rfts'
+                    },
+                    {
+                        data: 'final_output_rfts_packing'
+                    },
+                    {
+                        data: 'tot_scan'
+                    },
+                    {
+                        data: 'tot_fg_out'
+                    },
+                ],
+                columnDefs: [{
+                        targets: [7, 8, 9, 10, 11, 12, 13], // Indices of columns to align right
+                        className: 'text-right' // Apply right alignment
+                    },
+                    {
+                        "className": "align-middle",
+                        "targets": "_all"
+                    }
+                ],
+                createdRow: function(row, data, dataIndex) {
+                    // Set the font weight to bold for all cells
+                    $(row).find('td').css('font-weight', 'bold');
+                    // Get the specific cells for qty_po and final_cut
+                    var qtyPoCell = $(row).find('td').eq(7);
+                    var finalCutCell = $(row).find('td').eq(8);
+                    var finalLoadingCell = $(row).find('td').eq(9);
+                    var finalOutputRftsCell = $(row).find('td').eq(10);
+                    var finalOutputRftsPackingCell = $(row).find('td').eq(11);
+                    var finalScanCell = $(row).find('td').eq(12);
+                    var finalFGOutCell = $(row).find('td').eq(13);
+
+
+                    if (parseFloat(data.final_cut) < parseFloat(data.qty_po)) {
+                        finalCutCell.css('color', 'red');
+                    } else {
+                        finalCutCell.css('color', 'black');
+                    }
+
+
+                    if (parseFloat(data.final_loading) < parseFloat(data.qty_po)) {
+                        // If final_cut is less than qty_po, set text color to red for final_cut
+                        finalLoadingCell.css('color', 'red');
+                    } else {
+                        // Otherwise, set text color to black for final_cut
+                        finalLoadingCell.css('color', 'black');
+                    }
+
+                    if (parseFloat(data.final_output_rfts) < parseFloat(data.qty_po)) {
+                        // If final_cut is less than qty_po, set text color to red for final_cut
+                        finalOutputRftsCell.css('color', 'red');
+                    } else {
+                        // Otherwise, set text color to black for final_cut
+                        finalOutputRftsCell.css('color', 'black');
+                    }
+
+                    if (parseFloat(data.final_output_rfts_packing) < parseFloat(data.qty_po)) {
+                        // If final_cut is less than qty_po, set text color to red for final_cut
+                        finalOutputRftsPackingCell.css('color', 'red');
+                    } else {
+                        // Otherwise, set text color to black for final_cut
+                        finalOutputRftsPackingCell.css('color', 'black');
+                    }
+
+                    if (parseFloat(data.tot_scan) < parseFloat(data.qty_po)) {
+                        // If final_cut is less than qty_po, set text color to red for final_cut
+                        finalScanCell.css('color', 'red');
+                    } else {
+                        // Otherwise, set text color to black for final_cut
+                        finalScanCell.css('color', 'black');
+                    }
+
+                    if (parseFloat(data.tot_fg_out) < parseFloat(data.qty_po)) {
+                        // If final_cut is less than qty_po, set text color to red for final_cut
+                        finalFGOutCell.css('color', 'red');
+                    } else {
+                        // Otherwise, set text color to black for final_cut
+                        finalFGOutCell.css('color', 'black');
+                    }
+
+
+                },
+                drawCallback: function(settings) {
+
+                    // Calculate totals
+
+                    var api = this.api();
+
+                    var totalQtyPo = api.column(7).data().reduce(function(a, b) {
+
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+
+                    }, 0);
+
+                    var totalFinalCut = api.column(8).data().reduce(function(a, b) {
+
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+
+                    }, 0);
+
+                    var totalFinalLoading = api.column(9).data().reduce(function(a, b) {
+
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+
+                    }, 0);
+
+                    var totalFinalOutputRfts = api.column(10).data().reduce(function(a, b) {
+
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+
+                    }, 0);
+
+                    var totalFinalOutputRftsPacking = api.column(11).data().reduce(function(a, b) {
+
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+
+                    }, 0);
+
+                    var totalTotScan = api.column(12).data().reduce(function(a, b) {
+
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+
+                    }, 0);
+
+                    var totalFGOut = api.column(13).data().reduce(function(a, b) {
+
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+
+                    }, 0);
+
+
+                    // Update footer with totals
+
+                    $('#total_qty_po').text(totalQtyPo);
+
+                    $('#total_final_cut').text(totalFinalCut);
+
+                    $('#total_final_loading').text(totalFinalLoading);
+
+                    $('#total_final_output_rfts').text(totalFinalOutputRfts);
+
+                    $('#total_final_output_rfts_packing').text(totalFinalOutputRftsPacking);
+
+                    $('#total_final_scan').text(totalTotScan);
+
+                    $('#total_final_out').text(totalFGOut);
+
+
+                    // Call the update_chart function with new data and totalQtyPo
+
+                    const newData = [
+
+                        {
+                            category: 'Cutting',
+                            actual: totalFinalCut,
+                            expected: totalQtyPo,
+                            color: '#FF9130'
+                        },
+
+                        {
+                            category: 'Loading',
+                            actual: totalFinalLoading,
+                            expected: totalQtyPo,
+                            color: '#87A2FF'
+                        },
+
+                        {
+                            category: 'Sewing',
+                            actual: totalFinalOutputRfts,
+                            expected: totalQtyPo,
+                            color: '#FFF574'
+                        },
+
+                        {
+                            category: 'Packing Line',
+                            actual: totalFinalOutputRftsPacking,
+                            expected: totalQtyPo,
+                            color: '#96E5D1'
+                        },
+
+                        {
+                            category: 'Packing Scan',
+                            actual: totalTotScan,
+                            expected: totalQtyPo,
+                            color: '#77B254'
+                        },
+
+                        {
+                            category: 'Shipment',
+                            actual: totalFGOut,
+                            expected: totalQtyPo,
+                            color: '#A19AD3'
+                        }
+
+                    ];
+
+                    // Call the function with new data and the total quantity for x-axis max
+
+                    update_chart(newData, totalQtyPo);
+
+                }
+            });
         }
     </script>
 @endsection

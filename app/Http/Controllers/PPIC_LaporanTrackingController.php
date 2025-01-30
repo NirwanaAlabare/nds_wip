@@ -559,6 +559,7 @@ CTE.size,
 CTE.styleno_prod,
 CTE.reff_no,
 CTE.tgl_shipment,
+DATE_FORMAT(CTE.tgl_shipment, '%d-%m-%Y') tgl_shipment_fix,
 qty_po,
 coalesce(qty_cut,0) qty_cut,
 coalesce(case
