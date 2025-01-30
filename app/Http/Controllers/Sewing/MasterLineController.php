@@ -25,12 +25,12 @@ class MasterLineController extends Controller
             "enroll_id",
             "employee_name",
             "status_jabatan",
-            "sewing_nonsewing",
+            "department_name",
             "nik"
         )->
         where("status_aktif", "AKTIF")->
         whereIn("status_jabatan", ["SPV", "CHIEF"])->
-        where("sewing_nonsewing", "SEWING")->
+        where("department_name", "SEWING")->
         orderBy("enroll_id", "asc")->
         get();
 
@@ -38,12 +38,12 @@ class MasterLineController extends Controller
             "enroll_id",
             "employee_name",
             "status_jabatan",
-            "sewing_nonsewing",
+            "department_name",
             "nik"
         )->
         where("status_aktif", "AKTIF")->
         whereIn("status_jabatan", ["LEADER", "SPV", "CHIEF"])->
-        where("sewing_nonsewing", "SEWING")->
+        where("department_name", "SEWING")->
         orderBy("enroll_id", "asc")->
         get();
 
@@ -61,12 +61,12 @@ class MasterLineController extends Controller
                 "enroll_id",
                 "employee_name",
                 "status_jabatan",
-                "sewing_nonsewing",
+                "department_name",
                 "nik"
             )->
             where("status_aktif", "AKTIF")->
             whereIn("status_jabatan", ["LEADER", "SPV", "CHIEF"])->
-            where("sewing_nonsewing", "SEWING")->
+            where("department_name", "SEWING")->
             orderBy("enroll_id", "asc")->
             get();
 
