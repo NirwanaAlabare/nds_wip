@@ -1,7 +1,12 @@
 /* MyCustom Styles */
 @font-face {
     font-family: Nunito;
-    src: url(/nds_wip/public/assets/fonts/Nunito/Nunito-VariableFont_wght.ttf);
+    src: url(../../fonts/Nunito/Nunito-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: Roboto;
+    src: url(../../fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf);
 }
 
 /* General */
@@ -22,7 +27,7 @@
 }
 
 body {
-    font-family: 'Nunito', inherit;
+    font-family: 'Roboto', 'Nunito', sans-serif;
     font-size: 15px;
     background-color: #f4f6f9 !important;
 }
@@ -206,6 +211,17 @@ table.sticky-table tr th, table.sticky-table tr td {
 
 .main-header .nav-link {
     height: auto !important;
+}
+
+.navbar-nav {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.navbar-nav .nav-item {
+    margin: 3px;
+    background: #f9f9f9;
+    border-radius: 3px;
 }
 
 /* Background Color */
@@ -499,7 +515,7 @@ table.sticky-table tr th, table.sticky-table tr td {
 }
 
 #reader {
-    min-width: 576px !important;
+    /* min-width: 576px !important; */
     margin: auto;
 }
 
@@ -593,5 +609,11 @@ table.sticky-table tr th, table.sticky-table tr td {
 
     .modal-dialog-scrollable .modal-body {
         max-height: 65vh !important;
+    }
+
+    .navbar-nav .nav-item {
+        margin: 3px;
+        background: inherit;
+        border-radius: 3px;
     }
 }

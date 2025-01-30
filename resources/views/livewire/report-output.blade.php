@@ -154,6 +154,7 @@
                                 </td>
                                 @if ($currentLine != $line->username)
                                     @php
+                                        // Legacy :
                                         if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
                                             $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
                                             $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
@@ -161,6 +162,14 @@
                                             $cumulativeTarget = $line->cumulative_target ?? 0;
                                             $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
                                         }
+                                        // New Version :
+                                            // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00')) {
+                                            //     $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
+                                            //     $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
+                                            // } else {
+                                            //     $cumulativeTarget = $lines->where("username", $line->username)->max("cumulative_target")  ?? 0;
+                                            //     $cumulativeMinsAvail =  $lines->where("username", $line->username)->max("cumulative_mins_avail") ?? 0;
+                                            // }
 
                                         $currentActual = $lines->where("username", $line->username)->sum("total_actual") ?? 0;
                                         $currentMinsProd = $lines->where("username", $line->username)->sum("mins_prod") ?? 0;
@@ -291,7 +300,7 @@
                                 <td>
                                     {{ $order->leader_nik }}
                                 </td>
-                                <td class="text-nowrap">
+                                <td>
                                     {{ $order->leader_name }}
                                 </td>
                                 <td class="fw-bold text-center">
@@ -373,7 +382,7 @@
                         $targetFromEfficiency =$summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
                     @endphp
                     <tr>
-                        <th colspan="11" class="fs-5 text-center">Summary</th>
+                        <th colspan="13" class="fs-5 text-center">Summary</th>
                         <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
                         <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
                         <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
@@ -451,6 +460,9 @@
                                     <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
                                         {{ ucfirst(str_replace("_", " ", $order->username)) }}
                                     </a>
+                                </td>
+                                <td>
+                                    {{ $order->leader_nik }}
                                 </td>
                                 <td>
                                     {{ $order->leader_name }}
@@ -533,7 +545,7 @@
                         $targetFromEfficiency =$summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
                     @endphp
                     <tr>
-                        <th colspan="10" class="fs-5 text-center">Summary</th>
+                        <th colspan="12" class="fs-5 text-center">Summary</th>
                         <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
                         <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
                         <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>

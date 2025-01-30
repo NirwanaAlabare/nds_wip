@@ -305,7 +305,7 @@
                     {
                         targets: [0],
                         render: (data, type, row, meta) => {
-                            return "<a href = '{{ route("process-form-cut-input") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
+                            return "<a href = '{{ route("detail-cutting") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
                         }
                     },
                     {
@@ -336,19 +336,7 @@
                     {
                         targets: [9],
                         render: (data, type, row, meta) => {
-                            console.log(data);
-                            let date = new Date(data);
-
-                            console.log(date);
-                            var dateString =
-                                date.getUTCFullYear() + "-" +
-                                ("0" + (date.getUTCMonth()+1)).slice(-2) + "-" +
-                                ("0" + date.getUTCDate()).slice(-2) + " " +
-                                ("0" + date.getUTCHours()).slice(-2) + ":" +
-                                ("0" + date.getUTCMinutes()).slice(-2) + ":" +
-                                ("0" + date.getUTCSeconds()).slice(-2);
-
-                            return dateString;
+                            return formatDateTime(data);
                         }
                     },
                     {

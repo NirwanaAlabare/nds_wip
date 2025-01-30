@@ -88,6 +88,53 @@ function isNotNull(value) {
     return true;
 }
 
+// Format Decimal Number
+function formatDecimalNumber(number) {
+    if (number) {
+        if (Math.round(number) !== number) {
+            return formatNumber(number.toFixed(1));
+        }
+    }
+
+    return formatNumber(number);
+}
+
+// Format Number
+function formatNumber(val) {
+    // remove sign if negative
+    var sign = 1;
+    if (val < 0) {
+        sign = -1;
+        val = -val;
+    }
+
+    if (val) {
+        // trim the number decimal point if it exists
+        let num = val.toString().includes('.') ? val.toString().split('.')[0] : val.toString();
+        let len = num.toString().length;
+        let result = '';
+        let count = 1;
+
+        for (let i = len - 1; i >= 0; i--) {
+            result = num.toString()[i] + result;
+            if (count % 3 === 0 && count !== 0 && i !== 0) {
+            result = '.' + result;
+            }
+            count++;
+        }
+
+        // add number after decimal point
+        if (val.toString().includes('.')) {
+            result = result + ',' + val.toString().split('.')[1];
+        }
+
+        // return result with - sign if negative
+        return sign < 0 ? '-' + result : result;
+    }
+
+    return 0;
+}
+
 // Format date to YYYY-MM-DD
 function formatDate(date) {
     var dateObj = new Date(date);
@@ -419,7 +466,7 @@ function submitForm(e, evt) {
 }
 
 // Edit data modal
-function editData(e, modal, addons = []) {
+async function editData(e, modal, addons = []) {
     let data = e;
 
     for (let key in data) {
@@ -435,15 +482,15 @@ function editData(e, modal, addons = []) {
             if ([...document.getElementById('edit_' + key).classList].some(className => className.includes('select2'))) {
                 $('#edit_' + key).val(data[key]).trigger('change.select2');
             }
-        } else {
-            if (addons.length > 0) {
-                for (let i = 0; i < addons.length; i++) {
-                    if (typeof addons == "object") {
-                        for (let addonsKey in addons[i]) {
-                            if (addonsKey == "function") {
-                                eval(addons[i][addonsKey]);
-                            }
-                        }
+        }
+    }
+
+    if (addons.length > 0) {
+        for (let i = 0; i < addons.length; i++) {
+            if (typeof addons == "object") {
+                for (let addonsKey in addons[i]) {
+                    if (addonsKey == "function") {
+                        eval(addons[i][addonsKey]);
                     }
                 }
             }
@@ -490,7 +537,7 @@ function deleteData(e) {
                                 position: 'topCenter'
                             });
 
-                            $('.modal').modal('hide');
+                            // $('.modal').modal('hide');
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -501,8 +548,10 @@ function deleteData(e) {
 
                         if (res.table) {
                             $('#' + res.table).DataTable().ajax.reload();
-                        } else {
-                            location.reload();
+                        }
+
+                        if (res.callback != '') {
+                            eval(res.callback);
                         }
                     }, error: function (jqXHR) {
                         if (document.getElementById("loading")) {

@@ -167,13 +167,14 @@
 
                         res.forEach(element => {
                             totalDefect += element.total_defect;
-                            dataArr.push({'x' : autoBreak(element.defect_type), 'y' : element.total_defect });
+                            dataArr.push({'x' : autoBreak(element.defect_type), 'y' : element.total_defect});
                         });
 
                         let cumulativeTotalDefect = cumulativeSplitNumber(totalDefect);
 
                         chart.updateSeries([{
-                            data: dataArr
+                            data: dataArr,
+                            name: "Total Defect"
                         }], true);
 
                         chart.updateOptions({

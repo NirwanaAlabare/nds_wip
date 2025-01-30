@@ -89,7 +89,7 @@
         <div class="card card-sb" id="stocker-card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-ticket fa-sm"></i> Stocker</h5>
+                    <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-receipt"></i> Stocker</h5>
                     <div class="d-flex justify-content-end align-items-center gap-1">
                         <input type="date" class="form-control form-control-sm" id="stocker-from">
                         <span>-</span>

@@ -157,11 +157,11 @@
                         console.log(row['id']);
                         return `
                             <div class='d-flex flex-column gap-1 justify-content-center align-items-center'>
-                                <a href='{{ route('edit-loading-plan') }}/` + row['id'] + `' class='btn btn-primary btn-sm'>
-                                    <i class='fa fa-edit'></i>
-                                </a>
-                                <a href='{{ route('detail-loading-plan') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
+                                <a href='{{ route('detail-loading-plan') }}/` + row['id'] + `' class='btn btn-sb btn-sm'>
                                     <i class='fa fa-search'></i>
+                                </a>
+                                <a href='{{ route('edit-loading-plan') }}/` + row['id'] + `' class='btn btn-sb-secondary btn-sm'>
+                                    <i class='fa fa-edit'></i>
                                 </a>
                             </div>
                         `;

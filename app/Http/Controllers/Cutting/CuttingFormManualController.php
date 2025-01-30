@@ -565,7 +565,7 @@ class CuttingFormManualController extends Controller
                 "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
                 "status" => "PENGERJAAN MARKER",
                 "tipe_form_cut" => "MANUAL",
-                "waktu_mulai" => ($request->startTime ? $request->startTime : Carbon::now()),
+                "waktu_mulai" => (($request->startTime == null || $request->startTime == "" || !preg_match("/^([01]?[0-9]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])$/", $request->startTime)) ? Carbon::now() : $request->startTime),
                 "app" => "Y",
                 "app_by" => Auth::user()->id,
                 "app_notes" => "MANUAL FORM CUT",

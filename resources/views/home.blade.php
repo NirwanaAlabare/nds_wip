@@ -8,29 +8,13 @@
                 <h3 class="card-title fw-bold text-sb">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
                 <br>
                 <div class="row g-3 mt-3">
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'stock_opname')
-                        <div class="col-lg-2 col-md-3 col-sm-6 d-none">
-                            <a href="{{ route('procurement') }}" class="home-item">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/procurement.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Procurement</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    @endif
                     @admin
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('track-ws') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3"
-                                                alt="track image">
+                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3" alt="track image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Track</p>
                                         </div>
                                     </div>
@@ -42,8 +26,7 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/worksheet.png') }}" class="img-fluid p-3"
-                                                alt="worksheet image">
+                                            <img src="{{ asset('dist/img/worksheet.png') }}" class="img-fluid p-3" alt="worksheet image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Worksheet</p>
                                         </div>
                                     </div>
@@ -52,161 +35,110 @@
                         </div> --}}
                     @endadmin
 
-                    <!-- @sample
-                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
-                            <a href="#" class="home-item">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/sample.png') }}" class="img-fluid p-3" alt="sample image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Sample</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div> --}}
-                    @endsample -->
-
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
+                    @role("marker")
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-marker') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/marker.png') }}" class="img-fluid p-3"
-                                                alt="cutting image">
+                                            <img src="{{ asset('dist/img/marker.png') }}" class="img-fluid p-3" alt="marker image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Marker</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
+                    @endrole
 
+                    @role("cutting")
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-cutting') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/cutting.png') }}" class="img-fluid p-3"
-                                                alt="cutting image">
+                                            <img src="{{ asset('dist/img/cutting.png') }}" class="img-fluid p-3" alt="cutting image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Cutting</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                    @endif
+                    @endrole
 
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'spreading')
+                    @role("stocker")
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-stocker') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3" alt="stocker image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Stocker</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                    @endif
+                    @endrole
 
-                    @dc
+                    @role("dc")
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-dc') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/distribution.jpeg') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/distribution.jpeg') }}" class="img-fluid p-3" alt="dc image">
                                             <p class="text-center fw-bold text-uppercase text-dark">DC</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                    @enddc
+                    @endrole
 
-                    @sewing
+                    @role("sewing")
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-sewing-eff') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/sewingline.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/sewingline.png') }}" class="img-fluid p-3" alt="sewing image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Sewing Line</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                    @endsewing
+                    @endrole
 
-                    {{-- @hr
-                        <div class="col-lg-2 col-md-3 col-sm-6">
-                            <a href="{{ route('dashboard-mut-karyawan') }}" class="home-item">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/mut_karyawan.jpg') }}" class="img-fluid p-3"
-                                                alt="qr code image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Mutasi Karyawan</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    @endhr --}}
-
-                    @hr
+                    @admin
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-mut-mesin') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/mut_mesin.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/mut_mesin.png') }}" class="img-fluid p-3" alt="machine image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Mutasi Mesin</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                    @endhr
-
-
-                    <!-- warehouse -->
-                    <!-- <div class="col-lg-2 col-md-3 col-sm-6">
-                                        <a href="{{ route('dashboard-warehouse') }}" class="home-item">
-                                            <div class="card h-100">
-                                                <div class="card-body">
-                                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
-                                                        <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div> -->
+                    @endadmin
 
                     @warehouse
                         <div class="col-lg-2 col-md-3 col-sm-6">
-                            <!-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> -->
+                            {{-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> --}}
                             <a href="#" class="home-item" onclick="getmodalwarehouse()">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3"
-                                                alt="cutting image">
+                                            <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="whs image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
-                            <!-- </a> -->
+                            {{-- </a> --}}
                         </div>
                     @endwarehouse
 
@@ -216,9 +148,21 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/stock_opname.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/stock_opname.png') }}" class="img-fluid p-3" alt="so image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Stock Opname</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-lg-2 col-md-3 col-sm-6 d-none">
+                            <a href="{{ route('procurement') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/procurement.png') }}" class="img-fluid p-3" alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Procurement</p>
                                         </div>
                                     </div>
                                 </div>
@@ -232,8 +176,7 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/ppic.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/ppic.png') }}" class="img-fluid p-3" alt="ppic image">
                                             <p class="text-center fw-bold text-uppercase text-dark">PPIC</p>
                                         </div>
                                     </div>
@@ -248,8 +191,7 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/packing.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/packing.png') }}" class="img-fluid p-3" alt="packing image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Packing</p>
                                         </div>
                                     </div>
@@ -262,8 +204,7 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/finish_good.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
+                                            <img src="{{ asset('dist/img/finish_good.png') }}" class="img-fluid p-3" alt="finish good image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Finish Good Ekspedisi</p>
                                         </div>
                                     </div>
@@ -272,19 +213,21 @@
                         </div>
                     @endpacking
 
-                    <div class="col-lg-2 col-md-3 col-sm-6">
-                        <a href="{{ route('dashboard-report-doc') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/doc_report.png') }}" class="img-fluid p-3"
-                                            alt="qr code image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">Document Report</p>
+                    @admin
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="{{ route('dashboard-report-doc') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/doc_report.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Document Report</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                            </a>
+                        </div>
+                    @endadmin
 
                     @ga
                         <div class="col-lg-2 col-md-3 col-sm-6">
@@ -301,6 +244,7 @@
                             </a>
                         </div>
                     @endga
+
                     @wip
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-wip') }}" class="home-item">
@@ -317,10 +261,24 @@
                         </div>
                     @endwip
 
+                    @role('superadmin')
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="{{ route('manage-user') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/manage-users.png') }}" class="img-fluid p-3" alt="manage users image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">MANAGE USER</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endrole
+
+                    {{-- Log Out --}}
                     <div class="col-lg-2 col-md-3 col-sm-6">
-                        <a href="{{ route('logout') }}"
-                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                            class="home-item">
+                        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex h-100 flex-column justify-content-between">
@@ -332,8 +290,7 @@
                             </div>
                         </a>
 
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none"
-                            onsubmit="logout(this, event)">
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none" onsubmit="logout(this, event)">
                             @csrf
                         </form>
                     </div>
@@ -341,8 +298,8 @@
             </div>
         </div>
     </div>
-    </div>
 
+    {{-- Warehouse Modal --}}
     <div class="modal fade" id="modal-pilih-gudang">
         <form>
             <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -360,8 +317,7 @@
                                     <div class="card h-100">
                                         <div class="card-body">
                                             <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/whs_fabric.png') }}" class="img-fluid p-3"
-                                                    alt="cutting image">
+                                                <img src="{{ asset('dist/img/whs_fabric.png') }}" class="img-fluid p-3" alt="whs_fabric image">
                                                 <p class="text-center fw-bold text-uppercase text-dark">Fabric</p>
                                             </div>
                                         </div>
@@ -374,21 +330,20 @@
                                     <div class="card h-100">
                                         <div class="card-body">
                                             <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/whs_accs.png') }}" class="img-fluid p-3"
-                                                    alt="cutting image">
+                                                <img src="{{ asset('dist/img/whs_accs.png') }}" class="img-fluid p-3" alt="whs_acc image">
                                                 <p class="text-center fw-bold text-uppercase text-dark">Accesories</p>
                                             </div>
                                         </div>
                                     </div>
                                 </a>
                             </div>
+
                             <div class="col-md-4 col-4">
                                 <a href="{{ route('dashboard-fg-stock') }}" class="home-item">
                                     <div class="card h-100">
                                         <div class="card-body">
                                             <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/whs_fg_stock.png') }}" class="img-fluid p-3"
-                                                    alt="fg_stok image">
+                                                <img src="{{ asset('dist/img/whs_fg_stock.png') }}" class="img-fluid p-3" alt="fg_stok image">
                                                 <p class="text-center fw-bold text-uppercase text-dark">FG Stock</p>
                                             </div>
                                         </div>
@@ -396,6 +351,9 @@
                                 </a>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
 

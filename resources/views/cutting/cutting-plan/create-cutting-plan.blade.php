@@ -89,7 +89,7 @@
             </div>
         </div>
         <div class="col-12 mb-3">
-            <div class="card card-info h-100">
+            <div class="card card-success h-100">
                 <div class="card-header">
                     <h5 class="card-title fw-bold" style="padding-bottom: 2px">
                         <i class="fa fa-list"></i> Form Cut Terdaftar :

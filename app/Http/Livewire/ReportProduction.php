@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\SignalBit\UserLine;
 use App\Models\SignalBit\MasterPlan;
+use App\Models\SignalBit\EmployeeLine;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Rework;
@@ -19,6 +20,7 @@ class ReportProduction extends Component
     public $defectAreas;
     public $loadingLine;
     public $backDateOutput;
+    public $employeeLine;
     public $qcType;
 
     public function mount()
@@ -30,6 +32,7 @@ class ReportProduction extends Component
         $this->date = date('Y-m-d');
         $this->loadingLine = false;
         $this->backDateOutput = [];
+        $this->employeeLine = [];
         $this->qcType = false;
     }
 
@@ -39,7 +42,7 @@ class ReportProduction extends Component
 
         $lines = UserLine::with([
             "masterPlans" => function ($query) {
-                $query->whereBetween('master_plan.tgl_plan', [date('Y-m-d', strtotime('-1 days', strtotime($this->date))), $this->date]);
+                $query->whereBetween('master_plan.tgl_plan', [date('Y-m-d', strtotime('-7 days', strtotime($this->date))), $this->date]);
             },
             "masterPlans.rfts" => function ($query) {
                 $query->whereRaw('output_rfts.updated_at BETWEEN "'.$this->date.' 00:00:00" AND "'.$this->date.' 23:59:59"');
@@ -119,6 +122,11 @@ class ReportProduction extends Component
             whereIn("defect_type_id", $defectTypeIds)->
             groupBy("defect_type_id", "defect_area_id")->
             orderByRaw("defect_area_count desc")->get();
+
+        $this->employeeLine = EmployeeLine::leftJoin("userpassword", "userpassword.line_id", "=", "output_employee_line.line_id")->
+            where("userpassword.username", $this->selectedLine)->
+            where("output_employee_line.tanggal", $this->date)->
+            first();
 
         return view('livewire.report-production', ['lines' => $lines, 'hours' => $hours]);
     }

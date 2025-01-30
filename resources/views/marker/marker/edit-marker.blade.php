@@ -654,12 +654,10 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Marker berhasil disimpan',
-                            text: res.message,
+                            html: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
-                            timer: 5000,
-                            timerProgressBar: true
                         }).then(() => {
                             if (res.redirect != '') {
                                 if (res.redirect != 'reload') {

@@ -52,7 +52,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered table-hover" id="line_wip_table">
+                    <table class="table table-sm table-bordered table-hover w-100" id="line_wip_table">
                         <thead>
                             <tr>
                                 <th>Line</th>
@@ -158,6 +158,7 @@
             processing: true,
             serverSide: false,
             pageLength: 100,
+            scrollX: '400px',
             scrollY: '400px',
             ajax: {
                 headers: {
@@ -291,6 +292,7 @@
                         'styleFilter': $('#style_filter').val(),
                         'colorFilter': $('#color_filter').val(),
                         'sizeFilter': $('#size_filter').val(),
+                        'search' : $('#line_wip_table_filter input').val()
                     },
                     success: function(response) {
                         console.log(response);

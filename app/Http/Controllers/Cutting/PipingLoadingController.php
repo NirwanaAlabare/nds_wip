@@ -23,15 +23,15 @@ class PipingLoadingController extends Controller
 
             return DataTables::eloquent($data)->
                 filter(function ($query) {
-                    $tglAwal = request('tgl_awal');
-                    $tglAkhir = request('tgl_akhir');
+                    $tglAwal = request('dateFrom');
+                    $tglAkhir = request('dateTo');
 
                     if ($tglAwal) {
-                        $query->whereRaw("piping_loading.updated_at >= '" . $tglAwal . " 00:00:00'");
+                        $query->whereRaw("piping_loading.tanggal >= '" . $tglAwal . " 00:00:00'");
                     }
 
                     if ($tglAkhir) {
-                        $query->whereRaw("piping_loading.updated_at <= '" . $tglAkhir . " 23:59:59'");
+                        $query->whereRaw("piping_loading.tanggal <= '" . $tglAkhir . " 23:59:59'");
                     }
                 }, true)->
                 addColumn('kode_piping', function ($row) {
@@ -173,21 +173,21 @@ class PipingLoadingController extends Controller
 
     public function total(Request $request) {
 
-        $dateFrom = $request->dateFrom ? $request->dateFrom : null;
-        $dateTo = $request->dateTo ? $request->dateTo : null;
-        $tanggal = $request->tanggal ? $request->tanggal : null;
-        $kode = $request->kode ? $request->kode : null;
-        $line_name = $request->line_name ? $request->line_name : null;
-        $kode_piping = $request->kode_piping ? $request->kode_piping : null;
-        $buyer = $request->buyer ? $request->buyer : null;
-        $act_costing_ws = $request->act_costing_ws ? $request->act_costing_ws : null;
-        $style = $request->style ? $request->style : null;
-        $color = $request->color ? $request->color : null;
-        $part = $request->part ? $request->part : null;
-        $lebar = $request->lebar ? $request->lebar : null;
-        $qty = $request->qty ? $request->qty : null;
-        $output = $request->output ? $request->output : null;
-        $user = $request->user ? $request->user : null;
+        $dateFrom = $request->dateFrom ? $request->dateFrom : '';
+        $dateTo = $request->dateTo ? $request->dateTo : '';
+        $tanggal = $request->tanggal ? $request->tanggal : '';
+        $kode = $request->kode ? $request->kode : '';
+        $line_name = $request->line_name ? $request->line_name : '';
+        $kode_piping = $request->kode_piping ? $request->kode_piping : '';
+        $buyer = $request->buyer ? $request->buyer : '';
+        $act_costing_ws = $request->act_costing_ws ? $request->act_costing_ws : '';
+        $style = $request->style ? $request->style : '';
+        $color = $request->color ? $request->color : '';
+        $part = $request->part ? $request->part : '';
+        $lebar = $request->lebar ? $request->lebar : '';
+        $qty = $request->qty ? $request->qty : '';
+        $output = $request->output ? $request->output : '';
+        $user = $request->user ? $request->user : '';
 
         $totalPipingLoading = PipingLoading::selectRaw("
             SUM(piping_process.lebar_roll_piping) total_lebar,

@@ -111,13 +111,13 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-sm btn-primary w-100 mt-3 fw-bold" id="stocker-form-submit">
-                    <i class="fa fa-save"></i> SIMPAN
+                <button type="submit" class="btn btn-success w-100 mt-3 fw-bold" id="stocker-form-submit">
+                    <i class="fa fa-save"></i> Simpan
                 </button>
             </div>
         </div>
     </form>
-    <div class="card card-info" id="stock-trolley">
+    <div class="card card-sb" id="stock-trolley">
         <div class="card-header">
             <h5 class="card-title fw-bold">Stock Trolley</h5>
             <div class="card-tools">

@@ -34,7 +34,7 @@
                             <th>Kode</th>
                             <th>Trolley</th>
                             <th>Line</th>
-                            <th>Act</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>

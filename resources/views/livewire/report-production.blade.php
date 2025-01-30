@@ -44,8 +44,12 @@
                 </div>
             </div>
         </div>
+        <div class="d-flex justify-content-between mt-3">
+            <span class="text-sb fw-bold">CHIEF : {{ $employeeLine ? ($employeeLine->chief_nik." - ".$employeeLine->chief_name) : "-" }}</span>
+            <span class="text-sb fw-bold">LEADER : {{ $employeeLine ? ($employeeLine->leader_nik." - ".$employeeLine->leader_name) : "-" }}</span>
+        </div>
         <div class="row table-responsive">
-            <table class="table table-sm table-bordered align-middle mt-3">
+            <table class="table table-sm table-bordered align-middle">
                 <thead>
                     <tr>
                         <th colspan="8" class="align-middle text-center">{{ ucfirst(str_replace("_", " ", $this->selectedLine != '' ? $this->selectedLine : '-')) }}</th>
@@ -112,15 +116,15 @@
 
                             // Loop for calculating output data
                             foreach ($lineData as $line) {
-                                $rft = $line->rfts->whereBetween('updated_at', [$timeFrom, $timeTo])->where('status', 'NORMAL')->count();
-                                $totalRft += $rft;
-                                $defect = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'defect')->count();
-                                $totalDefect += $defect;
-                                $rework = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'reworked')->count();
-                                $totalRework += $rework;
-                                $reject = $line->rejects->whereBetween('updated_at', [$timeFrom, $timeTo])->count();
-                                $totalReject += $reject;
-                                $totalActualThis = $rft + $rework;
+                                $rft = $line->rfts->whereBetween('updated_at', [$timeFrom, $timeTo])->where('status', 'NORMAL');
+                                $totalRft += $rft->count();
+                                $defect = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'defect');
+                                $totalDefect += $defect->count();
+                                $rework = $line->defects->whereBetween('updated_at', [$timeFrom, $timeTo])->where('defect_status', 'reworked');
+                                $totalRework += $rework->count();
+                                $reject = $line->rejects->whereBetween('updated_at', [$timeFrom, $timeTo]);
+                                $totalReject += $reject->count();
+                                $totalActualThis = $rft->count() + $rework->count();
                                 $totalActual += $totalActualThis;
                                 $minsProd += $totalActualThis * $line->smv;
                                 $minsAvail += ($line->tgl_plan == $date ? ($line->man_power) : 0) * ($line->tgl_plan == $date ? ($line->jam_kerja) : 0) * 60;

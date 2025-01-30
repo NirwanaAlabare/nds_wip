@@ -32,28 +32,31 @@ class ExportLaporanPPICTracking implements FromView, WithEvents, ShouldAutoSize
 {
     use Exportable;
 
+    protected $buyer, $ws, $user;
 
-    protected $buyer, $user;
-
-    public function __construct($buyer, $user)
+    public function __construct($buyer, $ws, $user)
     {
-
         $this->buyer = $buyer;
+        $this->ws = $ws;
         $this->user = $user;
         $this->rowCount = 0;
     }
 
-
     public function view(): View
-
     {
+        $filterWs = "";
+        $filterKpno = "";
+        if ($this->ws) {
+            $filterWs .= " and ws = '".$this->ws."'";
+            $filterKpno = " and ac.kpno = '".$this->ws."'";
+        }
 
         $timestamp = Carbon::now();
         $delete_tmp_qc =  DB::delete("
-        delete from ppic_laporan_tracking_tmp_qc_output where created_by = '$this->user' and buyer = '$this->buyer'");
+        delete from ppic_laporan_tracking_tmp_qc_output where created_by = '$this->user' and buyer = '$this->buyer' ".$filterWs);
 
         $delete_tmp_p_line =  DB::delete("
-        delete from ppic_laporan_tracking_tmp_packing_line where created_by = '$this->user' and buyer = '$this->buyer'");
+        delete from ppic_laporan_tracking_tmp_packing_line where created_by = '$this->user' and buyer = '$this->buyer' ".$filterWs);
 
         $data_qc = DB::connection('mysql_sb')->select("SELECT
 ms.supplier buyer, ac.kpno ws, sd.color, sd.size, dest, sum(a.tot) tot_qc from
@@ -63,7 +66,7 @@ inner join so on sd.id_so = so.id
 inner join act_costing ac on so.id_cost = ac.id
 inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
 inner join master_size_new msn on sd.size = msn.size
-where ms.supplier = '$this->buyer'
+where ms.supplier = '$this->buyer' ".$filterKpno."
 group by ac.kpno, sd.color, sd.size, ac.styleno
 order by ac.kpno asc, sd.color asc, msn.urutan asc
             ");
@@ -85,7 +88,7 @@ order by ac.kpno asc, sd.color asc, msn.urutan asc
         (select so_det_id,count(so_det_id) tot_p_line from output_rfts_packing a group by so_det_id) a
         inner join master_sb_ws m on a.so_det_id = m.id_so_det
         inner join master_size_new msn on m.size = msn.size
-        where m.buyer = '$this->buyer'
+        where m.buyer = '$this->buyer' ".$filterWs."
         group by ws, color, m.size, m.styleno
         order by ws asc, color asc, msn.urutan asc
                             ");
@@ -126,7 +129,7 @@ size,
 '0' qty_trf_garment,
 '0' qty_packing_in,
 '0' qty_packing_out
-from master_sb_ws where buyer = '$this->buyer'
+from master_sb_ws where buyer = '$this->buyer' ".$filterWs."
 group by ws, color, size, styleno
 union
 select
@@ -140,7 +143,7 @@ tot_qc,
 '0' qty_packing_in,
 '0' qty_packing_out
 from ppic_laporan_tracking_tmp_qc_output
-where buyer = '$this->buyer' and created_by = '$this->user'
+where buyer = '$this->buyer' and created_by = '$this->user' ".$filterWs."
 union
 select
 buyer,
@@ -153,7 +156,7 @@ tot_p_line,
 '0' qty_packing_in,
 '0' qty_packing_out
 from ppic_laporan_tracking_tmp_packing_line
-where buyer = '$this->buyer' and created_by = '$this->user'
+where buyer = '$this->buyer' and created_by = '$this->user' ".$filterWs."
 union
 select
 buyer,
@@ -168,7 +171,7 @@ sum(t.qty) as qty_trf_garment,
 from packing_trf_garment t
 inner join ppic_master_so p on t.id_ppic_master_so = p.id
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where buyer = '$this->buyer'
+where buyer = '$this->buyer' ".$filterWs."
 group by ws, color, size
 union
 select
@@ -184,7 +187,7 @@ sum(pi.qty) qty_packing_in,
 from packing_packing_in pi
 inner join ppic_master_so p on pi.id_ppic_master_so = p.id
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where m.buyer = '$this->buyer'
+where m.buyer = '$this->buyer' ".$filterWs."
 group by ws, color, size
 union
 select
@@ -200,7 +203,7 @@ count(o.id) qty_packing_out
 from packing_packing_out_scan o
 inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where m.buyer = '$this->buyer'
+where m.buyer = '$this->buyer' ".$filterWs."
 group by ws, color, size
 ) a
 left join master_size_new msn on a.size = msn.size

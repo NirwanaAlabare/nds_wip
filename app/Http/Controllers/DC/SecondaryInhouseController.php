@@ -64,7 +64,8 @@ class SecondaryInhouseController extends Controller
                 f.no_cut,
                 COALESCE(msb.size, s.size) size,
                 a.user,
-                mp.nama_part
+                mp.nama_part,
+                CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range
                 from secondary_inhouse_input a
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -72,7 +73,7 @@ class SecondaryInhouseController extends Controller
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
-                left join (select id_qr_stocker,tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
+                left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
                 where
                 a.tgl_trans is not null
                 ".$additionalQuery."

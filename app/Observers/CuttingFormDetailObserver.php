@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Observers;
+
+use App\Models\FormCutInputDetail;
+
+class CuttingFormDetailObserver
+{
+    /**
+     * Handle the FormCutInputDetail "created" event.
+     *
+     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @return void
+     */
+    public function created(FormCutInputDetail $formCutInputDetail)
+    {
+        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+        // dd(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+    }
+
+    /**
+     * Handle the FormCutInputDetail "updated" event.
+     *
+     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @return void
+     */
+    public function updated(FormCutInputDetail $formCutInputDetail)
+    {
+        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+        // dd(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+    }
+
+    /**
+     * Handle the FormCutInputDetail "deleted" event.
+     *
+     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @return void
+     */
+    public function deleted(FormCutInputDetail $formCutInputDetail)
+    {
+        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+        // dd(date("Y-m-d"), $formCutInputDetail->formCutInput->alokasiMeja->username);
+    }
+
+    /**
+     * Handle the FormCutInputDetail "restored" event.
+     *
+     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @return void
+     */
+    public function restored(FormCutInputDetail $formCutInputDetail)
+    {
+        //
+    }
+
+    /**
+     * Handle the FormCutInputDetail "force deleted" event.
+     *
+     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @return void
+     */
+    public function forceDeleted(FormCutInputDetail $formCutInputDetail)
+    {
+        //
+    }
+}

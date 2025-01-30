@@ -237,7 +237,7 @@ order by ws asc, color asc, urutan asc, a.size asc
     public function export_excel_tracking(Request $request)
     {
         $user = Auth::user()->name;
-        return Excel::download(new ExportLaporanPPICTracking($request->buyer, $user), 'Laporan_Tracking.xlsx');
+        return Excel::download(new ExportLaporanPPICTracking($request->buyer, $request->ws, $user), 'Laporan_Tracking.xlsx');
     }
 
 

@@ -41,6 +41,7 @@
                         <th>Action</th>
                         <th>Tanggal</th>
                         <th>Line</th>
+                        <th>Chief</th>
                         <th>Leader</th>
                     </tr>
                 </thead>
@@ -53,7 +54,7 @@
     <!-- Create Modal -->
     <form method="post" action="{{ route("store-master-line") }}" id="store-master-line" onsubmit="submitForm(this, event)">
         <div class="modal fade" id="storeMasterLineModal" tabindex="-1" aria-labelledby="storeMasterLineModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content">
                     <div class="modal-header bg-sb">
                         <h1 class="modal-title fs-5" id="storeMasterLineModalLabel"><i class="fa fa-plus"></i> New Master Line</h1>
@@ -76,15 +77,26 @@
                                 <input type="hidden" class="form-control" name="line_name" id="line_name" readonly>
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">Leader</label>
-                                <select class="form-select select2bs4-create-modal" name="employee_id" id="employee_id">
-                                    <option value="">Pilih Leader</option>
-                                    @foreach ($employees as $employee)
+                                <label class="form-label">Chief</label>
+                                <select class="form-select select2bs4-create-modal" name="chief_id" id="chief_id">
+                                    <option value="">Pilih Chief</option>
+                                    @foreach ($employeesChief as $employee)
                                         <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
                                     @endforeach
                                 </select>
-                                <input type="hidden" class="form-control" name="employee_nik" id="employee_nik" readonly>
-                                <input type="hidden" class="form-control" name="employee_name" id="employee_name" readonly>
+                                <input type="hidden" class="form-control" name="chief_nik" id="chief_nik" readonly>
+                                <input type="hidden" class="form-control" name="chief_name" id="chief_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Leader</label>
+                                <select class="form-select select2bs4-create-modal" name="leader_id" id="leader_id">
+                                    <option value="">Pilih Leader</option>
+                                    @foreach ($employeesLeader as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="leader_nik" id="leader_nik" readonly>
+                                <input type="hidden" class="form-control" name="leader_name" id="leader_name" readonly>
                             </div>
                         </div>
                     </div>
@@ -101,7 +113,7 @@
     <form method="post" action="{{ route("update-master-line") }}" id="update-master-line" onsubmit="submitForm(this, event)">
         @method("PUT")
         <div class="modal fade" id="updateMasterLineModal" tabindex="-1" aria-labelledby="updateMasterLineModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content">
                     <div class="modal-header bg-sb">
                         <h1 class="modal-title fs-5" id="updateMasterLineModalLabel"><i class="fa fa-edit"></i> Edit Master Line</h1>
@@ -128,15 +140,26 @@
                                 <input type="hidden" class="form-control" name="edit_line_name" id="edit_line_name" readonly>
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label">Leader</label>
-                                <select class="form-select select2bs4-edit-modal" name="edit_employee_id" id="edit_employee_id">
-                                    <option value="">Pilih Leader</option>
-                                    @foreach ($employees as $employee)
+                                <label class="form-label">Chief</label>
+                                <select class="form-select select2bs4-edit-modal" name="edit_chief_id" id="edit_chief_id">
+                                    <option value="">Pilih Chief</option>
+                                    @foreach ($employeesChief as $employee)
                                         <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
                                     @endforeach
                                 </select>
-                                <input type="hidden" class="form-control" name="edit_employee_nik" id="edit_employee_nik" readonly>
-                                <input type="hidden" class="form-control" name="edit_employee_name" id="edit_employee_name" readonly>
+                                <input type="hidden" class="form-control" name="edit_chief_nik" id="edit_chief_nik" readonly>
+                                <input type="hidden" class="form-control" name="edit_chief_name" id="edit_chief_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Leader</label>
+                                <select class="form-select select2bs4-edit-modal" name="edit_leader_id" id="edit_leader_id">
+                                    <option value="">Pilih Leader</option>
+                                    @foreach ($employeesLeader as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="edit_leader_nik" id="edit_leader_nik" readonly>
+                                <input type="hidden" class="form-control" name="edit_leader_name" id="edit_leader_name" readonly>
                             </div>
                         </div>
                     </div>
@@ -204,7 +227,10 @@
                     data: 'line_name'
                 },
                 {
-                    data: 'employee_name'
+                    data: 'chief_name'
+                },
+                {
+                    data: 'leader_name'
                 },
             ],
             columnDefs: [
@@ -236,9 +262,14 @@
             $("#line_name").val($("#line_id").find(":selected").text());
         })
 
-        $("#employee_id").on("change", function () {
-            $("#employee_nik").val($("#employee_id").find(":selected").attr("data-nik"));
-            $("#employee_name").val($("#employee_id").find(":selected").attr("data-name"));
+        $("#chief_id").on("change", function () {
+            $("#chief_nik").val($("#chief_id").find(":selected").attr("data-nik"));
+            $("#chief_name").val($("#chief_id").find(":selected").attr("data-name"));
+        })
+
+        $("#leader_id").on("change", function () {
+            $("#leader_nik").val($("#leader_id").find(":selected").attr("data-nik"));
+            $("#leader_name").val($("#leader_id").find(":selected").attr("data-name"));
         })
 
         // EDIT SELECT2
@@ -246,9 +277,14 @@
             $("#edit_line_name").val($("#edit_line_id").find(":selected").text());
         })
 
-        $("#edit_employee_id").on("change", function () {
-            $("#edit_employee_nik").val($("#edit_employee_id").find(":selected").attr("data-nik"));
-            $("#edit_employee_name").val($("#edit_employee_id").find(":selected").attr("data-name"));
+        $("#edit_chief_id").on("change", function () {
+            $("#edit_chief_nik").val($("#edit_chief_id").find(":selected").attr("data-nik"));
+            $("#edit_chief_name").val($("#edit_chief_id").find(":selected").attr("data-name"));
+        })
+
+        $("#edit_leader_id").on("change", function () {
+            $("#edit_leader_nik").val($("#edit_leader_id").find(":selected").attr("data-nik"));
+            $("#edit_leader_name").val($("#edit_leader_id").find(":selected").attr("data-name"));
         })
     </script>
 @endsection

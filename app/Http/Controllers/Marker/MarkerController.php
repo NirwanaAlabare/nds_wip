@@ -154,19 +154,25 @@ class MarkerController extends Controller
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
-            ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color);
+            ")->
+            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
+            where("master_sb_ws.color", $request->color);
 
         $thisMarkerDetail = MarkerDetail::where("marker_id", $request->marker_id)->count();
         if ($thisMarkerDetail > 0) {
             $sizeQuery->leftJoin('marker_input_detail', function ($join) use ($request) {
                     $join->on('marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det');
                     $join->on('marker_input_detail.marker_id', '=', DB::raw($request->marker_id));
-                })->leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
+                })->
+                leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->
+                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
         } else {
-            $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
+            $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
         }
 
-        $sizes = $sizeQuery->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
+        $sizes = $sizeQuery->groupBy("id_so_det")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -756,34 +762,80 @@ class MarkerController extends Controller
             $totalQty += $qty;
         }
 
+        $updateMarkerPanel = false;
         if ($totalQty > 0) {
-            $markerUpdate = Marker::where('id', $id)->update([
-                'tgl_cutting' => $validatedRequest['tgl_cutting'],
-                'act_costing_id' => $validatedRequest['ws_id'],
-                'act_costing_ws' => $validatedRequest['ws'],
-                'buyer' => $validatedRequest['buyer'],
-                'style' => $validatedRequest['style'],
-                'cons_ws' => $validatedRequest['cons_ws'],
-                'color' => $validatedRequest['color'],
-                'panel' => $validatedRequest['panel'],
-                'panjang_marker' => $validatedRequest['p_marker'],
-                'unit_panjang_marker' => $validatedRequest['p_unit'],
-                'comma_marker' => $validatedRequest['comma_marker'],
-                'unit_comma_marker' => $validatedRequest['comma_unit'],
-                'lebar_marker' => $validatedRequest['l_marker'],
-                'unit_lebar_marker' => $validatedRequest['l_unit'],
-                'gelar_qty' => $validatedRequest['gelar_marker_qty'],
-                'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
-                'po_marker' => $validatedRequest['po'],
-                'urutan_marker' => $validatedRequest['no_urut_marker'],
-                'cons_marker' => $validatedRequest['cons_marker'],
-                'gramasi' => $validatedRequest['gramasi'],
-                'tipe_marker' => $validatedRequest['tipe_marker'],
-                'notes' => $request['notes'],
-                'cons_piping' => $validatedRequest['cons_piping'],
-                'cancel' => 'N',
-            ]);
 
+            // Marker Panel Additional Validation
+            $markerPartForm = Marker::select("marker_input.id", "form_cut_input.id", "form_cut_input.no_form")->
+                join("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+                join("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                where("marker_input.id", $id)->
+                get();
+
+            $updateMarkerArr = [];
+            if ($markerPartForm->count() < 1) {
+                $updateMarkerArr = [
+                    'tgl_cutting' => $validatedRequest['tgl_cutting'],
+                    'act_costing_id' => $validatedRequest['ws_id'],
+                    'act_costing_ws' => $validatedRequest['ws'],
+                    'buyer' => $validatedRequest['buyer'],
+                    'style' => $validatedRequest['style'],
+                    'cons_ws' => $validatedRequest['cons_ws'],
+                    'color' => $validatedRequest['color'],
+                    'panel' => $validatedRequest['panel'],
+                    'panjang_marker' => $validatedRequest['p_marker'],
+                    'unit_panjang_marker' => $validatedRequest['p_unit'],
+                    'comma_marker' => $validatedRequest['comma_marker'],
+                    'unit_comma_marker' => $validatedRequest['comma_unit'],
+                    'lebar_marker' => $validatedRequest['l_marker'],
+                    'unit_lebar_marker' => $validatedRequest['l_unit'],
+                    'gelar_qty' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'po_marker' => $validatedRequest['po'],
+                    'urutan_marker' => $validatedRequest['no_urut_marker'],
+                    'cons_marker' => $validatedRequest['cons_marker'],
+                    'gramasi' => $validatedRequest['gramasi'],
+                    'tipe_marker' => $validatedRequest['tipe_marker'],
+                    'notes' => $request['notes'],
+                    'cons_piping' => $validatedRequest['cons_piping'],
+                    'cancel' => 'N',
+                ];
+
+                $updateMarkerPanel = true;
+            } else {
+                $updateMarkerArr = [
+                    'tgl_cutting' => $validatedRequest['tgl_cutting'],
+                    'act_costing_id' => $validatedRequest['ws_id'],
+                    'act_costing_ws' => $validatedRequest['ws'],
+                    'buyer' => $validatedRequest['buyer'],
+                    'style' => $validatedRequest['style'],
+                    'cons_ws' => $validatedRequest['cons_ws'],
+                    'color' => $validatedRequest['color'],
+                    'panjang_marker' => $validatedRequest['p_marker'],
+                    'unit_panjang_marker' => $validatedRequest['p_unit'],
+                    'comma_marker' => $validatedRequest['comma_marker'],
+                    'unit_comma_marker' => $validatedRequest['comma_unit'],
+                    'lebar_marker' => $validatedRequest['l_marker'],
+                    'unit_lebar_marker' => $validatedRequest['l_unit'],
+                    'gelar_qty' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'po_marker' => $validatedRequest['po'],
+                    'urutan_marker' => $validatedRequest['no_urut_marker'],
+                    'cons_marker' => $validatedRequest['cons_marker'],
+                    'gramasi' => $validatedRequest['gramasi'],
+                    'tipe_marker' => $validatedRequest['tipe_marker'],
+                    'notes' => $request['notes'],
+                    'cons_piping' => $validatedRequest['cons_piping'],
+                    'cancel' => 'N',
+                ];
+
+                $updateMarkerPanel = false;
+            }
+            if ($updateMarkerArr) {
+                $markerUpdate = Marker::where('id', $id)->update($updateMarkerArr);
+            }
+
+            // Marker Ratio
             $timestamp = Carbon::now();
             $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
@@ -812,7 +864,7 @@ class MarkerController extends Controller
 
             return array(
                 "status" => 200,
-                "message" => $id,
+                "message" => "Ratio Marker ".$id." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <b>'".$markerPartForm->implode("no_form", ", ")."'</b>)"),
                 "redirect" => route('marker'),
                 "additional" => [],
             );

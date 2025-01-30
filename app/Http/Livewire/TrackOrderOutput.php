@@ -62,6 +62,17 @@ class TrackOrderOutput extends Component
         $this->sizeFilter = null;
     }
 
+    public function updatedSelectedOrder()
+    {
+        $firstPlan = MasterPlan::selectRaw("tgl_plan")->where("id_ws", $this->selectedOrder)->orderBy("tgl_plan", "asc")->first();
+
+        if ($firstPlan) {
+            $this->dateFromFilter = $firstPlan->tgl_plan;
+        } else {
+            $this->dateFromFilter = date("Y-m-d");
+        }
+    }
+
     public function render()
     {
         ini_set("max_execution_time", 3600);

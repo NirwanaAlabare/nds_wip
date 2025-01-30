@@ -40,7 +40,7 @@
         @endif
 
         @if ($page == 'dashboard-stocker')
-            <div style="height: 75vh;"></div>
+            {{-- @include('stocker.dashboard', ["months" => $months, "years" => $years]) --}}
         @endif
 
         @if ($page == 'dashboard-dc')
@@ -2429,51 +2429,6 @@
                 "autoWidth": false,
             })
         });
-
-        function formatDecimalNumber(number) {
-            if (number) {
-                if (Math.round(number) !== number) {
-                    return formatNumber(number.toFixed(1));
-                }
-            }
-
-            return formatNumber(number);
-        }
-
-        function formatNumber(val) {
-            // remove sign if negative
-            var sign = 1;
-            if (val < 0) {
-                sign = -1;
-                val = -val;
-            }
-
-            if (val) {
-                // trim the number decimal point if it exists
-                let num = val.toString().includes('.') ? val.toString().split('.')[0] : val.toString();
-                let len = num.toString().length;
-                let result = '';
-                let count = 1;
-
-                for (let i = len - 1; i >= 0; i--) {
-                    result = num.toString()[i] + result;
-                    if (count % 3 === 0 && count !== 0 && i !== 0) {
-                    result = '.' + result;
-                    }
-                    count++;
-                }
-
-                // add number after decimal point
-                if (val.toString().includes('.')) {
-                    result = result + ',' + val.toString().split('.')[1];
-                }
-
-                // return result with - sign if negative
-                return sign < 0 ? '-' + result : result;
-            }
-
-            return 0;
-        }
     </script>
 
     {{-- Dashboard Marker --}}
@@ -2778,7 +2733,6 @@
                     serverSide: false,
                     processing: true,
                     ordering: false,
-                    scrollX: '500px',
                     scrollY: '500px',
                     pageLength: 50,
                     ajax: {
@@ -3086,11 +3040,27 @@
                 $('#dc-month-filter').val((today.getMonth() + 1)).trigger("change");
                 $('#dc-year-filter').val(todayYear).trigger("change");
 
+                $('#datatable-dc thead tr').clone(true).appendTo('#datatable-dc thead');
+                $('#datatable-dc thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableDc.column(i).search() !== this.value) {
+                            datatableDc
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
                 var datatableDc = $("#datatable-dc").DataTable({
                     serverSide: false,
                     processing: true,
                     ordering: false,
                     pageLength: 50,
+                    scrollY: '500px',
                     ajax: {
                         url: '{{ route('dashboard-dc') }}',
                         dataType: 'json',
@@ -3163,21 +3133,6 @@
                             $('td.colorize', row).css('font-weight', '600');
                         }
                     }
-                });
-
-                $('#datatable-dc thead tr').clone(true).appendTo('#datatable-dc thead');
-                $('#datatable-dc thead tr:eq(1) th').each(function(i) {
-                    var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-                    $('input', this).on('keyup change', function() {
-                        if (datatableDc.column(i).search() !== this.value) {
-                            datatableDc
-                                .column(i)
-                                .search(this.value)
-                                .draw();
-                        }
-                    });
                 });
 
                 $('#dc-month-filter').on('change', () => {

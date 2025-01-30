@@ -104,6 +104,15 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     COALESCE(b.roll_buyer, b.roll) roll,
                     COALESCE(b.lot, '-') lot,
                     COALESCE(b.group_roll, '-') group_roll,
+                    (
+                        CASE WHEN
+                            b.status != 'extension' AND b.status != 'extension complete'
+                        THEN
+                            (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
+                        ELSE
+                            'Sambungan'
+                        END
+                    ) status_roll,
                     b.qty qty_roll,
                     b.unit unit_roll,
                     COALESCE(b.berat_amparan, '-') berat_amparan,
@@ -129,6 +138,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
                     left join users meja on meja.id = a.no_meja
                     left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
@@ -184,6 +194,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
                     scanned_item.lot,
                     '-' group_roll,
+                    'Piping' status_roll,
                     form_cut_piping.qty qty_roll,
                     form_cut_piping.unit unit_roll,
                     0 berat_amparan,
@@ -241,7 +252,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:BD' . $event->getConcernable()->rowCount,
+            'A3:BE' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

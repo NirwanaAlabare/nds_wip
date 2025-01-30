@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 
 // User
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ManageUserController;
 
 // Dashboard WIP Line
 use App\Http\Controllers\DashboardWipLineController;
@@ -472,6 +473,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create/new', 'createNew')->name('create-new-piping-process');
         Route::get('/process/{id?}', 'process')->name('process-piping-process');
         Route::post('/store', 'store')->name('store-piping-process');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-piping-process');
         Route::get('/take-piping/{id?}', 'takePiping')->name('take-piping-process');
         Route::get('/pdf/{id?}', 'pdf')->name('pdf-piping-process');
 
@@ -679,11 +681,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
 
         Route::get('/get_tmp_dc_in', 'get_tmp_dc_in')->name('get_tmp_dc_in');
+        Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
         Route::post('/insert_tmp_dc_in', 'insert_tmp_dc_in')->name('insert_tmp_dc_in');
         Route::post('/mass_insert_tmp_dc_in', 'mass_insert_tmp_dc_in')->name('mass_insert_tmp_dc_in');
         Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
         Route::put('/update_mass_tmp_dc_in', 'update_mass_tmp_dc_in')->name('update_mass_tmp_dc_in');
-        Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+        Route::delete('/delete_mass_tmp_dc_in', 'delete_mass_tmp_dc_in')->name('delete_mass_tmp_dc_in');
 
         Route::get('/export-excel', 'exportExcel')->name('dc-in-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
@@ -1593,7 +1596,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_fg_retur_summary', 'export_excel_fg_retur_summary')->name('export_excel_fg_retur_summary');
     });
 
-
     // Report Doc
     // Laporan BC
     Route::controller(ReportDocController::class)->prefix("report_doc_laporan")->middleware('bc')->group(function () {
@@ -1602,9 +1604,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_doc_lap_wip', 'export_excel_doc_lap_wip')->name('export_excel_doc_lap_wip');
     });
 
-
     // PPIC
-
     // Dashboard
     Route::controller(PPICDashboardController::class)->middleware('packing')->group(function () {
         Route::get('/dashboard_ppic', 'dashboard_ppic')->name('dashboard-ppic');
@@ -1657,7 +1657,6 @@ Route::middleware('auth')->group(function () {
         // Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
     });
 
-
     // GA
     // Pengajuan
     Route::controller(GAPengajuanBahanBakarController::class)->prefix("ga-pengajuan-bahan-bakar")->middleware('ga')->group(function () {
@@ -1691,29 +1690,24 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-approval-bahan-bakar');
     });
 
-
-    Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-complete');
-        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
-    });
-
-    Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-incomplete');
-        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
-    });
-
-    Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-wip');
-        Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
-    });
-
     Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
-        Route::get('/', 'index')->name('dashboard-chart');
-        Route::get('/{mejaId?}', 'show')->name('dashboard-chart-detail');
+        Route::get('/', 'cuttingMeja')->name('dashboard-chart');
+        Route::get('/{mejaId?}', 'cuttingMejaDetail')->name('dashboard-chart-detail');
 
         // TEST TRIGGER SOCKET.IO
         Route::get('/trigger/all/{date?}', 'cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
         Route::get('/trigger/{date?}/{mejaId?}', 'cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
+    });
+
+    // Manage User
+    Route::controller(ManageUserController::class)->prefix("manage-user")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-user');
+        Route::post('/store', 'store')->name('store-user');
+        Route::put('/update', 'update')->name('update-user-detail');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-user');
+
+        Route::get('/get-user-role', 'getUserRole')->name('get-user-role');
+        Route::delete('/destroy-user-role/{id?}', 'destroyUserRole')->name('destroy-user-role');
     });
 });
 
@@ -1733,11 +1727,16 @@ Route::get('/cutting-form-list', [DashboardController::class, 'cuttingFormList']
 Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware('auth')->name('cutting-form-chart');
 Route::get('/cutting-worksheet-list', [DashboardController::class, 'cuttingWorksheetList'])->middleware('auth')->name('cutting-worksheet-list');
 Route::get('/cutting-worksheet-total', [DashboardController::class, 'cuttingWorksheetTotal'])->middleware('auth')->name('cutting-worksheet-total');
+Route::get('/cutting-output-list', [DashboardController::class, 'cuttingOutputList'])->middleware('auth')->name('cutting-output-list');
+Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware('auth')->name('cutting-output-list-panels');
+Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware('auth')->name('cutting-output-list-data');
+Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware('auth')->name('cutting-stock-list-data');
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
 Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
+Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
 
 // Route::get('/dashboard-chart', function () {
 //    return view('cutting.chart.dashboard-chart');

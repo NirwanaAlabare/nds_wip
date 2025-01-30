@@ -298,6 +298,7 @@
         }
 
         function export_excel_tracking() {
+            let ws = document.getElementById("cbows").value;
             let buyer = document.getElementById("cbobuyer").value;
             Swal.fire({
                 title: 'Please Wait...',
@@ -312,7 +313,8 @@
                 type: "get",
                 url: '{{ route('export_excel_tracking') }}',
                 data: {
-                    buyer: buyer
+                    ws: ws,
+                    buyer: buyer,
                 },
                 xhrFields: {
                     responseType: 'blob'

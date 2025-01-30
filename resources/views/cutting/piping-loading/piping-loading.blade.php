@@ -225,9 +225,9 @@
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(9).footer()).html(response['total_lebar']+" "+response['total_lebar_unit']);
-                            $(api.column(10).footer()).html(response['total_qty']+" "+response['total_qty_unit']);
-                            $(api.column(11).footer()).html(response['total_output']+" "+response['total_output_unit']);
+                            $(api.column(9).footer()).html((response['total_lebar'] ?? "")+" "+(response['total_lebar_unit'] ?? ""));
+                            $(api.column(10).footer()).html((response['total_qty'] ?? "")+" "+(response['total_qty_unit'] ?? ""));
+                            $(api.column(11).footer()).html((response['total_output'] ?? "")+" "+(response['total_output_unit'] ?? ""));
                         }
                     },
                     error: function(jqXHR) {

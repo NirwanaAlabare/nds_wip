@@ -24,6 +24,8 @@
     </tr>
     <tr>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Line</th>
+        <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">NIK</th>
+        <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Leader</th>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">WS Number</th>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Style</th>
         <th colspan="5" style="vertical-align: middle; text-align: center; font-weight: 800;">Output</th>
@@ -81,6 +83,8 @@
                     <td rowspan="{{ $currentRowSpan }}" style="text-align: center; vertical-align: middle;">
                         {{ ucfirst(str_replace("_", " ", $line->username)) }}
                     </td>
+                    <td rowspan="{{ $currentRowSpan }}" style="text-align: center; vertical-align: middle;" >{{ $line->leader_nik }}</td>
+                    <td rowspan="{{ $currentRowSpan }}" style="text-align: center; vertical-align: middle;" >{{ $line->leader_name }}</td>
                 @endif
                 <td>{{ $line->kpno }}</td>
                 <td>{{ $line->styleno }}</td>
@@ -114,8 +118,8 @@
                             $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
                             $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
                         } else {
-                            $cumulativeTarget = $line->cumulative_target ?? 0;
-                            $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
+                            $cumulativeTarget = $lines->where("username", $line->username)->max('cumulative_target') ?? 0;
+                            $cumulativeMinsAvail = $lines->where("username", $line->username)->max('cumulative_mins_avail') ?? 0;
                         }
 
                         $currentActual = $lines->where("username", $line->username)->sum("total_actual") ?? 0;
@@ -160,7 +164,7 @@
             $targetFromEfficiency = floor($summaryEfficiencyNumber > 0 ? $summaryActual / ($summaryEfficiencyNumber) : 0);
         @endphp
         <tr>
-            <th colspan="11" style="text-align: center; font-weight:800;">Summary</th>
+            <th colspan="13" style="text-align: center; font-weight:800;">Summary</th>
             <th data-format="0" style="text-align: center; font-weight:800;">{{ $summaryActual }}</th>
             <th data-format="0" style="text-align: center; font-weight:800;">{{ $targetFromEfficiency }}</th>
             <th data-format="0%" style="text-align: center; font-weight:800;">{{ $summaryEfficiency }} %</th>

@@ -10,6 +10,7 @@
         <th><b>No. Cut</b></th>
         <th><b>Tujuan Asal</b></th>
         <th><b>Lokasi Asal</b></th>
+        <th><b>Range</b></th>
         <th><b>Qty Awal</b></th>
         <th><b>Qty Reject</b></th>
         <th><b>Qty Replace</b></th>
@@ -41,6 +42,7 @@
             <td>{{ $d->no_cut }}</td>
             <td>{{ $d->tujuan }}</td>
             <td>{{ $d->lokasi }}</td>
+            <td>{{ $d->stocker_range }}</td>
             <td>{{ $d->qty_awal }}</td>
             <td>{{ $d->qty_reject }}</td>
             <td>{{ $d->qty_replace }}</td>
@@ -50,7 +52,7 @@
         </tr>
     @endforeach
     <tr>
-        <td colspan="10">Total</td>
+        <td colspan="11">Total</td>
         <td>{{ $totalQtyAwal }}</td>
         <td>{{ $totalQtyReject }}</td>
         <td>{{ $totalQtyReplace }}</td>

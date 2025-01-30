@@ -32,36 +32,31 @@ class AppServiceProvider extends ServiceProvider
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin");
         });
 
-        Blade::if('marker', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "marker" || auth()->user()->type == "spreading");
-        });
+        Blade::if('role', function (...$roles) {
+            $user = auth()->user();
 
-        Blade::if('spreading', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "spreading" || auth()->user()->type == "marker");
-        });
+            if (in_array("superadmin", $roles)) {
+                if ($user->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
+                    return true;
+                }
+            } else if (in_array("admin", $roles)) {
+                if ($user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
+                    return true;
+                }
+            } else {
+                if ($user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
+                    return true;
+                }
 
-        Blade::if('meja', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "meja");
-        });
-
-        Blade::if('sample', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "sample");
-        });
-
-        Blade::if('stocker', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "stocker" || auth()->user()->type == "spreading");
-        });
-
-        Blade::if('manager', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "manager");
-        });
-
-        Blade::if('dc', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "dc");
-        });
-
-        Blade::if('sewing', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "sewing");
+                foreach($roles as $role) {
+                    // Check if user has the role This check will depend on how your roles are set up
+                    foreach ($user->roles as $userRole) {
+                        if ($userRole->accesses->whereIn("access", [$role, "all"])->count() > 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
         });
 
         Blade::if('hr', function () {
@@ -87,6 +82,7 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('ga', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "ga");
         });
+
         Blade::if('wip', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "wip");
         });

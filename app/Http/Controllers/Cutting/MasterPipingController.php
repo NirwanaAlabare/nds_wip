@@ -19,8 +19,8 @@ class MasterPipingController extends Controller
 
             return DataTables::eloquent($data)->
                 filter(function ($query) {
-                    $tglAwal = request('tgl_awal');
-                    $tglAkhir = request('tgl_akhir');
+                    $tglAwal = request('dateFrom');
+                    $tglAkhir = request('dateTo');
 
                     if ($tglAwal) {
                         $query->whereRaw("master_piping.updated_at >= '" . $tglAwal . " 00:00:00'");

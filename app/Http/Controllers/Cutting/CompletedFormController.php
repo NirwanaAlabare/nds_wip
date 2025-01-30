@@ -30,7 +30,7 @@ class CompletedFormController extends Controller
      */
     public function index()
     {
-
+        //
     }
 
     public function cutting(Request $request) {
@@ -361,8 +361,7 @@ class CompletedFormController extends Controller
                     "created_at" => Carbon::now(),
                     "updated_at" => Carbon::now(),
                 ]);
-            }
-            else {
+            } else {
                 ini_set('max_execution_time', 360000);
 
                 $formCutInputs = FormCutInput::selectRaw("
@@ -382,6 +381,7 @@ class CompletedFormController extends Controller
                     whereRaw("part_form.id is not null")->
                     where("part.id", $partData->id)->
                     where("marker_input.color", $formCutInputData->color)->
+                    where("form_cut_input.no_cut", ">=", $formCutInputData->no_cut)->
                     groupBy("form_cut_input.id")->
                     orderBy("marker_input.color", "asc")->
                     orderBy("form_cut_input.waktu_selesai", "asc")->
@@ -536,9 +536,6 @@ class CompletedFormController extends Controller
                         // }
                 }
             }
-
-            app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-            app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputData->alokasiMeja->username);
 
             return array(
                 "status" => 200,

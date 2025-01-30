@@ -3901,7 +3901,7 @@ class StockerController extends Controller
             "range_akhir" => "required|numeric|gte:range_awal"
         ]);
 
-        if ($request->size && $request->size_text) {
+        if ($request->size != null && $request->size_text != null) {
             $yearSequences = YearSequence::where("year", $request->year)->
                 where("year_sequence", $request->sequence)->
                 whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
@@ -3920,7 +3920,11 @@ class StockerController extends Controller
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
-                array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+                // if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                    array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+                // } else {
+                //     array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
+                // }
             }
 
             $failMessage = "";

@@ -1,44 +1,46 @@
-@if (!isset($page))
-    @php
-        $page = '';
-    @endphp
-@endif
+{{-- Configurations --}}
+    @if (!isset($page))
+        @php
+            $page = '';
+        @endphp
+    @endif
 
-@if (!isset($subPage))
-    @php
-        $subPage = '';
-    @endphp
-@endif
+    @if (!isset($subPage))
+        @php
+            $subPage = '';
+        @endphp
+    @endif
 
-@if (!isset($subPageGroup))
-    @php
-        $subPageGroup = '';
-    @endphp
-@endif
+    @if (!isset($subPageGroup))
+        @php
+            $subPageGroup = '';
+        @endphp
+    @endif
 
-@if (!isset($head))
-    @php
-        $head = '';
-    @endphp
-@endif
+    @if (!isset($head))
+        @php
+            $head = '';
+        @endphp
+    @endif
 
-@if (!isset($navbar))
-    @php
-        $navbar = true;
-    @endphp
-@endif
+    @if (!isset($navbar))
+        @php
+            $navbar = true;
+        @endphp
+    @endif
 
-@if (!isset($containerFluid))
-    @php
-        $containerFluid = false;
-    @endphp
-@endif
+    @if (!isset($containerFluid))
+        @php
+            $containerFluid = false;
+        @endphp
+    @endif
 
-@if (!isset($footer))
-    @php
-        $footer = true;
-    @endphp
-@endif
+    @if (!isset($footer))
+        @php
+            $footer = true;
+        @endphp
+    @endif
+{{-- End of Configurations --}}
 
 <!DOCTYPE html>
 <html lang="en">

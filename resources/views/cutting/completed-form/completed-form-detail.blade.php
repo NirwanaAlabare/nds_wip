@@ -2112,7 +2112,6 @@
                                 await getSummary(true);
 
                                 await finishProcess();
-
                             }
                         }, error: function (jqXHR) {
                             let res = jqXHR.responseJSON;
