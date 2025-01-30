@@ -45,8 +45,8 @@
             </div>
         </div>
         <div class="d-flex justify-content-between mt-3">
-            <span class="text-sb fw-bold">CHIEF : {{ $employeeLine->chief_nik." - ".$employeeLine->chief_name }}</span>
-            <span class="text-sb fw-bold">LEADER : {{ $employeeLine->leader_nik." - ".$employeeLine->leader_name }}</span>
+            <span class="text-sb fw-bold">CHIEF : {{ $employeeLine ? ($employeeLine->chief_nik." - ".$employeeLine->chief_name) : "-" }}</span>
+            <span class="text-sb fw-bold">LEADER : {{ $employeeLine ? ($employeeLine->leader_nik." - ".$employeeLine->leader_name) : "-" }}</span>
         </div>
         <div class="row table-responsive">
             <table class="table table-sm table-bordered align-middle">
