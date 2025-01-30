@@ -83,9 +83,9 @@ class MasterLineController extends Controller
             "chief_id" => "required",
             "chief_nik" => "required",
             "chief_name" => "required",
-            "leader_id" => "required",
-            "leader_nik" => "required",
-            "leader_name" => "required",
+            "leader_id" => "nullable",
+            "leader_nik" => "nullable",
+            "leader_name" => "nullable",
         ]);
 
         $storeEmployeeLine = EmployeeLine::create([
@@ -106,25 +106,29 @@ class MasterLineController extends Controller
             $chief = MasterEmployee::where("enroll_id", $validatedRequest["chief_id"])->first();
             $leader = MasterEmployee::where("enroll_id", $validatedRequest["leader_id"])->first();
 
-            $storeChief = EmployeeProduction::updateOrCreate(
-                ['enroll_id' => $chief->enroll_id],
-                [
-                    'name' => $chief->employee_name,
-                    'role' => "chief",
-                    'created_by' => Auth::user()->id,
-                    "created_by_username" => Auth::user()->username,
-                ]
-            );
+            if ($chief) {
+                $storeChief = EmployeeProduction::updateOrCreate(
+                    ['enroll_id' => $chief->enroll_id],
+                    [
+                        'name' => $chief->employee_name,
+                        'role' => "chief",
+                        'created_by' => Auth::user()->id,
+                        "created_by_username" => Auth::user()->username,
+                    ]
+                );
+            }
 
-            $storeLeader = EmployeeProduction::updateOrCreate(
-                ['enroll_id' => $leader->enroll_id],
-                [
-                    'name' => $leader->employee_name,
-                    'role' => "leader",
-                    'created_by' => Auth::user()->id,
-                    "created_by_username" => Auth::user()->username,
-                ]
-            );
+            if ($leader) {
+                $storeLeader = EmployeeProduction::updateOrCreate(
+                    ['enroll_id' => $leader->enroll_id],
+                    [
+                        'name' => $leader->employee_name,
+                        'role' => "leader",
+                        'created_by' => Auth::user()->id,
+                        "created_by_username" => Auth::user()->username,
+                    ]
+                );
+            }
 
             return array(
                 "status" => 200,
@@ -150,9 +154,9 @@ class MasterLineController extends Controller
             "edit_chief_id" => "required",
             "edit_chief_nik" => "required",
             "edit_chief_name" => "required",
-            "edit_leader_id" => "required",
-            "edit_leader_nik" => "required",
-            "edit_leader_name" => "required",
+            "edit_leader_id" => "nullable",
+            "edit_leader_nik" => "nullable",
+            "edit_leader_name" => "nullable",
         ]);
 
         $updateEmployeeLine = EmployeeLine::where("id", $validatedRequest["edit_id"])->update([
@@ -171,21 +175,25 @@ class MasterLineController extends Controller
             $employeeChief = MasterEmployee::where("enroll_id", $validatedRequest["edit_chief_id"])->first();
             $employeeLeader = MasterEmployee::where("enroll_id", $validatedRequest["edit_leader_id"])->first();
 
-            $storeEmployeeChief = EmployeeProduction::updateOrCreate(
-                ['enroll_id' => $employeeChief->enroll_id],
-                [
-                    'name' => $employeeChief->employee_name,
-                    'role' => "chief",
-                ]
-            );
+            if ($employeeChief) {
+                $storeEmployeeChief = EmployeeProduction::updateOrCreate(
+                    ['enroll_id' => $employeeChief->enroll_id],
+                    [
+                        'name' => $employeeChief->employee_name,
+                        'role' => "chief",
+                    ]
+                );
+            }
 
-            $storeEmployeeLeader = EmployeeProduction::updateOrCreate(
-                ['enroll_id' => $employeeLeader->enroll_id],
-                [
-                    'name' => $employeeLeader->employee_name,
-                    'role' => "leader",
-                ]
-            );
+            if ($employeeLeader) {
+                $storeEmployeeLeader = EmployeeProduction::updateOrCreate(
+                    ['enroll_id' => $employeeLeader->enroll_id],
+                    [
+                        'name' => $employeeLeader->employee_name,
+                        'role' => "leader",
+                    ]
+                );
+            }
 
             return array(
                 "status" => 200,
