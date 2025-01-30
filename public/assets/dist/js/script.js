@@ -546,7 +546,6 @@ function deleteData(e) {
                             });
                         }
 
-                        console.log("table", res, res.table);
                         if (res.table) {
                             $('#' + res.table).DataTable().ajax.reload();
                         }
