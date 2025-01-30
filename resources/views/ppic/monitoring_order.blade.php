@@ -387,7 +387,7 @@
                 paging: false,
                 ordering: false,
                 autoWidth: true,
-                searching: false,
+                searching: true,
                 ajax: {
                     url: '{{ route('show_lap_monitoring_order') }}',
                     data: function(d) {
