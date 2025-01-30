@@ -33,19 +33,29 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Mutasi Output (Production)</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
+            <div class="d-flex align-items-end gap-3 mb-3 ">
+                <div class="mb-3" style="width: 300px;">
+                    <label class="form-label"><small><b>Buyer</b></small></label>
+                    <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
+                        style="width: 100%;">
+                        <option selected="selected" value="" disabled="true">Pilih Buyer</option>
+                        @foreach ($data_buyer as $databuyer)
+                            <option value="{{ $databuyer->isi }}">
+                                {{ $databuyer->tampil }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
-                    <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir">
                 </div>
                 <div class="mb-3">
-                    <a onclick="dataTableReload()" class="btn btn-outline-primary btn-sm position-relative">
+                    <a onclick="dataTableReload();" class="btn btn-outline-primary btn-sm position-relative">
                         <i class="fas fa-search fa-xs"></i> <!-- Use fa-xs for extra small icon -->
                     </a>
                 </div>
@@ -181,6 +191,20 @@
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
     <script>
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        // Initialize Select2 Elements
+        $('.select2').select2();
+
+        // Initialize Select2BS4 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm rounded'
+        });
+
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
@@ -200,8 +224,20 @@
             // Re-initialize the DataTable
             let tglawal = $('#tgl-awal').val();
             let tglakhir = $('#tgl-akhir').val();
-            let dateFrom = tglawal + ' 00:00:00';
-            let dateTo = tglakhir + ' 23:59:59';
+
+            let dateFrom, dateTo;
+
+            if (!tglawal) {
+                dateFrom = '-';
+            } else {
+                dateFrom = tglawal + ' 00:00:00';
+            }
+            if (!tglakhir) {
+                dateTo = '-';
+            } else {
+                dateTo = tglakhir + ' 23:59:59';
+            }
+
             console.log(dateFrom, dateTo);
             datatable = $("#datatable").DataTable({
                 processing: true,
