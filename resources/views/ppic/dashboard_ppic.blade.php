@@ -184,15 +184,6 @@
                     data: dataArr
                 }], true);
             },
-            error: function(jqXHR) {
-                let res = jqXHR.responseJSON;
-                console.error(res.message);
-                iziToast.error({
-                    title: 'Error',
-                    message: res.message,
-                    position: 'topCenter'
-                });
-            }
         });
 
 
@@ -267,9 +258,6 @@
                     document.getElementById('tot_buyer').innerHTML = response.tot_buyer;
                     document.getElementById('tot_po').innerHTML = response.tot_po;
                     document.getElementById('tot_out').innerHTML = response.tot_out;
-                },
-                error: function(request, status, error) {
-                    alert(request.responseText);
                 },
             });
         };
