@@ -684,7 +684,7 @@
                                     <p class="card-title mt-3"
                                         style="font-size: 50px; color: #282828; line-height: 40px;"
                                         id="rework-balance-2"></p>
-                                    <p style="color: #64748b; font-size: 19px;">REWORK BALANCE</p>
+                                    <p style="color: #64748b; font-size: 19px;">REWORK OUTPUT</p>
                                 </div>
                             </div>
                         </div>

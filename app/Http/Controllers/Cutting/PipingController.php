@@ -77,7 +77,7 @@ class PipingController extends Controller
             "qty_item" => "required|numeric|min:0",
             "piping" => "required|numeric|min:0",
             "qty_sisa" => "required|numeric|min:0",
-            "short_roll" => "required|numeric|min:0",
+            "short_roll" => "required|numeric",
             "unit" => "required",
             "operator" => "required",
         ]);
