@@ -1631,6 +1631,7 @@ class DashboardController extends Controller
                         tgl_plan tgl_produksi,
                         ROUND((SUM(IFNULL( rfts.rft, 0 )) / SUM((IFNULL( rfts.rft, 0 ) + IFNULL( defects.defect, 0 ) + IFNULL( reworks.rework, 0 ) + IFNULL( rejects.reject, 0 ))) * 100 ), 2) rft,
                         AVG(master_plan.target_effy) target_efficiency,
+                        SUM(IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) output_awal,
                         SUM(IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) + IFNULL( rfts_1.rft, 0 ) output,
                         IFNULL( rfts_1.rft, 0 ) additional,
                         GROUP_CONCAT(IFNULL( rfts_1.rft, 0 )) additional_output,
@@ -1638,7 +1639,8 @@ class DashboardController extends Controller
                         IFNULL( rfts_1.mins_prod, 0 ) additional_mins_prod,
                         SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 ) mins_prod_total,
                         (SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 ) mins_avail,
-                        ((SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 )) / ((SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 )) * 100) efficiency
+                        (SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 ) total_mins_avail,
+                        ((SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 )) / (SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 ) * 100) efficiency
                     ")->
                     leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id, DATE(rfts.updated_at) tgl_output from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and status = 'NORMAL' and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)) as rfts"), function ($join) { $join->on("master_plan.id", "=", "rfts.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "rfts.tgl_output"); })->
                     leftJoin(DB::raw("(SELECT count(defects.id) defect, master_plan.id master_plan_id, DATE(defects.updated_at) tgl_output from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and (MONTH(defects.updated_at) = '".$month."' AND YEAR(defects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at)) as defects"), function ($join) { $join->on("master_plan.id", "=", "defects.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "defects.tgl_output"); })->
@@ -1648,7 +1650,8 @@ class DashboardController extends Controller
                         SELECT
                             tgl_output,
                             SUM(rft) rft,
-                            SUM(rft * smv) mins_prod
+                            SUM(rft * smv) mins_prod,
+                            SUM(man_power * jam_kerja) * 60 mins_avail
                         FROM
                             (
                                 SELECT
@@ -1656,12 +1659,14 @@ class DashboardController extends Controller
                                     master_plan.id master_plan_id,
                                     master_plan.tgl_plan,
                                     DATE ( rfts.updated_at ) tgl_output,
+                                    master_plan.man_power,
+                                    master_plan.jam_kerja,
                                     master_plan.smv
                                 FROM
                                     output_rfts rfts
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                                 where
-                                    rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 00:00:00'
+                                    rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
                                     AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 GROUP BY
                                     master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1679,7 +1684,7 @@ class DashboardController extends Controller
                         AND
                         master_plan.tgl_plan <= '".date("Y-m-d")."'
                     )")->
-                    groupBy("master_plan.tgl_plan")->
+                    groupBy("master_plan.sewing_line", "master_plan.tgl_plan")->
                     get();
 
                 return json_encode($sewingEfficiencyData);
