@@ -1684,7 +1684,7 @@ class DashboardController extends Controller
                         AND
                         master_plan.tgl_plan <= '".date("Y-m-d")."'
                     )")->
-                    groupBy("master_plan.sewing_line", "master_plan.tgl_plan")->
+                    groupBy("master_plan.tgl_plan")->
                     get();
 
                 return json_encode($sewingEfficiencyData);
