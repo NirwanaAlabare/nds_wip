@@ -156,6 +156,8 @@
                                     @php
                                         // Legacy :
                                         if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
+                                            // $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") > 0 ? $lines->where("username", $line->username)->sum("total_target") : $lines->where("username", $line->username)->sum("total_target_back_date");
+                                            // $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") > 0 ? $lines->where("username", $line->username)->sum("mins_avail") : $lines->where("username", $line->username)->sum("mins_avail_back_date");
                                             $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
                                             $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
                                         } else {
@@ -215,7 +217,7 @@
                     <tr>
                         <th colspan="13" class="fs-5 text-center">Summary</th>
                         <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
-                        <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
+                        <th class="fs-5 text-center">{{ $summaryMinsProd." / ".$summaryMinsAvail. " || " .(num($targetFromEfficiency)) }}</th>
                         <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
                         <td class="text-center">{{ $lastInput }}</td>
                     </tr>
