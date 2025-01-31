@@ -64,16 +64,16 @@
                             <th>Style</th>
                             <th>SMV</th>
                             <th>MP</th>
-                            <th>Jumlah Hari</th>
-                            <th>Eff Kemarin (2)</th>
-                            <th>Eff Kemarin (1)</th>
-                            <th>Jam Kerja</th>
-                            <th>Target Eff 100 %</th>
-                            <th>Target Eff</th>
-                            <th>Target Output Eff</th>
-                            <th>Target PerHari</th>
-                            <th>Target Perjam</th>
-                            <th>Jam Kerja Act</th>
+                            <th>Jml Hr</th>
+                            <th>Eff H-2</th>
+                            <th>Eff H-1</th>
+                            <th>JK</th>
+                            <th>Eff 100 %</th>
+                            <th>Eff</th>
+                            <th>Target</th>
+                            <th>Target/H</th>
+                            <th>Target/J</th>
+                            <th>JK Akt</th>
                             <th>1</th>
                             <th>2</th>
                             <th>3</th>
@@ -87,7 +87,7 @@
                             <th>11</th>
                             <th>12</th>
                             <th>13</th>
-                            <th>Total Output</th>
+                            <th>Output</th>
                             <th>Eff</th>
                             <th>Eff Line</th>
                         </tr>
