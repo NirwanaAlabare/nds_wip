@@ -217,7 +217,7 @@
                     <tr>
                         <th colspan="13" class="fs-5 text-center">Summary</th>
                         <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
-                        <th class="fs-5 text-center">{{ $summaryMinsProd." / ".$summaryMinsAvail. " || " .(num($targetFromEfficiency)) }}</th>
+                        <th class="fs-5 text-center">{{ (num($targetFromEfficiency)) }}</th>
                         <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
                         <td class="text-center">{{ $lastInput }}</td>
                     </tr>
