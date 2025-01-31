@@ -751,4 +751,63 @@ END jam) a))) target from (
         $query = DB::connection('mysql_dsb')->select("SELECT COALESCE(sum(jam_kerja),0) as jam_kerja from master_plan where cancel != 'Y' and tgl_plan = CURRENT_DATE() and sewing_line = '" . $lineId . "'");
         return isset($query[0]) ? $query[0]->jam_kerja : null;
     }
+
+    function dashboardChiefSewing() {
+        $efficiencyLine = DB::select("
+            select
+                output_employee_line.*,
+                SUM(rft) ,
+                SUM(mins_prod),
+                SUM(mins_avail)
+            from
+                output_employee_line
+            left join userpassword on userpassword.line_id = output_employee_line.line_id
+            left join (
+                SELECT
+                        tgl_output,
+                        tgl_plan,
+                        sewing_line,
+                        SUM(rft) rft,
+                        SUM(rft * smv) mins_prod,
+                        SUM(man_power * jam_kerja) * 60 mins_avail
+                FROM
+                        (
+                                SELECT
+                                        DATE( rfts.updated_at ) tgl_output,
+                                        COUNT( rfts.id ) rft,
+                                        master_plan.id master_plan_id,
+                                        master_plan.tgl_plan,
+                                        master_plan.sewing_line,
+                                        master_plan.man_power,
+                                        master_plan.jam_kerja,
+                                        master_plan.smv
+                                FROM
+                                        output_rfts rfts
+                                inner join master_plan on master_plan.id = rfts.master_plan_id
+                                where
+                                        rfts.updated_at >= '2025-01-01 00:00:00' AND rfts.updated_at <= '2025-01-31 23:59:59'
+                                        AND master_plan.tgl_plan >= DATE_SUB('2025-01-01', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '2025-01-31'
+                                        AND master_plan.cancel = 'N'
+                                GROUP BY
+                                        master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
+                                order by
+                                    sewing_line
+                        ) output
+                GROUP BY
+                    sewing_line,
+                    tgl_output
+            ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            group by
+                tanggal,
+                leader_id,
+                chief_id
+            order by
+                tanggal asc,
+                line_id asc
+        ");
+
+        if ($efficiencyLine) {
+            dd($efficiencyLine);
+        }
+    }
 }
