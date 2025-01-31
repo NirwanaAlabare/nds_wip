@@ -374,7 +374,6 @@ class DashboardController extends Controller
                     marker_input.act_costing_id,
                     marker_input.color,
                     marker_input.panel,
-                    COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut),
                     meja.id
             ");
 
