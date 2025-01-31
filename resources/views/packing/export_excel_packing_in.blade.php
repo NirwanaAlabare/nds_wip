@@ -21,6 +21,7 @@
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Barcode</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">PO</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">WS</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Style</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Size</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Dest</th>
@@ -43,6 +44,7 @@
                 <td>{{ $item->barcode }}</td>
                 <td>{{ $item->po }}</td>
                 <td>{{ $item->ws }}</td>
+                <td>{{ $item->styleno }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
                 <td>{{ $item->dest }}</td>

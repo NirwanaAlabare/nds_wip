@@ -364,11 +364,8 @@
             });
         }
 
-
         function dataTableReload() {
-
             // Check if DataTable is already initialized
-
             if ($.fn.DataTable.isDataTable('#datatable')) {
                 // Clear the table data
                 $('#datatable').DataTable().clear().draw();
@@ -514,121 +511,87 @@
 
                 },
                 drawCallback: function(settings) {
-
                     // Calculate totals
-
                     var api = this.api();
 
                     var totalQtyPo = api.column(7).data().reduce(function(a, b) {
-
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-
                     }, 0);
 
                     var totalFinalCut = api.column(8).data().reduce(function(a, b) {
-
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-
                     }, 0);
 
                     var totalFinalLoading = api.column(9).data().reduce(function(a, b) {
-
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-
                     }, 0);
 
                     var totalFinalOutputRfts = api.column(10).data().reduce(function(a, b) {
-
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-
                     }, 0);
 
                     var totalFinalOutputRftsPacking = api.column(11).data().reduce(function(a, b) {
-
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-
                     }, 0);
 
                     var totalTotScan = api.column(12).data().reduce(function(a, b) {
-
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-
                     }, 0);
 
                     var totalFGOut = api.column(13).data().reduce(function(a, b) {
-
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-
                     }, 0);
 
 
                     // Update footer with totals
 
                     $('#total_qty_po').text(totalQtyPo);
-
                     $('#total_final_cut').text(totalFinalCut);
-
                     $('#total_final_loading').text(totalFinalLoading);
-
                     $('#total_final_output_rfts').text(totalFinalOutputRfts);
-
                     $('#total_final_output_rfts_packing').text(totalFinalOutputRftsPacking);
-
                     $('#total_final_scan').text(totalTotScan);
-
                     $('#total_final_out').text(totalFGOut);
-
-
                     // Call the update_chart function with new data and totalQtyPo
-
-                    const newData = [
-
-                        {
+                    const newData = [{
                             category: 'Cutting',
                             actual: totalFinalCut,
                             expected: totalQtyPo,
                             color: '#FF9130'
                         },
-
                         {
                             category: 'Loading',
                             actual: totalFinalLoading,
                             expected: totalQtyPo,
                             color: '#87A2FF'
                         },
-
                         {
                             category: 'Sewing',
                             actual: totalFinalOutputRfts,
                             expected: totalQtyPo,
                             color: '#FFF574'
                         },
-
                         {
                             category: 'Packing Line',
                             actual: totalFinalOutputRftsPacking,
                             expected: totalQtyPo,
                             color: '#96E5D1'
                         },
-
                         {
                             category: 'Packing Scan',
                             actual: totalTotScan,
                             expected: totalQtyPo,
                             color: '#77B254'
                         },
-
                         {
                             category: 'Shipment',
                             actual: totalFGOut,
                             expected: totalQtyPo,
                             color: '#A19AD3'
                         }
-
                     ];
 
                     // Call the function with new data and the total quantity for x-axis max
-
                     update_chart(newData, totalQtyPo);
 
                 }
