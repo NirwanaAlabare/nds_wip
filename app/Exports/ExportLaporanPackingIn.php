@@ -59,6 +59,7 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
             p.dest,
             a.qty,
             m.ws,
+            m.styleno,
             m.color,
             m.size,
             a.created_at,
