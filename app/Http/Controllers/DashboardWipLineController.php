@@ -97,13 +97,21 @@ class DashboardWipLineController extends Controller
         $data['man_power'] = $this->cari_menpower($tanggal, $lineId);
         $data['smv'] = $this->cari_smv($tanggal, $lineId);
 
+        // $data['datajam7'] = null;
         $data['datajam7'] = $this->cari_datajam7($lineId);
+        // $data['datajam8'] = null;
         $data['datajam8'] = $this->cari_datajam8($lineId);
+        // $data['datajam9'] = null;
         $data['datajam9'] = $this->cari_datajam9($lineId);
+        // $data['datajam10'] = null;
         $data['datajam10'] = $this->cari_datajam10($lineId);
+        // $data['datajam11'] = null;
         $data['datajam11'] = $this->cari_datajam11($lineId);
+        // $data['datajam13'] = null;
         $data['datajam13'] = $this->cari_datajam13($lineId);
+        // $data['datajam14'] = null;
         $data['datajam14'] = $this->cari_datajam14($lineId);
+        // $data['datajam15'] = null;
         $data['datajam15'] = $this->cari_datajam15($lineId);
 
         $data['dashboard_indicators'] = $this->show_chart_dashboard($lineId);
@@ -131,15 +139,15 @@ class DashboardWipLineController extends Controller
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja, man_power, smv from master_plan where sewing_line = '" .
                 $line .
                 "' and tgl_plan = CURRENT_DATE()) b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 00:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 08:00')) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 00:00:00') and updated_at < CONCAT(CURRENT_DATE,' 08:00:00')) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '06:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 06:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '07:00' and DATE_FORMAT(created_at, '%H:%i') < '08:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 07:00:00' and created_at < '".date("Y-m-d")." 08:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -163,15 +171,15 @@ END jam) a)
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 08:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 09:00') ) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 08:00:00') and updated_at < CONCAT(CURRENT_DATE,' 09:00:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '08:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 08:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '08:00' and DATE_FORMAT(created_at, '%H:%i') < '09:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 08:00:00' and created_at < '".date("Y-m-d")." 09:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -193,15 +201,15 @@ END jam) a))) target from (
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 09:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 10:00') ) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 09:00:00') and updated_at < CONCAT(CURRENT_DATE,' 10:00:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '09:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 09:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '09:00' and DATE_FORMAT(created_at, '%H:%i') < '10:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 09:00:00' and created_at < '".date("Y-m-d")." 10:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -223,15 +231,15 @@ END jam) a))) target from (
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 10:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 11:00') ) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 10:00:00') and updated_at < CONCAT(CURRENT_DATE,' 11:00:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '10:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 10:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '10:00' and DATE_FORMAT(created_at, '%H:%i') < '11:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 10:00:00' and created_at < '".date("Y-m-d")." 11:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -253,15 +261,15 @@ END jam) a))) target from (
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 11:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 12:00') ) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 11:00:00') and updated_at < CONCAT(CURRENT_DATE,' 12:00:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '11:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 11:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '11:00' and DATE_FORMAT(created_at, '%H:%i') < '12:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 11:00:00' and created_at < '".date("Y-m-d")." 12:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -283,15 +291,15 @@ END jam) a))) target from (
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 12:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 14:00') ) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 12:00:00') and updated_at < CONCAT(CURRENT_DATE,' 14:00:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '12:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 12:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '12:00' and DATE_FORMAT(created_at, '%H:%i') < '14:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 12:00:00' and created_at < '".date("Y-m-d")." 14:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -313,15 +321,15 @@ END jam) a))) target from (
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 14:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 15:00') ) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 14:00:00') and updated_at < CONCAT(CURRENT_DATE,' 15:00:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '14:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 14:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '14:00' and DATE_FORMAT(created_at, '%H:%i') < '15:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 14:00:00' and created_at < '".date("Y-m-d")." 15:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -343,15 +351,15 @@ END jam) a))) target from (
             (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
-            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') >= CONCAT(CURRENT_DATE,' 15:00') and DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') < CONCAT(CURRENT_DATE,' 16:00') ) c on c.master_plan_id = b.id
+            (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 15:00:00') and updated_at < CONCAT(CURRENT_DATE,' 16:00:00') ) c on c.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) actual_sebelum from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') < '15:00') d on d.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at < '".date("Y-m-d")." 15:00:00') d on d.master_plan_id = b.id
             left join
             (SELECT master_plan_id,count(a.id) defect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" .
                 $line .
-                "' and b.tgl_plan = CURRENT_DATE() and DATE_FORMAT(created_at, '%H:%i') >= '15:00' and DATE_FORMAT(created_at, '%H:%i') < '16:00') e on e.master_plan_id = b.id
+                "' and b.tgl_plan = CURRENT_DATE() and created_at >= '".date("Y-m-d")." 15:00:00' and created_at < '".date("Y-m-d")." 16:00:00') e on e.master_plan_id = b.id
             where a.tanggal = CURRENT_DATE())a) a",
         );
         return $query;
@@ -405,13 +413,13 @@ END jam) a))) target from (
             OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13  AND DATE_FORMAT(updated_at,'%H:%i') BETWEEN CONCAT(LPAD(HOUR (NOW()),2,'0'),':00') AND CONCAT(LPAD(HOUR (NOW())+1,2,'0'),':00'))) and DATE_FORMAT(updated_at,'%Y-%m-%d') = CURRENT_DATE GROUP BY master_plan_id) c on c.master_plan_id = b.id
                 left join
                 (SELECT master_plan_id,COUNT(a.id) AS actual_sebelum FROM output_rfts a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan=CURRENT_DATE () AND (
-            (HOUR(NOW()) = 7 AND DATE_FORMAT(created_at, '%H:%i') < '06:00')
-            OR (HOUR(NOW()) = 13 AND DATE_FORMAT(created_at, '%H:%i') < '12:00')
-            OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13 AND DATE_FORMAT(created_at, '%H:%i') < CONCAT(LPAD(HOUR(NOW()), 2, '0'), ':00'))
+            (HOUR(NOW()) = 7 AND created_at < '".date("Y-m-d")." 06:00:00')
+            OR (HOUR(NOW()) = 13 AND created_at < '".date("Y-m-d")." 12:00:00')
+            OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13 AND DATE_FORMAT(created_at,'%H:%i') < CONCAT(LPAD(HOUR(NOW()), 2, '0'), ':00'))
         ) GROUP BY master_plan_id
     ) d on d.master_plan_id = b.id
                 left join
-                (SELECT master_plan_id,COUNT(a.id) AS defect FROM output_defects a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan=CURRENT_DATE () AND ((HOUR (NOW())=7 AND DATE_FORMAT(created_at,'%H:%i') BETWEEN '00:00' AND '07:59') OR (HOUR(NOW()) = 13 AND DATE_FORMAT(created_at, '%H:%i') >= '12:00' AND DATE_FORMAT(created_at, '%H:%i') < '14:00')
+                (SELECT master_plan_id,COUNT(a.id) AS defect FROM output_defects a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan=CURRENT_DATE () AND ((HOUR (NOW())=7 AND DATE_FORMAT(created_at,'%H:%i') BETWEEN '00:00' AND '07:59') OR (HOUR(NOW()) = 13 AND created_at >= '".date("Y-m-d")." 12:00:00' AND created_at < '".date("Y-m-d")." 14:00:00')
             OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13  AND DATE_FORMAT(created_at,'%H:%i') BETWEEN CONCAT(LPAD(HOUR (NOW()),2,'0'),':00') AND CONCAT(LPAD(HOUR (NOW())+1,2,'0'),':00'))) GROUP BY master_plan_id) e on e.master_plan_id = b.id
                 where a.tanggal = CURRENT_DATE())a) a) a) a JOIN (SELECT
         CASE
@@ -465,9 +473,9 @@ END jam) a))) target from (
                 "'
         AND b.tgl_plan = CURRENT_DATE()
         AND (
-            (HOUR(NOW()) = 7 AND DATE_FORMAT(created_at, '%H:%i') >= '00:00' AND DATE_FORMAT(created_at, '%H:%i') <= '07:59')
-            OR (HOUR(NOW()) = 13 AND DATE_FORMAT(created_at, '%H:%i') >= '12:00' AND DATE_FORMAT(created_at, '%H:%i') <= '13:59')
-            OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13 AND DATE_FORMAT(created_at, '%H:%i') >= CONCAT(LPAD(HOUR(NOW()), 2, '0'), ':00') AND DATE_FORMAT(created_at, '%H:%i') <= CONCAT(LPAD(HOUR(NOW()) + 1, 2, '0'), ':00'))
+            (HOUR(NOW()) = 7 AND created_at >= '".date("Y-m-d")." 00:00:00' AND created_at <= '".date("Y-m-d")." 07:59:59')
+            OR (HOUR(NOW()) = 13 AND created_at >= '".date("Y-m-d")." 12:00:00' AND created_at <= '".date("Y-m-d")." 13:59:59')
+            OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13 AND DATE_FORMAT(created_at,'%H:%i') >= CONCAT(LPAD(HOUR(NOW()), 2, '0'), ':00') AND DATE_FORMAT(created_at,'%H:%i') <= CONCAT(LPAD(HOUR(NOW()) + 1, 2, '0'), ':00'))
         )",
         );
 
