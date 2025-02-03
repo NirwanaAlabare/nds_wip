@@ -30,13 +30,7 @@ class DashboardWipLineController extends Controller
         $years = array_reverse(range(1999, date('Y')));
 
         $query = DB::connection('mysql_dsb')->select("SELECT COALESCE(sum(jam_kerja),0) as jam_kerja from master_plan where tgl_plan = CURRENT_DATE() and sewing_line = 'line_01'");
-        $lines = [];
-        for ($i = 1; $i <= 30; $i++) {
-            $lines[] = (object) [
-                'id' => 'line_' . str_pad($i, 2, '0', STR_PAD_LEFT),
-                'name' => 'Line ' . str_pad($i, 2, '0', STR_PAD_LEFT),
-            ];
-        }
+        $lines = DB::connection('mysql_dsb')->select("SELECT username as id, FullName as name from userpassword where Groupp = 'SEWING' and (Locked is NULL OR Locked != 1) ORDER BY line_id");
 
         return view('wip/dashboard-wip', ['page' => 'dashboard-wip', 'lines' => $lines]);
     }
