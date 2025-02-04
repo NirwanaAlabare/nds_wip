@@ -10,6 +10,7 @@ use App\Models\Marker;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\DCIn;
+use App\Models\Auth\User;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\CuttingChartUpdated;
 use App\Events\CuttingChartUpdatedAll;
@@ -308,6 +309,12 @@ class DashboardController extends Controller
                 'mejaId' => $mejaId,
                 'tglPlan' => $tglPlan
             ]);
+        }
+
+        public function cuttingDashboardList() {
+            $listMeja = User::where("type", "meja")->get();
+
+            return view('cutting.chart.dashboard-chart-list', ['page' => 'dashboard-cutting', 'listMeja' => $listMeja]);
         }
 
         public function cuttingFormList(Request $request) {

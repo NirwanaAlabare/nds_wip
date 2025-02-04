@@ -1723,6 +1723,7 @@ Route::get('/dashboard-cutting-chart', [DashboardController::class, 'cutting_cha
 Route::get('/meja-dashboard-cutting', [DashboardController::class, 'get_cutting_chart_meja'])->middleware('auth')->name('meja-dashboard-cutting');
 Route::get('/cutting-chart-by-mejaid', [DashboardController::class, 'cutting_chart_by_mejaid'])->middleware('auth')->name('cutting-chart-by-mejaid');
 Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
+Route::get('/cutting-dashboard-list', [DashboardController::class, 'cuttingDashboardList'])->middleware('auth')->name('cutting-dashboard-list');
 Route::get('/cutting-form-list', [DashboardController::class, 'cuttingFormList'])->middleware('auth')->name('cutting-form-list');
 Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware('auth')->name('cutting-form-chart');
 Route::get('/cutting-worksheet-list', [DashboardController::class, 'cuttingWorksheetList'])->middleware('auth')->name('cutting-worksheet-list');
@@ -1745,10 +1746,6 @@ Route::get('/trigger', function () {
     event(new TestEvent('This is realtime data'));
     return response()->json(['status' => 'Event sent testing']);
 });
-
-
-
-
 
 // Dashboard
 // Route::get('/dashboard-marker', function () {

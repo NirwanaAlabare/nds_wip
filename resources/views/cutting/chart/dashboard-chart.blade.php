@@ -274,6 +274,15 @@
                             </thead>
                             <tbody>
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3">Total</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -496,6 +505,43 @@
                     }
                 },
             ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function(i) {
+                    let newVar = typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+
+                    return newVar > 0 ? newVar : 0;
+                };
+
+                let totalA = api
+                    .column(3)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                let totalB = api
+                    .column(4)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                let totalC = api
+                    .column(5)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                let totalD = api
+                    .column(6)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                $(api.column(0).footer()).html('<b>Total</b>');
+                $(api.column(3).footer()).html('<b>'+totalA+'</b>');
+                $(api.column(4).footer()).html('<span class="'+(totalB <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(totalB ? (totalB > 0 ? "-"+Number(totalB).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>');
+                $(api.column(5).footer()).html('<b>'+totalC+'</b>');
+                $(api.column(6).footer()).html('<span class="'+(totalD <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(totalD ? (totalD > 0 ? "-"+Number(totalD).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>');
+            }
         });
 
         function datatableCuttingReload() {
