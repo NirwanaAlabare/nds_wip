@@ -37,7 +37,7 @@
                 <div class="card">
                     <div class="card-body">
                         Dashboard
-                        <h5>SUMMARY</h5>
+                        <h5>CUTTING PRODUCTION</h5>
                     </div>
                 </div>
             </a>
