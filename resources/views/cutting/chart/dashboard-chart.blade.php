@@ -296,13 +296,13 @@
                     <p class="mb-0 fw-bold clock"></p>
                 </div>
             </div>
-            <swiper-container class="mySwiper1" autoplay-delay="5000" space-between="30" slides-per-view="3">
-                <swiper-slide>
+            <div class="row g-3" id="cutting-charts">
+                <div class="col-4 prototype">
                     <div class="cutting-chart-container">
                         <div class="cutting-chart"></div>
                     </div>
-                </swiper-slide>
-            </swiper-container>
+                </div>
+            </div>
         </swiper-slide>
         <swiper-slide>
             <div class="card w-100 mx-3 mt-3">
@@ -579,7 +579,7 @@
                             await cloneAndAppendSlide(panelDataGroup[i]["panel"], totalPlan, totalComplete)
                         };
 
-                        document.querySelector('.mySwiper1 .swiper-slide-active').remove();
+                        document.querySelector('#cutting-charts .prototype').remove();
                     }
                 },
                 error: function (jqXHR) {
@@ -594,18 +594,16 @@
             let totalCompleteVal = totalComplete ? totalComplete : 0;
 
             // Get the Swiper container
-            let swiperContainer = document.querySelector('.mySwiper1');
+            let cuttingCharts = document.querySelector('#cutting-charts');
 
             // Get the first swiper-slide (or you can specify another one by index)
-            let firstSlide = swiperContainer.querySelector('.swiper-slide-active');
+            let firstChart = cuttingCharts.querySelector('.col-4');
 
             // Clone the swiper-slide
-            let clonedSlide = firstSlide.cloneNode(true);
-            clonedSlide.classList.remove("swiper-slide-active");
-            clonedSlide.classList.add("swiper-slide");
+            let clonedChart = firstChart.cloneNode(true);
 
             // Find the canvas element inside the cloned slide
-            let canvas = clonedSlide.querySelector('.cutting-chart');
+            let canvas = clonedChart.querySelector('.cutting-chart');
             if (!canvas) {
                 console.error('Canvas element not found in the cloned slide!');
             } else {
@@ -660,14 +658,14 @@
             }
 
             // Append the cloned slide to the swiper container
-            swiperContainer.appendChild(clonedSlide);
+            cuttingCharts.appendChild(clonedChart);
 
             // Re-initialize Swiper after appending the new slide
-            setTimeout(() => {
-                if (swiperContainer.swiper) {
-                    swiperContainer.swiper.update();
-                }
-            }, 100); // Delay to ensure swiper updates correctly
+            // setTimeout(() => {
+            //     if (cuttingCharts.swiper) {
+            //         cuttingCharts.swiper.update();
+            //     }
+            // }, 100); // Delay to ensure swiper updates correctly
         }
 
         var datatableCuttingStock = $("#datatable-cutting-stock").DataTable({
