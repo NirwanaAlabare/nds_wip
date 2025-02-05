@@ -1377,58 +1377,58 @@ class DashboardController extends Controller
                                 where bppbno like '%RQ-F%' and a.id_supplier = '432'
                                 group by a.id_item,a.bppbno
                                 order by bppbdate,bppbno desc) a left join
-                                (select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll_all, SUM(CASE WHEN bppbdate = '2025-02-05' THEN 1 ELSE 0 END) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
-                                (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_all_ri, SUM(CASE WHEN bppbdate = '2025-02-05' THEN 1 ELSE 0 END) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
+                                (select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll_all, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
+                                (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_all_ri, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
                                                 WHERE COALESCE(total_roll_all,0) > 0
                                 order by a.no_ws, a.color
                 ) req_roll
                 LEFT JOIN (
                     SELECT
-                            id_item,
-                            COUNT(id_roll) total_roll,
-                            SUM(CASE WHEN sisa_kain <= 0 THEN 1 ELSE 0 END) total_roll_habis,
-                            SUM(CASE WHEN tanggal_pemakaian = CURRENT_DATE THEN 1 ELSE 0 END)  total_roll_today
+                        id_item,
+                        COUNT(id_roll) total_roll,
+                        SUM(CASE WHEN sisa_kain <= 0 THEN 1 ELSE 0 END) total_roll_habis,
+                        SUM(CASE WHEN tanggal_pemakaian = CURRENT_DATE THEN 1 ELSE 0 END)  total_roll_today
                     FROM (
                             SELECT
-                                    id_roll,
-                                    id_item,
-                                    MAX(qty) AS qty,
-                                    SUM(total_pemakaian_roll) AS total_pemakaian_roll,
-                                    SUM(short_roll) AS short_roll,
-                                    MIN(CASE
-                                            WHEN form_cut_input_detail.STATUS IN ('extension', 'extension complete')
-                                            THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll
-                                            ELSE form_cut_input_detail.sisa_kain
-                                    END) AS sisa_kain,
-                                    DATE(form_cut_input_detail.updated_at) tanggal_pemakaian
+                                id_roll,
+                                id_item,
+                                MAX(qty) AS qty,
+                                SUM(total_pemakaian_roll) AS total_pemakaian_roll,
+                                SUM(short_roll) AS short_roll,
+                                MIN(CASE
+                                        WHEN form_cut_input_detail.STATUS IN ('extension', 'extension complete')
+                                        THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll
+                                        ELSE form_cut_input_detail.sisa_kain
+                                END) AS sisa_kain,
+                                DATE(form_cut_input_detail.updated_at) tanggal_pemakaian
                             FROM
-                                    laravel_nds.form_cut_input_detail
+                                laravel_nds.form_cut_input_detail
                             LEFT JOIN laravel_nds.form_cut_input
-                                    ON form_cut_input.id = form_cut_input_detail.form_cut_id
+                                ON form_cut_input.id = form_cut_input_detail.form_cut_id
                             WHERE
-                                    (form_cut_input.status != 'SELESAI PENGERJAAN' OR
-                                    (form_cut_input.status = 'SELESAI PENGERJAAN' AND
-                                            form_cut_input.status NOT IN ('not complete', 'extension')))
-                                    AND id_roll IS NOT NULL
-                                    AND id_roll != ''
-                                    AND form_cut_input_detail.updated_at BETWEEN '2024-01-01 00:00:00' AND '2025-02-05 23:59:59'
+                                (form_cut_input.status != 'SELESAI PENGERJAAN' OR
+                                (form_cut_input.status = 'SELESAI PENGERJAAN' AND
+                                        form_cut_input.status NOT IN ('not complete', 'extension')))
+                                AND id_roll IS NOT NULL
+                                AND id_roll != ''
+                                AND form_cut_input_detail.updated_at BETWEEN '".date("Y-m-d", strtotime($date." -7 days"))." 00:00:00' AND '".$date." 23:59:59'
                             GROUP BY
-                                    id_roll,
-                                    id_item
+                                id_roll,
+                                id_item
                     ) roll
                     GROUP BY
                             id_item
                     HAVING
                             total_roll > total_roll_habis
                 ) cutting_roll ON cutting_roll.id_item = req_roll.id_item
-                WHERE (CASE WHEN bppbdate < '2025-02-05' THEN roll_out > total_roll ELSE (roll_out >= total_roll OR roll_out <= total_roll ) END)
+                WHERE (CASE WHEN bppbdate < '".$date."' THEN roll_out > total_roll ELSE (roll_out >= total_roll OR roll_out <= total_roll ) END)
                 order by
                     total_roll_today desc,
                     roll_out_today desc
             ");
 
             return DataTables::of($pemakaianRoll)->
-                addColumn('saldo_awal', function ($row) use ($date) {
+                addColumn('saldo_awal', function ($row) {
                     return ($row->roll_out - $row->roll_out_today) - ($row->total_roll - $row->total_roll_today);
                 })->
                 addColumn('total_roll_cutting', function ($row) {
@@ -1437,11 +1437,6 @@ class DashboardController extends Controller
                 addColumn('total_roll_balance', function ($row) {
                     return $row->roll_out - $row->total_roll;
                 })->
-                // addColumn('total_pakai_balance', function ($row) {
-                //     $balance = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
-
-                //     return $balance > 0 ? round($balance, 2) : ($balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
-                // })->
                 toJson();
         }
     // End of Cutting

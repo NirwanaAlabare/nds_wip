@@ -713,7 +713,7 @@
                     className: "text-nowrap align-middle"
                 },
                 {
-                    targets: [3],
+                    targets: [2, 3],
                     className: "text-nowrap align-middle",
                     render: (data, type, row, meta) => {
                         return `<div style="max-width: 200px; overflow:hidden">`+(data.length > 20 ? data.substr(0, 20)+`...` : data)+`</div>`
