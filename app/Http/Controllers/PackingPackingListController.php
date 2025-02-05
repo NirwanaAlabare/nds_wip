@@ -206,17 +206,17 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
             $dest = $splitData[1];
 
             $delete =  DB::delete(
-                "DELETE FROM packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest' and created_by = '$user' "
+                "DELETE FROM packing_master_upload_packing_list_det_horizontal where created_by = '$user' "
             );
 
 
             $delete =  DB::delete(
-                "DELETE FROM packing_master_upload_packing_list_header_horizontal where po = '$po' and dest = '$dest' and created_by = '$user'"
+                "DELETE FROM packing_master_upload_packing_list_header_horizontal where created_by = '$user'"
             );
 
 
             $delete =  DB::delete(
-                "DELETE FROM packing_master_upload_packing_list_det_vertical where po = '$po' and dest = '$dest' and created_by = '$user'"
+                "DELETE FROM packing_master_upload_packing_list_det_vertical where created_by = '$user'"
             );
         } else {
             $po = null;
@@ -254,8 +254,8 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     if (tipe_pack = 'RATIO',qty/(b.no_carton_akhir - b.no_carton_awal + 1), qty) qty
     from (
     select * from dim_no_carton
-    where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest')
-    and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest')
+    where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest' and created_by = '$user')
+    and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest' and created_by = '$user')
     ) a
     join
     (
@@ -487,8 +487,8 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
             from
             (
             select * from dim_no_carton
-            where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_vertical where po = '$po' and dest = '$dest')
-            and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_vertical where po = '$po'  and dest = '$dest')
+            where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_vertical where po = '$po' and dest = '$dest' and created_by = '$user')
+            and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_vertical where po = '$po'  and dest = '$dest' and created_by = '$user')
             ) a
             join
             (
@@ -580,8 +580,8 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     '$user'
     from (
     select * from dim_no_carton
-    where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest')
-    and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest')
+    where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest' and created_by = '$user')
+    and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_horizontal where po = '$po' and dest = '$dest' and created_by = '$user')
     ) a
     join
     (
@@ -834,8 +834,8 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     '$user'
     from (
             select * from dim_no_carton
-            where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_vertical where po = '$po' and dest = '$dest')
-            and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_vertical where po = '$po'  and dest = '$dest')
+            where no_carton >= (select  min(no_carton_awal) from packing_master_upload_packing_list_det_vertical where po = '$po' and dest = '$dest' and created_by = '$user')
+            and no_carton <= (select  max(no_carton_akhir) from packing_master_upload_packing_list_det_vertical where po = '$po'  and dest = '$dest' and created_by = '$user')
             ) a
             join
             (
