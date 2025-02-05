@@ -680,7 +680,7 @@
                 data: function (d) {
                     d.date = $("#cutting-form-date-filter").val()
                 }
-        },
+            },
             columns: [
                 {
                     data: 'no_ws_aktual',
@@ -698,7 +698,7 @@
                     data: 'saldo_awal',
                 },
                 {
-                    data: 'roll_out',
+                    data: 'roll_out_today',
                 },
                 {
                     data: 'total_roll_cutting',
@@ -722,7 +722,7 @@
                 {
                     targets: [7],
                     render: (data, type, row, meta) => {
-                        return data + row.saldo_awal;
+                        return data;
                     }
                 }
             ],
