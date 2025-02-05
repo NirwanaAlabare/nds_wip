@@ -565,6 +565,7 @@ left join
                 DATE(updated_at)
         ) AS tbl_tgl
         ) c on a.tgl_skrg = c.update_date_skrg
+        GROUP BY sewing_line, styleno
 ) td on u.name = td.sewing_line and ac.styleno = td.styleno
 left join output_employee_line ol on a.tgl_trans = ol.tanggal and u.name	= ol.line_name
 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans

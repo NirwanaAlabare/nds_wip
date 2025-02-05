@@ -13,44 +13,42 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
     <style>
         .card {
-    border-radius: 12px;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
 
-.btn-primary {
-    background-color: #5A67D8;
-    border: none;
-}
+        .btn-primary {
+            background-color: #5A67D8;
+            border: none;
+        }
 
-.btn-primary:hover {
-    background-color: #434190;
-}
-
+        .btn-primary:hover {
+            background-color: #434190;
+        }
     </style>
 @endsection
 
 @section('content')
-
-<div class="container my-4">
-    <div class="row">
-        @foreach ($lines as $line)
-            <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body text-center">
-                        <h5 class="card-title fw-bold">{{ $line->name }}</h5>
-                        <a href="{{ url('dashboard-wip/wip-line/' . $line->id) }}" class="btn btn-primary btn-sm">View Details</a>
+    <div class="container my-4">
+        <div class="row">
+            @foreach ($lines as $line)
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <h5 class="card-title fw-bold">{{ str_replace("SEWING ", "", $line->name) }}</h5>
+                            <a href="{{ url('dashboard-wip/wip-line/' . $line->id) }}" class="btn btn-primary btn-sm">View Details</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endforeach
+            @endforeach
+        </div>
     </div>
-</div>
 @endsection
 
 @section('custom-script')

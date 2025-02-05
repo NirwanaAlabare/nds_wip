@@ -174,7 +174,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-chart" class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}" target="_blank">
+                                    <a href="{{ route('cutting-dashboard-list') }}" class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}" target="_blank">
                                         Dashboard <i class="fa-solid fa-pager"></i>
                                     </a>
                                 </li>
@@ -638,7 +638,6 @@
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Konfirmasi</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
                             <li>
                                 <a href="{{ route('konfirmasi-pemasukan') }}" class="dropdown-item">
                                     Konfirmasi Pemasukan
