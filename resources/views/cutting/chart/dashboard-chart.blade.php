@@ -719,12 +719,6 @@
                         return `<div style="max-width: 200px; overflow:hidden">`+(data.length > 20 ? data.substr(0, 20)+`...` : data)+`</div>`
                     }
                 },
-                {
-                    targets: [7],
-                    render: (data, type, row, meta) => {
-                        return data;
-                    }
-                }
             ],
             footerCallback: async function (row, data, start, end, display) {
                 var api = this.api(),data;
@@ -776,7 +770,7 @@
                 $(api.column(4).footer()).html(sumSaldoAwal);
                 $(api.column(5).footer()).html(sumRollIn);
                 $(api.column(6).footer()).html(sumRollUse);
-                $(api.column(7).footer()).html(sumStokRoll+sumSaldoAwal);
+                $(api.column(7).footer()).html(sumStokRoll);
             }
         });
 
