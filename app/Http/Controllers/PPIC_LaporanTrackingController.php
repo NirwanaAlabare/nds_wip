@@ -463,35 +463,37 @@ LEFT JOIN
             SUM(output_rfts_packing) AS output_rfts_packing
         FROM
         (
-            SELECT
-                id_so_det,
-                MIN(qty_cut) AS qty_cut,
-								 0 AS qty_loading,
-                0 AS output_rfts,
-                0 AS output_rfts_packing
-            FROM
-            (
-                SELECT
-                    marker_input_detail.so_det_id AS id_so_det,
-                    SUM(marker_input_detail.ratio * form_cut_input.total_lembar) AS qty_cut
-                FROM
-                    laravel_nds.form_cut_input
-                LEFT JOIN
-                    laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
-                LEFT JOIN
-                    laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-                LEFT JOIN
-                    laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                WHERE
-                    COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '2024-01-01'
-                    AND form_cut_input.status = 'SELESAI PENGERJAAN'
-                    AND marker_input_detail.ratio > 0
-                GROUP BY
-                    marker_input.panel,
-                    marker_input_detail.so_det_id
-            ) cutting
-            GROUP BY
-                id_so_det
+SELECT
+		id_so_det,
+		MIN(qty_cut) AS qty_cut,
+		0 AS qty_loading,
+		0 AS output_rfts,
+		0 AS output_rfts_packing
+FROM
+(
+		SELECT
+				marker_input_detail.so_det_id AS id_so_det,
+				CASE WHEN modify_size_qty.modified_qty > 0 THEN modify_size_qty.modified_qty ELSE SUM(marker_input_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
+		FROM
+				laravel_nds.form_cut_input
+		LEFT JOIN
+				laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+		LEFT JOIN
+				laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
+		LEFT JOIN
+				laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+		LEFT JOIN
+				laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+		WHERE
+				COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '2024-01-01'
+				AND form_cut_input.status = 'SELESAI PENGERJAAN'
+				AND (marker_input_detail.ratio > 0 OR modify_size_qty.modified_qty > 0)
+		GROUP BY
+				marker_input.panel,
+				marker_input_detail.so_det_id
+) cutting
+GROUP BY
+		id_so_det
             UNION ALL
             SELECT
                 so_det_id AS id_so_det,
