@@ -36,6 +36,14 @@ class ReportMutasiOutputController extends Controller
         ini_set('memory_limit', '2048M');
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
+        $buyer = $request->cbobuyer;
+
+        if (!empty($buyer)) {
+            $filter = " where ms.supplier  = '" . $buyer  . "'";
+        } else {
+            $filter = "";
+        }
+
         if ($request->ajax()) {
             $data_mut = DB::connection('mysql_sb')->select("SELECT
 			ac.kpno,
@@ -87,6 +95,31 @@ FROM
 (
 SELECT
 			so_det_id,
+			sum(loading) sa_loading,
+			sum(sewing) sa_rft,
+			'0' sa_reject,
+			'0' sa_defect,
+			'0' sa_rework,
+			'0' qty_loading,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0' input_rework_mending,
+			'0' defect_sewing,
+			'0' defect_spotcleaning,
+			'0' defect_mending,
+			'0' output_rejects,
+			'0' output_rfts,
+			sum(out_sew) sa_out_sew,
+			sum(steam) sa_steam,
+			'0' input_steam,
+			'0' output_steam
+FROM
+				laravel_nds.sa_report_output where tgl_saldo = '2025-01-01'
+GROUP BY
+					so_det_id
+UNION ALL
+SELECT
+			so_det_id,
 			sum(qty) sa_loading,
 			'0' sa_rft,
 			'0' sa_reject,
@@ -114,7 +147,7 @@ FROM
 			INNER JOIN
 						laravel_nds.stocker_input b on a.stocker_id = b.id
 			WHERE
-						a.updated_at < '$tgl_awal'
+						a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 			GROUP BY
 						b.so_det_id,
 						b.form_cut_id,
@@ -145,7 +178,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rfts a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -171,7 +204,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rejects a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -199,7 +232,7 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal'
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -227,7 +260,7 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal' and a.defect_status in ('REWORKED','REJECTED')
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.defect_status in ('REWORKED','REJECTED') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -371,7 +404,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rfts a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -397,7 +430,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rfts_packing a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -449,7 +482,7 @@ SELECT
 			count(so_det_id) output_steam
 FROM signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
+     updated_at >= '$tgl_awal' and updated_at <= 'tgl_akhir'
 GROUP BY
     so_det_id
 ) d_rep
@@ -473,9 +506,9 @@ FROM
 (
 SELECT
 			so_det_id,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending,
+        SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing,
+        SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning,
+        SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending,
 		SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_sewing,
 		SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_spotcleaning,
 		SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_mending,
@@ -489,7 +522,7 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal'
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -501,9 +534,9 @@ SELECT
 			'0' sa_defect_trans_rew_sewing,
 			'0' sa_defect_trans_rew_spotcleaning,
 			'0' sa_defect_trans_rew_mending,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending,
+        SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing,
+        SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning,
+        SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending,
 		SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing,
 		SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning,
 		SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending
@@ -553,7 +586,7 @@ FROM signalbit_erp.output_defects_packing a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal'
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -565,9 +598,9 @@ SELECT
 			'0' sa_defect_trans_rew_sewing_pck,
 			'0' sa_defect_trans_rew_spotcleaning_pck,
 			'0' sa_defect_trans_rew_mending_pck,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing_pck,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning_pck,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending_pck,
+        SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing_pck,
+        SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning_pck,
+        SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending_pck,
 		SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing_pck,
 		SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning_pck,
 		SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending_pck
@@ -586,6 +619,7 @@ inner join signalbit_erp.so so on sd.id_so = so.id
 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
+$filter
 GROUP BY ac.kpno, ac.styleno, sd.color, sd.size
 order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
       ");
@@ -648,6 +682,31 @@ FROM
 (
 SELECT
 			so_det_id,
+			sum(loading) sa_loading,
+			sum(sewing) sa_rft,
+			'0' sa_reject,
+			'0' sa_defect,
+			'0' sa_rework,
+			'0' qty_loading,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0' input_rework_mending,
+			'0' defect_sewing,
+			'0' defect_spotcleaning,
+			'0' defect_mending,
+			'0' output_rejects,
+			'0' output_rfts,
+			sum(out_sew) sa_out_sew,
+			sum(steam) sa_steam,
+			'0' input_steam,
+			'0' output_steam
+FROM
+				laravel_nds.sa_report_output where tgl_saldo = '2025-01-01'
+GROUP BY
+					so_det_id
+UNION ALL
+SELECT
+			so_det_id,
 			sum(qty) sa_loading,
 			'0' sa_rft,
 			'0' sa_reject,
@@ -675,7 +734,7 @@ FROM
 			INNER JOIN
 						laravel_nds.stocker_input b on a.stocker_id = b.id
 			WHERE
-						a.updated_at < '$tgl_awal'
+						a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 			GROUP BY
 						b.so_det_id,
 						b.form_cut_id,
@@ -706,7 +765,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rfts a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -732,7 +791,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rejects a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -760,7 +819,7 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal'
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -788,7 +847,7 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal' and a.defect_status in ('REWORKED','REJECTED')
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.defect_status in ('REWORKED','REJECTED') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -932,7 +991,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rfts a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -958,7 +1017,7 @@ SELECT
 			'0' output_steam
 FROM signalbit_erp.output_rfts_packing a
 WHERE
-     a.updated_at < '$tgl_awal'
+     a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -1010,7 +1069,7 @@ SELECT
 			count(so_det_id) output_steam
 FROM signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
+     updated_at >= '$tgl_awal' and updated_at <= 'tgl_akhir'
 GROUP BY
     so_det_id
 ) d_rep
@@ -1034,9 +1093,9 @@ FROM
 (
 SELECT
 			so_det_id,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending,
+        SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing,
+        SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning,
+        SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending,
 		SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_sewing,
 		SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_spotcleaning,
 		SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_mending,
@@ -1050,7 +1109,7 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal'
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL
@@ -1062,9 +1121,9 @@ SELECT
 			'0' sa_defect_trans_rew_sewing,
 			'0' sa_defect_trans_rew_spotcleaning,
 			'0' sa_defect_trans_rew_mending,
-    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing,
-    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning,
-    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending,
+        SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing,
+        SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning,
+        SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending,
 		SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing,
 		SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning,
 		SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending
@@ -1114,7 +1173,7 @@ FROM signalbit_erp.output_defects_packing a
 INNER JOIN
     signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at < '$tgl_awal'
+    allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
 GROUP BY
     so_det_id
 UNION ALL

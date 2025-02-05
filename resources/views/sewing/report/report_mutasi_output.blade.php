@@ -39,6 +39,7 @@
                     <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
                         style="width: 100%;">
                         <option selected="selected" value="" disabled="true">Pilih Buyer</option>
+                        <option value="">ALL</option>
                         @foreach ($data_buyer as $databuyer)
                             <option value="{{ $databuyer->isi }}">
                                 {{ $databuyer->tampil }}
@@ -48,11 +49,13 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
-                    <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal">
+                    <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
+                        min="2025-01-01" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" min="2025-01-01"
+                        name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <a onclick="dataTableReload();" class="btn btn-outline-primary btn-sm position-relative">
@@ -257,6 +260,7 @@
                     data: function(d) {
                         d.dateFrom = dateFrom;
                         d.dateTo = dateTo;
+                        d.cbobuyer = $("#cbobuyer").val();
                     },
                 },
                 columns: [{
