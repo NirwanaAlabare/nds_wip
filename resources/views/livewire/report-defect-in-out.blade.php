@@ -78,7 +78,7 @@
                     @if ($defectInOutList->count() > 0)
                         @foreach ($defectInOutList as $defect)
                             <tr>
-                                <td>{{ $defect->updated_at }}</td>
+                                <td>{{ $defect->created_at }}</td>
                                 <td>{{ $defect->FullName }}</td>
                                 <td>{{ strtoupper($defect->output_type) }}</td>
                                 <td>{{ $defect->kpno }}</td>

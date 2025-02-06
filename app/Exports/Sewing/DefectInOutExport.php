@@ -36,7 +36,7 @@ class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
     {
         if ($this->outputType == 'packing') {
             $defectInOutList = DefectInOut::selectRaw("
-                    output_defect_in_out.updated_at,
+                    output_defect_in_out.created_at,
                     userpassword.FullName,
                     output_defect_in_out.output_type,
                     act_costing.kpno,
@@ -54,13 +54,13 @@ class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
                 leftJoin("userpassword", "userpassword.username", "=", "output_defects_packing.created_by")->
                 where("output_defect_in_out.type", strtolower($this->type))->
                 where("output_defect_in_out.output_type", strtolower($this->outputType))->
-                whereBetween("output_defect_in_out.updated_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
-                groupBy("output_defect_in_out.updated_at", "output_defects_packing.so_det_id")->
-                orderBy("output_defect_in_out.updated_at")->
+                whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
+                groupBy("output_defect_in_out.created_at", "output_defects_packing.so_det_id")->
+                orderBy("output_defect_in_out.created_at")->
                 get();
         } else {
             $defectInOutList = DefectInOut::selectRaw("
-                    output_defect_in_out.updated_at,
+                    output_defect_in_out.created_at,
                     userpassword.FullName,
                     output_defect_in_out.output_type,
                     act_costing.kpno,
@@ -79,9 +79,9 @@ class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
                 leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
                 where("output_defect_in_out.type", strtolower($this->type))->
                 where("output_defect_in_out.output_type", strtolower($this->outputType))->
-                whereBetween("output_defect_in_out.updated_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
-                groupBy("output_defect_in_out.updated_at", "output_defects.so_det_id")->
-                orderBy("output_defect_in_out.updated_at")->
+                whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
+                groupBy("output_defect_in_out.created_at", "output_defects.so_det_id")->
+                orderBy("output_defect_in_out.created_at")->
                 get();
         }
 

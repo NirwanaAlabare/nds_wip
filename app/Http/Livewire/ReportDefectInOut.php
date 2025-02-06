@@ -48,7 +48,7 @@ class ReportDefectInOut extends Component
 
         if ($this->selectedOutputType == 'packing') {
             $defectInOutQuery = DefectInOut::selectRaw("
-                    output_defect_in_out.updated_at,
+                    output_defect_in_out.created_at,
                     userpassword.FullName,
                     output_defect_in_out.output_type,
                     act_costing.kpno,
@@ -66,11 +66,11 @@ class ReportDefectInOut extends Component
                 leftJoin("userpassword", "userpassword.username", "=", "output_defects_packing.created_by")->
                 where("output_defect_in_out.type", strtolower($this->selectedDefectType))->
                 where("output_defect_in_out.output_type", strtolower($this->selectedOutputType))->
-                whereBetween("output_defect_in_out.updated_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
-                groupBy("output_defect_in_out.updated_at", "output_defects_packing.so_det_id");
+                whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
+                groupBy("output_defect_in_out.created_at", "output_defects_packing.so_det_id");
         } else {
             $defectInOutQuery = DefectInOut::selectRaw("
-                    output_defect_in_out.updated_at,
+                    output_defect_in_out.created_at,
                     userpassword.FullName,
                     output_defect_in_out.output_type,
                     act_costing.kpno,
@@ -89,14 +89,14 @@ class ReportDefectInOut extends Component
                 leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
                 where("output_defect_in_out.type", strtolower($this->selectedDefectType))->
                 where("output_defect_in_out.output_type", strtolower($this->selectedOutputType))->
-                whereBetween("output_defect_in_out.updated_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
-                groupBy("output_defect_in_out.updated_at", "output_defects.so_det_id");
+                whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
+                groupBy("output_defect_in_out.created_at", "output_defects.so_det_id");
         }
 
         $defectInOutTotalQty = $defectInOutQuery->get()->sum("defect_qty");
 
         $defectInOutList = $defectInOutQuery->
-            orderBy("output_defect_in_out.updated_at", "desc")->
+            orderBy("output_defect_in_out.created_at", "desc")->
             paginate($this->defectInOutShowPage, ['*'], 'defectInOutPage');
 
         return view('livewire.report-defect-in-out', ['defectInOutList' => $defectInOutList, 'defectInOutTotalQty' => $defectInOutTotalQty]);

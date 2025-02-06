@@ -53,10 +53,10 @@
                     $totalDefect += $val->sum("defect_qty");
                 @endphp
                 <tr>
-                    <td style="border: 1px solid black;">{{ $k }}</td>
                     <td style="border: 1px solid black;">{{ $key }}</td>
+                    <td style="border: 1px solid black;">{{ $k }}</td>
                     <td style="border: 1px solid black;">{{ $val->sum("defect_qty") }}</td>
-                    <td style="border: 1px solid black;">{{ round(($val->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1)*100), 2) }} %</td>
+                    <td style="border: 1px solid black;">{{ round(($val->sum("defect_qty")/($value->sum("defect_qty") > 0 ? $value->sum("defect_qty") : 1)*100), 2) }} %</td>
                 </tr>
             @endforeach
             <tr>
@@ -68,7 +68,7 @@
     @endif
     <tr></tr>
     <tr>
-        <td style="font-weight: 800;">{{ strtoupper(str_replace("_", "", $type)) }} - LINE</td>
+        <td style="font-weight: 800;">{{ strtoupper(str_replace("_", "", $type)) }} - STYLE</td>
     </tr>
     <tr>
         <th style="border: 1px solid black;vertical-align: middle; text-align: center; font-weight: 800;">DEFECT TYPE</th>
@@ -99,7 +99,7 @@
                     <td style="border: 1px solid black;">{{ $val->first()->styleno }}</td>
                     <td style="border: 1px solid black;">{{ $val->first()->color }}</td>
                     <td style="border: 1px solid black;">{{ $val->sum("defect_qty") }}</td>
-                    <td style="border: 1px solid black;">{{ round(($val->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1)*100), 2) }} %</td>
+                    <td style="border: 1px solid black;">{{ round(($val->sum("defect_qty")/($value->sum("defect_qty") > 0 ? $value->sum("defect_qty") : 1)*100), 2) }} %</td>
                 </tr>
             @endforeach
             <tr>
