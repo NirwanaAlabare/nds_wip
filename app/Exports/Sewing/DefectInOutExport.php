@@ -52,6 +52,7 @@ class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
                 leftJoin("so", "so.id", "=", "so_det.id_so")->
                 leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
                 leftJoin("userpassword", "userpassword.username", "=", "output_defects_packing.created_by")->
+                whereNotNull("output_defects_packing.id")->
                 where("output_defect_in_out.type", strtolower($this->type))->
                 where("output_defect_in_out.output_type", strtolower($this->outputType))->
                 whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
@@ -77,8 +78,10 @@ class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
                 leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
                 leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->
                 leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                whereNotNull("output_defects.id")->
                 where("output_defect_in_out.type", strtolower($this->type))->
                 where("output_defect_in_out.output_type", strtolower($this->outputType))->
+                where("output_defects.id", strtolower($this->outputType))->
                 whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
                 groupBy("output_defect_in_out.created_at", "output_defects.so_det_id")->
                 orderBy("output_defect_in_out.created_at")->
