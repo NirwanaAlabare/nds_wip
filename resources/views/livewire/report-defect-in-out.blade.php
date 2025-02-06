@@ -171,7 +171,7 @@
                                 <td>{{ $key }}</td>
                                 <td>{{ $k }}</td>
                                 <td>{{ $val->sum("defect_qty") }}</td>
-                                <td>{{ round(($val->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1)*100), 2) }} %</td>
+                                <td>{{ round(($val->sum("defect_qty")/($value->sum("defect_qty") > 0 ? $value->sum("defect_qty") : 1)*100), 2) }} %</td>
                                 <td></td>
                                 <td></td>
                             </tr>
@@ -218,7 +218,7 @@
                                 <td>{{ $val->first()->styleno }}</td>
                                 <td>{{ $val->first()->color }}</td>
                                 <td>{{ $val->sum("defect_qty") }}</td>
-                                <td>{{ round(($val->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1)*100), 2) }} %</td>
+                                <td>{{ round(($val->sum("defect_qty")/($value->sum("defect_qty") > 0 ? $value->sum("defect_qty") : 1)*100), 2) }} %</td>
                             </tr>
                         @endforeach
                         <tr>
