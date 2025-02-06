@@ -107,7 +107,7 @@
                 </table> --}}
             <table class="table table-bordered">
                 <tr>
-                    <th colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - DEFECT TYPE</th>
+                    <th class="bg-sb text-light" colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - DEFECT TYPE</th>
                 </tr>
                 <tr>
                     <th>DEFECT TYPE</th>
@@ -140,7 +140,7 @@
                 </tr>
                 <tr></tr>
                 <tr>
-                    <th colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - LINE</th>
+                    <th class="bg-sb text-light" colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - LINE</th>
                 </tr>
                 <tr>
                     <th>DEFECT TYPE</th>
@@ -187,7 +187,7 @@
                 @endif
                 <tr></tr>
                 <tr>
-                    <th colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - STYLE</th>
+                    <th class="bg-sb text-light" colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - STYLE</th>
                 </tr>
                 <tr>
                     <th>DEFECT TYPE</th>
