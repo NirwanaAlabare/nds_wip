@@ -168,8 +168,8 @@
                                 $totalDefect += $val->sum("defect_qty");
                             @endphp
                             <tr>
-                                <td>{{ $k }}</td>
                                 <td>{{ $key }}</td>
+                                <td>{{ $k }}</td>
                                 <td>{{ $val->sum("defect_qty") }}</td>
                                 <td>{{ round(($val->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1)*100), 2) }} %</td>
                                 <td></td>
