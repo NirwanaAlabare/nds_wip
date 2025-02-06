@@ -208,14 +208,14 @@
                         colors: ['black'] // Set the font color to black
                     },
                     formatter: function(val, opt) {
-                        const goals =
-                            opt.w.config.series[opt.seriesIndex].data[opt.dataPointIndex]
-                            .goals;
-
+                        const goals = opt.w.config.series[opt.seriesIndex].data[opt.dataPointIndex].goals;
                         if (goals && goals.length) {
-                            return `${val} / ${goals[0].value}`;
+                            const expectedValue = goals[0].value;
+                            const difference = expectedValue - val; // Calculate the difference
+                            // Format the difference with parentheses and a sign
+                            const formattedDifference = difference >= 0 ? `(- ${difference})` : `(${difference})`;
+                            return `${val} ${formattedDifference} / ${expectedValue}`; // Format the output
                         }
-
                         return val;
                     }
                 },
