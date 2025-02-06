@@ -86,7 +86,8 @@ class ReportController extends Controller
         $dateFrom = $request->dateFrom;
         $dateTo = $request->dateTo;
         $type = $request->type;
+        $outputType = $request->outputType;
 
-        return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type), 'defectInOut.xlsx');
+        return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type, $outputType), 'defectInOut.xlsx');
     }
 }

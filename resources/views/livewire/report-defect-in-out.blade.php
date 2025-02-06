@@ -28,10 +28,16 @@
                     <input type="date" class="form-control form-control-sm" name="dateTo" id='dateTo' wire:model='dateTo'>
                 </div>
                 <div wire:ignore>
-                    <select class="select2 form-select form-select-sm" name="defect" id="select-defect">
+                    <select class="select2 form-select" name="defect" id="select-defect">
                         @foreach ($defectTypes as $defect)
                             <option wire:key="{{ $loop->index }}" value="{{ $defect->Groupp }}">{{ $defect->FullName }}</option>
                         @endforeach
+                    </select>
+                </div>
+                <div>
+                    <select class="form-select" name="type" id="select-type" wire:model="selectedOutputType">
+                        <option value="qc">QC</option>
+                        <option value="packing">Packing</option>
                     </select>
                 </div>
             </div>
@@ -43,7 +49,7 @@
                         <option value="50">Show 50</option>
                         <option value="100">Show 100</option>
                     </select>
-                    <button class="w-25 btn btn-sm btn-success" onclick="exportExcel(this, '{{ $this->selectedDefectType }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}')">
+                    <button class="w-25 btn btn-sm btn-success" onclick="exportExcel(this, '{{ $this->selectedDefectType }}', '{{ $this->selectedOutputType }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}')">
                         <i class="fa-solid fa-file-excel"></i>
                     </button>
                 </div>
@@ -121,7 +127,7 @@
             Livewire.emit('loadingStart');
         });
 
-        function exportExcel(elm, type, dateFrom, dateTo) {
+        function exportExcel(elm, type, outputType, dateFrom, dateTo) {
             @this.set('loading', true);
 
             elm.setAttribute('disabled', 'true');
@@ -139,7 +145,7 @@
             $.ajax({
                 url: "{{ url("/report/defect-in-out/export") }}",
                 type: 'post',
-                data: { dateFrom : dateFrom, dateTo : dateTo, type : type },
+                data: { dateFrom : dateFrom, dateTo : dateTo, type : type, outputType : outputType },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
                     @this.set('loading', false);
