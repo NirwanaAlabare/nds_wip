@@ -43,69 +43,193 @@
             </div>
             <div>
                 <div class="d-flex justify-content-end gap-3">
-                    <select class="form-select form-select-sm w-75" name="pagination" id="pagination" wire:model="defectInOutShowPage">
+                    {{-- <select class="form-select form-select-sm w-75" name="pagination" id="pagination" wire:model="defectInOutShowPage">
                         <option value="10">Show 10</option>
                         <option value="25">Show 25</option>
                         <option value="50">Show 50</option>
                         <option value="100">Show 100</option>
-                    </select>
-                    <button class="w-25 btn btn-sm btn-success" onclick="exportExcel(this, '{{ $this->selectedDefectType }}', '{{ $this->selectedOutputType }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}')">
+                    </select> --}}
+                    <button class="btn btn-sm btn-success" onclick="exportExcel(this, '{{ $this->selectedDefectType }}', '{{ $this->selectedOutputType }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}')">
                         <i class="fa-solid fa-file-excel"></i>
                     </button>
                 </div>
             </div>
         </div>
-        <div class="row table-responsive">
-            <table class="table table-sm table-bordered align-middle mt-3">
-                <thead>
-                    <tr>
-                        <th colspan="10" class="text-center">{{ strtoupper(str_replace("_", "", $this->selectedDefectType)) }}</th>
-                    </tr>
-                    <tr>
-                        <th class="text-center">DATE IN</th>
-                        <th class="text-center">LINE</th>
-                        <th class="text-center">DEPARTMENT</th>
-                        <th class="text-center">WS</th>
-                        <th class="text-center">STYLE</th>
-                        <th class="text-center">COLOR</th>
-                        <th class="text-center">SIZE</th>
-                        <th class="text-center">TYPE</th>
-                        <th class="text-center">QTY</th>
-                        <th class="text-center">RATE (%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if ($defectInOutList->count() > 0)
-                        @foreach ($defectInOutList as $defect)
+        <div class="table-responsive mt-3">
+            {{-- Legacy --}}
+                {{-- <table class="table table-sm table-bordered align-middle mt-3">
+                    <thead>
+                        <tr>
+                            <th colspan="10" class="text-center">{{ strtoupper(str_replace("_", "", $this->selectedDefectType)) }}</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center">DATE IN</th>
+                            <th class="text-center">LINE</th>
+                            <th class="text-center">DEPARTMENT</th>
+                            <th class="text-center">WS</th>
+                            <th class="text-center">STYLE</th>
+                            <th class="text-center">COLOR</th>
+                            <th class="text-center">SIZE</th>
+                            <th class="text-center">TYPE</th>
+                            <th class="text-center">QTY</th>
+                            <th class="text-center">RATE (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if ($defectInOutList->count() > 0)
+                            @foreach ($defectInOutList as $defect)
+                                <tr>
+                                    <td>{{ $defect->updated_at }}</td>
+                                    <td>{{ $defect->FullName }}</td>
+                                    <td>{{ strtoupper($defect->output_type) }}</td>
+                                    <td>{{ $defect->kpno }}</td>
+                                    <td>{{ $defect->styleno }}</td>
+                                    <td>{{ $defect->color }}</td>
+                                    <td>{{ $defect->size }}</td>
+                                    <td>{{ $defect->defect_type }}</td>
+                                    <td>{{ $defect->defect_qty }}</td>
+                                    <td>{{ round(($defect->defect_qty/($defectInOutTotalQty > 0 ? $defectInOutTotalQty : 1)) * 100, 2) }} %</td>
+                                </tr>
+                            @endforeach
+                        @else
                             <tr>
-                                <td>{{ $defect->updated_at }}</td>
-                                <td>{{ $defect->FullName }}</td>
-                                <td>{{ strtoupper($defect->output_type) }}</td>
-                                <td>{{ $defect->kpno }}</td>
-                                <td>{{ $defect->styleno }}</td>
-                                <td>{{ $defect->color }}</td>
-                                <td>{{ $defect->size }}</td>
-                                <td>{{ $defect->defect_type }}</td>
-                                <td>{{ $defect->defect_qty }}</td>
-                                <td>{{ round(($defect->defect_qty/($defectInOutTotalQty > 0 ? $defectInOutTotalQty : 1)) * 100, 2) }} %</td>
+                                <td colspan="10">Data Tidak ditemukan</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="8" class="fs-5 fw-bold text-center">Summary</td>
+                            <td class="fs-5 fw-bold text-center">{{ num($defectInOutTotalQty) }}</td>
+                            <td class="fs-5 fw-bold text-center"></td>
+                        </tr>
+                    </tfoot>
+                </table> --}}
+            <table class="table table-bordered">
+                <tr>
+                    <th colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - DEFECT TYPE</th>
+                </tr>
+                <tr>
+                    <th>DEFECT TYPE</th>
+                    <th>QTY</th>
+                    <th>DEFECT RATE</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                @php
+                    $summaryDefectQty = $defectInOutList->sum("defect_qty");
+                @endphp
+                @foreach ($defectInOutList->groupBy("defect_type") as $key => $value)
+                    <tr>
+                        <td>{{ $key }}</td>
+                        <td>{{ $value->sum("defect_qty") }}</td>
+                        <td>{{ round(($value->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1) * 100), 2) }} %</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                @endforeach
+                <tr>
+                    <th>TOTAL</th>
+                    <th style="background: yellow;">{{ $summaryDefectQty }}</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                <tr></tr>
+                <tr>
+                    <th colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - LINE</th>
+                </tr>
+                <tr>
+                    <th>DEFECT TYPE</th>
+                    <th>LINE</th>
+                    <th>QTY</th>
+                    <th>DEFECT RATE</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                @if ($defectInOutList->count() < 1)
+                    <tr>
+                        <td colspan="4">
+                            Data not found
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                @else
+                    @foreach ($defectInOutList->groupBy("defect_type") as $key => $value)
+                        @php
+                            $totalDefect = 0;
+                        @endphp
+                        @foreach ($value->sortBy("FullName")->groupBy("FullName") as $k => $val)
+                            @php
+                                $totalDefect += $val->sum("defect_qty");
+                            @endphp
+                            <tr>
+                                <td>{{ $k }}</td>
+                                <td>{{ $key }}</td>
+                                <td>{{ $val->sum("defect_qty") }}</td>
+                                <td>{{ round(($val->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1)*100), 2) }} %</td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         @endforeach
-                    @else
                         <tr>
-                            <td colspan="10">Data Tidak ditemukan</td>
+                            <th colspan="2">TOTAL</th>
+                            <th style="background: yellow;">{{ $totalDefect }}</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                         </tr>
-                    @endif
-                </tbody>
-                <tfoot>
+                    @endforeach
+                @endif
+                <tr></tr>
+                <tr>
+                    <th colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - STYLE</th>
+                </tr>
+                <tr>
+                    <th>DEFECT TYPE</th>
+                    <th>WORKSHEET</th>
+                    <th>STYLE</th>
+                    <th>COLOR</th>
+                    <th>QTY</th>
+                    <th>DEFECT RATE</th>
+                </tr>
+                @if ($defectInOutList->count() < 1)
                     <tr>
-                        <td colspan="8" class="fs-5 fw-bold text-center">Summary</td>
-                        <td class="fs-5 fw-bold text-center">{{ num($defectInOutTotalQty) }}</td>
-                        <td class="fs-5 fw-bold text-center"></td>
+                        <td colspan="6">
+                            Data not found
+                        </td>
                     </tr>
-                </tfoot>
+                @else
+                    @foreach ($defectInOutList->groupBy("defect_type") as $key => $value)
+                        @php
+                            $totalDefect = 0;
+                        @endphp
+                        @foreach ($value->sortBy("kpno")->groupBy("kpno", "style", "color") as $val)
+                            @php
+                                $totalDefect += $val->sum("defect_qty");
+                            @endphp
+                            <tr>
+                                <td>{{ $key }}</td>
+                                <td>{{ $val->first()->kpno }}</td>
+                                <td>{{ $val->first()->styleno }}</td>
+                                <td>{{ $val->first()->color }}</td>
+                                <td>{{ $val->sum("defect_qty") }}</td>
+                                <td>{{ round(($val->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1)*100), 2) }} %</td>
+                            </tr>
+                        @endforeach
+                        <tr>
+                            <th colspan="4">TOTAL</th>
+                            <th style="background: #ffea2b;">{{ $totalDefect }}</th>
+                            <th></th>
+                        </tr>
+                    @endforeach
+                @endif
             </table>
         </div>
-        {{ $defectInOutList->links() }}
     @endif
 </div>
 

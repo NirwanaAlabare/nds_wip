@@ -97,7 +97,7 @@ class ReportDefectInOut extends Component
 
         $defectInOutList = $defectInOutQuery->
             orderBy("output_defect_in_out.updated_at", "desc")->
-            paginate($this->defectInOutShowPage, ['*'], 'defectInOutPage');
+            get();
 
         return view('livewire.report-defect-in-out', ['defectInOutList' => $defectInOutList, 'defectInOutTotalQty' => $defectInOutTotalQty]);
     }
