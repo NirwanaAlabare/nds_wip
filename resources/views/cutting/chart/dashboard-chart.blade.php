@@ -680,7 +680,7 @@
                 data: function (d) {
                     d.date = $("#cutting-form-date-filter").val()
                 }
-        },
+            },
             columns: [
                 {
                     data: 'no_ws_aktual',
@@ -698,7 +698,7 @@
                     data: 'saldo_awal',
                 },
                 {
-                    data: 'roll_out',
+                    data: 'roll_out_today',
                 },
                 {
                     data: 'total_roll_cutting',
@@ -713,18 +713,12 @@
                     className: "text-nowrap align-middle"
                 },
                 {
-                    targets: [3],
+                    targets: [2, 3],
                     className: "text-nowrap align-middle",
                     render: (data, type, row, meta) => {
                         return `<div style="max-width: 200px; overflow:hidden">`+(data.length > 20 ? data.substr(0, 20)+`...` : data)+`</div>`
                     }
                 },
-                {
-                    targets: [7],
-                    render: (data, type, row, meta) => {
-                        return data + row.saldo_awal;
-                    }
-                }
             ],
             footerCallback: async function (row, data, start, end, display) {
                 var api = this.api(),data;
@@ -776,7 +770,7 @@
                 $(api.column(4).footer()).html(sumSaldoAwal);
                 $(api.column(5).footer()).html(sumRollIn);
                 $(api.column(6).footer()).html(sumRollUse);
-                $(api.column(7).footer()).html(sumStokRoll+sumSaldoAwal);
+                $(api.column(7).footer()).html(sumStokRoll);
             }
         });
 
