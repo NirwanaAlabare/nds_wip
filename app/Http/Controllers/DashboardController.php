@@ -860,7 +860,8 @@ class DashboardController extends Controller
                     COALESCE ( form_marker.total_plan, 0 ) total_plan,
                     COALESCE ( form_cut_all.total_balance, 0 ) balance_plan,
                     COALESCE ( form_marker.total_complete, 0 ) total_complete,
-                    (COALESCE ( form_marker.total_plan, 0 ) + COALESCE ( form_cut_all.total_balance, 0 )) - COALESCE ( form_marker.total_complete, 0 ) balance
+                    (COALESCE ( form_marker.total_plan, 0 ) + COALESCE ( form_cut_all.total_balance, 0 )) - COALESCE ( form_marker.total_complete, 0 ) balance,
+                    form_marker_set.total_set as qty_set
                 FROM
                 (
                     SELECT
@@ -971,6 +972,78 @@ class DashboardController extends Controller
                                 marker_input.color,
                                 marker_input.panel
                     ) form_cut_all ON form_cut_all.act_costing_ws = form_marker.act_costing_ws AND form_cut_all.style = form_marker.style AND form_cut_all.color = form_marker.color AND form_cut_all.panel = form_marker.panel
+                    LEFT JOIN (
+                        SELECT
+                            form_marker_set.act_costing_ws,
+                            form_marker_set.style,
+                            form_marker_set.color,
+                            form_marker_set.panel,
+                            MIN(COALESCE(form_marker_set.total_complete, 0)) total_set
+                        FROM (
+                            SELECT
+                                marker_input.act_costing_ws,
+                                marker_input.style,
+                                marker_input.color,
+                                marker_input.panel,
+                                SUM( marker_detail.total_ratio * form_cut_complete.total_lembar ) total_complete
+                            FROM
+                                marker_input
+                                INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
+                                INNER JOIN (
+                                    SELECT
+                                        form_cut_input.id_marker,
+                                        (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
+                                    FROM
+                                        form_cut_input
+                                        LEFT JOIN cutting_plan ON cutting_plan.form_cut_id = form_cut_input.id
+                                    WHERE
+                                        ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                        AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 6 MONTH )
+                                        AND (
+                                            cutting_plan.tgl_plan = '".$date."'
+                                            OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
+                                        )
+                                    GROUP BY
+                                        form_cut_input.id_marker
+                                ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                LEFT JOIN (
+                                    SELECT
+                                        form_cut_input.id_marker,
+                                        ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
+                                            SUM(
+                                            COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
+                                    FROM
+                                        form_cut_input
+                                        LEFT JOIN cutting_plan ON cutting_plan.form_cut_id = form_cut_input.id
+                                    WHERE
+                                        ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
+                                        AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 6 MONTH )
+                                        AND (
+                                            cutting_plan.tgl_plan = '".$date."'
+                                            OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
+                                        )
+                                        AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                    GROUP BY
+                                        form_cut_input.id_marker
+                                ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                            WHERE
+                                ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
+                            GROUP BY
+                                marker_input.act_costing_ws,
+                                marker_input.style,
+                                marker_input.color,
+                                marker_input.panel
+                        ) form_marker_set
+                        GROUP BY
+                            form_marker_set.act_costing_ws,
+                            form_marker_set.style,
+                            form_marker_set.color
+                    ) form_marker_set ON form_marker_set.act_costing_ws = form_marker.act_costing_ws AND form_marker_set.style = form_marker.style AND form_marker_set.color = form_marker.color
+                ORDER BY
+                    form_marker.act_costing_ws,
+                    form_marker.style,
+                    form_marker.color,
+                    form_marker.panel
             ");
 
             return DataTables::of($data)->toJson();
