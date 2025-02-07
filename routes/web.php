@@ -1715,6 +1715,8 @@ Route::get('/dashboard-track', [DashboardController::class, 'track'])->middlewar
 Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
 Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware('auth')->name('dashboard-wip');
 Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
+Route::get('/dashboard-wip/chief-sewing/{tanggal?}', [DashboardWipLineController::class, 'chiefSewing'])->name('dashboard-chief-sewing');
+Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::class, 'chiefSewingData'])->name('dashboard-chief-sewing-data');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');

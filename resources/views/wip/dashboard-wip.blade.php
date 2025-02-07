@@ -31,6 +31,11 @@
         .btn-primary:hover {
             background-color: #434190;
         }
+
+        table thead th {
+            vertical-align: middle;
+            text-align: center;
+        }
     </style>
 @endsection
 
@@ -47,6 +52,14 @@
                     </div>
                 </div>
             @endforeach
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">CHIEF</h5>
+                        <a href="{{ route("dashboard-chief-sewing") }}/{{ date('Y-m-d') }}" class="btn btn-primary btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
