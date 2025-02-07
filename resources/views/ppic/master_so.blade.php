@@ -1010,33 +1010,65 @@
                         i : 0;
                 };
 
-                // computing column Total of the complete result
+                // Calculate totals for specific columns
+
                 var sumTotalPO = api
-                    .column(12)
+
+                    .column(12, {
+                        search: 'applied'
+                    }) // Use 'applied' to consider only filtered data
+
                     .data()
+
                     .reduce(function(a, b) {
+
                         return intVal(a) + intVal(b);
+
                     }, 0);
+
 
                 var sumTotalTr = api
-                    .column(13)
+
+                    .column(13, {
+                        search: 'applied'
+                    })
+
                     .data()
+
                     .reduce(function(a, b) {
+
                         return intVal(a) + intVal(b);
+
                     }, 0);
+
 
                 var sumTotalPin = api
-                    .column(14)
+
+                    .column(14, {
+                        search: 'applied'
+                    })
+
                     .data()
+
                     .reduce(function(a, b) {
+
                         return intVal(a) + intVal(b);
+
                     }, 0);
 
+
                 var sumTotalPout = api
-                    .column(15)
+
+                    .column(15, {
+                        search: 'applied'
+                    })
+
                     .data()
+
                     .reduce(function(a, b) {
+
                         return intVal(a) + intVal(b);
+
                     }, 0);
 
                 // Update footer by showing the total with the reference of the column index
@@ -1048,7 +1080,7 @@
             },
             ordering: false,
             processing: true,
-            serverSide: true,
+            serverSide: false,
             paging: false,
             searching: true,
             scrollY: '300px',

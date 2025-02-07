@@ -90,6 +90,7 @@ order by ws asc");
                 "subPageGroup" => "ppic-master",
                 "subPage" => "ppic-master-master-so",
                 'data_ws' => $data_ws,
+                "containerFluid" => true,
                 "user" => $user
             ]
         );
