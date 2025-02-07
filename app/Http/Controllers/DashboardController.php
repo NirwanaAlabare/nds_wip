@@ -453,7 +453,7 @@ class DashboardController extends Controller
                 ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')) )
                 and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             ")->
-            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), DATE(form_detail.last_update), meja.id")->
+            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
             get();
 
             return json_encode($query);
@@ -487,7 +487,7 @@ class DashboardController extends Controller
                 ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')) )
                 and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             ")->
-            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_detail.updated_at), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), DATE(form_detail.last_update), meja.id")->
+            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
             get();
 
             broadcast(new CuttingChartUpdatedAll($query, $date));
@@ -518,13 +518,13 @@ class DashboardController extends Controller
             ->whereRaw("
                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
                 (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
-                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')) ) AND
+                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) ) AND
                 form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             ")
             ->when($meja_ids, function ($query) use ($meja_ids) {
                 return $query->whereIn('meja.username', $meja_ids);
             })
-            ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), DATE(form_detail.last_update), meja.id")
+            ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
             ->get();
 
             return response()->json($query);
@@ -557,13 +557,13 @@ class DashboardController extends Controller
             ->whereRaw("
                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
                 (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
-                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')) ) AND
+                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) ) AND
                 form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
             ")
             ->when($meja_ids, function ($query) use ($meja_ids) {
                 return $query->whereIn('meja.username', $meja_ids);
             })
-            ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
+            ->groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")
             ->get();
 
             $dataSpreading = DB::select("
@@ -712,10 +712,10 @@ class DashboardController extends Controller
                 whereRaw("
                     ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                     ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                    ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')) ) AND
+                    ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) ) AND
                     and form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                 ")->
-                groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
+                groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
                 get();
 
             return json_encode($cuttingForm);
