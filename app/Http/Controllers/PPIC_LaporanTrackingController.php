@@ -264,33 +264,13 @@ order by ws asc, color asc, urutan asc, a.size asc
         );
     }
 
-    public function get_ppic_monitoring_order_style(Request $request)
-    {
-        $data_style =  DB::connection('mysql_sb')->select("select sd.styleno_prod isi, sd.styleno_prod tampil from signalbit_erp.so
-inner join signalbit_erp.so_det sd on so.id = sd.id_so
-inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-where so_date >= '2024-05-01' and ac.status = 'CONFIRM' and supplier = '" . $request->buyer . "'
-GROUP BY styleno_prod
-order by styleno_prod asc
-        ");
-
-        $html = "<option value=''>Pilih Style</option>";
-
-        foreach ($data_style as $datastyle) {
-            $html .= " <option value='" . $datastyle->isi . "'>" . $datastyle->tampil . "</option> ";
-        }
-
-        return $html;
-    }
-
     public function get_ppic_monitoring_order_reff(Request $request)
     {
         $data_reff =  DB::connection('mysql_sb')->select("SELECT sd.reff_no isi, sd.reff_no tampil from signalbit_erp.so
                         inner join signalbit_erp.so_det sd on so.id = sd.id_so
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM' and supplier = '" . $request->buyer . "' and sd.styleno_prod = '" . $request->style . "'
+                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM' and supplier = '" . $request->buyer . "'
                         GROUP BY sd.reff_no
                         order by sd.reff_no  asc
         ");
@@ -309,7 +289,7 @@ order by styleno_prod asc
                         inner join signalbit_erp.so_det sd on so.id = sd.id_so
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM' and supplier = '" . $request->buyer . "' and sd.styleno_prod = '" . $request->style . "' and sd.reff_no = '" . $request->reff . "'
+                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM' and supplier = '" . $request->buyer . "' and sd.reff_no = '" . $request->reff . "'
                         GROUP BY ac.kpno
                         order by ac.kpno  asc
         ");
@@ -328,7 +308,7 @@ order by styleno_prod asc
                         inner join signalbit_erp.so_det sd on so.id = sd.id_so
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM'  and supplier = '" . $request->buyer . "' and sd.styleno_prod = '" . $request->style . "'
+                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM'  and supplier = '" . $request->buyer . "'
                         and sd.reff_no = '" . $request->reff . "' and ac.kpno = '" . $request->ws . "'
                         GROUP BY sd.color
                         order by sd.color  asc
@@ -350,7 +330,7 @@ order by styleno_prod asc
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
                         left join signalbit_erp.master_size_new msn on sd.size = msn.size
-                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM' and supplier = '" . $request->buyer . "' and sd.styleno_prod = '" . $request->style . "'
+                        where so_date >= '2024-05-01' and ac.status = 'CONFIRM' and supplier = '" . $request->buyer . "'
                         and sd.reff_no = '" . $request->reff . "' and ac.kpno = '" . $request->ws . "' and sd.color = '" . $request->color . "'
                         GROUP BY sd.size
                         order by msn.urutan  asc
@@ -371,16 +351,11 @@ order by styleno_prod asc
     {
         $user = Auth::user()->name;
         $buyer = $request->buyer_filter;
-        $style = $request->style_filter;
         $reff = $request->reff_filter;
         $ws = $request->ws_filter;
         $color = $request->color_filter;
         $size = $request->size_filter;
-        if (!empty($style)) {
-            $cond_style = " and sd.styleno_prod = '" . $style  . "'";
-        } else {
-            $cond_style = "";
-        }
+
         if (!empty($reff)) {
             $cond_reff = " and sd.reff_no = '" . $reff  . "'";
         } else {
@@ -443,7 +418,7 @@ FROM
             signalbit_erp.act_costing ac ON so.id_cost = ac.id
 	      INNER JOIN
             signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-            where ms.supplier = '$buyer' $cond_style $cond_reff $cond_ws $cond_color $cond_size
+            where ms.supplier = '$buyer' $cond_reff $cond_ws $cond_color $cond_size
 				GROUP BY
 				ws, color, size,styleno_prod, reff_no, tgl_shipment
 				ORDER BY
@@ -547,7 +522,7 @@ GROUP BY
             signalbit_erp.act_costing ac ON so.id_cost = ac.id
 	      INNER JOIN
             signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-            where ms.supplier = '$buyer' $cond_style $cond_reff $cond_ws $cond_color $cond_size
+            where ms.supplier = '$buyer' $cond_reff $cond_ws $cond_color $cond_size
 				group by kpno, color, size
 ) b on a.ws = b.ws and a.color = b.color and a.size = b.size and a.styleno_prod = b.styleno_prod and a.reff_no = b.reff_no
 GROUP BY
@@ -627,7 +602,7 @@ left join
 			inner join signalbit_erp.so on sd.id_so = so.id
 			inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 			inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-			where ms.supplier = '$buyer' $cond_style $cond_reff $cond_ws $cond_color $cond_size
+			where ms.supplier = '$buyer' $cond_reff $cond_ws $cond_color $cond_size
 			group by
 			ac.kpno,
 			sd.color,
@@ -652,7 +627,7 @@ left join
 			inner join signalbit_erp.so on sd.id_so = so.id
 			inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 			inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-			where ms.supplier = '$buyer' $cond_style $cond_reff $cond_ws $cond_color $cond_size and a.status = 'NORMAL'
+			where ms.supplier = '$buyer' $cond_reff $cond_ws $cond_color $cond_size and a.status = 'NORMAL'
 			group by
 			ac.kpno,
 			sd.color,
