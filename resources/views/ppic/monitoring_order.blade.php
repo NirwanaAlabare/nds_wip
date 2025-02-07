@@ -488,33 +488,50 @@
                     // Calculate totals
                     var api = this.api();
 
-                    var totalQtyPo = api.column(7).data().reduce(function(a, b) {
-                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                    }, 0);
 
-                    var totalFinalCut = api.column(8).data().reduce(function(a, b) {
-                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                    }, 0);
+                    // Calculate totals based on the currently displayed data
 
-                    var totalFinalLoading = api.column(9).data().reduce(function(a, b) {
+                    var totalQtyPo = api.column(7, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                    }, 0);
+                    }, 0)
 
-                    var totalFinalOutputRfts = api.column(10).data().reduce(function(a, b) {
+                    var totalFinalCut = api.column(8, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                    }, 0);
+                    }, 0)
 
-                    var totalFinalOutputRftsPacking = api.column(11).data().reduce(function(a, b) {
+                    var totalFinalLoading = api.column(9, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                    }, 0);
+                    }, 0)
 
-                    var totalTotScan = api.column(12).data().reduce(function(a, b) {
+                    var totalFinalOutputRfts = api.column(10, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                    }, 0);
+                    }, 0)
 
-                    var totalFGOut = api.column(13).data().reduce(function(a, b) {
+                    var totalFinalOutputRftsPacking = api.column(11, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
-                    }, 0);
+                    }, 0)
+
+                    var totalTotScan = api.column(12, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalFGOut = api.column(13, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
 
 
                     // Update footer with totals
