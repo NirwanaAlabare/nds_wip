@@ -581,9 +581,9 @@
                     .reduce((a, b) => intVal(a) + intVal(b));
 
                 $(api.column(0).footer()).html('<b>Total</b>');
-                $(api.column(3).footer()).html('<b>'+totalA+'</b>');
+                $(api.column(3).footer()).html('<b>'+Number(totalA).toLocaleString("ID-id")+'</b>');
                 $(api.column(4).footer()).html('<span class="'+(totalB <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(totalB ? (totalB > 0 ? "-"+Number(totalB).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>');
-                $(api.column(5).footer()).html('<b>'+totalC+'</b>');
+                $(api.column(5).footer()).html('<b>'+Number(totalC).toLocaleString("ID-id")+'</b>');
                 $(api.column(6).footer()).html('<span class="'+(totalD <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(totalD ? (totalD > 0 ? "-"+Number(totalD).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>');
             }
         });
