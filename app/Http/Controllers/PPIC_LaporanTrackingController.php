@@ -636,7 +636,7 @@ left join
 			sd.reff_no,
 			b.tgl_shipment
 ) d on CTE.ws = d.kpno and CTE.color = d.color and CTE.size = d.size and CTE.styleno_prod = d.styleno_prod and CTE.reff_no = d.reff_no and CTE.tgl_shipment = d.tgl_shipment
-order by tgl_shipment asc, urutan asc
+order by tgl_shipment asc, CTE.color asc,urutan asc
                     ");
 
         return DataTables::of($data_monitoring_order)->toJson();
