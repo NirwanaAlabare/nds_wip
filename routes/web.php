@@ -1642,7 +1642,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
         Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
         Route::get('/ppic_monitoring_order', 'ppic_monitoring_order')->name('ppic_monitoring_order');
-        Route::get('/get_ppic_monitoring_order_style', 'get_ppic_monitoring_order_style')->name('get_ppic_monitoring_order_style');
         Route::get('/get_ppic_monitoring_order_reff', 'get_ppic_monitoring_order_reff')->name('get_ppic_monitoring_order_reff');
         Route::get('/get_ppic_monitoring_order_ws', 'get_ppic_monitoring_order_ws')->name('get_ppic_monitoring_order_ws');
         Route::get('/get_ppic_monitoring_order_color', 'get_ppic_monitoring_order_color')->name('get_ppic_monitoring_order_color');

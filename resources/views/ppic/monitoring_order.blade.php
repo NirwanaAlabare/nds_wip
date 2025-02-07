@@ -46,7 +46,7 @@
                     <div class="input-group">
                         <select class="form-control select2bs4 form-control-sm rounded" id="buyer_filter"
                             name="buyer_filter"
-                            onchange="get_monitoring_style();get_monitoring_reff();get_monitoring_ws();get_monitoring_color();get_monitoring_size();"
+                            onchange="get_monitoring_reff();get_monitoring_ws();get_monitoring_color();get_monitoring_size();"
                             style="width: 100%;">
                             @foreach ($data_buyer as $databuyer)
                                 <option value="{{ $databuyer->isi }}">
@@ -56,14 +56,14 @@
                         </select>
                     </div>
                 </div>
-                <div class="mb-3 flex-fill" style="width: 150px;">
+                {{-- <div class="mb-3 flex-fill" style="width: 150px;">
                     <label class="form-label"><small><b>Style</b></small></label>
                     <select class='form-control select2bs4 form-control-sm rounded' style='width: 100%;' name='style_filter'
                         id='style_filter'
                         onchange="get_monitoring_reff();get_monitoring_ws();get_monitoring_color();get_monitoring_size();"></select>
-                </div>
+                </div> --}}
                 <div class="mb-3 flex-fill" style="width: 100px;">
-                    <label class="form-label"><small><b>Reff</b></small></label>
+                    <label class="form-label"><small><b>Reff / Style</b></small></label>
                     <select class='form-control select2bs4 form-control-sm rounded' style='width: 100%;' name='reff_filter'
                         id='reff_filter'
                         onchange="get_monitoring_ws();get_monitoring_color();get_monitoring_size();"></select>
@@ -138,7 +138,6 @@
     <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
-
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -213,7 +212,7 @@
                             const expectedValue = goals[0].value;
                             const difference = expectedValue - val; // Calculate the difference
                             // Format the difference with parentheses and a sign
-                            const formattedDifference = difference >= 0 ? `(- ${difference})` : `(${difference})`;
+                            const formattedDifference = difference >= 0 ? `(-${difference})` : `(${difference})`;
                             return `${val} ${formattedDifference} / ${expectedValue}`; // Format the output
                         }
                         return val;
@@ -249,34 +248,13 @@
             chart.render();
         }
 
-        function get_monitoring_style() {
-            let buyer_filter = $("#buyer_filter").val(); // Correctly get the value
-            $.ajax({
-                type: "GET",
-                url: '{{ route('get_ppic_monitoring_order_style') }}',
-                data: {
-                    buyer: buyer_filter
-                },
-                success: function(html) {
-                    if (html != "") {
-                        $("#style_filter").html(html);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error: ", status, error);
-                }
-            });
-        }
-
         function get_monitoring_reff() {
             let buyer_filter = $("#buyer_filter").val();
-            let style_filter = $("#style_filter").val();
             $.ajax({
                 type: "GET",
                 url: '{{ route('get_ppic_monitoring_order_reff') }}',
                 data: {
-                    buyer: buyer_filter,
-                    style: style_filter
+                    buyer: buyer_filter
                 },
                 success: function(html) {
                     if (html != "") {
@@ -291,14 +269,13 @@
 
         function get_monitoring_ws() {
             let buyer_filter = $("#buyer_filter").val();
-            let style_filter = $("#style_filter").val();
             let reff_filter = $("#reff_filter").val();
             $.ajax({
                 type: "GET",
                 url: '{{ route('get_ppic_monitoring_order_ws') }}',
                 data: {
                     buyer: buyer_filter,
-                    style: style_filter,
+                    // style: style_filter,
                     reff: reff_filter
                 },
                 success: function(html) {
@@ -314,7 +291,7 @@
 
         function get_monitoring_color() {
             let buyer_filter = $("#buyer_filter").val();
-            let style_filter = $("#style_filter").val();
+            // let style_filter = $("#style_filter").val();
             let reff_filter = $("#reff_filter").val();
             let ws_filter = $("#ws_filter").val();
             $.ajax({
@@ -322,7 +299,7 @@
                 url: '{{ route('get_ppic_monitoring_order_color') }}',
                 data: {
                     buyer: buyer_filter,
-                    style: style_filter,
+                    // style: style_filter,
                     reff: reff_filter,
                     ws: ws_filter
                 },
@@ -339,7 +316,6 @@
 
         function get_monitoring_size() {
             let buyer_filter = $("#buyer_filter").val();
-            let style_filter = $("#style_filter").val();
             let reff_filter = $("#reff_filter").val();
             let ws_filter = $("#ws_filter").val();
             let color_filter = $("#color_filter").val();
@@ -348,7 +324,6 @@
                 url: '{{ route('get_ppic_monitoring_order_size') }}',
                 data: {
                     buyer: buyer_filter,
-                    style: style_filter,
                     reff: reff_filter,
                     ws: ws_filter,
                     color: color_filter
@@ -376,11 +351,11 @@
             // Re-initialize the DataTable
             datatable = $("#datatable").DataTable({
                 scrollY: "250px",
-                serverSide: true,
+                serverSide: false,
                 processing: true,
                 responsive: true,
                 scrollX: true,
-                scrollCollapse: false,
+                scrollCollapse: true,
                 paging: false,
                 ordering: false,
                 autoWidth: true,
@@ -389,14 +364,13 @@
                     url: '{{ route('show_lap_monitoring_order') }}',
                     data: function(d) {
                         d.buyer_filter = $('#buyer_filter').val();
-                        d.style_filter = $('#style_filter').val();
+                        // d.style_filter = $('#style_filter').val();
                         d.reff_filter = $('#reff_filter').val();
                         d.ws_filter = $('#ws_filter').val();
                         d.color_filter = $('#color_filter').val();
                         d.size_filter = $('#size_filter').val();
                     },
                 },
-
                 columns: [{
                         data: 'buyer'
                     }, {
