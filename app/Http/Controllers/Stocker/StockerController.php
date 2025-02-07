@@ -239,6 +239,7 @@ class StockerController extends Controller
                 MAX(stocker_input.group_stocker) group_stocker,
                 MAX(stocker_input.qty_ply) qty_ply,
                 MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
+                modify_size_qty.modified_qty,
                 modify_size_qty.difference_qty
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
