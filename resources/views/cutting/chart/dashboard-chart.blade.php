@@ -288,6 +288,50 @@
                 </div>
             </div>
         </swiper-slide>
+        <swiper-slide>
+            <div class="card w-100 mx-3 mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div class="d-flex flex-column gap-1 align-items-start">
+                            <p class="mb-0 fw-bold">Output Cutting</p>
+                        </div>
+                        <div class="d-flex flex-column gap-1 align-items-end">
+                            <p class="mb-0 fw-bold">{{ localeDateFormat(date('Y-m-d')) }}</p>
+                            <p class="mb-0 fw-bold clock"></p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered   w-100" id="datatable-cutting-all">
+                            <thead>
+                                <tr>
+                                    <th>No. WS</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Panel</th>
+                                    <th>Qty Target</th>
+                                    <th>Balance Kemarin</th>
+                                    <th>Qty Output</th>
+                                    <th>Balance</th>
+                                    <th>Qty Set</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4">Total</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </swiper-slide>
         <swiper-slide class="flex-column">
             <div class="d-flex justify-content-between align-items-end w-100 mx-3 px-3 mb-3">
                 <p class="mb-0 fw-bold">Output Cutting</p>
@@ -546,6 +590,130 @@
 
         function datatableCuttingReload() {
             datatableCutting.ajax.reload();
+        }
+
+        var datatableCuttingAll = $("#datatable-cutting-all").DataTable({
+            serverSide: false,
+            processing: true,
+            ordering: false,
+            paging: false,
+            searching: false,
+            ajax: {
+                url: '{{ route('cutting-output-list-all') }}',
+                dataType: 'json',
+                data: function (d) {
+                    d.date = $("#cutting-form-date-filter").val();
+                }
+            },
+            columns: [
+                {
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'style',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'panel',
+                },
+                {
+                    data: 'total_plan',
+                },
+                {
+                    data: 'balance_plan',
+                },
+                {
+                    data: 'total_complete',
+                },
+                {
+                    data: 'balance',
+                },
+                {
+                    data: 'qty_set',
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap align-middle"
+                },
+                {
+                    targets: [4,6],
+                    className: "text-nowrap align-middle",
+                    render: (data, type, row, meta) => {
+                        return data > 0 ? Number(data).toLocaleString("ID-id") : "-";
+                    }
+                },
+                {
+                    targets: [5,7],
+                    className: "text-nowrap align-middle",
+                    render: (data, type, row, meta) => {
+                        return '<span class="'+(data <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(data ? (data > 0 ? "-"+Number(data).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>';
+                    }
+                },
+                {
+                    targets: [8],
+                    className: "text-nowrap align-middle",
+                    render: (data, type, row, meta) => {
+                        return data ? Number(data).toLocaleString("ID-id") : "-";
+                    }
+                },
+            ],
+            rowsGroup: [
+                0,
+                1,
+                2,
+                8
+            ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function(i) {
+                    let newVar = typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+
+                    return newVar > 0 ? newVar : 0;
+                };
+
+                let totalA = api
+                    .column(4)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                let totalB = api
+                    .column(5)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                let totalC = api
+                    .column(6)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                let totalD = api
+                    .column(7)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                let totalE = api
+                    .column(8)
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b));
+
+                $(api.column(0).footer()).html('<b>Total</b>');
+                $(api.column(4).footer()).html('<b>'+Number(totalA).toLocaleString("ID-id")+'</b>');
+                $(api.column(5).footer()).html('<span class="'+(totalB <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(totalB ? (totalB > 0 ? "-"+Number(totalB).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>');
+                $(api.column(6).footer()).html('<b>'+Number(totalC).toLocaleString("ID-id")+'</b>');
+                $(api.column(7).footer()).html('<span class="'+(totalD <= 0 ? "text-success fw-bold" : "text-danger fw-bold")+'">'+(totalD ? (totalD > 0 ? "-"+Number(totalD).toLocaleString("ID-id").replace("-", "") : "-") : "-")+'</span>');
+                $(api.column(8).footer()).html('<b>'+Number(totalE).toLocaleString("ID-id")+'</b>');
+            }
+        });
+
+        function datatableCuttingAllReload() {
+            datatableCuttingAll.ajax.reload();
         }
 
         function initCuttingChart() {
