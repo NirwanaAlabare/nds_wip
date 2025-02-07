@@ -351,7 +351,7 @@
             // Re-initialize the DataTable
             datatable = $("#datatable").DataTable({
                 scrollY: "250px",
-                serverSide: true,
+                serverSide: false,
                 processing: true,
                 responsive: true,
                 scrollX: true,
