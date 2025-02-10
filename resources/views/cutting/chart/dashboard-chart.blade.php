@@ -361,7 +361,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover w-100" id="datatable-cutting-stock">
+                        <table class="table table-bordered w-100" id="datatable-cutting-stock">
                             <thead>
                                 <tr>
                                     <th>No. WS</th>
@@ -887,6 +887,11 @@
                         return `<div style="max-width: 200px; overflow:hidden">`+(data.length > 20 ? data.substr(0, 20)+`...` : data)+`</div>`
                     }
                 },
+            ],
+            rowsGroup: [
+                0,
+                1,
+                2
             ],
             footerCallback: async function (row, data, start, end, display) {
                 var api = this.api(),data;
