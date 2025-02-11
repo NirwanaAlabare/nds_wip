@@ -398,14 +398,14 @@ class SpreadingController extends Controller
         if ($deleteSpreadingForm) {
             // Update Marker Balance
             $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
-                "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
+                "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.($spreadingForm->qty_ply ? $spreadingForm->qty_ply : 0))
             ]);
 
             // Similar Form No. Cutting Update
             $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                where("marker_input.act_costing_ws", $checkMarker->act_costing_ws)->
-                where("marker_input.color", $checkMarker->color)->
-                where("marker_input.panel", $checkMarker->panel)->
+                where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
+                where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
+                where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
                 orderBy("form_cut_input.waktu_selesai", "asc")->
                 orderBy("form_cut_input.no_cut", "asc")->
