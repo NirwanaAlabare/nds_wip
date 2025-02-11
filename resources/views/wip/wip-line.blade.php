@@ -784,11 +784,8 @@
                                 <div class="show-defect-area" id="show-defect-area">
                                     <div
                                         class="position-relative d-flex flex-column justify-content-center align-items-center">
-                                        <div id="carouselExampleControls" class="carousel slide"
-                                            data-ride="carousel">
+                                        <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
                                             <div class="carousel-inner" id="carousel-inner">
-
-
                                             </div>
                                         </div>
                                     </div>
@@ -1857,6 +1854,4 @@
             }, ]
         });
     }
-
-
 </script>
