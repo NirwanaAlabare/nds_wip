@@ -153,7 +153,7 @@ function formatDateLocal(date) {
 
     return [
         pad(dateObj.getDate()),
-        months[dateObj.getMonth() + 1]['nama'],
+        months[dateObj.getMonth()]['nama'],
         dateObj.getFullYear(),
     ].join(' ');
 }
