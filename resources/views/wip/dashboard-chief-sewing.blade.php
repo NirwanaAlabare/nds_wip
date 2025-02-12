@@ -188,7 +188,7 @@
                 leaderElement.classList.add("col-4");
                 let leaderImageElement = document.createElement("img");
                 leaderImageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+element.leader_nik+"%20"+element.leader_name+".png";
-                leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='/nds_wip/assets/dist/img/person.png'");
+                leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 leaderImageElement.setAttribute("alt", "person")
                 leaderImageElement.classList.add("img-fluid");
                 // leaderImageElement.style.minWidth = "45px";
@@ -383,10 +383,12 @@
             table.appendChild(tr);
 
             chart.render();
+
+            // initSparkle();
         }
 
         async function updateData() {
-
+//
         }
     </script>
 @endsection
