@@ -17,6 +17,6 @@ class ThisYearScopeDetail implements Scope
      */
     public function apply(Builder $builder, Model $model)
     {
-        $builder->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 1 YEAR)");
+        $builder->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 2 YEAR)");
     }
 }

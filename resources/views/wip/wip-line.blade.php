@@ -784,11 +784,8 @@
                                 <div class="show-defect-area" id="show-defect-area">
                                     <div
                                         class="position-relative d-flex flex-column justify-content-center align-items-center">
-                                        <div id="carouselExampleControls" class="carousel slide"
-                                            data-ride="carousel">
+                                        <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
                                             <div class="carousel-inner" id="carousel-inner">
-
-
                                             </div>
                                         </div>
                                     </div>
@@ -937,8 +934,8 @@
              <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-2").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-2").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-2").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-2").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function updateTable3(data) {
@@ -976,8 +973,8 @@
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-3").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-3").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-3").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-3").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function updateTable4(data) {
@@ -1015,8 +1012,8 @@
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-4").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-4").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-4").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-4").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function updateTable5(data) {
@@ -1054,8 +1051,8 @@
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-5").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-5").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-5").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-5").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function updateTable7(data) {
@@ -1093,8 +1090,8 @@
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-7").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-7").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-7").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-7").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function updateTable8(data) {
@@ -1132,8 +1129,8 @@
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-8").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-8").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-8").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-8").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function updateTable9(data) {
@@ -1171,8 +1168,8 @@
             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-9").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-9").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-9").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-9").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function updateTable10(data) {
@@ -1203,8 +1200,8 @@
          <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
-        $("#efficiency-10").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-10").text(`${defectRate.toFixed(2)} %`);
+        $("#efficiency-10").text(`${parseFloat(efficiency).toFixed(2)} %`);
+        $("#deffect-rate-10").text(`${parseFloat(defectRate).toFixed(2)} %`);
     }
 
     function variation1(data) {
@@ -1857,6 +1854,4 @@
             }, ]
         });
     }
-
-
 </script>
