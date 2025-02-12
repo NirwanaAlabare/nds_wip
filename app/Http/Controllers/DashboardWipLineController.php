@@ -780,7 +780,8 @@ END jam) a))) target from (
                 SUM(rft) rft,
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
-                SUM(mins_avail) mins_avail
+                SUM(mins_avail) mins_avail,
+                SUM(cumulative_mins_avail) cumulative_mins_avail
             from
                 output_employee_line
             left join userpassword on userpassword.line_id = output_employee_line.line_id
@@ -792,7 +793,9 @@ END jam) a))) target from (
                     SUM(rft) rft,
                     SUM(output) output,
                     SUM(output * smv) mins_prod,
-                    SUM(man_power * jam_kerja) * 60 mins_avail
+                    SUM(man_power * jam_kerja) * 60 mins_avail,
+                    MAX(man_power)*(IF(cast(CURRENT_TIMESTAMP as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60)), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))-60))) cumulative_mins_avail,
+                    FLOOR(MAX(man_power)*(IF(cast(CURRENT_TIMESTAMP as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))/AVG(smv), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))-60)/AVG(smv) ))) cumulative_target
                 FROM
                     (
                         SELECT

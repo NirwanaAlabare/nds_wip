@@ -33,9 +33,9 @@
         <thead>
             <tr>
                 <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold fs-4 text-center">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                <th colspan="2" class="bg-sb text-light align-middle text-center">Before</th>
-                <th colspan="2" class="bg-sb text-light align-middle text-center">Yesterday</th>
-                <th colspan="2" class="bg-sb text-light align-middle text-center">Today</th>
+                <th colspan="2" class="bg-sb text-light align-middle text-center" id="day-1">Before</th>
+                <th colspan="2" class="bg-sb text-light align-middle text-center" id="day-2">Yesterday</th>
+                <th colspan="2" class="bg-sb text-light align-middle text-center" id="day-3">Today</th>
                 <th rowspan="2" class="bg-sb text-light align-middle text-center fs-5">Rank</th>
             </tr>
             <tr>
@@ -88,13 +88,14 @@
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
                     chiefEfficiency.forEach(element => {
-                        let result = [];
+                        // Date Output
+                        let dateOutput = [];
                         element.reduce(function(res, value) {
                             if (!res[value.tanggal]) {
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                result.push(res[value.tanggal]);
+                                dateOutput.push(res[value.tanggal]);
                             }
-                            res[value.tanggal].mins_avail += Number(value.mins_avail);
+                            res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
                             res[value.tanggal].mins_prod += Number(value.mins_prod);
                             res[value.tanggal].output += Number(value.output);
                             res[value.tanggal].rft += Number(value.rft);
@@ -102,10 +103,26 @@
                             return res;
                         }, {});
 
-                        let currentFilter = result.filter((item) => item.tanggal == formatDate(new Date()));
-                        let currentData = currentFilter ? currentFilter[0] : null;
+                        // Leader Output
+                        let leaderOutput = [];
+                        element.reduce(function(res, value) {
+                            if (!res[value.leader_id]) {
+                                res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                leaderOutput.push(res[value.leader_id]);
+                            }
+                            res[value.leader_id].mins_avail += Number(value.mins_avail);
+                            res[value.leader_id].mins_prod += Number(value.mins_prod);
+                            res[value.leader_id].output += Number(value.output);
+                            res[value.leader_id].rft += Number(value.rft);
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": result, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                            return res;
+                        }, {});
+
+                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
+                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
+
+                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": leaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -140,14 +157,52 @@
             // Name
             let tr = document.createElement("tr");
             let tdName = document.createElement("td");
+            let employeeContainer = document.createElement("div");
+            employeeContainer.classList.add("row");
+            employeeContainer.classList.add("justify-content-center");
+            employeeContainer.classList.add("align-items-center");
+            employeeContainer.style.minWidth= '250px';
+
+            // Chief
+            let chiefName = data.name ? data.name.split(" ")[0] : '-';
+            let chiefContainer = document.createElement("div");
+            chiefContainer.classList.add("col-5");
             let imageElement = document.createElement("img");
             imageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+data.nik+"%20"+data.name+".png"
             imageElement.classList.add("img-fluid");
-            imageElement.style.maxWidth = "150px";
+            imageElement.style.maxWidth = "100%";
             imageElement.style.marginBottom = "10px";
-            tdName.appendChild(imageElement);
-            tdName.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name+"</center></span<";
+            chiefContainer.appendChild(imageElement);
+            chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
+
+            // Leader
+            let leaderContainer = document.createElement("div");
+            leaderContainer.classList.add("col-7");
+            let leadersElement = document.createElement("div");
+            leadersElement.classList.add("row");
+            leadersElement.classList.add("justify-content-center");
+            leadersElement.classList.add("align-items-end");
+            data.leaderData.forEach(element => {
+                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-';
+                let leaderElement = document.createElement("div");
+                leaderElement.classList.add("col-4");
+                let leaderImageElement = document.createElement("img");
+                leaderImageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+element.leader_nik+"%20"+element.leader_name+".png";
+                leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='/nds_wip_local/assets/dist/img/person.png'");
+                leaderImageElement.setAttribute("alt", "person")
+                leaderImageElement.classList.add("img-fluid");
+                // leaderImageElement.style.minWidth = "45px";
+                leaderElement.appendChild(leaderImageElement);
+                leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 5px;'><center>"+leaderName+"</center></span>";
+                leadersElement.appendChild(leaderElement);
+            });
+            leaderContainer.appendChild(leadersElement);
+
+            employeeContainer.appendChild(chiefContainer)
+            employeeContainer.appendChild(leaderContainer)
+            tdName.appendChild(employeeContainer);
             tdName.classList.add("align-middle");
+            // tdName.classList.add("pe-5");
             tr.appendChild(tdName);
 
             // Chart
@@ -155,7 +210,7 @@
             let canvas = document.createElement("div");
             canvas.id = "chart-"+data.id;
             canvas.classList.add("chief-daily-efficiency-chart");
-            canvas.style.width = '500px';
+            canvas.style.width = '450px';
             tdChart.appendChild(canvas);
             tdChart.classList.add("align-middle");
             tr.appendChild(tdChart);
@@ -185,7 +240,7 @@
                     },
                 ],
                 chart: {
-                    height: 295,
+                    height: 230,
                     type: 'line',
                     zoom: {
                         enabled: true
@@ -197,6 +252,9 @@
                 colors: ['#082149', '#238380'],
                 dataLabels: {
                     enabled: true,
+                    style: {
+                        fontSize: "8px",
+                    }
                 },
                 stroke: {
                     curve: 'smooth'
@@ -212,8 +270,20 @@
                         opacity: 0.5
                     },
                 },
+                yaxis: {
+                    labels: {
+                        style: {
+                            fontSize: "8px",
+                        }
+                    }
+                },
                 xaxis: {
                     categories: tglArr,
+                    labels: {
+                        style: {
+                            fontSize: "8px",
+                        }
+                    }
                 },
                 noData: {
                     text: 'Data Not Found'
@@ -290,10 +360,22 @@
             (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  tdTodayRft.classList.add("text-success") : tdTodayRft.classList.add("text-danger");
             tdTodayRft.classList.add("fs-6");
 
+            if (formatDate(new Date()) > today.tanggal) {
+                document.getElementById("day-1").innerHTML = formatDateLocal(before.tanggal);
+                document.getElementById("day-2").innerHTML = formatDateLocal(yesterday.tanggal);
+                document.getElementById("day-3").innerHTML = formatDateLocal(today.tanggal);
+            }
+
             // Rank
             let tdRank = document.createElement("td");
-            tdRank.innerHTML = `<span class="text-sb">`+index+(index <= 1 ? ` <i class="fa-solid fa-award text-sb-secondary"></i>` : ``)+`</span>`;
+            tdRank.innerHTML = `
+                <div class="d-flex flex-column">
+                    <span class="text-sb">`+index+`</span>
+                    `+(index <= 1 ? ` <i class="fa-solid fa-award text-sb-secondary"></i>` : ``)+`
+                </div>
+                `;
             tr.appendChild(tdRank);
+            tdRank.classList.add("text-center");
             tdRank.classList.add("align-middle");
             tdRank.classList.add("fw-bold");
             tdRank.classList.add("fs-5");
