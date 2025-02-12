@@ -32,19 +32,19 @@
     <table class="table table-bordered" id="chief-daily-efficiency-table">
         <thead>
             <tr>
-                <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold fs-4 text-center">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                <th colspan="2" class="bg-sb text-light align-middle text-center" id="day-1">Before</th>
-                <th colspan="2" class="bg-sb text-light align-middle text-center" id="day-2">Yesterday</th>
-                <th colspan="2" class="bg-sb text-light align-middle text-center" id="day-3">Today</th>
-                <th rowspan="2" class="bg-sb text-light align-middle text-center fs-5">Rank</th>
+                <td rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                <td colspan="2" class="bg-sb text-light align-middle text-center" id="day-1" style="">Before</th>
+                <td colspan="2" class="bg-sb text-light align-middle text-center" id="day-2" style="">Yesterday</th>
+                <td colspan="2" class="bg-sb text-light align-middle text-center" id="day-3" style="">Today</th>
+                <td rowspan="2" class="bg-sb text-light align-middle text-center" style="">Rank</th>
             </tr>
             <tr>
-                <th class="bg-sb text-light align-middle text-center">Effy</th>
-                <th class="bg-sb text-light align-middle text-center">RFT</th>
-                <th class="bg-sb text-light align-middle text-center">Effy</th>
-                <th class="bg-sb text-light align-middle text-center">RFT</th>
-                <th class="bg-sb text-light align-middle text-center">Effy</th>
-                <th class="bg-sb text-light align-middle text-center">RFT</th>
+                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">Effy</th>
+                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">RFT</th>
+                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">Effy</th>
+                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">RFT</th>
+                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">Effy</th>
+                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">RFT</th>
             </tr>
         </thead>
         <tbody>
@@ -166,7 +166,7 @@
             employeeContainer.classList.add("row");
             employeeContainer.classList.add("justify-content-center");
             employeeContainer.classList.add("align-items-center");
-            employeeContainer.style.minWidth= '250px';
+            employeeContainer.style.maxWidth= '300px';
 
             // Chief
             let chiefName = data.name ? data.name.split(" ")[0] : '-';
@@ -485,7 +485,6 @@
         }
 
         async function updateRow(data, index) {
-            console.log(document.getElementById("employee-"+index), data, index);
             if (document.getElementById("employee-"+index)) {
                 // Name
                 let nameElement = document.getElementById("employee-"+index);
@@ -547,8 +546,6 @@
                     efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
                     rftArr.push((item.rft / item.output * 100).round(2));
                 });
-
-                console.log(chartElement, tglArr, efficiencyArr, rftArr);
 
                 await ApexCharts.exec('chart-'+index, 'updateSeries', [
                         {
