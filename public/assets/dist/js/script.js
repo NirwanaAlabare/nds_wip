@@ -146,6 +146,18 @@ function formatDate(date) {
     ].join('-');
 }
 
+function formatDateLocal(date) {
+    let months = [{'angka' : 1, 'nama' : 'Januari'}, {'angka' : 2, 'nama' : 'Februari'}, {'angka' : 3, 'nama' : 'Maret'}, {'angka' : 4, 'nama' : 'April'}, {'angka' : 5, 'nama' : 'Mei'}, {'angka' : 6, 'nama' : 'Juni'}, {'angka' : 7, 'nama' : 'Juli'}, {'angka' : 8, 'nama' : 'Agustus'}, {'angka' : 9, 'nama' : 'September'}, {'angka' : 10, 'nama' : 'Oktober'}, {'angka' : 11, 'nama' : 'November'}, {'angka' : 12, 'nama' : 'Desember'}];
+
+    var dateObj = new Date(date);
+
+    return [
+        pad(dateObj.getDate()),
+        months[dateObj.getMonth() + 1]['nama'],
+        dateObj.getFullYear(),
+    ].join(' ');
+}
+
 function formatDateTime(date) {
     var dateObj = new Date(date);
 
