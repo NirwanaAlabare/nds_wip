@@ -365,7 +365,7 @@ class SpreadingController extends Controller
         if ($updateStatusForm) {
             $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
             return array(
-                'status' => 200,
+                'status' => 201,
                 'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
                 'redirect' => '',
                 'table' => 'datatable',

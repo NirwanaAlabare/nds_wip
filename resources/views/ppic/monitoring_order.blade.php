@@ -11,7 +11,6 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     <style>
@@ -98,30 +97,42 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Buyer</th>
                             <th>WS</th>
+                            <th>Reff</th>
                             <th>Color</th>
                             <th>Size</th>
-                            <th>Style</th>
-                            <th>Reff</th>
+                            {{-- <th>Style</th> --}}
                             <th>Tgl. Shipment</th>
                             <th>Qty PO</th>
                             <th>Cutting</th>
+                            <th>Blc Cutting</th>
                             <th>Loading</th>
+                            <th>Blc Loading</th>
                             <th>Sewing</th>
+                            <th>Blc Sewing</th>
                             <th>Packing Line</th>
+                            <th>Blc Packing Line</th>
                             <th>Packing Scan</th>
+                            <th>Blc Packing Scan</th>
                             <th>Shipment</th>
+                            <th>Blc Shipment</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="7">Total</th>
+                            <th colspan="6">Total</th>
                             <th id="total_qty_po"></th>
                             <th id="total_final_cut"></th>
+                            <th id="total_blc_cut"></th>
                             <th id="total_final_loading"></th>
+                            <th id="total_blc_loading"></th>
                             <th id="total_final_output_rfts"></th>
+                            <th id="total_blc_output_rfts"></th>
                             <th id="total_final_output_rfts_packing"></th>
+                            <th id="total_blc_output_rfts_packing"></th>
                             <th id="total_final_scan"></th>
+                            <th id="total_blc_scan"></th>
                             <th id="total_final_out"></th>
+                            <th id="total_blc_out"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -360,6 +371,9 @@
                 ordering: false,
                 autoWidth: true,
                 searching: true,
+                fixedColumns: {
+                    leftColumns: 7
+                },
                 ajax: {
                     url: '{{ route('show_lap_monitoring_order') }}',
                     data: function(d) {
@@ -377,17 +391,17 @@
                         data: 'ws'
                     },
                     {
+                        data: 'reff_no'
+                    },
+                    {
                         data: 'color'
                     },
                     {
                         data: 'size'
                     },
-                    {
-                        data: 'styleno_prod'
-                    },
-                    {
-                        data: 'reff_no'
-                    },
+                    // {
+                    //     data: 'styleno_prod'
+                    // },
                     {
                         data: 'tgl_shipment_fix'
                     },
@@ -398,23 +412,43 @@
                         data: 'final_cut'
                     },
                     {
+                        data: 'blc_cut'
+                    },
+                    {
                         data: 'final_loading'
+                    },
+                    {
+                        data: 'blc_loading'
                     },
                     {
                         data: 'final_output_rfts'
                     },
                     {
+                        data: 'blc_output_rfts'
+                    },
+                    {
                         data: 'final_output_rfts_packing'
+                    },
+                    {
+                        data: 'blc_output_rfts_packing'
                     },
                     {
                         data: 'tot_scan'
                     },
                     {
+                        data: 'blc_tot_scan'
+                    },
+                    {
                         data: 'tot_fg_out'
+                    },
+                    {
+                        data: 'blc_tot_fg_out'
                     },
                 ],
                 columnDefs: [{
-                        targets: [7, 8, 9, 10, 11, 12, 13], // Indices of columns to align right
+                        targets: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                            18
+                        ], // Indices of columns to align right
                         className: 'text-right' // Apply right alignment
                     },
                     {
@@ -426,60 +460,72 @@
                     // Set the font weight to bold for all cells
                     $(row).find('td').css('font-weight', 'bold');
                     // Get the specific cells for qty_po and final_cut
-                    var qtyPoCell = $(row).find('td').eq(7);
-                    var finalCutCell = $(row).find('td').eq(8);
+                    var qtyPoCell = $(row).find('td').eq(6);
+                    var finalCutCell = $(row).find('td').eq(7);
+                    var blcCutCell = $(row).find('td').eq(8);
                     var finalLoadingCell = $(row).find('td').eq(9);
-                    var finalOutputRftsCell = $(row).find('td').eq(10);
-                    var finalOutputRftsPackingCell = $(row).find('td').eq(11);
-                    var finalScanCell = $(row).find('td').eq(12);
-                    var finalFGOutCell = $(row).find('td').eq(13);
+                    var blcLoadingCell = $(row).find('td').eq(10);
+                    var finalOutputRftsCell = $(row).find('td').eq(11);
+                    var blcOutputRftsCell = $(row).find('td').eq(12);
+                    var finalOutputRftsPackingCell = $(row).find('td').eq(13);
+                    var blcOutputRftsPackingCell = $(row).find('td').eq(14);
+                    var finalScanCell = $(row).find('td').eq(15);
+                    var blcScanCell = $(row).find('td').eq(16);
+                    var finalFGOutCell = $(row).find('td').eq(17);
+                    var blcFGOutCell = $(row).find('td').eq(18);
 
 
-                    if (parseFloat(data.final_cut) < parseFloat(data.qty_po)) {
-                        finalCutCell.css('color', 'red');
+                    if (parseFloat(data.blc_cut) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_cut) < '0') {
+                        blcCutCell.css('color', 'red');
                     } else {
-                        finalCutCell.css('color', 'black');
+                        blcCutCell.css('color', 'black');
                     }
 
 
-                    if (parseFloat(data.final_loading) < parseFloat(data.qty_po)) {
+                    if (parseFloat(data.blc_loading) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_loading) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
-                        finalLoadingCell.css('color', 'red');
+                        blcLoadingCell.css('color', 'red');
                     } else {
                         // Otherwise, set text color to black for final_cut
-                        finalLoadingCell.css('color', 'black');
+                        blcLoadingCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.final_output_rfts) < parseFloat(data.qty_po)) {
+                    if (parseFloat(data.blc_output_rfts) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_output_rfts) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
-                        finalOutputRftsCell.css('color', 'red');
+                        blcOutputRftsCell.css('color', 'red');
                     } else {
                         // Otherwise, set text color to black for final_cut
-                        finalOutputRftsCell.css('color', 'black');
+                        blcOutputRftsCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.final_output_rfts_packing) < parseFloat(data.qty_po)) {
+                    if (parseFloat(data.blc_output_rfts_packing) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_output_rfts_packing) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
-                        finalOutputRftsPackingCell.css('color', 'red');
+                        blcOutputRftsPackingCell.css('color', 'red');
                     } else {
                         // Otherwise, set text color to black for final_cut
-                        finalOutputRftsPackingCell.css('color', 'black');
+                        blcOutputRftsPackingCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.tot_scan) < parseFloat(data.qty_po)) {
+                    if (parseFloat(data.blc_tot_scan) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_tot_scan) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
-                        finalScanCell.css('color', 'red');
+                        blcScanCell.css('color', 'red');
                     } else {
                         // Otherwise, set text color to black for final_cut
-                        finalScanCell.css('color', 'black');
+                        blcScanCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.tot_fg_out) < parseFloat(data.qty_po)) {
+                    if (parseFloat(data.blc_tot_fg_out) < parseFloat(data.qty_po) && parseFloat(data
+                            .blc_tot_fg_out) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
-                        finalFGOutCell.css('color', 'red');
+                        blcFGOutCell.css('color', 'red');
                     } else {
                         // Otherwise, set text color to black for final_cut
-                        finalFGOutCell.css('color', 'black');
+                        blcFGOutCell.css('color', 'black');
                     }
 
 
@@ -491,13 +537,19 @@
 
                     // Calculate totals based on the currently displayed data
 
-                    var totalQtyPo = api.column(7, {
+                    var totalQtyPo = api.column(6, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFinalCut = api.column(8, {
+                    var totalFinalCut = api.column(7, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalblcCut = api.column(8, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
@@ -509,40 +561,79 @@
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFinalOutputRfts = api.column(10, {
+                    var totalblcLoading = api.column(10, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFinalOutputRftsPacking = api.column(11, {
+                    var totalFinalOutputRfts = api.column(11, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalTotScan = api.column(12, {
+                    var totalblcOutputRfts = api.column(12, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFGOut = api.column(13, {
+                    var totalFinalOutputRftsPacking = api.column(13, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
+                    var totalblcOutputRftsPacking = api.column(14, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalTotScan = api.column(15, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalblcTotScan = api.column(16, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalFGOut = api.column(17, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalblcFGOut = api.column(18, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
 
                     // Update footer with totals
 
                     $('#total_qty_po').text(totalQtyPo);
                     $('#total_final_cut').text(totalFinalCut);
+                    $('#total_blc_cut').text(totalblcCut).css('color', totalblcCut < 0 ? 'red' : 'black');
                     $('#total_final_loading').text(totalFinalLoading);
+                    $('#total_blc_loading').text(totalblcLoading).css('color', totalblcLoading < 0 ? 'red' :
+                        'black');
                     $('#total_final_output_rfts').text(totalFinalOutputRfts);
+                    $('#total_blc_output_rfts').text(totalblcOutputRfts).css('color', totalblcOutputRfts < 0 ?
+                        'red' : 'black');
                     $('#total_final_output_rfts_packing').text(totalFinalOutputRftsPacking);
+                    $('#total_blc_output_rfts_packing').text(totalblcOutputRftsPacking).css('color',
+                        totalblcOutputRftsPacking < 0 ? 'red' : 'black');
                     $('#total_final_scan').text(totalTotScan);
+                    $('#total_blc_scan').text(totalblcTotScan).css('color', totalblcTotScan < 0 ? 'red' :
+                        'black');
                     $('#total_final_out').text(totalFGOut);
+                    $('#total_blc_out').text(totalblcFGOut).css('color', totalblcFGOut < 0 ? 'red' : 'black');
                     // Call the update_chart function with new data and totalQtyPo
                     const newData = [{
                             category: 'Cutting',
