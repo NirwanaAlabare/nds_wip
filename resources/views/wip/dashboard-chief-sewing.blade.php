@@ -193,7 +193,7 @@
                 leaderImageElement.classList.add("img-fluid");
                 // leaderImageElement.style.minWidth = "45px";
                 leaderElement.appendChild(leaderImageElement);
-                leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 5px;'><center>"+leaderName+"</center></span>";
+                leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
                 leadersElement.appendChild(leaderElement);
             });
             leaderContainer.appendChild(leadersElement);
@@ -383,6 +383,10 @@
             table.appendChild(tr);
 
             chart.render();
+        }
+
+        async function updateData() {
+
         }
     </script>
 @endsection
