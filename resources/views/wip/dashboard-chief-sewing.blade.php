@@ -120,6 +120,14 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
 
     <script>
+        // Set Custom Dashboard View
+        document.body.style.maxHeight = "100vh";
+        document.body.style.overflow = "hidden";
+
+        document.querySelector(".content-wrapper").classList.remove("pt-3");
+        document.querySelector(".content-wrapper").classList.add("pt-1");
+
+        // Slide
         const swiper = new Swiper('.swiper', {
             direction: 'vertical',
             loop: true,
