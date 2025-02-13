@@ -394,10 +394,10 @@
             let todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
             let today = todayFilter[todayFilter.length-1];
 
-            let yesterdayFilter = dailyData.filter((item) => item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))));
+            let yesterdayFilter = todayFilter.filter((item) => item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))));
             let yesterday = yesterdayFilter[yesterdayFilter.length-1]
 
-            let beforeFilter = dailyData.filter((item) => item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))));
+            let beforeFilter = yesterdayFilter.filter((item) => item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))));
             let before = beforeFilter[beforeFilter.length-1];
 
             // Before
