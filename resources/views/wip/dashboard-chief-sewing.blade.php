@@ -176,7 +176,8 @@
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                 dateOutput.push(res[value.tanggal]);
                             }
-                            res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
+                            // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
+                            res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
                             res[value.tanggal].mins_prod += Number(value.mins_prod);
                             res[value.tanggal].output += Number(value.output);
                             res[value.tanggal].rft += Number(value.rft);
@@ -191,7 +192,7 @@
                                 res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                 leaderOutput.push(res[value.leader_id]);
                             }
-                            res[value.leader_id].mins_avail += Number(value.mins_avail);
+                            res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
                             res[value.leader_id].mins_prod += Number(value.mins_prod);
                             res[value.leader_id].output += Number(value.output);
                             res[value.leader_id].rft += Number(value.rft);
@@ -546,7 +547,8 @@
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                 dateOutput.push(res[value.tanggal]);
                             }
-                            res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
+                            // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
+                            res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
                             res[value.tanggal].mins_prod += Number(value.mins_prod);
                             res[value.tanggal].output += Number(value.output);
                             res[value.tanggal].rft += Number(value.rft);
@@ -561,7 +563,7 @@
                                 res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                 leaderOutput.push(res[value.leader_id]);
                             }
-                            res[value.leader_id].mins_avail += Number(value.mins_avail);
+                            res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
                             res[value.leader_id].mins_prod += Number(value.mins_prod);
                             res[value.leader_id].output += Number(value.output);
                             res[value.leader_id].rft += Number(value.rft);
