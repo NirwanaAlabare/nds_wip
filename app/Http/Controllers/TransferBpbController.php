@@ -52,14 +52,14 @@ class TransferBpbController extends Controller
      */
     public function create(Request $request)
     {
-       
+
         $nama_supp = DB::connection('mysql_sb')->select("select DISTINCT id_supplier, supplier from mastersupplier where tipe_sup = 'S' order by Supplier ASC");
 
         $kode_gr = DB::connection('mysql_sb')->select("
-            select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'TBPB/NAG' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_trans) is null,'00001',LPAD(SUBSTR(MAX(no_trans),15,5)+1,5,0)) nomor from ir_log_trans where kode_trans = 'TBPB') a");
+        select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'TBPB/NAG' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_trans) is null,'00001',LPAD(SUBSTR(max(SUBSTR(no_trans,15)),1,5)+1,5,0)) nomor from ir_log_trans where kode_trans = 'TBPB') a");
 
         if ($request->ajax()) {
-           
+
             if ($request->nama_supp != 'ALL') {
                 $where = " and supplier = '" . $request->nama_supp . "' ";
             }else{
@@ -68,12 +68,14 @@ class TransferBpbController extends Controller
 
 
             $data_trfbpb = DB::connection('mysql_sb')->select("select bpb.id ,bpb.bpbno_int, bpb.pono, bpb.bpbdate, mastersupplier.Supplier, po_header.jml_pterms, masterpterms.kode_pterms, bpb.curr, bpb.confirm_by,DATE_FORMAT(bpb.confirm_date,'%Y-%m-%d') confirm_date,round(sum((((IF(bpb.qty_reject IS NULL,(bpb.qty), (bpb.qty - bpb.qty_reject))) * bpb.price) + (((IF(bpb.qty_reject IS NULL,(bpb.qty), (bpb.qty - bpb.qty_reject))) * bpb.price) * (po_header.tax /100)))),2) as total, po_header.podate, po_header_draft.tipe_com
-                from bpb 
-                INNER JOIN po_header on po_header.pono = bpb.pono 
-                left JOIN po_header_draft on po_header_draft.id = po_header.id_draft
-                INNER JOIN mastersupplier on mastersupplier.Id_Supplier = bpb.id_supplier 
-                inner join masterpterms on masterpterms.id = po_header.id_terms 
-                where stat_trf is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com is null  ".$where." || stat_trf is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com IN ('REGULAR','BUYER') ".$where." group by bpb.bpbno_int");
+            from bpb
+            INNER JOIN po_header on po_header.pono = bpb.pono
+            left JOIN po_header_draft on po_header_draft.id = po_header.id_draft
+            INNER JOIN mastersupplier on mastersupplier.Id_Supplier = bpb.id_supplier
+            inner join masterpterms on masterpterms.id = po_header.id_terms
+            where stat_trf is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com is null  ".$where." || stat_trf is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com IN ('REGULAR','BUYER','FOC') ".$where." group by bpb.bpbno_int
+                    UNION
+                  select id,bppb.bppbno_int, '-' pono, bppb.bppbdate, mastersupplier.Supplier , '' ,'' , bppb.curr,bppb.confirm_by,DATE_FORMAT(bppb.confirm_date,'%Y-%m-%d') confirm_date, sum(bppb.qty * bppb.price) as total, '','' from bppb inner join mastersupplier on mastersupplier.Id_Supplier = bppb.id_supplier where bppbno_int like '%GK%' and confirm = 'Y' and cancel != 'Y' and  bppb.bppbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and stat_trf is null and tipe_sup = 'S' group by bppbno_int");
 
             // dd($data_trfbpb);
             return DataTables::of($data_trfbpb)->toJson();
@@ -87,7 +89,7 @@ class TransferBpbController extends Controller
     public function store(Request $request)
     {
 
-        $sql_trf = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'TBPB/NAG' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_trans) is null,'00001',LPAD(SUBSTR(MAX(no_trans),15,5)+1,5,0)) nomor from ir_log_trans where kode_trans = 'TBPB') a");
+        $sql_trf = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'TBPB/NAG' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_trans) is null,'00001',LPAD(SUBSTR(max(SUBSTR(no_trans,15)),1,5)+1,5,0)) nomor from ir_log_trans where kode_trans = 'TBPB') a");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
         $no_trf = $sql_trf[0]->kode;
 
@@ -153,7 +155,7 @@ class TransferBpbController extends Controller
             ]);
 
             $updatebpb = DB::connection('mysql_sb')->select("update bpb a INNER JOIN ir_trans_bpb b ON b.no_bpb = a.bpbno_int SET a.stat_trf = null where b.no_transfer = '".$request['txt_nodok']."'");
-        
+
             $massage = 'Cancel Data Successfully';
 
             return array(
@@ -162,7 +164,7 @@ class TransferBpbController extends Controller
                 "additional" => [],
                 "redirect" => url('/transfer-bpb')
             );
-        
+
     }
 
 
@@ -180,7 +182,7 @@ class TransferBpbController extends Controller
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -212,7 +214,7 @@ class TransferBpbController extends Controller
         //
     }
 
-  
 
-    
+
+
 }
