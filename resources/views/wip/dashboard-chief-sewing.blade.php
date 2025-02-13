@@ -13,6 +13,9 @@
     <!-- Apex Charts -->
     <link rel="stylesheet" href="{{ asset('plugins/apexcharts/apexcharts.css') }}">
 
+    <!-- Swiper -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
     <style>
         .dataTables_wrapper .dataTables_processing {
             position: absolute;
@@ -22,6 +25,48 @@
             border-radius: 3px;
             font-weight: bold;
         }
+
+        /* SWIPPER */
+        swiper-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff !important;
+        }
+
+        swiper-slide {
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        swiper-slide img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        swiper-container {
+            width: 100%;
+            height: 100%;
+            background-color: inherit;
+        }
+
+        swiper-slide {
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            border-radius: 10px;
+            min-height: 95vh;
+        }
+
+        swiper-slide img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 @endsection
 
@@ -29,27 +74,32 @@
     <input type="hidden" id="year" value="{{ $year ? $year : date("Y") }}">
     <input type="hidden" id="month" value="{{ $month ? $month : date("m") }}">
     <input type="hidden" id="month-name" value="{{ $monthName ? $monthName : $months[num(date("m"))-1] }}">
-    <table class="table table-bordered" id="chief-daily-efficiency-table">
-        <thead>
-            <tr>
-                <td rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                <td colspan="2" class="bg-sb text-light align-middle text-center" id="day-1" style="">Before</th>
-                <td colspan="2" class="bg-sb text-light align-middle text-center" id="day-2" style="">Yesterday</th>
-                <td colspan="2" class="bg-sb text-light align-middle text-center" id="day-3" style="">Today</th>
-                <td rowspan="2" class="bg-sb text-light align-middle text-center" style="">Rank</th>
-            </tr>
-            <tr>
-                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">Effy</th>
-                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">RFT</th>
-                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">Effy</th>
-                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">RFT</th>
-                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">Effy</th>
-                <td class="bg-sb text-light align-middle text-center" style="font-size: 10px;">RFT</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <swiper-container class="mySwiper" id="table-carousel" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
+        <swiper-slide id="carousel-1">
+            <table class="table table-bordered" id="chief-daily-efficiency-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-1" style="padding: 5px !important;">H-2</th>
+                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-2" style="padding: 5px !important;">H-1</th>
+                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-3" style="padding: 5px !important;">Hari Ini</th>
+                        <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
+                    </tr>
+                    <tr>
+                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </swiper-slide>
+    </swiper-container>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -64,7 +114,30 @@
 
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    <!-- Swiper  -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
+
     <script>
+        const swiper = new Swiper('.swiper', {
+            direction: 'vertical',
+            loop: true,
+
+            pagination: {
+                el: '.swiper-pagination',
+            },
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            scrollbar: {
+                el: '.swiper-scrollbar',
+            },
+        });
+
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4'
@@ -156,6 +229,7 @@
         }, 60000);
 
         async function appendRow(data, index) {
+            let tableElement = document.getElementById('chief-daily-efficiency-table');
             let table = document.querySelector('#chief-daily-efficiency-table tbody');
 
             // Name
@@ -217,7 +291,7 @@
             let canvas = document.createElement("div");
             // canvas.id = "chart-"+index;
             canvas.classList.add("chief-daily-efficiency-chart");
-            canvas.style.width = '450px';
+            canvas.style.width = '500px';
             tdChart.appendChild(canvas);
             tdChart.classList.add("align-middle");
             tr.appendChild(tdChart);
@@ -248,7 +322,7 @@
                 ],
                 chart: {
                     id: "chart-"+index,
-                    height: 250,
+                    height: 200,
                     type: 'line',
                     zoom: {
                         enabled: true
@@ -388,7 +462,7 @@
             let tdRank = document.createElement("td");
             tdRank.innerHTML = `
                 <div class="d-flex flex-column">
-                    <span class="text-sb">`+index+`</span>
+                    <span class="text-sb">#`+index+`</span>
                     `+(index <= 1 ? ` <i class="fa-solid fa-award text-sb-secondary"></i>` : ``)+`
                 </div>
                 `;
@@ -401,6 +475,42 @@
             table.appendChild(tr);
 
             chart.render();
+
+            if (index % 2 == 0) {
+                tableElement.id = "chief-daily-efficiency-table-"+((index/2)+1);
+                let newTable = tableElement.cloneNode();
+                newTable.id = "chief-daily-efficiency-table";
+                newTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-1" style="padding: 5px !important;">H-2</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-2" style="padding: 5px !important;">H-1</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-3" style="padding: 5px !important;">Hari Ini</th>
+                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
+                        </tr>
+                        <tr>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                `;
+
+                let carouselContainer = document.getElementById("table-carousel");
+                let carouselElement = document.getElementById("carousel-1").cloneNode();
+                carouselElement.id = "carousel-"+((index/2)+1);
+
+                console.log(carouselElement);
+
+                carouselElement.appendChild(newTable);
+                carouselContainer.appendChild(carouselElement);
+            }
 
             // initSparkle();
         }
@@ -496,8 +606,8 @@
                 let chiefContainer = document.createElement("div");
                 chiefContainer.classList.add("col-5");
                 let imageElement = document.createElement("img");
-                // imageElement.src = "{{ asset('dist/img/person.png') }}"
                 imageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+data.nik+"%20"+data.name+".png"
+                // imageElement.src = "{{ asset('dist/img/person.png') }}"
                 imageElement.classList.add("img-fluid");
                 imageElement.style.maxWidth = "100%";
                 imageElement.style.marginBottom = "10px";
@@ -516,8 +626,8 @@
                     let leaderElement = document.createElement("div");
                     leaderElement.classList.add("col-4");
                     let leaderImageElement = document.createElement("img");
-                    // leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
                     leaderImageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+element.leader_nik+"%20"+element.leader_name+".png";
+                    // leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
                     leaderImageElement.classList.add("img-fluid");

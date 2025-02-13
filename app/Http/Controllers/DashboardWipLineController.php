@@ -794,14 +794,15 @@ END jam) a))) target from (
                     SUM(output) output,
                     SUM(output * smv) mins_prod,
                     SUM(man_power * jam_kerja) * 60 mins_avail,
-                    MAX(man_power)*(IF(cast(CURRENT_TIMESTAMP as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60)), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))-60))) cumulative_mins_avail,
-                    FLOOR(MAX(man_power)*(IF(cast(CURRENT_TIMESTAMP as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))/AVG(smv), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))-60)/AVG(smv) ))) cumulative_target
+                    MAX(man_power)*(IF(cast(MAX(last_update) as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(MAX(last_update) as time), '07:00:00'))/60)), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(MAX(last_update) as time), '07:00:00'))/60))-60))) cumulative_mins_avail,
+                    FLOOR(MAX(man_power)*(IF(cast(MAX(last_update) as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(MAX(last_update) as time), '07:00:00'))/60))/AVG(smv), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(MAX(last_update) as time), '07:00:00'))/60))-60)/AVG(smv) ))) cumulative_target
                 FROM
                     (
                         SELECT
                             DATE( rfts.updated_at ) tgl_output,
                             COUNT( rfts.id ) output,
                             SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+                            MAX( rfts.updated_at ) last_update,
                             master_plan.id master_plan_id,
                             master_plan.tgl_plan,
                             master_plan.sewing_line,
