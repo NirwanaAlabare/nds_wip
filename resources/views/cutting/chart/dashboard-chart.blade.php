@@ -410,8 +410,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js" integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     {{-- Swiper JS --}}
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
+    <script src="{{ asset('plugins/swiper/js/swiper-bundle.min.js') }}"></script>
+    <script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
     <script>
         $(document).ready(async function () {

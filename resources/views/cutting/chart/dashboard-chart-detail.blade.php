@@ -313,10 +313,10 @@
 @endsection
 
 @section('custom-script')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="{{ asset('plugins/swiper/css/swiper-bundle.min.css') }}" />
 
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
+    <script src="{{ asset('plugins/swiper/js/swiper-bundle.min.js') }}"></script>
+    <script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
     <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
