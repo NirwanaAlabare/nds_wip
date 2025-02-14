@@ -1626,12 +1626,12 @@ class DashboardController extends Controller
                 WHERE
                     (CASE WHEN bppbdate < '".$date."' THEN roll_out > total_roll ELSE (roll_out >= total_roll OR roll_out <= total_roll ) END)
                 order by
+                    roll_out_today desc,
+                    total_roll_today desc,
                     buyer asc,
                     no_ws_aktual asc,
                     styleno asc,
-                    color asc,
-                    total_roll_today desc,
-                    roll_out_today desc
+                    color asc
             ");
 
             return DataTables::of($pemakaianRoll)->
