@@ -256,8 +256,8 @@
             let chiefContainer = document.createElement("div");
             chiefContainer.classList.add("col-5");
             let imageElement = document.createElement("img");
-            // imageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+data.nik+"%20"+data.name+".png"
-            imageElement.src = "{{ asset('dist/img/person.png') }}"
+            imageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+data.nik+"%20"+data.name+".png"
+            // imageElement.src = "{{ asset('dist/img/person.png') }}"
             imageElement.classList.add("img-fluid");
             imageElement.style.maxWidth = "100%";
             imageElement.style.marginBottom = "10px";
@@ -276,8 +276,8 @@
                 let leaderElement = document.createElement("div");
                 leaderElement.classList.add("col-4");
                 let leaderImageElement = document.createElement("img");
-                // leaderImageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+element.leader_nik+"%20"+element.leader_name+".png";
-                leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
+                leaderImageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+element.leader_nik+"%20"+element.leader_name+".png";
+                // leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 leaderImageElement.setAttribute("alt", "person")
                 leaderImageElement.classList.add("img-fluid");
@@ -616,8 +616,8 @@
                 let chiefContainer = document.createElement("div");
                 chiefContainer.classList.add("col-5");
                 let imageElement = document.createElement("img");
-                // imageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+data.nik+"%20"+data.name+".png"
-                imageElement.src = "{{ asset('dist/img/person.png') }}"
+                imageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+data.nik+"%20"+data.name+".png"
+                // imageElement.src = "{{ asset('dist/img/person.png') }}"
                 imageElement.classList.add("img-fluid");
                 imageElement.style.maxWidth = "100%";
                 imageElement.style.marginBottom = "10px";
@@ -636,8 +636,8 @@
                     let leaderElement = document.createElement("div");
                     leaderElement.classList.add("col-4");
                     let leaderImageElement = document.createElement("img");
-                    // leaderImageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+element.leader_nik+"%20"+element.leader_name+".png";
-                    leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
+                    leaderImageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+element.leader_nik+"%20"+element.leader_name+".png";
+                    // leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
                     leaderImageElement.classList.add("img-fluid");
