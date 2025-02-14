@@ -822,6 +822,8 @@ Route::middleware('auth')->group(function () {
         Route::post('store', 'store')->name('store-master-line');
         Route::put('update', 'update')->name('update-master-line');
         Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-line');
+
+        Route::post('update-image', 'updateImage')->name('update-master-line-image');
     });
 
     // Master Plan

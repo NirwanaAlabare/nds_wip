@@ -31,7 +31,8 @@
                         <input type="date" class="form-control" name="to" id="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                     </div>
                 </div>
-                <div>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-sb fw-bold" onclick="updateImage()"><i class="fa-solid fa-images"></i> UPDATE</a>
                     <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#storeMasterLineModal"><i class="fa fa-plus"></i> NEW</a>
                 </div>
             </div>
@@ -286,5 +287,48 @@
             $("#edit_leader_nik").val($("#edit_leader_id").find(":selected").attr("data-nik"));
             $("#edit_leader_name").val($("#edit_leader_id").find(":selected").attr("data-name"));
         })
+
+        function updateImage() {
+            Swal.fire({
+                icon: 'info',
+                title: 'Konfirmasi',
+                html: 'Update Gambar Karyawan?',
+                confirmButtonText: "Update",
+                showCancelButton: true,
+            }).
+            then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    $.ajax({
+                        url: "{{ route("update-master-line-image") }}",
+                        type: "post",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Berhasil",
+                                    html: response.message
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Gagal",
+                                    html: response.message
+                                });
+                            }
+
+                            document.getElementById("loading").classList.add("d-none");
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR);
+
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+                    });
+                }
+            });
+        }
     </script>
 @endsection

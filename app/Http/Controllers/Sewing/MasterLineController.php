@@ -10,6 +10,9 @@ use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Intervention\Image\Facades\Image;
 use DB;
 
 class MasterLineController extends Controller
@@ -105,18 +108,6 @@ class MasterLineController extends Controller
         if ($storeEmployeeLine) {
             $chief = MasterEmployee::where("enroll_id", $validatedRequest["chief_id"])->first();
             $leader = MasterEmployee::where("enroll_id", $validatedRequest["leader_id"])->first();
-
-            if ($chief) {
-                $storeChief = EmployeeProduction::updateOrCreate(
-                    ['enroll_id' => $chief->enroll_id],
-                    [
-                        'name' => $chief->employee_name,
-                        'role' => "chief",
-                        'created_by' => Auth::user()->id,
-                        "created_by_username" => Auth::user()->username,
-                    ]
-                );
-            }
 
             if ($leader) {
                 $storeLeader = EmployeeProduction::updateOrCreate(
@@ -234,6 +225,57 @@ class MasterLineController extends Controller
             "status" => 400,
             "message" => "Data tidak ditemukan.",
             "additional" => $destroyEmployeeLine,
+        );
+    }
+
+    public function updateImage() {
+        ini_set("memory_limit", "4086M");
+
+        $employeeProduction = EmployeeProduction::get();
+
+        $employees = MasterEmployee::whereIn("enroll_id", $employeeProduction->pluck("enroll_id"))->get();
+
+        if ($employees->count() > 0) {
+            foreach ($employees as $employee) {
+                // Fetch the image content from the URL
+                $employeeUrlEncode = str_replace(" ", "%20", $employee->nik." ".$employee->employee_name);
+
+                $employeeImgUrl = 'http://10.10.5.111/hris/public/storage/app/public/images/'.$employeeUrlEncode.'.png';
+
+                $response = Http::get($employeeImgUrl);
+
+                // Check if the response status code is 200 (OK)
+                if ($response->successful()) {
+                    $employeeImgFile = file_get_contents($employeeImgUrl);
+
+                    // Create the file name dynamically
+                    $employeeImgName = $employee->nik.' '.$employee->employee_name.'.png';
+
+                    // Create an instance of the image from the file contents
+                    $employeeImgWidth = Image::make($employeeImgFile)->width();
+                    $employeeImgHeight = Image::make($employeeImgFile)->height();
+
+                    $employeeImg = Image::make($employeeImgFile)->resize((5/100)*$employeeImgWidth, (5/100)*$employeeImgHeight);
+
+                    // Define the path where you want to store the image
+                    $filePath = $employeeImgName;  // Save in the public disk
+
+                    // Save the image content to the storage
+                    Storage::put($filePath, $employeeImg->stream());
+                }
+            }
+
+            return array(
+                "status" => 200,
+                "message" => $employees->count()." Gambar Berhasil Disimpan.",
+                "additional" => []
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi Kesalahan.",
+            "additional" => []
         );
     }
 }
