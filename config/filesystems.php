@@ -55,6 +55,11 @@ return [
             'visibility' => 'public',
         ],
 
+        'public_employee_profile' => [
+            'driver' => 'local',
+            'root'   => public_path() . '/storage/employee_profile',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

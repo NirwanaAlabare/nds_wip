@@ -261,7 +261,7 @@ class MasterLineController extends Controller
                     $filePath = $employeeImgName;  // Save in the public disk
 
                     // Save the image content to the storage
-                    Storage::put($filePath, $employeeImg->stream());
+                    Storage::disk('public_employee_profile')->put($filePath, $employeeImg->stream());
                 }
             }
 
