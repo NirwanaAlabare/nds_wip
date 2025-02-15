@@ -259,7 +259,7 @@
             imageElement.src = "/nds_wip/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png"
             // imageElement.src = "{{ asset('dist/img/person.png') }}"
             imageElement.classList.add("img-fluid");
-            imageElement.style.maxWidth = "100%";
+            imageElement.style.minWidth = "100%";
             imageElement.style.marginBottom = "10px";
             chiefContainer.appendChild(imageElement);
             chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
@@ -616,10 +616,10 @@
                 let chiefContainer = document.createElement("div");
                 chiefContainer.classList.add("col-5");
                 let imageElement = document.createElement("img");
-                imageElement.src = "http://10.10.5.111/hris/public/storage/app/public/images/"+data.nik+"%20"+data.name+".png"
+                imageElement.src = "/nds_wip/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png"
                 // imageElement.src = "{{ asset('dist/img/person.png') }}"
                 imageElement.classList.add("img-fluid");
-                imageElement.style.maxWidth = "100%";
+                imageElement.style.minWidth = "100%";
                 imageElement.style.marginBottom = "10px";
                 chiefContainer.appendChild(imageElement);
                 chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"

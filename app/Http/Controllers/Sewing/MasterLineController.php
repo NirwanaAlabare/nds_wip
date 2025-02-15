@@ -252,10 +252,15 @@ class MasterLineController extends Controller
                     $employeeImgName = $employee->nik.' '.$employee->employee_name.'.png';
 
                     // Create an instance of the image from the file contents
+                    $employeeImgFileSize = Image::make($employeeImgFile)->filesize();
                     $employeeImgWidth = Image::make($employeeImgFile)->width();
                     $employeeImgHeight = Image::make($employeeImgFile)->height();
 
-                    $employeeImg = Image::make($employeeImgFile)->resize((5/100)*$employeeImgWidth, (5/100)*$employeeImgHeight);
+                    if ($employeeImgWidth >= 1500 || $employeeImgHeight >= 1500) {
+                        $employeeImg = Image::make($employeeImgFile)->resize((10/100)*$employeeImgWidth, (10/100)*$employeeImgHeight);
+                    } else {
+                        $employeeImg = Image::make($employeeImgFile)->resize((75/100)*$employeeImgWidth, (75/100)*$employeeImgHeight);
+                    }
 
                     // Define the path where you want to store the image
                     $filePath = $employeeImgName;  // Save in the public disk

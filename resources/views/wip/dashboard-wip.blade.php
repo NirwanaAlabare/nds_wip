@@ -146,8 +146,8 @@
         });
 
         function visitDashboardChief() {
-            // window.open("{{ route("dashboard-chief-sewing") }}/"+$("#year").val()+"/"+$("#month").val(), '_blank');
-            window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+            window.open("{{ route("dashboard-chief-sewing") }}/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+            // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
         }
     </script>
 @endsection
