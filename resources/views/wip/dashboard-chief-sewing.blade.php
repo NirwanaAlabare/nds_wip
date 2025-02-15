@@ -76,7 +76,7 @@
     <input type="hidden" id="month-name" value="{{ $monthName ? $monthName : $months[num(date("m"))-1] }}">
     <swiper-container class="mySwiper" id="table-carousel" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
         <swiper-slide id="carousel-1">
-            <table class="table table-bordered" id="chief-daily-efficiency-table">
+            <table class="table table-bordered w-100" id="chief-daily-efficiency-table">
                 <thead>
                     <tr>
                         <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
@@ -244,12 +244,14 @@
             // Name
             let tr = document.createElement("tr");
             let tdName = document.createElement("td");
+            tdName.style.minWidth = '100px';
+            tdName.style.maxWidth = '300px';
             let employeeContainer = document.createElement("div");
             employeeContainer.id = "employee-"+index;
             employeeContainer.classList.add("row");
             employeeContainer.classList.add("justify-content-center");
             employeeContainer.classList.add("align-items-center");
-            employeeContainer.style.maxWidth= '300px';
+            employeeContainer.style.maxWidth= '100%';
 
             // Chief
             let chiefName = data.name ? data.name.split(" ")[0] : '-';
@@ -259,7 +261,7 @@
             imageElement.src = "/nds_wip/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png"
             // imageElement.src = "{{ asset('dist/img/person.png') }}"
             imageElement.classList.add("img-fluid");
-            imageElement.style.minWidth = "100%";
+            imageElement.style.maxWidth = "100%";
             imageElement.style.marginBottom = "10px";
             chiefContainer.appendChild(imageElement);
             chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
@@ -271,6 +273,7 @@
             leadersElement.classList.add("row");
             leadersElement.classList.add("justify-content-center");
             leadersElement.classList.add("align-items-end");
+            leadersElement.classList.add("g-1");
             data.leaderData.forEach(element => {
                 let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-';
                 let leaderElement = document.createElement("div");
@@ -281,7 +284,6 @@
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 leaderImageElement.setAttribute("alt", "person")
                 leaderImageElement.classList.add("img-fluid");
-                // leaderImageElement.style.minWidth = "45px";
                 leaderElement.appendChild(leaderImageElement);
                 leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
                 leadersElement.appendChild(leaderElement);
@@ -652,7 +654,6 @@
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
                     leaderImageElement.classList.add("img-fluid");
-                    // leaderImageElement.style.minWidth = "45px";
                     leaderElement.appendChild(leaderImageElement);
                     leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
                     leadersElement.appendChild(leaderElement);
