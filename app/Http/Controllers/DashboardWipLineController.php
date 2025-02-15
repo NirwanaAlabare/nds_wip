@@ -836,7 +836,6 @@ END jam) a))) target from (
                 line_id
             order by
                 chief_id asc,
-                line_id asc,
                 tanggal asc
         ");
 

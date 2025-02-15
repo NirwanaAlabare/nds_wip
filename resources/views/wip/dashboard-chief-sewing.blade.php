@@ -80,9 +80,9 @@
                 <thead>
                     <tr>
                         <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-1" style="padding: 5px !important;">H-2</th>
-                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-2" style="padding: 5px !important;">H-1</th>
-                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-3" style="padding: 5px !important;">Hari Ini</th>
+                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
                         <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
                     </tr>
                     <tr>
@@ -462,9 +462,20 @@
             tdTodayRft.classList.add("fs-6");
 
             if (formatDate(new Date()) > today.tanggal) {
-                document.getElementById("day-1").innerHTML = formatDateLocal(before.tanggal);
-                document.getElementById("day-2").innerHTML = formatDateLocal(yesterday.tanggal);
-                document.getElementById("day-3").innerHTML = formatDateLocal(today.tanggal);
+                let dayOneElement = document.getElementsByClassName("day-1");
+                for (let i = 0; i < dayOneElement.length; i++) {
+                    dayOneElement[i].innerHTML = formatDateLocal(before.tanggal);
+                }
+
+                let dayTwoElement = document.getElementsByClassName("day-2");
+                for (let i = 0; i < dayTwoElement.length; i++) {
+                    dayTwoElement[i].innerHTML = formatDateLocal(yesterday.tanggal);
+                }
+
+                let dayThreeElement = document.getElementsByClassName("day-3");
+                for (let i = 0; i < dayThreeElement.length; i++) {
+                    dayThreeElement[i].innerHTML = formatDateLocal(today.tanggal);
+                }
             }
 
             // Rank
@@ -493,9 +504,9 @@
                     <thead>
                         <tr>
                             <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-1" style="padding: 5px !important;">H-2</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-2" style="padding: 5px !important;">H-1</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center" id="day-3" style="padding: 5px !important;">Hari Ini</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
                             <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
                         </tr>
                         <tr>
@@ -727,9 +738,20 @@
                 }
 
                 if (formatDate(new Date()) > today.tanggal) {
-                    document.getElementById("day-1").innerHTML = formatDateLocal(before.tanggal);
-                    document.getElementById("day-2").innerHTML = formatDateLocal(yesterday.tanggal);
-                    document.getElementById("day-3").innerHTML = formatDateLocal(today.tanggal);
+                    let dayOneElement = document.getElementsByClassName("day-1");
+                    for (let i = 0; i < dayOneElement.length; i++) {
+                        dayOneElement[i].innerHTML = formatDateLocal(before.tanggal);
+                    }
+
+                    let dayTwoElement = document.getElementsByClassName("day-2");
+                    for (let i = 0; i < dayTwoElement.length; i++) {
+                        dayTwoElement[i].innerHTML = formatDateLocal(yesterday.tanggal);
+                    }
+
+                    let dayThreeElement = document.getElementsByClassName("day-3");
+                    for (let i = 0; i < dayThreeElement.length; i++) {
+                        dayThreeElement[i].innerHTML = formatDateLocal(today.tanggal);
+                    }
                 }
             } else {
                 appendRow(data, index);
