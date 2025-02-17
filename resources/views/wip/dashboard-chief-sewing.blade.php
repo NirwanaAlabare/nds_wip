@@ -188,14 +188,17 @@
                         // Leader Output
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
-                            if (!res[value.leader_id]) {
-                                res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                leaderOutput.push(res[value.leader_id]);
+                            if (value.tanggal == formatDate(new Date())) {
+                                if (!res[value.leader_id]) {
+                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    leaderOutput.push(res[value.leader_id]);
+                                }
+                                res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
+                                res[value.leader_id].mins_prod += Number(value.mins_prod);
+                                res[value.leader_id].output += Number(value.output);
+                                res[value.leader_id].rft += Number(value.rft);
+                                res[value.leader_id].sewing_line += " "+value.sewing_line;
                             }
-                            res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
-                            res[value.leader_id].mins_prod += Number(value.mins_prod);
-                            res[value.leader_id].output += Number(value.output);
-                            res[value.leader_id].rft += Number(value.rft);
 
                             return res;
                         }, {});
@@ -244,25 +247,25 @@
             // Name
             let tr = document.createElement("tr");
             let tdName = document.createElement("td");
-            tdName.style.minWidth = '100px';
-            tdName.style.maxWidth = '300px';
             let employeeContainer = document.createElement("div");
             employeeContainer.id = "employee-"+index;
             employeeContainer.classList.add("row");
             employeeContainer.classList.add("justify-content-center");
-            employeeContainer.classList.add("align-items-center");
-            employeeContainer.style.maxWidth= '100%';
+            employeeContainer.classList.add("align-items-start");
 
             // Chief
             let chiefName = data.name ? data.name.split(" ")[0] : '-';
             let chiefContainer = document.createElement("div");
             chiefContainer.classList.add("col-5");
+            chiefContainer.classList.add("border");
             let imageElement = document.createElement("img");
-            imageElement.src = "/nds_wip/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png"
-            // imageElement.src = "{{ asset('dist/img/person.png') }}"
-            imageElement.classList.add("img-fluid");
-            imageElement.style.maxWidth = "100%";
-            imageElement.style.marginBottom = "10px";
+            imageElement.src = "/nds_wip_local/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png"
+            imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+            imageElement.setAttribute("alt", "person")
+            imageElement.style.width = "100px";
+            imageElement.style.height = "165px";
+            imageElement.style.marginLeft = "auto";
+            imageElement.style.marginRight = "auto";
             chiefContainer.appendChild(imageElement);
             chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
 
@@ -271,19 +274,21 @@
             leaderContainer.classList.add("col-7");
             let leadersElement = document.createElement("div");
             leadersElement.classList.add("row");
-            leadersElement.classList.add("justify-content-center");
+            leadersElement.classList.add("justify-content-start");
             leadersElement.classList.add("align-items-end");
-            leadersElement.classList.add("g-1");
             data.leaderData.forEach(element => {
                 let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-';
                 let leaderElement = document.createElement("div");
                 leaderElement.classList.add("col-4");
+                leaderElement.classList.add("border");
                 let leaderImageElement = document.createElement("img");
-                leaderImageElement.src = "/nds_wip/public/storage/employee_profile/"+element.leader_nik+"%20"+element.leader_name+".png"
-                // leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
+                leaderImageElement.src = "/nds_wip_local/public/storage/employee_profile/"+element.leader_nik+"%20"+element.leader_name+".png"
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 leaderImageElement.setAttribute("alt", "person")
-                leaderImageElement.classList.add("img-fluid");
+                leaderImageElement.style.width = "50px";
+                leaderImageElement.style.height = "80px";
+                leaderImageElement.style.marginLeft = "auto";
+                leaderImageElement.style.marginRight = "auto";
                 leaderElement.appendChild(leaderImageElement);
                 leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
                 leadersElement.appendChild(leaderElement);
@@ -294,7 +299,6 @@
             employeeContainer.appendChild(leaderContainer)
             tdName.appendChild(employeeContainer);
             tdName.classList.add("align-middle");
-            // tdName.classList.add("pe-5");
             tr.appendChild(tdName);
 
             // Chart
@@ -302,7 +306,7 @@
             let canvas = document.createElement("div");
             // canvas.id = "chart-"+index;
             canvas.classList.add("chief-daily-efficiency-chart");
-            canvas.style.width = '500px';
+            canvas.style.width = '450px';
             tdChart.appendChild(canvas);
             tdChart.classList.add("align-middle");
             tr.appendChild(tdChart);
@@ -572,14 +576,16 @@
                         // Leader Output
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
-                            if (!res[value.leader_id]) {
-                                res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                leaderOutput.push(res[value.leader_id]);
+                            if (value.tanggal == formatDate(new Date())) {
+                                if (!res[value.leader_id]) {
+                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    leaderOutput.push(res[value.leader_id]);
+                                }
+                                res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
+                                res[value.leader_id].mins_prod += Number(value.mins_prod);
+                                res[value.leader_id].output += Number(value.output);
+                                res[value.leader_id].rft += Number(value.rft);
                             }
-                            res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
-                            res[value.leader_id].mins_prod += Number(value.mins_prod);
-                            res[value.leader_id].output += Number(value.output);
-                            res[value.leader_id].rft += Number(value.rft);
 
                             return res;
                         }, {});
@@ -628,11 +634,13 @@
                 let chiefName = data.name ? data.name.split(" ")[0] : '-';
                 let chiefContainer = document.createElement("div");
                 chiefContainer.classList.add("col-5");
+                chiefContainer.classList.add("border");
                 let imageElement = document.createElement("img");
-                imageElement.src = "/nds_wip/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png"
-                // imageElement.src = "{{ asset('dist/img/person.png') }}"
-                imageElement.classList.add("img-fluid");
-                imageElement.style.minWidth = "100%";
+                imageElement.src = "/nds_wip_local/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png";
+                imageElement.style.width = "100px";
+                imageElement.style.height = "150px";
+                imageElement.style.marginLeft = "auto";
+                imageElement.style.marginRight = "auto";
                 imageElement.style.marginBottom = "10px";
                 chiefContainer.appendChild(imageElement);
                 chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
@@ -642,18 +650,21 @@
                 leaderContainer.classList.add("col-7");
                 let leadersElement = document.createElement("div");
                 leadersElement.classList.add("row");
-                leadersElement.classList.add("justify-content-center");
+                leadersElement.classList.add("justify-content-start");
                 leadersElement.classList.add("align-items-end");
                 data.leaderData.forEach(element => {
                     let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-';
                     let leaderElement = document.createElement("div");
                     leaderElement.classList.add("col-4");
+                    leaderElement.classList.add("border");
                     let leaderImageElement = document.createElement("img");
-                    leaderImageElement.src = "/nds_wip/public/storage/employee_profile/"+element.leader_nik+"%20"+element.leader_name+".png"
-                    // leaderImageElement.src = "{{ asset('dist/img/person.png') }}";
+                    leaderImageElement.src = "/nds_wip_local/public/storage/employee_profile/"+element.leader_nik+"%20"+element.leader_name+".png"
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
-                    leaderImageElement.classList.add("img-fluid");
+                    leaderImageElement.style.width = "50px";
+                    leaderImageElement.style.height = "80px";
+                    leaderImageElement.style.marginLeft = "auto";
+                    leaderImageElement.style.marginRight = "auto";
                     leaderElement.appendChild(leaderImageElement);
                     leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
                     leadersElement.appendChild(leaderElement);
