@@ -204,8 +204,9 @@
                             return res;
                         }, {});
 
-                        // Sort by leader output efficiency
-                        let sortedLeaderOutput = leaderOutput.sort(function(a,b){
+                        // Sort leader output efficiency
+                        let leaderOutputFilter = leaderOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let sortedLeaderOutput = leaderOutputFilter.sort(function(a,b){
                             if ((a.mins_prod/a.mins_avail) < (b.mins_prod/b.mins_avail)) {
                                 return 1;
                             }
@@ -547,8 +548,6 @@
                 let carouselElement = document.getElementById("carousel-1").cloneNode();
                 carouselElement.id = "carousel-"+((index/2)+1);
 
-                console.log(carouselElement);
-
                 carouselElement.appendChild(newTable);
                 carouselContainer.appendChild(carouselElement);
             }
@@ -559,23 +558,18 @@
         // Colorize Efficiency
         function colorizeEfficiency(element, efficiency) {
             if (isElement(element)) {
-                console.log("hey", element, efficiency);
                 switch (true) {
                     case efficiency < 75 :
-                        console.log(efficiency);
                         element.style.color = '#dc3545';
                         break;
                     case efficiency >= 75 && efficiency <= 85 :
-                        console.log(efficiency);
                         element.style.color = 'rgb(240, 153, 0)';
                         break;
                     case efficiency > 85 :
-                        console.log(efficiency);
                         element.style.color = '#28a745';
                         break;
                 }
             } else {
-                console.error("hell nah");
             }
         }
 
@@ -629,11 +623,22 @@
                             return res;
                         }, {});
 
+                        // Sort leader output efficiency
+                        let sortedLeaderOutput = leaderOutput.sort(function(a,b){
+                            if ((a.mins_prod/a.mins_avail) < (b.mins_prod/b.mins_avail)) {
+                                return 1;
+                            }
+                            if ((a.mins_prod/a.mins_avail)  > (b.mins_prod/b.mins_avail)) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
                         let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": leaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
