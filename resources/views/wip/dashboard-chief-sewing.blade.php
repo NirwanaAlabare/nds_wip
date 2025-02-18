@@ -76,7 +76,7 @@
     <input type="hidden" id="month-name" value="{{ $monthName ? $monthName : $months[num(date("m"))-1] }}">
     <swiper-container class="mySwiper" id="table-carousel" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
         <swiper-slide id="carousel-1">
-            <div class="table-responsive" id="chief-daily-efficiency-table">
+            <div class="table-responsive swiper-no-swiping" id="chief-daily-efficiency-table">
                 <table class="table table-bordered w-100">
                     <thead>
                         <tr>
@@ -101,7 +101,6 @@
             </div>
         </swiper-slide>
     </swiper-container>
-    </div>
 @endsection
 
 @section('custom-script')
