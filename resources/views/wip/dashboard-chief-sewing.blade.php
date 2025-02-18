@@ -274,7 +274,7 @@
             chiefContainer.classList.add("col-5");
             chiefContainer.classList.add("border");
             let imageElement = document.createElement("img");
-            imageElement.src = "/nds_wip_local/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png"
+            imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
             imageElement.setAttribute("alt", "person")
             imageElement.style.width = "100px";
@@ -295,7 +295,7 @@
                 leaderElement.classList.add("col-4");
                 leaderElement.classList.add("border");
                 let leaderImageElement = document.createElement("img");
-                leaderImageElement.src = "/nds_wip_local/public/storage/employee_profile/"+element.leader_nik+"%20"+element.leader_name+".png"
+                leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 leaderImageElement.setAttribute("alt", "person")
                 leaderImageElement.style.width = "50px";
@@ -676,7 +676,7 @@
                 chiefContainer.classList.add("col-5");
                 chiefContainer.classList.add("border");
                 let imageElement = document.createElement("img");
-                imageElement.src = "/nds_wip_local/public/storage/employee_profile/"+data.nik+"%20"+data.name+".png";
+                imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png";
                 imageElement.style.width = "100px";
                 imageElement.style.height = "150px";
                 imageElement.style.marginLeft = "auto";
@@ -696,7 +696,7 @@
                     leaderElement.classList.add("col-4");
                     leaderElement.classList.add("border");
                     let leaderImageElement = document.createElement("img");
-                    leaderImageElement.src = "/nds_wip_local/public/storage/employee_profile/"+element.leader_nik+"%20"+element.leader_name+".png"
+                    leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
                     leaderImageElement.style.width = "50px";
