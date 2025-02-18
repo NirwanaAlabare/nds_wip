@@ -144,7 +144,7 @@ class PartController extends Controller
                         inner join so on sd.id_so = so.id
                         inner join act_costing ac on so.id_cost = ac.id
                         inner join masteritem mi on k.id_item = mi.id_gen
-                        where ac.id = '" . $request->act_costing_id . "' and k.status = 'M' and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                        where ac.id = '" . $request->act_costing_id . "' and k.status = 'M' and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and mi.mattype = 'F'
                         group by id_panel
                     ) a
                 inner join masterpanel mp on a.id_panel = mp.id
