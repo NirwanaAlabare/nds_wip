@@ -76,27 +76,29 @@
     <input type="hidden" id="month-name" value="{{ $monthName ? $monthName : $months[num(date("m"))-1] }}">
     <swiper-container class="mySwiper" id="table-carousel" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
         <swiper-slide id="carousel-1">
-            <table class="table table-bordered w-100" id="chief-daily-efficiency-table">
-                <thead>
-                    <tr>
-                        <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
-                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
-                        <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
-                        <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
-                    </tr>
-                    <tr>
-                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                        <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div class="table-responsive" id="chief-daily-efficiency-table">
+                <table class="table table-bordered w-100">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
+                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
+                        </tr>
+                        <tr>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </swiper-slide>
     </swiper-container>
     </div>
@@ -197,17 +199,28 @@
                                 res[value.leader_id].mins_prod += Number(value.mins_prod);
                                 res[value.leader_id].output += Number(value.output);
                                 res[value.leader_id].rft += Number(value.rft);
-                                res[value.leader_id].sewing_line += " "+value.sewing_line;
+                                res[value.leader_id].sewing_line += value.sewing_line+"<br>";
                             }
 
                             return res;
                         }, {});
 
+                        // Sort by leader output efficiency
+                        let sortedLeaderOutput = leaderOutput.sort(function(a,b){
+                            if ((a.mins_prod/a.mins_avail) < (b.mins_prod/b.mins_avail)) {
+                                return 1;
+                            }
+                            if ((a.mins_prod/a.mins_avail)  > (b.mins_prod/b.mins_avail)) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
                         let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": leaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -249,9 +262,11 @@
             let tdName = document.createElement("td");
             let employeeContainer = document.createElement("div");
             employeeContainer.id = "employee-"+index;
+            employeeContainer.style.width = "350px";
+            employeeContainer.style.minHeight = "200px";
+            employeeContainer.style.marginLeft = "auto";
+            employeeContainer.style.marginRight = "auto";
             employeeContainer.classList.add("row");
-            employeeContainer.classList.add("justify-content-center");
-            employeeContainer.classList.add("align-items-start");
 
             // Chief
             let chiefName = data.name ? data.name.split(" ")[0] : '-';
@@ -274,10 +289,8 @@
             leaderContainer.classList.add("col-7");
             let leadersElement = document.createElement("div");
             leadersElement.classList.add("row");
-            leadersElement.classList.add("justify-content-start");
-            leadersElement.classList.add("align-items-end");
             data.leaderData.forEach(element => {
-                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-';
+                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-KOSONG-';
                 let leaderElement = document.createElement("div");
                 leaderElement.classList.add("col-4");
                 leaderElement.classList.add("border");
@@ -291,6 +304,7 @@
                 leaderImageElement.style.marginRight = "auto";
                 leaderElement.appendChild(leaderImageElement);
                 leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
+                leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 8px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                 leadersElement.appendChild(leaderElement);
             });
             leaderContainer.appendChild(leadersElement);
@@ -414,7 +428,7 @@
             tdBeforeEff.classList.add("text-center");
             tdBeforeEff.classList.add("align-middle");
             tdBeforeEff.classList.add("fw-bold");
-            (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  tdBeforeEff.classList.add("text-success") : tdBeforeEff.classList.add("text-danger");
+            colorizeEfficiency(tdBeforeEff, (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0));
             tdBeforeEff.classList.add("fs-6");
             let tdBeforeRft = document.createElement("td");
             tdBeforeRft.id = "before-rft-"+index;
@@ -423,7 +437,7 @@
             tdBeforeRft.classList.add("text-center");
             tdBeforeRft.classList.add("align-middle");
             tdBeforeRft.classList.add("fw-bold");
-            (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 97 ?  tdBeforeRft.classList.add("text-success") : tdBeforeRft.classList.add("text-danger");
+            colorizeEfficiency(tdBeforeRft, (before ? (before.rft / before.output * 100).round(2) : 0))
             tdBeforeRft.classList.add("fs-6");
 
             // Yesterday
@@ -434,7 +448,7 @@
             tdYesterdayEff.classList.add("text-center");
             tdYesterdayEff.classList.add("align-middle");
             tdYesterdayEff.classList.add("fw-bold");
-            (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  tdYesterdayEff.classList.add("text-success") : tdYesterdayEff.classList.add("text-danger");
+            colorizeEfficiency(tdYesterdayEff, (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0))
             tdYesterdayEff.classList.add("fs-6");
             let tdYesterdayRft = document.createElement("td");
             tdYesterdayRft.id = "yesterday-rft-"+index;
@@ -443,7 +457,7 @@
             tdYesterdayRft.classList.add("text-center");
             tdYesterdayRft.classList.add("align-middle");
             tdYesterdayRft.classList.add("fw-bold");
-            (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  tdYesterdayRft.classList.add("text-success") : tdYesterdayRft.classList.add("text-danger");
+            colorizeEfficiency(tdYesterdayRft, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
             tdYesterdayRft.classList.add("fs-6");
 
             // Today
@@ -454,7 +468,7 @@
             tdTodayEff.classList.add("text-center");
             tdTodayEff.classList.add("align-middle");
             tdTodayEff.classList.add("fw-bold");
-            (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  tdTodayEff.classList.add("text-success") : tdTodayEff.classList.add("text-danger");
+            colorizeEfficiency(tdTodayEff, (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0))
             tdTodayEff.classList.add("fs-6");
             tdTodayEff.classList.add("align-middle");
             let tdTodayRft = document.createElement("td");
@@ -464,7 +478,7 @@
             tdTodayRft.classList.add("text-center");
             tdTodayRft.classList.add("align-middle");
             tdTodayRft.classList.add("fw-bold");
-            (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  tdTodayRft.classList.add("text-success") : tdTodayRft.classList.add("text-danger");
+            colorizeEfficiency(tdTodayRft, (today ? (today.rft / today.output * 100).round(2) : 0))
             tdTodayRft.classList.add("fs-6");
 
             if (formatDate(new Date()) > today.tanggal) {
@@ -507,25 +521,27 @@
                 let newTable = tableElement.cloneNode();
                 newTable.id = "chief-daily-efficiency-table";
                 newTable.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
-                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
-                        </tr>
-                        <tr>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
+                    <table class="table table-bordered w-100">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
+                                <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
+                            </tr>
+                            <tr>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 `;
 
                 let carouselContainer = document.getElementById("table-carousel");
@@ -539,6 +555,29 @@
             }
 
             // initSparkle();
+        }
+
+        // Colorize Efficiency
+        function colorizeEfficiency(element, efficiency) {
+            if (isElement(element)) {
+                console.log("hey", element, efficiency);
+                switch (true) {
+                    case efficiency < 75 :
+                        console.log(efficiency);
+                        element.style.color = '#dc3545';
+                        break;
+                    case efficiency >= 75 && efficiency <= 85 :
+                        console.log(efficiency);
+                        element.style.color = 'rgb(240, 153, 0)';
+                        break;
+                    case efficiency > 85 :
+                        console.log(efficiency);
+                        element.style.color = '#28a745';
+                        break;
+                }
+            } else {
+                console.error("hell nah");
+            }
         }
 
         async function updateData() {
@@ -578,13 +617,14 @@
                         element.reduce(function(res, value) {
                             if (value.tanggal == formatDate(new Date())) {
                                 if (!res[value.leader_id]) {
-                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                     leaderOutput.push(res[value.leader_id]);
                                 }
                                 res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
                                 res[value.leader_id].mins_prod += Number(value.mins_prod);
                                 res[value.leader_id].output += Number(value.output);
                                 res[value.leader_id].rft += Number(value.rft);
+                                res[value.leader_id].sewing_line += value.sewing_line+"<br>";
                             }
 
                             return res;
@@ -650,10 +690,8 @@
                 leaderContainer.classList.add("col-7");
                 let leadersElement = document.createElement("div");
                 leadersElement.classList.add("row");
-                leadersElement.classList.add("justify-content-start");
-                leadersElement.classList.add("align-items-end");
                 data.leaderData.forEach(element => {
-                    let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-';
+                    let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                     let leaderElement = document.createElement("div");
                     leaderElement.classList.add("col-4");
                     leaderElement.classList.add("border");
@@ -667,6 +705,7 @@
                     leaderImageElement.style.marginRight = "auto";
                     leaderElement.appendChild(leaderImageElement);
                     leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
+                    leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 8px;'><center>"+element.sewing_line.replace("_", " ").toUpperCase()+"</center></span>";
                     leadersElement.appendChild(leaderElement);
                 });
                 leaderContainer.appendChild(leadersElement);
@@ -723,30 +762,30 @@
                 let beforeEffElement = document.getElementById("before-eff-"+index);
                 if (beforeEffElement) {
                     beforeEffElement.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+" %";
-                    (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  beforeEffElement.classList.add("text-success") : beforeEffElement.classList.add("text-danger");
+                    colorizeEfficiency(beforeEffElement, (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0))
                     let beforeRftElement = document.getElementById("before-rft-"+index);
                     beforeRftElement.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+" %";
-                    (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 97 ?  beforeRftElement.classList.add("text-success") : beforeRftElement.classList.add("text-danger");
+                    colorizeEfficiency(beforeRftElement, (before ? (before.rft / before.output * 100).round(2) : 0))
                 }
 
                 // Yesterday
                 let yesterdayEffElement = document.getElementById("yesterday-eff-"+index);
                 if (yesterdayEffElement) {
-                    yesterdayEffElement.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+" %";
-                    (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 85 ?  yesterdayEffElement.classList.add("text-success") : yesterdayEffElement.classList.add("text-danger");
+                    yesterdayEffElement.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+" %";
+                    colorizeEfficiency(yesterdayEffElement, (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0))
                     let yesterdayRftElement = document.getElementById("yesterday-rft-"+index);
-                    yesterdayRftElement.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+" %";
-                    (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0) >= 97 ?  yesterdayRftElement.classList.add("text-success") : yesterdayRftElement.classList.add("text-danger");
+                    yesterdayRftElement.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+" %";
+                    colorizeEfficiency(yesterdayRftElement, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
                 }
 
                 // Today
                 let todayEffElement = document.getElementById("today-eff-"+index);
                 if (yesterdayEffElement) {
                     todayEffElement.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+" %";
-                    (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0) >= 85 ?  todayEffElement.classList.add("text-success") : todayEffElement.classList.add("text-danger");
+                    colorizeEfficiency(todayEffElement, (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0))
                     let todayRftElement = document.getElementById("today-rft-"+index);
                     todayRftElement.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+" %";
-                    (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0) >= 97 ?  todayRftElement.classList.add("text-success") : todayRftElement.classList.add("text-danger");
+                    colorizeEfficiency(todayRftElement, (today ? (today.rft / today.output * 100).round(2) : 0))
                 }
 
                 if (formatDate(new Date()) > today.tanggal) {

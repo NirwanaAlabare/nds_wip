@@ -777,6 +777,7 @@ END jam) a))) target from (
         $efficiencyLine = DB::connection("mysql_sb")->select("
             select
                 output_employee_line.*,
+                output.sewing_line,
                 SUM(rft) rft,
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
