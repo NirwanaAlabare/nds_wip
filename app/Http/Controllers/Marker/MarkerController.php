@@ -184,6 +184,19 @@ class MarkerController extends Controller
 
     public function getPanelList(Request $request)
     {
+        // $panels = DB::connection('mysql_sb')->select("
+        //         select nama_panel panel from
+        //             (select id_panel from bom_jo_item k
+        //                 inner join so_det sd on k.id_so_det = sd.id
+        //                 inner join so on sd.id_so = so.id
+        //                 inner join act_costing ac on so.id_cost = ac.id
+        //                 inner join masteritem mi on k.id_item = mi.id_gen
+        //                 where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
+        //                 and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+        //                 group by id_panel
+        //             ) a
+        //         inner join masterpanel mp on a.id_panel = mp.id
+        //     ");
         $panels = DB::connection('mysql_sb')->select("
                 select nama_panel panel from
                     (select id_panel from bom_jo_item k
@@ -192,7 +205,7 @@ class MarkerController extends Controller
                         inner join act_costing ac on so.id_cost = ac.id
                         inner join masteritem mi on k.id_item = mi.id_gen
                         where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
-                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and mi.mattype = 'F'
                         group by id_panel
                     ) a
                 inner join masterpanel mp on a.id_panel = mp.id
@@ -209,6 +222,18 @@ class MarkerController extends Controller
 
     public function getNumber(Request $request)
     {
+         // $number = DB::connection('mysql_sb')->select("
+        //         select k.cons cons_ws,sum(coalesce(sd.qty, 0)) order_qty from bom_jo_item k
+        //             inner join so_det sd on k.id_so_det = sd.id
+        //             inner join so on sd.id_so = so.id
+        //             inner join act_costing ac on so.id_cost = ac.id
+        //             inner join masteritem mi on k.id_item = mi.id_gen
+        //             inner join masterpanel mp on k.id_panel = mp.id
+        //         where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and mp.nama_panel ='" . $request->panel . "' and k.status = 'M'
+        //         and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+        //         group by sd.color, k.id_item, k.unit
+        //         limit 1
+        //     ");
         $number = DB::connection('mysql_sb')->select("
                 select k.cons cons_ws,sum(coalesce(sd.qty, 0)) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
@@ -217,7 +242,7 @@ class MarkerController extends Controller
                     inner join masteritem mi on k.id_item = mi.id_gen
                     inner join masterpanel mp on k.id_panel = mp.id
                 where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and mp.nama_panel ='" . $request->panel . "' and k.status = 'M'
-                and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and mi.mattype = 'F'
                 group by sd.color, k.id_item, k.unit
                 limit 1
             ");
@@ -984,6 +1009,26 @@ class MarkerController extends Controller
                 so_det.qty as qty
             ')->leftJoin('so', 'so.id', '=', 'so_det.id_so')->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')->leftJoin('master_size_new', 'master_size_new.size', '=', 'so_det.size')->where('act_costing.id', $markerData->act_costing_id)->where('so_det.color', $markerData->color)->where('so_det.qty', '>', '0')->groupBy('so_det.size')->orderBy('master_size_new.urutan')->get();
 
+        // $orderQty = DB::connection('mysql_sb')->select("
+        //     select k.cons cons_ws, sum(sd.qty) order_qty from bom_jo_item k
+        //         inner join so_det sd on k.id_so_det = sd.id
+        //         inner join so on sd.id_so = so.id
+        //         inner join act_costing ac on so.id_cost = ac.id
+        //         inner join masteritem mi on k.id_item = mi.id_gen
+        //         inner join masterpanel mp on k.id_panel = mp.id
+        //     where
+        //         ac.id = '" . $markerData->act_costing_id . "' and
+        //         sd.color = '" . $markerData->color . "' and
+        //         mp.nama_panel ='" . $markerData->panel . "' and
+        //         k.status = 'M' and
+        //         k.cancel = 'N' and
+        //         sd.cancel = 'N' and
+        //         so.cancel_h = 'N' and
+        //         ac.status = 'confirm' and
+        //         mi.mattype = 'F' and
+        //         sd.qty > 0
+        //     group by sd.color, k.id_item, k.unit
+        //     limit 1");
         $orderQty = DB::connection('mysql_sb')->select("
             select k.cons cons_ws, sum(sd.qty) order_qty from bom_jo_item k
                 inner join so_det sd on k.id_so_det = sd.id
@@ -999,7 +1044,6 @@ class MarkerController extends Controller
                 k.cancel = 'N' and
                 sd.cancel = 'N' and
                 so.cancel_h = 'N' and
-                ac.status = 'confirm' and
                 mi.mattype = 'F' and
                 sd.qty > 0
             group by sd.color, k.id_item, k.unit
