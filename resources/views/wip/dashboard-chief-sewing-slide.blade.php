@@ -80,19 +80,19 @@
                 <table class="table table-bordered w-100">
                     <thead>
                         <tr>
-                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 11px !important; padding: 1px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="font-size: 9px !important;padding: 1px !important;">H-2</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="font-size: 9px !important;padding: 1px !important;">H-1</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="font-size: 9px !important;padding: 1px !important;">Hari Ini</th>
-                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Rank</th>
+                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
+                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
                         </tr>
                         <tr>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,8 +122,8 @@
 
     <script>
         // Set Custom Dashboard View
-        // document.body.style.maxHeight = "100vh";
-        // document.body.style.overflow = "hidden";
+        document.body.style.maxHeight = "100vh";
+        document.body.style.overflow = "hidden";
 
         document.querySelector(".content-wrapper").classList.remove("pt-3");
         document.querySelector(".content-wrapper").classList.add("pt-1");
@@ -190,16 +190,15 @@
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
                             if (value.tanggal == formatDate(new Date())) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    leaderOutput.push(res[param]);
+                                if (!res[value.leader_id]) {
+                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    leaderOutput.push(res[value.leader_id]);
                                 }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
+                                res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
+                                res[value.leader_id].mins_prod += Number(value.mins_prod);
+                                res[value.leader_id].output += Number(value.output);
+                                res[value.leader_id].rft += Number(value.rft);
+                                res[value.leader_id].sewing_line += value.sewing_line+"<br>";
                             }
 
                             return res;
@@ -260,40 +259,42 @@
             // Name
             let tr = document.createElement("tr");
             let tdName = document.createElement("td");
-            tdName.style.width = "200px";
-            tdName.style.padding = "3px 10px";
             let employeeContainer = document.createElement("div");
             employeeContainer.id = "employee-"+index;
+            // employeeContainer.style.width = "400px";
+            // employeeContainer.style.minHeight = "200px";
             employeeContainer.style.marginLeft = "auto";
             employeeContainer.style.marginRight = "auto";
-            employeeContainer.style.height = "100%";
             employeeContainer.classList.add("row");
 
             // Chief
             let chiefName = data.name ? data.name.split(" ")[0] : '-';
             let chiefContainer = document.createElement("div");
             chiefContainer.classList.add("col-5");
-            chiefContainer.classList.add("p-1");
+            chiefContainer.classList.add("p-3");
             chiefContainer.classList.add("border");
             let imageElement = document.createElement("img");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
             imageElement.setAttribute("alt", "person")
             imageElement.classList.add("img-fluid")
-            // imageElement.style.width = "200px";
+            imageElement.style.width = "200px";
             // imageElement.style.height = "150px";
             imageElement.style.marginLeft = "auto";
             imageElement.style.marginRight = "auto";
             chiefContainer.appendChild(imageElement);
-            chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
+            chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
 
             // Leader
             let leaderContainer = document.createElement("div");
             leaderContainer.classList.add("col-7");
             let leadersElement = document.createElement("div");
             leadersElement.classList.add("row");
+            if (data.name.split(" ")[0] == "SUHANA") {
+                console.log(data.leaderData);
+            }
             data.leaderData.forEach(element => {
-                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
+                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-KOSONG-';
                 let leaderElement = document.createElement("div");
                 leaderElement.classList.add("col-4");
                 leaderElement.classList.add("p-1");
@@ -303,13 +304,13 @@
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 leaderImageElement.setAttribute("alt", "person")
                 leaderImageElement.classList.add("img-fluid")
-                // leaderImageElement.style.width = "50px";
+                leaderImageElement.style.width = "50px";
                 // leaderImageElement.style.height = "50px";
                 leaderImageElement.style.marginLeft = "auto";
                 leaderImageElement.style.marginRight = "auto";
                 leaderElement.appendChild(leaderImageElement);
-                leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 5.5px;'><center>"+leaderName+"</center></span>";
-                leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 5.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
+                leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 8px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                 leadersElement.appendChild(leaderElement);
             });
             leaderContainer.appendChild(leadersElement);
@@ -322,11 +323,10 @@
 
             // Chart
             let tdChart = document.createElement("td");
-            tdChart.style.width = '300px';
-            tdChart.style.padding = '0px 20px 0px 0px';
             let canvas = document.createElement("div");
             // canvas.id = "chart-"+index;
             canvas.classList.add("chief-daily-efficiency-chart");
+            canvas.style.width = '450px';
             tdChart.appendChild(canvas);
             tdChart.classList.add("align-middle");
             tr.appendChild(tdChart);
@@ -357,7 +357,7 @@
                 ],
                 chart: {
                     id: "chart-"+index,
-                    height: 100,
+                    height: 200,
                     type: 'line',
                     zoom: {
                         enabled: true
@@ -370,17 +370,16 @@
                 dataLabels: {
                     enabled: true,
                     style: {
-                        fontSize: "5px",
+                        fontSize: "8px",
                     }
                 },
                 stroke: {
                     curve: 'smooth'
                 },
-                // title: {
-                //     enable: false,
-                //     text: 'Daily '+$("#month-name").val(),
-                //     align: 'left'
-                // },
+                title: {
+                    text: 'Daily '+$("#month-name").val(),
+                    align: 'left'
+                },
                 grid: {
                     borderColor: '#e7e7e7',
                     row: {
@@ -389,10 +388,9 @@
                     },
                 },
                 yaxis: {
-                    tickAmount: 1,
                     labels: {
                         style: {
-                            fontSize: "5px",
+                            fontSize: "8px",
                         }
                     }
                 },
@@ -400,7 +398,7 @@
                     categories: tglArr,
                     labels: {
                         style: {
-                            fontSize: "6.5px",
+                            fontSize: "8px",
                         }
                     }
                 },
@@ -445,7 +443,7 @@
             tdBeforeRft.classList.add("text-center");
             tdBeforeRft.classList.add("align-middle");
             tdBeforeRft.classList.add("fw-bold");
-            colorizeRft(tdBeforeRft, (before ? (before.rft / before.output * 100).round(2) : 0))
+            colorizeEfficiency(tdBeforeRft, (before ? (before.rft / before.output * 100).round(2) : 0))
             tdBeforeRft.classList.add("fs-6");
 
             // Yesterday
@@ -465,7 +463,7 @@
             tdYesterdayRft.classList.add("text-center");
             tdYesterdayRft.classList.add("align-middle");
             tdYesterdayRft.classList.add("fw-bold");
-            colorizeRft(tdYesterdayRft, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
+            colorizeEfficiency(tdYesterdayRft, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
             tdYesterdayRft.classList.add("fs-6");
 
             // Today
@@ -486,7 +484,7 @@
             tdTodayRft.classList.add("text-center");
             tdTodayRft.classList.add("align-middle");
             tdTodayRft.classList.add("fw-bold");
-            colorizeRft(tdTodayRft, (today ? (today.rft / today.output * 100).round(2) : 0))
+            colorizeEfficiency(tdTodayRft, (today ? (today.rft / today.output * 100).round(2) : 0))
             tdTodayRft.classList.add("fs-6");
 
             if (formatDate(new Date()) > today.tanggal) {
@@ -524,42 +522,41 @@
 
             chart.render();
 
-            // Slide per 2 row
-                // if (index % 2 == 0) {
-                //     tableElement.id = "chief-daily-efficiency-table-"+((index/2)+1);
-                //     let newTable = tableElement.cloneNode();
-                //     newTable.id = "chief-daily-efficiency-table";
-                //     newTable.innerHTML = `
-                //         <table class="table table-bordered w-100">
-                //             <thead>
-                //                 <tr>
-                //                     <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                //                     <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
-                //                     <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
-                //                     <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
-                //                     <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
-                //                 </tr>
-                //                 <tr>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                //                 </tr>
-                //             </thead>
-                //             <tbody>
-                //             </tbody>
-                //         </table>
-                //     `;
+            if (index % 2 == 0) {
+                tableElement.id = "chief-daily-efficiency-table-"+((index/2)+1);
+                let newTable = tableElement.cloneNode();
+                newTable.id = "chief-daily-efficiency-table";
+                newTable.innerHTML = `
+                    <table class="table table-bordered w-100">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
+                                <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
+                            </tr>
+                            <tr>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                `;
 
-                //     let carouselContainer = document.getElementById("table-carousel");
-                //     let carouselElement = document.getElementById("carousel-1").cloneNode();
-                //     carouselElement.id = "carousel-"+((index/2)+1);
+                let carouselContainer = document.getElementById("table-carousel");
+                let carouselElement = document.getElementById("carousel-1").cloneNode();
+                carouselElement.id = "carousel-"+((index/2)+1);
 
-                //     carouselElement.appendChild(newTable);
-                //     carouselContainer.appendChild(carouselElement);
-                // }
+                carouselElement.appendChild(newTable);
+                carouselContainer.appendChild(carouselElement);
+            }
 
             // initSparkle();
         }
@@ -578,23 +575,7 @@
                         element.style.color = '#28a745';
                         break;
                 }
-            }
-        }
-
-        // Colorize RFT
-        function colorizeRft(element, rft) {
-            if (isElement(element)) {
-                switch (true) {
-                    case rft < 97 :
-                        element.style.color = '#dc3545';
-                        break;
-                    case rft >= 97 && rft < 98 :
-                        element.style.color = 'rgb(240, 153, 0)';
-                        break;
-                    case rft >= 98 :
-                        element.style.color = '#28a745';
-                        break;
-                }
+            } else {
             }
         }
 
@@ -634,16 +615,15 @@
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
                             if (value.tanggal == formatDate(new Date())) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    leaderOutput.push(res[param]);
+                                if (!res[value.leader_id]) {
+                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    leaderOutput.push(res[value.leader_id]);
                                 }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
+                                res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
+                                res[value.leader_id].mins_prod += Number(value.mins_prod);
+                                res[value.leader_id].output += Number(value.output);
+                                res[value.leader_id].rft += Number(value.rft);
+                                res[value.leader_id].sewing_line += value.sewing_line+"<br>";
                             }
 
                             return res;
@@ -704,18 +684,18 @@
                 let chiefName = data.name ? data.name.split(" ")[0] : '-';
                 let chiefContainer = document.createElement("div");
                 chiefContainer.classList.add("col-5");
-                chiefContainer.classList.add("p-1");
+                chiefContainer.classList.add("p-3");
                 chiefContainer.classList.add("border");
                 let imageElement = document.createElement("img");
                 imageElement.classList.add("img-fluid");
                 imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png";
-                // imageElement.style.width = "200px";
+                imageElement.style.width = "200px";
                 // imageElement.style.height = "150px";
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
                 imageElement.style.marginBottom = "10px";
                 chiefContainer.appendChild(imageElement);
-                chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
+                chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
 
                 // Leader
                 let leaderContainer = document.createElement("div");
@@ -733,13 +713,13 @@
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
                     leaderImageElement.classList.add("img-fluid")
-                    // leaderImageElement.style.width = "50px";
+                    leaderImageElement.style.width = "50px";
                     // leaderImageElement.style.height = "50px";
                     leaderImageElement.style.marginLeft = "auto";
                     leaderImageElement.style.marginRight = "auto";
                     leaderElement.appendChild(leaderImageElement);
-                    leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 5.5px;'><center>"+leaderName+"</center></span>";
-                    leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 5.5px;'><center>"+element.sewing_line.replace("_", " ").toUpperCase()+"</center></span>";
+                    leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
+                    leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 8px;'><center>"+element.sewing_line.replace("_", " ").toUpperCase()+"</center></span>";
                     leadersElement.appendChild(leaderElement);
                 });
                 leaderContainer.appendChild(leadersElement);
@@ -799,7 +779,7 @@
                     colorizeEfficiency(beforeEffElement, (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0))
                     let beforeRftElement = document.getElementById("before-rft-"+index);
                     beforeRftElement.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+" %";
-                    colorizeRft(beforeRftElement, (before ? (before.rft / before.output * 100).round(2) : 0))
+                    colorizeEfficiency(beforeRftElement, (before ? (before.rft / before.output * 100).round(2) : 0))
                 }
 
                 // Yesterday
@@ -809,7 +789,7 @@
                     colorizeEfficiency(yesterdayEffElement, (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0))
                     let yesterdayRftElement = document.getElementById("yesterday-rft-"+index);
                     yesterdayRftElement.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+" %";
-                    colorizeRft(yesterdayRftElement, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
+                    colorizeEfficiency(yesterdayRftElement, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
                 }
 
                 // Today
@@ -819,7 +799,7 @@
                     colorizeEfficiency(todayEffElement, (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0))
                     let todayRftElement = document.getElementById("today-rft-"+index);
                     todayRftElement.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+" %";
-                    colorizeRft(todayRftElement, (today ? (today.rft / today.output * 100).round(2) : 0))
+                    colorizeEfficiency(todayRftElement, (today ? (today.rft / today.output * 100).round(2) : 0))
                 }
 
                 if (formatDate(new Date()) > today.tanggal) {
