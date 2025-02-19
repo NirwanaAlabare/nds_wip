@@ -249,9 +249,9 @@
             });
         });
 
-        // var intervalData = setInterval(() => {
-        //     updateData();
-        // }, 10000);
+        var intervalData = setInterval(() => {
+            updateData();
+        }, 60000);
 
         async function appendRow(data, index) {
             let tableElement = document.getElementById('chief-daily-efficiency-table');
@@ -260,7 +260,7 @@
             // Name
             let tr = document.createElement("tr");
             let tdName = document.createElement("td");
-            tdName.style.width = "400px";
+            tdName.style.width = "200px";
             tdName.style.padding = "3px 10px";
             let employeeContainer = document.createElement("div");
             employeeContainer.id = "employee-"+index;
@@ -272,7 +272,7 @@
             // Chief
             let chiefName = data.name ? data.name.split(" ")[0] : '-';
             let chiefContainer = document.createElement("div");
-            chiefContainer.classList.add("col-3");
+            chiefContainer.classList.add("col-5");
             chiefContainer.classList.add("p-1");
             chiefContainer.classList.add("border");
             let imageElement = document.createElement("img");
@@ -289,20 +289,15 @@
 
             // Leader
             let leaderContainer = document.createElement("div");
-            leaderContainer.classList.add("col-9");
+            leaderContainer.classList.add("col-7");
             let leadersElement = document.createElement("div");
             leadersElement.classList.add("row");
-            leadersElement.classList.add("h-100");
             data.leaderData.forEach(element => {
                 let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                 let leaderElement = document.createElement("div");
-                leaderElement.classList.add("col-2");
+                leaderElement.classList.add("col-4");
                 leaderElement.classList.add("p-1");
                 leaderElement.classList.add("border");
-                leaderElement.classList.add("d-flex");
-                leaderElement.classList.add("flex-column");
-                let leaderImageContainer = document.createElement("div");
-                leaderImageContainer.classList.add("m-auto");
                 let leaderImageElement = document.createElement("img");
                 leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -310,10 +305,11 @@
                 leaderImageElement.classList.add("img-fluid")
                 // leaderImageElement.style.width = "50px";
                 // leaderImageElement.style.height = "50px";
-                leaderImageContainer.appendChild(leaderImageElement)
-                leaderElement.appendChild(leaderImageContainer);
-                leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
-                leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                leaderImageElement.style.marginLeft = "auto";
+                leaderImageElement.style.marginRight = "auto";
+                leaderElement.appendChild(leaderImageElement);
+                leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 5.5px;'><center>"+leaderName+"</center></span>";
+                leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 5.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                 leadersElement.appendChild(leaderElement);
             });
             leaderContainer.appendChild(leadersElement);
@@ -326,7 +322,7 @@
 
             // Chart
             let tdChart = document.createElement("td");
-            tdChart.style.width = '400px';
+            tdChart.style.width = '300px';
             tdChart.style.padding = '0px 20px 0px 0px';
             let canvas = document.createElement("div");
             // canvas.id = "chart-"+index;
@@ -413,11 +409,10 @@
                 },
                 legend: {
                     position: 'top',
-                    horizontalAlign: 'center',
+                    horizontalAlign: 'right',
                     floating: true,
-                    offsetY: 5,
-                    offsetX: -5,
-                    fontSize: "8.5px",
+                    offsetY: -25,
+                    offsetX: -5
                 },
                 redrawOnParentResize: true
             };
@@ -436,51 +431,47 @@
             // Before
             let tdBeforeEff = document.createElement("td");
             tdBeforeEff.id = "before-eff-"+index;
-            tdBeforeEff.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+"%";
+            tdBeforeEff.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+" %";
             tr.appendChild(tdBeforeEff);
             tdBeforeEff.classList.add("text-center");
             tdBeforeEff.classList.add("align-middle");
             tdBeforeEff.classList.add("fw-bold");
-            tdBeforeEff.style.padding = '1px !important';
             colorizeEfficiency(tdBeforeEff, (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0));
             tdBeforeEff.classList.add("fs-6");
             let tdBeforeRft = document.createElement("td");
             tdBeforeRft.id = "before-rft-"+index;
-            tdBeforeRft.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+"%";
+            tdBeforeRft.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+" %";
             tr.appendChild(tdBeforeRft);
             tdBeforeRft.classList.add("text-center");
             tdBeforeRft.classList.add("align-middle");
             tdBeforeRft.classList.add("fw-bold");
             colorizeRft(tdBeforeRft, (before ? (before.rft / before.output * 100).round(2) : 0))
             tdBeforeRft.classList.add("fs-6");
-            tdBeforeRft.style.padding = '1px !important';
 
             // Yesterday
             let tdYesterdayEff = document.createElement("td");
             tdYesterdayEff.id = "yesterday-eff-"+index;
-            tdYesterdayEff.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+"%";
+            tdYesterdayEff.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+" %";
             tr.appendChild(tdYesterdayEff);
             tdYesterdayEff.classList.add("text-center");
             tdYesterdayEff.classList.add("align-middle");
             tdYesterdayEff.classList.add("fw-bold");
-            tdYesterdayEff.style.padding = '1px !important';
             colorizeEfficiency(tdYesterdayEff, (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0))
             tdYesterdayEff.classList.add("fs-6");
             let tdYesterdayRft = document.createElement("td");
             tdYesterdayRft.id = "yesterday-rft-"+index;
-            tdYesterdayRft.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+"%";
+            tdYesterdayRft.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+" %";
             tr.appendChild(tdYesterdayRft);
             tdYesterdayRft.classList.add("text-center");
             tdYesterdayRft.classList.add("align-middle");
             tdYesterdayRft.classList.add("fw-bold");
             colorizeRft(tdYesterdayRft, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
             tdYesterdayRft.classList.add("fs-6");
-            tdYesterdayRft.style.padding = '1px !important';
 
             // Today
             let tdTodayEff = document.createElement("td");
             tdTodayEff.id = "today-eff-"+index;
-            tdTodayEff.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+"%";
+            tdTodayEff.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+" %";
             tr.appendChild(tdTodayEff);
             tdTodayEff.classList.add("text-center");
             tdTodayEff.classList.add("align-middle");
@@ -488,17 +479,15 @@
             colorizeEfficiency(tdTodayEff, (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0))
             tdTodayEff.classList.add("fs-6");
             tdTodayEff.classList.add("align-middle");
-            tdYesterdayEff.style.padding = "1px !important"
             let tdTodayRft = document.createElement("td");
             tdTodayRft.id = "today-rft-"+index;
-            tdTodayRft.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+"%";
+            tdTodayRft.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+" %";
             tr.appendChild(tdTodayRft);
             tdTodayRft.classList.add("text-center");
             tdTodayRft.classList.add("align-middle");
             tdTodayRft.classList.add("fw-bold");
             colorizeRft(tdTodayRft, (today ? (today.rft / today.output * 100).round(2) : 0))
             tdTodayRft.classList.add("fs-6");
-            tdYesterdayRft.style.padding = "1px !important"
 
             if (formatDate(new Date()) > today.tanggal) {
                 let dayOneElement = document.getElementsByClassName("day-1");
@@ -714,7 +703,7 @@
                 // Chief
                 let chiefName = data.name ? data.name.split(" ")[0] : '-';
                 let chiefContainer = document.createElement("div");
-                chiefContainer.classList.add("col-3");
+                chiefContainer.classList.add("col-5");
                 chiefContainer.classList.add("p-1");
                 chiefContainer.classList.add("border");
                 let imageElement = document.createElement("img");
@@ -730,20 +719,15 @@
 
                 // Leader
                 let leaderContainer = document.createElement("div");
-                leaderContainer.classList.add("col-9");
+                leaderContainer.classList.add("col-7");
                 let leadersElement = document.createElement("div");
                 leadersElement.classList.add("row");
-                leadersElement.classList.add("h-100");
                 data.leaderData.forEach(element => {
                     let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                     let leaderElement = document.createElement("div");
-                    leaderElement.classList.add("col-2");
+                    leaderElement.classList.add("col-4");
                     leaderElement.classList.add("p-1");
                     leaderElement.classList.add("border");
-                    leaderElement.classList.add("d-flex");
-                    leaderElement.classList.add("flex-column");
-                    let leaderImageContainer = document.createElement("div");
-                    leaderImageContainer.classList.add("m-auto");
                     let leaderImageElement = document.createElement("img");
                     leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -751,10 +735,11 @@
                     leaderImageElement.classList.add("img-fluid")
                     // leaderImageElement.style.width = "50px";
                     // leaderImageElement.style.height = "50px";
-                    leaderImageContainer.appendChild(leaderImageElement)
-                    leaderElement.appendChild(leaderImageContainer);
-                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
-                    leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                    leaderImageElement.style.marginLeft = "auto";
+                    leaderImageElement.style.marginRight = "auto";
+                    leaderElement.appendChild(leaderImageElement);
+                    leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 5.5px;'><center>"+leaderName+"</center></span>";
+                    leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 5.5px;'><center>"+element.sewing_line.replace("_", " ").toUpperCase()+"</center></span>";
                     leadersElement.appendChild(leaderElement);
                 });
                 leaderContainer.appendChild(leadersElement);
@@ -810,30 +795,30 @@
                 // Before
                 let beforeEffElement = document.getElementById("before-eff-"+index);
                 if (beforeEffElement) {
-                    beforeEffElement.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+"%";
+                    beforeEffElement.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+" %";
                     colorizeEfficiency(beforeEffElement, (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0))
                     let beforeRftElement = document.getElementById("before-rft-"+index);
-                    beforeRftElement.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+"%";
+                    beforeRftElement.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+" %";
                     colorizeRft(beforeRftElement, (before ? (before.rft / before.output * 100).round(2) : 0))
                 }
 
                 // Yesterday
                 let yesterdayEffElement = document.getElementById("yesterday-eff-"+index);
                 if (yesterdayEffElement) {
-                    yesterdayEffElement.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+"%";
+                    yesterdayEffElement.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+" %";
                     colorizeEfficiency(yesterdayEffElement, (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0))
                     let yesterdayRftElement = document.getElementById("yesterday-rft-"+index);
-                    yesterdayRftElement.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+"%";
+                    yesterdayRftElement.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+" %";
                     colorizeRft(yesterdayRftElement, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
                 }
 
                 // Today
                 let todayEffElement = document.getElementById("today-eff-"+index);
                 if (yesterdayEffElement) {
-                    todayEffElement.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+"%";
+                    todayEffElement.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+" %";
                     colorizeEfficiency(todayEffElement, (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0))
                     let todayRftElement = document.getElementById("today-rft-"+index);
-                    todayRftElement.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+"%";
+                    todayRftElement.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+" %";
                     colorizeRft(todayRftElement, (today ? (today.rft / today.output * 100).round(2) : 0))
                 }
 
