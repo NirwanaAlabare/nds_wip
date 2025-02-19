@@ -122,8 +122,8 @@
 
     <script>
         // Set Custom Dashboard View
-        // document.body.style.maxHeight = "100vh";
-        // document.body.style.overflow = "hidden";
+        document.body.style.maxHeight = "100vh";
+        document.body.style.overflow = "hidden";
 
         document.querySelector(".content-wrapper").classList.remove("pt-3");
         document.querySelector(".content-wrapper").classList.add("pt-1");
@@ -186,10 +186,14 @@
                             return res;
                         }, {});
 
+                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
+                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
+
                         // Leader Output
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
-                            if (value.tanggal == formatDate(new Date())) {
+                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
                                 let param = value.leader_id ? value.leader_id : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
@@ -215,10 +219,6 @@
                             }
                             return 0;
                         });
-
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
-                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
-                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
                         chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
@@ -249,9 +249,9 @@
             });
         });
 
-        // var intervalData = setInterval(() => {
-        //     updateData();
-        // }, 10000);
+        var intervalData = setInterval(() => {
+            updateData();
+        }, 60000);
 
         async function appendRow(data, index) {
             let tableElement = document.getElementById('chief-daily-efficiency-table');
@@ -643,10 +643,14 @@
                             return res;
                         }, {});
 
+                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
+                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
+
                         // Leader Output
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
-                            if (value.tanggal == formatDate(new Date())) {
+                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
                                 let param = value.leader_id ? value.leader_id : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
@@ -672,10 +676,6 @@
                             }
                             return 0;
                         });
-
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
-                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
-                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
                         chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
