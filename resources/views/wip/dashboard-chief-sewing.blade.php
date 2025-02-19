@@ -260,6 +260,7 @@
             // Name
             let tr = document.createElement("tr");
             let tdName = document.createElement("td");
+            tdName.style.minWidth = "350px";
             tdName.style.width = "400px";
             tdName.style.padding = "3px 10px";
             let employeeContainer = document.createElement("div");
@@ -326,6 +327,7 @@
 
             // Chart
             let tdChart = document.createElement("td");
+            tdChart.style.minWidth = '350px';
             tdChart.style.width = '400px';
             tdChart.style.padding = '0px 20px 0px 0px';
             let canvas = document.createElement("div");
