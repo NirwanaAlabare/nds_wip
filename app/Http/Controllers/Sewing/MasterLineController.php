@@ -32,7 +32,7 @@ class MasterLineController extends Controller
             "nik"
         )->
         where("status_aktif", "AKTIF")->
-        whereIn("status_jabatan", ["SPV", "CHIEF"])->
+        whereIn("status_jabatan", ["CHIEF"])->
         where("department_name", "SEWING")->
         orderBy("enroll_id", "asc")->
         get();
@@ -45,7 +45,7 @@ class MasterLineController extends Controller
             "nik"
         )->
         where("status_aktif", "AKTIF")->
-        whereIn("status_jabatan", ["LEADER", "SPV", "CHIEF"])->
+        whereIn("status_jabatan", ["LEADER"])->
         where("department_name", "SEWING")->
         orderBy("enroll_id", "asc")->
         get();
@@ -68,7 +68,7 @@ class MasterLineController extends Controller
                 "nik"
             )->
             where("status_aktif", "AKTIF")->
-            whereIn("status_jabatan", ["LEADER", "SPV", "CHIEF"])->
+            whereIn("status_jabatan", ["LEADER", "CHIEF"])->
             where("department_name", "SEWING")->
             orderBy("enroll_id", "asc")->
             get();
@@ -83,50 +83,52 @@ class MasterLineController extends Controller
             "tanggal" => "required",
             "line_id" => "required",
             "line_name" => "required",
-            "chief_id" => "required",
-            "chief_nik" => "required",
-            "chief_name" => "required",
+            "chief_id" => "nullable",
+            "chief_nik" => "nullable",
+            "chief_name" => "nullable",
             "leader_id" => "nullable",
             "leader_nik" => "nullable",
             "leader_name" => "nullable",
         ]);
 
-        $storeEmployeeLine = EmployeeLine::create([
-            "tanggal" => $validatedRequest["tanggal"],
-            "line_id" => $validatedRequest["line_id"],
-            "line_name" => $validatedRequest["line_name"],
-            "chief_id" => $validatedRequest["chief_id"],
-            "chief_nik" => $validatedRequest["chief_nik"],
-            "chief_name" => $validatedRequest["chief_name"],
-            "leader_id" => $validatedRequest["leader_id"],
-            "leader_nik" => $validatedRequest["leader_nik"],
-            "leader_name" => $validatedRequest["leader_name"],
-            "created_by" => Auth::user()->id,
-            "created_by_username" => Auth::user()->username,
-        ]);
+        if ($validatedRequest["chief_id"] || $validatedRequest["leader_id"]) {
+            $storeEmployeeLine = EmployeeLine::create([
+                "tanggal" => $validatedRequest["tanggal"],
+                "line_id" => $validatedRequest["line_id"],
+                "line_name" => $validatedRequest["line_name"],
+                "chief_id" => $validatedRequest["chief_id"],
+                "chief_nik" => $validatedRequest["chief_nik"],
+                "chief_name" => $validatedRequest["chief_name"],
+                "leader_id" => $validatedRequest["leader_id"],
+                "leader_nik" => $validatedRequest["leader_nik"],
+                "leader_name" => $validatedRequest["leader_name"],
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username,
+            ]);
 
-        if ($storeEmployeeLine) {
-            $chief = MasterEmployee::where("enroll_id", $validatedRequest["chief_id"])->first();
-            $leader = MasterEmployee::where("enroll_id", $validatedRequest["leader_id"])->first();
+            if ($storeEmployeeLine) {
+                $chief = MasterEmployee::where("enroll_id", $validatedRequest["chief_id"])->first();
+                $leader = MasterEmployee::where("enroll_id", $validatedRequest["leader_id"])->first();
 
-            if ($leader) {
-                $storeLeader = EmployeeProduction::updateOrCreate(
-                    ['enroll_id' => $leader->enroll_id],
-                    [
-                        'name' => $leader->employee_name,
-                        'role' => "leader",
-                        'created_by' => Auth::user()->id,
-                        "created_by_username" => Auth::user()->username,
-                    ]
+                if ($leader) {
+                    $storeLeader = EmployeeProduction::updateOrCreate(
+                        ['enroll_id' => $leader->enroll_id],
+                        [
+                            'name' => $leader->employee_name,
+                            'role' => "leader",
+                            'created_by' => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                        ]
+                    );
+                }
+
+                return array(
+                    "status" => 200,
+                    "message" => "Leader Line berhasil disimpan.",
+                    "table" => "datatable",
+                    "additional" => [$storeEmployeeLine],
                 );
             }
-
-            return array(
-                "status" => 200,
-                "message" => "Leader Line berhasil disimpan.",
-                "table" => "datatable",
-                "additional" => [$storeEmployeeLine],
-            );
         }
 
         return array(
@@ -142,56 +144,58 @@ class MasterLineController extends Controller
             "edit_tanggal" => "required",
             "edit_line_id" => "required",
             "edit_line_name" => "required",
-            "edit_chief_id" => "required",
-            "edit_chief_nik" => "required",
-            "edit_chief_name" => "required",
+            "edit_chief_id" => "nullable",
+            "edit_chief_nik" => "nullable",
+            "edit_chief_name" => "nullable",
             "edit_leader_id" => "nullable",
             "edit_leader_nik" => "nullable",
             "edit_leader_name" => "nullable",
         ]);
 
-        $updateEmployeeLine = EmployeeLine::where("id", $validatedRequest["edit_id"])->update([
-            "tanggal" => $validatedRequest["edit_tanggal"],
-            "line_id" => $validatedRequest["edit_line_id"],
-            "line_name" => $validatedRequest["edit_line_name"],
-            "chief_id" => $validatedRequest["edit_chief_id"],
-            "chief_nik" => $validatedRequest["edit_chief_nik"],
-            "chief_name" => $validatedRequest["edit_chief_name"],
-            "leader_id" => $validatedRequest["edit_leader_id"],
-            "leader_nik" => $validatedRequest["edit_leader_nik"],
-            "leader_name" => $validatedRequest["edit_leader_name"]
-        ]);
+        if ($validatedRequest["edit_chief_id"] || $validatedRequest["edit_leader_id"]) {
+            $updateEmployeeLine = EmployeeLine::where("id", $validatedRequest["edit_id"])->update([
+                "tanggal" => $validatedRequest["edit_tanggal"],
+                "line_id" => $validatedRequest["edit_line_id"],
+                "line_name" => $validatedRequest["edit_line_name"],
+                "chief_id" => $validatedRequest["edit_chief_id"],
+                "chief_nik" => $validatedRequest["edit_chief_nik"],
+                "chief_name" => $validatedRequest["edit_chief_name"],
+                "leader_id" => $validatedRequest["edit_leader_id"],
+                "leader_nik" => $validatedRequest["edit_leader_nik"],
+                "leader_name" => $validatedRequest["edit_leader_name"]
+            ]);
 
-        if ($updateEmployeeLine) {
-            $employeeChief = MasterEmployee::where("enroll_id", $validatedRequest["edit_chief_id"])->first();
-            $employeeLeader = MasterEmployee::where("enroll_id", $validatedRequest["edit_leader_id"])->first();
+            if ($updateEmployeeLine) {
+                $employeeChief = MasterEmployee::where("enroll_id", $validatedRequest["edit_chief_id"])->first();
+                $employeeLeader = MasterEmployee::where("enroll_id", $validatedRequest["edit_leader_id"])->first();
 
-            if ($employeeChief) {
-                $storeEmployeeChief = EmployeeProduction::updateOrCreate(
-                    ['enroll_id' => $employeeChief->enroll_id],
-                    [
-                        'name' => $employeeChief->employee_name,
-                        'role' => "chief",
-                    ]
+                if ($employeeChief) {
+                    $storeEmployeeChief = EmployeeProduction::updateOrCreate(
+                        ['enroll_id' => $employeeChief->enroll_id],
+                        [
+                            'name' => $employeeChief->employee_name,
+                            'role' => "chief",
+                        ]
+                    );
+                }
+
+                if ($employeeLeader) {
+                    $storeEmployeeLeader = EmployeeProduction::updateOrCreate(
+                        ['enroll_id' => $employeeLeader->enroll_id],
+                        [
+                            'name' => $employeeLeader->employee_name,
+                            'role' => "leader",
+                        ]
+                    );
+                }
+
+                return array(
+                    "status" => 200,
+                    "message" => "Master Line berhasil diubah.",
+                    "table" => "datatable",
+                    "additional" => $updateEmployeeLine,
                 );
             }
-
-            if ($employeeLeader) {
-                $storeEmployeeLeader = EmployeeProduction::updateOrCreate(
-                    ['enroll_id' => $employeeLeader->enroll_id],
-                    [
-                        'name' => $employeeLeader->employee_name,
-                        'role' => "leader",
-                    ]
-                );
-            }
-
-            return array(
-                "status" => 200,
-                "message" => "Master Line berhasil diubah.",
-                "table" => "datatable",
-                "additional" => $updateEmployeeLine,
-            );
         }
 
         return array(
