@@ -87,6 +87,7 @@
                                 <option value="Qcpass">{{ strtoupper("Qcpass") }}</option>
                                 <option value="ga">{{ strtoupper("ga") }}</option>
                                 <option value="hr">{{ strtoupper("hr") }}</option>
+                                <option value="mechanic">{{ strtoupper("mechanic") }}</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -148,6 +149,7 @@
                                 <option value="Qcpass">{{ strtoupper("Qcpass") }}</option>
                                 <option value="ga">{{ strtoupper("ga") }}</option>
                                 <option value="hr">{{ strtoupper("hr") }}</option>
+                                <option value="mechanic">{{ strtoupper("mechanic") }}</option>
                             </select>
                         </div>
                         <div class="mb-3">
