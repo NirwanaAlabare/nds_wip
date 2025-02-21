@@ -306,4 +306,9 @@ class TrackOrderOutput extends Component
 
         return view('livewire.track-order-output');
     }
+
+    public function dehydrate()
+    {
+        $this->emit("initFixedColumn");
+    }
 }
