@@ -822,10 +822,10 @@
 
 </html>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link rel="stylesheet" href="{{ asset('plugins/swiper/css/swiper-bundle.min.css') }}" />
 
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
+<script src="{{ asset('plugins/swiper/js/swiper-bundle.min.js') }}"></script>
+<script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
 <!-- JSC CHART-->
 <script src="https://code.jscharting.com/latest/jscharting.js"></script>
@@ -896,7 +896,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-1").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-1").text(`${defectRate} %`);
+        $("#deffect-rate-1").text(`${defectRate || 0.00} %`);
     }
 
     function updateTable2(data) {
@@ -935,7 +935,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-2").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-2").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-2").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function updateTable3(data) {
@@ -974,7 +974,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-3").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-3").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-3").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function updateTable4(data) {
@@ -1013,7 +1013,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-4").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-4").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-4").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function updateTable5(data) {
@@ -1052,7 +1052,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-5").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-5").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-5").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function updateTable7(data) {
@@ -1091,7 +1091,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-7").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-7").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-7").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function updateTable8(data) {
@@ -1130,7 +1130,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-8").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-8").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-8").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function updateTable9(data) {
@@ -1169,7 +1169,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-9").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-9").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-9").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function updateTable10(data) {
@@ -1201,7 +1201,7 @@
                     style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
         `);
         $("#efficiency-10").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-10").text(`${parseFloat(defectRate).toFixed(2)} %`);
+        $("#deffect-rate-10").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
     }
 
     function variation1(data) {

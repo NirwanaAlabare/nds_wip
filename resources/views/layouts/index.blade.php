@@ -51,7 +51,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('dist/img/tabicon.png') }}">
-    <title>NDS {{ $head }}</title>
+    <title>{{ preg_match("/generate/i", strtolower(Route::current()->getName())) < 1 ? (ucwords(preg_replace("/-|_/", " ", Route::current()->getName())) ? ucwords(preg_replace("/-|_/", " ", Route::current()->getName())) : "NDS") : "NDS" }}</title>
 
     @include('layouts.link')
 
@@ -62,7 +62,7 @@
     <div class="wrapper">
         <!-- Navbar -->
         @if ($navbar)
-            @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage, 'subPageGroup' => $subPageGroup])
+            @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage, 'subPageGroup' => $subPageGroup, 'routeName' => Route::current()->getName()])
         @endif
 
         <!-- Offcanvas -->

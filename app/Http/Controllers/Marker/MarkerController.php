@@ -192,7 +192,7 @@ class MarkerController extends Controller
                         inner join act_costing ac on so.id_cost = ac.id
                         inner join masteritem mi on k.id_item = mi.id_gen
                         where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
-                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and mi.mattype = 'F'
                         group by id_panel
                     ) a
                 inner join masterpanel mp on a.id_panel = mp.id
@@ -217,7 +217,7 @@ class MarkerController extends Controller
                     inner join masteritem mi on k.id_item = mi.id_gen
                     inner join masterpanel mp on k.id_panel = mp.id
                 where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and mp.nama_panel ='" . $request->panel . "' and k.status = 'M'
-                and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and mi.mattype = 'F'
                 group by sd.color, k.id_item, k.unit
                 limit 1
             ");
@@ -999,7 +999,6 @@ class MarkerController extends Controller
                 k.cancel = 'N' and
                 sd.cancel = 'N' and
                 so.cancel_h = 'N' and
-                ac.status = 'confirm' and
                 mi.mattype = 'F' and
                 sd.qty > 0
             group by sd.color, k.id_item, k.unit

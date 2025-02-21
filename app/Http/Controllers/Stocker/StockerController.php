@@ -3402,7 +3402,7 @@ class StockerController extends Controller
 
         $deleteYearSequence = YearSequence::where("year", $validatedRequest['year'])->
             where("year_sequence", $validatedRequest['year_sequence'])->
-            where("fomr_cut_id", $validatedRequest['fomr_cut_id'])->
+            where("form_cut_id", $validatedRequest['form_cut_id'])->
             where("so_det_id", $validatedRequest['so_det_id'])->
             where("number", ">=", $validatedRequest['range_awal_stocker'])->
             delete();

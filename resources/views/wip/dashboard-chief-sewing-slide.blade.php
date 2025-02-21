@@ -76,23 +76,23 @@
     <input type="hidden" id="month-name" value="{{ $monthName ? $monthName : $months[num(date("m"))-1] }}">
     <swiper-container class="mySwiper" id="table-carousel" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
         <swiper-slide id="carousel-1">
-            <div class="table-responsive swiper-no-swiping" id="chief-daily-efficiency-table" style="max-height: 100vh;">
+            <div class="table-responsive swiper-no-swiping" id="chief-daily-efficiency-table">
                 <table class="table table-bordered w-100">
                     <thead>
                         <tr>
-                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 11px !important; padding: 1px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="font-size: 9px !important;padding: 1px !important;">H-2</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="font-size: 9px !important;padding: 1px !important;">H-1</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="font-size: 9px !important;padding: 1px !important;">Hari Ini</th>
-                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Rank</th>
+                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
+                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
                         </tr>
                         <tr>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -186,24 +186,19 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
-                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
-                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
-
                         // Leader Output
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    leaderOutput.push(res[param]);
+                            if (value.tanggal == formatDate(new Date())) {
+                                if (!res[value.leader_id]) {
+                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    leaderOutput.push(res[value.leader_id]);
                                 }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
+                                res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
+                                res[value.leader_id].mins_prod += Number(value.mins_prod);
+                                res[value.leader_id].output += Number(value.output);
+                                res[value.leader_id].rft += Number(value.rft);
+                                res[value.leader_id].sewing_line += value.sewing_line+"<br>";
                             }
 
                             return res;
@@ -220,7 +215,11 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
+                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
+
+                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -253,10 +252,6 @@
             updateData();
         }, 60000);
 
-        var currentDayOne = "";
-        var currentDayTwo = "";
-        var currentDayThree = "";
-
         async function appendRow(data, index) {
             let tableElement = document.getElementById('chief-daily-efficiency-table');
             let table = document.querySelector('#chief-daily-efficiency-table tbody');
@@ -264,61 +259,58 @@
             // Name
             let tr = document.createElement("tr");
             let tdName = document.createElement("td");
-            tdName.style.minWidth = "350px";
-            tdName.style.width = "400px";
-            tdName.style.padding = "3px 10px";
             let employeeContainer = document.createElement("div");
             employeeContainer.id = "employee-"+index;
+            // employeeContainer.style.width = "400px";
+            // employeeContainer.style.minHeight = "200px";
             employeeContainer.style.marginLeft = "auto";
             employeeContainer.style.marginRight = "auto";
-            employeeContainer.style.height = "100%";
             employeeContainer.classList.add("row");
 
             // Chief
             let chiefName = data.name ? data.name.split(" ")[0] : '-';
             let chiefContainer = document.createElement("div");
-            chiefContainer.classList.add("col-3");
-            chiefContainer.classList.add("p-1");
+            chiefContainer.classList.add("col-5");
+            chiefContainer.classList.add("p-3");
             chiefContainer.classList.add("border");
             let imageElement = document.createElement("img");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
             imageElement.setAttribute("alt", "person")
             imageElement.classList.add("img-fluid")
-            // imageElement.style.width = "200px";
+            imageElement.style.width = "200px";
             // imageElement.style.height = "150px";
             imageElement.style.marginLeft = "auto";
             imageElement.style.marginRight = "auto";
             chiefContainer.appendChild(imageElement);
-            chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
+            chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
 
             // Leader
             let leaderContainer = document.createElement("div");
-            leaderContainer.classList.add("col-9");
+            leaderContainer.classList.add("col-7");
             let leadersElement = document.createElement("div");
             leadersElement.classList.add("row");
-            leadersElement.classList.add("h-100");
+            if (data.name.split(" ")[0] == "SUHANA") {
+                console.log(data.leaderData);
+            }
             data.leaderData.forEach(element => {
-                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
+                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : '-KOSONG-';
                 let leaderElement = document.createElement("div");
-                leaderElement.classList.add("col-2");
+                leaderElement.classList.add("col-4");
                 leaderElement.classList.add("p-1");
                 leaderElement.classList.add("border");
-                leaderElement.classList.add("d-flex");
-                leaderElement.classList.add("flex-column");
-                let leaderImageContainer = document.createElement("div");
-                leaderImageContainer.classList.add("m-auto");
                 let leaderImageElement = document.createElement("img");
                 leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 leaderImageElement.setAttribute("alt", "person")
                 leaderImageElement.classList.add("img-fluid")
-                // leaderImageElement.style.width = "50px";
+                leaderImageElement.style.width = "50px";
                 // leaderImageElement.style.height = "50px";
-                leaderImageContainer.appendChild(leaderImageElement)
-                leaderElement.appendChild(leaderImageContainer);
-                leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
-                leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                leaderImageElement.style.marginLeft = "auto";
+                leaderImageElement.style.marginRight = "auto";
+                leaderElement.appendChild(leaderImageElement);
+                leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
+                leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 8px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                 leadersElement.appendChild(leaderElement);
             });
             leaderContainer.appendChild(leadersElement);
@@ -331,12 +323,10 @@
 
             // Chart
             let tdChart = document.createElement("td");
-            tdChart.style.minWidth = '350px';
-            tdChart.style.width = '400px';
-            tdChart.style.padding = '0px 20px 0px 0px';
             let canvas = document.createElement("div");
             // canvas.id = "chart-"+index;
             canvas.classList.add("chief-daily-efficiency-chart");
+            canvas.style.width = '450px';
             tdChart.appendChild(canvas);
             tdChart.classList.add("align-middle");
             tr.appendChild(tdChart);
@@ -367,7 +357,7 @@
                 ],
                 chart: {
                     id: "chart-"+index,
-                    height: 100,
+                    height: 200,
                     type: 'line',
                     zoom: {
                         enabled: true
@@ -380,17 +370,16 @@
                 dataLabels: {
                     enabled: true,
                     style: {
-                        fontSize: "5px",
+                        fontSize: "8px",
                     }
                 },
                 stroke: {
                     curve: 'smooth'
                 },
-                // title: {
-                //     enable: false,
-                //     text: 'Daily '+$("#month-name").val(),
-                //     align: 'left'
-                // },
+                title: {
+                    text: 'Daily '+$("#month-name").val(),
+                    align: 'left'
+                },
                 grid: {
                     borderColor: '#e7e7e7',
                     row: {
@@ -399,10 +388,9 @@
                     },
                 },
                 yaxis: {
-                    tickAmount: 1,
                     labels: {
                         style: {
-                            fontSize: "5px",
+                            fontSize: "8px",
                         }
                     }
                 },
@@ -410,7 +398,7 @@
                     categories: tglArr,
                     labels: {
                         style: {
-                            fontSize: "6.5px",
+                            fontSize: "8px",
                         }
                     }
                 },
@@ -419,93 +407,69 @@
                 },
                 legend: {
                     position: 'top',
-                    horizontalAlign: 'center',
+                    horizontalAlign: 'right',
                     floating: true,
-                    offsetY: 5,
-                    offsetX: -5,
-                    fontSize: "8.5px",
+                    offsetY: -25,
+                    offsetX: -5
                 },
                 redrawOnParentResize: true
             };
 
             var chart = new ApexCharts(canvas, options);
 
-            let todayDate = null;
-            let yesterdayDate = null;
-            let beforeDate = null;
+            let todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
+            let today = todayFilter[todayFilter.length-1];
 
-            if (index > 1) {
-                todayDate = currentDayThree;
-                yesterdayDate = currentDayTwo;
-                beforeDate = currentDayOne;
+            let yesterdayFilter = todayFilter.filter((item) => item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))));
+            let yesterday = yesterdayFilter[yesterdayFilter.length-1]
 
-                var todayFilter = dailyData.filter((item) => (todayDate ? item.tanggal == formatDate(todayDate) : item.tanggal <= formatDate(new Date())) );
-                var today = todayFilter[todayFilter.length-1];
-
-                var yesterdayFilter = dailyData.filter((item) => (yesterdayDate ? item.tanggal == formatDate(yesterdayDate) : (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))))) );
-                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
-
-                var beforeFilter = dailyData.filter((item) => (beforeDate ? item.tanggal == formatDate(beforeDate) : (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))))) );
-                var before = beforeFilter[beforeFilter.length-1];
-            } else {
-                var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
-                var today = todayFilter[todayFilter.length-1];
-
-                var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
-                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
-
-                var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
-                var before = beforeFilter[beforeFilter.length-1];
-            }
+            let beforeFilter = yesterdayFilter.filter((item) => item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))));
+            let before = beforeFilter[beforeFilter.length-1];
 
             // Before
             let tdBeforeEff = document.createElement("td");
             tdBeforeEff.id = "before-eff-"+index;
-            tdBeforeEff.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+"%";
+            tdBeforeEff.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+" %";
             tr.appendChild(tdBeforeEff);
             tdBeforeEff.classList.add("text-center");
             tdBeforeEff.classList.add("align-middle");
             tdBeforeEff.classList.add("fw-bold");
-            tdBeforeEff.style.padding = '1px !important';
             colorizeEfficiency(tdBeforeEff, (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0));
             tdBeforeEff.classList.add("fs-6");
             let tdBeforeRft = document.createElement("td");
             tdBeforeRft.id = "before-rft-"+index;
-            tdBeforeRft.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+"%";
+            tdBeforeRft.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+" %";
             tr.appendChild(tdBeforeRft);
             tdBeforeRft.classList.add("text-center");
             tdBeforeRft.classList.add("align-middle");
             tdBeforeRft.classList.add("fw-bold");
-            colorizeRft(tdBeforeRft, (before ? (before.rft / before.output * 100).round(2) : 0))
+            colorizeEfficiency(tdBeforeRft, (before ? (before.rft / before.output * 100).round(2) : 0))
             tdBeforeRft.classList.add("fs-6");
-            tdBeforeRft.style.padding = '1px !important';
 
             // Yesterday
             let tdYesterdayEff = document.createElement("td");
             tdYesterdayEff.id = "yesterday-eff-"+index;
-            tdYesterdayEff.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+"%";
+            tdYesterdayEff.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+" %";
             tr.appendChild(tdYesterdayEff);
             tdYesterdayEff.classList.add("text-center");
             tdYesterdayEff.classList.add("align-middle");
             tdYesterdayEff.classList.add("fw-bold");
-            tdYesterdayEff.style.padding = '1px !important';
             colorizeEfficiency(tdYesterdayEff, (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0))
             tdYesterdayEff.classList.add("fs-6");
             let tdYesterdayRft = document.createElement("td");
             tdYesterdayRft.id = "yesterday-rft-"+index;
-            tdYesterdayRft.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+"%";
+            tdYesterdayRft.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+" %";
             tr.appendChild(tdYesterdayRft);
             tdYesterdayRft.classList.add("text-center");
             tdYesterdayRft.classList.add("align-middle");
             tdYesterdayRft.classList.add("fw-bold");
-            colorizeRft(tdYesterdayRft, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
+            colorizeEfficiency(tdYesterdayRft, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
             tdYesterdayRft.classList.add("fs-6");
-            tdYesterdayRft.style.padding = '1px !important';
 
             // Today
             let tdTodayEff = document.createElement("td");
             tdTodayEff.id = "today-eff-"+index;
-            tdTodayEff.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+"%";
+            tdTodayEff.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+" %";
             tr.appendChild(tdTodayEff);
             tdTodayEff.classList.add("text-center");
             tdTodayEff.classList.add("align-middle");
@@ -513,38 +477,30 @@
             colorizeEfficiency(tdTodayEff, (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0))
             tdTodayEff.classList.add("fs-6");
             tdTodayEff.classList.add("align-middle");
-            tdYesterdayEff.style.padding = "1px !important"
             let tdTodayRft = document.createElement("td");
             tdTodayRft.id = "today-rft-"+index;
-            tdTodayRft.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+"%";
+            tdTodayRft.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+" %";
             tr.appendChild(tdTodayRft);
             tdTodayRft.classList.add("text-center");
             tdTodayRft.classList.add("align-middle");
             tdTodayRft.classList.add("fw-bold");
-            colorizeRft(tdTodayRft, (today ? (today.rft / today.output * 100).round(2) : 0))
+            colorizeEfficiency(tdTodayRft, (today ? (today.rft / today.output * 100).round(2) : 0))
             tdTodayRft.classList.add("fs-6");
-            tdYesterdayRft.style.padding = "1px !important"
 
-            if (index == 1) {
-                currentDayOne = before.tanggal;
-                currentDayTwo = yesterday.tanggal;
-                currentDayThree = today.tanggal;
+            if (formatDate(new Date()) > today.tanggal) {
+                let dayOneElement = document.getElementsByClassName("day-1");
+                for (let i = 0; i < dayOneElement.length; i++) {
+                    dayOneElement[i].innerHTML = formatDateLocal(before.tanggal);
+                }
 
-                if (formatDate(new Date()) > today.tanggal) {
-                    let dayOneElement = document.getElementsByClassName("day-1");
-                    for (let i = 0; i < dayOneElement.length; i++) {
-                        dayOneElement[i].innerHTML = formatDateLocal(before.tanggal);
-                    }
+                let dayTwoElement = document.getElementsByClassName("day-2");
+                for (let i = 0; i < dayTwoElement.length; i++) {
+                    dayTwoElement[i].innerHTML = formatDateLocal(yesterday.tanggal);
+                }
 
-                    let dayTwoElement = document.getElementsByClassName("day-2");
-                    for (let i = 0; i < dayTwoElement.length; i++) {
-                        dayTwoElement[i].innerHTML = formatDateLocal(yesterday.tanggal);
-                    }
-
-                    let dayThreeElement = document.getElementsByClassName("day-3");
-                    for (let i = 0; i < dayThreeElement.length; i++) {
-                        dayThreeElement[i].innerHTML = formatDateLocal(today.tanggal);
-                    }
+                let dayThreeElement = document.getElementsByClassName("day-3");
+                for (let i = 0; i < dayThreeElement.length; i++) {
+                    dayThreeElement[i].innerHTML = formatDateLocal(today.tanggal);
                 }
             }
 
@@ -566,42 +522,41 @@
 
             chart.render();
 
-            // Slide per 2 row
-                // if (index % 2 == 0) {
-                //     tableElement.id = "chief-daily-efficiency-table-"+((index/2)+1);
-                //     let newTable = tableElement.cloneNode();
-                //     newTable.id = "chief-daily-efficiency-table";
-                //     newTable.innerHTML = `
-                //         <table class="table table-bordered w-100">
-                //             <thead>
-                //                 <tr>
-                //                     <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
-                //                     <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
-                //                     <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
-                //                     <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
-                //                     <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
-                //                 </tr>
-                //                 <tr>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
-                //                     <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
-                //                 </tr>
-                //             </thead>
-                //             <tbody>
-                //             </tbody>
-                //         </table>
-                //     `;
+            if (index % 2 == 0) {
+                tableElement.id = "chief-daily-efficiency-table-"+((index/2)+1);
+                let newTable = tableElement.cloneNode();
+                newTable.id = "chief-daily-efficiency-table";
+                newTable.innerHTML = `
+                    <table class="table table-bordered w-100">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 20px !important; padding: 5px !important;">Chief Daily Efficiency & RFT {{ $monthName }}</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="padding: 5px !important;">H-2</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="padding: 5px !important;">H-1</th>
+                                <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="padding: 5px !important;">Hari Ini</th>
+                                <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="padding: 5px !important;">Rank</th>
+                            </tr>
+                            <tr>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">Effy</th>
+                                <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 10px;padding: 5px !important;">RFT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                `;
 
-                //     let carouselContainer = document.getElementById("table-carousel");
-                //     let carouselElement = document.getElementById("carousel-1").cloneNode();
-                //     carouselElement.id = "carousel-"+((index/2)+1);
+                let carouselContainer = document.getElementById("table-carousel");
+                let carouselElement = document.getElementById("carousel-1").cloneNode();
+                carouselElement.id = "carousel-"+((index/2)+1);
 
-                //     carouselElement.appendChild(newTable);
-                //     carouselContainer.appendChild(carouselElement);
-                // }
+                carouselElement.appendChild(newTable);
+                carouselContainer.appendChild(carouselElement);
+            }
 
             // initSparkle();
         }
@@ -620,23 +575,7 @@
                         element.style.color = '#28a745';
                         break;
                 }
-            }
-        }
-
-        // Colorize RFT
-        function colorizeRft(element, rft) {
-            if (isElement(element)) {
-                switch (true) {
-                    case rft < 97 :
-                        element.style.color = '#dc3545';
-                        break;
-                    case rft >= 97 && rft < 98 :
-                        element.style.color = 'rgb(240, 153, 0)';
-                        break;
-                    case rft >= 98 :
-                        element.style.color = '#28a745';
-                        break;
-                }
+            } else {
             }
         }
 
@@ -672,24 +611,19 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
-                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
-                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
-
                         // Leader Output
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    leaderOutput.push(res[param]);
+                            if (value.tanggal == formatDate(new Date())) {
+                                if (!res[value.leader_id]) {
+                                    res[value.leader_id] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    leaderOutput.push(res[value.leader_id]);
                                 }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
+                                res[value.leader_id].mins_avail += Number(value.cumulative_mins_avail);
+                                res[value.leader_id].mins_prod += Number(value.mins_prod);
+                                res[value.leader_id].output += Number(value.output);
+                                res[value.leader_id].rft += Number(value.rft);
+                                res[value.leader_id].sewing_line += value.sewing_line+"<br>";
                             }
 
                             return res;
@@ -706,7 +640,11 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
+                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
+
+                        chiefDailyEfficiency.push({"id": element[0].chief_id, "nik": element[0].chief_nik, "name": element[0].chief_name, "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -745,49 +683,43 @@
                 // Chief
                 let chiefName = data.name ? data.name.split(" ")[0] : '-';
                 let chiefContainer = document.createElement("div");
-                chiefContainer.classList.add("col-3");
-                chiefContainer.classList.add("p-1");
+                chiefContainer.classList.add("col-5");
+                chiefContainer.classList.add("p-3");
                 chiefContainer.classList.add("border");
                 let imageElement = document.createElement("img");
+                imageElement.classList.add("img-fluid");
                 imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png";
-                imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                imageElement.setAttribute("alt", "person")
-                imageElement.classList.add("img-fluid")
-                // imageElement.style.width = "200px";
+                imageElement.style.width = "200px";
                 // imageElement.style.height = "150px";
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
                 imageElement.style.marginBottom = "10px";
                 chiefContainer.appendChild(imageElement);
-                chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
+                chiefContainer.innerHTML += "<span class='text-sb fw-bold'><center>"+data.name.split(" ")[0]+"</center></span>"
 
                 // Leader
                 let leaderContainer = document.createElement("div");
-                leaderContainer.classList.add("col-9");
+                leaderContainer.classList.add("col-7");
                 let leadersElement = document.createElement("div");
                 leadersElement.classList.add("row");
-                leadersElement.classList.add("h-100");
                 data.leaderData.forEach(element => {
                     let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                     let leaderElement = document.createElement("div");
-                    leaderElement.classList.add("col-2");
+                    leaderElement.classList.add("col-4");
                     leaderElement.classList.add("p-1");
                     leaderElement.classList.add("border");
-                    leaderElement.classList.add("d-flex");
-                    leaderElement.classList.add("flex-column");
-                    let leaderImageContainer = document.createElement("div");
-                    leaderImageContainer.classList.add("m-auto");
                     let leaderImageElement = document.createElement("img");
                     leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
                     leaderImageElement.classList.add("img-fluid")
-                    // leaderImageElement.style.width = "50px";
+                    leaderImageElement.style.width = "50px";
                     // leaderImageElement.style.height = "50px";
-                    leaderImageContainer.appendChild(leaderImageElement)
-                    leaderElement.appendChild(leaderImageContainer);
-                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
-                    leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                    leaderImageElement.style.marginLeft = "auto";
+                    leaderImageElement.style.marginRight = "auto";
+                    leaderElement.appendChild(leaderImageElement);
+                    leaderElement.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8px;'><center>"+leaderName+"</center></span>";
+                    leaderElement.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 8px;'><center>"+element.sewing_line.replace("_", " ").toUpperCase()+"</center></span>";
                     leadersElement.appendChild(leaderElement);
                 });
                 leaderContainer.appendChild(leadersElement);
@@ -831,84 +763,59 @@
                         }
                     }, false, true);
 
-                let todayDate = null;
-                let yesterdayDate = null;
-                let beforeDate = null;
+                let todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
+                let today = todayFilter[todayFilter.length-1];
 
-                if (index > 1) {
-                    todayDate = currentDayThree;
-                    yesterdayDate = currentDayTwo;
-                    beforeDate = currentDayOne;
+                let yesterdayFilter = dailyData.filter((item) => item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))));
+                let yesterday = yesterdayFilter[yesterdayFilter.length-1]
 
-                    var todayFilter = dailyData.filter((item) => (todayDate ? item.tanggal == formatDate(todayDate) : item.tanggal <= formatDate(new Date())) );
-                    var today = todayFilter[todayFilter.length-1];
-
-                    var yesterdayFilter = dailyData.filter((item) => (yesterdayDate ? item.tanggal == formatDate(yesterdayDate) : (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))))) );
-                    var yesterday = yesterdayFilter[yesterdayFilter.length-1]
-
-                    var beforeFilter = dailyData.filter((item) => (beforeDate ? item.tanggal == formatDate(beforeDate) : (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))))) );
-                    var before = beforeFilter[beforeFilter.length-1];
-                } else {
-                    var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
-                    var today = todayFilter[todayFilter.length-1];
-
-                    var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
-                    var yesterday = yesterdayFilter[yesterdayFilter.length-1]
-
-                    var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
-                    var before = beforeFilter[beforeFilter.length-1];
-                }
+                let beforeFilter = dailyData.filter((item) => item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))));
+                let before = beforeFilter[beforeFilter.length-1];
 
                 // Before
                 let beforeEffElement = document.getElementById("before-eff-"+index);
                 if (beforeEffElement) {
-                    beforeEffElement.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+"%";
+                    beforeEffElement.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+" %";
                     colorizeEfficiency(beforeEffElement, (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0))
                     let beforeRftElement = document.getElementById("before-rft-"+index);
-                    beforeRftElement.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+"%";
-                    colorizeRft(beforeRftElement, (before ? (before.rft / before.output * 100).round(2) : 0))
+                    beforeRftElement.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+" %";
+                    colorizeEfficiency(beforeRftElement, (before ? (before.rft / before.output * 100).round(2) : 0))
                 }
 
                 // Yesterday
                 let yesterdayEffElement = document.getElementById("yesterday-eff-"+index);
                 if (yesterdayEffElement) {
-                    yesterdayEffElement.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+"%";
+                    yesterdayEffElement.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+" %";
                     colorizeEfficiency(yesterdayEffElement, (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0))
                     let yesterdayRftElement = document.getElementById("yesterday-rft-"+index);
-                    yesterdayRftElement.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+"%";
-                    colorizeRft(yesterdayRftElement, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
+                    yesterdayRftElement.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+" %";
+                    colorizeEfficiency(yesterdayRftElement, (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0))
                 }
 
                 // Today
                 let todayEffElement = document.getElementById("today-eff-"+index);
                 if (yesterdayEffElement) {
-                    todayEffElement.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+"%";
+                    todayEffElement.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+" %";
                     colorizeEfficiency(todayEffElement, (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0))
                     let todayRftElement = document.getElementById("today-rft-"+index);
-                    todayRftElement.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+"%";
-                    colorizeRft(todayRftElement, (today ? (today.rft / today.output * 100).round(2) : 0))
+                    todayRftElement.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+" %";
+                    colorizeEfficiency(todayRftElement, (today ? (today.rft / today.output * 100).round(2) : 0))
                 }
 
-                if (index == 1) {
-                    currentDayOne = before.tanggal;
-                    currentDayTwo = yesterday.tanggal;
-                    currentDayThree = today.tanggal;
+                if (formatDate(new Date()) > today.tanggal) {
+                    let dayOneElement = document.getElementsByClassName("day-1");
+                    for (let i = 0; i < dayOneElement.length; i++) {
+                        dayOneElement[i].innerHTML = formatDateLocal(before.tanggal);
+                    }
 
-                    if (formatDate(new Date()) > today.tanggal) {
-                        let dayOneElement = document.getElementsByClassName("day-1");
-                        for (let i = 0; i < dayOneElement.length; i++) {
-                            dayOneElement[i].innerHTML = formatDateLocal(before.tanggal);
-                        }
+                    let dayTwoElement = document.getElementsByClassName("day-2");
+                    for (let i = 0; i < dayTwoElement.length; i++) {
+                        dayTwoElement[i].innerHTML = formatDateLocal(yesterday.tanggal);
+                    }
 
-                        let dayTwoElement = document.getElementsByClassName("day-2");
-                        for (let i = 0; i < dayTwoElement.length; i++) {
-                            dayTwoElement[i].innerHTML = formatDateLocal(yesterday.tanggal);
-                        }
-
-                        let dayThreeElement = document.getElementsByClassName("day-3");
-                        for (let i = 0; i < dayThreeElement.length; i++) {
-                            dayThreeElement[i].innerHTML = formatDateLocal(today.tanggal);
-                        }
+                    let dayThreeElement = document.getElementsByClassName("day-3");
+                    for (let i = 0; i < dayThreeElement.length; i++) {
+                        dayThreeElement[i].innerHTML = formatDateLocal(today.tanggal);
                     }
                 }
             } else {

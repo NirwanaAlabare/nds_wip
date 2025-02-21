@@ -118,13 +118,25 @@
                     <th></th>
                 </tr>
                 @php
+                    $defectInOutListGroup = $defectInOutList->groupBy("defect_type");
+                    $defectInOutListSort = $defectInOutListGroup->mapWithKeys(function ($group, $key) {
+                        return [
+                            $key =>
+                                [
+                                    'defect_type' => $key, // $key is what we grouped by, it'll be constant by each  group of rows
+                                    'total_defect' => $group->sum('defect_qty'),
+                                    'data' => $group,
+                                ]
+                        ];
+                    });
+
                     $summaryDefectQty = $defectInOutList->sum("defect_qty");
                 @endphp
-                @foreach ($defectInOutList->groupBy("defect_type") as $key => $value)
+                @foreach ($defectInOutListSort->sortByDesc("total_defect") as $key => $value)
                     <tr>
                         <td>{{ $key }}</td>
-                        <td>{{ $value->sum("defect_qty") }}</td>
-                        <td>{{ round(($value->sum("defect_qty")/($summaryDefectQty > 0 ? $summaryDefectQty : 1) * 100), 2) }} %</td>
+                        <td>{{ $value["total_defect"] }}</td>
+                        <td>{{ round(($value["total_defect"]/($summaryDefectQty > 0 ? $summaryDefectQty : 1) * 100), 2) }} %</td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -159,26 +171,46 @@
                         <td></td>
                     </tr>
                 @else
-                    @foreach ($defectInOutList->groupBy("defect_type") as $key => $value)
+                    @php
+                        $defectInOutListGroup = $defectInOutList->groupBy("defect_type");
+                        $defectInOutListSort = $defectInOutListGroup->mapWithKeys(function ($group, $key) {
+                            return [
+                                $key =>
+                                    [
+                                        'defect_type' => $key, // $key is what we grouped by, it'll be constant by each  group of rows
+                                        'total_defect' => $group->sum('defect_qty'),
+                                        'data' => $group,
+                                    ]
+                            ];
+                        });
+                    @endphp
+                    @foreach ($defectInOutListSort->sortByDesc("total_defect") as $key => $value)
                         @php
-                            $totalDefect = 0;
+                            $defectInOutSewing = $value['data']->sortBy("FullName")->groupBy("FullName");
+                            $defectInOutSewingSort = $defectInOutSewing->mapWithKeys(function ($group, $key) {
+                                return [
+                                    $key =>
+                                        [
+                                            'sewing_name' => $key, // $key is what we grouped by, it'll be constant by each  group of rows
+                                            'total_defect' => $group->sum('defect_qty'),
+                                            'data' => $group,
+                                        ]
+                                ];
+                            });
                         @endphp
-                        @foreach ($value->sortBy("FullName")->groupBy("FullName") as $k => $val)
-                            @php
-                                $totalDefect += $val->sum("defect_qty");
-                            @endphp
+                        @foreach ($defectInOutSewingSort->sortByDesc("total_defect") as $k => $val)
                             <tr>
                                 <td>{{ $key }}</td>
                                 <td>{{ $k }}</td>
-                                <td>{{ $val->sum("defect_qty") }}</td>
-                                <td>{{ round(($val->sum("defect_qty")/($value->sum("defect_qty") > 0 ? $value->sum("defect_qty") : 1)*100), 2) }} %</td>
+                                <td>{{ $val["total_defect"] }}</td>
+                                <td>{{ round(($val["total_defect"]/($value["total_defect"] > 0 ? $value["total_defect"] : 1)*100), 2) }} %</td>
                                 <td></td>
                                 <td></td>
                             </tr>
                         @endforeach
                         <tr>
                             <th colspan="2">TOTAL</th>
-                            <th style="background: yellow;">{{ $totalDefect }}</th>
+                            <th style="background: yellow;">{{ $value["total_defect"] }}</th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -204,26 +236,34 @@
                         </td>
                     </tr>
                 @else
-                    @foreach ($defectInOutList->groupBy("defect_type") as $key => $value)
+                    @foreach ($defectInOutListSort->sortByDesc("total_defect") as $key => $value)
                         @php
+                            $defectInOutStyle = $value['data']->sortBy("kpno")->groupBy("kpno", "style", "color");
+                            $defectInOutStyleSort = $defectInOutStyle->map(function ($group) {
+                                return [
+                                    'kpno' => $group->first()->kpno, // $key is what we grouped by, it'll be constant by each  group of rows
+                                    'styleno' => $group->first()->styleno, // $key is what we grouped by, it'll be constant by each  group of rows
+                                    'color' => $group->first()->color, // $key is what we grouped by, it'll be constant by each  group of rows
+                                    'total_defect' => $group->sum('defect_qty'),
+                                    'data' => $group,
+                                ];
+                            });
+
                             $totalDefect = 0;
                         @endphp
-                        @foreach ($value->sortBy("kpno")->groupBy("kpno", "style", "color") as $val)
-                            @php
-                                $totalDefect += $val->sum("defect_qty");
-                            @endphp
+                        @foreach ($defectInOutStyleSort->sortByDesc("total_defect") as $val)
                             <tr>
                                 <td>{{ $key }}</td>
-                                <td>{{ $val->first()->kpno }}</td>
-                                <td>{{ $val->first()->styleno }}</td>
-                                <td>{{ $val->first()->color }}</td>
-                                <td>{{ $val->sum("defect_qty") }}</td>
-                                <td>{{ round(($val->sum("defect_qty")/($value->sum("defect_qty") > 0 ? $value->sum("defect_qty") : 1)*100), 2) }} %</td>
+                                <td>{{ $val['kpno'] }}</td>
+                                <td>{{ $val['styleno'] }}</td>
+                                <td>{{ $val['color'] }}</td>
+                                <td>{{ $val['total_defect'] }}</td>
+                                <td>{{ round(($val['total_defect']/($value['total_defect'] > 0 ? $value['total_defect'] : 1)*100), 2) }} %</td>
                             </tr>
                         @endforeach
                         <tr>
                             <th colspan="4">TOTAL</th>
-                            <th style="background: #ffea2b;">{{ $totalDefect }}</th>
+                            <th style="background: #ffea2b;">{{ $value['total_defect'] }}</th>
                             <th></th>
                         </tr>
                     @endforeach

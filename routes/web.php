@@ -822,6 +822,8 @@ Route::middleware('auth')->group(function () {
         Route::post('store', 'store')->name('store-master-line');
         Route::put('update', 'update')->name('update-master-line');
         Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-line');
+
+        Route::post('update-image', 'updateImage')->name('update-master-line-image');
     });
 
     // Master Plan
@@ -1028,7 +1030,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Mutasi Mesin
-    Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->middleware("role:mutasi_mesin")->group(function () {
+    Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->middleware("role:machine")->group(function () {
         Route::get('/', 'index')->name('mut-mesin');
         Route::get('/create', 'create')->name('create-mut-mesin');
         Route::post('/store', 'store')->name('store-mut-mesin');
@@ -1041,7 +1043,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/webcam_capture', 'webcam_capture')->name('webcam_capture');
     });
     // Mutasi Mesin Master
-    Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->middleware("role:mutasi_mesin")->group(function () {
+    Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->middleware("role:machine")->group(function () {
         Route::get('/', 'index')->name('master-mut-mesin');
         Route::post('/store', 'store')->name('store-master-mut-mesin');
         Route::get('/export_excel_master_mesin', 'export_excel_master_mesin')->name('export_excel_master_mesin');
@@ -1050,7 +1052,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/edit_master_mut_mesin', 'edit_master_mut_mesin')->name('edit-master-mut-mesin');
     });
     // Laporan Mesin
-    Route::controller(MutasiMesinLaporanController::class)->prefix("master-mut-mesin")->middleware("role:mutasi_mesin")->group(function () {
+    Route::controller(MutasiMesinLaporanController::class)->prefix("master-mut-mesin")->middleware("role:machine")->group(function () {
         Route::get('/lap_stok_mesin', 'lap_stok_mesin')->name('lap_stok_mesin');
         Route::get('/export_excel_stok_mesin', 'export_excel_stok_mesin')->name('export_excel_stok_mesin');
         Route::get('/lap_stok_detail_mesin', 'lap_stok_detail_mesin')->name('lap_stok_detail_mesin');

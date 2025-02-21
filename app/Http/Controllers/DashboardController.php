@@ -1567,22 +1567,30 @@ class DashboardController extends Controller
                 SELECT
                     *
                 FROM
-                (
-                        select a.*,b.no_bppb no_out, COALESCE(total_roll_all,0) roll_out, COALESCE(total_roll, 0) roll_out_today, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur, coalesce(b.no_ws_aktual, a.no_ws) no_ws_aktual from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws, ac.styleno,ms.supplier buyer,a.id_item,
-                                REPLACE(mi.itemdesc, '\"', '\\\\\"') itemdesc, mi.color, a.qty qty_req,a.unit
-                                from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
-                                inner join jo_det jod on a.id_jo=jod.id_jo
-                                inner join so on jod.id_so=so.id
-                                inner join act_costing ac on so.id_cost=ac.id
-                                inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
-                                inner join masteritem mi on a.id_item=mi.id_item
-                                where bppbno like '%RQ-F%' and a.id_supplier = '432'
-                                group by a.id_item,a.bppbno
-                                order by bppbdate,bppbno desc) a left join
-                                (select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll_all, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
-                                (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_all_ri, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
-                                                WHERE COALESCE(total_roll_all,0) > 0
-                                order by a.no_ws, a.color
+                    (
+                        select
+                            a.*,b.no_bppb no_out, COALESCE(total_roll_all,0) roll_out, COALESCE(total_roll, 0) roll_out_today, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur, coalesce(b.no_ws_aktual, a.no_ws) no_ws_aktual from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws, ac.styleno,ms.supplier buyer,a.id_item, REPLACE(mi.itemdesc, '\"', '\\\\\"') itemdesc, mi.color, a.qty qty_req,a.unit
+                        from
+                            bppb_req a
+                            inner join mastersupplier s on a.id_supplier=s.id_supplier
+                            inner join jo_det jod on a.id_jo=jod.id_jo
+                            inner join so on jod.id_so=so.id
+                            inner join act_costing ac on so.id_cost=ac.id
+                            inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
+                            inner join masteritem mi on a.id_item=mi.id_item
+                        where
+                            bppbno like '%RQ-F%' and a.id_supplier = '432'
+                        group by
+                            a.id_item,a.bppbno
+                        order by
+                            bppbdate,bppbno desc
+                    ) a
+                    left join (select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll_all, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' GROUP BY id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item
+                    left join (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_all_ri, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
+                WHERE
+                    COALESCE(total_roll_all,0) > 0
+                order by
+                    a.no_ws, a.color
                 ) req_roll
                 LEFT JOIN (
                     SELECT
@@ -1591,46 +1599,46 @@ class DashboardController extends Controller
                         SUM(CASE WHEN sisa_kain <= 0 THEN 1 ELSE 0 END) total_roll_habis,
                         SUM(CASE WHEN tanggal_pemakaian = CURRENT_DATE THEN 1 ELSE 0 END)  total_roll_today
                     FROM (
-                            SELECT
-                                id_roll,
-                                id_item,
-                                MAX(qty) AS qty,
-                                SUM(total_pemakaian_roll) AS total_pemakaian_roll,
-                                SUM(short_roll) AS short_roll,
-                                MIN(CASE
-                                        WHEN form_cut_input_detail.STATUS IN ('extension', 'extension complete')
-                                        THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll
-                                        ELSE form_cut_input_detail.sisa_kain
-                                END) AS sisa_kain,
-                                DATE(form_cut_input_detail.updated_at) tanggal_pemakaian
-                            FROM
-                                laravel_nds.form_cut_input_detail
-                            LEFT JOIN laravel_nds.form_cut_input
-                                ON form_cut_input.id = form_cut_input_detail.form_cut_id
-                            WHERE
-                                (form_cut_input.status != 'SELESAI PENGERJAAN' OR
-                                (form_cut_input.status = 'SELESAI PENGERJAAN' AND
-                                        form_cut_input.status NOT IN ('not complete', 'extension')))
-                                AND id_roll IS NOT NULL
-                                AND id_roll != ''
-                                AND form_cut_input_detail.updated_at BETWEEN '".date("Y-m-d", strtotime($date." -7 days"))." 00:00:00' AND '".$date." 23:59:59'
-                            GROUP BY
-                                id_roll,
-                                id_item
+                        SELECT
+                            id_roll,
+                            id_item,
+                            MAX(qty) AS qty,
+                            SUM(total_pemakaian_roll) AS total_pemakaian_roll,
+                            SUM(short_roll) AS short_roll,
+                            MIN(CASE
+                                WHEN form_cut_input_detail.STATUS IN ('extension', 'extension complete')
+                                THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll
+                                ELSE form_cut_input_detail.sisa_kain
+                            END) AS sisa_kain,
+                            DATE(form_cut_input_detail.updated_at) tanggal_pemakaian
+                        FROM
+                            laravel_nds.form_cut_input_detail
+                        LEFT JOIN laravel_nds.form_cut_input
+                            ON form_cut_input.id = form_cut_input_detail.form_cut_id
+                        WHERE
+                            (form_cut_input.status != 'SELESAI PENGERJAAN' OR
+                            (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status NOT IN ('not complete', 'extension')))
+                            AND id_roll IS NOT NULL
+                            AND id_roll != ''
+                            AND form_cut_input_detail.updated_at BETWEEN '".date("Y-m-d", strtotime($date." -360 days"))." 00:00:00' AND '".$date." 23:59:59'
+                        GROUP BY
+                            id_roll,
+                            id_item
                     ) roll
                     GROUP BY
-                            id_item
+                        id_item
                     HAVING
-                            total_roll > total_roll_habis
+                        total_roll > total_roll_habis
                 ) cutting_roll ON cutting_roll.id_item = req_roll.id_item
-                WHERE (CASE WHEN bppbdate < '".$date."' THEN roll_out > total_roll ELSE (roll_out >= total_roll OR roll_out <= total_roll ) END)
+                WHERE
+                    (CASE WHEN bppbdate < '".$date."' THEN roll_out > total_roll ELSE (roll_out >= total_roll OR roll_out <= total_roll ) END)
                 order by
+                    roll_out_today desc,
+                    total_roll_today desc,
                     buyer asc,
                     no_ws_aktual asc,
                     styleno asc,
-                    color asc,
-                    total_roll_today desc,
-                    roll_out_today desc
+                    color asc
             ");
 
             return DataTables::of($pemakaianRoll)->
