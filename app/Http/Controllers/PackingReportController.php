@@ -280,7 +280,6 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     ac.styleno,
                     sd.color,
                     sd.size,
-                    sd.dest,
 					sum(sa_pck_line_awal) - sum(sa_trf_gmt_awal) sa_pck_line_awal,
 					sum(qty_in_pck_line) qty_in_pck_line,
 					sum(input_rework_sewing) input_rework_sewing,
@@ -541,7 +540,7 @@ inner join signalbit_erp.so so on sd.id_so = so.id
 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
-group by so_det_id
+group by kpno, buyer, styleno, color, size
 order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
       ");
 

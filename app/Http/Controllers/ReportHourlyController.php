@@ -45,39 +45,39 @@ class ReportHourlyController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
 
-            $cek_trans = DB::connection('mysql_sb')->select("
-                        SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
-            $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
+            // $cek_trans = DB::connection('mysql_sb')->select("
+            //             SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
+            // $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
 
-            if ($cek_trans_input === null) {
+            // if ($cek_trans_input === null) {
 
-                $del_data = DB::connection('mysql_sb')->delete("
-                            DELETE FROM rep_hourly_output_hist_trans");
+            //     $del_data = DB::connection('mysql_sb')->delete("
+            //                 DELETE FROM rep_hourly_output_hist_trans");
 
-                $ins_data = DB::connection('mysql_sb')->insert("
-                            INSERT INTO rep_hourly_output_hist_trans (tgl_trans, sewing_line, styleno, kpno, tgl_update)
-                            select
-                            date(a.updated_at) tgl_trans,
-                            u.name,
-                            ac.styleno,
-                            ac.kpno,
-                            '$tgl_skrg' tgl_update
-                            from
-                            (
-                            select * from output_rfts
-                            where date(updated_at) >= '2024-09-01'
-                            group by master_plan_id, date(updated_at), created_by
-                            ) a
-                            inner join user_sb_wip u on a.created_by = u.id
-                            inner join master_plan mp on a.master_plan_id = mp.id
-                            inner join act_costing ac on mp.id_ws = ac.id
-                            order by date(a.updated_at) asc
-                            ");
-            }
+            //     $ins_data = DB::connection('mysql_sb')->insert("
+            //                 INSERT INTO rep_hourly_output_hist_trans (tgl_trans, sewing_line, styleno, kpno, tgl_update)
+            //                 select
+            //                 date(a.updated_at) tgl_trans,
+            //                 u.name,
+            //                 ac.styleno,
+            //                 ac.kpno,
+            //                 '$tgl_skrg' tgl_update
+            //                 from
+            //                 (
+            //                 select * from output_rfts
+            //                 where date(updated_at) >= '2024-09-01'
+            //                 group by master_plan_id, date(updated_at), created_by
+            //                 ) a
+            //                 inner join user_sb_wip u on a.created_by = u.id
+            //                 inner join master_plan mp on a.master_plan_id = mp.id
+            //                 inner join act_costing ac on mp.id_ws = ac.id
+            //                 order by date(a.updated_at) asc
+            //                 ");
+            // }
 
             $cek_trans_terakhir = DB::connection('mysql_sb')->select("SELECT tgl_trans from
                         (
-                        select date(updated_at) tgl_trans from output_rfts where updated_at >= '2024-12-01 00:00:00'
+                        select date(updated_at) tgl_trans from output_rfts where updated_at >= '2025-02-20 00:00:00'
                         group by date(updated_at)
                         ) a
                         left join
@@ -97,7 +97,7 @@ where tgl_trans < '$tgl_skrg' and tanggal is null");
     SELECT
     a.tgl_trans,
     u.name sewing_line,
-    ac.styleno,
+    sd.styleno_prod,
     if(td.tot_days is not null, td.tot_days + 1, '1') tot_days,
 round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line_angka,
     if (td.eff is not null, coalesce(td.eff,0), null) kemarin_1,
@@ -217,13 +217,13 @@ round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / o
                 (
                 select min(id), man_power, sewing_line, tgl_plan from master_plan where date(tgl_plan) >= '$tgl_cek 00:00:00' and  date(tgl_plan) <= '$tgl_cek 23:59:59' and cancel = 'N' group by sewing_line, tgl_plan
                 ) cmp on z.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
-                group by u.name, ac.kpno, ac.Styleno, z.tgl_trans
+                group by u.name, sd.styleno_prod, z.tgl_trans
                 ) eff_hr_ini
                 group by sewing_line
     ) e_skrg on u.name = e_skrg.sewing_line
     left join
     (
-    select sum(mp.jam_kerja) jam_kerja, u.name, ac.styleno, sum(mp.set_target) set_target, ac.kpno
+    select sum(mp.jam_kerja) jam_kerja, u.name, sd.styleno_prod, sum(mp.set_target) set_target, ac.kpno
     from
         (
         select master_plan_id, created_by, so_det_id from output_rfts
@@ -232,9 +232,10 @@ round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / o
         ) a
         inner join master_plan mp on a.master_plan_id = mp.id
         inner join act_costing ac on mp.id_ws = ac.id
+				inner join so_det sd on a.so_det_id = sd.id
         inner join user_sb_wip u on a.created_by = u.id
-        group by a.created_by, ac.styleno, ac.kpno
-    ) jk on u.name = jk.name and ac.styleno = jk.styleno and ac.kpno = jk.kpno
+        group by a.created_by, sd.styleno_prod
+    ) jk on u.name = jk.name and sd.styleno_prod = jk.styleno_prod and ac.kpno = jk.kpno
 left join
 (
         select sewing_line, styleno,
@@ -276,7 +277,7 @@ left join
             FROM
                 output_rfts
             WHERE
-                updated_at >= '2024-12-01 00:00:00'
+                updated_at >= '2025-02-20 00:00:00'
             GROUP BY
                 DATE(updated_at)
         ) AS tbl_tgl
@@ -292,18 +293,14 @@ left join
             FROM
                 output_rfts
             WHERE
-                updated_at >= '2024-12-01 00:00:00'
+                updated_at >= '2025-02-20 00:00:00'
             GROUP BY
                 DATE(updated_at)
         ) AS tbl_tgl
         ) c on a.tgl_skrg = c.update_date_skrg
-) td on u.name = td.sewing_line and ac.styleno = td.styleno
-
-
-
-
-    group by u.name, ac.Styleno, a.tgl_trans
-    order by a.tgl_trans asc, u.name asc, ac.kpno asc
+) td on u.name = td.sewing_line and sd.styleno_prod = td.styleno
+    group by u.name, sd.styleno_prod, a.tgl_trans
+    order by a.tgl_trans asc, u.name asc, sd.styleno_prod asc
                                 ");
                 }
             }
@@ -313,12 +310,14 @@ a.tgl_trans,
 concat((DATE_FORMAT(tgl_trans,  '%d')), '-',left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')) tgl_trans_fix,
 concat((DATE_FORMAT(mp.tgl_plan,  '%d')), '-',left(DATE_FORMAT(mp.tgl_plan,  '%M'),3),'-',DATE_FORMAT(mp.tgl_plan,  '%Y')) tgl_plan_fix,
 u.name sewing_line,
+SUBSTRING_INDEX(ol.chief_name, ' ', 1) AS nm_chief,
 ol.leader_nik nik_leader,
-ol.leader_name nm_leader,
+SUBSTRING_INDEX(ol.leader_name, ' ', 1) AS nm_leader,
 ms.supplier buyer,
 ac.kpno,
-ac.styleno,
+sd.styleno_prod,
 mp.color,
+m.product_group,
 if(td.tot_days is null or '0', '1',td.tot_days + 1) tot_days,
 mp.id,
 mp.smv,
@@ -368,7 +367,9 @@ end as plan_target_perjam,
 if (td.eff is not null, concat(coalesce(td.eff,0), ' %'), '-') kemarin_1,
 if (td.eff_1 is not null, concat(coalesce(td.eff_1,0), ' %'), '-') kemarin_2,
 concat(coalesce(e_skrg.eff_skrg,0), ' %') eff_skrg,
-coalesce(e_skrg.eff_skrg,0) eff_skrg_angka
+coalesce(e_skrg.eff_skrg,0) eff_skrg_angka,
+if (td.eff is not null, td.eff, '0') kemarin_1_angka,
+if (td.eff is not null, td.eff_1, '0') kemarin_2_angka
  from
 (
     select
@@ -399,6 +400,7 @@ COUNT(CASE WHEN jam = 13 THEN so_det_id END) AS jam_13,
 inner join so_det sd on a.so_det_id = sd.id
 inner join so on sd.id_so = so.id
 inner join act_costing ac on so.id_cost = ac.id
+inner join masterproduct m on ac.id_product = m.id
 inner join user_sb_wip u on a.created_by = u.id
 inner join master_plan mp on a.master_plan_id = mp.id
 inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
@@ -491,7 +493,7 @@ left join
 
 left join
 (
-select format(sum(mp.jam_kerja),1) jam_kerja, u.name, ac.styleno, sum(mp.set_target) set_target, ac.kpno
+select format(sum(mp.jam_kerja),1) jam_kerja, u.name, sd.styleno_prod, sum(mp.set_target) set_target
 from
 	(
 	select master_plan_id, created_by, so_det_id from output_rfts
@@ -499,10 +501,11 @@ from
 	GROUP BY master_plan_id, created_by
 	) a
 	inner join master_plan mp on a.master_plan_id = mp.id
-	inner join act_costing ac on mp.id_ws = ac.id
+	inner join so_det sd on a.so_det_id = sd.id
 	inner join user_sb_wip u on a.created_by = u.id
-	group by a.created_by, ac.styleno, ac.kpno
-) jk on u.name = jk.name and ac.styleno = jk.styleno and ac.kpno = jk.kpno
+	group by a.created_by, sd.styleno_prod
+) jk on u.name = jk.name and sd.styleno_prod = jk.styleno_prod
+
 left join
 (
         select sewing_line, styleno,
@@ -544,7 +547,7 @@ left join
             FROM
                 output_rfts
             WHERE
-                updated_at >= '2024-12-01 00:00:00'
+                updated_at >= '2025-02-19 00:00:00'
             GROUP BY
                 DATE(updated_at)
         ) AS tbl_tgl
@@ -560,16 +563,16 @@ left join
             FROM
                 output_rfts
             WHERE
-                updated_at >= '2024-12-01 00:00:00'
+                updated_at >= '2025-02-19 00:00:00'
             GROUP BY
                 DATE(updated_at)
         ) AS tbl_tgl
         ) c on a.tgl_skrg = c.update_date_skrg
         GROUP BY sewing_line, styleno
-) td on u.name = td.sewing_line and ac.styleno = td.styleno
+) td on u.name = td.sewing_line and sd.styleno_prod = td.styleno
 left join output_employee_line ol on a.tgl_trans = ol.tanggal and u.name	= ol.line_name
-group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
-order by a.tgl_trans asc, u.name asc, ac.kpno asc
+group by u.name, sd.styleno_prod, a.tgl_trans
+order by a.tgl_trans asc, u.name asc, sd.styleno_prod asc
 ");
             return DataTables::of($data_tracking)->toJson();
         }

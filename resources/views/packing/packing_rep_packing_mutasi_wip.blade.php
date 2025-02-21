@@ -66,7 +66,7 @@
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th colspan="6" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
+                            <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="11" style="background-color: lightgreen; text-align:center;">Packing Line</th>
                             <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment
                             </th>
@@ -79,7 +79,6 @@
                             <th style="background-color: lightblue;">Style</th>
                             <th style="background-color: lightblue;">Color</th>
                             <th style="background-color: lightblue;">Size</th>
-                            <th style="background-color: lightblue;">Dest</th>
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima Dari Steam</th>
                             <th style="background-color: lightgreen;">Defect Sewing</th>
@@ -170,9 +169,6 @@
                     },
                     {
                         data: 'size'
-                    },
-                    {
-                        data: 'dest'
                     },
                     {
                         data: 'sa_pck_line_awal'
@@ -281,39 +277,39 @@
                     // Add an empty row for spacing
                     worksheet.addRow([]);
                     const headerRow = worksheet.addRow([
-                        "Jenis Produk", "", "", "", "", "",
+                        "Jenis Produk", "", "", "", "",
                         "Packing Line", "", "", "", "", "", "", "", "", "", "",
                         "Transfer Garment", "", "", "",
                         "Packing Central", "", "", "",
                     ]);
 
                     // Merge cells for the first header row
-                    worksheet.mergeCells(`A${headerRow.number}:F${headerRow.number}`); // Merge "Jenis Produk"
-                    worksheet.mergeCells(`G${headerRow.number}:Q${headerRow.number}`); // Merge "Packing Line"
+                    worksheet.mergeCells(`A${headerRow.number}:E${headerRow.number}`); // Merge "Jenis Produk"
+                    worksheet.mergeCells(`F${headerRow.number}:P${headerRow.number}`); // Merge "Packing Line"
                     worksheet.mergeCells(
-                        `R${headerRow.number}:T${headerRow.number}`); // Merge "Transfer Garment"
+                        `Q${headerRow.number}:S${headerRow.number}`); // Merge "Transfer Garment"
                     worksheet.mergeCells(
-                        `V${headerRow.number}:X${headerRow.number}`); // Merge "Packing Central"
+                        `U${headerRow.number}:W${headerRow.number}`); // Merge "Packing Central"
                     // Define the second header row
                     // Center align the merged cells
                     worksheet.getCell(`A${headerRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    worksheet.getCell(`G${headerRow.number}`).alignment = {
+                    worksheet.getCell(`F${headerRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    worksheet.getCell(`R${headerRow.number}`).alignment = {
+                    worksheet.getCell(`Q${headerRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    worksheet.getCell(`V${headerRow.number}`).alignment = {
+                    worksheet.getCell(`U${headerRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
                     const headers = [
-                        "WS", "Buyer", "Style", "Color", "Size", "Dest",
+                        "WS", "Buyer", "Style", "Color", "Size",
                         "Saldo Awal", "Terima Dari Steam", "Rework Sewing",
                         "Rework Mending", "Rework Spot Cleaning", "Defect Sewing",
                         "Defect Mending", "Defect Spot Cleaning", "Reject",
@@ -331,7 +327,6 @@
                             row.styleno,
                             row.color,
                             row.size,
-                            row.dest,
                             row.sa_pck_line_awal,
                             row.qty_in_pck_line,
                             row.input_rework_sewing,
