@@ -574,7 +574,21 @@ left join output_employee_line ol on a.tgl_trans = ol.tanggal and u.name	= ol.li
 group by u.name, sd.styleno_prod, a.tgl_trans
 order by a.tgl_trans asc, u.name asc, sd.styleno_prod asc
 ");
-            return DataTables::of($data_tracking)->toJson();
+
+            $total_mins_avail = array_sum(array_column($data_tracking, 'mins_avail'));
+            $total_mins_prod = array_sum(array_column($data_tracking, 'mins_prod'));
+
+            $tot_eff = round(($total_mins_prod  / $total_mins_avail) * 100, 2) . ' %';
+
+            // return DataTables::of($data_tracking)->toJson();
+
+            return response()->json([
+
+                'data' => $data_tracking,
+
+                'tot_eff' => $tot_eff
+
+            ]);
         }
 
         return view(

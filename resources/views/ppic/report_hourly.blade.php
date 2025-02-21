@@ -203,6 +203,19 @@
                         d.tgl_filter = $('#tgl_filter').val(); // Send the selected date to the server
                         console.log(d.tgl_filter); // Debugging: log the filter date
                     },
+                    dataSrc: function(json) {
+
+                        // Access the DataTable instance directly
+
+                        // Use the datatable variable to access the API
+
+                        $(datatable.column(31).footer()).html(json
+                        .tot_eff); // Update the footer with total efficiency
+
+                        return json.data; // Return the data for DataTable
+
+                    }
+
                 },
                 columns: [{
                         data: 'sewing_line'
