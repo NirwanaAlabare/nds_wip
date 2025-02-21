@@ -251,7 +251,7 @@
 
         var intervalData = setInterval(() => {
             updateData();
-        }, 10000);
+        }, 60000);
 
         var currentDayOne = "";
         var currentDayTwo = "";
