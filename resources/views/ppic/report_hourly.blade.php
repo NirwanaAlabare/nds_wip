@@ -62,7 +62,6 @@
                             <th>Chief</th>
                             <th>Leader</th>
                             <th>Style</th>
-                            <th>Product</th>
                             <th>SMV</th>
                             <th>MP</th>
                             <th>Jml Hr</th>
@@ -95,7 +94,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="5"> Total </th>
+                            <th colspan="4"> Total </th>
                             <th></th>
                             <th></th>
                             <th colspan="4"></th>
@@ -119,7 +118,7 @@
                             <th>19</th>
                             <th>20</th>
                             <th>21</th>
-                            <th colspan = '2'></th>
+                            <th colspan = '2' style='font-size: 30px; font-weight: bold;'></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -195,7 +194,7 @@
                 paging: false,
                 ordering: false,
                 fixedColumns: {
-                    leftColumns: 5 // Fix the first three columns
+                    leftColumns: 4 // Fix the first three columns
                 },
                 ajax: {
                     url: '{{ route('report-hourly') }}',
@@ -204,18 +203,24 @@
                         console.log(d.tgl_filter); // Debugging: log the filter date
                     },
                     dataSrc: function(json) {
-
                         // Access the DataTable instance directly
-
                         // Use the datatable variable to access the API
-
-                        $(datatable.column(31).footer()).html(json
-                        .tot_eff); // Update the footer with total efficiency
-
+                        $(datatable.column(30).footer()).html(json
+                            .tot_eff); // Update the footer with total efficiency
+                        // Change the font color of the footer based on the value
+                        if (json.tot_eff < 85) {
+                            $(datatable.column(30).footer()).css({
+                                'color': 'red',
+                                'font-weight': 'bold'
+                            });
+                        } else {
+                            $(datatable.column(31).footer()).css({
+                                'color': 'green',
+                                'font-weight': 'bold'
+                            });
+                        }
                         return json.data; // Return the data for DataTable
-
                     }
-
                 },
                 columns: [{
                         data: 'sewing_line'
@@ -228,9 +233,6 @@
                     },
                     {
                         data: 'styleno_prod'
-                    },
-                    {
-                        data: 'product_group'
                     },
                     {
                         data: 'smv'
@@ -350,11 +352,11 @@
                     // Calculate the total of unique man_power values
                     var totalUniqueManPower = Object.values(uniqueManPower).reduce((a, b) => a + b, 0);
                     // Update footer for the total unique man_power
-                    $(api.column(6).footer()).html(
+                    $(api.column(5).footer()).html(
                         totalUniqueManPower); // Assuming man_power is in the 7th column (zero-based index 6)
                     // Your existing sum calculations...
                     var sumTotalA = api
-                        .column(11, {
+                        .column(10, {
                             search: 'applied'
                         })
                         .data()
@@ -362,11 +364,11 @@
                             return intVal(a) + intVal(b);
                         }, 0);
                     // Update other footer calculations as needed...
-                    $(api.column(13).footer()).html(sumTotalA);
+                    $(api.column(12).footer()).html(sumTotalA);
 
 
                     var sumTotalB = api
-                        .column(13, {
+                        .column(12, {
                             search: 'applied'
                         })
                         .data()
@@ -375,7 +377,7 @@
                         }, 0);
 
                     var sumTotalC = api
-                        .column(14, {
+                        .column(13, {
                             search: 'applied'
                         })
                         .data()
@@ -384,7 +386,7 @@
                         }, 0);
 
                     var sumTotal_1 = api
-                        .column(17, {
+                        .column(16, {
                             search: 'applied'
                         })
                         .data()
@@ -393,7 +395,7 @@
                         }, 0);
 
                     var sumTotal_2 = api
-                        .column(18, {
+                        .column(17, {
                             search: 'applied'
                         })
                         .data()
@@ -402,7 +404,7 @@
                         }, 0);
 
                     var sumTotal_3 = api
-                        .column(19, {
+                        .column(18, {
                             search: 'applied'
                         })
                         .data()
@@ -411,7 +413,7 @@
                         }, 0);
 
                     var sumTotal_4 = api
-                        .column(20, {
+                        .column(19, {
                             search: 'applied'
                         })
                         .data()
@@ -420,7 +422,7 @@
                         }, 0);
 
                     var sumTotal_5 = api
-                        .column(21, {
+                        .column(20, {
                             search: 'applied'
                         })
                         .data()
@@ -429,7 +431,7 @@
                         }, 0);
 
                     var sumTotal_6 = api
-                        .column(22, {
+                        .column(21, {
                             search: 'applied'
                         })
                         .data()
@@ -438,7 +440,7 @@
                         }, 0);
 
                     var sumTotal_7 = api
-                        .column(23, {
+                        .column(22, {
                             search: 'applied'
                         })
                         .data()
@@ -447,7 +449,7 @@
                         }, 0);
 
                     var sumTotal_8 = api
-                        .column(24, {
+                        .column(23, {
                             search: 'applied'
                         })
                         .data()
@@ -456,7 +458,7 @@
                         }, 0);
 
                     var sumTotal_9 = api
-                        .column(25, {
+                        .column(24, {
                             search: 'applied'
                         })
                         .data()
@@ -465,7 +467,7 @@
                         }, 0);
 
                     var sumTotal_10 = api
-                        .column(26, {
+                        .column(25, {
                             search: 'applied'
                         })
                         .data()
@@ -474,7 +476,7 @@
                         }, 0);
 
                     var sumTotal_11 = api
-                        .column(27, {
+                        .column(26, {
                             search: 'applied'
                         })
                         .data()
@@ -483,7 +485,7 @@
                         }, 0);
 
                     var sumTotal_12 = api
-                        .column(28, {
+                        .column(27, {
                             search: 'applied'
                         })
                         .data()
@@ -492,7 +494,7 @@
                         }, 0);
 
                     var sumTotal_13 = api
-                        .column(29, {
+                        .column(28, {
                             search: 'applied'
                         })
                         .data()
@@ -501,7 +503,7 @@
                         }, 0);
 
                     var sumTotal_tot_out = api
-                        .column(30, {
+                        .column(29, {
                             search: 'applied'
                         })
                         .data()
@@ -511,23 +513,23 @@
 
                     // Update footer for the "MP" column
 
-                    $(api.column(11).footer()).html(sumTotalA);
-                    $(api.column(13).footer()).html(sumTotalB);
-                    $(api.column(14).footer()).html(sumTotalC);
-                    $(api.column(17).footer()).html(sumTotal_1);
-                    $(api.column(18).footer()).html(sumTotal_2);
-                    $(api.column(19).footer()).html(sumTotal_3);
-                    $(api.column(20).footer()).html(sumTotal_4);
-                    $(api.column(21).footer()).html(sumTotal_5);
-                    $(api.column(22).footer()).html(sumTotal_6);
-                    $(api.column(23).footer()).html(sumTotal_7);
-                    $(api.column(24).footer()).html(sumTotal_8);
-                    $(api.column(25).footer()).html(sumTotal_9);
-                    $(api.column(26).footer()).html(sumTotal_10);
-                    $(api.column(27).footer()).html(sumTotal_11);
-                    $(api.column(28).footer()).html(sumTotal_12);
-                    $(api.column(29).footer()).html(sumTotal_13);
-                    $(api.column(30).footer()).html(sumTotal_tot_out);
+                    $(api.column(10).footer()).html(sumTotalA);
+                    $(api.column(12).footer()).html(sumTotalB);
+                    $(api.column(13).footer()).html(sumTotalC);
+                    $(api.column(16).footer()).html(sumTotal_1);
+                    $(api.column(17).footer()).html(sumTotal_2);
+                    $(api.column(18).footer()).html(sumTotal_3);
+                    $(api.column(19).footer()).html(sumTotal_4);
+                    $(api.column(20).footer()).html(sumTotal_5);
+                    $(api.column(21).footer()).html(sumTotal_6);
+                    $(api.column(22).footer()).html(sumTotal_7);
+                    $(api.column(23).footer()).html(sumTotal_8);
+                    $(api.column(24).footer()).html(sumTotal_9);
+                    $(api.column(25).footer()).html(sumTotal_10);
+                    $(api.column(26).footer()).html(sumTotal_11);
+                    $(api.column(27).footer()).html(sumTotal_12);
+                    $(api.column(28).footer()).html(sumTotal_13);
+                    $(api.column(29).footer()).html(sumTotal_tot_out);
 
                 },
 
@@ -542,7 +544,7 @@
 
                         // Apply a class to change the font color
 
-                        $('td:eq(32)', row).css({
+                        $('td:eq(31)', row).css({
 
                             'color': 'red',
 
@@ -551,7 +553,7 @@
                         });
 
                     } else {
-                        $('td:eq(32)', row).css({
+                        $('td:eq(31)', row).css({
 
                             'color': 'green',
 
@@ -564,7 +566,7 @@
 
                         // Apply a class to change the font color
 
-                        $('td:eq(31)', row).css({
+                        $('td:eq(30)', row).css({
 
                             'color': 'red',
 
@@ -573,7 +575,7 @@
                         });
 
                     } else {
-                        $('td:eq(31)', row).css({
+                        $('td:eq(30)', row).css({
 
                             'color': 'green',
 
@@ -586,7 +588,7 @@
 
                         // Apply a class to change the font color
 
-                        $('td:eq(8)', row).css({
+                        $('td:eq(7)', row).css({
 
                             'color': 'red',
 
@@ -595,7 +597,7 @@
                         });
 
                     } else {
-                        $('td:eq(8)', row).css({
+                        $('td:eq(7)', row).css({
 
                             'color': 'green',
 
@@ -608,7 +610,7 @@
 
                         // Apply a class to change the font color
 
-                        $('td:eq(9)', row).css({
+                        $('td:eq(8)', row).css({
 
                             'color': 'red',
 
@@ -617,7 +619,7 @@
                         });
 
                     } else {
-                        $('td:eq(9)', row).css({
+                        $('td:eq(8)', row).css({
 
                             'color': 'green',
 
@@ -628,7 +630,7 @@
 
                 },
                 rowsGroup: [
-                    31 // Adjust this index to the correct column (zero-based)
+                    30 // Adjust this index to the correct column (zero-based)
                 ]
             });
         }
