@@ -49,7 +49,7 @@
             </div>
         </div>
     </div>
-    <div class="table-responsive">
+    <div>
         @if (!$loadingOrderOutput)
             <table class="sticky-table table table-bordered">
         @else
@@ -57,12 +57,12 @@
         @endif
             <thead>
                 <tr>
-                    <th>No. WS</th>
-                    <th>Style</th>
-                    <th>Color</th>
-                    <th>Line</th>
+                    <td class="fixed-column fw-bold">No. WS</td>
+                    <td class="fixed-column fw-bold">Style</td>
+                    <td class="fixed-column fw-bold">Color</td>
+                    <td class="fixed-column fw-bold">Line</td>
                     @if ($groupBy == 'size')
-                        <th>Size</th>
+                        <td class="fixed-column fw-bold">Size</td>
                     @endif
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
@@ -92,7 +92,7 @@
                                 ?>
                                     <tr>
                                         @if ($dailyGroup->ws != $currentWs)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
+                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
 
                                             @php
                                                 $currentWs = $dailyGroup->ws;
@@ -102,7 +102,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
+                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
 
                                             @php
                                                 $currentStyle = $dailyGroup->style;
@@ -111,7 +111,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
+                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
 
                                             @php
                                                 $currentColor = $dailyGroup->color;
@@ -119,14 +119,14 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->sewing_line != $currentLine)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
+                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
 
                                             @php
                                                 $currentLine = $dailyGroup->sewing_line;
                                             @endphp
                                         @endif
                                         @if ($groupBy == "size")
-                                            <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                                            <td class="fixed-column text-nowrap">{{ $dailyGroup->size }}</td>
                                         @endif
 
                                         @php
@@ -175,9 +175,9 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="text-end">
+                    <td colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="fixed-column text-end fw-bold">
                         TOTAL
-                    </th>
+                    </td>
                     @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
                         @foreach ($dateOutputs as $dateOutput)
                             <td class="fw-bold text-end text-nowrap fs-5">
@@ -266,6 +266,45 @@
 
 @push('scripts')
     <script>
+        function setFixedColumn() {
+            var table = document.querySelector('table.sticky-table');
+            var trs = table.querySelectorAll('tr');
+            var tds = [].map.call(trs, tr => tr.querySelectorAll('td.fixed-column'));
+
+            let column = 0;
+            let currentRowSpan = 0;
+            let currentWidth = 0;
+            for (var i = 0; i < trs.length; i++) {
+                if (currentRowSpan <= 1) {
+                    column = 0;
+                    currentRowSpan = 0;
+                    currentWidth = 0;
+                } else {
+                    currentRowSpan--;
+                }
+
+                for (var j = 0; j < tds[i].length; j++) {
+                    tds[i][j].style.left = (column-currentWidth)+"px";
+
+                    if (j != tds[i].length - 1) {
+                        if (currentWidth < 1) {
+                            column += tds[i][j].getBoundingClientRect().width;
+                        }
+                    } else {
+                        tds[i][j].style.left = column+"px";
+                    }
+
+                    if (Number(tds[i][j].getAttribute("rowspan")) > 1) {
+                        if (currentRowSpan < Number(tds[i][j].getAttribute("rowspan"))) {
+                            currentRowSpan = Number(tds[i][j].getAttribute("rowspan"));
+                        } else if (currentRowSpan > Number(tds[i][j].getAttribute("rowspan"))) {
+                            currentWidth = tds[i][j].getBoundingClientRect().width;
+                        }
+                    }
+                }
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             // new DataTable('#trackdatatable', {
             //     fixedColumns: {
@@ -329,6 +368,11 @@
                 Livewire.emit('loadingStart');
             });
         });
+
+        Livewire.hook('element.updated', (el, component) => {
+            console.log(el, component);
+            setFixedColumn();
+        })
 
         async function updateSupplierList(dateFrom, dateTo) {
             document.getElementById("loadingOrderOutput").classList.remove("hidden");
