@@ -98,7 +98,6 @@ table.sticky-table thead th {
 }
 
 table.sticky-table tbody td[rowspan] span {
-    background-color: #fff;
     /* border-top: 0.1rem solid #999; */
     vertical-align: top;
     position: sticky;
@@ -108,6 +107,13 @@ table.sticky-table tbody td[rowspan] span {
 
 table.sticky-table tr th, table.sticky-table tr td {
     width: 100%;
+}
+
+table.sticky-table .fixed-column {
+    background-color: #5e5e5e;
+    color: #fff;
+    position: sticky;
+    left: 0px;
 }
 
 .hidden {
