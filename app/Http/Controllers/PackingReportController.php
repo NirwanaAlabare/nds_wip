@@ -277,7 +277,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             $data_mut = DB::connection('mysql_sb')->select("SELECT
                     ac.kpno,
                     ms.supplier buyer,
-                    ac.styleno,
+                    sd.styleno_prod,
                     sd.color,
                     sd.size,
 					sum(sa_pck_line_awal) - sum(sa_trf_gmt_awal) sa_pck_line_awal,
@@ -540,7 +540,7 @@ inner join signalbit_erp.so so on sd.id_so = so.id
 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
-group by kpno, buyer, styleno, color, size
+group by kpno, buyer, styleno_prod, color, size
 order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
       ");
 

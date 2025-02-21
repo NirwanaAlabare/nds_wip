@@ -162,7 +162,7 @@
                         data: 'buyer'
                     },
                     {
-                        data: 'styleno'
+                        data: 'styleno_prod'
                     },
                     {
                         data: 'color'
@@ -324,7 +324,7 @@
                         worksheet.addRow([
                             row.kpno,
                             row.buyer,
-                            row.styleno,
+                            row.styleno_prod,
                             row.color,
                             row.size,
                             row.sa_pck_line_awal,
