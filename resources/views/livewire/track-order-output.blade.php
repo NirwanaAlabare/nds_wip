@@ -307,7 +307,7 @@
                                 currentWidth = tds[i][j].offsetWidth;
                                 currentCells = trs[i].cells.length;
                             } else {
-                                if (currentCells > 0 && currentCells <= trs[i].cells.length) {
+                                if (currentCells > 0) {
 
                                     let currentRowFilter = currentRow.filter((item) => item.currentCells >= trs[i].cells.length);
                                     let currentRowFilterWidth = currentRowFilter[currentRowFilter.length-1] ? (Math.round(Number(currentRowFilter[currentRowFilter.length-1].currentWidth))) : 0;
