@@ -82,7 +82,7 @@ table.sticky-table thead {
     position: sticky;
     top: 0;
     z-index: 2;
-    background-color: #333;
+    background-color: #5e5e5e;
     color: #fff;
 }
 
@@ -90,7 +90,7 @@ table.sticky-table tfoot {
     position: sticky;
     bottom: 0;
     z-index: 2;
-    background-color: #333;
+    background-color: #5e5e5e;
     color: #fff;
 }
 
@@ -99,7 +99,7 @@ table.sticky-table thead th {
 }
 
 table.sticky-table tbody td[rowspan] span {
-    background-color: #fff;
+    background-color: #5e5e5e;
     /* border-top: 0.1rem solid #999; */
     vertical-align: top;
     position: sticky;
@@ -113,10 +113,12 @@ table.sticky-table tr td {
 }
 
 table.sticky-table .fixed-column {
+    font-weight: 800;
     background-color: #5e5e5e;
+    color: #fff;
     position: sticky;
     left: 0px;
-    z-index: 3;
+    z-index: 1;
 }
 
 .hidden {

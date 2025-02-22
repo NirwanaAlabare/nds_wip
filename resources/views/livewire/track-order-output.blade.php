@@ -54,16 +54,16 @@
         @if (!$loadingOrderOutput)
             <table class="sticky-table table table-bordered">
         @else
-            <table class="sticky-table table table-bordered" wire:poll.30000ms>
+            <table class="sticky-table table table-bordered">
         @endif
             <thead>
                 <tr>
-                    <td class="fixed-column fw-bold">No. WS</td>
-                    <td class="fixed-column fw-bold">Style</td>
-                    <td class="fixed-column fw-bold">Color</td>
-                    <td class="fixed-column fw-bold">Line</td>
+                    <td class="fixed-column">No. WS</td>
+                    <td class="fixed-column">Style</td>
+                    <td class="fixed-column">Color</td>
+                    <td class="fixed-column">Line</td>
                     @if ($groupBy == 'size')
-                        <td class="fixed-column fw-bold">Size</td>
+                        <td class="fixed-column">Size</td>
                     @endif
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
@@ -176,7 +176,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="fixed-column text-end fw-bold">
+                    <td colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="fixed-column text-end">
                         TOTAL
                     </td>
                     @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
@@ -274,12 +274,14 @@
 
             let column = 0;
             let currentRowSpan = 0;
+            let currentRow = [];
             let currentWidth = 0;
             let currentCells = 0;
             for (var i = 0; i < trs.length; i++) {
                 if (currentRowSpan <= 1) {
                     column = 0;
                     currentRowSpan = 0;
+                    currentRow = [];
                     currentWidth = 0;
                     currentCells = 0;
                 } else {
@@ -305,9 +307,15 @@
                                 currentWidth = tds[i][j].offsetWidth;
                                 currentCells = trs[i].cells.length;
                             } else {
-                                if (currentCells >= trs[i].cells.length) {
-                                    tds[i][j].style.left = (tds[i][j].offsetLeft - tds[i][j].offsetWidth)+"px";
+                                if (currentCells > 0 && currentCells <= trs[i].cells.length) {
+
+                                    let currentRowFilter = currentRow.filter((item) => item.currentCells >= trs[i].cells.length);
+                                    let currentRowFilterWidth = currentRowFilter[currentRowFilter.length-1] ? (Math.round(Number(currentRowFilter[currentRowFilter.length-1].currentWidth))) : 0;
+
+                                    tds[i][j].style.left = ((column-currentWidth)-currentRowFilterWidth)+"px";
                                 }
+
+                                currentRow.push({"currentWidth" : tds[i][j].offsetWidth, "currentCells": trs[i].cells.length });
                             }
                         }
                     }
@@ -380,7 +388,9 @@
         });
 
         Livewire.on("initFixedColumn", () => {
-            setFixedColumn();
+            setTimeout(() => {
+                setFixedColumn();
+            }, 1000);
         });
 
         async function updateSupplierList(dateFrom, dateTo) {
