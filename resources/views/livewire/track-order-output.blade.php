@@ -45,7 +45,6 @@
                     <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')">
                         <i class="fa fa-file-excel fa-sm"></i>
                     </button>
-                    <button class="btn btn-sb-secondary" onclick="setFixedColumn()">Sticky</button>
                 </div>
             </div>
         </div>
@@ -72,14 +71,12 @@
                                     <th>{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                                 <?php
                             }
-
                     ?>
                     <th class="text-center">TOTAL</th>
                 </tr>
             <thead>
             <tbody>
                 <?php
-
                         $currentWs = null;
                         $currentStyle = null;
                         $currentColor = null;
