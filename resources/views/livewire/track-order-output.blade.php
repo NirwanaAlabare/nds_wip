@@ -41,10 +41,11 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
+                <div class="d-flex flex-wrap gap-1">
                     <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')">
                         <i class="fa fa-file-excel fa-sm"></i>
                     </button>
+                    <button class="btn btn-sb-secondary" onclick="setFixedColumn()">Sticky</button>
                 </div>
             </div>
         </div>
@@ -53,16 +54,16 @@
         @if (!$loadingOrderOutput)
             <table class="sticky-table table table-bordered">
         @else
-            <table class="sticky-table table table-bordered" wire:poll.30000ms>
+            <table class="sticky-table table table-bordered">
         @endif
             <thead>
                 <tr>
-                    <td class="fixed-column fw-bold">No. WS</td>
-                    <td class="fixed-column fw-bold">Style</td>
-                    <td class="fixed-column fw-bold">Color</td>
-                    <td class="fixed-column fw-bold">Line</td>
+                    <td class="fixed-column">No. WS</td>
+                    <td class="fixed-column">Style</td>
+                    <td class="fixed-column">Color</td>
+                    <td class="fixed-column">Line</td>
                     @if ($groupBy == 'size')
-                        <td class="fixed-column fw-bold">Size</td>
+                        <td class="fixed-column">Size</td>
                     @endif
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
@@ -73,109 +74,109 @@
                             }
 
                     ?>
-                            <th class="text-center">TOTAL</th>
-                        </tr>
+                    <th class="text-center">TOTAL</th>
+                </tr>
             <thead>
             <tbody>
-                    <?php
+                <?php
 
-                            $currentWs = null;
-                            $currentStyle = null;
-                            $currentColor = null;
-                            $currentLine = null;
-                            $currentSize = null;
+                        $currentWs = null;
+                        $currentStyle = null;
+                        $currentColor = null;
+                        $currentLine = null;
+                        $currentSize = null;
 
-                            $dateOutputs = collect();
-                            $totalOutput = null;
+                        $dateOutputs = collect();
+                        $totalOutput = null;
 
-                            foreach ($dailyOrderGroup as $dailyGroup) {
-                                ?>
-                                    <tr>
-                                        @if ($dailyGroup->ws != $currentWs)
-                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
-
-                                            @php
-                                                $currentWs = $dailyGroup->ws;
-                                                $currentStyle = null;
-                                                $currentColor = null;
-                                                $currentLine = null;
-                                            @endphp
-                                        @endif
-                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
-
-                                            @php
-                                                $currentStyle = $dailyGroup->style;
-                                                $currentColor = null;
-                                                $currentLine = null;
-                                            @endphp
-                                        @endif
-                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
-
-                                            @php
-                                                $currentColor = $dailyGroup->color;
-                                                $currentLine = null;
-                                            @endphp
-                                        @endif
-                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->sewing_line != $currentLine)
-                                            <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
-
-                                            @php
-                                                $currentLine = $dailyGroup->sewing_line;
-                                            @endphp
-                                        @endif
-                                        @if ($groupBy == "size")
-                                            <td class="fixed-column text-nowrap">{{ $dailyGroup->size }}</td>
-                                        @endif
-
-                                        @php
-                                            $thisRowOutput = 0;
-                                        @endphp
-                                        @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
-                                            @php
-                                                $thisOutput = 0;
-
-                                                if ($groupBy == 'size') {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
-                                                } else {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
-                                                }
-
-                                                if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
-                                                    $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
-                                                } else {
-                                                    $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
-                                                }
-
-                                                $thisRowOutput += $thisOutput;
-                                            @endphp
-
-                                            <td class="text-end text-nowrap">
-                                                {{ num($thisOutput) }}
-                                            </td>
-                                        @endforeach
-                                        <td class="fw-bold text-end text-nowrap fs-5">
-                                            {{ num($thisRowOutput) }}
-                                        </td>
-                                        @php
-                                            $totalOutput += $thisRowOutput;
-                                        @endphp
-                                    </tr>
-                                <?php
-                            }
-                        } else {
+                        foreach ($dailyOrderGroup as $dailyGroup) {
                             ?>
                                 <tr>
-                                    <td colspan="{{ $groupBy == "size" ? '7' : '4' }}">Data tidak ditemukan</td>
+                                    @if ($dailyGroup->ws != $currentWs)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
+
+                                        @php
+                                            $currentWs = $dailyGroup->ws;
+                                            $currentStyle = null;
+                                            $currentColor = null;
+                                            $currentLine = null;
+                                        @endphp
+                                    @endif
+                                    @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
+
+                                        @php
+                                            $currentStyle = $dailyGroup->style;
+                                            $currentColor = null;
+                                            $currentLine = null;
+                                        @endphp
+                                    @endif
+                                    @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
+
+                                        @php
+                                            $currentColor = $dailyGroup->color;
+                                            $currentLine = null;
+                                        @endphp
+                                    @endif
+                                    @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->sewing_line != $currentLine)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
+
+                                        @php
+                                            $currentLine = $dailyGroup->sewing_line;
+                                        @endphp
+                                    @endif
+                                    @if ($groupBy == "size")
+                                        <td class="fixed-column text-nowrap">{{ $dailyGroup->size }}</td>
+                                    @endif
+
+                                    @php
+                                        $thisRowOutput = 0;
+                                    @endphp
+                                    @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
+                                        @php
+                                            $thisOutput = 0;
+
+                                            if ($groupBy == 'size') {
+                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
+                                            } else {
+                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
+                                            }
+
+                                            if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
+                                                $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
+                                            } else {
+                                                $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
+                                            }
+
+                                            $thisRowOutput += $thisOutput;
+                                        @endphp
+
+                                        <td class="text-end text-nowrap">
+                                            {{ num($thisOutput) }}
+                                        </td>
+                                    @endforeach
+                                    <td class="fw-bold text-end text-nowrap fs-5">
+                                        {{ num($thisRowOutput) }}
+                                    </td>
+                                    @php
+                                        $totalOutput += $thisRowOutput;
+                                    @endphp
                                 </tr>
                             <?php
                         }
-                    ?>
+                    } else {
+                        ?>
+                            <tr>
+                                <td colspan="{{ $groupBy == "size" ? '7' : '4' }}">Data tidak ditemukan</td>
+                            </tr>
+                        <?php
+                    }
+                ?>
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="fixed-column text-end fw-bold">
+                    <td colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="fixed-column text-end">
                         TOTAL
                     </td>
                     @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
@@ -273,32 +274,49 @@
 
             let column = 0;
             let currentRowSpan = 0;
+            let currentRow = [];
             let currentWidth = 0;
+            let currentCells = 0;
             for (var i = 0; i < trs.length; i++) {
                 if (currentRowSpan <= 1) {
                     column = 0;
                     currentRowSpan = 0;
+                    currentRow = [];
                     currentWidth = 0;
+                    currentCells = 0;
                 } else {
                     currentRowSpan--;
                 }
 
                 for (var j = 0; j < tds[i].length; j++) {
-                    tds[i][j].style.left = (column-currentWidth)+"px";
+                    tds[i][j].style.left = (column - currentWidth) + "px";
 
                     if (j != tds[i].length - 1) {
                         if (currentWidth < 1) {
-                            column += tds[i][j].getBoundingClientRect().width;
+                            column += tds[i][j].offsetWidth;
                         }
                     } else {
-                        tds[i][j].style.left = column+"px";
+                        tds[i][j].style.left = column + "px";
                     }
 
-                    if (Number(tds[i][j].getAttribute("rowspan")) > 1) {
+                    if (i > 0 && Number(tds[i][j].getAttribute("rowspan")) > 1) {
                         if (currentRowSpan < Number(tds[i][j].getAttribute("rowspan"))) {
                             currentRowSpan = Number(tds[i][j].getAttribute("rowspan"));
-                        } else if (currentRowSpan > Number(tds[i][j].getAttribute("rowspan"))) {
-                            currentWidth = tds[i][j].getBoundingClientRect().width;
+                        } else if (currentRowSpan >= Number(tds[i][j].getAttribute("rowspan"))) {
+                            if (j == tds[i].length - 2) {
+                                currentWidth = tds[i][j].offsetWidth;
+                                currentCells = trs[i].cells.length;
+                            } else {
+                                if (currentCells > 0) {
+
+                                    let currentRowFilter = currentRow.filter((item) => item.currentCells >= trs[i].cells.length);
+                                    let currentRowFilterWidth = currentRowFilter[currentRowFilter.length-1] ? (Math.round(Number(currentRowFilter[currentRowFilter.length-1].currentWidth))) : 0;
+
+                                    tds[i][j].style.left = ((column-currentWidth)-currentRowFilterWidth)+"px";
+                                }
+
+                                currentRow.push({"currentWidth" : tds[i][j].offsetWidth, "currentCells": trs[i].cells.length });
+                            }
                         }
                     }
                 }
@@ -369,10 +387,11 @@
             });
         });
 
-        Livewire.hook('element.updated', (el, component) => {
-            console.log(el, component);
-            setFixedColumn();
-        })
+        Livewire.on("initFixedColumn", () => {
+            setTimeout(() => {
+                setFixedColumn();
+            }, 1000);
+        });
 
         async function updateSupplierList(dateFrom, dateTo) {
             document.getElementById("loadingOrderOutput").classList.remove("hidden");
