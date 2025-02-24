@@ -214,6 +214,7 @@
     </script>
     <script>
         $(document).ready(function() {
+            dataTableReload();
             let datatable = new DataTable('#datatable');
             datatable.clear().draw();
         })
@@ -429,6 +430,7 @@
             let tglakhir = $('#tgl-akhir').val();
             let dateFrom = tglawal + ' 00:00:00';
             let dateTo = tglakhir + ' 23:59:59';
+            let cbobuyer = $("#cbobuyer").val();
 
             // Start the timer
             const startTime = new Date().getTime();
@@ -448,7 +450,8 @@
                 url: '{{ route('export_excel_mut_output') }}',
                 data: {
                     dateFrom: dateFrom,
-                    dateTo: dateTo
+                    dateTo: dateTo,
+                    cbobuyer: cbobuyer
                 },
                 success: function(data) {
                     // Create a new workbook and a worksheet

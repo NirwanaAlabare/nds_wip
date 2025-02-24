@@ -578,7 +578,9 @@ order by a.tgl_trans asc, u.name asc, sd.styleno_prod asc
             $total_mins_avail = array_sum(array_column($data_tracking, 'mins_avail'));
             $total_mins_prod = array_sum(array_column($data_tracking, 'mins_prod'));
 
-            $tot_eff = round(($total_mins_prod  / $total_mins_avail) * 100, 2) . ' %';
+            $tot_eff_percent = round(($total_mins_prod  / $total_mins_avail) * 100, 2) . ' %';
+
+            $tot_eff = round(($total_mins_prod  / $total_mins_avail) * 100, 2);
 
             // return DataTables::of($data_tracking)->toJson();
 
@@ -586,7 +588,9 @@ order by a.tgl_trans asc, u.name asc, sd.styleno_prod asc
 
                 'data' => $data_tracking,
 
-                'tot_eff' => $tot_eff
+                'tot_eff' => $tot_eff,
+
+                'tot_eff_percent' => $tot_eff_percent
 
             ]);
         }

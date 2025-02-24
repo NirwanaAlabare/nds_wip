@@ -206,7 +206,7 @@
                         // Access the DataTable instance directly
                         // Use the datatable variable to access the API
                         $(datatable.column(30).footer()).html(json
-                            .tot_eff); // Update the footer with total efficiency
+                            .tot_eff_percent); // Update the footer with total efficiency
                         // Change the font color of the footer based on the value
                         if (json.tot_eff < 85) {
                             $(datatable.column(30).footer()).css({

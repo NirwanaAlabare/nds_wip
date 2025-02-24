@@ -482,7 +482,7 @@ SELECT
 			count(so_det_id) output_steam
 FROM signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at >= '$tgl_awal' and updated_at <= 'tgl_akhir'
+     updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
 GROUP BY
     so_det_id
 ) d_rep
@@ -632,6 +632,14 @@ order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
     {
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
+        $buyer = $request->cbobuyer;
+
+        if (!empty($buyer)) {
+            $filter = " where ms.supplier  = '" . $buyer  . "'";
+        } else {
+            $filter = "";
+        }
+
         $data = DB::connection('mysql_sb')->select("SELECT
 			ac.kpno,
 			ms.supplier buyer,
@@ -1069,7 +1077,7 @@ SELECT
 			count(so_det_id) output_steam
 FROM signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at >= '$tgl_awal' and updated_at <= 'tgl_akhir'
+     updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
 GROUP BY
     so_det_id
 ) d_rep
@@ -1206,6 +1214,7 @@ inner join signalbit_erp.so so on sd.id_so = so.id
 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
+$filter
 GROUP BY ac.kpno, ac.styleno, sd.color, sd.size
 order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
               ");
