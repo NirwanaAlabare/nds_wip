@@ -150,11 +150,11 @@
                 }
             },
             {
-                targets: [2, 3, 4, 5, 6, 7, 8],
+                targets: [2, 3, 4, 5, 6, 7, 8, 9],
                 className: 'align-middle text-nowrap',
             },
             {
-                targets: [9],
+                targets: [10],
                 className: 'align-middle text-nowrap',
                 render: (data, type, row, meta) => {
                     return data ? data.toLocaleString("ID-id")+' %' : '0 %'

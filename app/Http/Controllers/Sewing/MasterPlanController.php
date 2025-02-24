@@ -152,7 +152,7 @@ class MasterPlanController extends Controller
                 master_plan.sewing_line,
                 act_costing.kpno no_ws,
                 act_costing.styleno style,
-                act_costing.styleno_prod style_production,
+                so_det.styleno_prod style_production,
                 master_plan.color,
                 master_plan.smv,
                 master_plan.jam_kerja,
@@ -163,7 +163,7 @@ class MasterPlanController extends Controller
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             join("so", "so.id_cost", "=", "act_costing.id")->
-            join(DB::raw("(select * from so_det group by id_so, color) so_det"), function ($join) {
+            join(DB::raw("(select so_det.id, so_det.id_so, so_det.color, so_det.styleno_prod from so_det group by id_so, color) so_det"), function ($join) {
                 $join->on("so_det.id_so", "=", "so.id");
                 $join->on("so_det.color", "=", "master_plan.color");
             })->
@@ -265,7 +265,7 @@ class MasterPlanController extends Controller
      */
     public function destroy($id)
     {
-        $destroyMasterPlan = MasterPlan::find($id)->delete();
+        $destroyMasterPlan = MasterPlan::find($id)->update(["cancel" => "Y"]);
 
         if ($destroyMasterPlan) {
             return array(

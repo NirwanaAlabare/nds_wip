@@ -162,6 +162,8 @@
                     <thead>
                         <tr>
                             <th>WS Number</th>
+                            <th>Style</th>
+                            <th>Style Production</th>
                             <th>Color</th>
                             <th>SMV</th>
                             <th>Jam Kerja</th>
@@ -177,6 +179,8 @@
                             @foreach ($masterPlan as $mp)
                                 <tr>
                                     <td>{{ $mp->no_ws  }}</td>
+                                    <td>{{ $mp->style }}</td>
+                                    <td>{{ $mp->style_production }}</td>
                                     <td>{{ $mp->color }}</td>
                                     <td>{{ curr($mp->smv) }}</td>
                                     <td>{{ curr($mp->jam_kerja) }}</td>
