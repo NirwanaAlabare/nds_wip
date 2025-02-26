@@ -34,6 +34,7 @@
                             <th>Line</th>
                             <th>No. WS</th>
                             <th>Style</th>
+                            <th>Style Production</th>
                             <th>Color</th>
                             <th>SMV</th>
                             <th>Jam Kerja</th>
@@ -109,6 +110,9 @@
                 data: 'style'
             },
             {
+                data: 'style_production'
+            },
+            {
                 data: 'color'
             },
             {
@@ -133,25 +137,25 @@
         columnDefs: [
             {
                 targets: [0],
-                className: 'align-middle',
+                className: 'align-middle text-nowrap',
                 render: (data, type, row, meta) => {
                     return "<a class='btn btn-primary btn-sm' href='{{ route('master-plan-detail') }}/"+row.sewing_line+"/"+row.tgl_plan+"'><i class='fa fa-edit'></i></a>";
                 }
             },
             {
                 targets: [1],
-                className: 'align-middle',
+                className: 'align-middle text-nowrap',
                 render: (data, type, row, meta) => {
                     return data ? (data.replace(/_/g, " ")).toUpperCase() : "-"
                 }
             },
             {
-                targets: [2, 3, 4, 5, 6, 7, 8],
-                className: 'align-middle',
+                targets: [2, 3, 4, 5, 6, 7, 8, 9],
+                className: 'align-middle text-nowrap',
             },
             {
-                targets: [9],
-                className: 'align-middle',
+                targets: [10],
+                className: 'align-middle text-nowrap',
                 render: (data, type, row, meta) => {
                     return data ? data.toLocaleString("ID-id")+' %' : '0 %'
                 }

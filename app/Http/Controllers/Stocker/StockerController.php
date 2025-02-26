@@ -1794,7 +1794,8 @@ class StockerController extends Controller
                 $stocker->save();
 
                 if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
-                    $stocker->delete();
+                    $stocker->cancel = "y";
+                    $stocker->save();
                 }
             }
 
@@ -2061,7 +2062,8 @@ class StockerController extends Controller
                         $stocker->save();
 
                         if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
-                            $stocker->delete();
+                            $stocker->cancel = "y";
+                            $stocker->save();
                         }
                     }
 

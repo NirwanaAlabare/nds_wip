@@ -59,6 +59,30 @@ class DefectInOutExport implements FromView, WithEvents, ShouldAutoSize
                 whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
                 groupBy("output_defect_in_out.created_at", "output_defects_packing.so_det_id")->
                 get();
+        } else if ($this->outputType == 'qcf') {
+            $defectInOutList = DefectInOut::selectRaw("
+                    output_defect_in_out.created_at,
+                    userpassword.FullName,
+                    output_defect_in_out.output_type,
+                    act_costing.kpno,
+                    act_costing.styleno,
+                    so_det.color,
+                    so_det.size,
+                    output_defect_types.defect_type,
+                    COUNT(output_defect_in_out.id) defect_qty
+                ")->
+                leftJoin("output_check_finishing", "output_check_finishing.id", "=", "output_defect_in_out.defect_id")->
+                leftJoin("output_defect_types", "output_defect_types.id", "=", "output_check_finishing.defect_type_id")->
+                leftJoin("so_det", "so_det.id", "=", "output_check_finishing.so_det_id")->
+                leftJoin("so", "so.id", "=", "so_det.id_so")->
+                leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+                leftJoin("userpassword", "userpassword.username", "=", "output_check_finishing.created_by")->
+                whereNotNull("output_check_finishing.id")->
+                where("output_defect_in_out.type", strtolower($this->type))->
+                where("output_defect_in_out.output_type", strtolower($this->outputType))->
+                whereBetween("output_defect_in_out.created_at", [$this->dateFrom." 00:00:00", $this->dateTo." 23:59:59"])->
+                groupBy("output_defect_in_out.created_at", "output_check_finishing.so_det_id")->
+                get();
         } else {
             $defectInOutList = DefectInOut::selectRaw("
                     output_defect_in_out.created_at,

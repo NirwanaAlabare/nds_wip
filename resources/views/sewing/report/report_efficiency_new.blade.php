@@ -129,7 +129,7 @@
             paging: false,
             ordering: false,
             fixedColumns: {
-                leftColumns: 3 // Fix the first two columns
+                leftColumns: 4 // Fix the first two columns
             },
             ajax: {
                 url: '{{ route('reportEfficiencynew') }}',
