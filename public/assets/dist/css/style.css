@@ -300,6 +300,10 @@ table.sticky-table .fixed-column {
     color: var(--rework-color);
 }
 
+.text-pink {
+    color: #df456b;
+}
+
 /* Button Color */
 .btn-sb {
     border-color: var(--sb-color);
