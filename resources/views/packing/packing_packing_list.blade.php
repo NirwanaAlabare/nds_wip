@@ -224,6 +224,8 @@
                                         <th>Tipe Pack</th>
                                         <th>Qty</th>
                                         <th>Qty Scan</th>
+                                        <th>Qty FG IN</th>
+                                        <th>Qty FG Out</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -234,6 +236,10 @@
                                                 style="width:75px" readonly id = 'total_qty_chk'> </th>
                                         <th> <input type = 'text' class="form-control form-control-sm"
                                                 style="width:75px" readonly id = 'total_qty_scan'> </th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_fg_in'> </th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_fg_out'> </th>
                                         <th></th>
                                     </tr>
                                 </tfoot>
@@ -1202,10 +1208,26 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var sumTotalT = api
+                    .column(11)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalU = api
+                    .column(12)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
                 $(api.column(9).footer()).html(sumTotal);
                 $(api.column(10).footer()).html(sumTotalS);
+                $(api.column(11).footer()).html(sumTotalT);
+                $(api.column(12).footer()).html(sumTotalU);
             },
 
             ordering: false,
@@ -1259,6 +1281,12 @@
                 },
                 {
                     data: 'qty_scan'
+                },
+                {
+                    data: 'qty_fg_in'
+                },
+                {
+                    data: 'qty_fg_out'
                 },
                 {
                     data: 'stat'

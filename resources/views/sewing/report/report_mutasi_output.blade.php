@@ -214,7 +214,7 @@
     </script>
     <script>
         $(document).ready(function() {
-            dataTableReload();
+            // dataTableReload();
             let datatable = new DataTable('#datatable');
             datatable.clear().draw();
         })

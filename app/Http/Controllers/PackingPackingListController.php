@@ -40,7 +40,7 @@ concat((DATE_FORMAT(p.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(p.tgl_shipmen
 sum(a.qty) tot_qty
 from packing_master_packing_list a
 left join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+left join master_sb_ws m on p.id_so_det = m.id_so_det
 where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
 group by po
 order by tgl_shipment asc, po asc
@@ -924,6 +924,8 @@ m.ws,
 a.no_carton,
 a.qty,
 coalesce(b.qty_scan,0) qty_scan,
+coalesce(c.qty_fg_in,0) qty_fg_in,
+coalesce(d.qty_fg_out,0) qty_fg_out,
 tipe_pack,
 p.barcode,
 m.color,
@@ -934,14 +936,22 @@ CASE
         WHEN a.qty < COALESCE(b.qty_scan, 0) THEN 'Selisih Lebih'
 END AS stat
 from packing_master_packing_list a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+left join ppic_master_so p on a.id_ppic_master_so = p.id
+left join master_sb_ws m on p.id_so_det = m.id_so_det
 left join master_size_new msn on a.size = msn.size
 left join (
 select po, barcode, dest, no_carton, count(barcode) qty_scan from packing_packing_out_scan
 where po = '$po' and dest = '$dest'
 group by po, barcode, dest, no_carton
 ) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+left join
+(
+select po, barcode, dest, no_carton, sum(qty) qty_fg_in from fg_fg_in f where po = '$po' and dest = '$dest' and f.status = 'NORMAL' GROUP BY po, barcode, dest, no_carton
+) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
+left join
+(
+select po, barcode, dest, no_carton, sum(qty) qty_fg_out from fg_fg_out g where po = '$po' and dest = '$dest' and g.status = 'NORMAL' GROUP BY po, barcode, dest, no_carton
+) d on a.po = d.po and a.barcode = d.barcode and a.dest = d.dest and a.no_carton = d.no_carton
 where a.po = '$po' and a.dest = '$dest'
 order by no_carton asc, color asc, urutan asc
 
@@ -954,7 +964,7 @@ order by no_carton asc, color asc, urutan asc
         $po = $request->po;
         $dest = $request->dest;
 
-        $data_det_poacking_list = DB::select("select
+        $data_det_poacking_list = DB::select("SELECT
         a.id,
 a.tipe_pack,
 a.styleno,
@@ -976,8 +986,8 @@ from
 select
 a.id,m.buyer,a.po,a.barcode, a.no_carton, a.dest, a.id_so_det, a.qty, a.tipe_pack, m.styleno, a.size, m.ws, m.color
 from packing_master_packing_list	a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+left join ppic_master_so p on a.id_ppic_master_so = p.id
+left join master_sb_ws m on p.id_so_det = m.id_so_det
 where a.po = '$po' and a.dest = '$dest'
 )a
 left join
@@ -985,7 +995,7 @@ left join
 select
 a.po,a.barcode, a.no_carton, a.dest, id_so_det, count(a.barcode) qty_scan
 from packing_packing_out_scan a
-inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+left join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
 where a.po = '$po' and a.dest = '$dest'
 group by a.no_carton, a.barcode, a.po, a.dest
 )
@@ -1026,7 +1036,7 @@ order by po asc, no_carton asc
                     $del_scan =  DB::delete("
 DELETE a
 FROM packing_packing_out_scan a
-inner join packing_master_packing_list b on a.po = b.po  and a.dest = b.dest and a.no_carton = b.no_carton
+left join packing_master_packing_list b on a.po = b.po  and a.dest = b.dest and a.no_carton = b.no_carton
 WHERE b.id = '$txtid'");
                 }
             }
