@@ -765,7 +765,7 @@ class StockerController extends Controller
         $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('A7', 'landscape');
 
         $path = public_path('pdf/');
-        $fileName = 'stocker-' . $request['form_cut_id'] . '-' . implode($request['generate_stocker']) . '.pdf';
+        $fileName = 'stocker-' . $request['form_cut_id'] . '.pdf';
         $pdf->save($path . '/' . str_replace("/", "_", $fileName));
         $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
@@ -3923,11 +3923,11 @@ class StockerController extends Controller
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
-                // if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
                     array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-                // } else {
-                //     array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
-                // }
+                } else {
+                    array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
+                }
             }
 
             $failMessage = "";
