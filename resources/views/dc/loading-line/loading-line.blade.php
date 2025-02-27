@@ -23,18 +23,21 @@
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div>
-                    <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatableLoadingLineReload()">
+            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div>
+                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
+                    </div>
+                    <div>
+                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
+                    </div>
                 </div>
-                <div>
-                    <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
-                </div>
-                <div>
-                    <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
-                </div>
+               <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
             </div>
             <div class="table-responsive">
                 <table id="datatable-loading-line" class="table table-bordered table-sm w-100">
@@ -56,7 +59,6 @@
                     </thead>
                     <tfoot>
                         <tr>
-
                             <th colspan="5">Total</th>
                             <th id="total_target_sewing">...</th>
                             <th id="total_target_loading">...</th>
@@ -83,13 +85,13 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
-            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
-            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
-            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
-            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+            let today = new Date(new Date().setDate(new Date().getDate()));
+            let todayDate = ("0" + today.getDate()).slice(-2);
+            let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+            let todayYear = today.getFullYear();
+            let todayFull = todayYear + '-' + todayMonth + '-' + todayDate;
 
-            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+            $("#tgl-awal").val(todayFull).trigger("change");
 
             window.addEventListener("focus", () => {
                 // $('#datatable-loading-line').DataTable().ajax.reload(null, false);
@@ -249,5 +251,43 @@
                 $(this).empty();
             }
         });
+
+        async function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            await $.ajax({
+                url: "{{ route("export-loading-line") }}",
+                type: "post",
+                data: {
+                    from : $("#tgl-awal").val(),
+                    to : $("#tgl-akhir").val(),
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Loading Line List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.click();
+                }
+            });
+
+            Swal.close();
+        }
     </script>
 @endsection

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\LoadingLinePlan;
 use App\Models\SignalBit\UserLine;
 use App\Exports\ExportLaporanLoading;
+use App\Exports\DC\ExportLoadingLine;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Excel;
@@ -263,8 +264,7 @@ class LoadingLineController extends Controller
                                     ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
                                     ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                     ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
-                                ) qty_old,
-                                loading_line.qty,
+                                ) qty,
                                 trolley.id trolley_id,
                                 trolley.nama_trolley,
                                 stocker_input.so_det_id,
@@ -317,7 +317,7 @@ class LoadingLineController extends Controller
                                 group by trolley.id
                         ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
                     WHERE
-                        loading_line_plan.id is not null
+                        loading_line_plan.id IS NOT NULL
                         ".$lineFilter."
                         ".$wsFilter."
                         ".$styleFilter."
@@ -575,6 +575,13 @@ class LoadingLineController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function exportLoadingLine(Request $request) {
+        $from = $request->from ? $request->from : date("Y-m-d");
+        $to = $request->to ? $request->to : date("Y-m-d");
+
+        return Excel::download(new ExportLoadingLine($from, $to), 'Laporan Loading '.$from.' - '.$to.'.xlsx');
     }
 
     public function summary(Request $request) {
