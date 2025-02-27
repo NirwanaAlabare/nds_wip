@@ -270,7 +270,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
     public function packing_rep_packing_mutasi_wip(Request $request)
     {
-        ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '2048M');
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         if ($request->ajax()) {

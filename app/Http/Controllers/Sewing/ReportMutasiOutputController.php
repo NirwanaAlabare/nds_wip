@@ -59,10 +59,10 @@ class ReportMutasiOutputController extends Controller
             sum(output_rejects) output_rejects,
             sum(output_rfts) output_rfts,
             sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) + sum(qty_loading) + sum(input_rework_sewing) + sum(input_rework_spotcleaning) + sum(input_rework_mending) - sum(defect_sewing) - sum(defect_spotcleaning) - sum(defect_mending) - sum(output_rejects) - sum(output_rfts) saldo_akhir,
-            sum(sa_out_sew) - sum(sa_steam) saldo_awal_steam,
+            sum(sa_out_sew) + sum(sa_steam) saldo_awal_steam,
             sum(input_steam) input_steam,
             sum(output_steam) output_steam,
-            sum(sa_out_sew) - sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam
+            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam
             FROM
             (
             SELECT
@@ -676,10 +676,10 @@ mut_pck AS (
             sum(output_rejects) output_rejects,
             sum(output_rfts) output_rfts,
             sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) + sum(qty_loading) + sum(input_rework_sewing) + sum(input_rework_spotcleaning) + sum(input_rework_mending) - sum(defect_sewing) - sum(defect_spotcleaning) - sum(defect_mending) - sum(output_rejects) - sum(output_rfts) saldo_akhir,
-            sum(sa_out_sew) - sum(sa_steam) saldo_awal_steam,
+            sum(sa_out_sew) + sum(sa_steam) saldo_awal_steam,
             sum(input_steam) input_steam,
             sum(output_steam) output_steam,
-            sum(sa_out_sew) - sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam
+            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam
             FROM
             (
             SELECT
