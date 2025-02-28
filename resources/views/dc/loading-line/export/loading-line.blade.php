@@ -7,53 +7,72 @@
         <th style="font-weight: 800;">No. WS</th>
         <th style="font-weight: 800;">Style</th>
         <th style="font-weight: 800;">Color</th>
-        <th style="font-weight: 800;">Target Sewing</th>
-        <th style="font-weight: 800;">Target Loading</th>
-        <th style="font-weight: 800;">Loading</th>
-        <th style="font-weight: 800;">Balance Loading</th>
-        <th style="font-weight: 800;">Trolley</th>
-        <th style="font-weight: 800;">Stok Trolley</th>
-        <th style="font-weight: 800;">Color</th>
+        <th style="font-weight: 800;">No. Cut</th>
+        <th style="font-weight: 800;">No. Form</th>
+        <th style="font-weight: 800;">Size</th>
+        <th style="font-weight: 800;">Group</th>
+        <th style="font-weight: 800;">Group</th>
+        <th style="font-weight: 800;">Range</th>
+        <th style="font-weight: 800;">Range</th>
+        <th style="font-weight: 800;">No. Stocker</th>
+        <th style="font-weight: 800;">Qty</th>
+        <th style="font-weight: 800;">Waktu Loading</th>
     </tr>
     @php
-        $totalTargetSewing = 0;
-        $totalTargetLoading = 0;
-        $totalLoading = 0;
-        $totalBalanceLoading = 0;
-    @endphp
-    @foreach ($data as $d)
-        @php
-            $lineData = $lines->where('line_id', $d->line_id)->first();
-            $line = $lineData ? strtoupper(str_replace("_", " ", $lineData->username)) : "";
+        $currentForm = null;
+        $currentSize = null;
+        $currentGroup = null;
+        $currentRange = null;
+        $currentQty = null;
 
-            $totalTargetSewing += $d->target_sewing;
-            $totalTargetLoading += $d->target_loading;
-            $totalLoading += $d->loading_qty;
-            $totalBalanceLoading += $d->loading_balance;
+        $latestUpdate = null;
+
+        $totalQty = 0;
+    @endphp
+    @foreach ($loadingLines as $loadingLine)
+        @php
+            $qty = $loadingLine->qty;
+
+            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal) {
+                $currentForm = $loadingLine->no_form;
+                $currentSize = $loadingLine->size;
+                $currentGroup = $loadingLine->group_stocker;
+                $currentRange = $loadingLine->range_awal;
+
+                $currentUpdate = $loadingLine->tanggal_loading;
+                $currentUpdate > $latestUpdate && $latestUpdate = $currentUpdate;
+
+                $totalQty += $qty;
+
+                $currentQty = $qty;
+            }
+            else {
+                $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
+
+                $currentQty = $qty;
+            }
         @endphp
         <tr>
-            <td>{{ $line }}</td>
-            <td>{{ $d->act_costing_ws }}</td>
-            <td>{{ $d->style }}</td>
-            <td>{{ $d->color }}</td>
-            <td>{{ $d->target_sewing ? $d->target_sewing : 0 }}</td>
-            <td>{{ $d->target_loading ? $d->target_loading : 0 }}</td>
-            <td>{{ $d->loading_qty ? $d->loading_qty : 0 }}</td>
-            <td>{{ $d->loading_balance ? $d->loading_balance : 0 }}</td>
-            <td>{{ $d->nama_trolley }}</td>
-            <td>{{ $d->trolley_qty ? $d->trolley_qty : 0 }}</td>
-            <td>{{ $d->trolley_color ? $d->trolley_color : "-" }}</td>
+            <td>{{ $loadingLine->nama_line }}</td>
+            <td>{{ $loadingLine->act_costing_ws }}</td>
+            <td>{{ $loadingLine->style }}</td>
+            <td>{{ $loadingLine->color }}</td>
+            <td>{{ $loadingLine->no_form." / ".$loadingLine->no_cut }}</td>
+            <td>{{ $loadingLine->no_form }}</td>
+            <td>{{ $loadingLine->size }}</td>
+            <td>{{ $loadingLine->group_stocker }}</td>
+            <td>{{ $loadingLine->shade }}</td>
+            <td>{{ $loadingLine->range_awal }}</td>
+            <td>{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
+            <td>{{ $loadingLine->id_qr_stocker }}</td>
+            <td>{{ $qty }}</td>
+            <td>{{ $loadingLine->tanggal_loading }}</td>
         </tr>
     @endforeach
     <tr>
-        <th colspan="4">Total</th>
-        <th>{{ $totalTargetSewing }}</th>
-        <th>{{ $totalTargetLoading }}</th>
-        <th>{{ $totalLoading }}</th>
-        <th>{{ $totalBalanceLoading }}</th>
-        <th></th>
-        <th></th>
-        <th></th>
+        <th style="font-weight: 800;" colspan="12">TOTAL</th>
+        <th style="font-weight: 800;">{{ $totalQty }}</th>
+        <th style="font-weight: 800;">{{ $latestUpdate }}</th>
     </tr>
 </table>
 
