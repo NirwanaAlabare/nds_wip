@@ -104,11 +104,11 @@
 
                                 $currentQty = $qty;
                             }
-                            // else {
-                            //     $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
+                            else {
+                                $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
 
-                            //     $currentQty = $qty;
-                            // }
+                                $currentQty = $qty;
+                            }
                         @endphp
                         <tr>
                             <td class="align-middle">{{ $loadingLine->act_costing_ws }}</td>
