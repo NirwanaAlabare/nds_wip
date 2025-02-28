@@ -86,6 +86,9 @@
                     <a onclick="dataTableReload()" class="btn btn-outline-primary btn-sm position-relative">
                         <i class="fas fa-search fa-sm"></i>
                     </a>
+                    <a onclick="export_excel()" class="btn btn-outline-success btn-sm ms-2">
+                        Export Excel
+                    </a>
                 </div>
             </div>
 
@@ -149,6 +152,7 @@
     <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
+    <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -172,7 +176,7 @@
 
             $('#buyer_filter').val('');
             $('#buyer_filter').change();
-            dataTableReload();
+            // dataTableReload();
         });
 
         function notif() {
@@ -351,6 +355,12 @@
         }
 
         function dataTableReload() {
+
+            if (!$("#reff_filter").val()) {
+                // Show a warning message if reff_filter is empty
+                alert("Harap Isi Reff FIlter"); // You can replace this with a more sophisticated popup if needed
+                return; // Exit the function if the condition is not met
+            }
             // Check if DataTable is already initialized
             if ($.fn.DataTable.isDataTable('#datatable')) {
                 // Clear the table data
@@ -676,6 +686,262 @@
                     // Call the function with new data and the total quantity for x-axis max
                     update_chart(newData, totalQtyPo);
 
+                }
+            });
+        }
+
+        function export_excel() {
+            if (!$("#reff_filter").val()) {
+                // Show a warning message if reff_filter is empty
+                alert("Harap Isi Reff Filter"); // You can replace this with a more sophisticated popup if needed
+                return; // Exit the function if the condition is not met
+            }
+
+            let buyer_filter = $('#buyer_filter').val();
+            let reff_filter = $('#reff_filter').val();
+            let ws_filter = $('#ws_filter').val();
+            let color_filter = $('#color_filter').val();
+            let size_filter = $('#size_filter').val();
+
+            // Start the timer
+            const startTime = new Date().getTime();
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+            });
+
+            // Fetch all data from the server
+            $.ajax({
+                type: "POST",
+                url: '{{ route('export_excel_monitoring_order') }}',
+                data: {
+                    buyer_filter: buyer_filter,
+                    reff_filter: reff_filter,
+                    ws_filter: ws_filter,
+                    color_filter: color_filter,
+                    size_filter: size_filter
+                },
+                success: function(data) {
+                    // Create a new workbook and a worksheet
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet("Mutasi Output Production ");
+
+                    const headers = [
+                        "Buyer", "WS", "Reff", "Color", "Size", "Tgl. Shipment",
+                        "Qty PO", "Cutting", "Blc Cutting",
+                        "Loading", "Blc Loading",
+                        "Sewing", "Blc Sewing",
+                        "Packing Line", "Blc Packing Line",
+                        "Packing Scan", "Blc Packing Scan",
+                        "Shipment", "Blc Shipment",
+                    ];
+                    const headerRow = worksheet.addRow(headers);
+
+                    // Make header bold
+                    headerRow.eachCell({
+                        includeEmpty: true
+                    }, function(cell) {
+                        cell.font = {
+                            bold: true
+                        }; // Set font to bold
+                    });
+
+                    // Define border style
+                    const borderStyle = {
+                        top: {
+                            style: 'thin'
+                        },
+                        left: {
+                            style: 'thin'
+                        },
+                        bottom: {
+                            style: 'thin'
+                        },
+                        right: {
+                            style: 'thin'
+                        }
+                    };
+
+                    // Function to apply styles based on value
+                    function applyCellStyles(cell) {
+                        cell.border = borderStyle; // Apply border style
+                        if (typeof cell.value === 'number' && cell.value < 0) {
+                            cell.font = {
+                                color: {
+                                    argb: 'FF0000'
+                                }
+                            }; // Red color for negative values
+                        }
+                    }
+
+                    // Initialize sums
+                    let sumQtyPO = 0;
+                    let sumCutting = 0;
+                    let sumBlcCutting = 0;
+                    let sumLoading = 0;
+                    let sumBlcLoading = 0;
+                    let sumSewing = 0;
+                    let sumBlcSewing = 0;
+                    let sumPackingLine = 0;
+                    let sumBlcPackingLine = 0;
+                    let sumPackingScan = 0;
+                    let sumBlcPackingScan = 0;
+                    let sumShipment = 0;
+                    let sumBlcShipment = 0;
+
+                    // Add data rows and calculate sums
+                    data.forEach(function(row) {
+                        const qtyPO = Number(row.qty_po);
+                        const cutting = Number(row.final_cut);
+                        const blcCutting = Number(row.blc_cut);
+                        const loading = Number(row.final_loading);
+                        const blcLoading = Number(row.blc_loading);
+                        const sewing = Number(row.final_output_rfts);
+                        const blcSewing = Number(row.blc_output_rfts);
+                        const packingLine = Number(row.final_output_rfts_packing);
+                        const blcPackingLine = Number(row.blc_output_rfts_packing);
+                        const packingScan = Number(row.tot_scan);
+                        const blcPackingScan = Number(row.blc_tot_scan);
+                        const shipment = Number(row.tot_fg_out);
+                        const blcShipment = Number(row.blc_tot_fg_out);
+
+                        // Update sums
+                        sumQtyPO += qtyPO;
+                        sumCutting += cutting;
+                        sumBlcCutting += blcCutting;
+                        sumLoading += loading;
+                        sumBlcLoading += blcLoading;
+                        sumSewing += sewing;
+                        sumBlcSewing += blcSewing;
+                        sumPackingLine += packingLine;
+                        sumBlcPackingLine += blcPackingLine;
+                        sumPackingScan += packingScan;
+                        sumBlcPackingScan += blcPackingScan;
+                        sumShipment += shipment;
+                        sumBlcShipment += blcShipment;
+
+                        // Add the row to the worksheet
+                        const newRow = worksheet.addRow([
+                            row.buyer,
+                            row.ws,
+                            row.reff_no,
+                            row.color,
+                            row.size,
+                            row.tgl_shipment_fix,
+                            qtyPO,
+                            cutting,
+                            blcCutting,
+                            loading,
+                            blcLoading,
+                            sewing,
+                            blcSewing,
+                            packingLine,
+                            blcPackingLine,
+                            packingScan,
+                            blcPackingScan,
+                            shipment,
+                            blcShipment
+                        ]);
+
+                        // Apply styles to each cell in the new row
+                        newRow.eachCell({
+                            includeEmpty: true
+                        }, applyCellStyles);
+                    });
+
+                    // Apply border to header row
+                    worksheet.getRow(1).eachCell({
+                        includeEmpty: true
+                    }, function(cell) {
+                        cell.border = borderStyle;
+                    });
+
+                    // Auto-adjust column widths
+                    worksheet.columns.forEach(column => {
+                        let maxLength = 0;
+                        column.eachCell({
+                            includeEmpty: true
+                        }, cell => {
+                            if (cell.value) {
+                                maxLength = Math.max(maxLength, cell.value.toString().length);
+                            }
+                        });
+                        column.width = maxLength + 2; // Adding 2 for padding
+                    });
+
+                    // Create a footer row for sums
+                    const footerRow = worksheet.addRow([
+                        "", "", "", "", "", "", // Empty cells for columns A to F
+                        sumQtyPO, // Sum for Qty PO
+                        sumCutting, // Sum for Cutting
+                        sumBlcCutting, // Sum for Blc Cutting
+                        sumLoading, // Sum for Loading
+                        sumBlcLoading, // Sum for Blc Loading
+                        sumSewing, // Sum for Sewing
+                        sumBlcSewing, // Sum for Blc Sewing
+                        sumPackingLine, // Sum for Packing Line
+                        sumBlcPackingLine, // Sum for Blc Packing Line
+                        sumPackingScan, // Sum for Packing Scan
+                        sumBlcPackingScan, // Sum for Blc Packing Scan
+                        sumShipment, // Sum for Shipment
+                        sumBlcShipment // Sum for Blc Shipment
+                    ]);
+
+                    // Make footer bold and apply styles
+                    footerRow.eachCell({
+                        includeEmpty: true
+                    }, function(cell) {
+                        cell.font = {
+                            bold: true
+                        }; // Set font to bold
+                        applyCellStyles(cell); // Apply styles based on value
+                    });
+
+                    // Export the workbook
+                    workbook.xlsx.writeBuffer().then(function(buffer) {
+                        const sanitizedBuyerFilter = buyer_filter.replace(/[^a-zA-Z0-9]/g, '_');
+                        const sanitizedReffFilter = reff_filter.replace(/[^a-zA-Z0-9]/g, '_');
+                        const sanitizedWsFilter = ws_filter.replace(/[^a-zA-Z0-9]/g, '_');
+                        const sanitizedColorFilter = color_filter.replace(/[^a-zA-Z0-9]/g, '_');
+                        const sanitizedSizeFilter = size_filter.replace(/[^a-zA-Z0-9]/g, '_');
+                        const blob = new Blob([buffer], {
+                            type: "application/octet-stream"
+                        });
+                        const link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download =
+                            `Monitoring Order ${sanitizedBuyerFilter} ${sanitizedReffFilter} ${sanitizedWsFilter} ${sanitizedColorFilter} ${sanitizedSizeFilter}.xlsx`;
+                        link.click();
+
+                        // Calculate the elapsed time
+                        const endTime = new Date().getTime();
+                        const elapsedTime = Math.round((endTime - startTime) /
+                        1000); // Convert to seconds
+
+                        // Close the loading notification
+                        Swal.close();
+
+                        // Show success message with elapsed time
+                        Swal.fire({
+                            title: 'Success!',
+                            text: `Data has been successfully exported in ${elapsedTime} seconds.`,
+                            icon: 'success',
+                            confirmButtonText: 'Okay'
+                        });
+                    });
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'There was an error exporting the data.',
+                        icon: 'error',
+                        confirmButtonText: 'Okay'
+                    });
                 }
             });
         }
