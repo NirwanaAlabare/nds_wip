@@ -3,20 +3,20 @@
 
 <table>
     <tr>
-        <th>Line</th>
-        <th>No. WS</th>
-        <th>Style</th>
-        <th>Color</th>
-        <th>No. Cut</th>
-        <th>No. Form</th>
-        <th>Size</th>
-        <th>Group</th>
-        <th>Group</th>
-        <th>Range</th>
-        <th>Range</th>
-        <th>No. Stocker</th>
-        <th>Qty</th>
-        <th>Waktu Loading</th>
+        <th style="font-weight: 800;">Line</th>
+        <th style="font-weight: 800;">No. WS</th>
+        <th style="font-weight: 800;">Style</th>
+        <th style="font-weight: 800;">Color</th>
+        <th style="font-weight: 800;">No. Cut</th>
+        <th style="font-weight: 800;">No. Form</th>
+        <th style="font-weight: 800;">Size</th>
+        <th style="font-weight: 800;">Group</th>
+        <th style="font-weight: 800;">Group</th>
+        <th style="font-weight: 800;">Range</th>
+        <th style="font-weight: 800;">Range</th>
+        <th style="font-weight: 800;">No. Stocker</th>
+        <th style="font-weight: 800;">Qty</th>
+        <th style="font-weight: 800;">Waktu Loading</th>
     </tr>
     @php
         $currentForm = null;
@@ -70,9 +70,9 @@
         </tr>
     @endforeach
     <tr>
-        <th colspan="12">TOTAL</th>
-        <th>{{ $totalQty }}</th>
-        <th>{{ $latestUpdate }}</th>
+        <th style="font-weight: 800;" colspan="12">TOTAL</th>
+        <th style="font-weight: 800;">{{ $totalQty }}</th>
+        <th style="font-weight: 800;">{{ $latestUpdate }}</th>
     </tr>
 </table>
 
