@@ -1650,6 +1650,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_ppic_monitoring_order_color', 'get_ppic_monitoring_order_color')->name('get_ppic_monitoring_order_color');
         Route::get('/get_ppic_monitoring_order_size', 'get_ppic_monitoring_order_size')->name('get_ppic_monitoring_order_size');
         Route::get('/show_lap_monitoring_order', 'show_lap_monitoring_order')->name('show_lap_monitoring_order');
+        Route::post('/export_excel_monitoring_order', 'export_excel_monitoring_order')->name('export_excel_monitoring_order');
     });
 
     // Report Hourly Output
