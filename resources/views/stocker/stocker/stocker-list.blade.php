@@ -774,33 +774,33 @@
                             if (type == 'new') {
                                 $('#new-print-range-awal-year').val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
 
-                                // if (Number(res.year_sequence_number) >= 999999) {
-                                //     let newSelect = document.getElementById('new-year-sequence-sequence');
+                                if (Number(res.year_sequence_number) >= 999999) {
+                                    let newSelect = document.getElementById('new-year-sequence-sequence');
 
-                                //     if ($('#new-year-sequence-sequence > option[value="'+(Number(newSelect.value)+1)+'"]').length < 1) {
-                                //         let newOption = document.createElement("option");
-                                //         newOption.setAttribute("value", Number(newSelect.value)+1);
-                                //         newOption.innerHTML = Number(newSelect.value)+1;
-                                //         newSelect.appendChild(newOption);
-                                //     }
+                                    if ($('#new-year-sequence-sequence > option[value="'+(Number(newSelect.value)+1)+'"]').length < 1) {
+                                        let newOption = document.createElement("option");
+                                        newOption.setAttribute("value", Number(newSelect.value)+1);
+                                        newOption.innerHTML = Number(newSelect.value)+1;
+                                        newSelect.appendChild(newOption);
+                                    }
 
-                                //     $("#new-year-sequence-sequence").val(Number(newSelect.value)+1).trigger("change");
-                                // }
+                                    $("#new-year-sequence-sequence").val(Number(newSelect.value)+1).trigger("change");
+                                }
                             } else {
                                 $('#print-range-awal-year').val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
 
-                                // if (Number(res.year_sequence_number) >= 999999) {
-                                //     let select = document.getElementById('year-sequence-sequence');
+                                if (Number(res.year_sequence_number) >= 999999) {
+                                    let select = document.getElementById('year-sequence-sequence');
 
-                                //     if ($('#year-sequence-sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
-                                //         let option = document.createElement("option");
-                                //         option.setAttribute("value", Number(select.value)+1);
-                                //         option.innerHTML = Number(select.value)+1;
-                                //         select.appendChild(option);
-                                //     }
+                                    if ($('#year-sequence-sequence > option[value="'+(Number(select.value)+1)+'"]').length < 1) {
+                                        let option = document.createElement("option");
+                                        option.setAttribute("value", Number(select.value)+1);
+                                        option.innerHTML = Number(select.value)+1;
+                                        select.appendChild(option);
+                                    }
 
-                                //     $("#year-sequence-sequence").val(Number(select.value)+1).trigger("change");
-                                // }
+                                    $("#year-sequence-sequence").val(Number(select.value)+1).trigger("change");
+                                }
                             }
                         } else {
                             Swal.fire({
