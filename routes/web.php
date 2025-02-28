@@ -783,6 +783,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id?}', 'edit')->name('edit-loading-plan');
         Route::put('/update/{id?}', 'update')->name('update-loading-plan');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-loading-plan');
+        Route::post('/export-loading-line', 'exportLoadingLine')->name('export-loading-line');
         Route::get('/summary', 'summary')->name('summary-loading');
         Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
         Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');

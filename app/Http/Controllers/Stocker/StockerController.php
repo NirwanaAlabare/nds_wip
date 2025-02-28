@@ -3787,16 +3787,13 @@ class StockerController extends Controller
     public function getRangeYearSequence(Request $request) {
         if ($request->year && $request->sequence) {
 
-            $availableYearSequence = YearSequence::selectRaw("
+            $availableYearSequence = DB::table("year_sequence")->selectRaw("
                     year,
                     year_sequence,
                     year_sequence_number
                 ")->
                 where("year_sequence.year",  $request->year)->
                 where("year_sequence.year_sequence",  $request->sequence)->
-                whereRaw('number IS NOT NULL')->
-                whereRaw('form_cut_id IS NOT NULL')->
-                whereRaw('so_det_id IS NOT NULL')->
                 orderBy('year_sequence_number', 'desc')->
                 limit(1)->
                 first();
