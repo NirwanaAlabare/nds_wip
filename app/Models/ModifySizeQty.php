@@ -18,6 +18,6 @@ class ModifySizeQty extends Model
      */
     public function form()
     {
-        return $this->belongsTo(FormCutInput::class, 'no_form', 'no_form');
+        return $this->belongsTo(FormCut::class, 'no_form', 'no_form');
     }
 }

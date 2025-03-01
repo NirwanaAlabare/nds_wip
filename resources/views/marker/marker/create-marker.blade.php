@@ -181,8 +181,11 @@
                     <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
                 </div>
             </div>
+            <div class="card-footer border-top">
+                <a href="#ratio-card" class="btn btn-sb btn-sm float-end fw-bold">RATIO <i class="fa fa-arrow-right"></i></a>
+            </div>
         </div>
-        <div class="card card-sb">
+        <div class="card card-sb" id="ratio-card">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
                     Data Ratio
@@ -219,7 +222,9 @@
                         </tr>
                     </tfoot>
                 </table>
-                <button class="btn btn-sb float-end mt-3">Simpan</button>
+            </div>
+            <div class="card-footer border-top">
+                <button class="btn btn-sb btn-sm float-end fw-bold">SIMPAN <i class="fa fa-check"></i></button>
             </div>
         </div>
     </form>

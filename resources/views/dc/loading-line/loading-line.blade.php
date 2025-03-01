@@ -26,11 +26,11 @@
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
-                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <label class="form-label"><small>Dari</small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
                     </div>
                     <div>
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <label class="form-label"><small>Sampai</small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
                     </div>
                     <div>

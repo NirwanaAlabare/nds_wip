@@ -2,67 +2,67 @@
 
 namespace App\Observers;
 
-use App\Models\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutDetailLap;
 
 class CuttingFormDetailLapObserver
 {
     /**
-     * Handle the FormCutInputDetailLap "created" event.
+     * Handle the FormCutDetailLap "created" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutDetailLap  $formCutDetailLap
      * @return void
      */
-    public function created(FormCutInputDetailLap $formCutInputDetailLap)
+    public function created(FormCutDetailLap $formCutDetailLap)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
-        // dd(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutDetailLap && $formCutDetailLap->FormCutDetail && $formCutDetailLap->FormCutDetail->FormCut && $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja ? $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja->username : null);
+        // dd(date("Y-m-d"), $formCutDetailLap && $formCutDetailLap->FormCutDetail && $formCutDetailLap->FormCutDetail->FormCut && $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja ? $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja->username : null);
     }
 
     /**
-     * Handle the FormCutInputDetailLap "updated" event.
+     * Handle the FormCutDetailLap "updated" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutDetailLap  $formCutDetailLap
      * @return void
      */
-    public function updated(FormCutInputDetailLap $formCutInputDetailLap)
+    public function updated(FormCutDetailLap $formCutDetailLap)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
-        // dd(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutDetailLap && $formCutDetailLap->FormCutDetail && $formCutDetailLap->FormCutDetail->FormCut && $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja ? $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja->username : null);
+        // dd(date("Y-m-d"), $formCutDetailLap && $formCutDetailLap->FormCutDetail && $formCutDetailLap->FormCutDetail->FormCut && $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja ? $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja->username : null);
     }
 
     /**
-     * Handle the FormCutInputDetailLap "deleted" event.
+     * Handle the FormCutDetailLap "deleted" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutDetailLap  $formCutDetailLap
      * @return void
      */
-    public function deleted(FormCutInputDetailLap $formCutInputDetailLap)
+    public function deleted(FormCutDetailLap $formCutDetailLap)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
-        // dd(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutDetailLap && $formCutDetailLap->FormCutDetail && $formCutDetailLap->FormCutDetail->FormCut && $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja ? $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja->username : null);
+        // dd(date("Y-m-d"), $formCutDetailLap && $formCutDetailLap->FormCutDetail && $formCutDetailLap->FormCutDetail->FormCut && $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja ? $formCutDetailLap->FormCutDetail->FormCut->alokasiMeja->username : null);
     }
 
     /**
-     * Handle the FormCutInputDetailLap "restored" event.
+     * Handle the FormCutDetailLap "restored" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutDetailLap  $formCutDetailLap
      * @return void
      */
-    public function restored(FormCutInputDetailLap $formCutInputDetailLap)
+    public function restored(FormCutDetailLap $formCutDetailLap)
     {
         //
     }
 
     /**
-     * Handle the FormCutInputDetailLap "force deleted" event.
+     * Handle the FormCutDetailLap "force deleted" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutDetailLap  $formCutDetailLap
      * @return void
      */
-    public function forceDeleted(FormCutInputDetailLap $formCutInputDetailLap)
+    public function forceDeleted(FormCutDetailLap $formCutDetailLap)
     {
         //
     }

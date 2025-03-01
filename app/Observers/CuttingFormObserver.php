@@ -2,67 +2,67 @@
 
 namespace App\Observers;
 
-use App\Models\FormCutInput;
+use App\Models\Cutting\FormCut;
 
 class CuttingFormObserver
 {
     /**
-     * Handle the FormCutInput "created" event.
+     * Handle the FormCut "created" event.
      *
-     * @param  \App\Models\FormCutInput  $formCutInput
+     * @param  \App\Models\Cutting\FormCut  $formCut
      * @return void
      */
-    public function created(FormCutInput $formCutInput)
+    public function created(FormCut $formCut)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
-        // dd(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCut && $formCut->alokasiMeja ? $formCut->alokasiMeja->username : null);
+        // dd(date("Y-m-d"), $formCut && $formCut->alokasiMeja ? $formCut->alokasiMeja->username : null);
     }
 
     /**
-     * Handle the FormCutInput "updated" event.
+     * Handle the FormCut "updated" event.
      *
-     * @param  \App\Models\FormCutInput  $formCutInput
+     * @param  \App\Models\Cutting\FormCut  $formCut
      * @return void
      */
-    public function updated(FormCutInput $formCutInput)
+    public function updated(FormCut $formCut)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
-        // dd(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCut && $formCut->alokasiMeja ? $formCut->alokasiMeja->username : null);
+        // dd(date("Y-m-d"), $formCut && $formCut->alokasiMeja ? $formCut->alokasiMeja->username : null);
     }
 
     /**
-     * Handle the FormCutInput "deleted" event.
+     * Handle the FormCut "deleted" event.
      *
-     * @param  \App\Models\FormCutInput  $formCutInput
+     * @param  \App\Models\Cutting\FormCut  $formCut
      * @return void
      */
-    public function deleted(FormCutInput $formCutInput)
+    public function deleted(FormCut $formCut)
     {
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
-        // dd(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCut && $formCut->alokasiMeja ? $formCut->alokasiMeja->username : null);
+        // dd(date("Y-m-d"), $formCut && $formCut->alokasiMeja ? $formCut->alokasiMeja->username : null);
     }
 
     /**
-     * Handle the FormCutInput "restored" event.
+     * Handle the FormCut "restored" event.
      *
-     * @param  \App\Models\FormCutInput  $formCutInput
+     * @param  \App\Models\Cutting\FormCut  $formCut
      * @return void
      */
-    public function restored(FormCutInput $formCutInput)
+    public function restored(FormCut $formCut)
     {
         //
     }
 
     /**
-     * Handle the FormCutInput "force deleted" event.
+     * Handle the FormCut "force deleted" event.
      *
-     * @param  \App\Models\FormCutInput  $formCutInput
+     * @param  \App\Models\Cutting\FormCut  $formCut
      * @return void
      */
-    public function forceDeleted(FormCutInput $formCutInput)
+    public function forceDeleted(FormCut $formCut)
     {
         //
     }

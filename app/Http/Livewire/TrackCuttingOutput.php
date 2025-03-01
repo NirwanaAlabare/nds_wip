@@ -5,7 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\ActCosting;
-use App\Models\FormCutInput;
+use App\Models\Cutting\FormCut;
 use DB;
 
 class TrackCuttingOutput extends Component
@@ -98,7 +98,7 @@ class TrackCuttingOutput extends Component
             groupBy('kpno')->
             get();
 
-        $orderFilterSql = FormCutInput::selectRaw("
+        $orderFilterSql = FormCut::selectRaw("
                 meja.id id_meja,
                 meja.name meja,
                 COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal,
@@ -116,7 +116,7 @@ class TrackCuttingOutput extends Component
                         meja.id id_meja,
                         meja.`name` meja,
                         COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form,
-                        form_cut_input.id_marker,
+                        form_cut_input.marker_id,
                         form_cut_input.id,
                         form_cut_input.no_form,
                         form_cut_input.qty_ply,
@@ -125,12 +125,12 @@ class TrackCuttingOutput extends Component
                         SUM(form_cut_input_detail.lembar_gelaran) detail
                     FROM
                         form_cut_input
-                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                        LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
                         AND form_cut_input.waktu_mulai is not null
-                        AND form_cut_input.id_marker is not null
+                        AND form_cut_input.marker_id is not null
                         AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                         AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$dateFilter."
@@ -138,13 +138,13 @@ class TrackCuttingOutput extends Component
                         form_cut_input.id
                 ) form_cut"
             ), "form_cut.id", "=", "form_cut_input.id")->
-            leftJoin("users as meja", "meja.id", "=", "form_cut_input.no_meja")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("users as meja", "meja.id", "=", "form_cut_input.meja_id")->
+            leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                 AND form_cut_input.waktu_mulai is not null
-                AND form_cut_input.id_marker is not null
+                AND form_cut_input.marker_id is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
             ");
             if ($this->dateFromFilter) {
@@ -154,19 +154,19 @@ class TrackCuttingOutput extends Component
                 $orderFilterSql->whereRaw('COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= "'.$this->dateToFilter.'"');
             }
             $orderFilterSql->
-                groupByRaw("marker_input.act_costing_id, marker_input.style, marker_input.color, marker_input.panel, form_cut_input.no_meja, marker_input_detail.so_det_id")->
+                groupByRaw("marker_input.act_costing_id, marker_input.style, marker_input.color, marker_input.panel, form_cut_input.meja_id, marker_input_detail.so_det_id")->
                 orderBy("marker_input.act_costing_id", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
                 orderBy("marker_input.panel", "asc")->
-                orderByRaw("form_cut_input.no_meja asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
+                orderByRaw("form_cut_input.meja_id asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
 
             $this->orderFilter = $orderFilterSql->get();
 
-        $dailyOrderGroupSql = FormCutInput::selectRaw("
+        $dailyOrderGroupSql = FormCut::selectRaw("
                 meja.id id_meja,
                 meja.name meja,
-                form_cut_input.id_marker,
+                form_cut_input.marker_id,
                 form_cut_input.no_form,
                 COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal,
                 marker_input.act_costing_id,
@@ -183,7 +183,7 @@ class TrackCuttingOutput extends Component
                         meja.id id_meja,
                         meja.`name` meja,
                         COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form,
-                        form_cut_input.id_marker,
+                        form_cut_input.marker_id,
                         form_cut_input.id,
                         form_cut_input.no_form,
                         form_cut_input.qty_ply,
@@ -192,12 +192,12 @@ class TrackCuttingOutput extends Component
                         SUM(form_cut_input_detail.lembar_gelaran) detail
                     FROM
                         form_cut_input
-                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                        LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
                         AND form_cut_input.waktu_mulai is not null
-                        AND form_cut_input.id_marker is not null
+                        AND form_cut_input.marker_id is not null
                         AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                         AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$dateFilter."
@@ -205,13 +205,13 @@ class TrackCuttingOutput extends Component
                         form_cut_input.id
                 ) form_cut"
             ), "form_cut.id", "=", "form_cut_input.id")->
-            leftJoin("users as meja", "meja.id", "=", "form_cut_input.no_meja")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("users as meja", "meja.id", "=", "form_cut_input.meja_id")->
+            leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                 AND form_cut_input.waktu_mulai is not null
-                AND form_cut_input.id_marker is not null
+                AND form_cut_input.marker_id is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
             ");
             if ($this->dateFromFilter) {
@@ -224,7 +224,7 @@ class TrackCuttingOutput extends Component
                 $dailyOrderGroupSql->where('marker_input.color', $this->colorFilter);
             }
             if ($this->mejaFilter) {
-                $dailyOrderGroupSql->where('form_cut_input.no_meja', $this->mejaFilter);
+                $dailyOrderGroupSql->where('form_cut_input.meja_id', $this->mejaFilter);
             }
             if ($this->groupBy == "size" && $this->sizeFilter) {
                 $dailyOrderGroupSql->where('marker_input_detail.size', $this->sizeFilter);
@@ -233,11 +233,11 @@ class TrackCuttingOutput extends Component
                 $dailyOrderGroupSql->where("marker_input.act_costing_id", $this->selectedOrder);
             }
             $dailyOrderGroupSql->
-                groupByRaw("marker_input.act_costing_id, marker_input.style, marker_input.color, marker_input.panel, form_cut_input.no_meja ".($this->groupBy == 'size' ? ', marker_input_detail.so_det_id ' : ''))->
+                groupByRaw("marker_input.act_costing_id, marker_input.style, marker_input.color, marker_input.panel, form_cut_input.meja_id ".($this->groupBy == 'size' ? ', marker_input_detail.so_det_id ' : ''))->
                 orderBy("marker_input.act_costing_id", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
-                orderByRaw("form_cut_input.no_meja asc, marker_input.panel, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
+                orderByRaw("form_cut_input.meja_id asc, marker_input.panel, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
 
             $this->dailyOrderGroup = $dailyOrderGroupSql->get();
 
@@ -289,7 +289,7 @@ class TrackCuttingOutput extends Component
                                         meja.id id_meja,
                                         meja.`name` meja,
                                         COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
-                                        form_cut_input.id_marker,
+                                        form_cut_input.marker_id,
                                         form_cut_input.id,
                                         form_cut_input.no_form,
                                         form_cut_input.qty_ply,
@@ -298,7 +298,7 @@ class TrackCuttingOutput extends Component
                                         SUM(form_cut_input_detail.lembar_gelaran) detail
                                     FROM
                                         form_cut_input
-                                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                        LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                     WHERE
                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
@@ -308,7 +308,7 @@ class TrackCuttingOutput extends Component
                                         ".$dateFilter."
                                     GROUP BY
                                         form_cut_input.id
-                                ) form_cut on form_cut.id_marker = marker_input.kode
+                                ) form_cut on form_cut.marker_id = marker_input.id
                             LEFT JOIN
                                 modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                             where
@@ -346,5 +346,10 @@ class TrackCuttingOutput extends Component
         \Log::info("Query Completed");
 
         return view('livewire.track-cutting-output');
+    }
+
+    public function dehydrate()
+    {
+        $this->emit("initFixedColumn");
     }
 }

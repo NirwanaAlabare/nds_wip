@@ -17,21 +17,21 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-paperclip"></i> Piping</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-piping') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> Tambah Piping</a>
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
-                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <label class="form-label"><small>Dari</small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
                     </div>
                     <div>
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <label class="form-label"><small>Sampai</small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
+                <a href="{{ route('create-piping') }}" class="btn btn-sb btn-sm mb-3"><i class="fa fa-plus"></i> Tambah Piping</a>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-hover table-sm w-100">

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Cutting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Scopes\ThisYearScopeDetail;
 
-class FormCutInputDetail extends Model
+class FormCutDetail extends Model
 {
     use HasFactory;
 
@@ -21,13 +21,13 @@ class FormCutInputDetail extends Model
         static::addGlobalScope(new ThisYearScopeDetail);
     }
 
-    public function formCutInput()
+    public function formCut()
     {
-        return $this->belongsTo(FormCutInput::class, 'form_cut_id', 'id');
+        return $this->belongsTo(FormCut::class, 'form_cut_id', 'id');
     }
 
-    public function formCutInputDetailLaps()
+    public function formCutDetailLaps()
     {
-        return $this->hasMany(FormCutInputDetailLap::class, 'form_cut_input_detail_id', 'id');
+        return $this->hasMany(FormCutDetailLap::class, 'form_cut_input_detail_id', 'id');
     }
 }

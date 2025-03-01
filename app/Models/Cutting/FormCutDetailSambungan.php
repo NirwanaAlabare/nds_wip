@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Cutting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ScannedItem extends Model
+class FormCutDetailSambungan extends Model
 {
     use HasFactory;
 
-    protected $table = 'scanned_item';
+    protected $table = "form_cut_input_detail_sambungan";
 
     protected $guarded = [];
 }

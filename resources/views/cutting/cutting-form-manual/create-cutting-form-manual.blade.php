@@ -35,14 +35,14 @@
                             <input type="hidden" name="status" id="status" value="" readonly>
                             <input type="hidden" name="locked" id="locked" value="" readonly>
                             <input type="hidden" name="unlocked_by" id="unlocked_by" value="" readonly>
-                            <input type="hidden" name="no_meja" id="{{ Auth::user()->type != 'admin' ? 'no_meja' : 'no_meja_text' }}" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : (Auth::user()->type != 'admin' ? Auth::user()->id : '')) : (Auth::user()->type != 'admin' ? Auth::user()->id : '') }}" {{ Auth::user()->type != 'admin' ? '' : 'disabled' }}>
+                            <input type="hidden" name="meja_id" id="{{ Auth::user()->type != 'admin' ? 'meja_id' : 'meja_id_text' }}" value="{{ isset($formCutData) ? ($formCutData->meja_id ? $formCutData->meja_id : (Auth::user()->type != 'admin' ? Auth::user()->id : '')) : (Auth::user()->type != 'admin' ? Auth::user()->id : '') }}" {{ Auth::user()->type != 'admin' ? '' : 'disabled' }}>
                             <div class="col-12 col-md-12 {{ Auth::user()->type != 'admin' ? 'd-none' : '' }}">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Meja</b></small></label>
-                                    <select class="form-control select2bs4" id="{{ Auth::user()->type == 'admin' ? 'no_meja' : 'no_meja_text' }}" name="no_meja" style="width: 100%;" {{ Auth::user()->type != 'admin' ? 'disabled' : '' }}>
+                                    <select class="form-control select2bs4" id="{{ Auth::user()->type == 'admin' ? 'meja_id' : 'meja_id_text' }}" name="meja_id" style="width: 100%;" {{ Auth::user()->type != 'admin' ? 'disabled' : '' }}>
                                         <option value="">Pilih Meja</option>
                                             @foreach ($meja as $m)
-                                                <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
+                                                <option value="{{ $m->id }}" {{ isset($formCutData) ? ($formCutData->meja_id ? ($formCutData->meja_id == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
                                             @endforeach
                                         </option>
                                     </select>
@@ -88,6 +88,7 @@
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Kode Marker</b></small></label>
                                     <input type="text" class="form-control form-control-sm" id="id_marker" value="" readonly>
+                                    <input type="hidden" class="form-control form-control-sm" id="marker_id" value="" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
@@ -1087,7 +1088,7 @@
                                 <div class="col-md-12">
                                     <div class="mb-3">
                                         <label class="form-label label-input"><small><b>Operator</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-input" name="operator" id="operator" value="{{ isset($formCutInputData) ? $formCutInputData->operator : "" }}">
+                                        <input type="text" class="form-control form-control-sm border-input" name="operator" id="operator" value="{{ isset($formCutData) ? $formCutData->operator : "" }}">
                                     </div>
                                 </div>
                             </div>
@@ -1686,7 +1687,7 @@
                     type: 'put',
                     dataType: 'json',
                     data: {
-                        no_meja: $("#no_meja").val(),
+                        meja_id: $("#meja_id").val(),
                         startTime: startTime.value,
                     },
                     success: function(res) {
@@ -1730,7 +1731,7 @@
             // -Process Two Transaction-
             function updateToNextProcessTwo() {
                 id = document.getElementById('id').value;
-                var idMarker = document.getElementById('id_marker').value;
+                var markerId = document.getElementById('marker_id').value;
                 var pActual = document.getElementById('p_act').value;
                 var pUnitActual = document.getElementById('unit_p_act').value;
                 var commaActual = document.getElementById('comma_act').value;
@@ -1757,7 +1758,7 @@
                     type: 'put',
                     dataType: 'json',
                     data: {
-                        id_marker: idMarker,
+                        marker_id: markerId,
                         p_act: pActual,
                         unit_p_act: pUnitActual,
                         comma_act: commaActual,
@@ -1889,7 +1890,7 @@
                     "unit_p_act": $("#unit_p_act").val(),
                     "comma_act": $("#comma_act").val(),
                     "no_form_cut_input": $("#no_form").val(),
-                    "no_meja": $("#no_meja").val(),
+                    "meja_id": $("#meja_id").val(),
                     "color_act": $("#color_act").val(),
                     "detail_item": $("#detail_item").val(),
                     "metode": method,
@@ -2163,7 +2164,7 @@
                     "no_form_cut_input": $("#no_form").val(),
                     "color_act": $("#color_act").val(),
                     "detail_item": $("#detail_item").val(),
-                    "no_meja": $("#no_meja").val(),
+                    "meja_id": $("#meja_id").val(),
                     "lap": lap,
                     "metode": method,
                 }
@@ -2233,15 +2234,15 @@
                     if (result.isConfirmed) {
                         document.getElementById("loading").classList.remove("d-none");
 
-                        await updateToNextProcessOne();
-                        await updateToNextProcessTwo();
+                        // await updateToNextProcessOne();
+                        // await updateToNextProcessTwo();
 
                         $.ajax({
                             url: '{{ route('finish-process-manual-form-cut') }}/' + id,
                             type: 'put',
                             dataType: 'json',
                             data: {
-                                no_meja: $('#no_meja').val(),
+                                meja_id: $('#meja_id').val(),
                                 finishTime: finishTime.value,
                                 operator: $('#operator').val(),
                                 consAct: $('#cons_actual_gelaran').val(),
@@ -2257,7 +2258,7 @@
                             success: function(res) {
                                 document.getElementById("loading").classList.add("d-none");
                                 if (res) {
-                                    lockFormCutInput();
+                                    lockFormCut();
 
                                     status = "SELESAI PENGERJAAN";
 
@@ -3015,7 +3016,7 @@
                         finishProcessButton.classList.remove("d-none");
                     }
 
-                    lockFormCutInput();
+                    lockFormCut();
                 }
 
                 if ($("#locked").val() > 0) {
@@ -3238,7 +3239,7 @@
                 function checkSpreadingForm() {
                     let id = document.getElementById("id").value;
                     let noForm = document.getElementById("no_form").value;
-                    let noMeja = document.getElementById("no_meja").value;
+                    let noMeja = document.getElementById("meja_id").value;
 
                     $.ajax({
                         url: '{{ route('check-spreading-form-cut-input') }}/' + id + '' + noForm + '/' + noMeja,
@@ -3578,7 +3579,7 @@
                 }
 
                 // -Lock Form Cut Input-
-                function lockFormCutInput() {
+                function lockFormCut() {
                     lockProcessCondition();
 
                     lockGeneralForm();
@@ -4518,7 +4519,7 @@
                     "no_form_cut_input": $("#no_form").val(),
                     "color_act": $("#color_act").val(),
                     "detail_item": $("#detail_item").val(),
-                    "no_meja": $("#no_meja").val(),
+                    "meja_id": $("#meja_id").val(),
                     "metode": method,
                     "lap": lap
                 }

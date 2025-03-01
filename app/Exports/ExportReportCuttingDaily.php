@@ -99,7 +99,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                                     meja.id id_meja,
                                     meja.`name` meja,
                                     COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     form_cut_input.id,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
@@ -108,7 +108,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                                     SUM(form_cut_input_detail.lembar_gelaran) detail
                                 FROM
                                     form_cut_input
-                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                                     INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
@@ -116,7 +116,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.id
-                            ) form_cut on form_cut.id_marker = marker_input.kode
+                            ) form_cut on form_cut.marker_id = marker_input.id
                         LEFT JOIN
                             modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where

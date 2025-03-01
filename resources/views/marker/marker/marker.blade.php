@@ -8,6 +8,63 @@
 @endsection
 
 @section('content')
+    <div class="card card-sb">
+        <div class="card-header">
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-marker fa-sm"></i> Marker</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-start align-items-end gap-3 mb-3">
+                    <div class="mb-3">
+                        <label class="form-label"><small>Dari</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                            value="{{ date('Y-m-d') }}" onchange="filterTable()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><small>Sampai</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                            value="{{ date('Y-m-d') }}" onchange="filterTable()">
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
+                    <a href="{{ route('create-marker') }}" class="btn btn-sb btn-sm mb-3">
+                        <i class="fas fa-plus"></i>
+                        Baru
+                    </a>
+                    <button class="btn btn-sb-secondary btn-sm mb-3 fw-bold" onclick="fixMarkerBalanceQty()">
+                        <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="datatable" class="table table-bordered table-sm w-100">
+                    <thead>
+                        <tr>
+                            <th class="align-bottom">Action</th>
+                            <th>Tanggal</th>
+                            <th>No. Marker</th>
+                            <th>No. WS</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Panel</th>
+                            <th>Urutan</th>
+                            <th>Panjang</th>
+                            <th>Lebar</th>
+                            <th>Gramasi</th>
+                            <th>Gelar QTYs</th>
+                            <th>Total Form</th>
+                            <th>PO</th>
+                            <th>Ket.</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
     {{-- Show Detail Marker Modal --}}
     <div class="modal fade" id="showMarkerModal" tabindex="-1" role="dialog" aria-labelledby="showMarkerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -89,63 +146,6 @@
                 </div>
             </div>
         </form>
-    </div>
-
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-marker fa-sm"></i> Marker</h5>
-        </div>
-        <div class="card-body">
-            <a href="{{ route('create-marker') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
-            <div class="d-flex justify-content-between">
-                <div class="d-flex justify-content-start align-items-end gap-3 mb-3">
-                    <div class="mb-3">
-                        <label class="form-label"><small>Tanggal Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                            value="{{ date('Y-m-d') }}" onchange="filterTable()">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                            value="{{ date('Y-m-d') }}" onchange="filterTable()">
-                    </div>
-                    <div class="mb-3">
-                        <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
-                    <button class="btn btn-info btn-sm mb-3 fw-bold" onclick="fixMarkerBalanceQty()">
-                        <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100">
-                    <thead>
-                        <tr>
-                            <th class="align-bottom">Action</th>
-                            <th>Tanggal</th>
-                            <th>No. Marker</th>
-                            <th>No. WS</th>
-                            <th>Style</th>
-                            <th>Color</th>
-                            <th>Panel</th>
-                            <th>Urutan</th>
-                            <th>Panjang</th>
-                            <th>Lebar</th>
-                            <th>Gramasi</th>
-                            <th>Gelar QTYs</th>
-                            <th>Total Form</th>
-                            <th>PO</th>
-                            <th>Ket.</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-        </div>
     </div>
 @endsection
 

@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Stocker;
 use App\Models\StockerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
+use App\Models\Cutting\FormCut;
+use App\Models\Cutting\FormCutDetail;
+use App\Models\Cutting\FormCutDetailLap;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use Illuminate\Http\Request;
@@ -130,7 +130,7 @@ class WarehouseController extends Controller
      */
     public function show($id)
     {
-        $dataSpreading = FormCutInput::selectRaw("
+        $dataSpreading = FormCut::selectRaw("
                 form_cut_input.id,
                 form_cut_input.no_meja,
                 form_cut_input.id_marker,

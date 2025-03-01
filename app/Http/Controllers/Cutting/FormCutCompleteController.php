@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputLostTime;
-use App\Models\ScannedItem;
+use App\Models\Cutting\FormCut;
+use App\Models\Cutting\FormCutDetail;
+use App\Models\Cutting\FormCutLostTime;
+use App\Models\Cutting\ScannedItem;
 use App\Models\Part;
 use App\Models\PartForm;
 use App\Models\Auth\User;
@@ -21,7 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use DB;
 
-class CompletedFormController extends Controller
+class FormCutCompleteController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -49,8 +49,8 @@ class CompletedFormController extends Controller
             if ($request->search["value"]) {
                 $keywordQuery = "
                     and (
-                        a.id_marker like '%" . $request->search["value"] . "%' OR
-                        a.no_meja like '%" . $request->search["value"] . "%' OR
+                        a.marker_id like '%" . $request->search["value"] . "%' OR
+                        a.meja_id like '%" . $request->search["value"] . "%' OR
                         a.no_form like '%" . $request->search["value"] . "%' OR
                         COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) like '%" . $request->search["value"] . "%' OR
                         b.act_costing_ws like '%" . $request->search["value"] . "%' OR
@@ -65,12 +65,12 @@ class CompletedFormController extends Controller
             $data_spreading = DB::select("
                 SELECT
                     a.id,
-                    a.no_meja,
-                    a.id_marker,
+                    a.meja_id,
+                    a.marker_id,
                     a.no_form,
                     a.no_cut,
                     COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) tgl_form_cut,
-                    b.id marker_id,
+                    b.kode id_marker,
                     b.act_costing_ws ws,
                     b.style,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
@@ -98,8 +98,8 @@ class CompletedFormController extends Controller
                     cutting_plan.app
                 FROM `form_cut_input` a
                 left join cutting_plan on cutting_plan.form_cut_id = a.id
-                left join users on users.id = a.no_meja
-                left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+                left join users on users.id = a.meja_id
+                left join marker_input b on a.marker_id = b.id and b.cancel = 'N'
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 where
@@ -156,11 +156,12 @@ class CompletedFormController extends Controller
     }
 
     public function detailCutting($id) {
-        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id)->first();
+        $formCutData = FormCut::selectRaw("*, marker_input.kode as id_marker")->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->leftJoin("users", "users.id", "=", "form_cut_input.meja_id")->where('form_cut_input.id', $id)->first();
 
-        $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->groupBy('act_costing.id')->where('act_costing.id', $formCutInputData->act_costing_id)->get();
+        $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->groupBy('act_costing.id')->where('act_costing.id', $formCutData->act_costing_id)->get();
 
         $markerDetailData = MarkerDetail::selectRaw("
+                marker_input.id marker_id,
                 marker_input.kode kode_marker,
                 concat(master_sb_ws.size, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN ' - ' ELSE '' END, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN master_sb_ws.dest ELSE '' END) size,
                 marker_input_detail.so_det_id,
@@ -169,19 +170,19 @@ class CompletedFormController extends Controller
             ")->
             leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
-            where("marker_input.kode", $formCutInputData->kode)->
+            where("marker_input.kode", $formCutData->kode)->
             where("marker_input.cancel", "N")->
             groupBy("marker_input_detail.so_det_id")->
             get();
 
-        $lostTimeData = FormCutInputLostTime::where('form_cut_input_id', $id)->get();
+        $lostTimeData = FormCutLostTime::where('form_cut_input_id', $id)->get();
 
         $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
 
         return view("cutting.completed-form.completed-form-detail", [
             'id' => $id,
             'meja' => $meja,
-            'formCutInputData' => $formCutInputData,
+            'formCutData' => $formCutData,
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
             'lostTimeData' => $lostTimeData,
@@ -219,7 +220,7 @@ class CompletedFormController extends Controller
             "current_id" => "required",
             "current_id_roll" => "nullable",
             "no_form_cut_input" => "required",
-            "no_meja" => "required",
+            "meja_id" => "required",
             "current_id_item" => "required",
             "current_group" => "required",
             "current_group_stocker" => "nullable",
@@ -244,7 +245,7 @@ class CompletedFormController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $updateTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+        $updateTimeRecordSummary = FormCutDetail::selectRaw("form_cut_input_detail.*")->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
             where('form_cut_input.id', $validatedRequest['id'])->
             where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
@@ -272,7 +273,7 @@ class CompletedFormController extends Controller
                 "piping" => $validatedRequest['current_piping']
             ]);
 
-        $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+        $detail = FormCutDetail::selectRaw("form_cut_input_detail.*")->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
             where('form_cut_input.id', $validatedRequest['id'])->
             where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
@@ -290,7 +291,7 @@ class CompletedFormController extends Controller
                     "unit" => $itemUnit,
                 ]);
 
-            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
+            $formCutDetails = FormCutDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
             $currentGroup = "";
             $groupNumber = 0;
             foreach ($formCutDetails as $formCutDetail) {
@@ -303,10 +304,10 @@ class CompletedFormController extends Controller
                 $formCutDetail->save();
             }
 
-            $updateFormCut = FormCutInput::where('id', $validatedRequest['id'])->
+            $updateFormCut = FormCut::where('id', $validatedRequest['id'])->
                 where('no_form', $validatedRequest['no_form_cut_input'])->
                 update([
-                    "no_meja" => $validatedRequest['no_meja']
+                    "meja_id" => $validatedRequest['meja_id']
                 ]);
 
             return array(
@@ -319,12 +320,12 @@ class CompletedFormController extends Controller
     }
 
     public function updateFinish(Request $request, $id) {
-        $formCutInputData = FormCutInput::selectRaw("form_cut_input.*, marker_input.color")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+        $formCutData = FormCut::selectRaw("form_cut_input.*, marker_input.color")->
+            leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("form_cut_input.id", $id)->
             first();
 
-        $updateFormCutInput = FormCutInput::where("id", $id)->update([
+        $updateFormCut = FormCut::where("id", $id)->update([
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
             "cons_act_nosr" => $request->consActNoSr,
@@ -339,15 +340,15 @@ class CompletedFormController extends Controller
 
         // store to part form
         $partData = Part::select('part.id')->
-            where("act_costing_id", $formCutInputData->marker->act_costing_id)->
-            where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
-            where("panel", $formCutInputData->marker->panel)->
-            where("buyer", $formCutInputData->marker->buyer)->
-            where("style", $formCutInputData->marker->style)->
+            where("act_costing_id", $formCutData->marker->act_costing_id)->
+            where("act_costing_ws", $formCutData->marker->act_costing_ws)->
+            where("panel", $formCutData->marker->panel)->
+            where("buyer", $formCutData->marker->buyer)->
+            where("style", $formCutData->marker->style)->
             first();
 
-        if ($updateFormCutInput && $partData) {
-            $checkPartForm = PartForm::where("form_id", $formCutInputData->id)->first();
+        if ($updateFormCut && $partData) {
+            $checkPartForm = PartForm::where("form_id", $formCutData->id)->first();
 
             if (!$checkPartForm) {
                 $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
@@ -357,14 +358,14 @@ class CompletedFormController extends Controller
                 $addToPartForm = PartForm::create([
                     "kode" => $kodePartForm,
                     "part_id" => $partData->id,
-                    "form_id" => $formCutInputData->id,
+                    "form_id" => $formCutData->id,
                     "created_at" => Carbon::now(),
                     "updated_at" => Carbon::now(),
                 ]);
             } else {
                 ini_set('max_execution_time', 360000);
 
-                $formCutInputs = FormCutInput::selectRaw("
+                $formCuts = FormCut::selectRaw("
                         marker_input.color,
                         form_cut_input.id as id_form,
                         form_cut_input.no_cut,
@@ -374,14 +375,14 @@ class CompletedFormController extends Controller
                     leftJoin("part", "part.id", "=", "part_form.part_id")->
                     leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
                     leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                    leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                    leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
                     leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
                     leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
-                    leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                    leftJoin("users", "users.id", "=", "form_cut_input.meja_id")->
                     whereRaw("part_form.id is not null")->
                     where("part.id", $partData->id)->
-                    where("marker_input.color", $formCutInputData->color)->
-                    where("form_cut_input.no_cut", ">=", $formCutInputData->no_cut)->
+                    where("marker_input.color", $formCutData->color)->
+                    where("form_cut_input.no_cut", ">=", $formCutData->no_cut)->
                     groupBy("form_cut_input.id")->
                     orderBy("marker_input.color", "asc")->
                     orderBy("form_cut_input.waktu_selesai", "asc")->
@@ -395,7 +396,7 @@ class CompletedFormController extends Controller
                 $currentNumber = 0;
 
                 // Loop over all forms
-                foreach ($formCutInputs as $formCut) {
+                foreach ($formCuts as $formCut) {
                     $modifySizeQty = ModifySizeQty::where("no_form", $formCut->no_form)->get();
 
                     // Reset cumulative data on color switch
@@ -409,23 +410,23 @@ class CompletedFormController extends Controller
 
                     // Adjust form data
                     $currentNumber++;
-                    FormCutInput::where("id", $formCut->id_form)->update([
+                    FormCut::where("id", $formCut->id_form)->update([
                         "no_cut" => $currentNumber
                     ]);
 
                     // Adjust form cut detail data
-                    $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
+                    $formCutDetails = FormCutDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
 
                     $currentGroup = "";
                     $currentGroupNumber = 0;
-                    foreach ($formCutInputDetails as $formCutInputDetail) {
-                        if ($currentGroup != $formCutInputDetail->group_roll) {
-                            $currentGroup = $formCutInputDetail->group_roll;
+                    foreach ($formCutDetails as $formCutDetail) {
+                        if ($currentGroup != $formCutDetail->group_roll) {
+                            $currentGroup = $formCutDetail->group_roll;
                             $currentGroupNumber += 1;
                         }
 
-                        $formCutInputDetail->group_stocker = $currentGroupNumber;
-                        $formCutInputDetail->save();
+                        $formCutDetail->group_stocker = $currentGroupNumber;
+                        $formCutDetail->save();
                     }
 
                     // Adjust stocker data
@@ -439,9 +440,9 @@ class CompletedFormController extends Controller
                     foreach ($stockerForm as $key => $stocker) {
                         $lembarGelaran = 1;
                         if ($stocker->group_stocker) {
-                            $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
+                            $lembarGelaran = FormCutDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
                         } else {
-                            $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                            $lembarGelaran = FormCutDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
                         }
 
                         if ($currentStockerPart == $stocker->part_detail_id) {
@@ -561,7 +562,7 @@ class CompletedFormController extends Controller
     }
 
     public function destroySpreadingRoll($id) {
-        $formCutDetail = FormCutInputDetail::find($id);
+        $formCutDetail = FormCutDetail::find($id);
 
         if ($formCutDetail) {
             if ($formCutDetail->id_roll) {

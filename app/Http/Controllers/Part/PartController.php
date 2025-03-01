@@ -9,8 +9,8 @@ use App\Models\MasterSecondary;
 use App\Models\Part;
 use App\Models\PartDetail;
 use App\Models\PartForm;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\FormCut;
+use App\Models\Cutting\FormCutDetail;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
 use App\Models\ModifySizeQty;
@@ -75,7 +75,13 @@ class PartController extends Controller
             })->toJson();
         }
 
-        return view("marker.part.part", ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        $masterParts = MasterPart::all();
+        $masterTujuan = MasterTujuan::all();
+        $masterSecondary = MasterSecondary::all();
+
+        return view("marker.part.part", ['orders' => $orders, 'masterParts' => $masterParts, 'masterTujuan' => $masterTujuan, 'masterSecondary' => $masterSecondary, "page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     /**
@@ -261,7 +267,7 @@ class PartController extends Controller
 
             $partDetailStore = PartDetail::insert($partDetailData);
 
-            $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
+            $formCutData = FormCut::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
 
             foreach ($formCutData as $formCut) {
                 $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
@@ -366,7 +372,7 @@ class PartController extends Controller
     public function managePartForm(Request $request, $id = 0)
     {
         if ($request->ajax()) {
-            $formCutInputs = FormCutInput::selectRaw("
+            $formCuts = FormCut::selectRaw("
                     form_cut_input.id,
                     form_cut_input.id_marker,
                     form_cut_input.no_form,
@@ -396,7 +402,7 @@ class PartController extends Controller
                 where("marker_input.panel", $request->panel)->
                 groupBy("form_cut_input.id");
 
-            return Datatables::eloquent($formCutInputs)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
+            return Datatables::eloquent($formCuts)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
                 $query->whereRaw("LOWER(COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut)) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('act_costing_ws', function ($query, $keyword) {
                 $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
@@ -432,7 +438,7 @@ class PartController extends Controller
     public function managePartSecondary(Request $request, $id = 0)
     {
         if ($request->ajax()) {
-            $formCutInputs = FormCutInput::selectRaw("
+            $formCuts = FormCut::selectRaw("
                     form_cut_input.id,
                     form_cut_input.id_marker,
                     form_cut_input.no_form,
@@ -461,7 +467,7 @@ class PartController extends Controller
                 where("marker_input.panel", $request->panel)->
                 groupBy("form_cut_input.id");
 
-            return Datatables::eloquent($formCutInputs)->filterColumn('act_costing_ws', function ($query, $keyword) {
+            return Datatables::eloquent($formCuts)->filterColumn('act_costing_ws', function ($query, $keyword) {
                 $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('buyer', function ($query, $keyword) {
                 $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
@@ -555,7 +561,7 @@ class PartController extends Controller
 
     public function getFormCut(Request $request, $id = 0)
     {
-        $formCutInputs = FormCutInput::selectRaw("
+        $formCuts = FormCut::selectRaw("
                 form_cut_input.id,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
@@ -584,7 +590,7 @@ class PartController extends Controller
             where("marker_input.panel", $request->panel)->
             groupBy("form_cut_input.id");
 
-        return Datatables::eloquent($formCutInputs)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
+        return Datatables::eloquent($formCuts)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
             $query->whereRaw("LOWER(COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut)) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('act_costing_ws', function ($query, $keyword) {
             $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
@@ -639,7 +645,7 @@ class PartController extends Controller
             ini_set('max_execution_time', 360000);
 
             // Reorder Stocker Numbering
-                $formCutInputs = FormCutInput::selectRaw("
+                $formCuts = FormCut::selectRaw("
                         marker_input.color,
                         form_cut_input.id as id_form,
                         form_cut_input.no_cut,
@@ -668,7 +674,7 @@ class PartController extends Controller
                 $currentNumber = 0;
 
                 // Loop over all forms
-                foreach ($formCutInputs as $formCut) {
+                foreach ($formCuts as $formCut) {
                     $modifySizeQty = ModifySizeQty::where("no_form", $formCut->no_form)->get();
 
                     // Reset cumulative data on color switch
@@ -682,23 +688,23 @@ class PartController extends Controller
 
                     // Adjust form data
                     $currentNumber++;
-                    FormCutInput::where("id", $formCut->id_form)->update([
+                    FormCut::where("id", $formCut->id_form)->update([
                         "no_cut" => $currentNumber
                     ]);
 
                     // Adjust form cut detail data
-                    $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
+                    $formCutDetails = FormCutDetail::where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
 
                     $currentGroup = "";
                     $currentGroupNumber = 0;
-                    foreach ($formCutInputDetails as $formCutInputDetail) {
-                        if ($currentGroup != $formCutInputDetail->group_roll) {
-                            $currentGroup = $formCutInputDetail->group_roll;
+                    foreach ($formCutDetails as $formCutDetail) {
+                        if ($currentGroup != $formCutDetail->group_roll) {
+                            $currentGroup = $formCutDetail->group_roll;
                             $currentGroupNumber += 1;
                         }
 
-                        $formCutInputDetail->group_stocker = $currentGroupNumber;
-                        $formCutInputDetail->save();
+                        $formCutDetail->group_stocker = $currentGroupNumber;
+                        $formCutDetail->save();
                     }
 
                     // Adjust stocker data
@@ -712,9 +718,9 @@ class PartController extends Controller
                     foreach ($stockerForm as $key => $stocker) {
                         $lembarGelaran = 1;
                         if ($stocker->group_stocker) {
-                            $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
+                            $lembarGelaran = FormCutDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
                         } else {
-                            $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                            $lembarGelaran = FormCutDetail::where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
                         }
 
                         if ($currentStockerPart == $stocker->part_detail_id) {
@@ -874,7 +880,7 @@ class PartController extends Controller
 
     public function showPartForm(Request $request)
     {
-        $formCutInputs = FormCutInput::selectRaw("
+        $formCuts = FormCut::selectRaw("
                 part_detail.id part_detail_id,
                 form_cut_input.id form_cut_id,
                 form_cut_input.id_marker,
@@ -909,7 +915,7 @@ class PartController extends Controller
             where("part.id", $request->id)->
             groupBy("form_cut_input.id");
 
-        return Datatables::of($formCutInputs)->
+        return Datatables::of($formCuts)->
         filterColumn('id_marker', function ($query, $keyword) {
             $query->whereRaw("LOWER(form_cut_input.id_marker) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('no_form', function ($query, $keyword) {

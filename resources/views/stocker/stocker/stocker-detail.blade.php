@@ -132,7 +132,7 @@
                                 $currentTotal = 0;
                                 $currentBefore = 0;
                             @endphp
-                            @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                            @foreach ($dataSpreading->FormCutDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
                                 {{-- Without group stocker condition --}}
 
@@ -349,7 +349,7 @@
                                     $currentTotalAdditional = 0;
                                     $currentBeforeAdditional = 0;
                                 @endphp
-                                @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                                @foreach ($dataSpreading->FormCutDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                     @if (!$detail->group_stocker)
                                     {{-- Without group stocker condition --}}
 

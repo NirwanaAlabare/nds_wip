@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\FormCutDetail;
 use App\Exports\ExportReportCutting;
 use App\Exports\ExportReportCuttingSinglePage;
 use App\Exports\ExportPemakaianKain;
@@ -83,7 +83,7 @@ class ReportCuttingController extends Controller
                             SELECT
                                 meja.`name` meja,
                                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 form_cut_input.id,
                                 form_cut_input.no_form,
                                 form_cut_input.qty_ply,
@@ -92,7 +92,7 @@ class ReportCuttingController extends Controller
                                 SUM(form_cut_input_detail.lembar_gelaran) detail
                             FROM
                                 form_cut_input
-                                LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                                 INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                             WHERE
                                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
@@ -100,7 +100,7 @@ class ReportCuttingController extends Controller
                                 ".$additionalQuery."
                             GROUP BY
                                 form_cut_input.id
-                        ) form_cut on form_cut.id_marker = marker_input.kode
+                        ) form_cut on form_cut.marker_id = marker_input.id
                     LEFT JOIN
                         modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                 where
@@ -203,7 +203,7 @@ class ReportCuttingController extends Controller
                                 SELECT
                                     meja.`name` meja,
                                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     form_cut_input.id,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
@@ -212,7 +212,7 @@ class ReportCuttingController extends Controller
                                     SUM(form_cut_input_detail.lembar_gelaran) detail
                                 FROM
                                     form_cut_input
-                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                                     INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
@@ -220,7 +220,7 @@ class ReportCuttingController extends Controller
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.id
-                            ) form_cut on form_cut.id_marker = marker_input.kode
+                            ) form_cut on form_cut.marker_id = marker_input.id
                         LEFT JOIN
                             modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                     where
@@ -290,7 +290,7 @@ class ReportCuttingController extends Controller
 
                     $rollIds = $rollIdsArr->pluck("id_roll");
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                    $rolls = FormCutDetail::selectRaw("
                             id_roll,
                             id_item,
                             detail_item,
@@ -313,7 +313,7 @@ class ReportCuttingController extends Controller
 
                     $rollIds = $rollIdsArr->pluck("id_roll");
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                    $rolls = FormCutDetail::selectRaw("
                             id_roll,
                             id_item,
                             detail_item,
@@ -338,7 +338,7 @@ class ReportCuttingController extends Controller
 
                     $rollIds = $rollIdsArr->pluck("id_roll");
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                    $rolls = FormCutDetail::selectRaw("
                             id_roll,
                             id_item,
                             detail_item,
@@ -361,7 +361,7 @@ class ReportCuttingController extends Controller
 
                     $rollIds = $rollIdsArr->pluck("id_roll");
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                    $rolls = FormCutDetail::selectRaw("
                             id_roll,
                             id_item,
                             detail_item,
@@ -384,7 +384,7 @@ class ReportCuttingController extends Controller
 
                     $rollIds = $rollIdsArr->pluck("id_roll");
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                    $rolls = FormCutDetail::selectRaw("
                             id_roll,
                             id_item,
                             detail_item,
@@ -407,7 +407,7 @@ class ReportCuttingController extends Controller
 
                     $rollIds = $rollIdsArr->pluck("id_roll");
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                    $rolls = FormCutDetail::selectRaw("
                             id_roll,
                             id_item,
                             detail_item,
@@ -439,7 +439,7 @@ class ReportCuttingController extends Controller
 
         $rollData = collect();
         foreach ($rollIdsArr as $rollId) {
-            $rolls = FormCutInputDetail::selectRaw("
+            $rolls = FormCutDetail::selectRaw("
                 id_roll,
                 id_item,
                 detail_item,
@@ -542,7 +542,7 @@ class ReportCuttingController extends Controller
 
             $rollIds = $rollIdsArr->pluck('id_roll');
 
-            $rolls = FormCutInputDetail::selectRaw("
+            $rolls = FormCutDetail::selectRaw("
                     id_roll,
                     id_item,
                     detail_item,
@@ -689,7 +689,7 @@ class ReportCuttingController extends Controller
                                     meja.id id_meja,
                                     meja.`name` meja,
                                     COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     form_cut_input.id,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
@@ -698,7 +698,7 @@ class ReportCuttingController extends Controller
                                     SUM(form_cut_input_detail.lembar_gelaran) detail
                                 FROM
                                     form_cut_input
-                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                                     INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
@@ -706,7 +706,7 @@ class ReportCuttingController extends Controller
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.id
-                            ) form_cut on form_cut.id_marker = marker_input.kode
+                            ) form_cut on form_cut.marker_id = marker_input.id
                         LEFT JOIN
                             modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
@@ -835,7 +835,7 @@ class ReportCuttingController extends Controller
                                     meja.id id_meja,
                                     meja.`name` meja,
                                     COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     form_cut_input.id,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
@@ -844,7 +844,7 @@ class ReportCuttingController extends Controller
                                     SUM(form_cut_input_detail.lembar_gelaran) detail
                                 FROM
                                     form_cut_input
-                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                                     INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                 WHERE
                                     form_cut_input.`status` = 'SELESAI PENGERJAAN'
@@ -854,7 +854,7 @@ class ReportCuttingController extends Controller
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.id
-                            ) form_cut on form_cut.id_marker = marker_input.kode
+                            ) form_cut on form_cut.marker_id = marker_input.id
                         LEFT JOIN
                             modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where

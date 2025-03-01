@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use App\Models\CutPlan;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
+use App\Models\Cutting\FormCut;
+use App\Models\Cutting\FormCutDetail;
+use App\Models\Cutting\FormCutDetailLap;
 use App\Models\MarkerDetail;
 use App\Models\Marker;
 use App\Models\Stocker;
@@ -44,8 +44,8 @@ class SpreadingController extends Controller
             if ($request->search["value"]) {
                 $keywordQuery = "
                     and (
-                        a.id_marker like '%" . $request->search["value"] . "%' OR
-                        a.no_meja like '%" . $request->search["value"] . "%' OR
+                        a.marker_id like '%" . $request->search["value"] . "%' OR
+                        a.meja_id like '%" . $request->search["value"] . "%' OR
                         a.no_form like '%" . $request->search["value"] . "%' OR
                         COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) like '%" . $request->search["value"] . "%' OR
                         b.act_costing_ws like '%" . $request->search["value"] . "%' OR
@@ -60,12 +60,12 @@ class SpreadingController extends Controller
             $data_spreading = DB::select("
                 SELECT
                     a.id,
-                    a.no_meja,
-                    a.id_marker,
+                    a.meja_id,
+                    a.marker_id,
                     a.no_form,
                     a.no_cut,
                     COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) tgl_form_cut,
-                    b.id marker_id,
+                    b.kode id_marker,
                     b.act_costing_ws ws,
                     b.style,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
@@ -93,8 +93,8 @@ class SpreadingController extends Controller
                     cutting_plan.app
                 FROM `form_cut_input` a
                     left join cutting_plan on cutting_plan.form_cut_id = a.id
-                    left join users on users.id = a.no_meja
-                    left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+                    left join users on users.id = a.meja_id
+                    left join marker_input b on a.marker_id = b.id and b.cancel = 'N'
                     left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
                     left join master_size_new on marker_input_detail.size = master_size_new.size
                 where
@@ -131,8 +131,8 @@ class SpreadingController extends Controller
         // $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input where tgl_cutting = '$tgl_f' group by act_costing_id");
 
         $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input a
-        left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where a.cancel = 'N' and ((a.gelar_qty_balance is null and b.id_marker is null) or a.gelar_qty_balance > 0)
+        left join (select marker_id from form_cut_input group by marker_id ) b on a.id = b.marker_id
+        where a.cancel = 'N' and ((a.gelar_qty_balance is null and b.marker_id is null) or a.gelar_qty_balance > 0)
         group by act_costing_id");
 
 
@@ -152,8 +152,8 @@ class SpreadingController extends Controller
         // $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil
         // from marker_input where act_costing_id = '" . $request->cbows . "' and tgl_cutting = '$tgl_f' order by urutan_marker asc");
         $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil  from marker_input a
-        left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where act_costing_id = '" . $request->cbows . "' and (((a.gelar_qty_balance is null or a.gelar_qty_balance = 0) and b.id_marker is null) or a.gelar_qty_balance > 0) and a.cancel = 'N' order by urutan_marker asc");
+        left join (select marker_id from form_cut_input group by marker_id ) b on a.id = b.marker_id
+        where act_costing_id = '" . $request->cbows . "' and (((a.gelar_qty_balance is null or a.gelar_qty_balance = 0) and b.marker_id is null) or a.gelar_qty_balance > 0) and a.cancel = 'N' order by urutan_marker asc");
         $html = "<option value=''>Pilih No Marker</option>";
 
         foreach ($datano_marker as $datanomarker) {
@@ -208,13 +208,13 @@ class SpreadingController extends Controller
             "txt_ws" => "required",
             "txt_cons_ws" => "required",
             "txt_cons_marker" => "required",
-            "txtid_marker" => "required",
+            "txtmarker_id" => "required",
         ]);
 
         $qtyPlyMarkerModulus = intval($request['hitungmarker']) % intval($request['txtqty_ply_cut']);
         $maximumForm = floor(intval($request['hitungmarker'])/intval($request['txtqty_ply_cut'])) + ($qtyPlyMarkerModulus > 0 ? 1 : 0);
         $timestamp = Carbon::now();
-        $formcutDetailData = [];
+        $formCutDetailData = [];
         $message = "";
 
         if ($request['tarik_sisa']) {
@@ -240,7 +240,7 @@ class SpreadingController extends Controller
             $bulan = substr($date, 5, 2);
             $now = Carbon::now();
 
-            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
+            $lastForm = FormCut::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
 
             $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
 
@@ -258,8 +258,8 @@ class SpreadingController extends Controller
                 }
             }
 
-            array_push($formcutDetailData, [
-                "id_marker" => $request["txtid_marker"],
+            array_push($formCutDetailData, [
+                "marker_id" => $request["txtmarker_id"],
                 "tipe_form_cut" => $request["tipe_form"],
                 "no_form" => $no_form,
                 "tgl_form_cut" => $txttglcut,
@@ -277,10 +277,10 @@ class SpreadingController extends Controller
             $message .= "$no_form <br>";
         }
 
-        $markerDetailStore = FormCutInput::insert($formcutDetailData);
+        $markerDetailStore = FormCut::insert($formCutDetailData);
 
         if ($totalQtyPly > 0) {
-            $updateMarker = Marker::where("kode", $request["txtid_marker"])->
+            $updateMarker = Marker::where("kode", $request["txtmarker_id"])->
                 update([
                     'gelar_qty_balance' => DB::raw('gelar_qty_balance - '.$totalQtyPly)
                 ]);
@@ -324,16 +324,16 @@ class SpreadingController extends Controller
     {
         $validatedRequest = $request->validate([
             "edit_id" => "required",
-            "edit_no_meja" => "required",
+            "edit_meja_id" => "required",
         ]);
 
-        $updateNoMeja = FormCutInput::where('id', $validatedRequest['edit_id'])->update([
-            'no_meja' => $validatedRequest['edit_no_meja']
+        $updateNoMeja = FormCut::where('id', $validatedRequest['edit_id'])->update([
+            'meja_id' => $validatedRequest['edit_meja_id']
         ]);
 
         if ($updateNoMeja) {
-            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id'])->first();
-            $meja = User::where('id', $validatedRequest['edit_no_meja'])->first();
+            $updatedData = FormCut::where('id', $validatedRequest['edit_id'])->first();
+            $meja = User::where('id', $validatedRequest['edit_meja_id'])->first();
             return array(
                 'status' => 200,
                 'message' => 'Alokasi Meja "' . ucfirst($meja->name) . '" ke form "' . $updatedData->no_form . '" berhasil',
@@ -358,12 +358,12 @@ class SpreadingController extends Controller
             "edit_status" => "required",
         ]);
 
-        $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
+        $updateStatusForm = FormCut::where('id', $validatedRequest['edit_id_status'])->update([
             'status' => $validatedRequest['edit_status']
         ]);
 
         if ($updateStatusForm) {
-            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
+            $updatedData = FormCut::where('id', $validatedRequest['edit_id_status'])->first();
             return array(
                 'status' => 201,
                 'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
@@ -385,24 +385,24 @@ class SpreadingController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\FormCutInput  $formCutInput
+     * @param  \App\Models\Cutting\FormCut  $formCut
      * @return \Illuminate\Http\Response
      */
-    public function destroy(FormCutInput $formCutInput, $id)
+    public function destroy(FormCut $formCut, $id)
     {
-        $spreadingForm = FormCutInput::where('id', $id)->first();
+        $spreadingForm = FormCut::where('id', $id)->first();
 
-        $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
+        $checkMarker = Marker::where("id", $spreadingForm->marker_id)->first();
 
-        $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
+        $deleteSpreadingForm = FormCut::where('id', $id)->delete();
         if ($deleteSpreadingForm) {
             // Update Marker Balance
-            $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
+            $updateMarkerBalance = Marker::where("id", $spreadingForm->marker_id)->update([
                 "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.($spreadingForm->qty_ply ? $spreadingForm->qty_ply : 0))
             ]);
 
             // Similar Form No. Cutting Update
-            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            $formCuts = FormCut::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
                 where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
                 where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
                 where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
@@ -416,15 +416,15 @@ class SpreadingController extends Controller
                 foreach ($formCuts as $formCut) {
                     $i++;
 
-                    $updateFormCut = FormCutInput::where("id", $formCut->id)->
+                    $updateFormCut = FormCut::where("id", $formCut->id)->
                         update([
                             "no_cut" => $i
                         ]);
                 }
             }
 
-            $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->get();
-            $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->delete();
+            $spreadingFormDetails = FormCutDetail::where('no_form_cut_input', $spreadingForm->no_form)->get();
+            $deleteSpreadingFormDetail = FormCutDetail::where('no_form_cut_input', $spreadingForm->no_form)->delete();
             if ($deleteSpreadingFormDetail) {
                 $idFormDetailLapArr = [];
                 foreach ($spreadingFormDetails as $spreadingFormDetail) {
@@ -464,7 +464,7 @@ class SpreadingController extends Controller
                     array_push($idFormDetailLapArr, $spreadingFormDetail->id);
                 }
 
-                $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+                $deleteSpreadingFormDetailLap = FormCutDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
             }
 
             $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();

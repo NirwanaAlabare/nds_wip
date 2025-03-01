@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Cutting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Auth\User;
+use App\Models\Marker;
 use App\Scopes\ThisYearScope;
 
-class FormCutInput extends Model
+class FormCut extends Model
 {
     use HasFactory;
 
@@ -24,14 +25,22 @@ class FormCutInput extends Model
 
     public function marker()
     {
-        return $this->belongsTo(Marker::class, 'id_marker', 'kode');
+        return $this->belongsTo(Marker::class, 'marker_id', 'id');
     }
 
     public function alokasiMeja()
     {
-        return $this->belongsTo(User::class, 'no_meja', 'id');
+        return $this->belongsTo(User::class, 'meja_id', 'id');
     }
 
+    public function formCutDetails()
+    {
+        return $this->hasMany(FormCutDetail::class, 'form_cut_id', 'id');
+    }
+
+    /**
+     * Get the cutting plan for the form cut.
+     */
     public function cuttingPlanOutput()
     {
         return $this->hasOne(CutPlanOutputForm::class, 'id', 'form_cut_id');
@@ -43,10 +52,5 @@ class FormCutInput extends Model
     public function cuttingPlan()
     {
         return $this->hasOne(CutPlan::class, 'no_form_cut_input', 'no_form');
-    }
-
-    public function formCutInputDetails()
-    {
-        return $this->hasMany(FormCutInputDetail::class, 'form_cut_id', 'id');
     }
 }

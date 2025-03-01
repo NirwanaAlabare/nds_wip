@@ -78,8 +78,8 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                     GROUP BY
                         form_cut_id
                 ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-                LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
-                LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
+                LEFT JOIN users as meja on meja.id = form_cut_input.meja_id
+                LEFT JOIN marker_input ON marker_input.id = form_cut_input.marker_id
                 LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id and marker_input_detail.ratio > 0
                 LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
             WHERE
@@ -91,7 +91,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 marker_input_detail.id
             ORDER BY
                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_input) desc,
-                form_cut_input.no_meja,
+                form_cut_input.meja_id,
                 marker_input.act_costing_id,
                 marker_input.style,
                 marker_input.color,

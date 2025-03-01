@@ -30,12 +30,12 @@
                 <div class="d-flex justify-content-between align-items-end">
                     <div class="d-flex gap-3 align-items-end mb-3">
                         <div>
-                            <label class="form-label">Tanggal Awal</label>
+                            <label class="form-label">Dari</label>
                             <input type="date" class="form-control form-control-sm" id="tanggal_awal" value="{{ date('Y-m-d') }}">
                         </div>
                         <span> - </span>
                         <div>
-                            <label class="form-label">Tanggal Akhir</label>
+                            <label class="form-label">Sampai</label>
                             <input type="date" class="form-control form-control-sm" id="tanggal_akhir" value="{{ date('Y-m-d') }}">
                         </div>
                         <button class="btn btn-sm btn-primary" onclick="lineWipTableReload()"><i class="fa fa-search"></i></button>

@@ -2,7 +2,7 @@
 
 namespace App\Exports\Cutting;
 
-use App\Models\FormCutInput;
+use App\Models\Cutting\FormCut;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -72,10 +72,10 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             groupBy('kpno')->
             get();
 
-        $orderGroupSql = FormCutInput::selectRaw("
+        $orderGroupSql = FormCut::selectRaw("
                 meja.id id_meja,
                 meja.name meja,
-                form_cut_input.id_marker,
+                form_cut_input.marker_id,
                 form_cut_input.no_form,
                 COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal,
                 marker_input.act_costing_id,
@@ -92,7 +92,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         meja.id id_meja,
                         meja.`name` meja,
                         COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form,
-                        form_cut_input.id_marker,
+                        form_cut_input.marker_id,
                         form_cut_input.id,
                         form_cut_input.no_form,
                         form_cut_input.qty_ply,
@@ -101,12 +101,12 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         SUM(form_cut_input_detail.lembar_gelaran) detail
                     FROM
                         form_cut_input
-                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                        LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
                         AND form_cut_input.waktu_mulai is not null
-                        AND form_cut_input.id_marker is not null
+                        AND form_cut_input.marker_id is not null
                         AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                         AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$dateFilter."
@@ -114,24 +114,24 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         form_cut_input.id
                 ) form_cut"
             ), "form_cut.id", "=", "form_cut_input.id")->
-            leftJoin("users as meja", "meja.id", "=", "form_cut_input.no_meja")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("users as meja", "meja.id", "=", "form_cut_input.meja_id")->
+            leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                 AND form_cut_input.waktu_mulai is not null
-                AND form_cut_input.id_marker is not null
+                AND form_cut_input.marker_id is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
             ");
             if ($this->order) {
                 $orderGroupSql->where("marker_input.act_costing_id", $this->order);
             }
             $orderGroupSql->
-                groupByRaw("marker_input.act_costing_id, marker_input.style, marker_input.color, marker_input.panel, form_cut_input.no_meja ".($this->groupBy == 'size' ? ', marker_input_detail.so_det_id ' : ''))->
+                groupByRaw("marker_input.act_costing_id, marker_input.style, marker_input.color, marker_input.panel, form_cut_input.meja_id ".($this->groupBy == 'size' ? ', marker_input_detail.so_det_id ' : ''))->
                 orderBy("marker_input.act_costing_id", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
-                orderByRaw("form_cut_input.no_meja asc, marker_input.panel asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
+                orderByRaw("form_cut_input.meja_id asc, marker_input.panel asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
 
             $orderGroup = $orderGroupSql->get();
 
@@ -150,7 +150,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                     FROM
                         (
                             SELECT
-                                marker_input.kode,
+                                marker_input.id,
                                 GROUP_CONCAT(form_cut.no_form, form_cut.meja) no_form_meja,
                                 form_cut.id_meja,
                                 form_cut.meja,
@@ -183,7 +183,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                         meja.id id_meja,
                                         meja.`name` meja,
                                         COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
-                                        form_cut_input.id_marker,
+                                        form_cut_input.marker_id,
                                         form_cut_input.id,
                                         form_cut_input.no_form,
                                         form_cut_input.qty_ply,
@@ -192,7 +192,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                         SUM(form_cut_input_detail.lembar_gelaran) detail
                                     FROM
                                         form_cut_input
-                                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                        LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                     WHERE
                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
@@ -202,7 +202,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                         ".$dateFilter."
                                     GROUP BY
                                         form_cut_input.id
-                                ) form_cut on form_cut.id_marker = marker_input.kode
+                                ) form_cut on form_cut.marker_id = marker_input.id
                             LEFT JOIN
                                 modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                             where

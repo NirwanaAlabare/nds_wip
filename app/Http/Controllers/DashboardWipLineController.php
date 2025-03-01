@@ -8,7 +8,7 @@ use App\Models\Rack;
 use App\Models\Stocker;
 use App\Models\Marker;
 use App\Models\DCIn;
-use App\Models\FormCutInput;
+use App\Models\Cutting\FormCut;
 use App\Models\SignalBit\UserLine;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\TriggerWipLine;

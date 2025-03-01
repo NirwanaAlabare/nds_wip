@@ -193,7 +193,7 @@
                                 <input type="hidden" name="form_cut_id" id="form_cut_id" value="{{ $currentPipingDetail ? $currentPipingDetail->form_cut_id : null }}" readonly>
                                 <div class="col-6 col-md-6">
                                     <label class="form-label">No. Form</label>
-                                    <input type="text" class="form-control form-control-sm" name="no_form" id="no_form" value="{{ $currentPipingDetail ? ($currentPipingDetail->formCutInput ? $currentPipingDetail->formCutInput->no_form : "-") : null }}" readonly>
+                                    <input type="text" class="form-control form-control-sm" name="no_form" id="no_form" value="{{ $currentPipingDetail ? ($currentPipingDetail->FormCut ? $currentPipingDetail->FormCut->no_form : "-") : null }}" readonly>
                                 </div>
                                 <div class="col-6 col-md-6">
                                     <label class="form-label">ID Item</label>
@@ -251,7 +251,7 @@
                                             <div class="col-md-2">
                                                 <label class="form-label">No. Form</label>
                                                 <input type="hidden" id="id_form_rolls_{{ $loop->index+1 }}" name="id_form_rolls[{{ $loop->index+1 }}]" value="{{ $pipingDetail->form_cut_id }}" disabled>
-                                                <input type="text" class="form-control" id="no_form_rolls_{{ $loop->index+1 }}" name="no_form_rolls[{{ $loop->index+1 }}]" value="{{ $pipingDetail->formCutInput ? $pipingDetail->formCutInput->no_form : "-" }}" disabled>
+                                                <input type="text" class="form-control" id="no_form_rolls_{{ $loop->index+1 }}" name="no_form_rolls[{{ $loop->index+1 }}]" value="{{ $pipingDetail->FormCut ? $pipingDetail->FormCut->no_form : "-" }}" disabled>
                                             </div>
                                             <div class="col-md-2">
                                                 <label class="form-label">Color</label>

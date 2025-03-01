@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Cutting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FormCutInputDetailLap extends Model
+class FormCutDetailLap extends Model
 {
     use HasFactory;
 
@@ -13,8 +13,8 @@ class FormCutInputDetailLap extends Model
 
     protected $guarded = [];
 
-    public function formCutInputDetail()
+    public function formCutDetail()
     {
-        return $this->belongsTo(FormCutInputDetail::class, 'form_cut_input_detail_id', 'id');
+        return $this->belongsTo(FormCutDetail::class, 'form_cut_input_detail_id', 'id');
     }
 }

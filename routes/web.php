@@ -27,14 +27,14 @@ use App\Http\Controllers\Marker\MarkerController;
 
 // Cutting
 use App\Http\Controllers\Cutting\SpreadingController;
-use App\Http\Controllers\Cutting\CuttingFormController;
-use App\Http\Controllers\Cutting\CuttingFormManualController;
-use App\Http\Controllers\Cutting\CuttingFormPilotController;
-use App\Http\Controllers\Cutting\CuttingFormRejectController;
+use App\Http\Controllers\Cutting\FormCutController;
+use App\Http\Controllers\Cutting\FormCutManualController;
+use App\Http\Controllers\Cutting\FormCutPilotController;
+use App\Http\Controllers\Cutting\FormCutRejectController;
 use App\Http\Controllers\Cutting\PipingController;
-use App\Http\Controllers\Cutting\CuttingPlanController;
+use App\Http\Controllers\Cutting\FormCutPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
-use App\Http\Controllers\Cutting\CompletedFormController;
+use App\Http\Controllers\Cutting\FormCutCompleteController;
 use App\Http\Controllers\Cutting\RollController;
 // Piping Process
 use App\Http\Controllers\Cutting\MasterPipingController;
@@ -318,7 +318,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Form Cut Input
-    Route::controller(CuttingFormController::class)->prefix("form-cut-input")->middleware("role:cutting")->group(function () {
+    Route::controller(FormCutController::class)->prefix("form-cut-input")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('form-cut-input');
         Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
         Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
@@ -366,7 +366,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Manual Form Cut Input
-    Route::controller(CuttingFormManualController::class)->prefix("manual-form-cut")->middleware("role:cutting")->group(function () {
+    Route::controller(FormCutManualController::class)->prefix("manual-form-cut")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('manual-form-cut');
         Route::get('/create', 'create')->name('create-manual-form-cut');
         Route::get('/create-new', 'createNew')->name('create-new-manual-form-cut');
@@ -406,7 +406,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Pilot Form Cut Input
-    Route::controller(CuttingFormPilotController::class)->prefix("pilot-form-cut")->middleware("role:cutting")->group(function () {
+    Route::controller(FormCutPilotController::class)->prefix("pilot-form-cut")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('pilot-form-cut');
         Route::get('/create', 'create')->name('create-pilot-form-cut');
         Route::get('/create-new', 'createNew')->name('create-new-pilot-form-cut');
@@ -498,7 +498,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Cutting Reject
-    Route::controller(CuttingFormRejectController::class)->prefix("form-cut-input-reject")->middleware("role:cutting")->group(function () {
+    Route::controller(FormCutRejectController::class)->prefix("form-cut-input-reject")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('cutting-reject');
         Route::get('/create', 'create')->name('create-cutting-reject');
         Route::get('/stock', 'stock')->name('stock-cutting-reject');
@@ -512,14 +512,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Cutting Plan
-    Route::controller(CuttingPlanController::class)->prefix("cut-plan")->middleware("role:cutting")->group(function () {
+    Route::controller(FormCutPlanController::class)->prefix("cut-plan")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('cut-plan');
         Route::get('/create', 'create')->name('create-cut-plan');
         Route::post('/store', 'store')->name('store-cut-plan');
         Route::put('/update/{id?}', 'update')->name('update-cut-plan');
         Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
         Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
-        Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
+        Route::get('/get-cut-plan-form', 'getFormCutPlanDetail')->name('get-cut-plan-form');
 
         Route::get('/cut-plan-output', 'cuttingPlanOutput')->name('cut-plan-output');
         Route::get('/cut-plan-output/show/{id?}', 'showCuttingPlanOutput')->name('detail-cut-plan-output');
@@ -536,7 +536,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // CompletedForm
-    Route::controller(CompletedFormController::class)->prefix("manager")->middleware("role:cutting")->group(function () {
+    Route::controller(FormCutCompleteController::class)->prefix("manager")->middleware("role:cutting")->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
         Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
         Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');

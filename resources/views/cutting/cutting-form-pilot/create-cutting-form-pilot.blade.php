@@ -29,15 +29,15 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     @php
-                        $thisActCosting = (isset($formCutInputData) && $formCutInputData) ? $actCostingData->where('id', $formCutInputData->act_costing_id)->first() : null;
-                        $thisMarkerDetails = (isset($formCutInputData) && $formCutInputData) ? $markerDetailData->where('kode_marker', $formCutInputData->id_marker) : null;
+                        $thisActCosting = (isset($formCutData) && $formCutData) ? $actCostingData->where('id', $formCutData->act_costing_id)->first() : null;
+                        $thisMarkerDetails = (isset($formCutData) && $formCutData) ? $markerDetailData->where('kode_marker', $formCutData->id_marker) : null;
                     @endphp
                     <form action="{{ route('store-marker-pilot-form-cut') }}" method="post" onsubmit="submitMarkerForm(this, event)" id="store-marker">
                         <div class="row align-items-end">
                             {{-- Form Information --}}
-                            <input type="hidden" name="id" id="id" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->form_id ? $formCutInputData->form_id : "") : "" }}" readonly>
-                            <input type="hidden" name="status" id="status" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->status ? $formCutInputData->status : "") : "" }}" readonly>
-                            <input type="hidden" name="no_meja" id="no_meja" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
+                            <input type="hidden" name="id" id="id" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->form_id ? $formCutData->form_id : "") : "" }}" readonly>
+                            <input type="hidden" name="status" id="status" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->status ? $formCutData->status : "") : "" }}" readonly>
+                            <input type="hidden" name="no_meja" id="no_meja" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->no_meja ? $formCutData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
                             <div class="col-6 col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Start</b></small></label>
@@ -63,13 +63,13 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>No. Form</b></small></label>
-                                    <input type="text" class="form-control form-control-sm " name="no_form" id="no_form" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->no_form ? $formCutInputData->no_form : "") : "" }}" readonly>
+                                    <input type="text" class="form-control form-control-sm " name="no_form" id="no_form" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->no_form ? $formCutData->no_form : "") : "" }}" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Tanggal</b></small></label>
-                                    <input type="date" class="form-control form-control-sm" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->tgl_form_cut ? $formCutInputData->tgl_form_cut : date('Y-m-d')) : date('Y-m-d') }}" name="tgl_form" readonly>
+                                    <input type="date" class="form-control form-control-sm" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->tgl_form_cut ? $formCutData->tgl_form_cut : date('Y-m-d')) : date('Y-m-d') }}" name="tgl_form" readonly>
                                 </div>
                             </div>
 
@@ -77,13 +77,13 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Kode Marker</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="id_marker" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->kode ? $formCutInputData->kode : date('Y-m-d')) : date('Y-m-d') }}" readonly>
+                                    <input type="text" class="form-control form-control-sm" id="id_marker" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->kode ? $formCutData->kode : date('Y-m-d')) : date('Y-m-d') }}" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>No. WS</b></small></label>
-                                    <input type="text" name="no_ws" id="no_ws" class="form-control form-control-sm d-none" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->act_costing_ws ? $formCutInputData->act_costing_ws : '') : '' }}" readonly>
+                                    <input type="text" name="no_ws" id="no_ws" class="form-control form-control-sm d-none" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->act_costing_ws ? $formCutData->act_costing_ws : '') : '' }}" readonly>
                                     <select class="form-control select2bs4" id="act_costing_id" name="act_costing_id" style="width: 100%;">
                                         <option value="" selected>Pilih WS</option>
                                         @foreach ($orders as $order)
@@ -92,7 +92,7 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <input type="text" class="d-none" id="act_costing_id_text" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->act_costing_id ? $formCutInputData->act_costing_id : '') : '' }}" readonly>
+                                    <input type="text" class="d-none" id="act_costing_id_text" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->act_costing_id ? $formCutData->act_costing_id : '') : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
@@ -102,7 +102,7 @@
                                         <option selected="selected" value="">Pilih Color</option>
                                         {{-- select 2 option --}}
                                     </select>
-                                    <input type="text" class="form-control form-control-sm d-none" id="color_text" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->color ? $formCutInputData->color : '') : '' }}" readonly>
+                                    <input type="text" class="form-control form-control-sm d-none" id="color_text" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->color ? $formCutData->color : '') : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
@@ -112,19 +112,19 @@
                                         <option selected="selected" value="">Pilih Panel</option>
                                         {{-- select 2 option --}}
                                     </select>
-                                    <input type="text" class="form-control form-control-sm d-none" id="panel_text" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->panel ? $formCutInputData->panel : '') : '' }}" readonly>
+                                    <input type="text" class="form-control form-control-sm d-none" id="panel_text" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->panel ? $formCutData->panel : '') : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Buyer</b></small></label>
-                                    <input type="text" class="form-control form-control-sm " name="buyer" id="buyer" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->buyer ? $formCutInputData->buyer : '') : '' }}" readonly>
+                                    <input type="text" class="form-control form-control-sm " name="buyer" id="buyer" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->buyer ? $formCutData->buyer : '') : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Style</b></small></label>
-                                    <input type="text" class="form-control form-control-sm " name="style" id="style" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->style ? $formCutInputData->style : '') : '' }}" readonly>
+                                    <input type="text" class="form-control form-control-sm " name="style" id="style" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->style ? $formCutData->style : '') : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
@@ -138,13 +138,13 @@
                             <div class="col-4 col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>PO</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" name="po" id="po" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->po ? $formCutInputData->po : '') : '' }}">
+                                    <input type="text" class="form-control form-control-sm" name="po" id="po" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->po ? $formCutData->po : '') : '' }}">
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>QTY Gelar Marker</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" name="gelar_qty" id="gelar_qty" {{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->gelar_qty ? "value=".$formCutInputData->gelar_qty." readonly" : '') : "" }} onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
+                                    <input type="text" class="form-control form-control-sm" name="gelar_qty" id="gelar_qty" {{ (isset($formCutData) && $formCutData) ? ($formCutData->gelar_qty ? "value=".$formCutData->gelar_qty." readonly" : '') : "" }} onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
                                 </div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@
                             $totalCutQtyPly = 0;
                         @endphp
 
-                        <div class="table-responsive {{ isset($formCutInputData) && $formCutInputData ? ($formCutInputData->marker ? 'd-none' : '') : '' }}">
+                        <div class="table-responsive {{ isset($formCutData) && $formCutData ? ($formCutData->marker ? 'd-none' : '') : '' }}">
                             <table id="ratio-datatable" class="table table-bordered table-striped table-sm w-100">
                                 <thead>
                                     <tr>
@@ -179,7 +179,7 @@
                             </table>
                         </div>
 
-                        @if (isset($formCutInputData) && $formCutInputData && $formCutInputData->marker)
+                        @if (isset($formCutData) && $formCutData && $formCutData->marker)
                             <div class="table-responsive">
                                 <table id="ratio-datatable" class="table table-bordered table-striped table-sm w-100">
                                     <thead>
@@ -198,7 +198,7 @@
                                             <tr>
                                                 @php
                                                     $totalRatio += $item->ratio;
-                                                    $qtyPly = $item->ratio*$formCutInputData->qty_ply;
+                                                    $qtyPly = $item->ratio*$formCutData->qty_ply;
                                                     $totalCutQtyPly += $qtyPly;
                                                 @endphp
                                                 <td>{{ $item->size }}</td>
@@ -219,8 +219,8 @@
                         @endif
 
                         {{-- Marker Number Information --}}
-                        <input type="hidden" name="cons_ws_marker" id="cons_ws_marker" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->cons_ws ? $formCutInputData->cons_ws : '') : '' }}">
-                        <input type="hidden" name="urutan_marker" id="urutan_marker" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->urutan_marker ? $formCutInputData->urutan_marker : '') : '' }}">
+                        <input type="hidden" name="cons_ws_marker" id="cons_ws_marker" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->cons_ws ? $formCutData->cons_ws : '') : '' }}">
+                        <input type="hidden" name="urutan_marker" id="urutan_marker" value="{{ (isset($formCutData) && $formCutData) ? ($formCutData->urutan_marker ? $formCutData->urutan_marker : '') : '' }}">
 
                         {{-- Marker Summary Information --}}
                         <input type="hidden" name="total_size" id="total_size" value="">
@@ -305,7 +305,7 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" value="{{ (isset($formCutInputData) && $formCutInputData) ? $formCutInputData->cons_ws : '' }}" readonly step=".01">
+                                <input type="number" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" value="{{ (isset($formCutData) && $formCutData) ? $formCutData->cons_ws : '' }}" readonly step=".01">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">

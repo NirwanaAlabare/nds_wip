@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\FormCut;
+use App\Models\Cutting\FormCutDetail;
 use App\Models\Cutting\PipingProcess;
 use App\Models\Cutting\PipingProcessDetail;
 use Carbon\Carbon;
@@ -368,7 +368,7 @@ class PipingProcessController extends Controller
     }
 
     public function item($id = 0) {
-        $piping = FormCutInputDetail::selectRaw("
+        $piping = FormCutDetail::selectRaw("
             form_cut_input_detail.form_cut_id,
             form_cut_input_detail.no_form_cut_input,
             form_cut_input_detail.id_item,
@@ -389,7 +389,7 @@ class PipingProcessController extends Controller
     }
 
     public function itemForms($id = 0) {
-        $forms = FormCutInput::select("form_cut_input.id", "form_cut_input.no_form")->
+        $forms = FormCut::select("form_cut_input.id", "form_cut_input.no_form")->
             leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
             where("form_cut_input_detail.id_roll", $id)->
             groupBy("form_cut_input.id")->
@@ -399,7 +399,7 @@ class PipingProcessController extends Controller
     }
 
     public function itemPiping($id = 0, $idForm = 0) {
-        $piping = FormCutInput::selectRaw("
+        $piping = FormCut::selectRaw("
                 form_cut_input_detail.form_cut_id,
                 form_cut_input_detail.no_form_cut_input,
                 form_cut_input_detail.id_item,

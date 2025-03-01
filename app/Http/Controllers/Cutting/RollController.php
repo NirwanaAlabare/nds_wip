@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\ScannedItem;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\FormCutDetail;
 use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Redirect;
@@ -109,8 +109,8 @@ class RollController extends Controller
         //         from
         //             form_cut_input a
         //             left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-        //             left join users meja on meja.id = a.no_meja
-        //             left join marker_input mrk on a.id_marker = mrk.kode
+        //             left join users meja on meja.id = a.meja_id
+        //             left join marker_input mrk on a.marker_id = mrk.kode
         //         where
         //             (a.cancel = 'N'  OR a.cancel IS NULL)
 	    //             AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
@@ -254,8 +254,8 @@ class RollController extends Controller
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
                     left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
-                    left join users meja on meja.id = a.no_meja
-                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                    left join users meja on meja.id = a.meja_id
+                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.marker_id = mrk.id
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
                     left join scanned_item on scanned_item.id_roll = b.id_roll
                 where
@@ -491,7 +491,7 @@ class RollController extends Controller
             ")->
             leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
             leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
-            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')->
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $newItem[0]->id_item)->
             first();
@@ -564,7 +564,7 @@ class RollController extends Controller
             ")->
             leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
             leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
-            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')->
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $item[0]->id_item)->
             first();
@@ -580,7 +580,7 @@ class RollController extends Controller
     }
 
     public function getSisaKainForm(Request $request) {
-        $forms = FormCutInputDetail::selectRaw("
+        $forms = FormCutDetail::selectRaw("
                 form_cut_input.id id_form,
                 no_form_cut_input,
                 form_cut_input.no_cut,

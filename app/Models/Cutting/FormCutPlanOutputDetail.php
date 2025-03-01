@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Cutting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Scopes\ThisYearScope;
 
-class CutPlanOutputForm extends Model
+class FormCutPlanOutputDetail extends Model
 {
     use HasFactory;
 
@@ -17,13 +17,13 @@ class CutPlanOutputForm extends Model
     /**
      * Get the form cut data.
      */
-    public function cutPlanOutput()
+    public function formCutPlanOutput()
     {
-        return $this->belongsTo(CutPlanOutput::class, 'cutting_plan_id', 'id');
+        return $this->belongsTo(FormCutPlanOutput::class, 'cutting_plan_id', 'id');
     }
 
-    public function formCutInput()
+    public function formCut()
     {
-        return $this->hasOne(FormCutInput::class, 'no_form', 'no_form');
+        return $this->hasOne(FormCut::class, 'no_form', 'no_form');
     }
 }

@@ -16,7 +16,7 @@
         <a href="{{ route('marker') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Marker</a>
     </div>
     @php
-        $totalForm = $marker->formCutInputs->count();
+        $totalForm = $marker->formCuts->count();
     @endphp
     <form action="{{ route('update-marker')."/".$marker->id }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
         @method('PUT')

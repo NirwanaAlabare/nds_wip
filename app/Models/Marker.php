@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Cutting\FormCut;
 
 class Marker extends Model
 {
@@ -21,8 +22,8 @@ class Marker extends Model
         return $this->hasMany(MarkerDetail::class, 'marker_id', 'id');
     }
 
-    public function formCutInputs()
+    public function formCuts()
     {
-        return $this->hasMany(FormCutInput::class, 'id_marker', 'kode');
+        return $this->hasMany(FormCut::class, 'marker_id', 'id');
     }
 }

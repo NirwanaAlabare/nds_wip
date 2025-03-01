@@ -13,8 +13,8 @@ class ManualFormCutDetail extends Model
 
     protected $guarded = [];
 
-    // public function formCutInput()
+    // public function FormCut()
     // {
-    //     return $this->belongsTo(ManualFormCutInput::class, 'no_form_cut_input', 'no_form');
+    //     return $this->belongsTo(ManualFormCut::class, 'no_form_cut_input', 'no_form');
     // }
 }

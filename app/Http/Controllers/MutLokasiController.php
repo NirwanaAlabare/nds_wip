@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Stocker;
 use App\Models\StockerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
+use App\Models\Cutting\FormCut;
+use App\Models\Cutting\FormCutDetail;
+use App\Models\Cutting\FormCutDetailLap;
 use App\Models\Marker;
 use App\Models\MasterLokasi;
 use App\Models\UnitLokasi;

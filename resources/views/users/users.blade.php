@@ -23,11 +23,11 @@
                 <button class="btn btn-sm btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal"><i class="fa fa-plus"></i> Baru</button>
                 <div class="d-flex gap-3 mb-3">
                     <div class="mb-3">
-                        <label><small>Tanggal Awal</small></label>
+                        <label><small>Dari</small></label>
                         <input type="date" class="form-control form-control-sm" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}">
                     </div>
                     <div class="mb-3">
-                        <label><small>Tanggal Akhir</small></label>
+                        <label><small>Sampai</small></label>
                         <input type="date" class="form-control form-control-sm" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}">
                     </div>
                 </div>

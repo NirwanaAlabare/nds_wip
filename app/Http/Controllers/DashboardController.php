@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Redirect;
 use App\Models\Rack;
 use App\Models\Stocker;
 use App\Models\Marker;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\FormCut;
+use App\Models\Cutting\FormCutDetail;
 use App\Models\DCIn;
 use App\Models\Auth\User;
 use Yajra\DataTables\Facades\DataTables;
@@ -216,7 +216,7 @@ class DashboardController extends Controller
                         INNER JOIN
                             (
                                 select
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     (CASE WHEN	cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) END) tanggal,
                                     SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply)) total_lembar
                                 from
@@ -226,12 +226,12 @@ class DashboardController extends Controller
                                     ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
                                     and ( cutting_plan.tgl_plan = '".$date."' OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' ) )
                                 group by
-                                    form_cut_input.id_marker
-                            ) form_cut_plan on form_cut_plan.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_plan on form_cut_plan.marker_id = marker_input.id
                         LEFT JOIN
                             (
                                 select
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     (CASE WHEN	cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) END) tanggal,
                                     SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply)) total_lembar
                                 from
@@ -242,8 +242,8 @@ class DashboardController extends Controller
                                     and ( cutting_plan.tgl_plan = '".$date."' OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' ) )
                                     and form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                 group by
-                                    form_cut_input.id_marker
-                            ) form_cut_complete on form_cut_complete.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_complete on form_cut_complete.marker_id = marker_input.id
                         WHERE
                             (marker_input.cancel IS NULL or marker_input.cancel != 'Y')
                         GROUP BY
@@ -260,7 +260,7 @@ class DashboardController extends Controller
                                 marker_input
                             left join (
                                 select
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply,0)) total_lembar
                                 from
                                     form_cut_input
@@ -269,8 +269,8 @@ class DashboardController extends Controller
                                     form_cut_input.status = 'SELESAI PENGERJAAN' AND
                                     ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
                                 group by
-                                    form_cut_input.id_marker
-                            ) form on form.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form on form.marker_id = marker_input.id
                             left join (
                                 select
                                     marker_input_detail.marker_id,
@@ -331,9 +331,9 @@ class DashboardController extends Controller
                 FROM
                     form_cut_input
                     left join (select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
-                    left join marker_input on marker_input.kode = form_cut_input.id_marker
+                    left join marker_input on marker_input.id = form_cut_input.marker_id
                     left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
-                    left join users as meja on meja.id = form_cut_input.no_meja
+                    left join users as meja on meja.id = form_cut_input.meja_id
                     left join cutting_plan on cutting_plan.form_cut_id = form_cut_input.id
                 WHERE
                     (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')))
@@ -366,9 +366,9 @@ class DashboardController extends Controller
                 FROM
                     form_cut_input
                     left join (select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
-                    left join marker_input on marker_input.kode = form_cut_input.id_marker
+                    left join marker_input on marker_input.id = form_cut_input.marker_id
                     left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
-                    left join users as meja on meja.id = form_cut_input.no_meja
+                    left join users as meja on meja.id = form_cut_input.meja_id
                     left join cutting_plan on form_cut_input.id = cutting_plan.form_cut_id
                 WHERE
                     (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')))
@@ -405,9 +405,9 @@ class DashboardController extends Controller
                     FROM
                         form_cut_input
                         left join (select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
-                        left join marker_input on marker_input.kode = form_cut_input.id_marker
+                        left join marker_input on marker_input.id = form_cut_input.marker_id
                         left join (select marker_id, SUM(ratio) total_ratio from marker_input_detail group by marker_id) as marker_detail on marker_detail.marker_id = marker_input.id
-                        left join users as meja on meja.id = form_cut_input.no_meja
+                        left join users as meja on meja.id = form_cut_input.meja_id
                         left join cutting_plan on form_cut_input.id = cutting_plan.form_cut_id
                     WHERE
                         (cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')))
@@ -434,16 +434,16 @@ class DashboardController extends Controller
 
             $query = DB::table('form_cut_input')->
             selectRaw("
-                meja.username no_meja,
+                meja.username meja_id,
                 cutting_plan.tgl_plan,
                 COUNT(form_cut_input.id) total_form,
                 SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
                 SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
             ")->
             leftJoin(DB::raw("(select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")->
-            leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
+            leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")->
             leftJoin("cutting_plan", "cutting_plan.form_cut_id", "form_cut_input.id")->
-            join("users as meja", "meja.id", "form_cut_input.no_meja")->
+            join("users as meja", "meja.id", "form_cut_input.meja_id")->
             whereRaw("
                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                 ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
@@ -467,16 +467,16 @@ class DashboardController extends Controller
 
             $query = DB::table('form_cut_input')->
             selectRaw("
-                meja.username no_meja,
+                meja.username meja_id,
                 cutting_plan.tgl_plan,
                 COUNT(form_cut_input.id) total_form,
                 SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
                 SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
             ")->
             leftJoin(DB::raw("(select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")->
-            leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
+            leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")->
             leftJoin("cutting_plan", "cutting_plan.form_cut_id", "form_cut_input.id")->
-            join("users as meja", "meja.id", "form_cut_input.no_meja")->
+            join("users as meja", "meja.id", "form_cut_input.meja_id")->
             whereRaw("
                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                 ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
@@ -485,7 +485,7 @@ class DashboardController extends Controller
             groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN ( CASE WHEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) != '".$date."' THEN DATE(form_detail.last_update) ELSE COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) END ) ELSE cutting_plan.tgl_plan END), meja.id")->
             get();
 
-            broadcast(new CuttingChartUpdatedAll($query, $date));
+            // broadcast(new CuttingChartUpdatedAll($query, $date));
             return json_encode($query);
 
         }
@@ -500,7 +500,7 @@ class DashboardController extends Controller
 
             $query = DB::table('form_cut_input')
             ->selectRaw("
-                meja.username no_meja,
+                meja.username meja_id,
                 cutting_plan.tgl_plan,
                 COUNT(form_cut_input.id) total_form,
                 GROUP_CONCAT(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN form_cut_input.no_form ELSE '-    ' END) forms_belum,
@@ -509,9 +509,9 @@ class DashboardController extends Controller
                 SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
             ")
             ->leftJoin(DB::raw("(select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")
-            ->leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")
+            ->leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")
             ->leftJoin("cutting_plan", "cutting_plan.form_cut_id", "form_cut_input.id")
-            ->join("users as meja", "meja.id", "form_cut_input.no_meja")
+            ->join("users as meja", "meja.id", "form_cut_input.meja_id")
             ->whereRaw("
                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
                 (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
@@ -540,7 +540,7 @@ class DashboardController extends Controller
 
             $query = DB::table('form_cut_input')
             ->selectRaw("
-                meja.username no_meja,
+                meja.username meja_id,
                 cutting_plan.tgl_plan,
                 COUNT(form_cut_input.id) total_form,
                 GROUP_CONCAT(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN form_cut_input.no_form ELSE '-    ' END) forms_belum,
@@ -549,9 +549,9 @@ class DashboardController extends Controller
                 SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
             ")
             ->leftJoin(DB::raw("(select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")
-            ->leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")
+            ->leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")
             ->leftJoin("cutting_plan", "cutting_plan.form_cut_id", "form_cut_input.id")
-            ->join("users as meja", "meja.id", "form_cut_input.no_meja")
+            ->join("users as meja", "meja.id", "form_cut_input.meja_id")
             ->whereRaw("
                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
                 (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
@@ -566,11 +566,11 @@ class DashboardController extends Controller
             $dataSpreading = DB::select("
                 SELECT
                     a.id,
-                    a.no_meja,
-                    a.id_marker,
+                    a.meja_id,
+                    a.marker_id,
                     a.no_form,
                     COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) tgl_form_cut,
-                    b.id marker_id,
+                    b.kode id_marker,
                     b.act_costing_ws ws,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color color,
@@ -597,10 +597,10 @@ class DashboardController extends Controller
                 FROM cutting_plan
                 left join form_cut_input a on a.id = cutting_plan.form_cut_id
                 left join (select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail on form_detail.form_cut_id = a.id
-                left outer join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+                left outer join marker_input b on a.marker_id = b.id and b.cancel = 'N'
                 left outer join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
                 left join master_size_new on marker_input_detail.size = master_size_new.size
-                left join users on users.id = a.no_meja
+                left join users on users.id = a.meja_id
                 where
                     a.id is not null
                     and ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')) )
@@ -614,7 +614,7 @@ class DashboardController extends Controller
                     a.updated_at desc
             ");
 
-            broadcast(new CuttingChartUpdated($query, $mejaId, $date, $dataSpreading));
+            // broadcast(new CuttingChartUpdated($query, $mejaId, $date, $dataSpreading));
 
             return response()->json($query);
         }
@@ -626,11 +626,11 @@ class DashboardController extends Controller
             $date = $request->date ? $request->date : date("Y-m-d");
 
             $query = DB::table('form_cut_input')
-                ->select('meja.username as no_meja')  // Hanya mengambil meja.username
+                ->select('meja.username as meja_id')  // Hanya mengambil meja.username
                 ->leftJoin(DB::raw("(select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")
-                ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+                ->leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')
                 ->leftJoin('cutting_plan', 'cutting_plan.form_cut_id', '=', 'form_cut_input.id')
-                ->join('users as meja', 'meja.id', '=', 'form_cut_input.no_meja')
+                ->join('users as meja', 'meja.id', '=', 'form_cut_input.meja_id')
                 ->whereRaw("
                     (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
                     (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
@@ -675,7 +675,7 @@ class DashboardController extends Controller
                         FROM
                             form_cut_input
                             LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail on form_detail.form_cut_id = form_cut_input.id
-                            LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
+                            LEFT JOIN marker_input ON marker_input.id = form_cut_input.marker_id
                             LEFT JOIN cutting_plan ON cutting_plan.form_cut_id = form_cut_input.id
                         WHERE
                             ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
@@ -694,16 +694,16 @@ class DashboardController extends Controller
 
             $cuttingForm = DB::table('form_cut_input')->
                 selectRaw("
-                    meja.username no_meja,
+                    meja.username meja_id,
                     cutting_plan.tgl_plan,
                     COUNT(form_cut_input.id) total_form,
                     SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
                     SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
                 ")->
                 leftJoin(DB::raw("(select form_cut_id, SUM(lembar_gelaran) total_gelaran, MAX(created_at) last_update FROM form_cut_input_detail GROUP BY form_cut_id) form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")->
-                leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
+                leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")->
                 leftJoin("cutting_plan", "cutting_plan.form_cut_id", "form_cut_input.id")->
-                join("users as meja", "meja.id", "form_cut_input.no_meja")->
+                join("users as meja", "meja.id", "form_cut_input.meja_id")->
                 whereRaw("
                     ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                     ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
@@ -745,7 +745,7 @@ class DashboardController extends Controller
                         INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                         INNER JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
                             FROM
                                 form_cut_input
@@ -758,11 +758,11 @@ class DashboardController extends Controller
                                     OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
                                 )
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                         LEFT JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
                                     SUM(
                                     COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
@@ -778,8 +778,8 @@ class DashboardController extends Controller
                                 )
                                 AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                         WHERE
                             ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                         GROUP BY
@@ -803,7 +803,7 @@ class DashboardController extends Controller
                             INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                             INNER JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM(COALESCE ( form_cut_input.qty_ply, 0)) total_lembar
                                 FROM
@@ -815,11 +815,11 @@ class DashboardController extends Controller
                                         cutting_plan.tgl_plan <= '".$date."'
                                     )
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                             LEFT JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply, 0 )) total_lembar
                                 FROM
@@ -830,8 +830,8 @@ class DashboardController extends Controller
                                     AND ( cutting_plan.tgl_plan <= '".$date."' )
                                     AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                             WHERE
                                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                             GROUP BY
@@ -877,7 +877,7 @@ class DashboardController extends Controller
                         INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                         INNER JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
                             FROM
                                 form_cut_input
@@ -890,11 +890,11 @@ class DashboardController extends Controller
                                     OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
                                 )
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                         LEFT JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
                                     SUM(
                                     COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
@@ -910,8 +910,8 @@ class DashboardController extends Controller
                                 )
                                 AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                         WHERE
                             ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                         GROUP BY
@@ -935,7 +935,7 @@ class DashboardController extends Controller
                             INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                             INNER JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM(COALESCE ( form_cut_input.qty_ply, 0)) total_lembar
                                 FROM
@@ -947,11 +947,11 @@ class DashboardController extends Controller
                                         cutting_plan.tgl_plan <= '".$date."'
                                     )
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                             LEFT JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply, 0 )) total_lembar
                                 FROM
@@ -962,8 +962,8 @@ class DashboardController extends Controller
                                     AND ( cutting_plan.tgl_plan <= '".$date."' )
                                     AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                             WHERE
                                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                             GROUP BY
@@ -991,7 +991,7 @@ class DashboardController extends Controller
                                 INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                                 INNER JOIN (
                                     SELECT
-                                        form_cut_input.id_marker,
+                                        form_cut_input.marker_id,
                                         (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
                                     FROM
                                         form_cut_input
@@ -1004,11 +1004,11 @@ class DashboardController extends Controller
                                             OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
                                         )
                                     GROUP BY
-                                        form_cut_input.id_marker
-                                ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                        form_cut_input.marker_id
+                                ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                                 LEFT JOIN (
                                     SELECT
-                                        form_cut_input.id_marker,
+                                        form_cut_input.marker_id,
                                         ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
                                             SUM(
                                             COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
@@ -1024,8 +1024,8 @@ class DashboardController extends Controller
                                         )
                                         AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                     GROUP BY
-                                        form_cut_input.id_marker
-                                ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                        form_cut_input.marker_id
+                                ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                             WHERE
                                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                             GROUP BY
@@ -1078,7 +1078,7 @@ class DashboardController extends Controller
                         INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                         INNER JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
                             FROM
                                 form_cut_input
@@ -1091,11 +1091,11 @@ class DashboardController extends Controller
                                     OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
                                 )
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                         LEFT JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
                                     SUM(
                                     COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
@@ -1111,8 +1111,8 @@ class DashboardController extends Controller
                                 )
                                 AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                         WHERE
                             ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                         GROUP BY
@@ -1136,7 +1136,7 @@ class DashboardController extends Controller
                             INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                             INNER JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM(COALESCE ( form_cut_input.qty_ply, 0)) total_lembar
                                 FROM
@@ -1148,11 +1148,11 @@ class DashboardController extends Controller
                                         cutting_plan.tgl_plan <= '".$date."'
                                     )
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                             LEFT JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply, 0 )) total_lembar
                                 FROM
@@ -1163,8 +1163,8 @@ class DashboardController extends Controller
                                     AND ( cutting_plan.tgl_plan <= '".$date."' )
                                     AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                             WHERE
                                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                             GROUP BY
@@ -1209,7 +1209,7 @@ class DashboardController extends Controller
                         INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                         INNER JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 (CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal, SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
                             FROM
                                 form_cut_input
@@ -1222,11 +1222,11 @@ class DashboardController extends Controller
                                     OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) = '".$date."' )
                                 )
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                         LEFT JOIN (
                             SELECT
-                                form_cut_input.id_marker,
+                                form_cut_input.marker_id,
                                 ( CASE WHEN cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai )) END ) tanggal,
                                     SUM(
                                     COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply )) total_lembar
@@ -1242,8 +1242,8 @@ class DashboardController extends Controller
                                 )
                                 AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                             GROUP BY
-                                form_cut_input.id_marker
-                        ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                form_cut_input.marker_id
+                        ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                         WHERE
                             ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                         GROUP BY
@@ -1267,7 +1267,7 @@ class DashboardController extends Controller
                             INNER JOIN ( SELECT marker_input_detail.marker_id, SUM( marker_input_detail.ratio ) total_ratio FROM marker_input_detail GROUP BY marker_input_detail.marker_id ) marker_detail ON marker_detail.marker_id = marker_input.id
                             INNER JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM(COALESCE ( form_cut_input.qty_ply, 0)) total_lembar
                                 FROM
@@ -1279,11 +1279,11 @@ class DashboardController extends Controller
                                         cutting_plan.tgl_plan <= '".$date."'
                                     )
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_plan ON form_cut_plan.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_plan ON form_cut_plan.marker_id = marker_input.id
                             LEFT JOIN (
                                 SELECT
-                                    form_cut_input.id_marker,
+                                    form_cut_input.marker_id,
                                     cutting_plan.tgl_plan tanggal,
                                     SUM( COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply, 0 )) total_lembar
                                 FROM
@@ -1294,8 +1294,8 @@ class DashboardController extends Controller
                                     AND ( cutting_plan.tgl_plan <= '".$date."' )
                                     AND form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                 GROUP BY
-                                    form_cut_input.id_marker
-                            ) form_cut_complete ON form_cut_complete.id_marker = marker_input.kode
+                                    form_cut_input.marker_id
+                            ) form_cut_complete ON form_cut_complete.marker_id = marker_input.id
                             WHERE
                                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' )
                             GROUP BY
@@ -1462,7 +1462,7 @@ class DashboardController extends Controller
 
             //                 $rollIds = $rollIdsArr->pluck("id_roll");
 
-            //                 $rolls = FormCutInputDetail::selectRaw("
+            //                 $rolls = FormCutDetail::selectRaw("
             //                     id_roll,
             //                     id_item,
             //                     detail_item,
@@ -1489,7 +1489,7 @@ class DashboardController extends Controller
 
             //             $rollIds = $rollIdsArr->pluck("id_roll");
 
-            //             $rolls = FormCutInputDetail::selectRaw("
+            //             $rolls = FormCutDetail::selectRaw("
             //                     id_roll,
             //                     id_item,
             //                     detail_item,
@@ -1512,7 +1512,7 @@ class DashboardController extends Controller
 
             //             $rollIds = $rollIdsArr->pluck("id_roll");
 
-            //             $rolls = FormCutInputDetail::selectRaw("
+            //             $rolls = FormCutDetail::selectRaw("
             //                     id_roll,
             //                     id_item,
             //                     detail_item,
@@ -1537,7 +1537,7 @@ class DashboardController extends Controller
 
             //             $rollIds = $rollIdsArr->pluck("id_roll");
 
-            //             $rolls = FormCutInputDetail::selectRaw("
+            //             $rolls = FormCutDetail::selectRaw("
             //                     id_roll,
             //                     id_item,
             //                     detail_item,
@@ -1695,7 +1695,7 @@ class DashboardController extends Controller
                         modify_size_qty.difference_qty
                     ")->
                     leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
-                    leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+                    leftJoin("form_cut_input", "form_cut_input.marker_id", "=", "marker_input.id")->
                     leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
                     leftJoin("stocker_input", function ($join) {
                         $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
@@ -1742,7 +1742,7 @@ class DashboardController extends Controller
                         COALESCE(form_cut_input_detail.remark, '-') remark
                     ")->
                     leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker.form_cut_id")->
-                    leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                    leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
                     leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
                     whereRaw("(MONTH(form_cut_input.tgl_form_cut) = '".$month."')")->
                     whereRaw("(YEAR(form_cut_input.tgl_form_cut) = '".$year."')")->

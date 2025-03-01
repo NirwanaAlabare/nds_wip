@@ -57,13 +57,13 @@
         @endif
             <thead>
                 <tr>
-                    <th>No. WS</th>
-                    <th>Style</th>
-                    <th>Color</th>
-                    <th>Meja</th>
-                    <th>Panel</th>
+                    <th class="fixed-column">No. WS</th>
+                    <th class="fixed-column">Style</th>
+                    <th class="fixed-column">Color</th>
+                    <th class="fixed-column">Meja</th>
+                    <th class="fixed-column">Panel</th>
                     @if ($groupBy == 'size')
-                        <th>Size</th>
+                        <th class="fixed-column">Size</th>
                     @endif
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
@@ -94,7 +94,7 @@
                                 ?>
                                     <tr>
                                         @if ($dailyGroup->ws != $currentWs)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
+                                            <td class="text-nowrap fixed-column" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
 
                                             @php
                                                 $currentWs = $dailyGroup->ws;
@@ -104,7 +104,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
+                                            <td class="text-nowrap fixed-column" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
 
                                             @php
                                                 $currentStyle = $dailyGroup->style;
@@ -113,7 +113,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
+                                            <td class="text-nowrap fixed-column" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
 
                                             @php
                                                 $currentColor = $dailyGroup->color;
@@ -121,7 +121,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja != $currentMeja)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
+                                            <td class="text-nowrap fixed-column" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
 
                                             @php
                                                 $currentMeja = $dailyGroup->id_meja;
@@ -129,14 +129,14 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja == $currentMeja && $dailyGroup->panel != $currentPanel)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('panel', $dailyGroup->panel)->count(); }}"><span>{{ $dailyGroup->panel }}</span></td>
+                                            <td class="text-nowrap fixed-column" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('panel', $dailyGroup->panel)->count(); }}"><span>{{ $dailyGroup->panel }}</span></td>
 
                                             @php
                                                 $currentPanel = $dailyGroup->panel;
                                             @endphp
                                         @endif
                                         @if ($groupBy == "size")
-                                            <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                                            <td class="text-nowrap fixed-column">{{ $dailyGroup->size }}</td>
                                         @endif
 
                                         @php
@@ -529,5 +529,67 @@
                 }
             });
         }
+
+        function setFixedColumn() {
+            var table = document.querySelector('table.sticky-table');
+            var trs = table.querySelectorAll('tr');
+            var tds = [].map.call(trs, tr => tr.querySelectorAll('td.fixed-column'));
+
+            let column = 0;
+            let currentRowSpan = 0;
+            let currentRow = [];
+            let currentWidth = 0;
+            let currentCells = 0;
+            for (var i = 0; i < trs.length; i++) {
+                if (currentRowSpan <= 1) {
+                    column = 0;
+                    currentRowSpan = 0;
+                    currentRow = [];
+                    currentWidth = 0;
+                    currentCells = 0;
+                } else {
+                    currentRowSpan--;
+                }
+
+                for (var j = 0; j < tds[i].length; j++) {
+                    tds[i][j].style.left = (column - currentWidth) + "px";
+
+                    if (j != tds[i].length - 1) {
+                        if (currentWidth < 1) {
+                            column += tds[i][j].offsetWidth;
+                        }
+                    } else {
+                        tds[i][j].style.left = column + "px";
+                    }
+
+                    if (i > 0 && Number(tds[i][j].getAttribute("rowspan")) > 1) {
+                        if (currentRowSpan < Number(tds[i][j].getAttribute("rowspan"))) {
+                            currentRowSpan = Number(tds[i][j].getAttribute("rowspan"));
+                        } else if (currentRowSpan >= Number(tds[i][j].getAttribute("rowspan"))) {
+                            if (j == tds[i].length - 2) {
+                                currentWidth = tds[i][j].offsetWidth;
+                                currentCells = trs[i].cells.length;
+                            } else {
+                                if (currentCells > 0) {
+
+                                    let currentRowFilter = currentRow.filter((item) => item.currentCells >= trs[i].cells.length);
+                                    let currentRowFilterWidth = currentRowFilter[currentRowFilter.length-1] ? (Math.round(Number(currentRowFilter[currentRowFilter.length-1].currentWidth))) : 0;
+
+                                    tds[i][j].style.left = ((column-currentWidth)-currentRowFilterWidth)+"px";
+                                }
+
+                                currentRow.push({"currentWidth" : tds[i][j].offsetWidth, "currentCells": trs[i].cells.length });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Livewire.on("initFixedColumn", () => {
+            setTimeout(() => {
+                setFixedColumn();
+            }, 1000);
+        });
     </script>
 @endpush

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Cutting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FormCutInputLostTime extends Model
+class FormCutLostTime extends Model
 {
     use HasFactory;
 

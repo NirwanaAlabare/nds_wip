@@ -17,19 +17,15 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-scroll fa-sm"></i> Spreading</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
             <div class="row justify-content-between align-items-end g-3 mb-3">
                 <div class="col-md-6">
                     <div class="d-flex align-items-end gap-3 mb-3">
                         <div>
-                            <label class="form-label"><small>Tanggal Awal</small></label>
+                            <label class="form-label"><small>Dari</small></label>
                             <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal">
                         </div>
                         <div>
-                            <label class="form-label"><small>Tanggal Akhir</small></label>
+                            <label class="form-label"><small>Sampai</small></label>
                             <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                         </div>
                         <div>
@@ -40,7 +36,8 @@
 
                 <div class="col-md-6">
                     <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
-                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                        <a href="{{ route('create-spreading') }}" class="btn btn-sm btn-sb"><i class="fas fa-plus"></i> Baru</a>
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb-secondary"><i class="fas fa-clipboard-list"></i> Manual</a>
                         {{-- <a href="{{ url('pilot-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb-secondary"><i class="fas fa-clipboard-list"></i> Pilot</a> --}}
                         {{-- <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-sb"><i class="fas fa-sync-alt"></i> Generate No. Cut</button> --}}
                     </div>
@@ -102,6 +99,7 @@
                                     <div class="mb-3">
                                         <label class="form-label"><small>Marker</small></label>
                                         <input type="text" class="form-control" id="edit_id_marker" name="edit_id_marker" value="" readonly />
+                                        <input type="hidden" class="form-control" id="edit_marker_id" name="edit_marker_id" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
@@ -197,7 +195,7 @@
                                 <div class="col-4 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
-                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
+                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_meja_id" name="edit_meja_id">
                                             <option value="">-</option>
                                             @foreach ($meja as $m)
                                                 <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
@@ -378,15 +376,15 @@
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                            btnProcess = (row.qty_ply > 0 && row.meja_id != '' && row.meja_id != null && row.app == 'Y') || row.status != 'SPREADING' ?
                                 `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+ (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :
                                 `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' disabled><i class='fa `+ (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></button>`;
                         } else if (row.tipe_form_cut == 'PILOT') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                            btnProcess = (row.qty_ply > 0 && row.meja_id != '' && row.meja_id != null && row.app == 'Y') || row.status != 'SPREADING' ?
                                 `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
                                 `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' disabled><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></button>`;
                         } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                            btnProcess = (row.qty_ply > 0 && row.meja_id != '' && row.meja_id != null && row.app == 'Y') || row.status != 'SPREADING' ?
                                 `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
                                 `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' disabled><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></button>`;
                         }

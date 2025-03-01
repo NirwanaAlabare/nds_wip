@@ -22,11 +22,11 @@
                     <div class="col-12 col-md-6">
                         <div class="d-flex align-items-end gap-3 mb-3">
                             <div class="mb-3">
-                                <label class="form-label"><small>Tanggal Awal</small></label>
+                                <label class="form-label"><small>Dari</small></label>
                                 <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label"><small>Tanggal Akhir</small></label>
+                                <label class="form-label"><small>Sampai</small></label>
                                 <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                             </div>
                             <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>

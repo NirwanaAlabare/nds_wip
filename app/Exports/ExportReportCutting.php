@@ -39,7 +39,7 @@
                         DATE(form_cut_input.waktu_mulai) tgl_form_cut
                     FROM
                         form_cut_input
-                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                        LEFT JOIN users meja ON meja.id = form_cut_input.meja_id
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'

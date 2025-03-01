@@ -40,7 +40,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <input type='hidden' class='form-control' id='txtid_marker' name='txtid_marker'>
+                                    <input type='hidden' class='form-control' id='txtmarker_id' name='txtmarker_id'>
                                 </div>
                                 <div class="col-6 col-md-6">
                                     <div class="form-group">
@@ -387,7 +387,7 @@
                     document.getElementById('txt_cons_ws').value = response.cons_ws;
                     document.getElementById('txt_cons_marker').value = response.cons_marker;
                     document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
-                    document.getElementById('txtid_marker').value = response.kode;
+                    document.getElementById('txtmarker_id').value = response.id;
                     document.getElementById('tipe_form').value = response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));
                     document.getElementById('notes').value = response.notes ? response.notes : (response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', "")));
                 },

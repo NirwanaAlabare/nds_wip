@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\FormCutDetail;
 use DB;
 
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
@@ -42,7 +42,7 @@ class ExportDetailPemakaianKain implements FromView, WithEvents, ShouldAutoSize 
 
         $rollIds = $rollIdsArr->pluck('id_roll');
 
-        $rolls = FormCutInputDetail::selectRaw("
+        $rolls = FormCutDetail::selectRaw("
                 id_roll,
                 id_item,
                 detail_item,

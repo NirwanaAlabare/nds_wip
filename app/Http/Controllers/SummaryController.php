@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\FormCutInput;
+use App\Models\Cutting\FormCut;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use DB;

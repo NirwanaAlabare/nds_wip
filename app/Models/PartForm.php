@@ -24,9 +24,9 @@ class PartForm extends Model
     /**
      * Get the form that own the relation.
      */
-    public function formCutInput()
+    public function FormCut()
     {
-        return $this->belongsTo(FormCutInput::class, 'form_id', 'id');
+        return $this->belongsTo(FormCut::class, 'form_id', 'id');
     }
 
     /**
