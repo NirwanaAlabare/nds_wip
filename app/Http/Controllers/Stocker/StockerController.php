@@ -2276,6 +2276,8 @@ class StockerController extends Controller
                         stocker_input.form_cut_id,
                         stocker_input.so_det_id,
                         year_sequence_num.updated_at
+                    HAVING
+                        stocker_input.form_cut_id is not null
                     ORDER BY
                         year_sequence_num.updated_at DESC
                 ");
@@ -2355,6 +2357,8 @@ class StockerController extends Controller
                         stocker_input.form_cut_id,
                         stocker_input.so_det_id,
                         year_sequence_num.updated_at
+                    HAVING
+                        stocker_input.form_cut_id is not null
                     ORDER BY
                         year_sequence_num.updated_at DESC
                 ");
@@ -3137,7 +3141,7 @@ class StockerController extends Controller
 
         if ($daysInterval > 3) {
             $stockerList = DB::select("
-                 SELECT
+                SELECT
                     year_sequence_num.updated_at,
                     stocker_input.id_qr_stocker,
                     stocker_input.part,
@@ -3250,6 +3254,8 @@ class StockerController extends Controller
                     ".$shade_filter."
                     ".$ratio_filter."
                 GROUP BY
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
                     year_sequence_num.updated_at
                 HAVING
                     stocker_input.form_cut_id is not null
@@ -3350,6 +3356,8 @@ class StockerController extends Controller
                     ".$shade_filter."
                     ".$ratio_filter."
                 GROUP BY
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
                     year_sequence_num.updated_at
                 HAVING
                     stocker_input.form_cut_id is not null
@@ -3920,11 +3928,11 @@ class StockerController extends Controller
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
-                if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                // if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
                     array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-                } else {
-                    array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
-                }
+                // } else {
+                //     array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
+                // }
             }
 
             $failMessage = "";
