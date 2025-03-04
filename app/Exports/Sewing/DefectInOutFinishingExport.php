@@ -52,9 +52,9 @@ class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
                 COALESCE(line.sewing_line, master_plan.sewing_line) FullName,
                 COALESCE(line.sewing_line, master_plan.sewing_line) username,
                 GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( defects.last_defect ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rejects.last_reject ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) latest_output,
-                IFNULL(defect_in_out.defect_in, 0) defect_in,
-                IFNULL(defect_in_out.rework_out, 0) rework_out,
-                IFNULL(defect_in_out.rejected, 0) rejected
+                IFNULL(finish.defect_in, 0) defect_in,
+                IFNULL(finish.rework_out, 0) rework_out,
+                IFNULL(finish.rejected, 0) rejected
             ")->
             leftJoin("userpassword", "userpassword.username", "=", "master_plan.sewing_line")->
             leftJoin("output_employee_line", function ($join)  use ($leaderDate) {
@@ -67,22 +67,20 @@ class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
                     master_plan.id_ws,
                     master_plan.id master_plan_id,
                     master_plan.sewing_line sewing_line,
-                    COUNT(output_defect_in_out.id) output,
-                    SUM(CASE WHEN output_defect_in_out.status = 'defect' THEN 1 ELSE 0 END) defect_in,
-                    SUM(CASE WHEN output_defect_in_out.status = 'reworked' THEN 1 ELSE 0 END) rework_out,
-                    SUM(CASE WHEN output_defect_in_out.status = 'rejected' THEN 1 ELSE 0 END) rejected
+                    COUNT(output_check_finishing.id) output,
+                    SUM(CASE WHEN output_check_finishing.status = 'defect' THEN 1 ELSE 0 END) defect_in,
+                    SUM(CASE WHEN output_check_finishing.status = 'reworked' THEN 1 ELSE 0 END) rework_out,
+                    SUM(CASE WHEN output_check_finishing.status = 'rejected' THEN 1 ELSE 0 END) rejected
                 FROM
-                    output_defect_in_out
-                    LEFT JOIN output_check_finishing ON output_check_finishing.id = output_defect_in_out.defect_id
+                    output_check_finishing
                     LEFT JOIN master_plan ON master_plan.id = output_check_finishing.master_plan_id
                 WHERE
-                    output_defect_in_out.created_by IS NOT NULL
-                    AND output_defect_in_out.output_type = 'qcf'
-                    AND ( output_defect_in_out.created_at ".$outputFilter." OR output_defect_in_out.updated_at ".$outputFilter." )
+                    output_check_finishing.created_by IS NOT NULL
+                    AND ( output_check_finishing.created_at ".$outputFilter." OR output_check_finishing.updated_at ".$outputFilter." )
                 GROUP BY
                     master_plan.id
-            ) as defect_in_out"), function ($join) {
-                $join->on("defect_in_out.master_plan_id", "=", "master_plan.id");
+            ) as finish"), function ($join) {
+                $join->on("finish.master_plan_id", "=", "master_plan.id");
             })->
             leftJoin(DB::raw("(
                 SELECT
@@ -100,7 +98,7 @@ class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
                     output_rfts.master_plan_id,
                     COALESCE(userpassword.username, master_plan.sewing_line)
             ) as line"), function ($join) {
-                $join->on("line.master_plan_id", "=", "defect_in_out.master_plan_id");
+                $join->on("line.master_plan_id", "=", "finish.master_plan_id");
             })->
             leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id where rfts.updated_at ".$outputFilter." and status = 'NORMAL' GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as rfts"), function ($join) { $join->on("master_plan.id", "=", "rfts.master_plan_id"); $join->on("line.sewing_line", "=", "rfts.created_by"); } )->
             leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, count(defects.id) defect, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id LEFT JOIN user_sb_wip ON user_sb_wip.id = defects.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id where defects.defect_status = 'defect' and defects.updated_at ".$outputFilter." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as defects"), function ($join) { $join->on("master_plan.id", "=", "defects.master_plan_id"); $join->on("line.sewing_line", "=", "defects.created_by"); } )->
@@ -112,12 +110,12 @@ class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
             orderBy("master_plan.id_ws", "asc")->
             get();
 
-        $defectTypes = DB::connection('mysql_sb')->table('output_defects')->
+            $defectTypes = DB::connection("mysql_sb")->table('output_check_finishing')->
             selectRaw('defect_type_id, defect_type, count(defect_type_id) as defect_type_count')->
-            leftJoin("master_plan", "master_plan.id", "=","output_defects.master_plan_id")->
-            leftJoin("output_defect_types", "output_defect_types.id", "=","output_defects.defect_type_id")->
+            leftJoin("master_plan", "master_plan.id", "=","output_check_finishing.master_plan_id")->
+            leftJoin("output_defect_types", "output_defect_types.id", "=","output_check_finishing.defect_type_id")->
             where("master_plan.cancel", 'N')->
-            whereRaw("output_defects.updated_at ".$outputFilter."")->
+            whereRaw("output_check_finishing.updated_at ".$outputFilter."")->
             groupBy("defect_type_id")->
             orderByRaw("defect_type_count desc")->limit(5)->get();
 
@@ -126,12 +124,12 @@ class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
             array_push($defectTypeIds, $type->defect_type_id);
         }
 
-        $defectAreas = DB::connection('mysql_sb')->table('output_defects')->
+        $defectAreas = DB::connection("mysql_sb")->table('output_check_finishing')->
             selectRaw('defect_type_id, defect_area_id, defect_area, count(defect_area_id) as defect_area_count')->
-            leftJoin("master_plan", "master_plan.id", "=","output_defects.master_plan_id")->
-            leftJoin("output_defect_areas", "output_defect_areas.id", "=","output_defects.defect_area_id")->
+            leftJoin("master_plan", "master_plan.id", "=","output_check_finishing.master_plan_id")->
+            leftJoin("output_defect_areas", "output_defect_areas.id", "=","output_check_finishing.defect_area_id")->
             where("master_plan.cancel", 'N')->
-            whereRaw("output_defects.updated_at ".$outputFilter."")->
+            whereRaw("output_check_finishing.updated_at ".$outputFilter."")->
             whereIn("defect_type_id", $defectTypeIds)->
             groupBy("defect_type_id", "defect_area_id")->
             orderByRaw("defect_area_count desc")->get();
@@ -141,13 +139,13 @@ class DefectInOutFinishingExport implements FromView, WithEvents, ShouldAutoSize
             array_push($defectAreaIds, $area->defect_area_id);
         }
 
-        $lineDefects = DB::connection('mysql_sb')->table('output_defects')->
-            selectRaw("master_plan.sewing_line, output_defects.defect_type_id, output_defects.defect_area_id, count(*) as total")->
-            leftJoin('master_plan', 'master_plan.id', 'output_defects'.'.master_plan_id')->
+        $lineDefects = DB::connection("mysql_sb")->table('output_check_finishing')->
+            selectRaw("master_plan.sewing_line, output_check_finishing.defect_type_id, output_check_finishing.defect_area_id, count(*) as total")->
+            leftJoin('master_plan', 'master_plan.id', 'output_check_finishing.master_plan_id')->
             where("master_plan.cancel", 'N')->
-            whereRaw("output_defects.updated_at ".$outputFilter."")->
+            whereRaw("output_check_finishing.updated_at ".$outputFilter."")->
             whereIn("defect_type_id", $defectTypeIds)->
-            groupBy("master_plan.sewing_line", "output_defects.defect_type_id", "output_defects.defect_area_id")->get();
+            groupBy("master_plan.sewing_line", "output_check_finishing.defect_type_id", "output_check_finishing.defect_area_id")->get();
 
         return view('sewing.export.defect-in-out-finishing-export', [
             'lines' => $lines,
