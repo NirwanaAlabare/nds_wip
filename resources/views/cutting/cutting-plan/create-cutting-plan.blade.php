@@ -33,7 +33,7 @@
             <form action="#" method="post">
                 <div class="mb-3">
                     <label>Tanggal Plan</label>
-                    <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" min='{{ date('Y-m-d') }}' value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" value="{{ date('Y-m-d') }}">
                 </div>
             </form>
         </div>
@@ -68,8 +68,8 @@
                         <table id="datatable-select" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>Tanggal</th>
                                     <th>ID</th>
+                                    <th>Tanggal</th>
                                     <th>No. Form</th>
                                     <th>No. Meja</th>
                                     <th>Style</th>
@@ -108,8 +108,8 @@
                         <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>Tanggal</th>
                                     <th>ID</th>
+                                    <th>Tanggal</th>
                                     <th>No. Form</th>
                                     <th>No. Meja</th>
                                     <th>Style</th>
@@ -165,9 +165,9 @@
             let todayDate = new Date();
             let selectedDate = new Date(this.value);
 
-            if (selectedDate < todayDate) {
-                $("#tgl_plan").val(formatDate(todayDate));
-            }
+            // if (selectedDate < todayDate) {
+            //    $("#tgl_plan").val(formatDate(todayDate));
+            // }
 
             datatableSelect.ajax.reload(() => {
                 $('#datatable-select').DataTable().ajax.reload(() => {
