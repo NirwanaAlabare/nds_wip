@@ -163,7 +163,7 @@ class CuttingPlanController extends Controller
     {
         $additionalQuery = "";
 
-        $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->where("tgl_plan", $request->tgl_plan)->get();
+        $thisStoredCutPlan = CutPlan::select("form_cut_id")->where("tgl_plan", $request->tgl_plan)->get();
 
         if ($thisStoredCutPlan->count() > 0) {
             $additionalQuery .= " and (";
@@ -172,9 +172,9 @@ class CuttingPlanController extends Controller
             $length = $thisStoredCutPlan->count();
             foreach ($thisStoredCutPlan as $cutPlan) {
                 if ($i == 0) {
-                    $additionalQuery .= " a.no_form = '" . $cutPlan->no_form_cut_input . "' ";
+                    $additionalQuery .= " a.id = '" . $cutPlan->form_cut_id . "' ";
                 } else {
-                    $additionalQuery .= " or a.no_form = '" . $cutPlan->no_form_cut_input . "' ";
+                    $additionalQuery .= " or a.id = '" . $cutPlan->form_cut_id . "' ";
                 }
 
                 $i++;

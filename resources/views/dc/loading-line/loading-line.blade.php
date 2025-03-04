@@ -284,6 +284,9 @@
                     link.href = window.URL.createObjectURL(blob);
                     link.download = "Loading Line List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                     link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
                 }
             });
 

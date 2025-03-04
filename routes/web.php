@@ -30,6 +30,7 @@ use App\Http\Controllers\Cutting\SpreadingController;
 use App\Http\Controllers\Cutting\CuttingFormController;
 use App\Http\Controllers\Cutting\CuttingFormManualController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
+use App\Http\Controllers\Cutting\CuttingFormRejectController;
 use App\Http\Controllers\Cutting\PipingController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
@@ -494,6 +495,13 @@ Route::middleware('auth')->group(function () {
         Route::get("/total", "total")->name("total-piping-loading");
 
         Route::get("/pipingProcess/{id?}", "getPipingProcess")->name("get-piping-process");
+    });
+
+    // Cutting Reject
+    Route::controller(CuttingFormRejectController::class)->prefix("form-cut-input-reject")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('cutting-reject');
+        Route::get('/create', 'create')->name('create-cutting-reject');
+        Route::get('/stock', 'stock')->name('stock-cutting-reject');
     });
 
     // Piping Stock
