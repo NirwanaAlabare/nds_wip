@@ -737,10 +737,11 @@ class TransferOutput extends Component
                 master_plan.id_ws as id_ws,
                 act_costing.kpno as no_ws,
                 act_costing.styleno as style,
-                master_plan.color as color
+                master_plan.color as color,
+                master_plan.cancel
             ')->
-            leftJoin('act_costing', 'act_costing.id', '=', 'master_plan.id_ws')->
-            where('master_plan.cancel', '!=', 'Y');
+            leftJoin('act_costing', 'act_costing.id', '=', 'master_plan.id_ws');
+            // where('master_plan.cancel', '!=', 'Y');
 
         // Date Filter
         if ($this->fromDate) {

@@ -34,7 +34,7 @@
                         <select class="form-select" wire:model="fromSelectedMasterPlan">
                             <option value="">Select Master Plan</option>
                             @foreach ($fromMasterPlans as $fromMasterPlan)
-                                <option value="{{ $fromMasterPlan->id }}" {{ $toSelectedMasterPlan == $fromMasterPlan->id ? "disabled" : "" }}>{{ $fromMasterPlan->no_ws." - ".$fromMasterPlan->style." - ".$fromMasterPlan->color }}</option>
+                                <option value="{{ $fromMasterPlan->id }}" {{ $toSelectedMasterPlan == $fromMasterPlan->id ? "disabled" : "" }}>{{ $fromMasterPlan->no_ws." - ".$fromMasterPlan->style." - ".$fromMasterPlan->color." ".($fromMasterPlan->cancel != "Y" ? "" : "- CANCELLED") }}</option>
                             @endforeach
                         </select>
                     </div>
