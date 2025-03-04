@@ -17,6 +17,7 @@ use App\Exports\ProductionAllExport;
 use App\Exports\ProductionDefectExport;
 use App\Exports\OrderOutputExport;
 use App\Exports\Sewing\DefectInOutExport;
+use App\Exports\Sewing\DefectInOutFinishingExport;
 use DB;
 use Excel;
 
@@ -88,6 +89,10 @@ class ReportController extends Controller
         $type = $request->type;
         $outputType = $request->outputType;
 
-        return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type, $outputType), 'defectInOut.xlsx');
+        if ($outputType == "qcf") {
+            return Excel::download(new DefectInOutFinishingExport($dateFrom, $dateTo), 'defectInOut.xlsx');
+        } else {
+            return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type, $outputType), 'defectInOut.xlsx');
+        }
     }
 }

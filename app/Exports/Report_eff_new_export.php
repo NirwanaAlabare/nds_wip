@@ -41,7 +41,7 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
         $this->tgl_awal = $tgl_awal . ' 00:00:00';
         $this->tgl_akhir = $tgl_akhir . ' 23:59:59';
         $this->tgl_awal_n = $tgl_awal;
-        $this->tgl_akhir_n = $tgl_akhir;       
+        $this->tgl_akhir_n = $tgl_akhir;
 
         $this->rowCount = 0;
     }
@@ -72,17 +72,17 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
         sum(d_rfts.tot_rfts) tot_rfts,
         op.tot_output_line,
         so.curr,
-        CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+        CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
         ELSE acm.price end AS cm_price,
         round(
-        sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+        sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
         ELSE acm.price end,2) AS earning,
         mkb.kurs_tengah,
         round(
         if (so.curr = 'IDR',
-        sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+        sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
         ELSE acm.price end,
-        sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+        sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
         ELSE acm.price end * mkb.kurs_tengah
         ),2) tot_earning_rupiah,
         round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
