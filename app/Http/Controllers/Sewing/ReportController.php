@@ -89,10 +89,6 @@ class ReportController extends Controller
         $type = $request->type;
         $outputType = $request->outputType;
 
-        if ($outputType == "qcf") {
-            return Excel::download(new DefectInOutFinishingExport($dateFrom, $dateTo), 'defectInOut.xlsx');
-        } else {
-            return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type, $outputType), 'defectInOut.xlsx');
-        }
+        return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type, $outputType), 'defectInOut.xlsx');
     }
 }
