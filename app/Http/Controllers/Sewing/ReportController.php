@@ -43,8 +43,16 @@ class ReportController extends Controller
         $dateTo = $request->dateTo;
         $range = $request->range;
 
-        if ($range == "custom") {
-            return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype), 'output_export.xlsx');
+        if ($subtype == '_finish') {
+            if ($range == "custom") {
+                return Excel::download(new DefectInOutFinishingExport($dateFrom, $dateTo), 'defectInOut.xlsx');
+            } else {
+                return Excel::download(new DefectInOutFinishingExport($date, $date), 'defectInOut.xlsx');
+            }
+        } else {
+            if ($range == "custom") {
+                return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype), 'output_export.xlsx');
+            }
         }
 
         return Excel::download(new OutputExport($date, $subtype), 'output_export.xlsx');
