@@ -1080,7 +1080,7 @@
             },
             ordering: false,
             processing: true,
-            serverSide: false,
+            serverSide: true,
             paging: false,
             searching: true,
             scrollY: '300px',
