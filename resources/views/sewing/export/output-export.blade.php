@@ -20,7 +20,7 @@
         <td colspan="15" style="text-align: center;">{{ $date }}</td>
     </tr>
     <tr>
-        <td colspan="15" style="text-align: center; font-weight: 800;">OUTPUT {{ $subtitle }}</td>
+        <td colspan="15" style="text-align: center; font-weight: 800;">OUTPUT {{ $subtitle }} {{ $search }}</td>
     </tr>
     <tr>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Line</th>

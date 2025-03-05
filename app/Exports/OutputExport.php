@@ -18,9 +18,10 @@ class OutputExport implements FromView, ShouldAutoSize
     protected $date;
     protected $subtype;
 
-    function __construct($date, $subtype) {
+    function __construct($date, $subtype, $search) {
         $this->date = $date;
         $this->subtype = $subtype;
+        $this->search = $search;
     }
 
     public function view(): View
@@ -86,6 +87,11 @@ class OutputExport implements FromView, ShouldAutoSize
             leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_defects".$this->subtype." defrew inner join master_plan on master_plan.id = defrew.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = defrew.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = defrew.created_by")." where defrew.defect_status = 'reworked' and defrew.updated_at ".$outputFilter." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defrew.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as reworks"), function ($join) { $join->on("master_plan.id", "=", "reworks.master_plan_id"); $join->on("line.sewing_line", "=", "reworks.created_by"); } )->
             leftJoin(DB::raw("(SELECT max(rejects.updated_at) last_reject, count(rejects.id) reject, master_plan.id master_plan_id, COALESCE(userpassword.username, master_plan.sewing_line) created_by from output_rejects".$this->subtype." rejects inner join master_plan on master_plan.id = rejects.master_plan_id ".($this->subtype != "_packing" ? "LEFT JOIN user_sb_wip ON user_sb_wip.id = rejects.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" : "LEFT JOIN userpassword ON userpassword.username = rejects.created_by")." where rejects.updated_at ".$outputFilter." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rejects.updated_at), COALESCE ( userpassword.username, master_plan.sewing_line ) ) as rejects"), function ($join) { $join->on("master_plan.id", "=", "rejects.master_plan_id"); $join->on("line.sewing_line", "=", "rejects.created_by"); } )->
             where("master_plan.cancel", 'N')->
+            whereRaw("(
+                COALESCE(line.sewing_line, master_plan.sewing_line) LIKE '%".$this->search."%' OR
+                act_costing.kpno LIKE '%".$this->search."%' OR
+                act_costing.styleno LIKE '%".$this->search."%'
+            )")->
             groupByRaw("COALESCE(line.sewing_line, master_plan.sewing_line), master_plan.id_ws")->
             orderByRaw("COALESCE(line.sewing_line, master_plan.sewing_line) asc")->
             orderBy("master_plan.id_ws", "asc")->
@@ -93,10 +99,18 @@ class OutputExport implements FromView, ShouldAutoSize
 
         $defectTypes = DB::connection('mysql_sb')->table('output_defects'.$this->subtype)->
             selectRaw('defect_type_id, defect_type, count(defect_type_id) as defect_type_count')->
+            leftJoin("so_det", "so_det.id", "=","output_defects".$this->subtype.".so_det_id")->
+            leftJoin("so", "so.id", "=","so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=","so.id_cost")->
             leftJoin("master_plan", "master_plan.id", "=","output_defects".$this->subtype.".master_plan_id")->
             leftJoin("output_defect_types", "output_defect_types.id", "=","output_defects".$this->subtype.".defect_type_id")->
             where("master_plan.cancel", 'N')->
             whereRaw("output_defects".$this->subtype.".updated_at ".$outputFilter."")->
+            whereRaw("(
+                master_plan.sewing_line LIKE '%".$this->search."%' OR
+                act_costing.kpno LIKE '%".$this->search."%' OR
+                act_costing.styleno LIKE '%".$this->search."%'
+            )")->
             groupBy("defect_type_id")->
             orderByRaw("defect_type_count desc")->limit(5)->get();
 
@@ -107,10 +121,18 @@ class OutputExport implements FromView, ShouldAutoSize
 
         $defectAreas = DB::connection('mysql_sb')->table('output_defects'.$this->subtype)->
             selectRaw('defect_type_id, defect_area_id, defect_area, count(defect_area_id) as defect_area_count')->
+            leftJoin("so_det", "so_det.id", "=","output_defects".$this->subtype.".so_det_id")->
+            leftJoin("so", "so.id", "=","so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=","so.id_cost")->
             leftJoin("master_plan", "master_plan.id", "=","output_defects".$this->subtype.".master_plan_id")->
             leftJoin("output_defect_areas", "output_defect_areas.id", "=","output_defects".$this->subtype.".defect_area_id")->
             where("master_plan.cancel", 'N')->
             whereRaw("output_defects".$this->subtype.".updated_at ".$outputFilter."")->
+            whereRaw("(
+                master_plan.sewing_line LIKE '%".$this->search."%' OR
+                act_costing.kpno LIKE '%".$this->search."%' OR
+                act_costing.styleno LIKE '%".$this->search."%'
+            )")->
             whereIn("defect_type_id", $defectTypeIds)->
             groupBy("defect_type_id", "defect_area_id")->
             orderByRaw("defect_area_count desc")->get();
@@ -134,6 +156,7 @@ class OutputExport implements FromView, ShouldAutoSize
             'defectAreas' => $defectAreas,
             'lineDefects' => $lineDefects,
             'subtype' => $this->subtype,
+            'search' => $this->search,
             'date' => $this->date
         ]);
     }

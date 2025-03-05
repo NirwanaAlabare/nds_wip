@@ -42,6 +42,7 @@ class ReportController extends Controller
         $dateFrom = $request->dateFrom;
         $dateTo = $request->dateTo;
         $range = $request->range;
+        $search = $request->search;
 
         if ($subtype == '_finish') {
             if ($range == "custom") {
@@ -51,11 +52,11 @@ class ReportController extends Controller
             }
         } else {
             if ($range == "custom") {
-                return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype), 'output_export.xlsx');
+                return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype, $search), 'output_export.xlsx');
             }
         }
 
-        return Excel::download(new OutputExport($date, $subtype), 'output_export.xlsx');
+        return Excel::download(new OutputExport($date, $subtype, $search), 'output_export.xlsx');
     }
 
     public function exportProduction(Request $request) {
