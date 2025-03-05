@@ -243,6 +243,8 @@
     </script>
 
     <script>
+        var bypassBackward = false;
+
         // Initial Function
         $(document).ready(() => {
             // Set Filter to 1 Week Ago
@@ -259,6 +261,8 @@
 
             $("#year-sequence-year").val(new Date().getFullYear()).trigger("change");
             $("#new-year-sequence-year").val(new Date().getFullYear()).trigger("change");
+
+            bypassBackward = true;
         });
 
         var method = 'qty';
@@ -784,7 +788,11 @@
                                         newSelect.appendChild(newOption);
                                     }
 
-                                    $("#new-year-sequence-sequence").val(Number(newSelect.value)+1).trigger("change");
+                                    if (!bypassBackward) {
+                                        $("#new-year-sequence-sequence").val(Number(newSelect.value)+1).trigger("change");
+
+                                        bypassBackward = true;
+                                    }
                                 }
                             } else {
                                 $('#print-range-awal-year').val(res.year_sequence_number > 1 ? res.year_sequence_number+1 : res.year_sequence_number).trigger("change");
@@ -799,7 +807,11 @@
                                         select.appendChild(option);
                                     }
 
-                                    $("#year-sequence-sequence").val(Number(select.value)+1).trigger("change");
+                                    if (!bypassBackward) {
+                                        $("#year-sequence-sequence").val(Number(select.value)+1).trigger("change");
+
+                                        bypassBackward = true;
+                                    }
                                 }
                             }
                         } else {

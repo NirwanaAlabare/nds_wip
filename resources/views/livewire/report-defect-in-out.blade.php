@@ -37,7 +37,7 @@
                 <div>
                     <select class="form-select" name="type" id="select-type" wire:model="selectedOutputType">
                         <option value="qc">QC</option>
-                        <option value="qcf">QC FINISH</option>
+                        <option value="qcf">QC FINISHING</option>
                         <option value="packing">Packing</option>
                     </select>
                 </div>

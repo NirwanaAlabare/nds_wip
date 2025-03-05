@@ -54,52 +54,50 @@
         </div>
     </div>
 
-    {{-- Group By Line --}}
-    @if ($this->group == 'line')
-        <div class="row table-responsive {{ $this->group == 'line' ? '' : 'd-none' }}">
-            <table class="table table-sm table-bordered mt-3">
-                <thead>
+    @if ($qcType == '_finish')
+        <div class="table-responsive mt-3">
+            <table class="table table-bordered table-sm">
+                <tr>
+                    <th rowspan="2" class="align-middle text-center fw-bold">Line</th>
+                    <th rowspan="2" class="align-middle text-center fw-bold">NIK</th>
+                    <th rowspan="2" class="align-middle text-center fw-bold">Leader</th>
+                    <th rowspan="2" class="align-middle text-center fw-bold">WS Number</th>
+                    <th rowspan="2" class="align-middle text-center fw-bold">Style</th>
+                    <th rowspan="2" class="align-middle text-center fw-bold">Output Line</th>
+                    <th colspan="3" class="align-middle text-center fw-bold">Output</th>
+                    <th rowspan="2" class="align-middle text-center fw-bold">Persentase</th>
+                    <th rowspan="2" class="align-middle text-center fw-bold">Last Input</th>
+                </tr>
+                <tr>
+                    <th class="text-center fw-bold">Defect</th>
+                    <th class="text-center fw-bold">Reject</th>
+                    <th class="text-center fw-bold">Rework</th>
+                </tr>
+                @php
+                    $summaryActual = 0;
+                    $summaryMinsProd = 0;
+                    $summaryTarget = 0;
+                    $summaryMinsAvail = 0;
+                    $lastInput = 0;
+                @endphp
+                @if ($lines->count() < 1)
                     <tr>
-                        <th rowspan="2" class="align-middle text-center">Line</th>
-                        <th rowspan="2" class="align-middle text-center">NIK</th>
-                        <th rowspan="2" class="align-middle text-center">Leader</th>
-                        <th rowspan="2" class="align-middle text-center">WS Number</th>
-                        <th rowspan="2" class="align-middle text-center">Style</th>
-                        <th colspan="5" class="text-center">Output</th>
-                        <th colspan="3" class="text-center">Rate</th>
-                        <th colspan="3" class="text-center">Total</th>
-                        <th rowspan="2" class="align-middle text-center">Last Input</th>
+                        <td class="text-center" colspan="14">
+                            Data not found
+                        </td>
                     </tr>
-                    <tr>
-                        <th class="text-center">RFT</th>
-                        <th class="text-center">Defect</th>
-                        <th class="text-center">Rework</th>
-                        <th class="text-center">Reject</th>
-                        <th class="text-center">Actual</th>
-                        <th class="text-center">RFT</th>
-                        <th class="text-center">Defect</th>
-                        <th class="text-center">Reject</th>
-                        <th class="text-center">Actual</th>
-                        <th class="text-center">Target</th>
-                        <th class="text-center">Efficiency</th>
-                    </tr>
-                </thead>
-                <tbody>
+                @else
+                    {{-- Total Line Loop --}}
                     @php
                         $currentLine = '';
                         $currentRowSpan = 0;
-
-                        $currentActual = 0;
-                        $currentMinsProd = 0;
-                        $currentTarget = 0;
-                        $currentMinsAvail = 0;
                         $currentLastInput = 0;
 
-                        $summaryActual = 0;
-                        $summaryMinsProd = 0;
-                        $summaryTarget = 0;
-                        $summaryMinsAvail = 0;
                         $lastInput = 0;
+                        $summaryActual = 0;
+                        $summaryDefectIn = 0;
+                        $summaryReworkOut = 0;
+                        $summaryRejected = 0;
                     @endphp
                     @if ($lines->count() < 1)
                         <tr>
@@ -111,95 +109,46 @@
                         @foreach ($lines as $line)
                             @php
                                 $currentRowSpan = $lines->where("username", $line->username)->count();
+                                $currentLastInput = $lines->where("username", $line->username)->max("latest_output");
 
-                                $rateRft = $line->total_output > 0 ? round(($line->rft/$line->total_output * 100), 2) : '0';
-                                $rateDefect = $line->total_output > 0 ? round((($line->defect+$line->rework)/$line->total_output * 100), 2) : '0';
-                                $rateReject = $line->total_output > 0 ? round((($line->reject)/$line->total_output * 100), 2) : '0';
+                                $defectInOutRate = $line->total_actual > 0 ? round((($line->defect_in+$line->rework_out+$line->rejected)/$line->total_actual * 100), 2) : '0';
+
+                                $lastInput < $currentLastInput && $lastInput = $currentLastInput;
+                                $summaryActual += $line->total_actual;
+                                $summaryDefectIn += $line->defect_in;
+                                $summaryReworkOut += $line->rework_out;
+                                $summaryRejected += $line->rejected;
                             @endphp
                             <tr wire:key="{{ $loop->index }}">
                                 @if ($currentLine != $line->username)
-                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
-                                        <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $line->username }}" target="_blank">
+                                    <td rowspan="{{ $currentRowSpan }}" class="text-align align-middle">
+                                        <a style="font-weight: bold;" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $line->username }}" target="_blank">
                                             {{ ucfirst(str_replace("_", " ", $line->username)) }}
                                         </a>
                                     </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">{{ $line->leader_nik }}</td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">{{ $line->leader_name }}</td>
+                                    <td rowspan="{{ $currentRowSpan }}" class="text-align align-middle">{{ $line->leader_nik }}</td>
+                                    <td rowspan="{{ $currentRowSpan }}" class="text-align align-middle">{{ $line->leader_name }}</td>
                                 @endif
                                 <td>{{ $line->kpno }}</td>
                                 <td>{{ $line->styleno }}</td>
-                                <td class="fw-bold text-center">
-                                    {{ $line->rft < 1 ? '0' : num($line->rft) }}
+                                <td class="text-center" style="text-align: center;">
+                                    {{ $line->total_actual }}
                                 </td>
-                                <td class="fw-bold text-center">
-                                    {{ $line->defect < 1 ? '0' : num($line->defect) }}
+                                <td class="text-center" style="text-align: center;">
+                                    {{ $line->defect_in }}
                                 </td>
-                                <td class="fw-bold text-center">
-                                    {{ $line->rework < 1 ? '0' : num($line->rework) }}
+                                <td class="text-center" style="text-align: center;">
+                                    {{ $line->rejected }}
                                 </td>
-                                <td class="fw-bold text-center">
-                                    {{ $line->reject < 1 ? '0' : num($line->reject) }}
+                                <td class="text-center" style="text-align: center;">
+                                    {{ $line->rework_out }}
                                 </td>
-                                <td class="fw-bold text-center text-sb">
-                                    {{ $line->total_actual < 1 ? '0' : num($line->total_actual) }}
+                                <td style="text-align: center; font-weight: bold; {{ $defectInOutRate < 97 ? 'color: #f51818;' : 'color: #018003;' }}">
+                                    {{ $defectInOutRate }} %
                                 </td>
-                                <td class="fw-bold text-center {{ $rateRft < 97 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateRft }} %
+                                <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
+                                    {{ $currentLastInput }}
                                 </td>
-                                <td class="fw-bold text-center {{ $rateDefect > 3 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateDefect }} %
-                                </td>
-                                <td class="fw-bold text-center {{ $rateReject > 0 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateReject }} %
-                                </td>
-                                @if ($currentLine != $line->username)
-                                    @php
-                                        // Legacy :
-                                        if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
-                                            // $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") > 0 ? $lines->where("username", $line->username)->sum("total_target") : $lines->where("username", $line->username)->sum("total_target_back_date");
-                                            // $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") > 0 ? $lines->where("username", $line->username)->sum("mins_avail") : $lines->where("username", $line->username)->sum("mins_avail_back_date");
-                                            $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
-                                            $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
-                                        } else {
-                                            $cumulativeTarget = $line->cumulative_target ?? 0;
-                                            $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
-                                        }
-                                        // New Version :
-                                            // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00')) {
-                                            //     $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
-                                            //     $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
-                                            // } else {
-                                            //     $cumulativeTarget = $lines->where("username", $line->username)->max("cumulative_target")  ?? 0;
-                                            //     $cumulativeMinsAvail =  $lines->where("username", $line->username)->max("cumulative_mins_avail") ?? 0;
-                                            // }
-
-                                        $currentActual = $lines->where("username", $line->username)->sum("total_actual") ?? 0;
-                                        $currentMinsProd = $lines->where("username", $line->username)->sum("mins_prod") ?? 0;
-                                        $currentTarget = $cumulativeTarget;
-                                        $currentMinsAvail = $cumulativeMinsAvail;
-                                        $currentLastInput = $lines->where("username", $line->username)->max("latest_output") ?? date("Y-m-d")." 00:00:00";
-
-                                        $currentEfficiency = ($currentMinsAvail  > 0 ? round(($currentMinsProd/$currentMinsAvail)*100, 2) : 0);
-
-                                        $summaryActual += $currentActual;
-                                        $summaryMinsProd += $currentMinsProd;
-                                        $summaryTarget += $currentTarget;
-                                        $summaryMinsAvail += $currentMinsAvail;
-                                        $lastInput < $currentLastInput && $lastInput = $currentLastInput;
-                                    @endphp
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
-                                        {{ num($currentActual) }}
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
-                                        {{ num($currentTarget) }}
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center fs-5 align-middle {{ $currentEfficiency < 85 ? 'text-danger' : 'text-success' }}">
-                                        {{ $currentEfficiency }} %
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
-                                        {{ $currentLastInput }}
-                                    </td>
-                                @endif
                             </tr>
                             @php
                                 if ($currentLine != $line->username) {
@@ -208,354 +157,525 @@
                             @endphp
                         @endforeach
                     @endif
-                </tbody>
-                <tfoot>
                     @php
-                        $summaryEfficiency = $summaryMinsAvail > 0 ? round($summaryMinsProd/$summaryMinsAvail*100, 2) : 0;
-                        $targetFromEfficiency = $summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
+                        $summaryDefectInOutRate = $summaryActual > 0 ? round(($summaryDefectIn+$summaryReworkOut+$summaryRejected)/$summaryActual*100, 2) : 0;
                     @endphp
                     <tr>
-                        <th colspan="13" class="fs-5 text-center">Summary</th>
-                        <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
-                        <th class="fs-5 text-center">{{ (num($targetFromEfficiency)) }}</th>
-                        <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
-                        <td class="text-center">{{ $lastInput }}</td>
+                        <th colspan="5" class="fw-bold text-center">Summary</th>
+                        <th class="fw-bold text-center">{{ $summaryActual }}</th>
+                        <th class="fw-bold text-center">{{ $summaryDefectIn }}</th>
+                        <th class="fw-bold text-center">{{ $summaryRejected }}</th>
+                        <th class="fw-bold text-center">{{ $summaryReworkOut }}</th>
+                        <th style="font-weight: bold;text-align: center; {{ $summaryDefectInOutRate < 85 ? 'color: #f51818;' : 'color: #018003;' }}">{{ $summaryDefectInOutRate }} %</th>
+                        <td class="fw-bold text-center">{{ $lastInput }}</td>
                     </tr>
-                </tfoot>
+                @endif
             </table>
         </div>
-    @endif
-
-    {{-- Group By WS --}}
-    @if ($this->group == 'ws')
-        <div class="row table-responsive {{ $this->group == 'ws' ? '' : 'd-none' }}">
-            <table class="table table-sm table-bordered mt-3">
-                <thead>
-                    <tr>
-                        <th rowspan="2" class="align-middle text-center">WS Number</th>
-                        <th rowspan="2" class="align-middle text-center">Style</th>
-                        <th rowspan="2" class="align-middle text-center">Line</th>
-                        <th rowspan="2" class="align-middle text-center">NIK</th>
-                        <th rowspan="2" class="align-middle text-center">Leader</th>
-                        <th colspan="5" class="text-center">Output</th>
-                        <th colspan="3" class="text-center">Rate</th>
-                        <th colspan="3" class="text-center">Total</th>
-                        <th rowspan="2" class="align-middle text-center">Last Input</th>
-                    </tr>
-                    <tr>
-                        <th class="text-center">RFT</th>
-                        <th class="text-center">Defect</th>
-                        <th class="text-center">Rework</th>
-                        <th class="text-center">Reject</th>
-                        <th class="text-center">Actual</th>
-                        <th class="text-center">RFT</th>
-                        <th class="text-center">Defect</th>
-                        <th class="text-center">Reject</th>
-                        <th class="text-center">Actual</th>
-                        <th class="text-center">Target</th>
-                        <th class="text-center">Efficiency</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $currentIdWs = '';
-                        $currentStyle = '';
-                        $currentRowSpan = 0;
-
-                        $currentActual = 0;
-                        $currentMinsProd = 0;
-                        $currentTarget = 0;
-                        $currentMinsAvail = 0;
-                        $currentLastInput = 0;
-
-                        $summaryActual = 0;
-                        $summaryMinsProd = 0;
-                        $summaryTarget = 0;
-                        $summaryMinsAvail = 0;
-                        $lastInput = 0;
-                    @endphp
-                    @if ($orders->count() < 1)
+    @else
+        {{-- Group By Line --}}
+        @if ($this->group == 'line')
+            <div class="row table-responsive {{ $this->group == 'line' ? '' : 'd-none' }}">
+                <table class="table table-sm table-bordered mt-3">
+                    <thead>
                         <tr>
-                            <td class="text-center" colspan="14">
-                                Data not found
-                            </td>
+                            <th rowspan="2" class="align-middle text-center">Line</th>
+                            <th rowspan="2" class="align-middle text-center">NIK</th>
+                            <th rowspan="2" class="align-middle text-center">Leader</th>
+                            <th rowspan="2" class="align-middle text-center">WS Number</th>
+                            <th rowspan="2" class="align-middle text-center">Style</th>
+                            <th colspan="5" class="text-center">Output</th>
+                            <th colspan="3" class="text-center">Rate</th>
+                            <th colspan="3" class="text-center">Total</th>
+                            <th rowspan="2" class="align-middle text-center">Last Input</th>
                         </tr>
-                    @else
-                        @foreach ($orders as $order)
-                            @php
-                                $currentRowSpan = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->count();
-
-                                $rateRft = $order->total_output > 0 ? round(($order->rft/$order->total_output * 100), 2) : '0';
-                                $rateDefect = $order->total_output > 0 ? round((($order->defect+$order->rework)/$order->total_output * 100), 2) : '0';
-                                $rateReject = $order->total_output > 0 ? round((($order->reject)/$order->total_output * 100), 2) : '0';
-                            @endphp
-                            <tr wire:key="{{ $loop->index }}">
-                                @if ($currentIdWs != $order->id_ws || $currentStyle != $order->styleno)
-                                    <td rowspan="{{ $currentRowSpan }}" class="align-middle">{{ $order->kpno }}</td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="align-middle">{{ $order->styleno }}</td>
-                                @endif
-                                <td>
-                                    <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
-                                        {{ ucfirst(str_replace("_", " ", $order->username)) }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ $order->leader_nik }}
-                                </td>
-                                <td>
-                                    {{ $order->leader_name }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->rft < 1 ? '0' : num($order->rft) }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->defect < 1 ? '0' : num($order->defect) }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->rework < 1 ? '0' : num($order->rework) }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->reject < 1 ? '0' : num($order->reject) }}
-                                </td>
-                                <td class="fw-bold text-center text-sb">
-                                    {{ $order->total_actual < 1 ? '0' : num($order->total_actual) }}
-                                </td>
-                                <td class="fw-bold text-center {{ $rateRft < 97 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateRft }} %
-                                </td>
-                                <td class="fw-bold text-center {{ $rateDefect > 3 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateDefect }} %
-                                </td>
-                                <td class="fw-bold text-center {{ $rateReject > 0 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateReject }} %
-                                </td>
-                                @if ($currentIdWs != $order->id_ws)
-                                    @php
-                                        // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $order->tgl_plan.' 16:00:00') {
-                                        //     $cumulativeTarget = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("total_target") ?? 0;
-                                        //     $cumulativeMinsAvail = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
-                                        // } else {
-                                        //     $cumulativeTarget = $order->cumulative_target ?? 0;
-                                        //     $cumulativeMinsAvail = $order->cumulative_mins_avail ?? 0;
-                                        // }
-                                        $cumulativeTarget = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("total_target") ?? 0;
-                                        $cumulativeMinsAvail = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
-
-                                        $currentActual = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("total_actual") ?? 0;
-                                        $currentMinsProd = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("mins_prod") ?? 0;
-                                        $currentTarget = $cumulativeTarget;
-                                        $currentMinsAvail = $cumulativeMinsAvail;
-                                        $currentLastInput = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->max("latest_output") ?? date("Y-m-d")." 00:00:00";
-
-                                        $currentEfficiency = ($currentMinsAvail  > 0 ? round(($currentMinsProd/$currentMinsAvail)*100, 2) : 0);
-
-                                        $summaryActual += $currentActual;
-                                        $summaryMinsProd += $currentMinsProd;
-                                        $summaryTarget += $currentTarget;
-                                        $summaryMinsAvail += $currentMinsAvail;
-                                        $lastInput < $currentLastInput && $lastInput = $currentLastInput;
-                                    @endphp
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
-                                        {{ num($currentActual) }}
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
-                                        {{ num($currentTarget) }}
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center fs-5 align-middle {{ $currentEfficiency < 85 ? 'text-danger' : 'text-success' }}">
-                                        {{ $currentEfficiency }} %
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
-                                        {{ $currentLastInput }}
-                                    </td>
-                                @endif
-                            </tr>
-                            @php
-                                if ($currentIdWs != $order->id_ws) {
-                                    $currentIdWs = $order->id_ws;
-                                    $currentStyle = $order->styleno;
-                                }
-                            @endphp
-                        @endforeach
-                    @endif
-                </tbody>
-                <tfoot>
-                    @php
-                        $summaryEfficiency = $summaryMinsAvail > 0 ? round($summaryMinsProd/$summaryMinsAvail*100, 2) : 0;
-                        $targetFromEfficiency =$summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
-                    @endphp
-                    <tr>
-                        <th colspan="13" class="fs-5 text-center">Summary</th>
-                        <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
-                        <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
-                        <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
-                        <td class="text-center">{{ $lastInput }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    @endif
-
-    {{-- Group By Style --}}
-    @if ($this->group == 'style')
-        <div class="row table-responsive {{ $this->group == 'style' ? '' : 'd-none' }}">
-            <table class="table table-sm table-bordered mt-3">
-                <thead>
-                    <tr>
-                        <th rowspan="2" class="align-middle text-center">Style</th>
-                        <th rowspan="2" class="align-middle text-center">Line</th>
-                        <th colspan="5" class="text-center">Output</th>
-                        <th colspan="3" class="text-center">Rate</th>
-                        <th colspan="3" class="text-center">Total</th>
-                        <th rowspan="2" class="align-middle text-center">Last Input</th>
-                    </tr>
-                    <tr>
-                        <th class="text-center">RFT</th>
-                        <th class="text-center">Defect</th>
-                        <th class="text-center">Rework</th>
-                        <th class="text-center">Reject</th>
-                        <th class="text-center">Actual</th>
-                        <th class="text-center">RFT</th>
-                        <th class="text-center">Defect</th>
-                        <th class="text-center">Reject</th>
-                        <th class="text-center">Actual</th>
-                        <th class="text-center">Target</th>
-                        <th class="text-center">Efficiency</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $currentStyle = '';
-                        $currentRowSpan = 0;
-
-                        $currentActual = 0;
-                        $currentMinsProd = 0;
-                        $currentTarget = 0;
-                        $currentMinsAvail = 0;
-                        $currentLastInput = 0;
-
-                        $summaryActual = 0;
-                        $summaryMinsProd = 0;
-                        $summaryTarget = 0;
-                        $summaryMinsAvail = 0;
-                        $lastInput = 0;
-                    @endphp
-                    @if ($orders->count() < 1)
                         <tr>
-                            <td class="text-center" colspan="14">
-                                Data not found
-                            </td>
+                            <th class="text-center">RFT</th>
+                            <th class="text-center">Defect</th>
+                            <th class="text-center">Rework</th>
+                            <th class="text-center">Reject</th>
+                            <th class="text-center">Actual</th>
+                            <th class="text-center">RFT</th>
+                            <th class="text-center">Defect</th>
+                            <th class="text-center">Reject</th>
+                            <th class="text-center">Actual</th>
+                            <th class="text-center">Target</th>
+                            <th class="text-center">Efficiency</th>
                         </tr>
-                    @else
-                        @foreach ($orders as $order)
-                            @php
-                                $currentRowSpan = $orders->where("styleno", $order->styleno)->count();
+                    </thead>
+                    <tbody>
+                        @php
+                            $currentLine = '';
+                            $currentRowSpan = 0;
 
-                                $rateRft = $order->total_output > 0 ? round(($order->rft/$order->total_output * 100), 2) : '0';
-                                $rateDefect = $order->total_output > 0 ? round((($order->defect+$order->rework)/$order->total_output * 100), 2) : '0';
-                                $rateReject = $order->total_output > 0 ? round((($order->reject)/$order->total_output * 100), 2) : '0';
-                            @endphp
-                            <tr wire:key="{{ $loop->index }}">
-                                @if ($currentStyle != $order->styleno)
-                                    <td rowspan="{{ $currentRowSpan }}" class="align-middle">{{ $order->styleno }}</td>
-                                @endif
-                                <td>
-                                    <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
-                                        {{ ucfirst(str_replace("_", " ", $order->username)) }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ $order->leader_nik }}
-                                </td>
-                                <td>
-                                    {{ $order->leader_name }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->rft < 1 ? '0' : num($order->rft) }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->defect < 1 ? '0' : num($order->defect) }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->rework < 1 ? '0' : num($order->rework) }}
-                                </td>
-                                <td class="fw-bold text-center">
-                                    {{ $order->reject < 1 ? '0' : num($order->reject) }}
-                                </td>
-                                <td class="fw-bold text-center text-sb">
-                                    {{ $order->total_actual < 1 ? '0' : num($order->total_actual) }}
-                                </td>
-                                <td class="fw-bold text-center {{ $rateRft < 97 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateRft }} %
-                                </td>
-                                <td class="fw-bold text-center {{ $rateDefect > 3 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateDefect }} %
-                                </td>
-                                <td class="fw-bold text-center {{ $rateReject > 0 ? 'text-danger' : 'text-success' }}">
-                                    {{ $rateReject }} %
-                                </td>
-                                @if ($currentStyle != $order->styleno)
-                                    @php
-                                        // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $order->tgl_plan.' 16:00:00') {
-                                        //     $cumulativeTarget = $orders->where("styleno", $order->styleno)->sum("total_target") ?? 0;
-                                        //     $cumulativeMinsAvail = $orders->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
-                                        // } else {
-                                        //     $cumulativeTarget = $orders->cumulative_target ?? 0;
-                                        //     $cumulativeMinsAvail = $orders->cumulative_mins_avail ?? 0;
-                                        // }
-                                        $cumulativeTarget = $orders->where("styleno", $order->styleno)->sum("total_target") ?? 0;
-                                        $cumulativeMinsAvail = $orders->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
+                            $currentActual = 0;
+                            $currentMinsProd = 0;
+                            $currentTarget = 0;
+                            $currentMinsAvail = 0;
+                            $currentLastInput = 0;
 
-                                        $currentActual = $orders->where("styleno", $order->styleno)->sum("total_actual") ?? 0;
-                                        $currentMinsProd = $orders->where("styleno", $order->styleno)->sum("mins_prod") ?? 0;
-                                        $currentTarget = $cumulativeTarget;
-                                        $currentMinsAvail = $cumulativeMinsAvail;
-                                        $currentLastInput = $orders->where("styleno", $order->styleno)->max("latest_output") ?? date("Y-m-d")." 00:00:00";
-
-                                        $currentEfficiency = ($currentMinsAvail  > 0 ? round(($currentMinsProd/$currentMinsAvail)*100, 2) : 0);
-
-                                        $summaryActual += $currentActual;
-                                        $summaryMinsProd += $currentMinsProd;
-                                        $summaryTarget += $currentTarget;
-                                        $summaryMinsAvail += $currentMinsAvail;
-                                        $lastInput < $currentLastInput && $lastInput = $currentLastInput;
-                                    @endphp
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
-                                        {{ num($currentActual) }}
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
-                                        {{ num($currentTarget) }}
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center fs-5 align-middle {{ $currentEfficiency < 85 ? 'text-danger' : 'text-success' }}">
-                                        {{ $currentEfficiency }} %
-                                    </td>
-                                    <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
-                                        {{ $currentLastInput }}
-                                    </td>
-                                @endif
+                            $summaryActual = 0;
+                            $summaryMinsProd = 0;
+                            $summaryTarget = 0;
+                            $summaryMinsAvail = 0;
+                            $lastInput = 0;
+                        @endphp
+                        @if ($lines->count() < 1)
+                            <tr>
+                                <td class="text-center" colspan="14">
+                                    Data not found
+                                </td>
                             </tr>
-                            @php
-                                if ($currentStyle != $order->styleno) {
-                                    $currentStyle = $order->styleno;
-                                }
-                            @endphp
-                        @endforeach
-                    @endif
-                </tbody>
-                <tfoot>
-                    @php
-                        $summaryEfficiency = $summaryMinsAvail > 0 ? round($summaryMinsProd/$summaryMinsAvail*100, 2) : 0;
-                        $targetFromEfficiency =$summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
-                    @endphp
-                    <tr>
-                        <th colspan="12" class="fs-5 text-center">Summary</th>
-                        <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
-                        <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
-                        <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
-                        <td class="text-center">{{ $lastInput }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
+                        @else
+                            @foreach ($lines as $line)
+                                @php
+                                    $currentRowSpan = $lines->where("username", $line->username)->count();
+
+                                    $rateRft = $line->total_output > 0 ? round(($line->rft/$line->total_output * 100), 2) : '0';
+                                    $rateDefect = $line->total_output > 0 ? round((($line->defect+$line->rework)/$line->total_output * 100), 2) : '0';
+                                    $rateReject = $line->total_output > 0 ? round((($line->reject)/$line->total_output * 100), 2) : '0';
+                                @endphp
+                                <tr wire:key="{{ $loop->index }}">
+                                    @if ($currentLine != $line->username)
+                                        <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
+                                            <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $line->username }}" target="_blank">
+                                                {{ ucfirst(str_replace("_", " ", $line->username)) }}
+                                            </a>
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">{{ $line->leader_nik }}</td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">{{ $line->leader_name }}</td>
+                                    @endif
+                                    <td>{{ $line->kpno }}</td>
+                                    <td>{{ $line->styleno }}</td>
+                                    <td class="fw-bold text-center">
+                                        {{ $line->rft < 1 ? '0' : num($line->rft) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $line->defect < 1 ? '0' : num($line->defect) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $line->rework < 1 ? '0' : num($line->rework) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $line->reject < 1 ? '0' : num($line->reject) }}
+                                    </td>
+                                    <td class="fw-bold text-center text-sb">
+                                        {{ $line->total_actual < 1 ? '0' : num($line->total_actual) }}
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateRft < 97 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateRft }} %
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateDefect > 3 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateDefect }} %
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateReject > 0 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateReject }} %
+                                    </td>
+                                    @if ($currentLine != $line->username)
+                                        @php
+                                            // Legacy :
+                                            if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
+                                                // $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") > 0 ? $lines->where("username", $line->username)->sum("total_target") : $lines->where("username", $line->username)->sum("total_target_back_date");
+                                                // $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") > 0 ? $lines->where("username", $line->username)->sum("mins_avail") : $lines->where("username", $line->username)->sum("mins_avail_back_date");
+                                                $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
+                                                $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
+                                            } else {
+                                                $cumulativeTarget = $line->cumulative_target ?? 0;
+                                                $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
+                                            }
+                                            // New Version :
+                                                // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00')) {
+                                                //     $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
+                                                //     $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
+                                                // } else {
+                                                //     $cumulativeTarget = $lines->where("username", $line->username)->max("cumulative_target")  ?? 0;
+                                                //     $cumulativeMinsAvail =  $lines->where("username", $line->username)->max("cumulative_mins_avail") ?? 0;
+                                                // }
+
+                                            $currentActual = $lines->where("username", $line->username)->sum("total_actual") ?? 0;
+                                            $currentMinsProd = $lines->where("username", $line->username)->sum("mins_prod") ?? 0;
+                                            $currentTarget = $cumulativeTarget;
+                                            $currentMinsAvail = $cumulativeMinsAvail;
+                                            $currentLastInput = $lines->where("username", $line->username)->max("latest_output") ?? date("Y-m-d")." 00:00:00";
+
+                                            $currentEfficiency = ($currentMinsAvail  > 0 ? round(($currentMinsProd/$currentMinsAvail)*100, 2) : 0);
+
+                                            $summaryActual += $currentActual;
+                                            $summaryMinsProd += $currentMinsProd;
+                                            $summaryTarget += $currentTarget;
+                                            $summaryMinsAvail += $currentMinsAvail;
+                                            $lastInput < $currentLastInput && $lastInput = $currentLastInput;
+                                        @endphp
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
+                                            {{ num($currentActual) }}
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
+                                            {{ num($currentTarget) }}
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center fs-5 align-middle {{ $currentEfficiency < 85 ? 'text-danger' : 'text-success' }}">
+                                            {{ $currentEfficiency }} %
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
+                                            {{ $currentLastInput }}
+                                        </td>
+                                    @endif
+                                </tr>
+                                @php
+                                    if ($currentLine != $line->username) {
+                                        $currentLine = $line->username;
+                                    }
+                                @endphp
+                            @endforeach
+                        @endif
+                    </tbody>
+                    <tfoot>
+                        @php
+                            $summaryEfficiency = $summaryMinsAvail > 0 ? round($summaryMinsProd/$summaryMinsAvail*100, 2) : 0;
+                            $targetFromEfficiency = $summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
+                        @endphp
+                        <tr>
+                            <th colspan="13" class="fs-5 text-center">Summary</th>
+                            <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
+                            <th class="fs-5 text-center">{{ (num($targetFromEfficiency)) }}</th>
+                            <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
+                            <td class="text-center">{{ $lastInput }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        @endif
+
+        {{-- Group By WS --}}
+        @if ($this->group == 'ws')
+            <div class="row table-responsive {{ $this->group == 'ws' ? '' : 'd-none' }}">
+                <table class="table table-sm table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="align-middle text-center">WS Number</th>
+                            <th rowspan="2" class="align-middle text-center">Style</th>
+                            <th rowspan="2" class="align-middle text-center">Line</th>
+                            <th rowspan="2" class="align-middle text-center">NIK</th>
+                            <th rowspan="2" class="align-middle text-center">Leader</th>
+                            <th colspan="5" class="text-center">Output</th>
+                            <th colspan="3" class="text-center">Rate</th>
+                            <th colspan="3" class="text-center">Total</th>
+                            <th rowspan="2" class="align-middle text-center">Last Input</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center">RFT</th>
+                            <th class="text-center">Defect</th>
+                            <th class="text-center">Rework</th>
+                            <th class="text-center">Reject</th>
+                            <th class="text-center">Actual</th>
+                            <th class="text-center">RFT</th>
+                            <th class="text-center">Defect</th>
+                            <th class="text-center">Reject</th>
+                            <th class="text-center">Actual</th>
+                            <th class="text-center">Target</th>
+                            <th class="text-center">Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $currentIdWs = '';
+                            $currentStyle = '';
+                            $currentRowSpan = 0;
+
+                            $currentActual = 0;
+                            $currentMinsProd = 0;
+                            $currentTarget = 0;
+                            $currentMinsAvail = 0;
+                            $currentLastInput = 0;
+
+                            $summaryActual = 0;
+                            $summaryMinsProd = 0;
+                            $summaryTarget = 0;
+                            $summaryMinsAvail = 0;
+                            $lastInput = 0;
+                        @endphp
+                        @if ($orders->count() < 1)
+                            <tr>
+                                <td class="text-center" colspan="14">
+                                    Data not found
+                                </td>
+                            </tr>
+                        @else
+                            @foreach ($orders as $order)
+                                @php
+                                    $currentRowSpan = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->count();
+
+                                    $rateRft = $order->total_output > 0 ? round(($order->rft/$order->total_output * 100), 2) : '0';
+                                    $rateDefect = $order->total_output > 0 ? round((($order->defect+$order->rework)/$order->total_output * 100), 2) : '0';
+                                    $rateReject = $order->total_output > 0 ? round((($order->reject)/$order->total_output * 100), 2) : '0';
+                                @endphp
+                                <tr wire:key="{{ $loop->index }}">
+                                    @if ($currentIdWs != $order->id_ws || $currentStyle != $order->styleno)
+                                        <td rowspan="{{ $currentRowSpan }}" class="align-middle">{{ $order->kpno }}</td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="align-middle">{{ $order->styleno }}</td>
+                                    @endif
+                                    <td>
+                                        <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
+                                            {{ ucfirst(str_replace("_", " ", $order->username)) }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{ $order->leader_nik }}
+                                    </td>
+                                    <td>
+                                        {{ $order->leader_name }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->rft < 1 ? '0' : num($order->rft) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->defect < 1 ? '0' : num($order->defect) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->rework < 1 ? '0' : num($order->rework) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->reject < 1 ? '0' : num($order->reject) }}
+                                    </td>
+                                    <td class="fw-bold text-center text-sb">
+                                        {{ $order->total_actual < 1 ? '0' : num($order->total_actual) }}
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateRft < 97 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateRft }} %
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateDefect > 3 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateDefect }} %
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateReject > 0 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateReject }} %
+                                    </td>
+                                    @if ($currentIdWs != $order->id_ws)
+                                        @php
+                                            // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $order->tgl_plan.' 16:00:00') {
+                                            //     $cumulativeTarget = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("total_target") ?? 0;
+                                            //     $cumulativeMinsAvail = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
+                                            // } else {
+                                            //     $cumulativeTarget = $order->cumulative_target ?? 0;
+                                            //     $cumulativeMinsAvail = $order->cumulative_mins_avail ?? 0;
+                                            // }
+                                            $cumulativeTarget = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("total_target") ?? 0;
+                                            $cumulativeMinsAvail = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
+
+                                            $currentActual = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("total_actual") ?? 0;
+                                            $currentMinsProd = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->sum("mins_prod") ?? 0;
+                                            $currentTarget = $cumulativeTarget;
+                                            $currentMinsAvail = $cumulativeMinsAvail;
+                                            $currentLastInput = $orders->where("id_ws", $order->id_ws)->where("styleno", $order->styleno)->max("latest_output") ?? date("Y-m-d")." 00:00:00";
+
+                                            $currentEfficiency = ($currentMinsAvail  > 0 ? round(($currentMinsProd/$currentMinsAvail)*100, 2) : 0);
+
+                                            $summaryActual += $currentActual;
+                                            $summaryMinsProd += $currentMinsProd;
+                                            $summaryTarget += $currentTarget;
+                                            $summaryMinsAvail += $currentMinsAvail;
+                                            $lastInput < $currentLastInput && $lastInput = $currentLastInput;
+                                        @endphp
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
+                                            {{ num($currentActual) }}
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
+                                            {{ num($currentTarget) }}
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center fs-5 align-middle {{ $currentEfficiency < 85 ? 'text-danger' : 'text-success' }}">
+                                            {{ $currentEfficiency }} %
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
+                                            {{ $currentLastInput }}
+                                        </td>
+                                    @endif
+                                </tr>
+                                @php
+                                    if ($currentIdWs != $order->id_ws) {
+                                        $currentIdWs = $order->id_ws;
+                                        $currentStyle = $order->styleno;
+                                    }
+                                @endphp
+                            @endforeach
+                        @endif
+                    </tbody>
+                    <tfoot>
+                        @php
+                            $summaryEfficiency = $summaryMinsAvail > 0 ? round($summaryMinsProd/$summaryMinsAvail*100, 2) : 0;
+                            $targetFromEfficiency =$summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
+                        @endphp
+                        <tr>
+                            <th colspan="13" class="fs-5 text-center">Summary</th>
+                            <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
+                            <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
+                            <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
+                            <td class="text-center">{{ $lastInput }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        @endif
+
+        {{-- Group By Style --}}
+        @if ($this->group == 'style')
+            <div class="row table-responsive {{ $this->group == 'style' ? '' : 'd-none' }}">
+                <table class="table table-sm table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="align-middle text-center">Style</th>
+                            <th rowspan="2" class="align-middle text-center">Line</th>
+                            <th colspan="5" class="text-center">Output</th>
+                            <th colspan="3" class="text-center">Rate</th>
+                            <th colspan="3" class="text-center">Total</th>
+                            <th rowspan="2" class="align-middle text-center">Last Input</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center">RFT</th>
+                            <th class="text-center">Defect</th>
+                            <th class="text-center">Rework</th>
+                            <th class="text-center">Reject</th>
+                            <th class="text-center">Actual</th>
+                            <th class="text-center">RFT</th>
+                            <th class="text-center">Defect</th>
+                            <th class="text-center">Reject</th>
+                            <th class="text-center">Actual</th>
+                            <th class="text-center">Target</th>
+                            <th class="text-center">Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $currentStyle = '';
+                            $currentRowSpan = 0;
+
+                            $currentActual = 0;
+                            $currentMinsProd = 0;
+                            $currentTarget = 0;
+                            $currentMinsAvail = 0;
+                            $currentLastInput = 0;
+
+                            $summaryActual = 0;
+                            $summaryMinsProd = 0;
+                            $summaryTarget = 0;
+                            $summaryMinsAvail = 0;
+                            $lastInput = 0;
+                        @endphp
+                        @if ($orders->count() < 1)
+                            <tr>
+                                <td class="text-center" colspan="14">
+                                    Data not found
+                                </td>
+                            </tr>
+                        @else
+                            @foreach ($orders as $order)
+                                @php
+                                    $currentRowSpan = $orders->where("styleno", $order->styleno)->count();
+
+                                    $rateRft = $order->total_output > 0 ? round(($order->rft/$order->total_output * 100), 2) : '0';
+                                    $rateDefect = $order->total_output > 0 ? round((($order->defect+$order->rework)/$order->total_output * 100), 2) : '0';
+                                    $rateReject = $order->total_output > 0 ? round((($order->reject)/$order->total_output * 100), 2) : '0';
+                                @endphp
+                                <tr wire:key="{{ $loop->index }}">
+                                    @if ($currentStyle != $order->styleno)
+                                        <td rowspan="{{ $currentRowSpan }}" class="align-middle">{{ $order->styleno }}</td>
+                                    @endif
+                                    <td>
+                                        <a class="text-sb" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $order->username }}" target="_blank">
+                                            {{ ucfirst(str_replace("_", " ", $order->username)) }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{ $order->leader_nik }}
+                                    </td>
+                                    <td>
+                                        {{ $order->leader_name }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->rft < 1 ? '0' : num($order->rft) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->defect < 1 ? '0' : num($order->defect) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->rework < 1 ? '0' : num($order->rework) }}
+                                    </td>
+                                    <td class="fw-bold text-center">
+                                        {{ $order->reject < 1 ? '0' : num($order->reject) }}
+                                    </td>
+                                    <td class="fw-bold text-center text-sb">
+                                        {{ $order->total_actual < 1 ? '0' : num($order->total_actual) }}
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateRft < 97 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateRft }} %
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateDefect > 3 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateDefect }} %
+                                    </td>
+                                    <td class="fw-bold text-center {{ $rateReject > 0 ? 'text-danger' : 'text-success' }}">
+                                        {{ $rateReject }} %
+                                    </td>
+                                    @if ($currentStyle != $order->styleno)
+                                        @php
+                                            // if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $order->tgl_plan.' 16:00:00') {
+                                            //     $cumulativeTarget = $orders->where("styleno", $order->styleno)->sum("total_target") ?? 0;
+                                            //     $cumulativeMinsAvail = $orders->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
+                                            // } else {
+                                            //     $cumulativeTarget = $orders->cumulative_target ?? 0;
+                                            //     $cumulativeMinsAvail = $orders->cumulative_mins_avail ?? 0;
+                                            // }
+                                            $cumulativeTarget = $orders->where("styleno", $order->styleno)->sum("total_target") ?? 0;
+                                            $cumulativeMinsAvail = $orders->where("styleno", $order->styleno)->sum("mins_avail") ?? 0;
+
+                                            $currentActual = $orders->where("styleno", $order->styleno)->sum("total_actual") ?? 0;
+                                            $currentMinsProd = $orders->where("styleno", $order->styleno)->sum("mins_prod") ?? 0;
+                                            $currentTarget = $cumulativeTarget;
+                                            $currentMinsAvail = $cumulativeMinsAvail;
+                                            $currentLastInput = $orders->where("styleno", $order->styleno)->max("latest_output") ?? date("Y-m-d")." 00:00:00";
+
+                                            $currentEfficiency = ($currentMinsAvail  > 0 ? round(($currentMinsProd/$currentMinsAvail)*100, 2) : 0);
+
+                                            $summaryActual += $currentActual;
+                                            $summaryMinsProd += $currentMinsProd;
+                                            $summaryTarget += $currentTarget;
+                                            $summaryMinsAvail += $currentMinsAvail;
+                                            $lastInput < $currentLastInput && $lastInput = $currentLastInput;
+                                        @endphp
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
+                                            {{ num($currentActual) }}
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center text-sb fs-5 align-middle">
+                                            {{ num($currentTarget) }}
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="fw-bold text-center fs-5 align-middle {{ $currentEfficiency < 85 ? 'text-danger' : 'text-success' }}">
+                                            {{ $currentEfficiency }} %
+                                        </td>
+                                        <td rowspan="{{ $currentRowSpan }}" class="text-center align-middle">
+                                            {{ $currentLastInput }}
+                                        </td>
+                                    @endif
+                                </tr>
+                                @php
+                                    if ($currentStyle != $order->styleno) {
+                                        $currentStyle = $order->styleno;
+                                    }
+                                @endphp
+                            @endforeach
+                        @endif
+                    </tbody>
+                    <tfoot>
+                        @php
+                            $summaryEfficiency = $summaryMinsAvail > 0 ? round($summaryMinsProd/$summaryMinsAvail*100, 2) : 0;
+                            $targetFromEfficiency =$summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
+                        @endphp
+                        <tr>
+                            <th colspan="12" class="fs-5 text-center">Summary</th>
+                            <th class="fs-5 text-center">{{ num($summaryActual) }}</th>
+                            <th class="fs-5 text-center">{{ num($targetFromEfficiency) }}</th>
+                            <th class="fs-5 text-center {{ $summaryEfficiency < 85 ? 'text-danger' : 'text-success' }}">{{ $summaryEfficiency }} %</th>
+                            <td class="text-center">{{ $lastInput }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        @endif
     @endif
 
     {{-- Top 5 Defects --}}
