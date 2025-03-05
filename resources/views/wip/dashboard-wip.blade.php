@@ -86,7 +86,7 @@
                                 <div class="col-md-6">
                                     <select class="select2bs4chief" name="month" id="month">
                                         @foreach ($months as $m)
-                                            <option value="{{ $m['angka'] }}">{{ $m['nama'] }}</option>
+                                            <option value="{{ $m['angka'] }}" {{ $m['angka'] == date("m") ? "selected" : "" }}>{{ $m['nama'] }}</option>
                                         @endforeach
                                     </select>
                                 </div>
