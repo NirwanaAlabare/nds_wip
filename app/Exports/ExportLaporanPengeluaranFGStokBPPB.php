@@ -68,6 +68,7 @@ class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, Should
         lokasi,
         tujuan_pengeluaran,
         tujuan,
+        no_dok,
         a.created_by,
         created_at
         from fg_stok_bppb a
@@ -100,7 +101,7 @@ class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, Should
     {
 
         $event->sheet->styleCells(
-            'A4:S' . $event->getConcernable()->rowCount,
+            'A4:U' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

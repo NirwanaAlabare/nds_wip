@@ -39,6 +39,7 @@ class FGStokBPPBController extends Controller
             no_carton,
             lokasi,
             tujuan,
+            no_dok,
             tujuan_pengeluaran,
             a.created_by,
             created_at
@@ -243,8 +244,14 @@ class FGStokBPPBController extends Controller
         $data_grade = DB::select("select grade isi , grade tampil from fg_stok_master_grade");
 
         return view('fg-stock.create_bppb_fg_stock', [
-            'page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bppb", "subPage" => "bppb-fg-stock",
-            "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "data_out" => $data_out, "user" => $user
+            'page' => 'dashboard-fg-stock',
+            "subPageGroup" => "fgstock-bppb",
+            "subPage" => "bppb-fg-stock",
+            "data_lok" => $data_lok,
+            "data_buyer" => $data_buyer,
+            "data_grade" => $data_grade,
+            "data_out" => $data_out,
+            "user" => $user
         ]);
     }
 
