@@ -754,9 +754,8 @@ class StockerController extends Controller
             where("stocker_input.form_cut_id", $request['form_cut_id'])->
             groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
-            orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
-            orderBy("stocker_input.ratio", "asc")->
+            orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
             get();
 
         // generate pdf
@@ -1287,7 +1286,7 @@ class StockerController extends Controller
                 orderBy("stocker_input.shade", "asc")->
                 orderBy("stocker_input.size", "desc")->
                 orderBy("stocker_input.ratio", "desc")->
-                orderBy("stocker_input.group_stocker", "asc")->
+                orderBy("stocker_input.group_stocker", "desc")->
                 orderBy("stocker_input.part_detail_id", "desc")->
                 get();
 
@@ -1751,7 +1750,7 @@ class StockerController extends Controller
             }
 
             // Adjust stocker data
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "asc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
             $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             $currentStockerSize = "";
