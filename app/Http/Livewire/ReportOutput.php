@@ -884,10 +884,18 @@ class ReportOutput extends Component
 
             $defectTypes = DB::connection("mysql_sb")->table('output_defects'.$this->qcType)->
                 selectRaw('defect_type_id, defect_type, count(defect_type_id) as defect_type_count')->
+                leftJoin("so_det", "so_det.id", "=","output_defects".$this->qcType.".so_det_id")->
+                leftJoin("so", "so.id", "=","so_det.id_so")->
+                leftJoin("act_costing", "act_costing.id", "=","so.id_cost")->
                 leftJoin("master_plan", "master_plan.id", "=","output_defects".$this->qcType.".master_plan_id")->
                 leftJoin("output_defect_types", "output_defect_types.id", "=","output_defects".$this->qcType.".defect_type_id")->
                 where("master_plan.cancel", 'N')->
                 whereRaw("output_defects".$this->qcType.".updated_at ".$outputFilter."")->
+                whereRaw("(
+                    master_plan.sewing_line LIKE '%".$this->search."%' OR
+                    act_costing.kpno LIKE '%".$this->search."%' OR
+                    act_costing.styleno LIKE '%".$this->search."%'
+                )")->
                 groupBy("defect_type_id")->
                 orderByRaw("defect_type_count desc")->limit(5)->get();
 
@@ -898,10 +906,18 @@ class ReportOutput extends Component
 
             $defectAreas = DB::connection("mysql_sb")->table('output_defects'.$this->qcType)->
                 selectRaw('defect_type_id, defect_area_id, defect_area, count(defect_area_id) as defect_area_count')->
+                leftJoin("so_det", "so_det.id", "=","output_defects".$this->qcType.".so_det_id")->
+                leftJoin("so", "so.id", "=","so_det.id_so")->
+                leftJoin("act_costing", "act_costing.id", "=","so.id_cost")->
                 leftJoin("master_plan", "master_plan.id", "=","output_defects".$this->qcType.".master_plan_id")->
                 leftJoin("output_defect_areas", "output_defect_areas.id", "=","output_defects".$this->qcType.".defect_area_id")->
                 where("master_plan.cancel", 'N')->
                 whereRaw("output_defects".$this->qcType.".updated_at ".$outputFilter."")->
+                whereRaw("(
+                    master_plan.sewing_line LIKE '%".$this->search."%' OR
+                    act_costing.kpno LIKE '%".$this->search."%' OR
+                    act_costing.styleno LIKE '%".$this->search."%'
+                )")->
                 whereIn("defect_type_id", $defectTypeIds)->
                 groupBy("defect_type_id", "defect_area_id")->
                 orderByRaw("defect_area_count desc")->get();
@@ -913,6 +929,9 @@ class ReportOutput extends Component
 
             $lineDefects = DB::connection("mysql_sb")->table('output_defects'.$this->qcType)->
                 selectRaw("master_plan.sewing_line, output_defects".$this->qcType.".defect_type_id, output_defects".$this->qcType.".defect_area_id, count(*) as total")->
+                leftJoin("so_det", "so_det.id", "=","output_defects".$this->qcType.".so_det_id")->
+                leftJoin("so", "so.id", "=","so_det.id_so")->
+                leftJoin("act_costing", "act_costing.id", "=","so.id_cost")->
                 leftJoin('master_plan', 'master_plan.id', 'output_defects'.$this->qcType.'.master_plan_id')->
                 where("master_plan.cancel", 'N')->
                 whereRaw("output_defects".$this->qcType.".updated_at ".$outputFilter."")->

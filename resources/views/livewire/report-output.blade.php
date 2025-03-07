@@ -48,7 +48,7 @@
             </div>
         </div>
         <div>
-            <button class="btn btn-sm btn-success" onclick="exportExcel(this, 'output', '{{ $this->qcType }}', '{{ $this->date }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}', '{{ $this->range }}')" id="export-excel">
+            <button class="btn btn-sm btn-success" onclick="exportExcel(this, 'output', '{{ $this->qcType }}', '{{ $this->date }}', '{{ $this->dateFrom }}', '{{ $this->dateTo }}', '{{ $this->range }}', '{{ $this->search }}')" id="export-excel">
                 Export <i class="fa-solid fa-file-excel"></i>
             </button>
         </div>
@@ -974,7 +974,7 @@
             $("#"+range+"-range").prop("checked", true);
         }
 
-        function exportExcel(elm, type, subtype, date, dateFrom, dateTo, range) {
+        function exportExcel(elm, type, subtype, date, dateFrom, dateTo, range, search) {
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
             let loading = document.createElement('div');
@@ -996,7 +996,8 @@
                         date : date,
                         dateFrom : dateFrom,
                         dateTo : dateTo,
-                        range : range
+                        range : range,
+                        search : search,
                     },
                     xhrFields: { responseType : 'blob' },
                     success: function(res) {

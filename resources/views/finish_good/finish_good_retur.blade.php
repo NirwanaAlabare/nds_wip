@@ -57,11 +57,15 @@
                             <th>No. SB</th>
                             <th>Tgl. Out</th>
                             <th>Buyer</th>
+                            <th>PO</th>
+                            <th>Barcode</th>
+                            <th>WS</th>
+                            <th>Color</th>
+                            <th>Size</th>
                             <th>No Ctn</th>
                             <th>Tot Qty</th>
                             <th>Jenis Dok</th>
                             <th>Inv No</th>
-                            <th>List PO</th>
                             <th>Ket</th>
                             <th>User</th>
                             <th>Tgl. Input</th>
@@ -69,13 +73,12 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="3"></th>
+                            <th colspan="8"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_tot'> </th>
                             <th>PCS</th>
-                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -140,38 +143,69 @@
 
         let datatable = $("#datatable").DataTable({
             "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
 
-                // converting to interger to find total
+                var api = this.api();
+
+
+                // Function to convert to integer
+
                 var intVal = function(i) {
+
                     return typeof i === 'string' ?
+
                         i.replace(/[\$,]/g, '') * 1 :
+
                         typeof i === 'number' ?
+
                         i : 0;
+
                 };
 
-                // computing column Total of the complete result
-                var sumTotal = api
-                    .column(3)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+
+                // Compute the sum for column 9 (qty)
 
                 var sumTotalA = api
-                    .column(4)
+
+                    .column(9)
+
                     .data()
+
                     .reduce(function(a, b) {
+
                         return intVal(a) + intVal(b);
+
                     }, 0);
 
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(3).footer()).html(sumTotal);
-                $(api.column(4).footer()).html(sumTotalA);
-            },
 
+                // Create a Set to store unique combinations of column 3 (po) and column 8 (no_carton)
+
+                var uniqueCombinations = new Set();
+
+
+                api.rows({
+                    search: 'applied'
+                }).every(function(rowIdx) {
+
+                    var po = this.data().po; // Column 3
+
+                    var no_carton = this.data().no_carton; // Column 8
+
+                    uniqueCombinations.add(po + '|' + no_carton); // Combine and add to Set
+
+                });
+
+
+                var uniqueCount = uniqueCombinations.size; // Get the count of unique combinations
+
+
+                // Update footer by showing the total with the reference of the column index
+
+                $(api.column(0).footer()).html('Total');
+
+                $(api.column(8).footer()).html(uniqueCount); // Display the unique count for column 8
+
+                $(api.column(9).footer()).html(sumTotalA); // Display the sum for column 9
+            },
 
             ordering: false,
             processing: true,
@@ -190,27 +224,39 @@
             },
             columns: [{
                     data: 'no_sb'
-
-                }, {
+                },
+                {
                     data: 'tgl_pengeluaran_fix'
                 },
                 {
                     data: 'buyer'
                 },
                 {
-                    data: 'tot_karton'
+                    data: 'po'
                 },
                 {
-                    data: 'tot_qty'
+                    data: 'barcode'
                 },
+                {
+                    data: 'kpno'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'no_carton'
+                }, // Column 8
+                {
+                    data: 'qty'
+                }, // Column 9
                 {
                     data: 'jenis_dok'
                 },
                 {
                     data: 'invno'
-                },
-                {
-                    data: 'list_po'
                 },
                 {
                     data: 'remark'
@@ -222,25 +268,10 @@
                     data: 'created_at'
                 },
             ],
-
             columnDefs: [{
-                    "className": "align-middle",
-                    "targets": "_all"
-                },
-                // {
-                //     targets: [11],
-                //     render: (data, type, row, meta) => {
-                //         return `
-            // <div
-            // class='d-flex gap-1 justify-content-center'>
-            // <a class='btn btn-warning btn-sm'  target="_blank" href="{{ route('edit_fg_out') }}/` + row.id + `"><i class='fas fa-edit'></i></a>
-            // </div>
-            //         `;
-                //     }
-                // },
-
-            ]
-
+                "className": "align-middle",
+                "targets": "_all"
+            }, ]
         });
 
         function export_excel_list() {

@@ -42,6 +42,7 @@ class ReportController extends Controller
         $dateFrom = $request->dateFrom;
         $dateTo = $request->dateTo;
         $range = $request->range;
+        $search = $request->search;
 
         if ($subtype == '_finish') {
             if ($range == "custom") {
@@ -51,11 +52,11 @@ class ReportController extends Controller
             }
         } else {
             if ($range == "custom") {
-                return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype), 'output_export.xlsx');
+                return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype, $search), 'output_export.xlsx');
             }
         }
 
-        return Excel::download(new OutputExport($date, $subtype), 'output_export.xlsx');
+        return Excel::download(new OutputExport($date, $subtype, $search), 'output_export.xlsx');
     }
 
     public function exportProduction(Request $request) {
@@ -97,10 +98,6 @@ class ReportController extends Controller
         $type = $request->type;
         $outputType = $request->outputType;
 
-        if ($outputType == "qcf") {
-            return Excel::download(new DefectInOutFinishingExport($dateFrom, $dateTo), 'defectInOut.xlsx');
-        } else {
-            return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type, $outputType), 'defectInOut.xlsx');
-        }
+        return Excel::download(new DefectInOutExport($dateFrom, $dateTo, $type, $outputType), 'defectInOut.xlsx');
     }
 }

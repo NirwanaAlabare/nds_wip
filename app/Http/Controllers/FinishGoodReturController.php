@@ -20,24 +20,33 @@ class FinishGoodReturController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
             $additionalQuery = '';
-            $data_input = DB::select("SELECT
-            a.id,
+            $data_input = DB::connection('mysql_sb')->select("SELECT
+a.id,
 no_sb,
 tgl_pengeluaran,
 concat((DATE_FORMAT(a.tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(a.tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(a.tgl_pengeluaran,  '%Y')) tgl_pengeluaran_fix,
-group_concat(distinct(po)) list_po,
-count(no_carton) tot_karton,
-sum(qty) tot_qty,
-group_concat(notes) list_notes,
-buyer,
+a.po,
+a.barcode,
+ac.kpno,
+sd.color,
+sd.size,
+no_carton,
+a.qty,
+a.notes,
+a.buyer,
 invno,
 remark,
 jenis_dok,
 a.created_at,
 a.created_by
-from fg_fg_out a
+from laravel_nds.fg_fg_out a
+inner join signalbit_erp.so_det sd on a.id_so_det = sd.id
+inner join signalbit_erp.so on sd.id_so = so.id
+inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+inner join laravel_nds.ppic_master_so p on a.id_ppic_master_so = p.id
+left join signalbit_erp.master_size_new msn on sd.size = msn.size
 where tgl_pengeluaran >='$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir' and a.status = 'RETUR'
-group by no_sb
+order by tgl_pengeluaran desc , po asc, color asc, msn.urutan asc
             ");
 
             return DataTables::of($data_input)->toJson();
