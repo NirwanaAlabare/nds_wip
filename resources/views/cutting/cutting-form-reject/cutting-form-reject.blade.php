@@ -36,21 +36,23 @@
                     {{-- <button class="btn btn-success" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</a> --}}
                 </div>
             </div>
-            <table class="table table-bordered" id="cutting-reject-table">
-                <thead>
-                    <th>Action</th>
-                    <th>Tanggal</th>
-                    <th>No. Form</th>
-                    <th>Panel</th>
-                    <th>No. WS</th>
-                    <th>Style</th>
-                    <th>Color</th>
-                    <th>Size</th>
-                    <th>Qty</th>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="cutting-reject-table">
+                    <thead>
+                        <th>Action</th>
+                        <th>Tanggal</th>
+                        <th>No. Form</th>
+                        <th>Panel</th>
+                        <th>No. WS</th>
+                        <th>Style</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th>Qty</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 @endsection
