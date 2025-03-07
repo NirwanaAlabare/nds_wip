@@ -202,6 +202,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-colors-new', 'getColors')->name('get-colors');
         // get sizes
         Route::get('/get-sizes-new', 'getSizes')->name('get-sizes');
+        // get panels new
+        Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
     });
 
     // Worksheet
@@ -500,8 +502,11 @@ Route::middleware('auth')->group(function () {
     // Cutting Reject
     Route::controller(CuttingFormRejectController::class)->prefix("form-cut-input-reject")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('cutting-reject');
+        Route::get('/show/{id?}', 'show')->name('show-cutting-reject');
         Route::get('/create', 'create')->name('create-cutting-reject');
+        Route::post('/store', 'store')->name('store-cutting-reject');
         Route::get('/stock', 'stock')->name('stock-cutting-reject');
+        Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-reject');
     });
 
     // Piping Stock
@@ -655,6 +660,11 @@ Route::middleware('auth')->group(function () {
         // add
         Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
         Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
+
+        // stocker reject
+        Route::post('/print-stocker-reject-all-size/{partDetailId?}', 'printStockerRejectAllSize')->name('print-stocker-reject-all-size');
+        Route::post('/print-stocker-reject-checked', 'printStockerRejectChecked')->name('print-stocker-reject-checked');
+        Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
     });
 
     // DC :
