@@ -86,12 +86,32 @@ class GeneralController extends Controller
         return $sizes ? $sizes : null;
     }
 
+    public function getPanelListNew(Request $request)
+    {
+        $panels = DB::connection('mysql_sb')->select("
+                select nama_panel panel from
+                    (select id_panel from bom_jo_item k
+                        inner join so_det sd on k.id_so_det = sd.id
+                        inner join so on sd.id_so = so.id
+                        inner join act_costing ac on so.id_cost = ac.id
+                        inner join masteritem mi on k.id_item = mi.id_gen
+                        where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
+                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                        group by id_panel
+                    ) a
+                inner join masterpanel mp on a.id_panel = mp.id
+            ");
+
+        return $panels;
+    }
+
     public function getOrderInfo(Request $request)
     {
         $order = DB::connection('mysql_sb')->
             table('act_costing')->
             selectRaw('
                 act_costing.id,
+                act_costing.id_buyer,
                 act_costing.kpno,
                 act_costing.styleno,
                 act_costing.qty order_qty,

@@ -8,6 +8,7 @@ use App\Models\StockerDetail;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
+use App\Models\FormCutReject;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\PartDetail;
@@ -3927,11 +3928,11 @@ class StockerController extends Controller
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
-                if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                // if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
                     array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-                } else {
-                    array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
-                }
+                // } else {
+                //     array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
+                // }
             }
 
             $failMessage = "";
@@ -4055,6 +4056,233 @@ class StockerController extends Controller
             "status" => 400,
             "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Gagal di Update</b>"
         );
+    }
+
+    public function printStockerRejectAllSize(Request $request, $partDetailId = 0)
+    {
+        $formData = FormCutReject::where("id", $request['form_cut_id'])->first();
+
+        $storeItemArr = [];
+        for ($i = 0; $i < count($request['part_detail_id']); $i++) {
+            if ($request['part_detail_id'][$i] == $partDetailId) {
+                $checkStocker = Stocker::where("form_reject_id", $request["id"])->
+                    where("part_detail_id", $request["part_detail_id"][$i])->
+                    where("so_det_id", $request["so_det_id"][$i])->
+                    where("shade", $request["group"])->
+                    first();
+
+                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i + 1);
+
+                if (!$checkStocker) {
+                    if ($request['qty'][$i] > 0) {
+                        array_push($storeItemArr, [
+                            'id_qr_stocker' => $stockerId,
+                            'form_reject_id' => $request['id'],
+                            'act_costing_ws' => $request["act_costing_ws"],
+                            'color' => $request["color"],
+                            'panel' => $request["panel"],
+                            'shade' => $request["group"],
+                            'so_det_id' => $request["so_det_id"][$i],
+                            'size' => $request["size"][$i],
+                            'part_detail_id' => $request['part_detail_id'][$i],
+                            'qty_ply' => $request['qty'][$i],
+                            'notes' => $request['note'],
+                            'range_awal' => 1,
+                            'range_akhir' => $request['qty'][$i],
+                            'created_by' => Auth::user()->id,
+                            'created_by_username' => Auth::user()->username,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ]);
+                    }
+                } else if ($checkStocker && ($checkStocker->qty_ply != $request['qty'][$i] || $request['note'] != $checkStocker->notes)) {
+                    $checkStocker->qty_ply = $request["qty"][$i];
+                    $checkStocker->range_awal = 1;
+                    $checkStocker->range_akhir = $request["qty"][$i];
+                    $checkStocker->notes = $request["note"];
+                    $checkStocker->save();
+                }
+            }
+        }
+
+        if (count($storeItemArr) > 0) {
+            $storeItem = Stocker::insert($storeItemArr);
+        }
+
+        $stockers = Stocker::selectRaw("
+                stocker_input.qty_ply bundle_qty,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                form_cut_reject.act_costing_ws,
+                form_cut_reject.buyer,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                form_cut_reject.no_form,
+                stocker_input.shade,
+                stocker_input.notes,
+                master_part.nama_part part,
+                master_sb_ws.dest
+            ")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
+            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            where("stocker_input.form_reject_id", $request['id'])->
+            where("part_detail.id", $partDetailId)->
+            groupBy("form_cut_reject.id", "part_detail.id", "stocker_input.size", "stocker_input.shade")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            get();
+
+        // generate pdf
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $customPaper = array(0, 0, 300, 250);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker-reject', ["stockers" => $stockers])->setPaper('A7', 'landscape');
+
+        $path = public_path('pdf/');
+        $fileName = 'stocker-' . $request['id'] . '-' . $partDetailId . '.pdf';
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+        return response()->download($generatedFilePath);
+    }
+
+    public function printStockerRejectChecked(Request $request)
+    {
+        $formData = FormCutReject::where("id", $request['id'])->first();
+
+        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
+        $i = 0;
+        $storeItemArr = [];
+        for ($i = 0; $i < count($request['so_det_id']); $i++) {
+            $checkStocker = Stocker::where("form_reject_id", $request["id"])->
+                where("part_detail_id", $request["part_detail_id"][$i])->
+                where("so_det_id", $request["so_det_id"][$i])->
+                where("shade", $request["group"])->
+                first();
+
+            $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i + 1);
+
+            if (!$checkStocker) {
+                if ($request['qty'][$i] > 0) {
+                    array_push($storeItemArr, [
+                        'id_qr_stocker' => $stockerId,
+                        'form_reject_id' => $request['id'],
+                        'act_costing_ws' => $request["act_costing_ws"],
+                        'color' => $request["color"],
+                        'panel' => $request["panel"],
+                        'shade' => $request["group"],
+                        'so_det_id' => $request["so_det_id"][$i],
+                        'size' => $request["size"][$i],
+                        'part_detail_id' => $request['part_detail_id'][$i],
+                        'qty_ply' => $request['qty'][$i],
+                        'notes' => $request['note'],
+                        'range_awal' => 1,
+                        'range_akhir' => $request['qty'][$i],
+                        'created_by' => Auth::user()->id,
+                        'created_by_username' => Auth::user()->username,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+                }
+            } else if ($checkStocker && ($checkStocker->qty_ply != $request['qty'][$i]  || $request['note'] != $checkStocker->notes)) {
+                $checkStocker->qty_ply = $request["qty"][$i];
+                $checkStocker->range_awal = 1;
+                $checkStocker->range_akhir = $request["qty"][$i];
+                $checkStocker->notes = $request["note"];
+                $checkStocker->save();
+            }
+        }
+
+        if (count($storeItemArr) > 0) {
+            $storeItem = Stocker::insert($storeItemArr);
+        }
+
+        $stockers = Stocker::selectRaw("
+                stocker_input.qty_ply bundle_qty,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                form_cut_reject.act_costing_ws,
+                form_cut_reject.buyer,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                form_cut_reject.no_form,
+                stocker_input.shade,
+                stocker_input.notes,
+                master_part.nama_part part,
+                master_sb_ws.dest
+            ")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
+            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            where("stocker_input.form_reject_id", $request['id'])->
+            whereIn("part_detail.id", $request['generate_stocker'])->
+            groupBy("form_cut_reject.id", "part_detail.id", "stocker_input.size", "stocker_input.shade")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            get();
+
+        // generate pdf
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $customPaper = array(0, 0, 300, 250);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker-reject', ["stockers" => $stockers])->setPaper('A7', 'landscape');
+
+        $path = public_path('pdf/');
+        $fileName = 'stocker-' . $request['id'] . '.pdf';
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+        return response()->download($generatedFilePath);
+    }
+
+    public function printStockerReject($id = 0)
+    {
+        $stockers = Stocker::selectRaw("
+                stocker_input.qty_ply bundle_qty,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                form_cut_reject.act_costing_ws,
+                form_cut_reject.buyer,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                form_cut_reject.no_form,
+                stocker_input.shade,
+                stocker_input.notes,
+                master_part.nama_part part,
+                master_sb_ws.dest
+            ")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
+            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            where("stocker_input.id", $id)->
+            groupBy("form_cut_reject.id", "part_detail.id", "stocker_input.size", "stocker_input.shade")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            get();
+
+        // generate pdf
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $customPaper = array(0, 0, 300, 250);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker-reject', ["stockers" => $stockers])->setPaper('A7', 'landscape');
+
+        $path = public_path('pdf/');
+        $fileName = 'stocker-' . $id . '.pdf';
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+        return response()->download($generatedFilePath);
     }
 
     // public function printMonthCountChecked(Request $request) {

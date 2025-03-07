@@ -1330,7 +1330,6 @@
             });
         }
 
-
         function printStockerAllSizeAdd() {
             generating = true;
 
@@ -1424,15 +1423,14 @@
                 let style = document.getElementById("style").value;
                 let color = document.getElementById("color").value;
                 let panel = document.getElementById("panel").value;
-                let no_form_cut = document.getElementById("no_form_cut").value;
+                let no_form = document.getElementById("no_form").value;
 
                 let fileName = [
                     no_ws,
                     style,
                     color,
                     panel,
-                    part,
-                    no_form_cut
+                    no_form
                 ].join('-');
 
                 Swal.fire({
