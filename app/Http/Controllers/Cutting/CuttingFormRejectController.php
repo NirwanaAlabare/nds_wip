@@ -30,9 +30,16 @@ class CuttingFormRejectController extends Controller
 
             return DataTables::eloquent($formCutReject)->
                 addColumn('sizes', function ($row) {
-                    $sizes = $row->formCutRejectDetails ? $row->formCutRejectDetails->implode("size"," | ") : "-";
+                    $sizes = $row->formCutRejectDetails->filter(function ($item) {
+                        return $item->qty > 0;
+                    });
 
-                    return $sizes;
+                    $sizeList = "";
+                    foreach ($sizes as $size) {
+                        $sizeList .= $size->size.($size->dest ? " - ".$size->dest." " : " ");
+                    }
+
+                    return $sizeList;
                 })->
                 addColumn('qty', function ($row) {
                     $qty = $row->formCutRejectDetails ? $row->formCutRejectDetails->sum("qty") : "-";
