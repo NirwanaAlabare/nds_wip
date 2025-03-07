@@ -60,6 +60,7 @@
                             <th>Qty</th>
                             <th>Tujuan</th>
                             <th>Tujuan Pengeluaran</th>
+                            <th>No. Dok</th>
                         </tr>
                     </thead>
                 </table>
@@ -160,6 +161,9 @@
                 },
                 {
                     data: 'tujuan_pengeluaran'
+                },
+                {
+                    data: 'no_dok'
                 },
             ],
             columnDefs: [
