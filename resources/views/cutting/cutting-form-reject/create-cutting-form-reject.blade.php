@@ -73,6 +73,7 @@
                                 <tr>
                                     <th>So Det ID</th>
                                     <th>Size</th>
+                                    <th>Dest</th>
                                     <th>Qty Output</th>
                                 </tr>
                             </thead>
@@ -82,8 +83,9 @@
                             <tfoot>
                                 <tr>
                                     <th></th>
+                                    <th></th>
                                     <th>Total</th>
-                                    <th>...</th>
+                                    <th id="total-detail-qty">...</th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -250,6 +252,7 @@
             processing: true,
             ordering: false,
             serverSide: true,
+            paging: false,
             ajax: {
                 url: '{{ route('get-general-sizes') }}',
                 data: function(d) {
@@ -263,6 +266,9 @@
                 },
                 {
                     data: 'size',
+                },
+                {
+                    data: 'dest',
                 },
                 {
                     data: null, // qty
@@ -279,17 +285,17 @@
                     }
                 },
                 {
-                    targets: [1],
+                    targets: [1,2],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         return data;
                     }
                 },
                 {
-                    targets: [2],
+                    targets: [3],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        let input = `<input type='number' class='form-control form-control-sm' id='qty_`+meta.row+`' name='qty[`+meta.row+`]'>`
+                        let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_`+meta.row+`' name='qty[`+meta.row+`]' onkeyup="calculateTotalDetailQty()" onchange="calculateTotalDetailQty()">`
 
                         return input;
                     }
@@ -312,6 +318,20 @@
                     console.error(jqXHR);
                 }
             });
+        }
+
+        function calculateTotalDetailQty() {
+            let detailQtyElements = document.getElementsByClassName("detail-qty");
+
+            console.log(detailQtyElements.length);
+
+            let totalQty = 0;
+            for (let i = 0; i < detailQtyElements.length; i++) {
+                console.log(i, detailQtyElements[i].value, detailQtyElements[i]);
+                totalQty += Number(detailQtyElements[i].value);
+            }
+
+            document.getElementById("total-detail-qty").innerHTML = totalQty;
         }
     </script>
 @endsection
