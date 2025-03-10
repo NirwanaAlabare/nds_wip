@@ -3829,7 +3829,49 @@ class StockerController extends Controller
     }
 
     public function modifyYearSequenceList(Request $request) {
-        $data = YearSequence::selectRaw("
+        if ($request->method == "list") {
+            $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
+
+            $data = YearSequence::selectRaw("
+                year_sequence.id_year_sequence,
+                master_sb_ws.ws,
+                master_sb_ws.styleno,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.dest
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+            whereRaw("year_sequence.id_year_sequence in (".$yearSequenceIds.")");
+
+            if ($yearSequenceIds) {
+                $dataOutput = collect(
+                        DB::connection("mysql_sb")->select("
+                            SELECT output.*, userpassword.username as sewing_line FROM (
+                                select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE kode_numbering in (".$yearSequenceIds.")
+                                UNION
+                                select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE kode_numbering in (".$yearSequenceIds.")
+                                UNION
+                                select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE kode_numbering in (".$yearSequenceIds.")
+                            ) output
+                            left join user_sb_wip on user_sb_wip.id = output.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        ")
+                    );
+            } else {
+                $dataOutput = collect([]);
+            }
+
+            if ($request->range_awal && $request->range_akhir) {
+                $dataOutputPacking = collect(
+                    DB::connection("mysql_sb")->select("
+                        select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE kode_numbering in (".$yearSequenceIds.")
+                    ")
+                );
+            } else {
+                $dataOutputPacking = collect([]);
+            }
+        } else {
+            $data = YearSequence::selectRaw("
                 year_sequence.id_year_sequence,
                 master_sb_ws.ws,
                 master_sb_ws.styleno,
@@ -3842,32 +3884,33 @@ class StockerController extends Controller
             where("year_sequence", $request->sequence)->
             whereBetween("year_sequence_number", [($request->range_awal ? $request->range_awal : '-'), ($request->range_akhir ? $request->range_akhir : '-')]);
 
-        if ($request->range_awal && $request->range_akhir) {
-            $dataOutput = collect(
+            if ($request->range_awal && $request->range_akhir) {
+                $dataOutput = collect(
+                        DB::connection("mysql_sb")->select("
+                            SELECT output.*, userpassword.username as sewing_line FROM (
+                                select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                                UNION
+                                select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                                UNION
+                                select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                            ) output
+                            left join user_sb_wip on user_sb_wip.id = output.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        ")
+                    );
+            } else {
+                $dataOutput = collect([]);
+            }
+
+            if ($request->range_awal && $request->range_akhir) {
+                $dataOutputPacking = collect(
                     DB::connection("mysql_sb")->select("
-                        SELECT output.*, userpassword.username as sewing_line FROM (
-                            select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
-                            UNION
-                            select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
-                            UNION
-                            select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : '-')." and ".($request->range_akhir ? $request->range_akhir : '-')."
-                        ) output
-                        left join user_sb_wip on user_sb_wip.id = output.created_by
-                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : '-')."
                     ")
                 );
-        } else {
-            $dataOutput = collect([]);
-        }
-
-        if ($request->range_awal && $request->range_akhir) {
-            $dataOutputPacking = collect(
-                DB::connection("mysql_sb")->select("
-                    select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : '-')."
-                ")
-            );
-        } else {
-            $dataOutputPacking = collect([]);
+            } else {
+                $dataOutputPacking = collect([]);
+            }
         }
 
         return Datatables::of($data)->
@@ -3904,35 +3947,54 @@ class StockerController extends Controller
 
         $request->validate([
             "year" => "required",
-            "sequence" => "required",
-            "range_awal" => "required|numeric|gt:0",
-            "range_akhir" => "required|numeric|gte:range_awal"
+            "sequence" => "required"
         ]);
 
         if ($request->size != null && $request->size_text != null) {
-            $yearSequences = YearSequence::where("year", $request->year)->
-                where("year_sequence", $request->sequence)->
-                whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
-                get();
+            if ($request->method == "list") {
+                $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
 
-            $output = collect(
-                DB::connection("mysql_sb")->select("
-                    select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                    UNION
-                    select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                    UNION
-                    select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                ")
-            );
+                $yearSequences = YearSequence::whereRaw("id_year_sequence in (".$yearSequenceIds.")")->
+                    get();
+
+                $output = collect(
+                    DB::connection("mysql_sb")->select("
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE kode_numbering in (".$yearSequenceIds.")
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE kode_numbering in (".$yearSequenceIds.")
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE kode_numbering in (".$yearSequenceIds.")
+                    ")
+                );
+            } else {
+                $yearSequences = YearSequence::where("year", $request->year)->
+                    where("year_sequence", $request->sequence)->
+                    whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
+                    get();
+
+                $output = collect(
+                    DB::connection("mysql_sb")->select("
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                    ")
+                );
+            }
 
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
-                // if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
                     array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-                // } else {
-                //     array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
-                // }
+                } else {
+                    if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                        array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+                    } else {
+                        array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
+                    }
+                }
             }
 
             $failMessage = "";
@@ -3969,10 +4031,24 @@ class StockerController extends Controller
                     "so_det_id" => $request->size,
                 ]);
 
-                return array(
-                    "status" => 200,
-                    "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
-                );
+                if ($request->method == "list") {
+                    if ($yearSequenceIds) {
+                        return array(
+                            "status" => 200,
+                            "message" => "Year Sequence <br> ".$yearSequenceIds.". <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
+                        );
+                    } else {
+                        return array(
+                            "status" => 400,
+                            "message" => "Terjadi Kesalahan"
+                        );
+                    }
+                } else {
+                    return array(
+                        "status" => 200,
+                        "message" => "Year ".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
+                    );
+                }
             } else if (count($yearSequenceArr) < 1) {
                 return array(
                     "status" => 400,
@@ -3996,24 +4072,39 @@ class StockerController extends Controller
         $request->validate([
             "year" => "required",
             "sequence" => "required",
-            "range_awal" => "required|numeric|gt:0",
-            "range_akhir" => "required|numeric|gte:range_awal"
         ]);
 
-        $yearSequences = YearSequence::where("year", $request->year)->
-            where("year_sequence", $request->sequence)->
-            whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
-            get();
+        if ($request->method == "list") {
+            $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
 
-        $output = collect(
-            DB::connection("mysql_sb")->select("
-                select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                UNION
-                select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                UNION
-                select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-            ")
-        );
+            $yearSequences = YearSequence::whereRaw("id_year_sequence in (".$yearSequenceIds.")")->
+                get();
+
+            $output = collect(
+                DB::connection("mysql_sb")->select("
+                    select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE kode_numbering in (".$yearSequenceIds.")
+                    UNION
+                    select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE kode_numbering in (".$yearSequenceIds.")
+                    UNION
+                    select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE kode_numbering in (".$yearSequenceIds.")
+                ")
+            );
+        } else {
+            $yearSequences = YearSequence::where("year", $request->year)->
+                where("year_sequence", $request->sequence)->
+                whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
+                get();
+
+            $output = collect(
+                DB::connection("mysql_sb")->select("
+                    select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                    UNION
+                    select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                    UNION
+                    select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                ")
+            );
+        }
 
         if ($output->count() < 1) {
             $yearSequenceArr = [];
