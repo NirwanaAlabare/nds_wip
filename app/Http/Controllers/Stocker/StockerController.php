@@ -3524,7 +3524,7 @@ class StockerController extends Controller
             $insertData = [];
 
             $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
-            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
+            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : $yearSequenceSequence;
             $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
 
             for ($i = 0; $i < $qty; $i++) {
@@ -3567,7 +3567,7 @@ class StockerController extends Controller
             $upsertData = [];
 
             $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
-            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
+            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : $yearSequenceSequence;
 
             for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
 

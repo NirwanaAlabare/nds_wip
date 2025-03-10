@@ -1423,14 +1423,14 @@
                 let style = document.getElementById("style").value;
                 let color = document.getElementById("color").value;
                 let panel = document.getElementById("panel").value;
-                let no_form = document.getElementById("no_form").value;
+                let no_form_cut = document.getElementById("no_form_cut").value;
 
                 let fileName = [
                     no_ws,
                     style,
                     color,
                     panel,
-                    no_form
+                    no_form_cut
                 ].join('-');
 
                 Swal.fire({
