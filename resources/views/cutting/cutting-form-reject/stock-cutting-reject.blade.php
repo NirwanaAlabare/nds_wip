@@ -32,8 +32,8 @@
                     </div>
                 </div>
                 <div class="d-flex gap-1">
-                    <a href="{{ route('create-cutting-reject') }}" class="btn btn-sb"><i class="fa fa-plus"></i> Baru</a>
-                    {{-- <button class="btn btn-success" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</a> --}}
+                    {{-- <a href="{{ route('create-cutting-reject') }}" class="btn btn-sb"><i class="fa fa-plus"></i> Baru</a> --}}
+                    <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -138,8 +138,78 @@
             $("#cutting-reject-table").DataTable().ajax.reload();
         }
 
-        function exportExcel() {
-            console.log("js");
+        function exportExcel (elm) {
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            let date = new Date();
+
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+
+            // This arrangement can be altered based on how we want the date's format to appear.
+            let currentDate = `${day}-${month}-${year}`;
+
+            $.ajax({
+                url: "{{ route("export-form-reject") }}",
+                type: 'post',
+                data: {
+                    dateFrom : $("#date-from").val(),
+                    dateTo : $("#date-to").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeChild(loading);
+                    elm.removeAttribute('disabled');
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa', 'fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerHTML += " Export";
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Form Reject "+$("#date-from").val()+" - "+$("#date-to").val()+".xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeChild(loading);
+                    elm.removeAttribute('disabled');
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa', 'fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerHTML += " Export";
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
         }
     </script>
 @endsection

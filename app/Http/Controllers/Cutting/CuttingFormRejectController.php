@@ -7,6 +7,8 @@ use App\Models\FormCutReject;
 use App\Models\FormCutRejectDetail;
 use App\Models\PartDetail;
 use App\Models\Stocker;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\Cutting\ExportCuttingFormReject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -26,7 +28,7 @@ class CuttingFormRejectController extends Controller
             $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
             $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
 
-            $formCutReject = FormCutReject::whereBetween("tanggal", [$dateFrom." 00:00:00", $dateTo." 23:59:59"]);
+            $formCutReject = FormCutReject::whereBetween("tanggal", [$dateFrom, $dateTo]);
 
             return DataTables::eloquent($formCutReject)->
                 addColumn('sizes', function ($row) {
@@ -374,5 +376,9 @@ class CuttingFormRejectController extends Controller
             "recordsFiltered" => intval(count($sizes)),
             "data" => $sizes
         ]);
+    }
+
+    public function exportExcel(Request $request) {
+        return Excel::download(new ExportCuttingFormReject($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
     }
 }

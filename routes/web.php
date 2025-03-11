@@ -512,6 +512,9 @@ Route::middleware('auth')->group(function () {
 
         // get sizes
         Route::get('/get-sizes', 'getSizeList')->name('get-form-reject-sizes');
+
+        // export reject
+        Route::post('/export-excel', 'exportExcel')->name('export-form-reject');
     });
 
     // Piping Stock
