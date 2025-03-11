@@ -118,9 +118,10 @@
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        let buttonDetail = `<a href="{{ route('show-cutting-reject') }}/`+data+`" class="btn btn-sb btn-sm"><i class="fa fa-search"></i></a>`;
+                        let buttonEdit = `<a href="{{ route('edit-cutting-reject') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
+                        // let buttonDetail = `<a href="{{ route('show-cutting-reject') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
 
-                        return buttonDetail;
+                        return buttonEdit;
                     }
                 },
                 {

@@ -20,7 +20,7 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold">
-                        <i class="fa fa-search"></i> Form Ganti Reject Detail
+                        <i class="fa fa-search"></i> Detail Form Ganti Reject
                     </h5>
                     <a href="{{ route('cutting-reject') }}" class="btn btn-sb-secondary btn-sm fw-bold"><i class="fa fa-reply"></i> Kembali Ke Form Ganti Reject</a>
                 </div>
@@ -59,7 +59,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Size</label>
-                        <input type="text" class="form-control" id="size" name="size" value="{{ $currentRejectDetail->implode("size", "|") }}" readonly>
+                        <input type="text" class="form-control" id="size" name="size" value="{{ $currentRejectDetail->implode("size", " / ") }}" readonly>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Group</label>

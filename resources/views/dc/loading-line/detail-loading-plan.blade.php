@@ -91,10 +91,10 @@
                         @php
                             $qty = $loadingLine->qty;
 
-                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal) {
+                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") && $currentForm != $loadingLine->no_form)) {
                                 $currentForm = $loadingLine->no_form;
                                 $currentSize = $loadingLine->size;
-                                $currentGroup = $loadingLine->group_stocker;
+                                $currentGroup = $loadingLine->group_stocker ? $loadingLine->group_stocker : $loadingLine->shade;
                                 $currentRange = $loadingLine->range_awal;
 
                                 $currentUpdate = $loadingLine->tanggal_loading;
@@ -103,8 +103,7 @@
                                 $totalQty += $qty;
 
                                 $currentQty = $qty;
-                            }
-                            else {
+                            } else {
                                 $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
 
                                 $currentQty = $qty;

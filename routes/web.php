@@ -505,8 +505,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{id?}', 'show')->name('show-cutting-reject');
         Route::get('/create', 'create')->name('create-cutting-reject');
         Route::post('/store', 'store')->name('store-cutting-reject');
+        Route::get('/edit/{id?}', 'edit')->name('edit-cutting-reject');
+        Route::put('/update', 'update')->name('update-cutting-reject');
         Route::get('/stock', 'stock')->name('stock-cutting-reject');
         Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-reject');
+
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('get-form-reject-sizes');
     });
 
     // Piping Stock

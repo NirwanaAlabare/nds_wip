@@ -63,7 +63,7 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
                 a.tempat,
                 a.created_at,
                 a.user,
-                f.no_cut,
+                COALESCE(f.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part
             from
@@ -71,6 +71,7 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
+                left join form_cut_reject fr on fr.id = s.form_reject_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
