@@ -128,7 +128,7 @@ class SecondaryInhouseController extends Controller
         s.act_costing_ws,
         msb.buyer,
         no_cut,
-        style,
+        msb.styleno as style,
         s.color,
         COALESCE(msb.size, s.size) size,
         mp.nama_part,
@@ -148,7 +148,6 @@ class SecondaryInhouseController extends Controller
         and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
         return json_encode($cekdata[0]);
-        dd($cekdata);
     }
 
 
