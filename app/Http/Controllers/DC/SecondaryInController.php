@@ -148,7 +148,7 @@ class SecondaryInController extends Controller
         s.act_costing_ws,
         msb.buyer,
         no_cut,
-        style,
+        msb.styleno as style,
         s.color,
         COALESCE(msb.size, s.size) size,
         dc.tujuan,
