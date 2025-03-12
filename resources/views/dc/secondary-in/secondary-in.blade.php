@@ -236,6 +236,7 @@
                         <tr>
                             <th>Tgl Transaksi</th>
                             <th>ID QR</th>
+                            <th>Stock</th>
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
@@ -255,7 +256,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="11"></th>
+                            <th colspan="12"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_awal'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
@@ -351,35 +352,35 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(11)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalAwal = api
-                    .column(11)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
                     .column(12)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalReplace = api
+                var sumTotalAwal = api
+                    .column(12)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReject = api
                     .column(13)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalIn = api
+                var sumTotalReplace = api
                     .column(14)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalIn = api
+                    .column(15)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -387,10 +388,10 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(11).footer()).html(sumTotalAwal);
-                $(api.column(12).footer()).html(sumTotalReject);
-                $(api.column(13).footer()).html(sumTotalReplace);
-                $(api.column(14).footer()).html(sumTotalIn);
+                $(api.column(12).footer()).html(sumTotalAwal);
+                $(api.column(13).footer()).html(sumTotalReject);
+                $(api.column(14).footer()).html(sumTotalReplace);
+                $(api.column(15).footer()).html(sumTotalIn);
             },
             ordering: false,
             processing: true,
@@ -418,6 +419,9 @@
                 },
                 {
                     data: 'id_qr_stocker',
+                },
+                {
+                    data: 'tipe',
                 },
                 {
                     data: 'act_costing_ws',

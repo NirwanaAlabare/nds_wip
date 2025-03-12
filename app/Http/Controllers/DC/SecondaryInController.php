@@ -51,7 +51,9 @@ class SecondaryInController extends Controller
             }
 
             $data_input = DB::select("
-                SELECT a.id_qr_stocker,
+                SELECT
+                a.id_qr_stocker,
+                (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                 DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                 a.tgl_trans,
                 s.act_costing_ws,
@@ -74,6 +76,7 @@ class SecondaryInController extends Controller
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
+                left join form_cut_reject fr on fr.id = s.form_reject_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
