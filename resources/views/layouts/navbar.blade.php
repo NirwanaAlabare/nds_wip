@@ -467,11 +467,13 @@
                                         Track Output <i class="fa-solid fa-shuffle"></i>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('sewing-transfer-output') }}" class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
-                                        Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                                    </a>
-                                </li>
+                                @role("superadmin")
+                                    <li>
+                                        <a href="{{ route('sewing-transfer-output') }}" class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
+                                            Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                        </a>
+                                    </li>
+                                @endrole
                                 <li>
                                     <a href="{{ route('undo-output-history') }}" class="dropdown-item {{ $subPage == 'undo-output-history' ? 'active' : '' }}">
                                         Undo Output History <i class="fa-solid fa-rotate-left"></i>
