@@ -326,7 +326,9 @@ class DashboardController extends Controller
                     marker_input.color,
                     marker_detail.total_ratio,
                     COALESCE(form_cut_input.total_lembar, form_detail.total_gelaran) total_lembar,
+                    COALESCE(form_cut_input.qty_ply, 0) target_lembar,
                     COALESCE((marker_detail.total_ratio * form_cut_input.total_lembar), (marker_detail.total_ratio * form_detail.total_gelaran)) total_output,
+                    COALESCE(marker_detail.total_ratio * form_cut_input.qty_ply, 0) target_output,
                     form_cut_input.`status`
                 FROM
                     form_cut_input

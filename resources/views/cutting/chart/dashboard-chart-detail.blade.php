@@ -416,7 +416,7 @@
                             }
                         }
 
-                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : '-') + '</span>';
+                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : '0')+"<span class='text-dark'> / "+(row.target_lembar ? row.target_lembar : '0') + '</span></span>';
                     }
                 },
                 {
@@ -441,7 +441,7 @@
                             }
                         }
 
-                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : '-') + '</span>';
+                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : '0')+"<span class='text-dark'> / "+(row.target_output ? row.target_output : '0') + '</span></span>';
                     }
                 },
                 {
