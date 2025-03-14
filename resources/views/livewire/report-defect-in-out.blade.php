@@ -106,6 +106,7 @@
                     </tfoot>
                 </table> --}}
             <table class="table table-bordered">
+                {{-- ALL --}}
                 <tr>
                     <th class="bg-sb text-light" colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - DEFECT TYPE</th>
                 </tr>
@@ -136,7 +137,7 @@
                     <tr>
                         <td>{{ $key }}</td>
                         <td>{{ $value["total_defect"] }}</td>
-                        <td>{{ round(($value["total_defect"]/($summaryDefectQty > 0 ? $summaryDefectQty : 1) * 100), 2) }} %</td>
+                        <td>{{ round(($value["total_defect"]/($outputAll ? $outputAll->sum('total_output') : 1) * 100), 2) }} %</td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -151,6 +152,7 @@
                     <th></th>
                 </tr>
                 <tr></tr>
+                {{-- LINE --}}
                 <tr>
                     <th class="bg-sb text-light" colspan="6">{{ strtoupper(str_replace("_", "", $selectedDefectType)) }} - LINE</th>
                 </tr>
@@ -203,7 +205,7 @@
                                 <td>{{ $key }}</td>
                                 <td>{{ $k }}</td>
                                 <td>{{ $val["total_defect"] }}</td>
-                                <td>{{ round(($val["total_defect"]/($value["total_defect"] > 0 ? $value["total_defect"] : 1)*100), 2) }} %</td>
+                                <td>{{ round(($val["total_defect"]/($outputAll && $outputAll->where("line", $k)->sum('total_output') > 0 ? $outputAll->where("line", $k)->sum('total_output') : 1)*100), 2) }} %</td>
                                 <td></td>
                                 <td></td>
                             </tr>
@@ -258,7 +260,7 @@
                                 <td>{{ $val['styleno'] }}</td>
                                 <td>{{ $val['color'] }}</td>
                                 <td>{{ $val['total_defect'] }}</td>
-                                <td>{{ round(($val['total_defect']/($value['total_defect'] > 0 ? $value['total_defect'] : 1)*100), 2) }} %</td>
+                                <td>{{ round(($val['total_defect']/($outputAll && $outputAll->where("style", $val['styleno'])->sum('total_output') > 0 ? $outputAll->where("style", $val['styleno'])->sum('total_output') : 1)*100), 2) }} %</td>
                             </tr>
                         @endforeach
                         <tr>
