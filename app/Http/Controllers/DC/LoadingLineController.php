@@ -472,6 +472,7 @@ class LoadingLineController extends Controller
                 stocker_input.group_stocker,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
+                (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                 loading_line_plan.act_costing_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.buyer,
