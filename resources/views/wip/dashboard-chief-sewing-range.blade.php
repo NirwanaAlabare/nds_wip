@@ -100,7 +100,7 @@
             <div>
                 <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
                     <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
-                        <span class="text-nowrap fw-bold">NAMA Chief</span>
+                        <span class="text-nowrap fw-bold">NAMA CHIEF</span>
                     </div>
                 </div>
             </div>
@@ -217,15 +217,14 @@
 
                         chiefDailyEfficiency.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedData});
                         chiefDailyRft.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedRftData});
-                        chiefDaily.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData});
+                        chiefDaily.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
-                    // Format the data as [{ x: date, y: efficiency }]
-                    let sortChiefDailyEfficiency = chiefDailyEfficiency.sort(function(a,b){
-                            if (a.data.length < b.data.length) {
+                    let sortChiefDaily = chiefDaily.sort(function(a,b){
+                            if (a.currentEff < b.currentEff) {
                                 return 1;
                             }
-                            if (a.data.length > b.data.length) {
+                            if (a.currentEff > b.currentEff) {
                                 return -1;
                             }
                             return 0;
@@ -236,7 +235,7 @@
                     generateRftChart(chiefDailyRft);
 
                     // Table
-                    chiefTable(chiefDaily);
+                    chiefTable(sortChiefDaily);
 
                     document.getElementById("loading").classList.add("d-none");
                 },
@@ -349,10 +348,12 @@
 
             let parentElement = document.getElementById("chief-table");
             let parentElementHeader = document.getElementById("chief-table-header");
+            let parentElementFooter = "";
 
             let headerElement = '';
             let tableHtml = '';
-            await longestData.forEach((value, index) => {
+            let i = 0;
+            longestData.forEach((value, index) => {
                 let formattedValue = formatDate(value);
 
                 let horizontalHtmlStart = `
@@ -399,6 +400,16 @@
                     `;
 
                     horizontalHtmlStart += verticalHtml;
+
+                    if (index == (longestData.length-1)) {
+                        parentElementFooter += `
+                            <div class="horizontal-grid-box d-flex justify-content-center align-items-center" style="height: 50px; gap: 3px;">
+                                <span class="text-nowrap fw-bold">`+(i+1)+`</span>
+                            </div>
+                        `;
+
+                        i++;
+                    }
                 });
 
                 let horizontalHtmlEnd = `
@@ -410,6 +421,16 @@
             });
 
             parentElement.innerHTML += tableHtml;
+
+            parentElement.innerHTML += `
+                <div>
+                    <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
+                        <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
+                            <span class="text-nowrap fw-bold">RANK</span>
+                        </div>
+                    </div>
+                    `+parentElementFooter+`
+                </div>`;
         }
     </script>
 @endsection
