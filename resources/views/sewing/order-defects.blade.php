@@ -257,9 +257,13 @@
                         // Clear options
                         $("#supplier").html("");
 
+                        let initOption = new Option("SEMUA", "all", true, true);
+                        $('#supplier').append(initOption);
+
                         res.forEach((element, index) => {
                             console.log(element, index);
-                            if ($('#supplier').find("option[value='"+element.id+"']").length) {
+
+                            if ($('#supplier').find("option[value='"+element.id+"']").length > 0) {
                                 $('#supplier').val(element.id);
                             } else {
                                 // Create a DOM Option and pre-select by default
