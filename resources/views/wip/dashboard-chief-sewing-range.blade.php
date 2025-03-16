@@ -85,22 +85,36 @@
 @endsection
 
 @section('content')
-    <input type="hidden" id="from" value="{{ $from ? $from : date("Y-m-d") }}">
-    <input type="hidden" id="to" value="{{ $to ? $to : date("Y-m-d") }}">
-    <div class="row">
-        <div class="col-md-6">
-            <div id="chart-eff"></div>
+    <div class="p-3">
+        <input type="hidden" id="from" value="{{ $from ? $from : date("Y-m-d") }}">
+        <input type="hidden" id="to" value="{{ $to ? $to : date("Y-m-d") }}">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="chart-eff"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="chart-rft"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <div id="chart-rft"></div>
-        </div>
-    </div>
-    <div class="table-responsive">
-        <div class="horizontal-grid" id="chief-table">
-            <div>
-                <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
-                    <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
-                        <span class="text-nowrap fw-bold">NAMA CHIEF</span>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive p-1" style="background: #e9e9e9">
+                    <div class="horizontal-grid" id="chief-table">
+                        <div>
+                            <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
+                                <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
+                                    <span class="text-nowrap fw-bold p-1">NAMA CHIEF</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -378,7 +392,7 @@
                     if (index == 0) {
                         parentElementHeader.innerHTML += `
                             <div class="horizontal-grid-box d-flex justify-content-center align-items-center" style="height: 50px; gap: 3px;">
-                                <span class="text-nowrap fw-bold">`+element.name+`</span>
+                                <span class="text-nowrap fw-bold p-1">`+element.name+`</span>
                             </div>
                         `;
                     }
@@ -423,7 +437,7 @@
             parentElement.innerHTML += tableHtml;
 
             parentElement.innerHTML += `
-                <div>
+                <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
                     <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
                         <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
                             <span class="text-nowrap fw-bold">RANK</span>
