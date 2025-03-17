@@ -15,6 +15,7 @@
         <th style="font-weight: 800;">Range</th>
         <th style="font-weight: 800;">Range</th>
         <th style="font-weight: 800;">No. Stocker</th>
+        <th style="font-weight: 800;">Stock</th>
         <th style="font-weight: 800;">Qty</th>
         <th style="font-weight: 800;">Waktu Loading</th>
     </tr>
@@ -65,6 +66,7 @@
             <td>{{ $loadingLine->range_awal }}</td>
             <td>{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
             <td>{{ $loadingLine->id_qr_stocker }}</td>
+            <td>{{ $loadingLine->type }}</td>
             <td>{{ $qty }}</td>
             <td>{{ $loadingLine->tanggal_loading }}</td>
         </tr>

@@ -211,7 +211,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     loading_line_plan.color,
                     loading_line_plan.line_id,
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                    COALESCE(form_cut_input.no_cut, '-') no_cut
+                    COALESCE(form_cut_input.no_cut, '-') no_cut,
+                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) type
                 FROM
                     loading_line
                     LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
@@ -258,7 +259,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:N' . ($event->getConcernable()->rowCount+2),
+            'A1:O' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [
