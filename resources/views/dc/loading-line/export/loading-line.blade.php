@@ -72,7 +72,7 @@
         </tr>
     @endforeach
     <tr>
-        <th style="font-weight: 800;" colspan="12">TOTAL</th>
+        <th style="font-weight: 800;" colspan="13">TOTAL</th>
         <th style="font-weight: 800;">{{ $totalQty }}</th>
         <th style="font-weight: 800;">{{ $latestUpdate }}</th>
     </tr>
