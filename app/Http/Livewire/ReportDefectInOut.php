@@ -55,7 +55,7 @@ class ReportDefectInOut extends Component
                     COUNT(*) total_output
                 from
                     output_rfts_packing
-                    left join so_det on so_det.id = output_rfts_packing.so_det
+                    left join so_det on so_det.id = output_rfts_packing.so_det_id
                     left join so on so.id = so_det.id_so
                     left join act_costing on act_costing.id = so.id_cost
                     left join userpassword on userpassword.username = output_rfts_packing.created_by
