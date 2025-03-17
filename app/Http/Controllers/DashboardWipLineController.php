@@ -10,9 +10,11 @@ use App\Models\Marker;
 use App\Models\DCIn;
 use App\Models\FormCutInput;
 use App\Models\SignalBit\UserLine;
+use App\Exports\Sewing\ChiefSewingRangeExport;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\TriggerWipLine;
 use DB;
+use Excel;
 
 class DashboardWipLineController extends Controller
 {
@@ -851,7 +853,7 @@ END jam) a))) target from (
         $from = $from ? $from : date("Y-m-d");
         $to = $to ? $to : date("Y-m-d");
 
-        return view('wip.dashboard-chief-sewing-range', ['page' => 'dashboard-wip', "from" => $from, "to" => $to]);
+        return view('wip.dashboard-chief-sewing-range', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'chief-sewing-range', "from" => $from, "to" => $to]);
     }
 
     function chiefSewingRangeData(Request $request) {
@@ -925,5 +927,12 @@ END jam) a))) target from (
         ");
 
         return $efficiencyLine;
+    }
+
+    function chiefSewingRangeDataExport(Request $request) {
+        $from = $request->from ? $request->from : date("Y-m-d");
+        $to = $request->to ? $request->to : date("Y-m-d");
+
+        return Excel::download(new ChiefSewingRangeExport($from, $to), 'chief_sewing_range.xlsx');
     }
 }

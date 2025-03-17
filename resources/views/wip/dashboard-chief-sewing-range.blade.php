@@ -1,4 +1,4 @@
-@extends('layouts.index', ["navbar" => false, "footer" => false, "containerFluid" => true])
+@extends('layouts.index', ["containerFluid" => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -86,8 +86,26 @@
 
 @section('content')
     <div class="p-3">
-        <input type="hidden" id="from" value="{{ $from ? $from : date("Y-m-d") }}">
-        <input type="hidden" id="to" value="{{ $to ? $to : date("Y-m-d") }}">
+        <div class="d-flex justify-content-between align-items-end mb-1 gap-3">
+            <div class="d-flex align-items-end gap-3 w-auto">
+                <div>
+                    <input type="date" class="form-control" id="from" value="{{ $from ? $from : date("Y-m-d") }}">
+                </div>
+                <div class="mb-2">
+                    <span> - </span>
+                </div>
+                <div>
+                    <input type="date" class="form-control" id="to" value="{{ $to ? $to : date("Y-m-d") }}">
+                </div>
+                <button class="btn btn-primary" onclick="updateTanggal()">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button>
+        </div>
+        <div class="d-flex justify-content-center mb-1">
+            <span><b>{{ localeDateFormat($from, false) }}</b> s/d <b>{{ localeDateFormat($to, false) }}</b></span>
+        </div>
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
@@ -109,7 +127,7 @@
                 <div class="table-responsive p-1" style="background: #e9e9e9">
                     <div class="horizontal-grid" id="chief-table">
                         <div>
-                            <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
+                            <div class="d-flex flex-column gap-1" id="chief-table-header">
                                 <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
                                     <span class="text-nowrap fw-bold p-1">NAMA CHIEF</span>
                                 </div>
@@ -210,6 +228,7 @@
                         }, {});
 
                         let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -372,12 +391,12 @@
 
                 let horizontalHtmlStart = `
                     <div>
-                        <div class="d-flex flex-column" style="width: 150px; gap: 3px;">
-                            <div class="d-flex flex-column" style="height: 50px; gap: 3px;">
-                                <div class="d-flex justify-content-center align-items-center horizontal-grid-box h-100" style="gap: 3px; ">
+                        <div class="d-flex flex-column gap-1" style="width: 150px;">
+                            <div class="d-flex flex-column gap-1" style="height: 50px;">
+                                <div class="d-flex justify-content-center align-items-center horizontal-grid-box h-100">
                                     <span class="text-nowrap text-center fw-bold">`+formattedValue+`</span>
                                 </div>
-                                <div class="d-flex justify-content-center align-items-center" style="gap: 3px; ">
+                                <div class="d-flex justify-content-center align-items-center gap-1">
                                     <div class="horizontal-grid-box text-center w-50 h-100">
                                         <span class="text-nowrap fw-bold">Efficiency</span>
                                     </div>
@@ -391,7 +410,7 @@
                 dataEff.forEach((element, i) => {
                     if (index == 0) {
                         parentElementHeader.innerHTML += `
-                            <div class="horizontal-grid-box d-flex justify-content-center align-items-center" style="height: 50px; gap: 3px;">
+                            <div class="horizontal-grid-box d-flex justify-content-center align-items-center gap-1" style="height: 50px;">
                                 <span class="text-nowrap fw-bold p-1">`+element.name+`</span>
                             </div>
                         `;
@@ -402,7 +421,7 @@
 
                     let verticalHtml = `
                         <div>
-                            <div class="d-flex justify-content-between align-items-center" style="height: 50px; gap: 3px;">
+                            <div class="d-flex justify-content-between align-items-center gap-1" style="height: 50px;">
                                 <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
                                     <span class="text-nowrap">`+(eff ? eff.y+' %' : '-')+`</span>
                                 </div>
@@ -417,7 +436,7 @@
 
                     if (index == (longestData.length-1)) {
                         parentElementFooter += `
-                            <div class="horizontal-grid-box d-flex justify-content-center align-items-center" style="height: 50px; gap: 3px;">
+                            <div class="horizontal-grid-box d-flex justify-content-center align-items-center gap-1" style="height: 50px;">
                                 <span class="text-nowrap fw-bold">`+(i+1)+`</span>
                             </div>
                         `;
@@ -437,14 +456,82 @@
             parentElement.innerHTML += tableHtml;
 
             parentElement.innerHTML += `
-                <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
-                    <div class="d-flex flex-column" id="chief-table-header" style="postion: sticky; gap: 3px;">
+                <div class="d-flex flex-column gap-1" id="chief-table-header">
+                    <div class="d-flex flex-column gap-1" id="chief-table-header">
                         <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
                             <span class="text-nowrap fw-bold">RANK</span>
                         </div>
                     </div>
                     `+parentElementFooter+`
                 </div>`;
+        }
+
+        function updateTanggal() {
+            location.href = "{{ route("dashboard-chief-sewing-range") }}/"+$("#from").val()+"/"+$("#to").val();
+        }
+
+        function exportExcel(elm) {
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            $.ajax({
+                url: "{{ route("dashboard-chief-sewing-range-data-export") }}",
+                type: 'post',
+                data: {
+                    from : $("#from").val(),
+                    to : $("#to").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Data berhasil di export.',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Performance Sewing "+$("#from").val()+" - "+$("#to").val()+".xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
         }
     </script>
 @endsection

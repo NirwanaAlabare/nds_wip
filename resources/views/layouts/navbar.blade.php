@@ -533,6 +533,11 @@
                                         Report Mutasi Output <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('dashboard-chief-sewing-range', [date("Y-m-d"), date("Y-m-d")]) }}" class="dropdown-item {{ $routeName == 'dashboard-chief-sewing-range' ? 'active' : '' }}">
+                                        Chief Sewing Range <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li>
                             @endrole
                         </ul>
                     </li>
