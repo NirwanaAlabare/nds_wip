@@ -3650,7 +3650,7 @@ class StockerController extends Controller
         if ($request->stocker) {
             $stockerData = Stocker::selectRaw("
                     stocker_input.id_qr_stocker,
-                    stocker_input.form_cut_id,
+                    COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
                     part.act_costing_id,
@@ -3658,7 +3658,7 @@ class StockerController extends Controller
                     stocker_input.color,
                     stocker_input.size,
                     master_part.nama_part part,
-                    form_cut_input.no_form,
+                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
                     (
                         (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
                         (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
@@ -3675,6 +3675,7 @@ class StockerController extends Controller
                 leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
                 leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
