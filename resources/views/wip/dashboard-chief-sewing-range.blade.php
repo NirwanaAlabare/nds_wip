@@ -73,7 +73,7 @@
             display: grid;
             background: inherit;
             width: 100%;
-            grid-template-columns: repeat(30, 1fr);
+            grid-template-columns: repeat(999, 1fr);
             align-items: stretch;
             grid-gap: 3px;
         }
