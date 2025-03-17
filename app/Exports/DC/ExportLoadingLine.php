@@ -212,11 +212,14 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     loading_line_plan.line_id,
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
                     COALESCE(form_cut_input.no_cut, '-') no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) type
+                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) type,
+                    master_part.nama_part as part
                 FROM
                     loading_line
                     LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
                     LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                    LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                    LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                     LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                     LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
                     LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -259,7 +262,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:O' . ($event->getConcernable()->rowCount+2),
+            'A1:P' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

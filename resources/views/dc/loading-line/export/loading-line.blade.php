@@ -14,6 +14,7 @@
         <th style="font-weight: 800;">Group</th>
         <th style="font-weight: 800;">Range</th>
         <th style="font-weight: 800;">Range</th>
+        <th style="font-weight: 800;">Part</th>
         <th style="font-weight: 800;">No. Stocker</th>
         <th style="font-weight: 800;">Stock</th>
         <th style="font-weight: 800;">Qty</th>
@@ -65,6 +66,7 @@
             <td>{{ $loadingLine->shade }}</td>
             <td>{{ $loadingLine->range_awal }}</td>
             <td>{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
+            <td>{{ $loadingLine->part }}</td>
             <td>{{ $loadingLine->id_qr_stocker }}</td>
             <td>{{ $loadingLine->type }}</td>
             <td>{{ $qty }}</td>
@@ -72,7 +74,7 @@
         </tr>
     @endforeach
     <tr>
-        <th style="font-weight: 800;" colspan="12">TOTAL</th>
+        <th style="font-weight: 800;" colspan="14">TOTAL</th>
         <th style="font-weight: 800;">{{ $totalQty }}</th>
         <th style="font-weight: 800;">{{ $latestUpdate }}</th>
     </tr>
