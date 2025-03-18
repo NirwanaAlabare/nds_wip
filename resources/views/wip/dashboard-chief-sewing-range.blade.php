@@ -584,5 +584,39 @@
                 }
             });
         }
+
+        // Colorize Efficiency
+        function colorizeEfficiency(element, efficiency) {
+            if (isElement(element)) {
+                switch (true) {
+                    case efficiency < 75 :
+                        element.style.color = '#dc3545';
+                        break;
+                    case efficiency >= 75 && efficiency <= 85 :
+                        element.style.color = 'rgb(240, 153, 0)';
+                        break;
+                    case efficiency > 85 :
+                        element.style.color = '#28a745';
+                        break;
+                }
+            }
+        }
+
+        // Colorize RFT
+        function colorizeRft(element, rft) {
+            if (isElement(element)) {
+                switch (true) {
+                    case rft < 97 :
+                        element.style.color = '#dc3545';
+                        break;
+                    case rft >= 97 && rft < 98 :
+                        element.style.color = 'rgb(240, 153, 0)';
+                        break;
+                    case rft >= 98 :
+                        element.style.color = '#28a745';
+                        break;
+                }
+            }
+        }
     </script>
 @endsection
