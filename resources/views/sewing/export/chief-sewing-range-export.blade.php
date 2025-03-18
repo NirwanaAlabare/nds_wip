@@ -7,16 +7,17 @@
     </tr>
     @if ($chiefPerformance && $chiefPerformance->count() > 0)
         <tr>
-            <th style="font-weight: 800;" rowspan="2">Nama Chief</th>
+            <th style="font-weight: 800;text-align: center;vertical-align: middle;" rowspan="2">Nama Chief</th>
             <?php
                 if ( $chiefPerformance && $chiefPerformance->count() > 0 ) {
                     foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                         ?>
-                            <th style="font-weight: 800;" colspan="2">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
+                            <th style="font-weight: 800; text-align: center;" colspan="2">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                         <?php
                     }
             ?>
-                    <th style="font-weight: 800;" colspan="2">TOTAL</th>
+                    <th style="font-weight: 800; text-align: center;" colspan="2">TOTAL</th>
+                    <th style="font-weight: 800;vertical-align: middle;" rowspan="2">RANK</th>
                 </tr>
                 <tr>
             <?php
@@ -51,10 +52,11 @@
                     return $eff_b - $eff_a;
                 });
 
+                $i = 1;
                 foreach ($sortedChiefGroup as $chief) {
                     ?>
                         <tr>
-                            <td style="text-align: left;vertical-align: top;">{{ $chief['chief_name'] }}</td>
+                            <td style="font-weight: 800;text-align: center;">{{ $chief['chief_name'] }}</td>
                             @php
                                 $sumRft = 0;
                                 $sumOutput = 0;
@@ -86,8 +88,12 @@
                             <td style="font-weight: 800;">
                                 {{ ($chief['total_mins_avail']  > 0 ? round($chief['total_mins_prod']/$chief['total_mins_avail']*100, 2) : 0) }} %
                             </td>
+                            <td style="font-weight: 800;text-align: center;">
+                                {{ $i }}
+                            </td>
                         </tr>
                     <?php
+                    $i++;
                 }
             } else {
                 ?>

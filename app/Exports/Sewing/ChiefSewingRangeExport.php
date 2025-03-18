@@ -25,8 +25,8 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize
                 SUM(rft) rft,
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
-                SUM(mins_avail) mins_avail,
-                SUM(cumulative_mins_avail) cumulative_mins_avail
+                SUM(mins_avail) mins_avail_old,
+                SUM(cumulative_mins_avail) mins_avail
             from (
                 select
                     output_employee_line.*,

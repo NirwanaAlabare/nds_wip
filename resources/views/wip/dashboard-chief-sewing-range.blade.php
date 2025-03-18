@@ -213,6 +213,10 @@
                     chiefEfficiency.forEach(element => {
                         // Date Output
                         let dateOutput = [];
+                        let totalMinsAvail = 0;
+                        let totalMinsProd = 0;
+                        let totalOutput = 0;
+                        let totalRft = 0;
                         element.reduce(function(res, value) {
                             if (!res[value.tanggal]) {
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
@@ -224,13 +228,18 @@
                             res[value.tanggal].output += Number(value.output);
                             res[value.tanggal].rft += Number(value.rft);
 
+                            totalMinsAvail += Number(value.cumulative_mins_avail);
+                            totalMinsProd += Number(value.mins_prod);
+                            totalOutput += Number(value.output);
+                            totalRft += Number(value.rft);
+
                             return res;
                         }, {});
 
                         let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
-
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
-                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
+
+                        let totalData = { totalEfficiency : (totalMinsProd/totalMinsAvail*100).toFixed(2), totalRft : (totalRft/totalOutput*100).toFixed(2) };
 
                         // Format the data as [{ x: date, y: efficiency }]
                         let formattedData = dateOutputFilter.map(item => {
@@ -250,14 +259,14 @@
 
                         chiefDailyEfficiency.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedData});
                         chiefDailyRft.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedRftData});
-                        chiefDaily.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDaily.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     let sortChiefDaily = chiefDaily.sort(function(a,b){
-                            if (a.currentEff < b.currentEff) {
+                            if (Number(a.currentEff) < Number(b.currentEff)) {
                                 return 1;
                             }
-                            if (a.currentEff > b.currentEff) {
+                            if (Number(a.currentEff) > Number(b.currentEff)) {
                                 return -1;
                             }
                             return 0;
@@ -372,16 +381,17 @@
             chart.render();
         }
 
-        async function chiefTable(dataEff) {
-            console.log(dataEff);
+        async function chiefTable(data) {
+            console.log(data);
 
-            let longestData = dataEff.reduce((a,b)=>a.eff.length>b.eff.length?a:b).eff.map((item)=>item["x"]);
+            let longestData = data.reduce((a,b)=>a.eff.length>b.eff.length?a:b).eff.map((item)=>item["x"]);
 
             console.log("longestData", longestData);
 
             let parentElement = document.getElementById("chief-table");
             let parentElementHeader = document.getElementById("chief-table-header");
-            let parentElementFooter = "";
+            let totalHTML = "";
+            let rankHTML = "";
 
             let headerElement = '';
             let tableHtml = '';
@@ -398,16 +408,16 @@
                                 </div>
                                 <div class="d-flex justify-content-center align-items-center gap-1">
                                     <div class="horizontal-grid-box text-center w-50 h-100">
-                                        <span class="text-nowrap fw-bold">Efficiency</span>
+                                        <span class="text-nowrap fw-bold">RFT</span>
                                     </div>
                                     <div class="horizontal-grid-box text-center w-50 h-100">
-                                        <span class="text-nowrap fw-bold">RFT</span>
+                                        <span class="text-nowrap fw-bold">Efficiency</span>
                                     </div>
                                 </div>
                             </div>
                 `;
 
-                dataEff.forEach((element, i) => {
+                data.forEach((element, i) => {
                     if (index == 0) {
                         parentElementHeader.innerHTML += `
                             <div class="horizontal-grid-box d-flex justify-content-center align-items-center gap-1" style="height: 50px;">
@@ -419,14 +429,15 @@
                     let eff = element.eff.filter((item) => formatDate(item.x) == formatDate(value))[0];
                     let rft = element.rft.filter((item) => formatDate(item.x) == formatDate(value))[0];
 
+                    // Body
                     let verticalHtml = `
                         <div>
                             <div class="d-flex justify-content-between align-items-center gap-1" style="height: 50px;">
                                 <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
-                                    <span class="text-nowrap">`+(eff ? eff.y+' %' : '-')+`</span>
+                                    <span class="text-nowrap">`+(rft ? rft.y+' %' : '-')+`</span>
                                 </div>
                                 <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
-                                    <span class="text-nowrap">`+(rft ? rft.y+' %' : '-')+`</span>
+                                    <span class="text-nowrap">`+(eff ? eff.y+' %' : '-')+`</span>
                                 </div>
                             </div>
                         </div>
@@ -435,7 +446,23 @@
                     horizontalHtmlStart += verticalHtml;
 
                     if (index == (longestData.length-1)) {
-                        parentElementFooter += `
+                        // Total
+                        totalHTML += `
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center gap-1" style="height: 50px;">
+                                    <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
+                                        <span class="text-nowrap">`+(element.currentRft ? element.currentRft+' %' : '-')+`</span>
+                                    </div>
+                                    <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
+                                        <span class="text-nowrap">`+(element ? element.currentEff+' %' : '-')+`</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        `;
+
+                        // Rank
+                        rankHTML += `
                             <div class="horizontal-grid-box d-flex justify-content-center align-items-center gap-1" style="height: 50px;">
                                 <span class="text-nowrap fw-bold">`+(i+1)+`</span>
                             </div>
@@ -453,8 +480,32 @@
                 tableHtml += horizontalHtmlStart+horizontalHtmlEnd;
             });
 
+            // Table Body
             parentElement.innerHTML += tableHtml;
 
+            // Total
+            parentElement.innerHTML += `
+                <div>
+                    <div class="d-flex flex-column gap-1" style="width: 150px;">
+                        <div class="d-flex flex-column gap-1" style="height: 50px;">
+                            <div class="d-flex justify-content-center align-items-center horizontal-grid-box h-100">
+                                <span class="text-nowrap text-center fw-bold">TOTAL</span>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-center gap-1">
+                                <div class="horizontal-grid-box text-center w-50 h-100">
+                                    <span class="text-nowrap fw-bold">RFT</span>
+                                </div>
+                                <div class="horizontal-grid-box text-center w-50 h-100">
+                                    <span class="text-nowrap fw-bold">Efficiency</span>
+                                </div>
+                            </div>
+                        </div>
+                        `+totalHTML+`
+                    </div>
+                </div>
+            `;
+
+            // Rank
             parentElement.innerHTML += `
                 <div class="d-flex flex-column gap-1" id="chief-table-header">
                     <div class="d-flex flex-column gap-1" id="chief-table-header">
@@ -462,7 +513,7 @@
                             <span class="text-nowrap fw-bold">RANK</span>
                         </div>
                     </div>
-                    `+parentElementFooter+`
+                    `+rankHTML+`
                 </div>`;
         }
 
