@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <div class="d-flex justify-content-between align-items-middle">
+            <div class="d-flex justify-content-start align-items-middle">
                 <h5 class="card-title fw-bold"><i class="fa-solid fa-pen-to-square"></i> Modify Year Sequence</h5>
             </div>
         </div>
@@ -25,7 +25,7 @@
                 </div>
             </div>
             <h5 class="fw-bold text-sb">QR Range :</h5>
-            <div class="row justify-content-center align-items-end gx-3 mb-3" id="range-method">
+            <div class="row justify-content-between align-items-end g-3 mb-3" id="range-method">
                 <div class="col-md-6">
                     <label class="form-label"><small><b>Year</b></small></label>
                     <select class="form-select" name="year" id="year">
@@ -39,28 +39,28 @@
                     <select class="form-select" name="sequence" id="sequence">
                     </select>
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <label class="form-label"><small><b>Range Awal</b></small></label>
                     <input type="number" class="form-control" id="range_awal" name="range_awal">
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <label class="form-label"><small><b>Range Akhir</b></small></label>
                     <input type="number" class="form-control" id="range_akhir" name="range_akhir">
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-block btn-primary" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
+                <div class="col-md-12">
+                    <button class="btn btn-block btn-primary mt-3" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
                 </div>
             </div>
-            <div class="row justify-content-center align-items-end g-3 mb-3 d-none" id="list-method">
-                <div class="col-md-10">
+            <div class="row justify-content-between align-items-start g-3 mb-3 d-none" id="list-method">
+                <div class="col-md-12">
                     <label class="form-label">Year Sequences</label>
                     <textarea class="form-control" name="text" id="year_sequence_ids" rows="5"></textarea>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-block btn-primary" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
-                </div>
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-block btn-primary mt-1" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
                 </div>
             </div>
             <div class="table-responsive">

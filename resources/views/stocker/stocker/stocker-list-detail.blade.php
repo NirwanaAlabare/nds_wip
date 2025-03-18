@@ -70,6 +70,7 @@
                     <div class="mb-3">
                         <label class="form-label">No. Form</label>
                         <input type="text" class="form-control" name="no_form" id="no_form" value="{{ $stockerList->no_form." / ".$stockerList->no_cut }}" readonly>
+                        <input type="hidden" class="form-control" name="tipe" id="tipe" value="{{ $stockerList->tipe }}" readonly>
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -594,12 +595,14 @@
 
             if (type == 'year_sequence') {
                 await $.ajax({
-                    url: "{{ route("stocker-list-detail-export") }}/"+$('#form_cut_id').val()+"/"+$('#group_stocker').val()+"/"+$('#ratio').val()+"/"+$('#so_det_id').val(),
+                    url: "{{ route("stocker-list-detail-export") }}/"+($('#form_cut_id').val() ? $('#form_cut_id').val() : '0')+"/"+($('#group_stocker').val() ? $('#group_stocker').val() : '0')+"/"+($('#ratio').val() ? $('#ratio').val() : '0')+"/"+($('#so_det_id').val() ? $('#so_det_id').val() : '0')+"/"+($('#tipe').val() == 'REJECT' ? 0 : 1),
                     type: "get",
                     xhrFields:{
                         responseType: 'blob'
                     },
                     success: function (res) {
+                        console.log("export resp", res);
+
                         document.getElementById("loading").classList.add("d-none");
 
                         if (res) {

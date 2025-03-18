@@ -1789,6 +1789,7 @@ class DashboardController extends Controller
                 $dc = Stocker::selectRaw("
                         stocker_input.id stocker_id,
                         stocker_input.id_qr_stocker,
+                        (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
                         stocker_input.size,
@@ -1811,6 +1812,7 @@ class DashboardController extends Controller
                         stocker_input.updated_at latest_update
                     ")->
                     leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                    leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
                     leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
                     leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                     leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
@@ -1820,9 +1822,9 @@ class DashboardController extends Controller
                     leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                     leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                     leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                    whereRaw("(MONTH(form_cut_input.waktu_selesai) = '".$month."')")->
-                    whereRaw("(YEAR(form_cut_input.waktu_selesai) = '".$year."')")->
-                    whereRaw("form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)")->
+                    whereRaw("(MONTH(form_cut_input.waktu_selesai) = '".$month."' OR MONTH(form_cut_reject.updated_at) = '".$month."')")->
+                    whereRaw("(YEAR(form_cut_input.waktu_selesai) = '".$year."' OR YEAR(form_cut_reject.updated_at) = '".$year."')")->
+                    whereRaw("(form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_reject.tanggal >= DATE(NOW()-INTERVAL 6 MONTH))")->
                     orderBy("stocker_input.act_costing_ws", "asc")->
                     orderBy("stocker_input.color", "asc")->
                     orderBy("form_cut_input.no_cut", "asc")->
@@ -1859,7 +1861,8 @@ class DashboardController extends Controller
                 FROM
                 (
                     SELECT
-                        stocker_input.form_cut_id,
+                        COALESCE(stocker_input.form_cut_id, stocker_input.form_reject_id) form_cut_id,
+                        (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
                         stocker_input.ratio,
@@ -1887,10 +1890,11 @@ class DashboardController extends Controller
                         COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
                         stocker_input.qty_ply,
                         stocker_input.updated_at,
-                        form_cut_input.waktu_selesai
+                        COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at) waktu_selesai
                     FROM
                         `stocker_input`
                         LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `stocker_input`.`form_cut_id`
+                        LEFT JOIN `form_cut_reject` ON `form_cut_reject`.`id` = `stocker_input`.`form_reject_id`
                         LEFT JOIN `part_detail` ON `stocker_input`.`part_detail_id` = `part_detail`.`id`
                         LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
                         LEFT JOIN `dc_in_input` ON `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`

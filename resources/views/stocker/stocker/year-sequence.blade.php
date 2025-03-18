@@ -91,6 +91,12 @@
                         <input type="text" class="form-control" name="qty" id="qty" value="" readonly>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Tipe</label>
+                        <input type="text" class="form-control" name="tipe" id="tipe" value="" readonly>
+                    </div>
+                </div>
                 <div class="col-md-6">
                     <div class="mb-3">
                         <div class="d-flex align-items-end gap-3">
@@ -155,7 +161,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <button class="btn btn-success btn-block mt-3" onclick="checkYearSequenceNumber()"><i class="fa fa-print"></i> Set Year Sequence</button>
                     </div>
@@ -380,6 +386,7 @@
                             document.getElementById("no_form").value = res.no_form ? res.no_form : null;
                             document.getElementById("part").value = res.part ? res.part : null;
                             document.getElementById("qty").value = res.qty ? res.qty : null;
+                            document.getElementById("tipe").value = res.tipe ? res.tipe : null;
                             $("#range_awal_stocker").val(res.range_awal ? res.range_awal : null).trigger("change");
                             $("#range_akhir_stocker").val(res.range_akhir ? res.range_akhir : null).trigger("change");
                             $("#print_qty").val(res.qty).trigger("change");
@@ -654,6 +661,7 @@
                         "range_akhir_stocker": Number($('#range_akhir_stocker').val()),
                         "range_awal_year_sequence": Number($('#range_awal').val()),
                         "range_akhir_year_sequence": Number($('#range_akhir').val()),
+                        "tipe": $('#tipe').val(),
                     },
                     xhrFields:
                     {
@@ -853,6 +861,7 @@
                     d.so_det_id = $('#so_det_id').val();
                     d.range_awal = $('#range_awal_stocker').val();
                     d.range_akhir = $('#range_akhir_stocker').val();
+                    d.tipe = $('#tipe').val();
                 },
             },
             columns: [
