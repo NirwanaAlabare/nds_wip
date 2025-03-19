@@ -5,12 +5,21 @@ namespace App\Exports\Sewing;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCharts;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
 use DB;
 
-class ChiefSewingRangeExport implements FromView, ShouldAutoSize
+class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
 {
     protected $from;
     protected $to;
+    protected $rowCount;
+    protected $colAlphabet;
 
     function __construct($from, $to) {
         $this->from = $from;
@@ -100,10 +109,92 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize
                 tanggal
         "));
 
+        $this->rowCount = $chiefPerformance->sortBy("tanggal")->groupBy("chief_nik")->count()*2;
+        $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+        $colCount = $chiefPerformance->groupBy("tanggal")->count()+1;
+        if ($colCount > (count($alphabets)-1)) {
+            $colStack = floor($colCount/(count($alphabets)-1));
+            $colStackModulo = $colCount%(count($alphabets)-1);
+            $this->colAlphabet = $alphabets[$colStack-1].$alphabets[($colStackModulo > 0 ? $colStackModulo - 1 : $colStackModulo)];
+        } else {
+            $this->colAlphabet = $alphabets[$colCount];
+        }
+
         return view('sewing.export.chief-sewing-range-export', [
             'from' => $this->from,
             'to' => $this->to,
             'chiefPerformance' => $chiefPerformance
         ]);
+    }
+
+    public function charts()
+    {
+        // Eff
+        $labelsEff = [];
+        $categoriesEff = [];
+        $valuesEff = [];
+
+        // Rft
+        $labelsRft = [];
+        $categoriesRft = [];
+        $valuesRft = [];
+
+        for ($i = 0; $i < ($this->rowCount/2); $i++) {
+            // Eff
+            $dataRow = intval($this->rowCount+3+$i);
+            $dataCol = ($this->colAlphabet);
+            $dataCategory = intval($this->rowCount+3);
+
+            array_push($labelsEff,
+                new DataSeriesValues('String', 'Worksheet!$A$'.$dataRow.':$A$'.$dataRow.'', null, 5),
+            );
+
+            array_push($categoriesEff,
+                new DataSeriesValues('String', 'Worksheet!$B$'.($dataCategory-1).':$'.$dataCol.'$'.($dataCategory-1).'', null, 5),
+            );
+
+            array_push($valuesEff,
+                new DataSeriesValues('Number', 'Worksheet!$B$'.$dataRow.':$'.$dataCol.'$'.$dataRow.'', null, 5),
+            );
+
+            // Rft
+            $dataRow1 = intval(($this->rowCount+($this->rowCount/2))+5+$i);
+            $dataCol1 = ($this->colAlphabet);
+            $dataCategory1 = intval(($this->rowCount+($this->rowCount/2))+5);
+
+            array_push($labelsRft,
+                new DataSeriesValues('String', 'Worksheet!$A$'.$dataRow1.':$A$'.$dataRow1.'', null, 5),
+            );
+
+            array_push($categoriesRft,
+                new DataSeriesValues('String', 'Worksheet!$B$'.($dataCategory1-1).':$'.$dataCol1.'$'.($dataCategory1-1).'', null, 5),
+            );
+
+            array_push($valuesRft,
+                new DataSeriesValues('Number', 'Worksheet!$B$'.$dataRow1.':$'.$dataCol1.'$'.$dataRow1.'', null, 5),
+            );
+        }
+
+        // Eff
+        $seriesEff = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesEff) - 1), $labelsEff, $categoriesEff, $valuesEff);
+        $plotEff   = new PlotArea(null, [$seriesEff]);
+
+        $legendEff = new Legend();
+        $chartEff  = new Chart('chart name', new Title('Efficiency Chart'), $legendEff, $plotEff);
+
+        // Rft
+        $seriesRft = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRft) - 1), $labelsRft, $categoriesRft, $valuesRft);
+        $plotRft   = new PlotArea(null, [$seriesRft]);
+
+        $legendRft = new Legend();
+        $chartRft  = new Chart('chart name', new Title('Rft Chart'), $legendRft, $plotRft);
+
+        $chartEff->setTopLeftPosition('A'.(($this->rowCount)+2));
+        $chartEff->setBottomRightPosition('E'.(($this->rowCount)+15));
+
+        $chartRft->setTopLeftPosition('F'.(($this->rowCount)+2));
+        $chartRft->setBottomRightPosition('J'.(($this->rowCount)+15));
+
+        return [$chartEff, $chartRft];
     }
 }
