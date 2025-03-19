@@ -103,6 +103,7 @@ class LoadingLineController extends Controller
                         GROUP BY
                             loading_line.tanggal_loading,
                             stocker_input.form_cut_id,
+                            stocker_input.form_reject_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.range_awal
@@ -129,6 +130,7 @@ class LoadingLineController extends Controller
                                     trolley_stocker.STATUS = 'active'
                                 GROUP BY
                                     stocker_input.form_cut_id,
+                                    stocker_input.form_reject_id,
                                     stocker_input.so_det_id,
                                     stocker_input.group_stocker,
                                     stocker_input.range_awal
@@ -286,6 +288,7 @@ class LoadingLineController extends Controller
                             GROUP BY
                                 loading_line.tanggal_loading,
                                 stocker_input.form_cut_id,
+                                stocker_input.form_reject_id,
                                 stocker_input.so_det_id,
                                 stocker_input.group_stocker,
                                 stocker_input.range_awal
@@ -312,6 +315,7 @@ class LoadingLineController extends Controller
                                         trolley_stocker.STATUS = 'active'
                                     GROUP BY
                                         stocker_input.form_cut_id,
+                                        stocker_input.form_reject_id,
                                         stocker_input.so_det_id,
                                         stocker_input.group_stocker,
                                         stocker_input.range_awal
@@ -468,19 +472,21 @@ class LoadingLineController extends Controller
                 stocker_input.group_stocker,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
+                (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                 loading_line_plan.act_costing_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.buyer,
                 loading_line_plan.style,
                 loading_line_plan.color,
                 loading_line_plan.line_id,
-                form_cut_input.no_form,
-                form_cut_input.no_cut
+                COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
+                COALESCE(form_cut_input.no_cut, '-') no_cut
             FROM
                 loading_line
                 LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
                 LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
                 LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                 LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                 LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -494,6 +500,7 @@ class LoadingLineController extends Controller
             ORDER BY
                 loading_line.tanggal_loading,
                 stocker_input.form_cut_id,
+                stocker_input.form_reject_id,
                 stocker_input.so_det_id,
                 stocker_input.range_awal
         ");
@@ -669,6 +676,7 @@ class LoadingLineController extends Controller
                         GROUP BY
                             loading_line.tanggal_loading,
                             stocker_input.form_cut_id,
+                            stocker_input.form_reject_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.range_awal
@@ -789,6 +797,7 @@ class LoadingLineController extends Controller
                         GROUP BY
                             loading_line.tanggal_loading,
                             stocker_input.form_cut_id,
+                            stocker_input.form_reject_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.range_awal

@@ -467,11 +467,13 @@
                                         Track Output <i class="fa-solid fa-shuffle"></i>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('sewing-transfer-output') }}" class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
-                                        Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                                    </a>
-                                </li>
+                                @role("superadmin")
+                                    <li>
+                                        <a href="{{ route('sewing-transfer-output') }}" class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
+                                            Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                        </a>
+                                    </li>
+                                @endrole
                                 <li>
                                     <a href="{{ route('undo-output-history') }}" class="dropdown-item {{ $subPage == 'undo-output-history' ? 'active' : '' }}">
                                         Undo Output History <i class="fa-solid fa-rotate-left"></i>
@@ -531,6 +533,11 @@
                                         Report Mutasi Output <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('dashboard-chief-sewing-range', [date("Y-m-d"), date("Y-m-d")]) }}" class="dropdown-item {{ $routeName == 'dashboard-chief-sewing-range' ? 'active' : '' }}">
+                                        Chief Performance <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li>
                             @endrole
                         </ul>
                     </li>
@@ -545,6 +552,11 @@
                                 </li>
                             @endrole
                         </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('dashboard-wip') }}" class="nav-link" target="_blank">
+                            Dashboard
+                        </a>
                     </li>
                 @endif
 

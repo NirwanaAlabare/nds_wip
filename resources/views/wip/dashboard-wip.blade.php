@@ -65,6 +65,14 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">CHIEF RANGE</h5>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#chiefRangeDashboard" class="btn btn-primary btn-sm">View Details</button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Modal -->
             <div class="modal fade" id="chiefDashboard" tabindex="-1" aria-labelledby="chiefDashboardLabel" aria-hidden="true">
@@ -86,7 +94,7 @@
                                 <div class="col-md-6">
                                     <select class="select2bs4chief" name="month" id="month">
                                         @foreach ($months as $m)
-                                            <option value="{{ $m['angka'] }}">{{ $m['nama'] }}</option>
+                                            <option value="{{ $m['angka'] }}" {{ $m['angka'] == date("m") ? "selected" : "" }}>{{ $m['nama'] }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -94,6 +102,31 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" onclick="visitDashboardChief()">Visit <i class="fa fa-share"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="chiefRangeDashboard" tabindex="-1" aria-labelledby="chiefRangeDashboardLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="chiefRangeDashboardLabel">Visit Dashboard Chief Range</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="visitDashboardChiefRange()">Visit <i class="fa fa-share"></i></button>
                         </div>
                     </div>
                 </div>
@@ -147,6 +180,11 @@
 
         function visitDashboardChief() {
             window.open("{{ route("dashboard-chief-sewing") }}/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+            // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+        }
+
+        function visitDashboardChiefRange() {
+            window.open("{{ route("dashboard-chief-sewing-range") }}/"+$("#dateFrom").val()+"/"+$("#dateTo").val(), '_blank');
             // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
         }
     </script>

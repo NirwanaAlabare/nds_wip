@@ -71,6 +71,7 @@
                         <th>Range</th>
                         <th>Range</th>
                         <th>No. Stocker</th>
+                        <th>Stock</th>
                         <th>Qty</th>
                         <th>Waktu Loading</th>
                     </tr>
@@ -91,10 +92,10 @@
                         @php
                             $qty = $loadingLine->qty;
 
-                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal) {
+                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") && $currentForm != $loadingLine->no_form)) {
                                 $currentForm = $loadingLine->no_form;
                                 $currentSize = $loadingLine->size;
-                                $currentGroup = $loadingLine->group_stocker;
+                                $currentGroup = $loadingLine->group_stocker ? $loadingLine->group_stocker : $loadingLine->shade;
                                 $currentRange = $loadingLine->range_awal;
 
                                 $currentUpdate = $loadingLine->tanggal_loading;
@@ -103,8 +104,7 @@
                                 $totalQty += $qty;
 
                                 $currentQty = $qty;
-                            }
-                            else {
+                            } else {
                                 $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
 
                                 $currentQty = $qty;
@@ -121,6 +121,7 @@
                             <td class="align-middle">{{ $loadingLine->range_awal }}</td>
                             <td class="align-middle">{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
                             <td class="align-middle">{{ $loadingLine->id_qr_stocker }}</td>
+                            <td class="align-middle">{{ $loadingLine->tipe }}</td>
                             <td class="align-middle">{{ num($qty) }}</td>
                             <td class="align-middle">{{ $loadingLine->tanggal_loading }}</td>
                         </tr>
@@ -128,7 +129,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th class="text-end" colspan="10">TOTAL</th>
+                        <th class="text-end" colspan="11">TOTAL</th>
                         <th id="total-qty">{{ num($totalQty) }}</th>
                         <th id="latest-update">{{ $latestUpdate }}</th>
                     </tr>

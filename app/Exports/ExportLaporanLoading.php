@@ -116,6 +116,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                 GROUP BY
                     loading_line.tanggal_loading,
                     stocker_input.form_cut_id,
+                    stocker_input.form_reject_id,
                     stocker_input.so_det_id,
                     stocker_input.group_stocker,
                     stocker_input.range_awal

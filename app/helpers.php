@@ -40,7 +40,7 @@
         return 0;
     }
 
-    function localeDateFormat($date){
+    function localeDateFormat($date, $withDay = true){
         $day = date("D", strtotime($date));
 
         $localeDay = "";
@@ -88,7 +88,7 @@
 
         $dateExplode = explode('-', $date);
 
-        return $localeDay. ', ' . $dateExplode[2] . ' ' . $month[ (int) $dateExplode[1] ] . ' ' . $dateExplode[0];
+        return ($withDay ? $localeDay. ', ' : '') . $dateExplode[2] . ' ' . $month[ (int) $dateExplode[1] ] . ' ' . $dateExplode[0];
     }
 
     function getDatesFromRange($start, $end, $format = 'Y-m-d'){

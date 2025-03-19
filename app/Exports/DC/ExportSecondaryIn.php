@@ -61,7 +61,7 @@ class ExportSecondaryIn implements FromView, WithEvents, ShouldAutoSize
             a.qty_replace,
             a.qty_in,
             a.created_at,
-            f.no_cut,
+            COALESCE(f.no_cut, '-') no_cut,
             COALESCE(msb.size, s.size) size,
             a.user,
             mp.nama_part
@@ -69,6 +69,7 @@ class ExportSecondaryIn implements FromView, WithEvents, ShouldAutoSize
             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
             left join form_cut_input f on f.id = s.form_cut_id
+            left join form_cut_reject fr on f.id = s.form_reject_id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on pd.part_id = p.id
             left join master_part mp on mp.id = pd.master_part_id

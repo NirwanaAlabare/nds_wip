@@ -1330,7 +1330,6 @@
             });
         }
 
-
         function printStockerAllSizeAdd() {
             generating = true;
 
@@ -1431,7 +1430,6 @@
                     style,
                     color,
                     panel,
-                    part,
                     no_form_cut
                 ].join('-');
 

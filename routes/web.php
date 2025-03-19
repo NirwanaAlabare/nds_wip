@@ -202,6 +202,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-colors-new', 'getColors')->name('get-colors');
         // get sizes
         Route::get('/get-sizes-new', 'getSizes')->name('get-sizes');
+        // get panels new
+        Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
     });
 
     // Worksheet
@@ -500,8 +502,19 @@ Route::middleware('auth')->group(function () {
     // Cutting Reject
     Route::controller(CuttingFormRejectController::class)->prefix("form-cut-input-reject")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('cutting-reject');
+        Route::get('/show/{id?}', 'show')->name('show-cutting-reject');
         Route::get('/create', 'create')->name('create-cutting-reject');
+        Route::post('/store', 'store')->name('store-cutting-reject');
+        Route::get('/edit/{id?}', 'edit')->name('edit-cutting-reject');
+        Route::put('/update', 'update')->name('update-cutting-reject');
         Route::get('/stock', 'stock')->name('stock-cutting-reject');
+        Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-reject');
+
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('get-form-reject-sizes');
+
+        // export reject
+        Route::post('/export-excel', 'exportExcel')->name('export-form-reject');
     });
 
     // Piping Stock
@@ -618,8 +631,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
         Route::get('/stocker-list-total', 'stockerListTotal')->name('stocker-list-total');
         Route::get('/stocker-list/export', 'stockerListExport')->name('stocker-list-export');
-        Route::get('/stocker-list/detail/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
-        Route::get('/stocker-list/detail/export/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}', 'stockerListDetailExport')->name('stocker-list-detail-export');
+        Route::get('/stocker-list/detail/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}/{normal?}', 'stockerListDetail')->name('stocker-list-detail');
+        Route::get('/stocker-list/detail/export/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}/{normal?}', 'stockerListDetailExport')->name('stocker-list-detail-export');
         Route::get('/stocker-list/check-year-sequence', 'checkYearSequenceNumber')->name('check-year-sequence-number');
         Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
         Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');
@@ -655,6 +668,11 @@ Route::middleware('auth')->group(function () {
         // add
         Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
         Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
+
+        // stocker reject
+        Route::post('/print-stocker-reject-all-size/{partDetailId?}', 'printStockerRejectAllSize')->name('print-stocker-reject-all-size');
+        Route::post('/print-stocker-reject-checked', 'printStockerRejectChecked')->name('print-stocker-reject-checked');
+        Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
     });
 
     // DC :
@@ -1729,6 +1747,9 @@ Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->midd
 Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
 Route::get('/dashboard-wip/chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'chiefSewing'])->name('dashboard-chief-sewing');
 Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::class, 'chiefSewingData'])->name('dashboard-chief-sewing-data');
+Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->name('dashboard-chief-sewing-range');
+Route::get('/dashboard-wip/chief-sewing-range-data', [DashboardWipLineController::class, 'chiefSewingRangeData'])->name('dashboard-chief-sewing-range-data');
+Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineController::class, 'chiefSewingRangeDataExport'])->name('dashboard-chief-sewing-range-data-export');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');

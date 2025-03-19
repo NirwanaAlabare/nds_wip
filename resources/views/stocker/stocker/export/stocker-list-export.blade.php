@@ -19,6 +19,7 @@
         <th style="font-weight: 800;">No. WS</th>
         <th style="font-weight: 800;">Style</th>
         <th style="font-weight: 800;">Stocker</th>
+        <th style="font-weight: 800;">Stock</th>
         <th style="font-weight: 800;">Part</th>
         <th style="font-weight: 800;">Group</th>
         <th style="font-weight: 800;">Shade</th>
@@ -48,6 +49,7 @@
             <td>{{ $stock->act_costing_ws }}</td>
             <td>{{ $stock->style }}</td>
             <td>{{ $stock->id_qr_stocker }}</td>
+            <td>{{ $stock->tipe }}</td>
             <td>{{ $stock->part }}</td>
             <td>{{ $stock->group_stocker }}</td>
             <td>{{ $stock->shade }}</td>
@@ -58,6 +60,6 @@
     <tr>
         <td style="font-weight: bold;" colspan="5">TOTAL</td>
         <td style="font-weight: bold;">{{ $total }}</td>
-        <td style="font-weight: bold;" colspan="3">{{ $totalQty }}</td>
+        <td style="font-weight: bold;">{{ $totalQty }}</td>
     </tr>
 </table>

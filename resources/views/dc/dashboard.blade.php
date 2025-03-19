@@ -98,6 +98,7 @@
                         <th>Size</th>
                         <th>Group</th>
                         <th>Stocker</th>
+                        <th>Tipe</th>
                         <th>Range</th>
                         <th>Secondary</th>
                         <th>Rak</th>

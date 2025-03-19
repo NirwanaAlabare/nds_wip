@@ -203,7 +203,6 @@
                                 <label>Tipe Output</label>
                                 <select class="form-select form-select-sm" name="output-type" id="output-type" wire:model="outputType">
                                     <option value="">QC</option>
-                                    <option value="_finish">Finish</option>
                                     <option value="_packing">Packing</option>
                                 </select>
                             </div>

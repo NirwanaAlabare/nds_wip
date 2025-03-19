@@ -14,13 +14,18 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <div class="d-flex justify-content-between align-items-middle">
+            <div class="d-flex justify-content-start align-items-middle">
                 <h5 class="card-title fw-bold"><i class="fa-solid fa-pen-to-square"></i> Modify Year Sequence</h5>
             </div>
         </div>
         <div class="card-body">
+            <div class="d-flex justify-content-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="switch-method" onchange="switchMethod(this)">
+                </div>
+            </div>
             <h5 class="fw-bold text-sb">QR Range :</h5>
-            <div class="row justify-content-center align-items-end g-3 mb-3">
+            <div class="row justify-content-between align-items-end g-3 mb-3" id="range-method">
                 <div class="col-md-6">
                     <label class="form-label"><small><b>Year</b></small></label>
                     <select class="form-select" name="year" id="year">
@@ -34,16 +39,28 @@
                     <select class="form-select" name="sequence" id="sequence">
                     </select>
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <label class="form-label"><small><b>Range Awal</b></small></label>
                     <input type="number" class="form-control" id="range_awal" name="range_awal">
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <label class="form-label"><small><b>Range Akhir</b></small></label>
                     <input type="number" class="form-control" id="range_akhir" name="range_akhir">
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-block btn-primary" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
+                <div class="col-md-12">
+                    <button class="btn btn-block btn-primary mt-3" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
+                </div>
+            </div>
+            <div class="row justify-content-between align-items-start g-3 mb-3 d-none" id="list-method">
+                <div class="col-md-12">
+                    <label class="form-label">Year Sequences</label>
+                    <textarea class="form-control" name="text" id="year_sequence_ids" rows="5"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-block btn-primary mt-1" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -187,6 +204,8 @@
             $("#stocker").val("").trigger("change");
 
             $("#total_update").val(currentRangeTable.page.info().recordsTotal);
+
+            $("#switch-method").prop("checked", false);
         });
 
 
@@ -355,6 +374,8 @@
                     d.sequence = $('#sequence').val();
                     d.range_awal = $('#range_awal').val();
                     d.range_akhir = $('#range_akhir').val();
+                    d.year_sequence_ids = $('#year_sequence_ids').val();
+                    d.method = ($('#switch-method').is(':checked') ? "list" : "range");
                 },
             },
             columns: [
@@ -398,7 +419,7 @@
                 Swal.fire({
                     icon: "info",
                     title: "Konfirmasi",
-                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+($("#total_update").val())+"</b>",
+                    html: $('#switch-method').is(":checked") ? "Year Sequence dengan Total QTY <b>"+($("#total_update").val())+"</b>" : "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+($("#total_update").val())+"</b>",
                     showDenyButton: true,
                     showCancelButton: false,
                     confirmButtonText: "Lanjut",
@@ -416,6 +437,8 @@
                                 "sequence": $("#sequence").val(),
                                 "range_awal": $("#range_awal").val(),
                                 "range_akhir": $("#range_akhir").val(),
+                                "year_sequence_ids": $('#year_sequence_ids').val(),
+                                "method": ($('#switch-method').is(':checked') ? "list" : "range"),
                                 "size": $("#size").val(),
                                 "size_text": $("#size").find(":selected").attr("size"),
                             },
@@ -495,6 +518,8 @@
                                 "sequence": $("#sequence").val(),
                                 "range_awal": $("#range_awal").val(),
                                 "range_akhir": $("#range_akhir").val(),
+                                "year_sequence_ids": $('#year_sequence_ids').val(),
+                                "method": ($('#switch-method').is(':checked') ? "list" : "range"),
                             },
                             success: function (res) {
                                 document.getElementById("loading").classList.add("d-none");
@@ -602,6 +627,19 @@
                     console.error(jqXHR);
                 }
             });
+        }
+
+        function switchMethod(element) {
+            let rangeElement = document.getElementById("range-method");
+            let listElement = document.getElementById("list-method");
+
+            if (element.checked) {
+                rangeElement.classList.add("d-none")
+                listElement.classList.remove("d-none")
+            } else {
+                rangeElement.classList.remove("d-none")
+                listElement.classList.add("d-none")
+            }
         }
     </script>
 @endsection

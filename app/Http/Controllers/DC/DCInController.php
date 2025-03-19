@@ -41,6 +41,7 @@ class DCInController extends Controller
             $data_input = DB::select("
                 SELECT
                     UPPER(a.id_qr_stocker) id_qr_stocker,
+                    (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                     DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                     a.tgl_trans,
                     s.act_costing_ws,
@@ -64,6 +65,7 @@ class DCInController extends Controller
                     left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                     left join form_cut_input f on f.id = s.form_cut_id
+                    left join form_cut_reject fr on fr.id = s.form_reject_id
                     left join part_detail pd on s.part_detail_id = pd.id
                     left join part p on pd.part_id = p.id
                     left join master_part mp on mp.id = pd.master_part_id
@@ -171,6 +173,7 @@ class DCInController extends Controller
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
+                left join form_cut_reject fr on fr.id = s.form_reject_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
@@ -249,8 +252,8 @@ class DCInController extends Controller
         $data_header = DB::select("
             SELECT
                 a.act_costing_ws,
-                m.buyer,
-                m.style styleno,
+                COALESCE(fr.buyer, m.buyer) buyer,
+                COALESCE(fr.style, m.style) styleno,
                 a.color,
                 COALESCE(msb.size, a.size) size,
                 a.panel,
@@ -268,6 +271,7 @@ class DCInController extends Controller
                 `stocker_input` a
                 left join master_sb_ws msb on msb.id_so_det = a.so_det_id
                 left join form_cut_input f on a.form_cut_id = f.id
+                left join form_cut_reject fr on a.form_reject_id = fr.id
                 left JOIN marker_input m ON m.kode = f.id_marker
                 left join part_detail pd on a.part_detail_id = pd.id
                 left join master_secondary ms on pd.master_secondary_id = ms.id
@@ -386,8 +390,7 @@ class DCInController extends Controller
                 ifnull( s.tujuan, '-' ) tujuan,
                 ifnull( tmp.tempat, '-' ) tempat,
                 ifnull( tmp.lokasi, '-' ) lokasi,
-                concat(
-                    COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
+                concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
                 concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
                 ms.act_costing_ws,
                 msb.size,
@@ -405,9 +408,40 @@ class DCInController extends Controller
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
-                x.`user` = '".$user."'
-            group by ms.id_qr_stocker
-            order by ifnull( tmp.id_qr_stocker, 'x' )
+                x.`user` = '".$user."' and
+                y.form_reject_id is null
+            group by
+                ms.id_qr_stocker
+            UNION
+            SELECT
+                ms.id_qr_stocker,
+                mp.nama_part,
+                concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
+                ifnull( s.tujuan, '-' ) tujuan,
+                ifnull( tmp.tempat, '-' ) tempat,
+                ifnull( tmp.lokasi, '-' ) lokasi,
+                concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
+                concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
+                ms.act_costing_ws,
+                msb.size,
+                ms.color,
+                ms.panel,
+                concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+            FROM
+                tmp_dc_in_input_new x
+                left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
+                LEFT JOIN stocker_input ms ON ms.form_reject_id = y.form_reject_id AND ms.so_det_id = y.so_det_id AND ms.shade = y.shade
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
+                LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
+                left JOIN part_detail pd ON ms.part_detail_id = pd.id
+                left JOIN master_part mp ON pd.master_part_id = mp.id
+                LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+            WHERE
+                x.`user` = '".$user."' and
+                y.form_reject_id is not null
+            group by
+                ms.id_qr_stocker
         ");
 
         return DataTables::of($tmpDcIn)->toJson();

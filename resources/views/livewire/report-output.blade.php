@@ -808,10 +808,9 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="fw-bold mb-1">QC Output</label>
+                        <label class="fw-bold mb-1">Department</label>
                         <select class="form-select" id="qc-type" wire:model="qcType">
                             <option value="">End-line</option>
-                            <option value="_finish">Finish-line</option>
                             <option value="_packing">Packing-line</option>
                         </select>
                     </div>

@@ -26,22 +26,27 @@ class StockerListDetailExport implements FromView, WithEvents, ShouldAutoSize
     protected $group_stocker;
     protected $ratio;
     protected $so_det_id;
+    protected $normal;
 
-    public function __construct($form_cut_id, $group_stocker, $ratio, $so_det_id)
+    public function __construct($form_cut_id, $group_stocker, $ratio, $so_det_id, $normal)
     {
         $this->form_cut_id = $form_cut_id;
         $this->group_stocker = $group_stocker;
         $this->ratio = $ratio;
         $this->so_det_id = $so_det_id;
+        $this->normal = $normal;
     }
 
     public function view(): View
     {
+        $formFilter = $this->normal ? "stocker_input.form_cut_id = '".$this->form_cut_id."' and" : "stocker_input.form_reject_id = '".$this->form_cut_id."' and";
+        $yearSequenceformFilter = $this->normal ? "year_sequence.form_cut_id = '".$this->form_cut_id."' and" : "year_sequence.form_reject_id = '".$this->form_cut_id."' and";
+
         $stockerList = DB::select("
             SELECT
                 GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
                 GROUP_CONCAT(DISTINCT master_part.nama_part) part,
-                stocker_input.form_cut_id,
+                COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
                 stocker_input.act_costing_ws,
                 stocker_input.so_det_id,
                 master_sb_ws.buyer buyer,
@@ -49,14 +54,15 @@ class StockerListDetailExport implements FromView, WithEvents, ShouldAutoSize
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest,
-                form_cut_input.no_form,
-                form_cut_input.no_cut,
+                COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
+                COALESCE(form_cut_input.no_cut, '-') no_cut,
                 stocker_input.group_stocker,
                 stocker_input.shade,
                 stocker_input.ratio,
                 MIN(stocker_input.range_awal) range_awal,
                 MAX(stocker_input.range_akhir) range_akhir,
-                CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range
+                CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                (CASE WHEN form_cut_reject.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
             FROM
                 stocker_input
             LEFT JOIN
@@ -67,14 +73,17 @@ class StockerListDetailExport implements FromView, WithEvents, ShouldAutoSize
                 master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
             LEFT JOIN
                 form_cut_input on form_cut_input.id = stocker_input.form_cut_id
+            LEFT JOIN
+                form_cut_reject on form_cut_reject.id = stocker_input.form_reject_id
             WHERE
-                (form_cut_input.cancel is null or form_cut_input.cancel != 'Y') AND
-                stocker_input.form_cut_id = '".$this->form_cut_id."' AND
-                stocker_input.group_stocker = '".$this->group_stocker."' AND
-                stocker_input.ratio = '".$this->ratio."' AND
+                (CASE WHEN form_cut_input.id > 0 THEN (form_cut_input.cancel is null or form_cut_input.cancel != 'Y') ELSE form_cut_reject.id > 0 END) AND
+                ".$formFilter."
+                ".($this->normal ? ("stocker_input.group_stocker = '".$this->group_stocker."' AND") : (""))."
+                ".($this->normal ? ("stocker_input.ratio = '".$this->ratio."' AND") : (""))."
                 stocker_input.so_det_id = '".$this->so_det_id."'
             GROUP BY
                 stocker_input.form_cut_id,
+                stocker_input.form_reject_id,
                 stocker_input.so_det_id,
                 stocker_input.group_stocker,
                 stocker_input.ratio
@@ -100,7 +109,7 @@ class StockerListDetailExport implements FromView, WithEvents, ShouldAutoSize
             ")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             whereRaw("
-                year_sequence.form_cut_id = '".$this->form_cut_id."' and
+                ".$yearSequenceformFilter."
                 year_sequence.so_det_id = '".$this->so_det_id."' and
                 year_sequence.number >= '".$stockerList[0]->range_awal."' and
                 year_sequence.number <= '".$stockerList[0]->range_akhir."'

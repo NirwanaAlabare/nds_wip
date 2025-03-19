@@ -423,7 +423,8 @@
                     d.cbomarker = $('#edit_marker_id').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'size'
                 },
                 {

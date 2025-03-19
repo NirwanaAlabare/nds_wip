@@ -30,6 +30,14 @@ class Stocker extends Model
     }
 
     /**
+     * Get the form.
+     */
+    public function formReject()
+    {
+        return $this->belongsTo(FormCutReject::class, 'form_reject_id', 'id');
+    }
+
+    /**
      * Get the stocker details.
      */
     public function stockerDetails()

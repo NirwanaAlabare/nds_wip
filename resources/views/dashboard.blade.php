@@ -3060,6 +3060,7 @@
                     processing: true,
                     ordering: false,
                     pageLength: 50,
+                    scrollX: '500px',
                     scrollY: '500px',
                     ajax: {
                         url: '{{ route('dashboard-dc') }}',
@@ -3090,6 +3091,9 @@
                         },
                         {
                             data: 'id_qr_stocker',
+                        },
+                        {
+                            data: 'tipe',
                         },
                         {
                             data: 'stocker_range',

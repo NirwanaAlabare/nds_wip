@@ -14,26 +14,26 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold"><i class="fa-solid fa-file-circle-exclamation"></i> Form Ganti Reject</h5>
+            <h5 class="card-title fw-bold"><i class="fa-solid fa-receipt"></i> Stock Ganti Reject</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end mb-3">
                 <div class="d-flex justify-content-start align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-from" name="date-from" onchange="cuttingRejectTableReload()">
+                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-from" name="dateFrom" onchange="cuttingRejectTableReload()">
                     </div>
                     <div>
                         <label class="form-label">Sampai</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-to" name="date-to" onchange="cuttingRejectTableReload()">
+                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-to" name="dateTo" onchange="cuttingRejectTableReload()">
                     </div>
                     <div>
                         <button class="btn btn-sb" onclick="cuttingRejectTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
                 <div class="d-flex gap-1">
-                    <a href="{{ route('create-cutting-reject') }}" class="btn btn-sb"><i class="fa fa-plus"></i> Baru</a>
-                    {{-- <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button> --}}
+                    {{-- <a href="{{ route('create-cutting-reject') }}" class="btn btn-sb"><i class="fa fa-plus"></i> Baru</a> --}}
+                    <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -118,10 +118,10 @@
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        let buttonEdit = `<a href="{{ route('edit-cutting-reject') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
-                        // let buttonDetail = `<a href="{{ route('show-cutting-reject') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
+                        // let buttonEdit = `<a href="{{ route('edit-cutting-reject') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
+                        let buttonDetail = `<a href="{{ route('show-cutting-reject') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
 
-                        return buttonEdit;
+                        return buttonDetail;
                     }
                 },
                 {

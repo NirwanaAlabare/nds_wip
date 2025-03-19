@@ -14,7 +14,9 @@
         <th style="font-weight: 800;">Group</th>
         <th style="font-weight: 800;">Range</th>
         <th style="font-weight: 800;">Range</th>
+        <th style="font-weight: 800;">Part</th>
         <th style="font-weight: 800;">No. Stocker</th>
+        <th style="font-weight: 800;">Stock</th>
         <th style="font-weight: 800;">Qty</th>
         <th style="font-weight: 800;">Waktu Loading</th>
     </tr>
@@ -33,10 +35,10 @@
         @php
             $qty = $loadingLine->qty;
 
-            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal) {
+            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") && ($currentForm != $loadingLine->no_form))) {
                 $currentForm = $loadingLine->no_form;
                 $currentSize = $loadingLine->size;
-                $currentGroup = $loadingLine->group_stocker;
+                $currentGroup = $loadingLine->group_stocker ? $loadingLine->group_stocker : $loadingLine->shade;
                 $currentRange = $loadingLine->range_awal;
 
                 $currentUpdate = $loadingLine->tanggal_loading;
@@ -64,13 +66,15 @@
             <td>{{ $loadingLine->shade }}</td>
             <td>{{ $loadingLine->range_awal }}</td>
             <td>{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
+            <td>{{ $loadingLine->part }}</td>
             <td>{{ $loadingLine->id_qr_stocker }}</td>
+            <td>{{ $loadingLine->type }}</td>
             <td>{{ $qty }}</td>
             <td>{{ $loadingLine->tanggal_loading }}</td>
         </tr>
     @endforeach
     <tr>
-        <th style="font-weight: 800;" colspan="12">TOTAL</th>
+        <th style="font-weight: 800;" colspan="14">TOTAL</th>
         <th style="font-weight: 800;">{{ $totalQty }}</th>
         <th style="font-weight: 800;">{{ $latestUpdate }}</th>
     </tr>

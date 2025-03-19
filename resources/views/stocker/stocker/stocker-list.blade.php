@@ -63,6 +63,7 @@
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>Stocker</th>
+                            <th>Stock</th>
                             <th>Part</th>
                             <th>Group</th>
                             <th>Shade</th>
@@ -274,7 +275,7 @@
             $("#switch-method").prop("checked", false);
         });
 
-        var stockListFilter = ['action', 'tanggal_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
+        var stockListFilter = ['action', 'tanggal_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'tipe_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -367,6 +368,9 @@
                     data: 'id_qr_stocker'
                 },
                 {
+                    data: 'tipe'
+                },
+                {
                     data: 'part'
                 },
                 {
@@ -389,7 +393,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.group_stocker+`/`+row.ratio+`/`+row.so_det_id+`' target='_blank'><i class='fa fa-search-plus'></i></a>
+                                <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.group_stocker+`/`+row.ratio+`/`+row.so_det_id+`/`+(row.tipe == 'REJECT' ? 0 : 1)+`' target='_blank'><i class='fa fa-search-plus'></i></a>
                                 <div class="form-check">
                                     <input class="form-check-input check-stock-number" type="checkbox" onchange="checkStockNumber(this)" id="stock_number_`+meta.row+`">
                                 </div>
@@ -401,7 +405,7 @@
                 {
                     targets: [2],
                     render: (data, type, row, meta) => {
-                        return data ? `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                        return data ? ( row.tipe == 'REJECT' ? `<a class='fw-bold' href='{{ route("show-cutting-reject") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` ) : "-";
                     }
                 },
                 // Stocker List
@@ -444,6 +448,7 @@
                         'ws_filter': $('#ws_filter').val(),
                         'style_filter': $('#style_filter').val(),
                         'stocker_filter': $('#stocker_filter').val(),
+                        'tipe_filter': $('#tipe_filter').val(),
                         'part_filter': $('#part_filter').val(),
                         'group_filter': $('#group_filter').val(),
                         'shade_filter': $('#shade_filter').val(),
@@ -517,6 +522,7 @@
                     'ws_filter': $('#ws_filter').val(),
                     'style_filter': $('#style_filter').val(),
                     'stocker_filter': $('#stocker_filter').val(),
+                    'tipe_filter': $('#tipe_filter').val(),
                     'part_filter': $('#part_filter').val(),
                     'group_filter': $('#group_filter').val(),
                     'shade_filter': $('#shade_filter').val(),
@@ -1130,6 +1136,7 @@
                         dateTo: $("#tgl-akhir").val(),
                         tanggal_filter: $('#tanggal_filter').val(),
                         stocker_filter: $('#stocker_filter').val(),
+                        tipe_filter: $('#tipe_filter').val(),
                         part_filter: $('#part_filter').val(),
                         buyer_filter: $('#buyer_filter').val(),
                         ws_filter: $('#ws_filter').val(),
