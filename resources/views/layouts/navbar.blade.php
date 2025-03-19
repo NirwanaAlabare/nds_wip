@@ -553,6 +553,11 @@
                             @endrole
                         </ul>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('dashboard-wip') }}" class="nav-link" target="_blank">
+                            Dashboard
+                        </a>
+                    </li>
                 @endif
 
                 @if ($page == 'dashboard-warehouse')
