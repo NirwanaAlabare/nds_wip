@@ -188,11 +188,11 @@
         });
 
         var intervalData = setInterval(async function () {
-            console.log("update data");
+            console.log("data update start");
 
-            document.getElementById("loading").classList.remove("d-none");
             await getData();
-            document.getElementById("loading").classList.add("d-none");
+
+            console.log("data update finish");
         }, 60000);
 
         async function getData() {
