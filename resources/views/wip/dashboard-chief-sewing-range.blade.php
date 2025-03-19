@@ -70,10 +70,9 @@
 
         .horizontal-grid {
             background: #919191;
-            display: grid;
+            display: flex;
             background: inherit;
             width: 100%;
-            grid-template-columns: repeat(999, 1fr);
             align-items: stretch;
             grid-gap: 3px;
         }
@@ -126,13 +125,6 @@
             <div class="card-body">
                 <div class="table-responsive p-1" style="background: #e9e9e9">
                     <div class="horizontal-grid" id="chief-table">
-                        <div>
-                            <div class="d-flex flex-column gap-1" id="chief-table-header">
-                                <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
-                                    <span class="text-nowrap fw-bold p-1">NAMA CHIEF</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -192,7 +184,19 @@
         document.getElementById("loading").classList.remove("d-none");
 
         $('document').ready(async () => {
-            $.ajax({
+            getData();
+        });
+
+        var intervalData = setInterval(async function () {
+            console.log("update data");
+
+            document.getElementById("loading").classList.remove("d-none");
+            await getData();
+            document.getElementById("loading").classList.add("d-none");
+        }, 60000);
+
+        async function getData() {
+            await $.ajax({
                 url: "{{ route("dashboard-chief-sewing-range-data") }}",
                 type: "get",
                 data: {
@@ -287,11 +291,7 @@
                     document.getElementById("loading").classList.add("d-none");
                 }
             });
-        });
-
-        // var intervalData = setInterval(() => {
-        //     updateData();
-        // }, 60000);
+        }
 
         function generateEffChart(data) {
 
@@ -382,13 +382,16 @@
         }
 
         async function chiefTable(data) {
-            console.log(data);
-
             let longestData = data.reduce((a,b)=>a.eff.length>b.eff.length?a:b).eff.map((item)=>item["x"]);
 
-            console.log("longestData", longestData);
-
             let parentElement = document.getElementById("chief-table");
+            parentElement.innerHTML = `
+                <div class="d-flex flex-column gap-1" id="chief-table-header">
+                    <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
+                        <span class="text-nowrap fw-bold p-1">NAMA CHIEF</span>
+                    </div>
+                </div>
+            `;
             let parentElementHeader = document.getElementById("chief-table-header");
             let totalHTML = "";
             let rankHTML = "";
@@ -408,10 +411,10 @@
                                 </div>
                                 <div class="d-flex justify-content-center align-items-center gap-1">
                                     <div class="horizontal-grid-box text-center w-50 h-100">
-                                        <span class="text-nowrap fw-bold">RFT</span>
+                                        <span class="text-nowrap fw-bold">Efficiency</span>
                                     </div>
                                     <div class="horizontal-grid-box text-center w-50 h-100">
-                                        <span class="text-nowrap fw-bold">Efficiency</span>
+                                        <span class="text-nowrap fw-bold">RFT</span>
                                     </div>
                                 </div>
                             </div>
@@ -434,15 +437,14 @@
                         <div>
                             <div class="d-flex justify-content-between align-items-center gap-1" style="height: 50px;">
                                 <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
-                                    <span class="text-nowrap">`+(rft ? rft.y+' %' : '-')+`</span>
+                                    <span class="text-nowrap fw-bold" style="color: `+colorizeEfficiency(eff ? eff.y : 0)+`;">`+(eff ? eff.y+' %' : '-')+`</span>
                                 </div>
                                 <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
-                                    <span class="text-nowrap">`+(eff ? eff.y+' %' : '-')+`</span>
+                                    <span class="text-nowrap fw-bold" style="color: `+colorizeRft(rft ? rft.y : 0)+`;">`+(rft ? rft.y+' %' : '-')+`</span>
                                 </div>
                             </div>
                         </div>
                     `;
-
                     horizontalHtmlStart += verticalHtml;
 
                     if (index == (longestData.length-1)) {
@@ -451,14 +453,13 @@
                             <div>
                                 <div class="d-flex justify-content-between align-items-center gap-1" style="height: 50px;">
                                     <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
-                                        <span class="text-nowrap">`+(element.currentRft ? element.currentRft+' %' : '-')+`</span>
+                                        <span class="text-nowrap fw-bold" style="color: `+colorizeEfficiency(element ? element.currentEff : 0)+`;">`+(element ? element.currentEff+' %' : '-')+`</span>
                                     </div>
                                     <div class="horizontal-grid-box d-flex justify-content-center align-items-center w-50 h-100">
-                                        <span class="text-nowrap">`+(element ? element.currentEff+' %' : '-')+`</span>
+                                        <span class="text-nowrap fw-bold" style="color: `+colorizeRft(element ? element.currentRft : 0)+`;">`+(element.currentRft ? element.currentRft+' %' : '-')+`</span>
                                     </div>
                                 </div>
                             </div>
-
                         `;
 
                         // Rank
@@ -493,10 +494,10 @@
                             </div>
                             <div class="d-flex justify-content-center align-items-center gap-1">
                                 <div class="horizontal-grid-box text-center w-50 h-100">
-                                    <span class="text-nowrap fw-bold">RFT</span>
+                                    <span class="text-nowrap fw-bold">Efficiency</span>
                                 </div>
                                 <div class="horizontal-grid-box text-center w-50 h-100">
-                                    <span class="text-nowrap fw-bold">Efficiency</span>
+                                    <span class="text-nowrap fw-bold">RFT</span>
                                 </div>
                             </div>
                         </div>
@@ -586,37 +587,39 @@
         }
 
         // Colorize Efficiency
-        function colorizeEfficiency(element, efficiency) {
-            if (isElement(element)) {
-                switch (true) {
-                    case efficiency < 75 :
-                        element.style.color = '#dc3545';
-                        break;
-                    case efficiency >= 75 && efficiency <= 85 :
-                        element.style.color = 'rgb(240, 153, 0)';
-                        break;
-                    case efficiency > 85 :
-                        element.style.color = '#28a745';
-                        break;
-                }
+        function colorizeEfficiency(efficiency) {
+            let color = "";
+            switch (true) {
+                case efficiency < 75 :
+                    color = '#dc3545';
+                    break;
+                case efficiency >= 75 && efficiency <= 85 :
+                    color = 'rgb(240, 153, 0)';
+                    break;
+                case efficiency > 85 :
+                    color = '#28a745';
+                    break;
             }
+
+            return color;
         }
 
         // Colorize RFT
-        function colorizeRft(element, rft) {
-            if (isElement(element)) {
-                switch (true) {
-                    case rft < 97 :
-                        element.style.color = '#dc3545';
-                        break;
-                    case rft >= 97 && rft < 98 :
-                        element.style.color = 'rgb(240, 153, 0)';
-                        break;
-                    case rft >= 98 :
-                        element.style.color = '#28a745';
-                        break;
-                }
+        function colorizeRft(rft) {
+            let color = "";
+            switch (true) {
+                case rft < 97 :
+                    color = '#dc3545';
+                    break;
+                case rft >= 97 && rft < 98 :
+                    color = 'rgb(240, 153, 0)';
+                    break;
+                case rft >= 98 :
+                    color = '#28a745';
+                    break;
             }
+
+            return color;
         }
     </script>
 @endsection
