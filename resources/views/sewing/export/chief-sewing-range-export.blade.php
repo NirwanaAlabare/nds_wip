@@ -5,9 +5,44 @@
     <tr>
         <td style="text-align: center; font-weight: 800;">Chief Performance Range</td>
     </tr>
+    @php
+        function colorizeEfficiency($efficiency) {
+            $color = "";
+            switch (true) {
+                case $efficiency < 75 :
+                    $color = '#dc3545';
+                    break;
+                case $efficiency >= 75 && $efficiency <= 85 :
+                    $color = '#f09900';
+                    break;
+                case $efficiency > 85 :
+                    $color = '#28a745';
+                    break;
+            }
+
+            return $color;
+        }
+
+        function colorizeRft($rft) {
+            $color = "";
+            switch (true) {
+                case $rft < 97 :
+                    $color = '#dc3545';
+                    break;
+                case $rft >= 97 && $rft < 98 :
+                    $color = '#f09900';
+                    break;
+                case $rft >= 98 :
+                    $color = '#28a745';
+                    break;
+            }
+
+            return $color;
+        }
+    @endphp
     @if ($chiefPerformance && $chiefPerformance->count() > 0)
         <tr>
-            <th style="font-weight: 800;text-align: center;vertical-align: middle;" rowspan="2">Nama Chief</th>
+            <th style="font-weight: 800;text-align: center;vertical-align: middle;" rowspan="2">NAMA CHIEF</th>
             <?php
                 if ( $chiefPerformance && $chiefPerformance->count() > 0 ) {
                     foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
@@ -23,13 +58,13 @@
             <?php
                 foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                     ?>
-                        <th style="font-weight: 800;">RFT</th>
                         <th style="font-weight: 800;">Efficiency</th>
+                        <th style="font-weight: 800;">RFT</th>
                     <?php
                 }
             ?>
-                    <th style="font-weight: 800;">RFT</th>
                     <th style="font-weight: 800;">Efficiency</th>
+                    <th style="font-weight: 800;">RFT</th>
                 </tr>
             <?php
                 $chiefGroups = $chiefPerformance->groupBy("chief_nik");
@@ -58,10 +93,8 @@
                         <tr>
                             <td style="font-weight: 800;text-align: center;">{{ $chief['chief_name'] }}</td>
                             @php
-                                $sumRft = 0;
-                                $sumOutput = 0;
-                                $sumMinsProd = 0;
-                                $sumMinsAvail = 0;
+                                $sumRft = ($chief['total_output'] > 0 ? round($chief['total_rft']/$chief['total_output']*100, 2) : 0);
+                                $sumEff = ($chief['total_mins_avail']  > 0 ? round($chief['total_mins_prod']/$chief['total_mins_avail']*100, 2) : 0);
                             @endphp
                             @foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                                 @php
@@ -70,23 +103,21 @@
                                     $thisMinsProd = $chiefPerformance->where('chief_nik', $chief['chief_nik'])->where('tanggal', $dailyDate->first()->tanggal)->sum("mins_prod");
                                     $thisMinsAvail = $chiefPerformance->where('chief_nik', $chief['chief_nik'])->where('tanggal', $dailyDate->first()->tanggal)->sum("mins_avail");
 
-                                    $sumRft += $thisRft;
-                                    $sumOutput += $thisOutput;
-                                    $sumMinsProd += $thisMinsProd;
-                                    $sumMinsAvail += $thisMinsAvail;
+                                    $thisRft = ($thisOutput > 0 ? round($thisRft/$thisOutput*100, 2) : 0);
+                                    $thisEff = ($thisMinsAvail > 0 ? round($thisMinsProd/$thisMinsAvail*100, 2) : 0);
                                 @endphp
-                                <td>
-                                    {{ ($thisRft > 0 ? round($thisRft/$thisOutput*100, 2) : 0) }} %
+                                <td style="font-weight: 800;color: {{ colorizeEfficiency($thisEff) }};">
+                                    {{ $thisEff }} %
                                 </td>
-                                <td>
-                                    {{ ($thisMinsAvail > 0 ? round($thisMinsProd/$thisMinsAvail*100, 2) : 0) }} %
+                                <td style="font-weight: 800;color: {{ colorizeRft($thisRft) }};">
+                                    {{ $thisRft }} %
                                 </td>
                             @endforeach
-                            <td style="font-weight: 800;">
-                                {{ ($chief['total_output'] > 0 ? round($chief['total_rft']/$chief['total_output']*100, 2) : 0) }} %
+                            <td style="font-weight: 800;color: {{ colorizeEfficiency($sumEff) }};">
+                                {{ $sumEff }} %
                             </td>
-                            <td style="font-weight: 800;">
-                                {{ ($chief['total_mins_avail']  > 0 ? round($chief['total_mins_prod']/$chief['total_mins_avail']*100, 2) : 0) }} %
+                            <td style="font-weight: 800;color: {{ colorizeRft($sumRft) }};">
+                                {{ $sumRft }} %
                             </td>
                             <td style="font-weight: 800;text-align: center;">
                                 {{ $i }}
