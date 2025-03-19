@@ -535,7 +535,7 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('dashboard-chief-sewing-range', [date("Y-m-d"), date("Y-m-d")]) }}" class="dropdown-item {{ $routeName == 'dashboard-chief-sewing-range' ? 'active' : '' }}">
-                                        Chief Performance Range <i class="fa-solid fa-file"></i>
+                                        Chief Performance <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
                             @endrole
