@@ -272,6 +272,9 @@ class CompletedFormController extends Controller
                 "piping" => $validatedRequest['current_piping']
             ]);
 
+
+        $itemRemain = $validatedRequest['current_sisa_kain'];
+
         if ($validatedRequest['current_sambungan'] > 0) {
             // After Extension
             $detailAfter = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
@@ -280,6 +283,8 @@ class CompletedFormController extends Controller
                 first();
 
             if ($detailAfter) {
+                $itemRemain = $detailAfter->sisa_kain;
+
                 $detailAfter->id_roll = $validatedRequest['current_id_roll'];
                 $detailAfter->id_item = $validatedRequest['current_id_item'];
                 $detailAfter->group_roll = $validatedRequest['current_group'];
@@ -298,8 +303,6 @@ class CompletedFormController extends Controller
             where('form_cut_input_detail.id', $validatedRequest['current_id'])->first();
 
         if ($updateTimeRecordSummary) {
-            $itemRemain = $validatedRequest['current_sisa_kain'];
-
             ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
                 update([
                     "id_item" => $validatedRequest['current_id_item'],
