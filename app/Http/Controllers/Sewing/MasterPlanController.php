@@ -229,21 +229,31 @@ class MasterPlanController extends Controller
 
         $masterPlan = MasterPlan::where("id", $request->edit_id)->first();
 
-        $updateMasterPlan = MasterPlan::where("id", $request->edit_id)->update([
-            "id_ws" => $request->edit_id_ws,
-            "color" => $request->edit_color,
-            "smv" => $request->edit_smv,
-            "jam_kerja" => $request->edit_jam_kerja,
-            "man_power" => $request->edit_man_power,
-            "plan_target" => $request->edit_plan_target,
-            "target_effy" => $request->edit_target_effy,
-            // "gambar" => $editGambarNew
-        ]);
+        if ($masterPlan->rfts->count()+$masterPlan->defects->count()+$masterPlan->rejects->count() < 1) {
+            $updateMasterPlan = MasterPlan::where("id", $request->edit_id)->update([
+                "id_ws" => $request->edit_id_ws,
+                "color" => $request->edit_color,
+                "smv" => $request->edit_smv,
+                "jam_kerja" => $request->edit_jam_kerja,
+                "man_power" => $request->edit_man_power,
+                "plan_target" => $request->edit_plan_target,
+                "target_effy" => $request->edit_target_effy,
+                // "gambar" => $editGambarNew
+            ]);
 
-        if ($updateMasterPlan) {
+            if ($updateMasterPlan) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Data master plan berhasil diubah',
+                    'redirect' => '',
+                    'table' => '',
+                    'additional' => [],
+                );
+            }
+        } else {
             return array(
-                'status' => 200,
-                'message' => 'Data master plan berhasil diubah',
+                'status' => 400,
+                'message' => 'Data master plan sudah memiliki output',
                 'redirect' => '',
                 'table' => '',
                 'additional' => [],
