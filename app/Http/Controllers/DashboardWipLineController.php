@@ -665,10 +665,11 @@ END jam) a))) target from (
                    FROM master_plan
                    WHERE sewing_line = ?
                    AND DATE_FORMAT(tgl_plan, '%Y-%m-%d') = ?
+                   AND cancel = ?
                    GROUP BY gambar
                    ORDER BY id ASC
                    LIMIT 1",
-            [$lineId, $tanggal],
+            [$lineId, $tanggal, 'N'],
         );
         return $query;
     }
@@ -677,21 +678,22 @@ END jam) a))) target from (
     {
         $query = DB::connection('mysql_dsb')->select(
             "SELECT
-                           a.defect_area_x,
-                           a.defect_area_y,
-                           a.defect_type_id,
-                           b.gambar AS image
-                       FROM
-                           output_defects a
-                       INNER JOIN
-                           master_plan b
-                       ON
-                           b.id = a.master_plan_id
-                       WHERE
-                           b.sewing_line = ?
-                       AND
-                           DATE_FORMAT(a.created_at, '%Y-%m-%d') = ?",
-            [$lineId, $tanggal],
+                a.defect_area_x,
+                a.defect_area_y,
+                a.defect_type_id,
+                b.gambar AS image
+            FROM
+                output_defects a
+            INNER JOIN
+                master_plan b
+            ON
+                b.id = a.master_plan_id
+            WHERE
+                b.sewing_line = ? AND
+                b.cancel = ?
+            AND
+                DATE_FORMAT(a.created_at, '%Y-%m-%d') = ?",
+            [$lineId, "N", $tanggal],
         );
 
         return $query;
