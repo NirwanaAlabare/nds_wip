@@ -227,6 +227,8 @@ class MasterPlanController extends Controller
             $editGambarNew = $name;
         }
 
+        $masterPlan = MasterPlan::where("id", $request->edit_id)->first();
+
         $updateMasterPlan = MasterPlan::where("id", $request->edit_id)->update([
             "id_ws" => $request->edit_id_ws,
             "color" => $request->edit_color,

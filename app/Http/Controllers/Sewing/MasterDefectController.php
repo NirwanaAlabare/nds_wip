@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Sewing;
 use App\Http\Controllers\Controller;
 use App\Models\SignalBit\DefectType;
 use App\Models\SignalBit\DefectArea;
+use App\Models\SignalBit\Defect;
+use App\Models\SignalBit\Reject;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use DB;
 
 class MasterDefectController extends Controller
 {
@@ -20,17 +23,20 @@ class MasterDefectController extends Controller
     {
         if ($request->ajax()) {
             if ($request->type == "type") {
-                $defectTypeQuery = DefectType::orderBy("updated_at", "desc");
+                $defectTypeQuery = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy("updated_at", "desc");
 
                 return DataTables::eloquent($defectTypeQuery)->toJson();
             } else if ($request->type == "area") {
-                $defectAreaQuery = DefectArea::orderBy("updated_at", "desc");
+                $defectAreaQuery = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy("updated_at", "desc");
 
                 return DataTables::eloquent($defectAreaQuery)->toJson();
             }
         }
 
-        return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "master-defect"]);
+        $defectTypes = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
+        $defectAreas = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
+
+        return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "master-defect", "defectTypes" => $defectTypes, "defectAreas" => $defectAreas]);
     }
 
     /**
@@ -210,7 +216,9 @@ class MasterDefectController extends Controller
      */
     public function destroyDefectType($id)
     {
-        $destroyDefectType = DefectType::find($id)->delete();
+        $destroyDefectType = DefectType::where("id", $id)->update([
+            "hidden" => "Y"
+        ]);
 
         if ($destroyDefectType) {
             return array(
@@ -233,7 +241,9 @@ class MasterDefectController extends Controller
 
     public function destroyDefectArea($id)
     {
-        $destroyDefectArea = DefectArea::find($id)->delete();
+        $destroyDefectArea = DefectArea::where("id", $id)->update([
+            "hidden" => "Y"
+        ]);
 
         if ($destroyDefectArea) {
             return array(
@@ -251,6 +261,46 @@ class MasterDefectController extends Controller
             'redirect' => '',
             'table' => 'datatable-defect-area',
             'additional' => [],
+        );
+    }
+
+    // Merge defect type
+    public function mergeDefectType(Request $request) {
+        $validatedRequest = $request->validate([
+            "defect_type_from" => "required",
+            "defect_type_to" => "required"
+        ]);
+
+        if ($validatedRequest) {
+            // Update Defect About
+            $updateDefectAbout = DB::transaction(function() use($validatedRequest) {
+                // Hide Defect
+                $updateDefectTypeFrom = DefectType::where("id", $validatedRequest["defect_type_from"])->update([
+                    "hidden" => "Y"
+                ]);
+                // Update Defect
+                $updateDefect = Defect::where("defect_type_id", $validatedRequest["defect_type_from"])->update([
+                    "defect_type_id" => $validatedRequest["defect_type_to"]
+                ]);
+                // Update Reject
+                $updateReject = Reject::where("reject_type_id", $validatedRequest["defect_type_from"])->update([
+                    "reject_type_id" => $validatedRequest["defect_type_to"]
+                ]);
+
+                return true;
+            }, 1);
+
+            if ($updateDefectAbout) {
+                return array(
+                    "status" => 200,
+                    "message" => "Defect berhasil di Merge",
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Defect gagal di Merge",
         );
     }
 }
