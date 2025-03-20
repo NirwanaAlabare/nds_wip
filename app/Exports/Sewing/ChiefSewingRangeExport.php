@@ -31,6 +31,7 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
         $chiefPerformance = collect(DB::connection("mysql_sb")->select("
             select
                 *,
+                COALESCE(chief_name, 'KOSONG') as chief_name,
                 SUM(rft) rft,
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
@@ -109,7 +110,7 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
                 tanggal
         "));
 
-        $this->rowCount = $chiefPerformance->sortBy("tanggal")->groupBy("chief_nik")->count()*2;
+        $this->rowCount = $chiefPerformance->sortBy("tanggal")->groupBy("chief_nik")->count();
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
         $colCount = $chiefPerformance->groupBy("tanggal")->count()+1;
         if ($colCount > (count($alphabets)-1)) {
@@ -123,6 +124,8 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
         return view('sewing.export.chief-sewing-range-export', [
             'from' => $this->from,
             'to' => $this->to,
+            'rowCount' => $this->rowCount,
+            'colAlphabet' => $this->colAlphabet,
             'chiefPerformance' => $chiefPerformance
         ]);
     }
@@ -139,39 +142,31 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
         $categoriesRft = [];
         $valuesRft = [];
 
-        for ($i = 0; $i < ($this->rowCount/2); $i++) {
+        for ($i = 0; $i < $this->rowCount; $i++) {
             // Eff
-            $dataRow = intval($this->rowCount+3+$i);
-            $dataCol = ($this->colAlphabet);
-            $dataCategory = intval($this->rowCount+3);
-
             array_push($labelsEff,
-                new DataSeriesValues('String', 'Worksheet!$A$'.$dataRow.':$A$'.$dataRow.'', null, 5),
+                new DataSeriesValues('String', 'Worksheet!$A$'.($i+2).':$A$'.($i+2).'', null, 5),
             );
 
             array_push($categoriesEff,
-                new DataSeriesValues('String', 'Worksheet!$B$'.($dataCategory-1).':$'.$dataCol.'$'.($dataCategory-1).'', null, 5),
+                new DataSeriesValues('String', 'Worksheet!$B$'.($i+1).':$'.$this->colAlphabet.'$'.($i+1).'', null, 5),
             );
 
             array_push($valuesEff,
-                new DataSeriesValues('Number', 'Worksheet!$B$'.$dataRow.':$'.$dataCol.'$'.$dataRow.'', null, 5),
+                new DataSeriesValues('Number', 'Worksheet!$B$'.($i+2).':$'.$this->colAlphabet.'$'.($i+2).'', null, 5),
             );
 
             // Rft
-            $dataRow1 = intval(($this->rowCount+($this->rowCount/2))+5+$i);
-            $dataCol1 = ($this->colAlphabet);
-            $dataCategory1 = intval(($this->rowCount+($this->rowCount/2))+5);
-
             array_push($labelsRft,
-                new DataSeriesValues('String', 'Worksheet!$A$'.$dataRow1.':$A$'.$dataRow1.'', null, 5),
+                new DataSeriesValues('String', 'Worksheet!$A$'.($this->rowCount+$i+4).':$A$'.($this->rowCount+$i+4).'', null, 5),
             );
 
             array_push($categoriesRft,
-                new DataSeriesValues('String', 'Worksheet!$B$'.($dataCategory1-1).':$'.$dataCol1.'$'.($dataCategory1-1).'', null, 5),
+                new DataSeriesValues('String', 'Worksheet!$B$'.($this->rowCount+$i+3).':$'.$this->colAlphabet.'$'.($this->rowCount+$i+3).'', null, 5),
             );
 
             array_push($valuesRft,
-                new DataSeriesValues('Number', 'Worksheet!$B$'.$dataRow1.':$'.$dataCol1.'$'.$dataRow1.'', null, 5),
+                new DataSeriesValues('Number', 'Worksheet!$B$'.($this->rowCount+$i+4).':$'.$this->colAlphabet.'$'.($this->rowCount+$i+4).'', null, 5),
             );
         }
 
@@ -189,11 +184,11 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
         $legendRft = new Legend();
         $chartRft  = new Chart('chart name', new Title('Rft Chart'), $legendRft, $plotRft);
 
-        $chartEff->setTopLeftPosition('A'.(($this->rowCount)+2));
-        $chartEff->setBottomRightPosition('E'.(($this->rowCount)+15));
+        $chartEff->setTopLeftPosition('A1');
+        $chartEff->setBottomRightPosition('J25');
 
-        $chartRft->setTopLeftPosition('F'.(($this->rowCount)+2));
-        $chartRft->setBottomRightPosition('J'.(($this->rowCount)+15));
+        $chartRft->setTopLeftPosition('K1');
+        $chartRft->setBottomRightPosition('T25');
 
         return [$chartEff, $chartRft];
     }

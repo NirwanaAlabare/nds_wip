@@ -313,6 +313,7 @@
                         show: false
                     }
                 },
+                colors:['#269ffb', '#846cd4', '#febb3b', '#ff576f', '#18e5a0', '#ff3877'],
                 xaxis: {
                     type: 'datetime',
                 },
@@ -357,6 +358,7 @@
                         show: false
                     }
                 },
+                colors:['#269ffb', '#846cd4', '#febb3b', '#ff576f', '#18e5a0', '#ff3877', '#038f81', '#178501', '#c9bc02', '#d90902'],
                 xaxis: {
                     type: 'datetime',
                 },

@@ -14,7 +14,13 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-circle-exclamation"></i> Master Defect</h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-circle-exclamation"></i> Master Defect</h5>
+                <button type="button" class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#mergeDefectTypeModal">
+                    <i class="fas fa-copy"></i>
+                    Merge Defect Type
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -176,6 +182,44 @@
             </div>
         </div>
     </div>
+
+    {{-- Merge Defect Type --}}
+    <div class="modal fade" id="mergeDefectTypeModal" tabindex="-1" aria-labelledby="mergeDefectTypeLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('merge-defect-type') }}" method="post" onsubmit="submitForm(this, event)">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="mergeDefectTypeLabel"><i class="fa fa-plus-square"></i> Merge Defect Type</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">From</label>
+                            <select class="form-select select2bs4merge" name="defect_type_from" id="defect_type_from">
+                                <option value="">Pilih Defect</option>
+                                @foreach ($defectTypes as $defectType)
+                                    <option value="{{ $defectType->id }}">{{ $defectType->defect_type }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">To</label>
+                            <select class="form-select select2bs4merge" name="defect_type_to" id="defect_type_to">
+                                <option value="">Pilih Defect</option>
+                                @foreach ($defectTypes as $defectType)
+                                    <option value="{{ $defectType->id }}">{{ $defectType->defect_type }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -191,10 +235,14 @@
     <script>
         $('.select2').select2({
             theme: 'bootstrap4'
-        })
+        });
         $('.select2bs4').select2({
             theme: 'bootstrap4'
-        })
+        });
+        $('.select2bs4merge').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#mergeDefectTypeModal')
+        });
     </script>
 
     <script>

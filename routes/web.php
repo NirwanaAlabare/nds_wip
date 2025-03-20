@@ -872,6 +872,9 @@ Route::middleware('auth')->group(function () {
         Route::put('update-defect-area', 'updateDefectArea')->name('update-defect-area');
         Route::post('store-defect-area', 'storeDefectArea')->name('store-defect-area');
         Route::delete('destroy-defect-area/{id?}', 'destroyDefectArea')->name('destroy-defect-area');
+
+        Route::post('merge-defect-type', 'mergeDefectType')->name('merge-defect-type');
+        Route::post('merge-defect-area', 'mergeDefectArea')->name('merge-defect-area');
     });
 
     // Report Daily
