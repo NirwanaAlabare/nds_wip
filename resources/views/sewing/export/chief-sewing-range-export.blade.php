@@ -56,12 +56,12 @@
     @endphp
     {{-- EFF --}}
     <tr>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;color: #ffffff;">CHIEF EFF</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;color: #ffffff;border: 1px solid #000000;">CHIEF EFF</th>
         <?php
             if ( $chiefPerformance && $chiefPerformance->count() > 0 ) {
                 foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                     ?>
-                        <th style="font-weight: 800; text-align: center;color: #ffffff;">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
+                        <th style="font-weight: 800; text-align: center;color: #ffffff;border: 1px solid #000000;">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                     <?php
                 }
         ?>
@@ -70,7 +70,7 @@
             foreach ($sortedChiefGroup as $chief) {
                 ?>
                     <tr>
-                        <td style="font-weight: 800;text-align: center;color: #ffffff;">{{ $chief['chief_name'] }}</td>
+                        <td style="font-weight: 800;text-align: center;color: #ffffff;border: 1px solid #000000;">{{ $chief['chief_name'] }}</td>
                         @foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                             @php
                                 $thisMinsProd = $chiefPerformance->where('chief_nik', $chief['chief_nik'])->where('tanggal', $dailyDate->first()->tanggal)->sum("mins_prod");
@@ -78,7 +78,7 @@
 
                                 $thisEff = ($thisMinsAvail > 0 ? round(($thisMinsProd/$thisMinsAvail)*100, 2) : 0);
                             @endphp
-                            <td style="font-weight: 800;color: #ffffff;" data-format="0.00">
+                            <td style="font-weight: 800;color: #ffffff;border: 1px solid #000000;" data-format="0.00">
                                 {{ $thisEff }}
                             </td>
                         @endforeach
@@ -88,7 +88,7 @@
         } else {
             ?>
                 <tr>
-                    <td style="text-align:center;">Data tidak ditemukan</td>
+                    <td style="text-align:center;border: 1px solid #000000;">Data tidak ditemukan</td>
                 </tr>
             <?php
         }
@@ -97,12 +97,12 @@
     </tr>
     {{-- RFT --}}
     <tr>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;color: #ffffff;">CHIEF RFT</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;color: #ffffff;border: 1px solid #000000;">CHIEF RFT</th>
         <?php
             if ( $chiefPerformance && $chiefPerformance->count() > 0 ) {
                 foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                     ?>
-                        <th style="font-weight: 800; text-align: center;color: #ffffff;">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
+                        <th style="font-weight: 800; text-align: center;color: #ffffff;border: 1px solid #000000;">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                     <?php
                 }
         ?>
@@ -111,7 +111,7 @@
             foreach ($sortedChiefGroup as $chief) {
                 ?>
                     <tr>
-                        <td style="font-weight: 800;text-align: center;color: #ffffff;">{{ $chief['chief_name'] }}</td>
+                        <td style="font-weight: 800;text-align: center;color: #ffffff;border: 1px solid #000000;">{{ $chief['chief_name'] }}</td>
                         @foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                             @php
                                 $thisRft = $chiefPerformance->where('chief_nik', $chief['chief_nik'])->where('tanggal', $dailyDate->first()->tanggal)->sum("rft");
@@ -119,7 +119,7 @@
 
                                 $thisRftRate = ($thisOutput > 0 ? round(($thisRft/$thisOutput)*100, 2) : 0);
                             @endphp
-                            <td style="font-weight: 800;color: #ffffff;" data-format="0.00">
+                            <td style="font-weight: 800;color: #ffffff;border: 1px solid #000000;" data-format="0.00">
                                 {{ $thisRftRate }}
                             </td>
                         @endforeach
@@ -129,7 +129,7 @@
         } else {
             ?>
                 <tr>
-                    <td style="text-align:center;">Data tidak ditemukan</td>
+                    <td style="text-align:center;border: 1px solid #000000;">Data tidak ditemukan</td>
                 </tr>
             <?php
         }
@@ -150,39 +150,39 @@
     @if ($chiefPerformance && $chiefPerformance->count() > 0)
         {{-- ALL --}}
         <tr>
-            <th style="font-weight: 800;text-align: center;vertical-align: middle;" rowspan="2">NAMA CHIEF</th>
+            <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000000;" rowspan="2">NAMA CHIEF</th>
             <?php
                 if ( $chiefPerformance && $chiefPerformance->count() > 0 ) {
                     foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                         ?>
-                            <th style="font-weight: 800; text-align: center;" colspan="2">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
+                            <th style="font-weight: 800; text-align: center;border: 1px solid #000000;" colspan="2">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                         <?php
                     }
             ?>
-                    <th style="font-weight: 800; text-align: center;" colspan="2">TOTAL</th>
-                    <th style="font-weight: 800;vertical-align: middle;" rowspan="2">RANK</th>
+                    <th style="font-weight: 800; text-align: center;border: 1px solid #000000;" colspan="2">TOTAL</th>
+                    <th style="font-weight: 800;vertical-align: middle;border: 1px solid #000000;" rowspan="2">RANK</th>
                 </tr>
                 <tr>
             <?php
                 foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                     ?>
-                        <th style="font-weight: 800;">Efficiency</th>
-                        <th style="font-weight: 800;">RFT</th>
+                        <th style="font-weight: 800;border: 1px solid #000000;">Efficiency</th>
+                        <th style="font-weight: 800;border: 1px solid #000000;">RFT</th>
                     <?php
                 }
             ?>
-                    <th style="font-weight: 800;">Efficiency</th>
-                    <th style="font-weight: 800;">RFT</th>
+                    <th style="font-weight: 800;border: 1px solid #000000;">Efficiency</th>
+                    <th style="font-weight: 800;border: 1px solid #000000;">RFT</th>
                 </tr>
             <?php
                 $i = 1;
                 foreach ($sortedChiefGroup as $chief) {
                     ?>
                         <tr>
-                            <td style="font-weight: 800;text-align: center;">{{ $chief['chief_name'] }}</td>
+                            <td style="font-weight: 800;text-align: center;border: 1px solid #000000;">{{ $chief['chief_name'] }}</td>
                             @php
-                                $sumRft = ($chief['total_output'] > 0 ? round($chief['total_rft']/$chief['total_output'], 2) : 0);
-                                $sumEff = ($chief['total_mins_avail']  > 0 ? round($chief['total_mins_prod']/$chief['total_mins_avail'], 2) : 0);
+                                $sumRft = ($chief['total_output'] > 0 ? round(($chief['total_rft']/$chief['total_output'])*100, 2) : 0);
+                                $sumEff = ($chief['total_mins_avail']  > 0 ? round(($chief['total_mins_prod']/$chief['total_mins_avail'])*100, 2) : 0);
                             @endphp
                             @foreach ($chiefPerformance->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                                 @php
@@ -194,20 +194,20 @@
                                     $thisRftRate = ($thisOutput > 0 ? round(($thisRft/$thisOutput)*100, 2) : 0);
                                     $thisEff = ($thisMinsAvail > 0 ? round(($thisMinsProd/$thisMinsAvail)*100, 2) : 0);
                                 @endphp
-                                <td style="font-weight: 800;color: {{ colorizeEfficiency($thisEff) }};" data-format="0.00">
+                                <td style="font-weight: 800;border: 1px solid #000000;color: {{ colorizeEfficiency($thisEff) }};" data-format="0.00">
                                     {{ $thisEff }} %
                                 </td>
-                                <td style="font-weight: 800;color: {{ colorizeRft($thisRftRate) }};" data-format="0.00">
+                                <td style="font-weight: 800;border: 1px solid #000000;color: {{ colorizeRft($thisRftRate) }};" data-format="0.00">
                                     {{ $thisRftRate }} %
                                 </td>
                             @endforeach
-                            <td style="font-weight: 800;color: {{ colorizeEfficiency($sumEff) }};" data-format="0.00">
+                            <td style="font-weight: 800;border: 1px solid #000000;color: {{ colorizeEfficiency($sumEff) }};" data-format="0.00">
                                 {{ $sumEff }} %
                             </td>
-                            <td style="font-weight: 800;color: {{ colorizeRft($sumRft) }};" data-format="0.00%">
+                            <td style="font-weight: 800;border: 1px solid #000000;color: {{ colorizeRft($sumRft) }};" data-format="0.00%">
                                 {{ $sumRft }} %
                             </td>
-                            <td style="font-weight: 800;text-align: center;">
+                            <td style="font-weight: 800;border: 1px solid #000000;text-align: center;">
                                 {{ $i }}
                             </td>
                         </tr>
@@ -217,7 +217,7 @@
             } else {
                 ?>
                     <tr>
-                        <td style="text-align:center;">Data tidak ditemukan</td>
+                        <td style="text-align:center;border: 1px solid #000000;">Data tidak ditemukan</td>
                     </tr>
                 <?php
             }
@@ -226,7 +226,7 @@
         </tr>
     @else
         <tr>
-            <td style="text-align:center;">Data tidak ditemukan.</td>
+            <td style="text-align:center;border: 1px solid #000000;">Data tidak ditemukan.</td>
         </tr>
     @endif
 </table>
