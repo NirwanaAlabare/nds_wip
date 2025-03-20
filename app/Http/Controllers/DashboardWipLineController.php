@@ -371,7 +371,7 @@ END jam) a))) target from (
                 $tanggal .
                 "' and mp.sewing_line = '" .
                 $lineId .
-                "') a",
+                "' and mp.cancel = 'N') a",
         );
         return isset($query[0]) ? $query[0]->buyer : null;
     }
@@ -385,7 +385,7 @@ END jam) a))) target from (
                 $tanggal .
                 "' and mp.sewing_line = '" .
                 $lineId .
-                "') a ",
+                "' and mp.cancel = 'N') a ",
         );
 
         return isset($query[0]) ? $query[0]->no_ws : null;
@@ -690,8 +690,7 @@ END jam) a))) target from (
                 b.id = a.master_plan_id
             WHERE
                 b.sewing_line = ? AND
-                b.cancel = ?
-            AND
+                b.cancel = ? AND
                 DATE_FORMAT(a.created_at, '%Y-%m-%d') = ?",
             [$lineId, "N", $tanggal],
         );
