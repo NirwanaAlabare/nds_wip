@@ -303,6 +303,29 @@ FROM
 (
 SELECT
       so_det_id,
+			sum(packing_line) sa_pck_line_awal,
+			'0' sa_trf_gmt_awal,
+			'0' qty_in_pck_line,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0' input_rework_mending,
+			'0' output_def_sewing,
+      '0' output_def_spotcleaning,
+			'0' output_def_mending,
+			'0' qty_reject,
+			'0' qty_trf_gmt,
+			'0' sa_pck_in_awal,
+			'0' qty_pck_in,
+			'0' qty_pck_out_awal,
+			'0' qty_pck_out
+FROM
+     laravel_nds.sa_report_output a
+WHERE
+     tgl_saldo = '2025-01-01'
+GROUP BY so_det_id
+UNION
+SELECT
+      so_det_id,
 			count(so_det_id) sa_pck_line_awal,
 			'0' sa_trf_gmt_awal,
 			'0' qty_in_pck_line,
@@ -321,7 +344,7 @@ SELECT
 FROM
      signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at < '$tgl_awal'
+     updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 GROUP BY so_det_id
 UNION
 SELECT
@@ -344,7 +367,7 @@ SELECT
 FROM
      laravel_nds.packing_trf_garment a
 WHERE
-     updated_at < '$tgl_awal'
+     updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 GROUP BY id_so_det
 UNION
 SELECT
@@ -458,7 +481,7 @@ SELECT
 		'0' qty_pck_out
 FROM
 		laravel_nds.packing_packing_in
-WHERE updated_at < '$tgl_awal'
+WHERE updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 GROUP BY id_so_det
 UNION
 SELECT
@@ -529,7 +552,7 @@ SELECT
 		from
 		(
 		select po, barcode,dest, count(barcode) tot_scan from laravel_nds.packing_packing_out_scan
-		where updated_at < '$tgl_awal'
+		where updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 		group by po, barcode, dest
 		) a
 		inner join laravel_nds.ppic_master_so p on a.po = p.po and a.barcode = p.barcode and a.dest = p.dest
@@ -583,6 +606,29 @@ FROM
 (
 SELECT
       so_det_id,
+			sum(packing_line) sa_pck_line_awal,
+			'0' sa_trf_gmt_awal,
+			'0' qty_in_pck_line,
+			'0' input_rework_sewing,
+			'0' input_rework_spotcleaning,
+			'0' input_rework_mending,
+			'0' output_def_sewing,
+      '0' output_def_spotcleaning,
+			'0' output_def_mending,
+			'0' qty_reject,
+			'0' qty_trf_gmt,
+			'0' sa_pck_in_awal,
+			'0' qty_pck_in,
+			'0' qty_pck_out_awal,
+			'0' qty_pck_out
+FROM
+     laravel_nds.sa_report_output a
+WHERE
+     tgl_saldo = '2025-01-01'
+GROUP BY so_det_id
+UNION
+SELECT
+      so_det_id,
 			count(so_det_id) sa_pck_line_awal,
 			'0' sa_trf_gmt_awal,
 			'0' qty_in_pck_line,
@@ -601,7 +647,7 @@ SELECT
 FROM
      signalbit_erp.output_rfts_packing a
 WHERE
-     updated_at < '$tgl_awal'
+     updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 GROUP BY so_det_id
 UNION
 SELECT
@@ -624,7 +670,7 @@ SELECT
 FROM
      laravel_nds.packing_trf_garment a
 WHERE
-     updated_at < '$tgl_awal'
+     updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 GROUP BY id_so_det
 UNION
 SELECT
@@ -738,7 +784,7 @@ SELECT
 		'0' qty_pck_out
 FROM
 		laravel_nds.packing_packing_in
-WHERE updated_at < '$tgl_awal'
+WHERE updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 GROUP BY id_so_det
 UNION
 SELECT
@@ -809,7 +855,7 @@ SELECT
 		from
 		(
 		select po, barcode,dest, count(barcode) tot_scan from laravel_nds.packing_packing_out_scan
-		where updated_at < '$tgl_awal'
+		where updated_at >= '2025-01-01 00:00:00' and updated_at < '$tgl_awal'
 		group by po, barcode, dest
 		) a
 		inner join laravel_nds.ppic_master_so p on a.po = p.po and a.barcode = p.barcode and a.dest = p.dest
