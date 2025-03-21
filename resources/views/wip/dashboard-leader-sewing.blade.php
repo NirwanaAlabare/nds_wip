@@ -105,7 +105,7 @@
         <div class="d-flex justify-content-center mb-1">
             <span><b>{{ localeDateFormat($from, false) }}</b> s/d <b>{{ localeDateFormat($to, false) }}</b></span>
         </div>
-        <div class="row" id="leader-line-charts">
+        <div class="row g-3" id="leader-line-charts">
         </div>
     </div>
 @endsection
@@ -289,6 +289,7 @@
             let card = document.createElement("div");
             card.classList.add("card");
             card.classList.add("card-sb");
+            card.classList.add("h-100");
             let cardHeader = document.createElement("div")
             cardHeader.classList.add("card-header");
             cardHeader.innerHTML = "<h5 class='card-title fw-bold' id='line-"+index+"'>"+data.line+"</h5>";
