@@ -272,6 +272,9 @@ class MasterDefectController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $totalDefect = Defect::where("defect_type_id", $validatedRequest["defect_type_from"])->count();
+            $totalReject = Reject::where("reject_type_id", $validatedRequest["defect_type_from"])->count();
+
             // Update Defect About
             $updateDefectAbout = DB::transaction(function() use($validatedRequest) {
                 // Hide Defect
@@ -293,7 +296,7 @@ class MasterDefectController extends Controller
             if ($updateDefectAbout) {
                 return array(
                     "status" => 200,
-                    "message" => "Defect berhasil di Merge",
+                    "message" => "Defect berhasil di Merge <br> ".$totalDefect." Defect dan ". $totalReject ." Reject terpengaruh",
                 );
             }
         }
