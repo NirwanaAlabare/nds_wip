@@ -243,7 +243,7 @@
                         let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
 
-                        let totalData = { totalEfficiency : (totalMinsProd/totalMinsAvail*100).toFixed(2), totalRft : (totalRft/totalOutput*100).toFixed(2) };
+                        let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };
 
                         // Format the data as [{ x: date, y: efficiency }]
                         let formattedData = dateOutputFilter.map(item => {
@@ -267,10 +267,10 @@
                     });
 
                     let sortChiefDaily = chiefDaily.sort(function(a,b){
-                            if (Number(a.currentEff) < Number(b.currentEff)) {
+                            if ((a.currentEff+a.currentRft) < (b.currentEff+b.currentRft)) {
                                 return 1;
                             }
-                            if (Number(a.currentEff) > Number(b.currentEff)) {
+                            if ((a.currentEff+a.currentRft) > (b.currentEff+b.currentRft)) {
                                 return -1;
                             }
                             return 0;

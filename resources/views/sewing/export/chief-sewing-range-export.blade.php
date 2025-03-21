@@ -49,9 +49,11 @@
 
         $sortedChiefGroup = $chiefGroup->sort(function ($a, $b) {
             $eff_a = $a['total_mins_avail'] > 0 ? $a['total_mins_prod']/$a['total_mins_avail']*100 : '-';
+            $rft_a = $a['total_output'] > 0 ? $a['total_rft']/$a['total_output']*100 : '-';
             $eff_b = $b['total_mins_avail'] > 0 ? $b['total_mins_prod']/$b['total_mins_avail']*100 : '-';
+            $rft_b = $b['total_output'] > 0 ? $b['total_rft']/$b['total_output']*100 : '-';
 
-            return $eff_b - $eff_a;
+            return ($eff_b+$rft_b) - ($eff_a+$rft_a);
         });
     @endphp
     {{-- EFF --}}
