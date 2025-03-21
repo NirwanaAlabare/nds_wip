@@ -16,10 +16,12 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-circle-exclamation"></i> Master Defect</h5>
-                <button type="button" class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#mergeDefectTypeModal">
-                    <i class="fas fa-copy"></i>
-                    Merge Defect Type
-                </button>
+                @role('superadmin')
+                    <button type="button" class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#mergeDefectTypeModal">
+                        <i class="fas fa-copy"></i>
+                        Merge Defect Type
+                    </button>
+                @endrole
             </div>
         </div>
         <div class="card-body">
