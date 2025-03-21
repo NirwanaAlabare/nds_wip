@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\SignalBit\DefectType;
 use App\Models\SignalBit\DefectArea;
 use App\Models\SignalBit\Defect;
+use App\Models\SignalBit\DefectPacking;
 use App\Models\SignalBit\Reject;
+use App\Models\SignalBit\RejectPacking;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -33,8 +35,8 @@ class MasterDefectController extends Controller
             }
         }
 
-        $defectTypes = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
-        $defectAreas = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
+        $defectTypes = DefectType::get();
+        $defectAreas = DefectArea::get();
 
         return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "master-defect", "defectTypes" => $defectTypes, "defectAreas" => $defectAreas]);
     }
@@ -274,6 +276,8 @@ class MasterDefectController extends Controller
         if ($validatedRequest) {
             $totalDefect = Defect::where("defect_type_id", $validatedRequest["defect_type_from"])->count();
             $totalReject = Reject::where("reject_type_id", $validatedRequest["defect_type_from"])->count();
+            $totalDefectPacking = DefectPacking::where("defect_type_id", $validatedRequest["defect_type_from"])->count();
+            $totalRejectPacking = RejectPacking::where("reject_type_id", $validatedRequest["defect_type_from"])->count();
 
             // Update Defect About
             $updateDefectAbout = DB::transaction(function() use($validatedRequest) {
@@ -290,13 +294,22 @@ class MasterDefectController extends Controller
                     "reject_type_id" => $validatedRequest["defect_type_to"]
                 ]);
 
+                // Update Defect Packing
+                $updateDefect = DefectPacking::withoutTimestamps()->where("defect_type_id", $validatedRequest["defect_type_from"])->update([
+                    "defect_type_id" => $validatedRequest["defect_type_to"]
+                ]);
+                // Update Reject Packing
+                $updateReject = RejectPacking::withoutTimestamps()->where("reject_type_id", $validatedRequest["defect_type_from"])->update([
+                    "reject_type_id" => $validatedRequest["defect_type_to"]
+                ]);
+
                 return true;
             }, 1);
 
             if ($updateDefectAbout) {
                 return array(
                     "status" => 200,
-                    "message" => "Defect berhasil di Merge <br> ".$totalDefect." Defect dan ". $totalReject ." Reject terpengaruh",
+                    "message" => "Defect berhasil di Merge <br> ".$totalDefect." Defect dan ". $totalReject ." Reject terpengaruh. <br> ".$totalDefectPacking." Defect Finish/Packing dan ". $totalRejectPacking ." Reject Finish/Packing terpengaruh"
                 );
             }
         }
