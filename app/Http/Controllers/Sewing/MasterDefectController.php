@@ -35,8 +35,8 @@ class MasterDefectController extends Controller
             }
         }
 
-        $defectTypes = DefectType::get();
-        $defectAreas = DefectArea::get();
+        $defectTypes = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
+        $defectAreas = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
 
         return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "master-defect", "defectTypes" => $defectTypes, "defectAreas" => $defectAreas]);
     }
@@ -309,7 +309,7 @@ class MasterDefectController extends Controller
             if ($updateDefectAbout) {
                 return array(
                     "status" => 200,
-                    "message" => "Defect berhasil di Merge <br> ".$totalDefect." Defect dan ". $totalReject ." Reject terpengaruh. <br> ".$totalDefectPacking." Defect Finish/Packing dan ". $totalRejectPacking ." Reject Finish/Packing terpengaruh"
+                    "message" => "Defect berhasil di Merge <br><br> ".$totalDefect." Defect dan ". $totalReject ." Reject terpengaruh. <br><br> ".$totalDefectPacking." Defect Finish/Packing dan ". $totalRejectPacking ." Reject Finish/Packing terpengaruh"
                 );
             }
         }
