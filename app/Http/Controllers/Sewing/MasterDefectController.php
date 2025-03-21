@@ -279,11 +279,11 @@ class MasterDefectController extends Controller
                     "hidden" => "Y"
                 ]);
                 // Update Defect
-                $updateDefect = Defect::where("defect_type_id", $validatedRequest["defect_type_from"])->update([
+                $updateDefect = Defect::withoutTimestamps()->where("defect_type_id", $validatedRequest["defect_type_from"])->update([
                     "defect_type_id" => $validatedRequest["defect_type_to"]
                 ]);
                 // Update Reject
-                $updateReject = Reject::where("reject_type_id", $validatedRequest["defect_type_from"])->update([
+                $updateReject = Reject::withoutTimestamps()->where("reject_type_id", $validatedRequest["defect_type_from"])->update([
                     "reject_type_id" => $validatedRequest["defect_type_to"]
                 ]);
 

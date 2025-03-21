@@ -26,4 +26,10 @@ class Reject extends Model
     {
         return $this->belongsTo(MasterPlan::class, 'master_plan_id', 'id');
     }
+
+    public function scopeWithoutTimestamps()
+    {
+        $this->timestamps = false;
+        return $this;
+    }
 }

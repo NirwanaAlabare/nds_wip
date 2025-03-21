@@ -62,4 +62,10 @@ class Defect extends Model
     {
         return $this->hasOne(Rework::class, 'defect_id', 'id');
     }
+
+    public function scopeWithoutTimestamps()
+    {
+        $this->timestamps = false;
+        return $this;
+    }
 }
