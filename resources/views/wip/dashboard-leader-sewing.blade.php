@@ -302,7 +302,7 @@
             // Image
             let employeeContainer = document.createElement("div");
             employeeContainer.id = "employee-"+index;
-            employeeContainer.classList.add("col-md-4");
+            employeeContainer.classList.add("col-md-3");
             let imageContainer = document.createElement("div");
             imageContainer.classList.add("d-flex")
             imageContainer.classList.add("flex-column")
@@ -314,13 +314,14 @@
             imageElement.classList.add("img-fluid")
             imageElement.style.marginLeft = "auto";
             imageElement.style.marginRight = "auto";
+            imageElement.style.height = "100px";
             imageContainer.appendChild(imageElement);
             imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
             employeeContainer.appendChild(imageContainer);
 
             // Chart
             let chartContainer = document.createElement("div");
-            chartContainer.classList.add("col-md-8");
+            chartContainer.classList.add("col-md-9");
             let canvasContainer = document.createElement("div");
             let canvas = document.createElement("div");
             // canvas.id = "chart-"+index;
@@ -450,6 +451,7 @@
                 imageElement.classList.add("img-fluid")
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
+                imageElement.style.height = "100px";
                 imageContainer.appendChild(imageElement);
                 imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
                 nameElement.appendChild(imageContainer);
