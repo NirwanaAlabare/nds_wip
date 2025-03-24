@@ -41,13 +41,17 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 marker_input.buyer,
                 marker_input.style,
                 marker_input.color,
-                marker_input_detail.size,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE marker_input_detail.size END) size,
                 form_cut_input_detail.group_roll,
                 form_cut_input_detail.lot,
                 form_cut_input.no_cut,
                 form_cut_input.no_form,
                 marker_input.kode no_marker,
                 marker_input.panel,
+                similar.max_group,
+                form_cut_input_detail.group_stocker,
+                COALESCE(modify_size_qty.difference_qty, 0),
+                COALESCE(modify_size_qty.modified_qty, 0),
                 ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (CASE WHEN similar.max_group = form_cut_input_detail.group_stocker THEN COALESCE(modify_size_qty.difference_qty, 0) ELSE 0 END)) qty
             FROM
                 form_cut_input
@@ -80,11 +84,13 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
                 LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
                 LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
-                LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id and marker_input_detail.ratio > 0
+                LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
                 LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
             WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN' and
-                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$this->dateFrom."' and '".$this->dateTo."'
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$this->dateFrom."' and '".$this->dateTo."' and
+                (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
             GROUP BY
                 form_cut_input.id,
                 form_cut_input_detail.group_stocker,
