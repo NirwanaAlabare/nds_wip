@@ -718,7 +718,7 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency

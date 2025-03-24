@@ -204,6 +204,12 @@
                     lineEfficiency.forEach(element => {
                         // Date Output
                         let dateOutput = [];
+                        let lineLeaderList = [];
+                        let currentLeader = {
+                            "tanggal": element[0].tanggal,
+                            "leader_nik": element[0].leader_nik,
+                            "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
+                        };
                         element.reduce(function(res, value) {
                             if (!res[value.tanggal]) {
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
@@ -215,10 +221,29 @@
                             res[value.tanggal].output += Number(value.output);
                             res[value.tanggal].rft += Number(value.rft);
 
+                            if (value.leader_nik != currentLeader.leader_nik) {
+                                lineLeaderList.push(
+                                    {
+                                        x: new Date(currentLeader.tanggal).getTime(),
+                                        borderColor: '#00E396',
+                                        label: {
+                                            borderColor: '#00E396',
+                                            text: currentLeader.leader_name
+                                        }
+                                    }
+                                );
+
+                                currentLeader = {
+                                    "tanggal": value.tanggal,
+                                    "leader_nik": value.leader_nik,
+                                    "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
+                                };
+                            }
+
                             return res;
                         }, {});
 
-                        lineDailyEfficiency.push({"id": element[0].leader_id ? element[0].leader_id : 'KOSONG', "nik": element[0].leader_nik ? element[0].leader_nik : 'KOSONG', "name": element[0].leader_name ? element[0].leader_name : 'KOSONG', "line": element[0].line_name, "data": dateOutput});
+                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList});
                     });
 
                     // Show Chief Daily Data
@@ -251,6 +276,12 @@
                     lineEfficiency.forEach(element => {
                         // Date Output
                         let dateOutput = [];
+                        let lineLeaderList = [];
+                        let currentLeader = {
+                            "tanggal": element[0].tanggal,
+                            "leader_nik": element[0].leader_nik,
+                            "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
+                        };
                         element.reduce(function(res, value) {
                             if (!res[value.tanggal]) {
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
@@ -262,11 +293,32 @@
                             res[value.tanggal].output += Number(value.output);
                             res[value.tanggal].rft += Number(value.rft);
 
+                            if (value.leader_nik != currentLeader.leader_nik) {
+                                lineLeaderList.push(
+                                    {
+                                        x: new Date(currentLeader.tanggal).getTime(),
+                                        borderColor: '#00E396',
+                                        label: {
+                                            borderColor: '#00E396',
+                                            text: currentLeader.leader_name
+                                        }
+                                    }
+                                );
+
+                                currentLeader = {
+                                    "tanggal": value.tanggal,
+                                    "leader_nik": value.leader_nik,
+                                    "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
+                                };
+                            }
+
                             return res;
                         }, {});
 
-                        lineDailyEfficiency.push({"id": element[0].leader_id ? element[0].leader_id : 'KOSONG', "nik": element[0].leader_nik ? element[0].leader_nik : 'KOSONG', "name": element[0].leader_name ? element[0].leader_name : 'KOSONG', "line": element[0].line_name, "data": dateOutput});
+                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList});
                     });
+
+                    console.log(lineDailyEfficiency);
 
                     // Show Chief Daily Data
                     for (let i = 0; i < lineDailyEfficiency.length; i++) {
@@ -337,7 +389,7 @@
             let dailyData = data.data.filter((item) => item.mins_avail > 0 && item.output > 0);
 
             dailyData.forEach(item => {
-                tglArr.push(item.tanggal.substr(-2));
+                tglArr.push(item.tanggal);
                 efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
                 rftArr.push((item.rft / item.output * 100).round(2));
             });
@@ -370,6 +422,9 @@
                         fontSize: "11px",
                     }
                 },
+                annotations: {
+                    xaxis: data.leaders
+                },
                 stroke: {
                     curve: 'smooth'
                 },
@@ -395,6 +450,7 @@
                 },
                 xaxis: {
                     categories: tglArr,
+                    type: "datetime",
                     labels: {
                         style: {
                             fontSize: "11px",
@@ -467,7 +523,7 @@
                 let dailyData = data.data.filter((item) => item.mins_avail > 0 && item.output > 0);
 
                 dailyData.forEach(item => {
-                    tglArr.push(item.tanggal.substr(-2));
+                    tglArr.push(item.tanggal);
                     efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
                     rftArr.push((item.rft / item.output * 100).round(2));
                 });
@@ -480,7 +536,7 @@
                         {
                             name: 'RFT',
                             data: rftArr
-                        }
+                        },
                     ], true);
 
                 await ApexCharts.exec('chart-'+index, 'updateOptions', {
@@ -489,7 +545,10 @@
                         },
                         noData: {
                             text: 'Data Not Found'
-                        }
+                        },
+                        annotations: {
+                            xaxis: data.leaders
+                        },
                     }, false, true);
             } else {
                 appendRow(data, index);

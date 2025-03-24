@@ -261,9 +261,9 @@
                             };
                         });
 
-                        chiefDailyEfficiency.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedData});
-                        chiefDailyRft.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedRftData});
-                        chiefDaily.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
+                        chiefDailyEfficiency.push({"name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": formattedData});
+                        chiefDailyRft.push({"name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": formattedRftData});
+                        chiefDaily.push({"name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     let sortChiefDaily = chiefDaily.sort(function(a,b){
