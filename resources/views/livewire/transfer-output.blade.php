@@ -10,14 +10,6 @@
         </div>
     </div>
     <div class="row g-3">
-        <div class="col-12">
-            <div class="d-flex justify-content-center">
-                <select name="output_type" id="output_type" class="form-select w-auto" wire:model="outputType">
-                    <option value="">QC</option>
-                    <option value="_packing">FINISHING</option>
-                </select>
-            </div>
-        </div>
         <div class="col-12 col-md-5">
             <div class="card">
                 <div class="card-header bg-sb">
@@ -104,7 +96,11 @@
             </div>
         </div>
         <div class="col-12 col-md-2">
-            <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                <select class="form-select w-auto mb-3" name="output_type" id="output_type" wire:model="outputType">
+                    <option value="">QC</option>
+                    <option value="_packing">FINISHING</option>
+                </select>
                 <i class="fa-solid fa-arrow-right fa-5x text-sb"></i>
             </div>
         </div>
@@ -218,12 +214,16 @@
             <button class="btn btn-reject w-100 h-100 fw-bold" data-bs-toggle="modal" data-bs-target="#transferRejectModal">TRANSFER Reject <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
     </div>
+
     <!-- Transfer Numbering Modal -->
     <div class="modal fade" id="transferNumberingModal" tabindex="-1" aria-labelledby="transferNumberingModalLabel" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-sb-secondary text-light">
-                    <h1 class="modal-title fs-5" id="transferNumberingModalLabel">Transfer Numbering</h1>
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <h1 class="modal-title fs-5 fw-bold" id="transferNumberingModalLabel">Transfer Numbering</h1>
+                        <span class="badge rounded-pill text-bg-dark">{{ $outputType == "_packing" ? "FINISHING" : "QC" }}</span>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -240,12 +240,16 @@
             </div>
         </div>
     </div>
+
     <!-- Transfer Rft Modal -->
     <div class="modal fade" id="transferRftModal" tabindex="-1" aria-labelledby="transferRftModalLabel" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-rft text-light">
-                    <h1 class="modal-title fs-5 fw-bold" id="transferRftModalLabel">Transfer RFT</h1>
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <h1 class="modal-title fs-5 fw-bold" id="transferRftModalLabel">Transfer RFT</h1>
+                        <span class="badge rounded-pill text-bg-dark">{{ $outputType == "_packing" ? "FINISHING" : "QC" }}</span>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -278,7 +282,10 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-defect text-light">
-                    <h1 class="modal-title fs-5 fw-bold" id="transferDefectModalLabel">Transfer Defect</h1>
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <h1 class="modal-title fs-5 fw-bold" id="transferDefectModalLabel">Transfer DEFECT</h1>
+                        <span class="badge rounded-pill text-bg-dark">{{ $outputType == "_packing" ? "FINISHING" : "QC" }}</span>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -311,7 +318,10 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-rework text-light">
-                    <h1 class="modal-title fs-5 fw-bold" id="transferReworkModalLabel">Transfer Rework</h1>
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <h1 class="modal-title fs-5 fw-bold" id="transferReworkModalLabel">Transfer REWORK</h1>
+                        <span class="badge rounded-pill text-bg-dark">{{ $outputType == "_packing" ? "FINISHING" : "QC" }}</span>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -344,7 +354,10 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-reject text-light">
-                    <h1 class="modal-title fs-5 fw-bold" id="transferRejectModalLabel">Transfer Reject</h1>
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <h1 class="modal-title fs-5 fw-bold" id="transferRejectModalLabel">Transfer REJECT</h1>
+                        <span class="badge rounded-pill text-bg-dark">{{ $outputType == "_packing" ? "FINISHING" : "QC" }}</span>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -379,7 +392,7 @@
             Swal.fire({
                 icon: "warning",
                 title: "Transfer",
-                html: "Transfer Semua Output?",
+                html: "<b>Transfer Semua Output '"+(@this.outputType == '_packing' ? "FINISHING" : "QC")+"' ?</b>",
                 showConfirmButton: true,
                 confirmButtonText: "Transfer",
                 showCancelButton: true,
