@@ -901,7 +901,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Transfer Output
-    Route::controller(TransferOutputController::class)->prefix('transfer-output')->middleware('role:sewing')->group(function () {
+    Route::controller(TransferOutputController::class)->prefix('transfer-output')->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('sewing-transfer-output');
     });
 
