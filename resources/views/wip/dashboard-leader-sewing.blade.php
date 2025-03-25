@@ -100,10 +100,21 @@
                     <i class="fa fa-search"></i>
                 </button>
             </div>
-            <button class="btn btn-success" onclick="exportExcel(this)" disabled><i class="fa fa-file-excel"></i></button>
+            <div class="d-flex align-items-end gap-3">
+                <div>
+                    <label class="form-label">Buyer</label>
+                    <select name="buyer_id" id="buyer_id" class="form-select select2bs4" onchange="updateTanggal()">
+                        <option value="">SEMUA</option>
+                        @foreach ($buyers as $buyer)
+                            <option value="{{ $buyer->id }}">{{ $buyer->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button class="btn btn-success" onclick="exportExcel(this)" disabled><i class="fa fa-file-excel"></i></button>
+            </div>
         </div>
         <div class="d-flex justify-content-center mb-1">
-            <span><b>{{ localeDateFormat($from, false) }}</b> s/d <b>{{ localeDateFormat($to, false) }}</b></span>
+            <b><span id="from-label">{{ localeDateFormat($from, false) }}</span> <span>s/d</span> <span id="to-label">{{ localeDateFormat($to, false) }}</span></b>
         </div>
         <div class="row g-3" id="leader-line-charts">
         </div>
@@ -176,7 +187,7 @@
         async function updateTanggal() {
             document.getElementById("loading").classList.remove("d-none");
 
-            await updateData();
+            await getData();
 
             document.getElementById("loading").classList.add("d-none");
         }
@@ -185,12 +196,16 @@
         async function getData() {
             document.getElementById("loading").classList.remove("d-none");
 
+            document.getElementById("from-label").innerHTML = $("#from").val()+" ";
+            document.getElementById("to-label").innerHTML = " "+$("#to").val();
+
             await $.ajax({
                 url: "{{ route("dashboard-leader-sewing-data") }}",
                 type: "get",
                 data: {
                     from: $("#from").val(),
-                    to: $("#to").val()
+                    to: $("#to").val(),
+                    buyer_id: $("#buyer_id").val(),
                 },
                 dataType: "json",
                 success: async function (response) {
@@ -200,55 +215,64 @@
 
                     let lineEfficiency = Object.values(Object.groupBy(response, ({ line_id }) => line_id));
 
-                    let lineDailyEfficiency = [];
-                    lineEfficiency.forEach(element => {
-                        // Date Output
-                        let dateOutput = [];
-                        let lineLeaderList = [];
-                        let currentLeader = {
-                            "tanggal": element[0].tanggal,
-                            "leader_nik": element[0].leader_nik,
-                            "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
-                        };
-                        element.reduce(function(res, value) {
-                            if (!res[value.tanggal]) {
-                                res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                dateOutput.push(res[value.tanggal]);
-                            }
-                            // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
-                            res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
-                            res[value.tanggal].mins_prod += Number(value.mins_prod);
-                            res[value.tanggal].output += Number(value.output);
-                            res[value.tanggal].rft += Number(value.rft);
+                    if (lineEfficiency.length > 0) {
+                        document.getElementById('leader-line-charts').style.justifyContent = "start";
+                        document.getElementById('leader-line-charts').style.paddingTop = "15px";
 
-                            if (value.leader_nik != currentLeader.leader_nik) {
-                                lineLeaderList.push(
-                                    {
-                                        x: new Date(currentLeader.tanggal).getTime(),
-                                        borderColor: '#00E396',
-                                        label: {
+                        let lineDailyEfficiency = [];
+                        lineEfficiency.forEach(element => {
+                            // Date Output
+                            let dateOutput = [];
+                            let lineLeaderList = [];
+                            let currentLeader = {
+                                "tanggal": element[0].tanggal,
+                                "leader_nik": element[0].leader_nik,
+                                "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
+                            };
+                            element.reduce(function(res, value) {
+                                if (!res[value.tanggal]) {
+                                    res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                    dateOutput.push(res[value.tanggal]);
+                                }
+                                // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
+                                res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
+                                res[value.tanggal].mins_prod += Number(value.mins_prod);
+                                res[value.tanggal].output += Number(value.output);
+                                res[value.tanggal].rft += Number(value.rft);
+
+                                if (value.leader_nik != currentLeader.leader_nik) {
+                                    lineLeaderList.push(
+                                        {
+                                            x: new Date(currentLeader.tanggal).getTime(),
                                             borderColor: '#00E396',
-                                            text: currentLeader.leader_name
+                                            label: {
+                                                borderColor: '#00E396',
+                                                text: currentLeader.leader_name
+                                            }
                                         }
-                                    }
-                                );
+                                    );
 
-                                currentLeader = {
-                                    "tanggal": value.tanggal,
-                                    "leader_nik": value.leader_nik,
-                                    "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
-                                };
-                            }
+                                    currentLeader = {
+                                        "tanggal": value.tanggal,
+                                        "leader_nik": value.leader_nik,
+                                        "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
+                                    };
+                                }
 
-                            return res;
-                        }, {});
+                                return res;
+                            }, {});
 
-                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList});
-                    });
+                            lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList});
+                        });
 
-                    // Show Chief Daily Data
-                    for (let i = 0; i < lineDailyEfficiency.length; i++) {
-                        appendRow(lineDailyEfficiency[i], i+1);
+                        // Show Chief Daily Data
+                        for (let i = 0; i < lineDailyEfficiency.length; i++) {
+                            appendRow(lineDailyEfficiency[i], i+1);
+                        }
+                    } else {
+                        document.getElementById('leader-line-charts').innerHTML = "Data tidak ditemukan.";
+                        document.getElementById('leader-line-charts').style.justifyContent = "center";
+                        document.getElementById('leader-line-charts').style.paddingTop = "15px";
                     }
                 },
                 error: function (jqXHR) {
@@ -261,12 +285,16 @@
 
         // Update Data
         async function updateData() {
+            document.getElementById("from-label").innerHTML = $("#from").val()+" ";
+            document.getElementById("to-label").innerHTML = " "+$("#to").val();
+
             await $.ajax({
                 url: "{{ route("dashboard-leader-sewing-data") }}",
                 type: "get",
                 data: {
                     from: $("#from").val(),
-                    to: $("#to").val()
+                    to: $("#to").val(),
+                    buyer_id: $("#buyer_id").val(),
                 },
                 dataType: "json",
                 success: async function (response) {

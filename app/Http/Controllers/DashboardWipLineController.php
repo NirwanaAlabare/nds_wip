@@ -937,16 +937,32 @@ END jam) a))) target from (
         return Excel::download(new ChiefSewingRangeExport($from, $to), 'chief_sewing_range.xlsx');
     }
 
-    function leaderSewing($from = 0, $to = 0) {
+    function leaderSewing(Request $request, $from = 0, $to = 0) {
         $from = $from ? $from : date("Y-m-d");
         $to = $to ? $to : date("Y-m-d");
 
-        return view('wip.dashboard-leader-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'leader-sewing', "from" => $from, "to" => $to]);
+        $buyerId = $request->buyer_id;
+
+        $buyers = DB::connection('mysql_sb')->table('mastersupplier')->
+            selectRaw('Id_Supplier as id, Supplier as name')->
+            leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
+            leftJoin('master_plan', 'master_plan.id_ws', '=', 'act_costing.id')->
+            where('mastersupplier.tipe_sup', 'C')->
+            where('master_plan.cancel', 'N')->
+            whereRaw('tgl_plan between cast((now() - interval 1 year) as date) AND cast(CURRENT_DATE() as date)')->
+            orderBy('Supplier', 'ASC')->
+            groupBy('Id_Supplier', 'Supplier')->
+            get();
+
+        return view('wip.dashboard-leader-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'leader-sewing', "from" => $from, "to" => $to, "buyers" => $buyers]);
     }
 
     function leaderSewingData(Request $request) {
         $from = $request->from ? $request->from : date("Y-m-d");
         $to = $request->to ? $request->to : date("Y-m-d");
+        $buyerId = $request->buyer_id ? $request->buyer_id : null;
+
+        $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier = '".$buyerId."'" : "";
 
         $efficiencyLine = DB::connection("mysql_sb")->select("
             select
@@ -991,10 +1007,13 @@ END jam) a))) target from (
                             FROM
                                 output_rfts rfts
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
+                                inner join act_costing on act_costing.id = master_plan.id_ws
+                                inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$to."'
                                 AND master_plan.cancel = 'N'
+                                ".$buyerFilter."
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
                             order by
