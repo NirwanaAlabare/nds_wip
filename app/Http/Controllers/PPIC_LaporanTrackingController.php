@@ -379,7 +379,7 @@ order by ws asc, color asc, urutan asc, a.size asc
 
         $data_monitoring_order = DB::connection('mysql_sb')->select("WITH CTE AS (
 SELECT
-            a.buyer,
+			a.buyer,
 			a.ws,
 			a.color,
 			a.size,
@@ -393,7 +393,7 @@ SELECT
 			output_rfts_packing,
 			ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
 			SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
-			qty_cut - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
+			SUM(qty_cut)  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
 			qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
 			output_rfts - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
 			output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing
@@ -439,36 +439,89 @@ LEFT JOIN
         FROM
         (
 SELECT
-		id_so_det,
-		MIN(qty_cut) AS qty_cut,
-		0 AS qty_loading,
-		0 AS output_rfts,
-		0 AS output_rfts_packing
-FROM
-(
+	id_so_det,
+	MIN(qty_cut) qty_cut,
+	0 AS qty_loading,
+	0 AS output_rfts,
+	0 AS output_rfts_packing
+FROM (
 		SELECT
-				marker_input_detail.so_det_id AS id_so_det,
-				CASE WHEN modify_size_qty.modified_qty > 0 THEN modify_size_qty.modified_qty ELSE SUM(marker_input_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
-		FROM
-				laravel_nds.form_cut_input
-		LEFT JOIN
-				laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
-		LEFT JOIN
-				laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-		LEFT JOIN
-				laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-		LEFT JOIN
-				laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
-		WHERE
-				COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '2024-01-01'
-				AND form_cut_input.status = 'SELESAI PENGERJAAN'
-				AND (marker_input_detail.ratio > 0 OR modify_size_qty.modified_qty > 0)
-		GROUP BY
-				marker_input.panel,
-				marker_input_detail.so_det_id
-) cutting
-GROUP BY
+			id_so_det,
+			SUM(qty_cut) qty_cut
+		FROM (
+				SELECT
+					marker_input_detail.so_det_id AS id_so_det,
+					marker_input.panel,
+					marker_input_detail.ratio,
+					form_cut_input.total_lembar,
+					modify_size_qty.difference_qty,
+					CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(marker_input_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
+			FROM
+					laravel_nds.form_cut_input
+			LEFT JOIN
+					laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+			LEFT JOIN
+					laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
+			LEFT JOIN
+					laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+			LEFT JOIN
+					laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+			WHERE
+					COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '2024-01-01'
+					AND form_cut_input.status = 'SELESAI PENGERJAAN'
+					AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+			GROUP BY
+					form_cut_input.id,
+					marker_input.panel,
+					marker_input_detail.id
+		) cutting
+	group by
+		panel,
 		id_so_det
+) cutting
+	group by
+		id_so_det
+UNION ALL
+		SELECT
+			id_so_det,
+			MIN(qty_cut) qty_cut,
+			0 AS qty_loading,
+			0 AS output_rfts,
+			0 AS output_rfts_packing
+		FROM (
+			SELECT
+					so_det_id id_so_det,
+					SUM(qty) as qty_cut,
+					0 AS qty_loading,
+					0 AS output_rfts,
+					0 AS output_rfts_packing
+			FROM
+					laravel_nds.form_cut_reject_detail
+					left join laravel_nds.form_cut_reject on form_cut_reject.id = form_cut_reject_detail.form_id
+			GROUP BY
+					form_cut_reject.panel,
+					so_det_id
+		) form_reject
+		group by id_so_det
+
+		UNION ALL
+		SELECT
+				so_det_id AS id_so_det,
+				0 AS qty_cut,
+				qty AS qty_loading,
+				0 AS output_rfts,
+				0 AS output_rfts_packing
+		FROM
+				laravel_nds.loading_line a
+		INNER JOIN
+				laravel_nds.stocker_input b ON a.stocker_id = b.id
+		WHERE
+				a.updated_at >= '2024-01-01' and b.form_cut_id > 0
+		GROUP BY
+			b.so_det_id,
+			b.form_cut_id,
+			b.group_stocker,
+			b.ratio
             UNION ALL
             SELECT
                 so_det_id AS id_so_det,
@@ -476,17 +529,10 @@ GROUP BY
                 qty AS qty_loading,
                 0 AS output_rfts,
                 0 AS output_rfts_packing
-            FROM
-                laravel_nds.loading_line a
-            INNER JOIN
-                laravel_nds.stocker_input b ON a.stocker_id = b.id
-            WHERE
-                a.updated_at >= '2024-01-01'
-            GROUP BY
-						b.so_det_id,
-						b.form_cut_id,
-						b.group_stocker,
-						b.ratio
+            from laravel_nds.loading_line
+            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+            where form_reject_id is not null
+            group by so_det_id, form_reject_id
             UNION ALL
             SELECT
                 so_det_id AS id_so_det,
@@ -713,7 +759,7 @@ order by tgl_shipment asc, CTE.color asc,urutan asc
 
         $data_monitoring_order = DB::connection('mysql_sb')->select("WITH CTE AS (
 SELECT
-            a.buyer,
+			a.buyer,
 			a.ws,
 			a.color,
 			a.size,
@@ -727,7 +773,7 @@ SELECT
 			output_rfts_packing,
 			ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
 			SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
-			qty_cut - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
+			SUM(qty_cut)  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
 			qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
 			output_rfts - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
 			output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing
@@ -773,36 +819,89 @@ LEFT JOIN
         FROM
         (
 SELECT
-		id_so_det,
-		MIN(qty_cut) AS qty_cut,
-		0 AS qty_loading,
-		0 AS output_rfts,
-		0 AS output_rfts_packing
-FROM
-(
+	id_so_det,
+	MIN(qty_cut) qty_cut,
+	0 AS qty_loading,
+	0 AS output_rfts,
+	0 AS output_rfts_packing
+FROM (
 		SELECT
-				marker_input_detail.so_det_id AS id_so_det,
-				CASE WHEN modify_size_qty.modified_qty > 0 THEN modify_size_qty.modified_qty ELSE SUM(marker_input_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
-		FROM
-				laravel_nds.form_cut_input
-		LEFT JOIN
-				laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
-		LEFT JOIN
-				laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-		LEFT JOIN
-				laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-		LEFT JOIN
-				laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
-		WHERE
-				COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '2024-01-01'
-				AND form_cut_input.status = 'SELESAI PENGERJAAN'
-				AND (marker_input_detail.ratio > 0 OR modify_size_qty.modified_qty > 0)
-		GROUP BY
-				marker_input.panel,
-				marker_input_detail.so_det_id
-) cutting
-GROUP BY
+			id_so_det,
+			SUM(qty_cut) qty_cut
+		FROM (
+				SELECT
+					marker_input_detail.so_det_id AS id_so_det,
+					marker_input.panel,
+					marker_input_detail.ratio,
+					form_cut_input.total_lembar,
+					modify_size_qty.difference_qty,
+					CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(marker_input_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
+			FROM
+					laravel_nds.form_cut_input
+			LEFT JOIN
+					laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+			LEFT JOIN
+					laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
+			LEFT JOIN
+					laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+			LEFT JOIN
+					laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+			WHERE
+					COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '2024-01-01'
+					AND form_cut_input.status = 'SELESAI PENGERJAAN'
+					AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+			GROUP BY
+					form_cut_input.id,
+					marker_input.panel,
+					marker_input_detail.id
+		) cutting
+	group by
+		panel,
 		id_so_det
+) cutting
+	group by
+		id_so_det
+UNION ALL
+		SELECT
+			id_so_det,
+			MIN(qty_cut) qty_cut,
+			0 AS qty_loading,
+			0 AS output_rfts,
+			0 AS output_rfts_packing
+		FROM (
+			SELECT
+					so_det_id id_so_det,
+					SUM(qty) as qty_cut,
+					0 AS qty_loading,
+					0 AS output_rfts,
+					0 AS output_rfts_packing
+			FROM
+					laravel_nds.form_cut_reject_detail
+					left join laravel_nds.form_cut_reject on form_cut_reject.id = form_cut_reject_detail.form_id
+			GROUP BY
+					form_cut_reject.panel,
+					so_det_id
+		) form_reject
+		group by id_so_det
+
+		UNION ALL
+		SELECT
+				so_det_id AS id_so_det,
+				0 AS qty_cut,
+				qty AS qty_loading,
+				0 AS output_rfts,
+				0 AS output_rfts_packing
+		FROM
+				laravel_nds.loading_line a
+		INNER JOIN
+				laravel_nds.stocker_input b ON a.stocker_id = b.id
+		WHERE
+				a.updated_at >= '2024-01-01' and b.form_cut_id > 0
+		GROUP BY
+			b.so_det_id,
+			b.form_cut_id,
+			b.group_stocker,
+			b.ratio
             UNION ALL
             SELECT
                 so_det_id AS id_so_det,
@@ -810,17 +909,10 @@ GROUP BY
                 qty AS qty_loading,
                 0 AS output_rfts,
                 0 AS output_rfts_packing
-            FROM
-                laravel_nds.loading_line a
-            INNER JOIN
-                laravel_nds.stocker_input b ON a.stocker_id = b.id
-            WHERE
-                a.updated_at >= '2024-01-01'
-            GROUP BY
-						b.so_det_id,
-						b.form_cut_id,
-						b.group_stocker,
-						b.ratio
+            from laravel_nds.loading_line
+            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+            where form_reject_id is not null
+            group by so_det_id, form_reject_id
             UNION ALL
             SELECT
                 so_det_id AS id_so_det,
