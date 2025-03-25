@@ -192,6 +192,10 @@
 
                         // Leader Output
                         let leaderOutput = [];
+                        let totalMinsAvail = 0;
+                        let totalMinsProd = 0;
+                        let totalOutput = 0;
+                        let totalRft = 0;
                         element.reduce(function(res, value) {
                             if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
                                 let param = value.leader_id ? value.leader_id : value.sewing_line;
@@ -204,10 +208,18 @@
                                 res[param].output += Number(value.output);
                                 res[param].rft += Number(value.rft);
                                 res[param].sewing_line += value.sewing_line+"<br>";
+
+                                totalMinsAvail += Number(value.cumulative_mins_avail);
+                                totalMinsProd += Number(value.mins_prod);
+                                totalOutput += Number(value.output);
+                                totalRft += Number(value.rft);
                             }
 
                             return res;
                         }, {});
+
+                        // Total Data
+                        let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };
 
                         // Sort leader output efficiency
                         let sortedLeaderOutput = leaderOutput.sort(function(a,b){
@@ -220,15 +232,15 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
                     let sortedChiefDailyEfficiency = chiefDailyEfficiency.sort(function(a,b){
-                        if (a.currentEff < b.currentEff) {
+                        if (a.currentEff+a.currentRft < b.currentEff+b.currentRft) {
                             return 1;
                         }
-                        if (a.currentEff  > b.currentEff) {
+                        if (a.currentEff+a.currentRft  > b.currentEff+b.currentRft) {
                             return -1;
                         }
                         return 0;
@@ -706,7 +718,7 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency

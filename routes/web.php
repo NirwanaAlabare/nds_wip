@@ -1753,6 +1753,8 @@ Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::clas
 Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->name('dashboard-chief-sewing-range');
 Route::get('/dashboard-wip/chief-sewing-range-data', [DashboardWipLineController::class, 'chiefSewingRangeData'])->name('dashboard-chief-sewing-range-data');
 Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineController::class, 'chiefSewingRangeDataExport'])->name('dashboard-chief-sewing-range-data-export');
+Route::get('/dashboard-wip/leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'leaderSewing'])->name('dashboard-leader-sewing');
+Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::class, 'leaderSewingData'])->name('dashboard-leader-sewing-data');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');

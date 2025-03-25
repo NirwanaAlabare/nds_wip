@@ -5,18 +5,17 @@ namespace App\Models\SignalBit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Reject extends Model
+class ReworkPacking extends Model
 {
     use HasFactory;
 
     protected $connection = 'mysql_sb';
 
-    protected $table = 'output_rejects';
+    protected $table = 'output_reworks_packing';
 
     protected $fillable = [
         'id',
-        'master_plan_id',
-        'so_det_id',
+        'defect_id',
         'status',
         'created_at',
         'updated_at',
@@ -27,9 +26,13 @@ class Reject extends Model
         return $this->belongsTo(MasterPlan::class, 'master_plan_id', 'id');
     }
 
-    public function scopeWithoutTimestamps()
+    public function defect()
     {
-        $this->timestamps = false;
-        return $this;
+        return $this->hasOne(DefectPacking::class, 'id', 'defect_id');
+    }
+
+    public function rft()
+    {
+        return $this->hasOne(RftPacking::class, 'rework_id', 'id');
     }
 }

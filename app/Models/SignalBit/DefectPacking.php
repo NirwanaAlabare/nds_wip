@@ -5,13 +5,13 @@ namespace App\Models\SignalBit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Defect extends Model
+class DefectPacking extends Model
 {
     use HasFactory;
 
     protected $connection = 'mysql_sb';
 
-    protected $table = 'output_defects';
+    protected $table = 'output_defects_packing';
 
     protected $fillable = [
         'id',
@@ -60,7 +60,7 @@ class Defect extends Model
 
     public function rework()
     {
-        return $this->hasOne(Rework::class, 'defect_id', 'id');
+        return $this->hasOne(ReworkPacking::class, 'defect_id', 'id');
     }
 
     public function scopeWithoutTimestamps()

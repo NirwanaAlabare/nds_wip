@@ -243,7 +243,7 @@
                         let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
 
-                        let totalData = { totalEfficiency : (totalMinsProd/totalMinsAvail*100).toFixed(2), totalRft : (totalRft/totalOutput*100).toFixed(2) };
+                        let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };
 
                         // Format the data as [{ x: date, y: efficiency }]
                         let formattedData = dateOutputFilter.map(item => {
@@ -261,16 +261,16 @@
                             };
                         });
 
-                        chiefDailyEfficiency.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedData});
-                        chiefDailyRft.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": formattedRftData});
-                        chiefDaily.push({"name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
+                        chiefDailyEfficiency.push({"name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": formattedData});
+                        chiefDailyRft.push({"name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": formattedRftData});
+                        chiefDaily.push({"name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "eff": formattedData, "rft": formattedRftData, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     let sortChiefDaily = chiefDaily.sort(function(a,b){
-                            if (Number(a.currentEff) < Number(b.currentEff)) {
+                            if ((a.currentEff+a.currentRft) < (b.currentEff+b.currentRft)) {
                                 return 1;
                             }
-                            if (Number(a.currentEff) > Number(b.currentEff)) {
+                            if ((a.currentEff+a.currentRft) > (b.currentEff+b.currentRft)) {
                                 return -1;
                             }
                             return 0;

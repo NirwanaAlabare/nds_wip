@@ -371,7 +371,7 @@ END jam) a))) target from (
                 $tanggal .
                 "' and mp.sewing_line = '" .
                 $lineId .
-                "') a",
+                "' and mp.cancel = 'N') a",
         );
         return isset($query[0]) ? $query[0]->buyer : null;
     }
@@ -385,7 +385,7 @@ END jam) a))) target from (
                 $tanggal .
                 "' and mp.sewing_line = '" .
                 $lineId .
-                "') a ",
+                "' and mp.cancel = 'N') a ",
         );
 
         return isset($query[0]) ? $query[0]->no_ws : null;
@@ -665,10 +665,11 @@ END jam) a))) target from (
                    FROM master_plan
                    WHERE sewing_line = ?
                    AND DATE_FORMAT(tgl_plan, '%Y-%m-%d') = ?
+                   AND cancel = ?
                    GROUP BY gambar
                    ORDER BY id ASC
                    LIMIT 1",
-            [$lineId, $tanggal],
+            [$lineId, $tanggal, 'N'],
         );
         return $query;
     }
@@ -677,21 +678,21 @@ END jam) a))) target from (
     {
         $query = DB::connection('mysql_dsb')->select(
             "SELECT
-                           a.defect_area_x,
-                           a.defect_area_y,
-                           a.defect_type_id,
-                           b.gambar AS image
-                       FROM
-                           output_defects a
-                       INNER JOIN
-                           master_plan b
-                       ON
-                           b.id = a.master_plan_id
-                       WHERE
-                           b.sewing_line = ?
-                       AND
-                           DATE_FORMAT(a.created_at, '%Y-%m-%d') = ?",
-            [$lineId, $tanggal],
+                a.defect_area_x,
+                a.defect_area_y,
+                a.defect_type_id,
+                b.gambar AS image
+            FROM
+                output_defects a
+            INNER JOIN
+                master_plan b
+            ON
+                b.id = a.master_plan_id
+            WHERE
+                b.sewing_line = ? AND
+                b.cancel = ? AND
+                DATE_FORMAT(a.created_at, '%Y-%m-%d') = ?",
+            [$lineId, "N", $tanggal],
         );
 
         return $query;
@@ -934,5 +935,83 @@ END jam) a))) target from (
         $to = $request->to ? $request->to : date("Y-m-d");
 
         return Excel::download(new ChiefSewingRangeExport($from, $to), 'chief_sewing_range.xlsx');
+    }
+
+    function leaderSewing($from = 0, $to = 0) {
+        $from = $from ? $from : date("Y-m-d");
+        $to = $to ? $to : date("Y-m-d");
+
+        return view('wip.dashboard-leader-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'leader-sewing', "from" => $from, "to" => $to]);
+    }
+
+    function leaderSewingData(Request $request) {
+        $from = $request->from ? $request->from : date("Y-m-d");
+        $to = $request->to ? $request->to : date("Y-m-d");
+
+        $efficiencyLine = DB::connection("mysql_sb")->select("
+            select
+                output_employee_line.*,
+                output.sewing_line,
+                SUM(rft) rft,
+                SUM(output) output,
+                SUM(mins_prod) mins_prod,
+                SUM(mins_avail) mins_avail,
+                SUM(cumulative_mins_avail) cumulative_mins_avail
+            from
+                output_employee_line
+                left join userpassword on userpassword.line_id = output_employee_line.line_id
+                inner join (
+                    SELECT
+                        output.tgl_output,
+                        output.tgl_plan,
+                        output.sewing_line,
+                        SUM(rft) rft,
+                        SUM(output) output,
+                        SUM(output * output.smv) mins_prod,
+                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
+                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
+                        MAX(output.last_update) last_update,
+                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
+                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
+                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
+                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                    FROM
+                        (
+                            SELECT
+                                DATE( rfts.updated_at ) tgl_output,
+                                COUNT( rfts.id ) output,
+                                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+                                MAX(rfts.updated_at) last_update,
+                                master_plan.id master_plan_id,
+                                master_plan.tgl_plan,
+                                master_plan.sewing_line,
+                                master_plan.man_power,
+                                master_plan.jam_kerja,
+                                master_plan.smv
+                            FROM
+                                output_rfts rfts
+                                inner join master_plan on master_plan.id = rfts.master_plan_id
+                            where
+                                rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$to."'
+                                AND master_plan.cancel = 'N'
+                            GROUP BY
+                                master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
+                            order by
+                                sewing_line
+                        ) output
+                    GROUP BY
+                        output.sewing_line,
+                        output.tgl_output
+                ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            group by
+                line_id,
+                tanggal
+            order by
+                line_id asc,
+                tanggal asc
+        ");
+
+        return $efficiencyLine;
     }
 }

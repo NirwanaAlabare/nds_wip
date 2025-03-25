@@ -538,6 +538,11 @@
                                         Chief Performance <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('dashboard-leader-sewing', [date("Y-m-d"), date("Y-m-d")]) }}" class="dropdown-item {{ $routeName == 'dashboard-leader-sewing' ? 'active' : '' }}">
+                                        Line Performance <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li>
                             @endrole
                         </ul>
                     </li>
