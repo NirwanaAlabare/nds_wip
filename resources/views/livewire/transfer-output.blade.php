@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferReject, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferReject, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput, outputType'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -10,6 +10,14 @@
         </div>
     </div>
     <div class="row g-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-center">
+                <select name="output_type" id="output_type" class="form-select w-auto" wire:model="outputType">
+                    <option value="">QC</option>
+                    <option value="_packing">FINISHING</option>
+                </select>
+            </div>
+        </div>
         <div class="col-12 col-md-5">
             <div class="card">
                 <div class="card-header bg-sb">
