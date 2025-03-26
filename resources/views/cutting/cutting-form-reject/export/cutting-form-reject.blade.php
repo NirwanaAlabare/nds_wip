@@ -15,6 +15,7 @@
         <th style="background: #b5c7fc;padding:10px;font-weight:bold;">STYLE</th>
         <th style="background: #b5c7fc;padding:10px;font-weight:bold;">COLOR</th>
         <th style="background: #b5c7fc;padding:10px;font-weight:bold;">PANEL</th>
+        <th style="background: #b5c7fc;padding:10px;font-weight:bold;">PART</th>
         <th style="background: #b5c7fc;padding:10px;font-weight:bold;">NO. FORM</th>
         <th style="background: #b5c7fc;padding:10px;font-weight:bold;">SIZE</th>
         <th style="background: #b5c7fc;padding:10px;font-weight:bold;">GROUP</th>
@@ -35,6 +36,7 @@
             <td style="text-align: left;">{{ $d->style }}</td>
             <td style="text-align: left;">{{ $d->color }}</td>
             <td style="text-align: left;">{{ $d->panel }}</td>
+            <td style="text-align: left;">{{ $d->part }}</td>
             <td style="text-align: left;">{{ $d->no_form }}</td>
             <td style="text-align: left;">{{ $d->size }}</td>
             <td style="text-align: left;">{{ $d->group }}</td>

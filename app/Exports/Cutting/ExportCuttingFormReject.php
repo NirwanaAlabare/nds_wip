@@ -39,17 +39,21 @@ class ExportCuttingFormReject implements FromView, WithEvents, ShouldAutoSize
                 form_cut_reject.style,
                 form_cut_reject.color,
                 form_cut_reject.panel,
+                master_part.nama_part part,
                 form_cut_reject.no_form,
                 stocker_input.size,
                 form_cut_reject.group,
                 stocker_input.qty_ply qty,
-                stocker_input.notes
+                stocker_input.notes,
+                master_part.nama_part
             ")->
             leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
             leftJoin("form_cut_reject_detail", function ($join) {
                 $join->on("form_cut_reject_detail.form_id", "=", "form_cut_reject.id");
                 $join->on("form_cut_reject_detail.so_det_id", "=", "stocker_input.so_det_id");
             })->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             whereBetween("form_cut_reject.tanggal", [$this->dateFrom, $this->dateTo])->
             get();
 
@@ -84,7 +88,7 @@ class ExportCuttingFormReject implements FromView, WithEvents, ShouldAutoSize
         );
 
         $event->sheet->styleCells(
-            'A4:K' . ($event->getConcernable()->rowCount+5),
+            'A4:L' . ($event->getConcernable()->rowCount+5),
             [
                 'borders' => [
                     'allBorders' => [
