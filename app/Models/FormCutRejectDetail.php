@@ -12,6 +12,8 @@ class FormCutRejectDetail extends Model
 
     protected $table = 'form_cut_reject_detail';
 
+    protected $guarded = [];
+
     public function formCutReject()
     {
         return $this->belongsTo(FormCutReject::class, 'form_id', 'id');
