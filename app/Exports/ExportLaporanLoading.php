@@ -119,7 +119,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         stocker_input.form_reject_id,
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.range_awal
+                        stocker_input.ratio
                 ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
             WHERE
                 loading_stock.tanggal_loading IS NOT NULL

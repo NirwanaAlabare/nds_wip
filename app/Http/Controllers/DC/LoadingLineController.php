@@ -669,7 +669,7 @@ class LoadingLineController extends Controller
                             stocker_input.size
                         FROM
                             loading_line
-                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                            INNER JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
                             LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -683,7 +683,7 @@ class LoadingLineController extends Controller
                             stocker_input.form_reject_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
-                            stocker_input.range_awal
+                            stocker_input.ratio
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
