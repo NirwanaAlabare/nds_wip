@@ -135,9 +135,9 @@ class LoadingLineController extends Controller
                                     stocker_input.group_stocker,
                                     stocker_input.range_awal
                             ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
-                            group by trolley.id
+                        group by
+                            trolley.id
                     ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
-
                 GROUP BY
                     loading_line_plan.id
                 ORDER BY
@@ -587,13 +587,17 @@ class LoadingLineController extends Controller
     }
 
     public function exportLoadingLine(Request $request) {
+        ini_set("max_execution_time", 36000);
+
         $from = $request->from ? $request->from : date("Y-m-d");
         $to = $request->to ? $request->to : date("Y-m-d");
 
-        return Excel::download(new ExportLoadingLine($from, $to), 'Laporan Loading '.$from.' - '.$to.'.xlsx');
+        return Excel::download(new ExportLoadingLine($from, $to, $request->lineFilter, $request->wsFilter, $request->styleFilter, $request->colorFilter, $request->targetSewingFilter, $request->targetLoadingFilter, $request->trolleyFilter, $request->trolleyColorFilter), 'Laporan Loading '.$from.' - '.$to.'.xlsx');
     }
 
     public function summary(Request $request) {
+        ini_set("max_execution_time", 36000);
+
         if ($request->ajax()) {
 
             $dateFilter = "";
@@ -658,7 +662,7 @@ class LoadingLineController extends Controller
                                 ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                             ) qty_old,
-                            loading_line.qty,
+                            MIN(loading_line.qty) qty,
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
@@ -697,6 +701,8 @@ class LoadingLineController extends Controller
     }
 
     public function getTotalSummary(Request $request) {
+        ini_set("max_execution_time", 36000);
+
         $dateFilter = "";
         if ($request->dateFrom || $request->dateTo) {
             $dateFilter = "HAVING ";
@@ -779,7 +785,7 @@ class LoadingLineController extends Controller
                                 ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                             ) qty_old,
-                            loading_line.qty,
+                            MIN(loading_line.qty) qty,
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
@@ -823,6 +829,8 @@ class LoadingLineController extends Controller
 
     public function exportExcel(Request $request)
     {
+        ini_set("max_execution_time", 36000);
+
         return Excel::download(new ExportLaporanLoading($request->dateFrom, $request->dateTo), 'Laporan Loading '.$request->dateFrom.' - '.$request->dateTo.'.xlsx');
     }
 }

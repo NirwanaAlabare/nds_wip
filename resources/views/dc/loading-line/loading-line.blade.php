@@ -268,6 +268,17 @@
                 data: {
                     from : $("#tgl-awal").val(),
                     to : $("#tgl-akhir").val(),
+                    lineFilter : $("#lineFilter").val(),
+                    wsFilter : $("#wsFilter").val(),
+                    styleFilter : $("#styleFilter").val(),
+                    colorFilter : $("#colorFilter").val(),
+                    targetSewingFilter : $("#targetSewingFilter").val(),
+                    targetLoadingFilter : $("#targetLoadingFilter").val(),
+                    loadingFilter : $("#loadingFilter").val(),
+                    balanceLoadingFilter : $("#balanceLoadingFilter").val(),
+                    trolleyFilter : $("#trolleyFilter").val(),
+                    trolleyStockFilter : $("#trolleyStockFilter").val(),
+                    trolleyColorFilter : $("#trolleyColorFilter").val()
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function (res) {

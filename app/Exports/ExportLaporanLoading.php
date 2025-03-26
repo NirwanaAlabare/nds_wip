@@ -34,6 +34,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
 
     public function view(): View
     {
+        ini_set("max_execution_time", 3600);
+
         $dateFilter = "";
         if ($this->dateFrom || $this->dateTo) {
             $dateFilter = "HAVING ";
@@ -86,40 +88,38 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
             FROM
                 loading_line_plan
                 LEFT JOIN (
-                SELECT COALESCE
-                    (
-                    loading_line.tanggal_loading,
-                    DATE ( loading_line.updated_at )) tanggal_loading,
-                    loading_line.loading_plan_id,
-                    loading_line.nama_line,
-                    (
-                        COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
-                        ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
-                        ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
-                        ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
-                    ) qty_old,
-                    loading_line.qty,
-                    trolley.id trolley_id,
-                    trolley.nama_trolley,
-                    stocker_input.so_det_id,
-                    stocker_input.size
-                FROM
-                    loading_line
-                    LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                    LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                    LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                    LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
-                    LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
-                    LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                    LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
-                    ".$innerDateFilter."
-                GROUP BY
-                    loading_line.tanggal_loading,
-                    stocker_input.form_cut_id,
-                    stocker_input.form_reject_id,
-                    stocker_input.so_det_id,
-                    stocker_input.group_stocker,
-                    stocker_input.range_awal
+                    SELECT
+                        COALESCE ( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) tanggal_loading,
+                        loading_line.loading_plan_id,
+                        loading_line.nama_line,
+                        (
+                            COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                            ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                            ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                            ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                        ) qty_old,
+                        MIN(loading_line.qty) qty,
+                        trolley.id trolley_id,
+                        trolley.nama_trolley,
+                        stocker_input.so_det_id,
+                        stocker_input.size
+                    FROM
+                        loading_line
+                        LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                        LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                        LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                        ".$innerDateFilter."
+                    GROUP BY
+                        loading_line.tanggal_loading,
+                        stocker_input.form_cut_id,
+                        stocker_input.form_reject_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.range_awal
                 ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
             WHERE
                 loading_stock.tanggal_loading IS NOT NULL

@@ -24,11 +24,27 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
 
     protected $from;
     protected $to;
+    protected $lineFilter;
+    protected $wsFilter;
+    protected $styleFilter;
+    protected $colorFilter;
+    protected $targetSewingFilter;
+    protected $targetLoadingFilter;
+    protected $trolleyFilter;
+    protected $trolleyColorFilter;
 
-    public function __construct($from, $to)
+    public function __construct($from, $to, $lineFilter, $wsFilter, $styleFilter, $colorFilter, $targetSewingFilter, $targetLoadingFilter, $trolleyFilter, $trolleyColorFilter)
     {
         $this->from = $from ? $from : date('Y-m-d');
         $this->to = $to ? $to : date('Y-m-d');
+        $this->lineFilter =  $lineFilter;
+        $this->wsFilter =  $wsFilter;
+        $this->styleFilter =  $styleFilter;
+        $this->colorFilter =  $colorFilter;
+        $this->targetSewingFilter =  $targetSewingFilter;
+        $this->targetLoadingFilter =  $targetLoadingFilter;
+        $this->trolleyFilter =  $trolleyFilter;
+        $this->trolleyColorFilter =  $trolleyColorFilter;
     }
 
     public function view(): View
@@ -69,6 +85,36 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     $dateFilter .= $dateToFilter;
                 }
             }
+        }
+
+        $generalFilter = "";
+        if ($this->lineFilter || $this->wsFilter || $this->styleFilter || $this->colorFilter || $this->targetSewingFilter || $this->targetLoadingFilter || $this->trolleyFilter || $this->trolleyColorFilter) {
+            $generalFilter .= " WHERE ( loading_line_plan.id IS NOT NULL ";
+            if ($this->lineFilter) {
+                $generalFilter .= "AND loading_line_plan.line_id LIKE '%".$this->lineFilter."%'";
+            }
+            if ($this->wsFilter) {
+                $generalFilter .= "AND loading_line_plan.act_costing_ws LIKE '%".$this->wsFilter."%'";
+            }
+            if ($this->styleFilter) {
+                $generalFilter .= "AND loading_line_plan.style LIKE '%".$this->styleFilter."%'";
+            }
+            if ($this->colorFilter) {
+                $generalFilter .= "AND loading_line_plan.color LIKE '%".$this->colorFilter."%'";
+            }
+            if ($this->targetSewingFilter) {
+                $generalFilter .= "AND loading_line_plan.target_sewing LIKE '%".$this->targetSewingFilter."%'";
+            }
+            if ($this->targetLoadingFilter) {
+                $generalFilter .= "AND loading_line_plan.target_loading LIKE '%".$this->targetLoadingFilter."%'";
+            }
+            if ($this->trolleyFilter) {
+                $generalFilter .= "AND loading_stock.nama_trolley LIKE '%".$this->trolleyFilter."%'";
+            }
+            if ($this->trolleyColorFilter) {
+                $generalFilter .= "AND trolley_stock.trolley_color LIKE '%".$this->trolleyColorFilter."%'";
+            }
+            $generalFilter .= " )";
         }
 
         $dataLoadingLinePlan = collect(
@@ -148,7 +194,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                             ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
                             group by trolley.id
                     ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
-
+                    ".$generalFilter."
                 GROUP BY
                     loading_line_plan.id
                 ORDER BY
