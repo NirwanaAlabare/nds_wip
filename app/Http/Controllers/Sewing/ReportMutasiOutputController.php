@@ -112,19 +112,56 @@ class ReportMutasiOutputController extends Controller
                         '0' output_steam
             FROM
                     (
-                        SELECT
-                                    so_det_id, qty
-                        FROM
-                                    laravel_nds.loading_line a
-                        INNER JOIN
-                                    laravel_nds.stocker_input b on a.stocker_id = b.id
-                        WHERE
-                                    a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-                        GROUP BY
-                                    b.so_det_id,
-                                    b.form_cut_id,
-                                    b.group_stocker,
-                                    b.ratio
+            SELECT
+                so_det_id,
+                qty
+            FROM
+				laravel_nds.loading_line
+            LEFT JOIN
+					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+            WHERE
+				form_reject_id is not null AND loading_line.updated_at >= '2025-01-01 00:00:00' and loading_line.updated_at <= '$tgl_awal'
+            GROUP BY
+					so_det_id, form_reject_id
+                    ) a
+            GROUP BY so_det_id
+            UNION ALL
+            SELECT
+                        so_det_id,
+                        sum(qty) sa_loading,
+                        '0' sa_rft,
+                        '0' sa_reject,
+                        '0' sa_defect,
+                        '0' sa_rework,
+                        '0' qty_loading,
+                        '0' input_rework_sewing,
+                        '0' input_rework_spotcleaning,
+                        '0' input_rework_mending,
+                        '0' defect_sewing,
+                        '0' defect_spotcleaning,
+                        '0' defect_mending,
+                        '0' output_rejects,
+                        '0' output_rfts,
+                        '0' sa_out_sew,
+                        '0' sa_steam,
+                        '0' input_steam,
+                        '0' output_steam
+            FROM
+                    (
+            SELECT
+                so_det_id,
+                MIN(qty) qty
+            FROM
+                    laravel_nds.loading_line a
+            INNER JOIN
+                    laravel_nds.stocker_input b ON a.stocker_id = b.id
+            WHERE
+                    a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal' and b.form_cut_id > 0
+            GROUP BY
+                        b.so_det_id,
+                        b.form_cut_id,
+                        b.group_stocker,
+                        b.ratio
                     ) a
             GROUP BY so_det_id
             UNION ALL
@@ -236,6 +273,42 @@ class ReportMutasiOutputController extends Controller
             GROUP BY
                 so_det_id
             UNION ALL
+                        SELECT
+                        so_det_id,
+                        '0' sa_loading,
+                        '0' sa_rft,
+                        '0' sa_reject,
+                        '0' sa_defect,
+                        '0' sa_rework,
+                        sum(qty) qty_loading,
+                        '0' input_rework_sewing,
+                        '0' input_rework_spotcleaning,
+                        '0' input_rework_mending,
+                        '0' defect_sewing,
+                        '0' defect_spotcleaning,
+                        '0' defect_mending,
+                        '0' output_rejects,
+                        '0' output_rfts,
+                        '0' sa_out_sew,
+                        '0' sa_steam,
+                        '0' input_steam,
+                        '0' output_steam
+            FROM
+                    (
+            SELECT
+                so_det_id,
+                qty
+            FROM
+				laravel_nds.loading_line
+            LEFT JOIN
+					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+            WHERE
+				form_reject_id is not null AND loading_line.updated_at >= '$tgl_awal' and loading_line.updated_at <= '$tgl_akhir'
+            GROUP BY
+					so_det_id, form_reject_id
+                    ) a
+            GROUP BY so_det_id
+            UNION ALL
             SELECT
                         so_det_id,
                         '0' sa_loading,
@@ -258,19 +331,20 @@ class ReportMutasiOutputController extends Controller
                         '0' output_steam
             FROM
                     (
-                        SELECT
-                                    so_det_id, qty
-                        FROM
-                                    laravel_nds.loading_line a
-                        INNER JOIN
-                                    laravel_nds.stocker_input b on a.stocker_id = b.id
-                        WHERE
-                                    a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-                        GROUP BY
-                                    b.so_det_id,
-                                    b.form_cut_id,
-                                    b.group_stocker,
-                                    b.ratio
+            SELECT
+                so_det_id,
+                MIN(qty) qty
+            FROM
+                    laravel_nds.loading_line a
+            INNER JOIN
+                    laravel_nds.stocker_input b ON a.stocker_id = b.id
+            WHERE
+                    a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and b.form_cut_id > 0
+            GROUP BY
+                        b.so_det_id,
+                        b.form_cut_id,
+                        b.group_stocker,
+                        b.ratio
                     ) a
             GROUP BY so_det_id
             UNION ALL
@@ -664,7 +738,7 @@ mut_pck AS (
 
         $data = DB::connection('mysql_sb')->select("WITH d_rep AS (
             SELECT
-            d_rep.so_det_id,
+                        d_rep.so_det_id,
             sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) saldo_awal_sewing,
             sum(qty_loading) qty_loading,
             sum(input_rework_sewing) input_rework_sewing,
@@ -729,19 +803,56 @@ mut_pck AS (
                         '0' output_steam
             FROM
                     (
-                        SELECT
-                                    so_det_id, qty
-                        FROM
-                                    laravel_nds.loading_line a
-                        INNER JOIN
-                                    laravel_nds.stocker_input b on a.stocker_id = b.id
-                        WHERE
-                                    a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-                        GROUP BY
-                                    b.so_det_id,
-                                    b.form_cut_id,
-                                    b.group_stocker,
-                                    b.ratio
+            SELECT
+                so_det_id,
+                qty
+            FROM
+				laravel_nds.loading_line
+            LEFT JOIN
+					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+            WHERE
+				form_reject_id is not null AND loading_line.updated_at >= '2025-01-01 00:00:00' and loading_line.updated_at <= '$tgl_awal'
+            GROUP BY
+					so_det_id, form_reject_id
+                    ) a
+            GROUP BY so_det_id
+            UNION ALL
+            SELECT
+                        so_det_id,
+                        sum(qty) sa_loading,
+                        '0' sa_rft,
+                        '0' sa_reject,
+                        '0' sa_defect,
+                        '0' sa_rework,
+                        '0' qty_loading,
+                        '0' input_rework_sewing,
+                        '0' input_rework_spotcleaning,
+                        '0' input_rework_mending,
+                        '0' defect_sewing,
+                        '0' defect_spotcleaning,
+                        '0' defect_mending,
+                        '0' output_rejects,
+                        '0' output_rfts,
+                        '0' sa_out_sew,
+                        '0' sa_steam,
+                        '0' input_steam,
+                        '0' output_steam
+            FROM
+                    (
+            SELECT
+                so_det_id,
+                MIN(qty) qty
+            FROM
+                    laravel_nds.loading_line a
+            INNER JOIN
+                    laravel_nds.stocker_input b ON a.stocker_id = b.id
+            WHERE
+                    a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal' and b.form_cut_id > 0
+            GROUP BY
+                        b.so_det_id,
+                        b.form_cut_id,
+                        b.group_stocker,
+                        b.ratio
                     ) a
             GROUP BY so_det_id
             UNION ALL
@@ -853,6 +964,42 @@ mut_pck AS (
             GROUP BY
                 so_det_id
             UNION ALL
+                        SELECT
+                        so_det_id,
+                        '0' sa_loading,
+                        '0' sa_rft,
+                        '0' sa_reject,
+                        '0' sa_defect,
+                        '0' sa_rework,
+                        sum(qty) qty_loading,
+                        '0' input_rework_sewing,
+                        '0' input_rework_spotcleaning,
+                        '0' input_rework_mending,
+                        '0' defect_sewing,
+                        '0' defect_spotcleaning,
+                        '0' defect_mending,
+                        '0' output_rejects,
+                        '0' output_rfts,
+                        '0' sa_out_sew,
+                        '0' sa_steam,
+                        '0' input_steam,
+                        '0' output_steam
+            FROM
+                    (
+            SELECT
+                so_det_id,
+                MIN(qty) qty
+            FROM
+				laravel_nds.loading_line
+            LEFT JOIN
+					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+            WHERE
+				form_reject_id is not null AND loading_line.updated_at >= '$tgl_awal' and loading_line.updated_at <= '$tgl_akhir'
+            GROUP BY
+					so_det_id, form_reject_id
+                    ) a
+            GROUP BY so_det_id
+            UNION ALL
             SELECT
                         so_det_id,
                         '0' sa_loading,
@@ -875,19 +1022,20 @@ mut_pck AS (
                         '0' output_steam
             FROM
                     (
-                        SELECT
-                                    so_det_id, qty
-                        FROM
-                                    laravel_nds.loading_line a
-                        INNER JOIN
-                                    laravel_nds.stocker_input b on a.stocker_id = b.id
-                        WHERE
-                                    a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-                        GROUP BY
-                                    b.so_det_id,
-                                    b.form_cut_id,
-                                    b.group_stocker,
-                                    b.ratio
+            SELECT
+                so_det_id,
+                qty
+            FROM
+                    laravel_nds.loading_line a
+            INNER JOIN
+                    laravel_nds.stocker_input b ON a.stocker_id = b.id
+            WHERE
+                    a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and b.form_cut_id > 0
+            GROUP BY
+                        b.so_det_id,
+                        b.form_cut_id,
+                        b.group_stocker,
+                        b.ratio
                     ) a
             GROUP BY so_det_id
             UNION ALL
@@ -1211,7 +1359,7 @@ mut_pck AS (
         sd.color,
         sd.size,
         d_rep.so_det_id,
-                sum(saldo_awal_sewing) saldo_awal_sewing,
+        sum(saldo_awal_sewing) saldo_awal_sewing,
         sum(qty_loading) qty_loading,
         sum(input_rework_sewing) input_rework_sewing,
         sum(input_rework_spotcleaning) input_rework_spotcleaning,
