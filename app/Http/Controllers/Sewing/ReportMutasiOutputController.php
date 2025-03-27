@@ -988,7 +988,7 @@ mut_pck AS (
                     (
             SELECT
                 so_det_id,
-                MIN(qty) qty
+                qty
             FROM
 				laravel_nds.loading_line
             LEFT JOIN
@@ -1024,7 +1024,7 @@ mut_pck AS (
                     (
             SELECT
                 so_det_id,
-                qty
+                MIN(qty) qty
             FROM
                     laravel_nds.loading_line a
             INNER JOIN
