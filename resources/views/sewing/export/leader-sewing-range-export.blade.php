@@ -36,7 +36,7 @@
 
         $lineGroups = $leaderPerformance->groupBy("sewing_line");
 
-        $leaderGroup = $leaderGroups->map(function ($group) {
+        $lineGroups = $lineGroupss->map(function ($group) {
             return [
                 'sewing_line' => $group->first()->sewing_line,// opposition_id is constant inside the same group, so just take the first or whatever.
                 'data' => $group,
@@ -48,7 +48,7 @@
         });
     @endphp
     <tr>
-        @foreach ($leaderGroup as $leader)
+        @foreach ($lineGroups as $leader)
             <tr>
                 <td></td>
             </tr>

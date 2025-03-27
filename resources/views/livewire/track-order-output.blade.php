@@ -17,7 +17,7 @@
                 </div>
                 <div> - </div>
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateTo" value="{{ $dateToFilter }}">
+                    <input type="date" class="form-control form-control-sm" id="dateTo" wire:model="dateToFilter" value="{{ $dateToFilter }}">
                 </div>
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? $outputType : "SEWING"))) }}</span>
             </div>
