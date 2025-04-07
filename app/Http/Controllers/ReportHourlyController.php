@@ -277,7 +277,7 @@ left join
             FROM
                 output_rfts
             WHERE
-                updated_at >= '2025-03-03 00:00:00'
+                updated_at >= '2025-04-07 00:00:00'
             GROUP BY
                 DATE(updated_at)
         ) AS tbl_tgl
@@ -293,7 +293,7 @@ left join
             FROM
                 output_rfts
             WHERE
-                updated_at >= '2025-03-03 00:00:00'
+                updated_at >= '2025-04-07 00:00:00'
             GROUP BY
                 DATE(updated_at)
         ) AS tbl_tgl
