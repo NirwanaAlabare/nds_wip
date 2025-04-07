@@ -110,7 +110,7 @@
                         @endforeach
                     </select>
                 </div>
-                <button class="btn btn-success" onclick="exportExcel(this)" disabled><i class="fa fa-file-excel"></i></button>
+                <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button>
             </div>
         </div>
         <div class="d-flex justify-content-center mb-1">
@@ -394,7 +394,7 @@
             imageElement.classList.add("img-fluid")
             imageElement.style.marginLeft = "auto";
             imageElement.style.marginRight = "auto";
-            imageElement.style.height = "100px";
+            // imageElement.style.height = "100px";
             imageContainer.appendChild(imageElement);
             imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
             employeeContainer.appendChild(imageContainer);
@@ -535,7 +535,7 @@
                 imageElement.classList.add("img-fluid")
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
-                imageElement.style.height = "100px";
+                // imageElement.style.height = "100px";
                 imageContainer.appendChild(imageElement);
                 imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
                 nameElement.appendChild(imageContainer);
@@ -581,6 +581,71 @@
             } else {
                 appendRow(data, index);
             }
+        }
+
+        function exportExcel(elm) {
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            $.ajax({
+                url: "{{ route("dashboard-leader-sewing-range-data-export") }}",
+                type: 'post',
+                data: {
+                    from : $("#from").val(),
+                    to : $("#to").val(),
+                    buyer_id : $("#buyer_id").val(),
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Data berhasil di export.',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Performance Sewing "+$("#from").val()+" - "+$("#to").val()+".xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
         }
     </script>
 @endsection

@@ -89,7 +89,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                 loading_line_plan
                 LEFT JOIN (
                     SELECT
-                        COALESCE ( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) tanggal_loading,
+                        MAX(COALESCE ( DATE ( loading_line.updated_at ), loading_line.tanggal_loading )) tanggal_loading,
                         loading_line.loading_plan_id,
                         loading_line.nama_line,
                         (
@@ -114,7 +114,6 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
                         ".$innerDateFilter."
                     GROUP BY
-                        loading_line.tanggal_loading,
                         stocker_input.form_cut_id,
                         stocker_input.form_reject_id,
                         stocker_input.so_det_id,

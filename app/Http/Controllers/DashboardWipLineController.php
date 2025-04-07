@@ -11,6 +11,7 @@ use App\Models\DCIn;
 use App\Models\FormCutInput;
 use App\Models\SignalBit\UserLine;
 use App\Exports\Sewing\ChiefSewingRangeExport;
+use App\Exports\Sewing\LeaderSewingRangeExport;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\TriggerWipLine;
 use DB;
@@ -940,7 +941,6 @@ END jam) a))) target from (
     function leaderSewing(Request $request, $from = 0, $to = 0) {
         $from = $from ? $from : date("Y-m-d");
         $to = $to ? $to : date("Y-m-d");
-
         $buyerId = $request->buyer_id;
 
         $buyers = DB::connection('mysql_sb')->table('mastersupplier')->
@@ -1032,5 +1032,13 @@ END jam) a))) target from (
         ");
 
         return $efficiencyLine;
+    }
+
+    function leaderSewingRangeDataExport(Request $request) {
+        $from = $request->from ? $request->from : date("Y-m-d");
+        $to = $request->to ? $request->to : date("Y-m-d");
+        $buyer = $request->buyer ? $request->buyer : "";
+
+        return Excel::download(new LeaderSewingRangeExport($from, $to, $buyer), 'chief_sewing_range.xlsx');
     }
 }
