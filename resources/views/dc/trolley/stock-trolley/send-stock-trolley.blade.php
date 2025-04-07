@@ -90,7 +90,12 @@
                         <p>Selected Stocker : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-success btn-sm float-end" onclick="sendToLine(this)"><i class="fa fa-plus fa-sm"></i> Kirim</button>
+                        <div class="d-flex gap-3 justify-content-end">
+                            <div>
+                                <input type="text" class="form-control" id="no_bon" name="no_bon" value="" placeholder="No. BON">
+                            </div>
+                            <button class="btn btn-success btn-sm float-end" onclick="sendToLine(this)"><i class="fa fa-plus fa-sm"></i> Kirim</button>
+                        </div>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -252,6 +257,7 @@
 
             let lineId = document.getElementById('line_id').value;
             let destinationTrolleyId = document.getElementById('destination_trolley_id').value;
+            let noBon = document.getElementById('no_bon').value;
 
             if (tanggalLoading && selectedStocker.length > 0) {
                 if (document.getElementById("loading")) {
@@ -268,7 +274,8 @@
                         selectedStocker: selectedStocker,
                         destination: destination,
                         line_id: lineId,
-                        destination_trolley_id: destinationTrolleyId
+                        destination_trolley_id: destinationTrolleyId,
+                        no_bon: noBon,
                     },
                     success: function(res) {
                         if (document.getElementById("loading")) {
