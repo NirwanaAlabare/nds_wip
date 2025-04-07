@@ -1588,7 +1588,7 @@ class DashboardController extends Controller
                             bppbdate,bppbno desc
                     ) a
                     left join (
-                        select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll_all, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' and id_roll in (
+                        select a.no_ws_aktual,a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll_all, SUM(CASE WHEN GREATEST(a.tgl_bppb, a.created_at) = '".$date."' THEN 1 ELSE 0 END) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' and c.status = 'Y' and id_roll in (
                             'F141545',
                             'F141546',
                             'F141547',
@@ -1769,7 +1769,7 @@ class DashboardController extends Controller
                         ) GROUP BY id_item
                     ) b on b.no_req = a.bppbno and b.id_item = a.id_item
                     left join (
-                        select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_all_ri, SUM(CASE WHEN bppbdate = '".$date."' THEN 1 ELSE 0 END) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok WHERE no_barcode in (
+                        select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_all_ri, SUM(CASE WHEN GREATEST(a.tgl_daftar, a.created_at) = '".$date."' THEN 1 ELSE 0 END) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok WHERE no_barcode in (
                             'F141545',
                             'F141546',
                             'F141547',
