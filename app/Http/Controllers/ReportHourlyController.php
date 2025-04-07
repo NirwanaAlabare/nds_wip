@@ -77,7 +77,7 @@ class ReportHourlyController extends Controller
 
             $cek_trans_terakhir = DB::connection('mysql_sb')->select("SELECT tgl_trans from
                         (
-                        select date(updated_at) tgl_trans from output_rfts where updated_at >= '2025-03-03 00:00:00'
+                        select date(updated_at) tgl_trans from output_rfts where updated_at >= '2025-04-07 00:00:00'
                         group by date(updated_at)
                         ) a
                         left join
