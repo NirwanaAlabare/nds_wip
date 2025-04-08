@@ -32,7 +32,7 @@
         <tr>
             <td style="border: 1px solid black;">{{ $key }}</td>
             <td style="border: 1px solid black;">{{ $value["total_defect"] }}</td>
-            <td style="border: 1px solid black;">{{ round(($value["total_defect"]/($outputAll ? $outputAll->sum('total_output') : 1) * 100), 2) }} %</td>
+            <td style="border: 1px solid black;">{{ round(($value["total_defect"]/($outputAll ? $outputAll->sum('total_output') : 1) * 100), 4) }} %</td>
             <td></td>
             <td></td>
             <td></td>
@@ -99,7 +99,7 @@
                     <td style="border: 1px solid black;">{{ $key }}</td>
                     <td style="border: 1px solid black;">{{ $k }}</td>
                     <td style="border: 1px solid black;">{{ $val["total_defect"] }}</td>
-                    <td style="border: 1px solid black;">{{ round(($val["total_defect"]/($outputAll && $outputAll->where("line", $k)->sum('total_output') > 0 ? $outputAll->where("line", $k)->sum('total_output') : 1)*100), 2) }} %</td>
+                    <td style="border: 1px solid black;">{{ round(($val["total_defect"]/($outputAll && $outputAll->where("line", $k)->sum('total_output') > 0 ? $outputAll->where("line", $k)->sum('total_output') : 1)*100), 4) }} %</td>
                     <td></td>
                     <td></td>
                 </tr>
@@ -154,7 +154,7 @@
                     <td style="border: 1px solid black;">{{ $val['styleno'] }}</td>
                     <td style="border: 1px solid black;">{{ $val['color'] }}</td>
                     <td style="border: 1px solid black;">{{ $val['total_defect'] }}</td>
-                    <td style="border: 1px solid black;">{{ round(($val['total_defect']/($outputAll && $outputAll->where("style", $val['styleno'])->sum('total_output') > 0 ? $outputAll->where("style", $val['styleno'])->sum('total_output') : 1)*100), 2) }} %</td>
+                    <td style="border: 1px solid black;">{{ round(($val['total_defect']/($outputAll && $outputAll->where("style", $val['styleno'])->sum('total_output') > 0 ? $outputAll->where("style", $val['styleno'])->sum('total_output') : 1)*100), 4) }} %</td>
                 </tr>
             @endforeach
             <tr>
