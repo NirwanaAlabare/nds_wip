@@ -131,7 +131,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     loading_line_plan.target_loading - sum( loading_stock.qty ) loading_balance,
                     loading_stock.nama_trolley nama_trolley,
                     trolley_stock.trolley_color trolley_color,
-                    trolley_stock.trolley_qty trolley_qty
+                    trolley_stock.trolley_qty trolley_qty,
+                    loading_stock.no_bon
                 FROM
                     loading_line_plan
                     INNER JOIN (
@@ -146,7 +147,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
                             stocker_input.size,
-                            loading_line.loading_plan_id
+                            loading_line.loading_plan_id,
+                            loading_line.no_bon
                         FROM
                             loading_line
                             LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -259,7 +261,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
                     COALESCE(form_cut_input.no_cut, '-') no_cut,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) type,
-                    master_part.nama_part as part
+                    master_part.nama_part as part,
+                    loading_line.no_bon
                 FROM
                     loading_line
                     LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
@@ -308,7 +311,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:P' . ($event->getConcernable()->rowCount+2),
+            'A1:Q' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

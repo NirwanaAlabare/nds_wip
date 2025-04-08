@@ -17,6 +17,7 @@
         <th style="font-weight: 800;">Part</th>
         <th style="font-weight: 800;">No. Stocker</th>
         <th style="font-weight: 800;">Stock</th>
+        <th style="font-weight: 800;">No. Bon</th>
         <th style="font-weight: 800;">Qty</th>
         <th style="font-weight: 800;">Waktu Loading</th>
     </tr>
@@ -69,12 +70,13 @@
             <td>{{ $loadingLine->part }}</td>
             <td>{{ $loadingLine->id_qr_stocker }}</td>
             <td>{{ $loadingLine->type }}</td>
+            <td>{{ $loadingLine->no_bon ? $loadingLine->no_bon : '-' }}</td>
             <td>{{ $qty }}</td>
             <td>{{ $loadingLine->tanggal_loading }}</td>
         </tr>
     @endforeach
     <tr>
-        <th style="font-weight: 800;" colspan="14">TOTAL</th>
+        <th style="font-weight: 800;" colspan="15">TOTAL</th>
         <th style="font-weight: 800;">{{ $totalQty }}</th>
         <th style="font-weight: 800;">{{ $latestUpdate }}</th>
     </tr>
