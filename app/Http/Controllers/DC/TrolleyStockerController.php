@@ -577,6 +577,7 @@ class TrolleyStockerController extends Controller
                                 "qty" => ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0),
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
+                                "no_bon" => $request['no_bon'],
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
                             ]);
@@ -605,6 +606,7 @@ class TrolleyStockerController extends Controller
                                 "qty" => ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0),
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
+                                "no_bon" => $request['no_bon'],
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
                             ]);
