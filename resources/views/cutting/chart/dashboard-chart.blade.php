@@ -894,6 +894,13 @@
                         return `<div style="width: 350px; overflow:auto">`+data+`</div>`
                     }
                 },
+                {
+                    targets: [6],
+                    className: "text-nowrap align-middle",
+                    render: (data, type, row, meta) => {
+                        return data ? data : '0';
+                    }
+                },
             ],
             rowsGroup: [
                 0,
