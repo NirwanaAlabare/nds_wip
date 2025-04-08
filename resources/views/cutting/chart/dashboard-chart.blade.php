@@ -881,10 +881,17 @@
                     className: "text-nowrap align-middle"
                 },
                 {
-                    targets: [2, 3],
+                    targets: [2],
                     className: "text-nowrap align-middle",
                     render: (data, type, row, meta) => {
-                        return `<div style="max-width: 200px; overflow:hidden">`+(data.length > 20 ? data.substr(0, 20)+`...` : data)+`</div>`
+                        return `<div style="max-width: 150px; overflow:hidden">`+(data.length > 20 ? data.substr(0, 20)+`...` : data)+`</div>`
+                    }
+                },
+                {
+                    targets: [3],
+                    className: "text-nowrap align-middle",
+                    render: (data, type, row, meta) => {
+                        return `<div style="width: 350px; overflow:auto">`+data+`</div>`
                     }
                 },
             ],
