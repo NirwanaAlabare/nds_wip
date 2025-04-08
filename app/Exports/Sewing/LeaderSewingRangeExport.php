@@ -15,18 +15,21 @@ use PhpOffice\PhpSpreadsheet\Chart\Legend;
 use PhpOffice\PhpSpreadsheet\Chart\Title;
 use DB;
 
-class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomStartCell
+class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomStartCell, WithCharts
 {
     protected $from;
     protected $to;
     protected $buyer;
     protected $rowCount;
     protected $colAlphabet;
+    protected $lineCount;
 
     function __construct($from, $to, $buyer) {
         $this->from = $from;
         $this->to = $to;
         $this->buyer = $buyer;
+        $this->lines = [];
+        $this->lineCount = [];
     }
 
     public function array(): array
@@ -123,7 +126,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                 tanggal
         "));
 
-        $this->rowCount = $leaderPerformance->sortBy("tanggal")->groupBy("chief_nik")->count();
+        $this->rowCount = $leaderPerformance->sortBy("tanggal")->groupBy("sewing_line")->count();
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
         $colCount = $leaderPerformance->groupBy("tanggal")->count()+1;
         if ($colCount > (count($alphabets)-1)) {
@@ -147,7 +150,23 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
             ];
         });
 
-        return $tables;
+        $data = [];
+        foreach ($leaderGroup as $lg) {
+            array_push($data, ["Tanggal", "Sewing Line", "Buyer", "RFT Rate", "Efficiency Rate", "Leader"]);
+
+            foreach($lg['data'] as $d) {
+                array_push($data, [$d->tanggal, $d->sewing_line, $d->buyer, ($d->output > 0 ? round(($d->rft/$d->output)*100, 2) : '0'), ($d->mins_avail > 0 ? round(($d->mins_prod/$d->mins_avail)*100, 2) : '0'), $d->leader_name]);
+            }
+
+            for ($i = 0; $i < 15; $i++) {
+                array_push($data, ["", "", "", "", ""]);
+            }
+
+            array_push($this->lines, $lg['sewing_line']);
+            array_push($this->lineCount, count($lg['data']));
+        }
+
+        return $data;
     }
 
     public function headings(): array
@@ -157,69 +176,55 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
 
     public function startCell(): string
     {
-        return 'A9';
+        return 'A16';
     }
 
-    // public function charts()
-    // {
-    //     // Eff
-    //     $labelsEff = [];
-    //     $categoriesEff = [];
-    //     $valuesEff = [];
+    public function charts()
+    {
+        // Eff
+        $charts = [];
 
-    //     // Rft
-    //     $labelsRft = [];
-    //     $categoriesRft = [];
-    //     $valuesRft = [];
+        for ($i = 0; $i < $this->rowCount; $i++) {
+            $labelsEff = [];
+            $categoriesEff = [];
+            $valuesEff = [];
 
-    //     for ($i = 0; $i < $this->rowCount; $i++) {
-    //         // Eff
-    //         array_push($labelsEff,
-    //             new DataSeriesValues('String', 'Worksheet!$A$'.($i+2).':$A$'.($i+2).'', null, 5),
-    //         );
+            if ($i == 0) {
+                $addRow = 16;
+            } else {
+                $addRow = collect($this->lineCount)->filter(function ($item, $key) use ($i) {
+                    return $key < $i;
+                })->sum()+((15*($i+1))+(1));
+            }
 
-    //         array_push($categoriesEff,
-    //             new DataSeriesValues('String', 'Worksheet!$B$'.($i+1).':$'.$this->colAlphabet.'$'.($i+1).'', null, 5),
-    //         );
+            // Eff
+            $labelsEff = [new DataSeriesValues('String', 'Worksheet!$D$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$E$'.($i+$addRow).'', null, 1)];
 
-    //         array_push($valuesEff,
-    //             new DataSeriesValues('Number', 'Worksheet!$B$'.($i+2).':$'.$this->colAlphabet.'$'.($i+2).'', null, 5),
-    //         );
+            $categoriesEff = [new DataSeriesValues('String', 'Worksheet!$A$'.($i+$addRow+1).':$A$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i])];
 
-    //         // Rft
-    //         array_push($labelsRft,
-    //             new DataSeriesValues('String', 'Worksheet!$A$'.($this->rowCount+$i+4).':$A$'.($this->rowCount+$i+4).'', null, 5),
-    //         );
+            array_push($valuesEff,
+                new DataSeriesValues('Number', 'Worksheet!$D$'.($i+$addRow+1).':$D$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
+                new DataSeriesValues('Number', 'Worksheet!$E$'.($i+$addRow+1).':$E$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
+            );
 
-    //         array_push($categoriesRft,
-    //             new DataSeriesValues('String', 'Worksheet!$B$'.($this->rowCount+$i+3).':$'.$this->colAlphabet.'$'.($this->rowCount+$i+3).'', null, 5),
-    //         );
+            // Eff
+            $seriesEff = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesEff) - 1), $labelsEff, $categoriesEff, $valuesEff);
+            $plotEff   = new PlotArea(null, [$seriesEff]);
 
-    //         array_push($valuesRft,
-    //             new DataSeriesValues('Number', 'Worksheet!$B$'.($this->rowCount+$i+4).':$'.$this->colAlphabet.'$'.($this->rowCount+$i+4).'', null, 5),
-    //         );
-    //     }
+            $legendEff = new Legend();
+            $chartEff  = new Chart('chart name', new Title('Efficiency '.strtoupper(str_replace("_", " ", $this->lines[$i]))), $legendEff, $plotEff);
 
-    //     // Eff
-    //     $seriesEff = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesEff) - 1), $labelsEff, $categoriesEff, $valuesEff);
-    //     $plotEff   = new PlotArea(null, [$seriesEff]);
+            if ($i == 0) {
+                $chartEff->setTopLeftPosition('A'.($i+2));
+                $chartEff->setBottomRightPosition('G'.($i+$addRow-2));
+            } else {
+                $chartEff->setTopLeftPosition('A'.($i+$addRow-14));
+                $chartEff->setBottomRightPosition('G'.($i+$addRow-2));
+            }
 
-    //     $legendEff = new Legend();
-    //     $chartEff  = new Chart('chart name', new Title('Efficiency Chart'), $legendEff, $plotEff);
+            array_push($charts, $chartEff);
+        }
 
-    //     // Rft
-    //     $seriesRft = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRft) - 1), $labelsRft, $categoriesRft, $valuesRft);
-    //     $plotRft   = new PlotArea(null, [$seriesRft]);
-
-    //     $legendRft = new Legend();
-    //     $chartRft  = new Chart('chart name', new Title('Rft Chart'), $legendRft, $plotRft);
-
-    //     $chartEff->setTopLeftPosition('A1');
-    //     $chartEff->setBottomRightPosition('J25');
-
-    //     $chartRft->setTopLeftPosition('K1');
-    //     $chartRft->setBottomRightPosition('T25');
-
-    //     return [$chartEff, $chartRft];
-    // }
+        return $charts;
+    }
 }
