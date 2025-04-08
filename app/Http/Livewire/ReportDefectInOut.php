@@ -49,21 +49,51 @@ class ReportDefectInOut extends Component
 
         if ($this->selectedOutputType == 'packing') {
             $outputAll = collect(DB::connection("mysql_sb")->select("
-                select
-                    userpassword.FullName as line,
-                    act_costing.styleno as style,
-                    COUNT(*) total_output
-                from
-                    output_rfts_packing
-                    left join so_det on so_det.id = output_rfts_packing.so_det_id
-                    left join so on so.id = so_det.id_so
-                    left join act_costing on act_costing.id = so.id_cost
-                    left join userpassword on userpassword.username = output_rfts_packing.created_by
-                where
-                    output_rfts_packing.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'
-                group by
-                    output_rfts_packing.created_by,
-                    act_costing.styleno
+                SELECT
+                    line,
+                    style,
+                    SUM(total_output) total_output
+                FROM (
+                    select
+                        userpassword.FullName as line,
+                        act_costing.styleno as style,
+                        COUNT(*) total_output
+                    from
+                        output_rfts_packing
+                        left join so_det on so_det.id = output_rfts_packing.so_det_id
+                        left join so on so.id = so_det.id_so
+                        left join act_costing on act_costing.id = so.id_cost
+                        left join userpassword on userpassword.username = output_rfts_packing.created_by
+                    where
+                        output_rfts_packing.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'
+                    group by
+                        output_rfts_packing.created_by,
+                        act_costing.styleno
+                    union
+                    select
+                        userpassword.FullName as line,
+                        act_costing.styleno as style,
+                        COUNT(*) total_output
+                    from
+                        output_defects_packing
+                        left join so_det on so_det.id = output_defects_packing.so_det_id
+                        left join so on so.id = so_det.id_so
+                        left join act_costing on act_costing.id = so.id_cost
+                        left join userpassword on userpassword.username = output_defects_packing.created_by
+                        left join output_defect_in_out on output_defect_in_out.defect_id = output_defects_packing.id and output_defect_in_out.output_type = 'packing'
+                    where
+                        (
+                            output_defects_packing.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59' OR
+                            output_defect_in_out.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'
+                        ) and
+                        output_defects_packing.defect_status = 'defect'
+                    group by
+                        output_defects_packing.created_by,
+                        act_costing.styleno
+                ) output
+                GROUP BY
+                    line,
+                    style
             "));
 
             $defectInOutQuery = DefectInOut::selectRaw("
@@ -115,22 +145,53 @@ class ReportDefectInOut extends Component
                 groupBy("output_defect_in_out.created_at", "output_check_finishing.so_det_id");
         } else {
             $outputAll = collect(DB::connection("mysql_sb")->select("
-                select
-                    userpassword.FullName as line,
-                    act_costing.styleno as style,
-                    COUNT(*) total_output
-                from
-                    output_rfts
-                    left join so_det on so_det.id = output_rfts.so_det_id
-                    left join so on so.id = so_det.id_so
-                    left join act_costing on act_costing.id = so.id_cost
-                    left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
-                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                where
-                    output_rfts.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'
-                group by
-                    userpassword.username,
-                    act_costing.styleno
+                SELECT
+                    line,
+                    style,
+                    SUM(total_output) total_output
+                FROM (
+                    select
+                        userpassword.FullName as line,
+                        act_costing.styleno as style,
+                        COUNT(*) total_output
+                    from
+                        output_rfts
+                        left join so_det on so_det.id = output_rfts.so_det_id
+                        left join so on so.id = so_det.id_so
+                        left join act_costing on act_costing.id = so.id_cost
+                        left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    where
+                        output_rfts.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'
+                    group by
+                        userpassword.username,
+                        act_costing.styleno
+                    union
+                    select
+                        userpassword.FullName as line,
+                        act_costing.styleno as style,
+                        COUNT(*) total_output
+                    from
+                        output_defects
+                        left join so_det on so_det.id = output_defects.so_det_id
+                        left join so on so.id = so_det.id_so
+                        left join act_costing on act_costing.id = so.id_cost
+                        left join user_sb_wip on user_sb_wip.id = output_defects.created_by
+                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        left join output_defect_in_out on output_defect_in_out.defect_id = output_defects.id and output_defect_in_out.output_type = 'qc'
+                    where
+                        (
+                            output_defects.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59' OR
+                            output_defect_in_out.updated_at between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'
+                        ) and
+                        output_defects.defect_status = 'defect'
+                    group by
+                        output_defects.created_by,
+                        act_costing.styleno
+                ) output
+                GROUP BY
+                    line,
+                    style
             "));
 
             $defectInOutQuery = DefectInOut::selectRaw("
