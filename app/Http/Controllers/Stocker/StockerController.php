@@ -2220,7 +2220,7 @@ class StockerController extends Controller
                                 so_det_id,
                                 COALESCE ( updated_at, created_at )
                         ) year_sequence_num
-                        INNER JOIN (
+                        LEFT JOIN (
                             SELECT
                                 GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
                                 COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
@@ -2322,7 +2322,7 @@ class StockerController extends Controller
                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                         LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                        INNER JOIN (
+                        LEFT JOIN (
                             SELECT
                                 COALESCE(form_cut_id, form_reject_id) form_cut_id,
                                 so_det_id,
@@ -2535,7 +2535,7 @@ class StockerController extends Controller
                                 so_det_id,
                                 COALESCE ( updated_at, created_at )
                         ) year_sequence_num
-                        INNER JOIN (
+                        LEFT JOIN (
                             SELECT
                                 GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
                                 COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
@@ -2662,7 +2662,7 @@ class StockerController extends Controller
                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                         LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                        INNER JOIN (
+                        LEFT JOIN (
                             SELECT
                                 COALESCE(form_cut_id, form_reject_id) form_cut_id,
                                 so_det_id,
