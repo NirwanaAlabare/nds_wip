@@ -261,7 +261,7 @@
                         dateFrom : $('#date-from').val(),
                         dateTo : $('#date-to').val(),
                     },
-                    success: function(res) {
+                    success: async function(res) {
                         // Clear options
                         $("#supplier").html("");
 
@@ -278,12 +278,14 @@
                                 var newOption = new Option(element.name, element.id, true, true);
                                 // Append it to the select
                                 if (index == 0) {
-                                    $('#supplier').append(newOption).trigger('change');
+                                    $('#supplier').append(newOption);
                                 } else {
                                     $('#supplier').append(newOption);
                                 }
                             }
                         });
+
+                        $('#supplier').val("all").trigger('change');
                     },
                     error: function (jqXHR) {
                         let res = jqXHR.responseJSON;
