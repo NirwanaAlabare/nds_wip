@@ -1146,6 +1146,7 @@
         var latestQty = 0;
         var latestUnit = "";
         var latestBerat = 0;
+        var latestEst = 0;
 
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
@@ -1194,7 +1195,7 @@
                 td11.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : 0;
                 td12.innerHTML = (latestStatus != 'extension complete' ? 0 : (latestSambungan ? latestSambungan : 0)).round(2);
                 td13.innerHTML = (latestStatus != 'extension complete' ? (data.sambungan_roll ? data.sambungan_roll : 0) : ((data.sambungan_roll ? data.sambungan_roll : 0)+latestSambunganRoll)).round(2);
-                td14.innerHTML = data.est_amparan ? data.est_amparan : 0;
+                td14.innerHTML =  (latestStatus != 'extension complete' ? data.est_amparan : (latestEst ? latestEst : data.est_amparan)).round(2);
                 td15.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '-';
                 td16.innerHTML = data.average_time ? data.average_time : 0;
                 td17.innerHTML = (latestStatus != 'extension complete' ? (data.kepala_kain ? data.kepala_kain : 0) : Number(data.kepala_kain ? data.kepala_kain : 0)+Number(latestKepalaKain)).round(2);
@@ -1311,6 +1312,7 @@
             latestStatus = data.status;
             latestQty = Number(data.qty);
             latestUnit = data.unit;
+            latestEst = data.est_amparan ? data.est_amparan : 0;
 
             tr.onclick = async function() {
                 clearSpreadingForm();
