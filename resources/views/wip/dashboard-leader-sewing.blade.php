@@ -242,8 +242,8 @@
 
                                 if (value.leader_nik != currentLeader.leader_nik) {
                                     lineLeaderList.push(
-                                        {
-                                            x: new Date(currentLeader.tanggal).getTime(),
+                                            {
+                                            x: (new Date(currentLeader.tanggal).getTime()),
                                             borderColor: '#00E396',
                                             label: {
                                                 borderColor: '#00E396',
@@ -251,13 +251,13 @@
                                             }
                                         }
                                     );
-
-                                    currentLeader = {
-                                        "tanggal": value.tanggal,
-                                        "leader_nik": value.leader_nik,
-                                        "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
-                                    };
                                 }
+
+                                currentLeader = {
+                                    "tanggal": value.tanggal,
+                                    "leader_nik": value.leader_nik,
+                                    "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
+                                };
 
                                 return res;
                             }, {});
@@ -323,8 +323,8 @@
 
                             if (value.leader_nik != currentLeader.leader_nik) {
                                 lineLeaderList.push(
-                                    {
-                                        x: new Date(currentLeader.tanggal).getTime(),
+                                        {
+                                        x: (new Date(currentLeader.tanggal).getTime()),
                                         borderColor: '#00E396',
                                         label: {
                                             borderColor: '#00E396',
@@ -332,13 +332,13 @@
                                         }
                                     }
                                 );
-
-                                currentLeader = {
-                                    "tanggal": value.tanggal,
-                                    "leader_nik": value.leader_nik,
-                                    "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
-                                };
                             }
+
+                            currentLeader = {
+                                "tanggal": value.tanggal,
+                                "leader_nik": value.leader_nik,
+                                "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
+                            };
 
                             return res;
                         }, {});
