@@ -206,7 +206,6 @@
                     }
                 });
 
-                console.log("1 "+totalQty, "2 "+latestUpdate);
                 document.getElementById('total-qty').innerHTML = Number(totalQty).toLocaleString('ID-id');
                 document.getElementById('latest-update').innerHTML = latestUpdate;
             });
