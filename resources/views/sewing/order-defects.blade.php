@@ -197,7 +197,7 @@
                                 },
                             },
                             subtitle: {
-                                text: [dari+' / '+sampai, 'Total Defect : '+totalDefect.toLocaleString()],
+                                text: [dari+' / '+sampai, 'Total Defect : '+totalDefect.toLocaleString(), type.toUpperCase()],
                                 align: 'center',
                                 style: {
                                     fontSize:  '13px',
