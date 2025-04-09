@@ -669,7 +669,7 @@ class LoadingLineController extends Controller
                             stocker_input.size
                         FROM
                             loading_line
-                            INNER JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
                             LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -688,8 +688,15 @@ class LoadingLineController extends Controller
                     loading_stock.tanggal_loading IS NOT NULL
                 GROUP BY
                     loading_stock.tanggal_loading,
+                    loading_line_plan.id,
                     loading_stock.size
                     ".$dateFilter."
+                ORDER BY
+                    loading_stock.tanggal_loading,
+                    loading_line_plan.line_id,
+                    loading_line_plan.act_costing_ws,
+                    loading_line_plan.color,
+                    loading_stock.so_det_id
             ");
 
             return DataTables::of($line)->toJson();

@@ -130,7 +130,7 @@
                 <tfoot>
                     <tr>
                         <th class="text-end" colspan="11">TOTAL</th>
-                        <th id="total-qty">{{ num($totalQty) }}</th>
+                        <th id="total-qty">{{ $totalQty }}</th>
                         <th id="latest-update">{{ $latestUpdate }}</th>
                     </tr>
                 </tfoot>
@@ -193,20 +193,20 @@
                         currentGroup = data[5];
                         currentRange = data[7];
 
-                        currentUpdate = data[11];
+                        currentUpdate = data[12];
                         currentUpdate > latestUpdate ? latestUpdate = currentUpdate : latestUpdate = latestUpdate;
 
-                        totalQty += Number(data[10]);
+                        currentQty = Number(data[11]);
 
-                        currentQty = Number(data[10]);
+                        totalQty += Number(currentQty);
+                    } else {
+                        currentQty > Number(data[11]) ? totalQty = totalQty - currentQty + Number(data[11]) : totalQty = totalQty;
+
+                        currentQty = Number(data[11]);
                     }
-                    // else {
-                    //     currentQty > Number(data[10]) ? totalQty = totalQty - currentQty + Number(data[10]) : totalQty = totalQty;
-
-                    //     currentQty = Number(data[10]);
-                    // }
                 });
 
+                console.log("1 "+totalQty, "2 "+latestUpdate);
                 document.getElementById('total-qty').innerHTML = Number(totalQty).toLocaleString('ID-id');
                 document.getElementById('latest-update').innerHTML = latestUpdate;
             });
