@@ -14,14 +14,22 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex gap-3 justify-content-between mb-3">
-                    <div>
-                        <label>Buyer</label>
-                        <select class="form-select form-select-sm" name="supplier" id="supplier">
-                            <option value="all">SEMUA</option>
-                            @foreach ($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                            @endforeach
-                        </select>
+                    <div class="d-flex gap-3 justify-content-start align-items-end">
+                        <div>
+                            <label>Buyer</label>
+                            <select class="form-select form-select-sm" name="supplier" id="supplier">
+                                <option value="all">SEMUA</option>
+                                @foreach ($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <select class="form-select form-select-sm" name="type" id="type">
+                                <option value="qc" selected>QC</option>
+                                <option value="packing">PACKING</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="d-flex gap-3">
                         <div>
@@ -156,9 +164,9 @@
             chart.render();
 
             // fetch order defect data function
-            function getOrderDefectData(idSupplier, namaSupplier, dari, sampai) {
+            function getOrderDefectData(idSupplier, namaSupplier, dari, sampai, type) {
                 $.ajax({
-                    url: '{{ url('order-defects') }}/'+idSupplier+'/'+dari+'/'+sampai,
+                    url: '{{ url('order-defects') }}/'+idSupplier+'/'+dari+'/'+sampai+'/'+type,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
@@ -294,8 +302,11 @@
                 theme: "bootstrap4",
             });
 
-            // initial fetch
+            $('#type').select2({
+                theme: "bootstrap4",
+            });
 
+            // initial fetch
             let today = new Date();
             let todayDate = ("0" + today.getDate()).slice(-2);
             let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
@@ -309,29 +320,36 @@
             $('#date-to').val(todayFull);
             $('#date-from').val(twoWeeksBeforeFull);
 
-            getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val())
+            getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val(), $('#type').val());
 
             // fetch on select supplier
             $('#supplier').on('select2:select', async function (e) {
                 document.getElementById('loading').classList.remove('d-none');
-                await getOrderDefectData(e.params.data.element.value, e.params.data.element.innerText, $('#date-from').val(), $('#date-to').val());
+                await getOrderDefectData(e.params.data.element.value, e.params.data.element.innerText, $('#date-from').val(), $('#date-to').val(), $('#type').val());
+                document.getElementById('loading').classList.add('d-none');
+            });
+
+            // fetch on select type
+            $('#type').on('select2:select', async function (e) {
+                document.getElementById('loading').classList.remove('d-none');
+                await getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val(), e.params.data.element.value);
                 document.getElementById('loading').classList.add('d-none');
             });
 
             // fetch on select date
             $('#date-from').change(function (e) {
                 updateBuyerList();
-                getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val());
+                getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val(), $('#type').val());
             });
 
             $('#date-to').change(function (e) {
                 updateBuyerList();
-                getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val());
+                getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val(), $('#type').val());
             });
 
             // fetch every 30 second
             setInterval(function(){
-                getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val());
+                getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val(), $('#type').val());
             }, 30000)
         });
 
