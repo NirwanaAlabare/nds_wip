@@ -25,6 +25,7 @@
                             </select>
                         </div>
                         <div>
+                            <label>Department</label>
                             <select class="form-select form-select-sm" name="type" id="type">
                                 <option value="qc" selected>QC</option>
                                 <option value="packing">PACKING</option>
