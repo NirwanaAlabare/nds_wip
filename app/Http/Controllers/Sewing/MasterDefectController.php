@@ -35,10 +35,11 @@ class MasterDefectController extends Controller
             }
         }
 
+        $allDefectTypes = DefectType::get();
         $defectTypes = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
         $defectAreas = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
 
-        return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "master-defect", "defectTypes" => $defectTypes, "defectAreas" => $defectAreas]);
+        return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "master-defect", "allDefectTypes" => $allDefectTypes, "defectTypes" => $defectTypes, "defectAreas" => $defectAreas]);
     }
 
     /**
