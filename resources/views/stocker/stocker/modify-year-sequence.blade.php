@@ -57,7 +57,7 @@
                     <textarea class="form-control" name="text" id="year_sequence_ids" rows="5"></textarea>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
+                    <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> {{ date("Y") }}_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> {{ date("Y") }}_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> {{ date("Y") }}_1_3</b></div>
                 </div>
                 <div class="col-md-6">
                     <button class="btn btn-block btn-primary mt-1" onclick="currentRangeTableReload()"><i class="fa fa-search"></i> Check</button>
