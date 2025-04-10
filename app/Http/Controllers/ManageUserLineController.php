@@ -21,7 +21,7 @@ class ManageUserLineController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $users = UserLine::selectRaw("line_id as id, FullName as name, username, Password as password, Groupp as type")->whereIn("Groupp", ["SEWING", "ALLSEWING", "MENDING", "SPOTCLEANING"]);
+            $users = UserLine::selectRaw("line_id as id, FullName as name, username, Password as password, Groupp as type")->whereIn("Groupp", ["SEWING", "ALLSEWING", "MENDING", "SPOTCLEANING"])->orderBy("line_id", "asc");
 
             return DataTables::eloquent($users)->toJson();
         }
