@@ -558,7 +558,7 @@
                 let dailyData = data.data.filter((item) => item.mins_avail > 0 && item.output > 0);
 
                 dailyData.forEach(item => {
-                    tglArr.push(item.tanggal);
+                    tglArr.push(formatDateTick(item.tanggal));
                     efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
                     rftArr.push((item.rft / item.output * 100).round(2));
                 });
