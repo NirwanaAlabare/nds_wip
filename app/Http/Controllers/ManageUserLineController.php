@@ -55,7 +55,7 @@ class ManageUserLineController extends Controller
         ]);
 
         if ($validatedRequest) {
-            $maxId = UserLine::whereNotNull("line_id")->max("line_id");
+            $maxId = UserLine::whereNotNull("line_id")->max("line_id")+1;
 
             $create = UserLine::create([
                 "FullName" => $validatedRequest["name"],
@@ -70,10 +70,10 @@ class ManageUserLineController extends Controller
                 $subUserArr = [];
 
                 // Required User
-                array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"]), "username" => $validatedRequest["username"], "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $create->line_id]);
+                array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"]), "username" => $validatedRequest["username"], "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $maxId]);
                 // Sub User
                 for ($i = 0; $i < $request['sub_user']; $i++) {
-                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"])."_".($i+1), "username" => $validatedRequest["username"]."_".($i+1), "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $create->line_id]);
+                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"])."_".($i+1), "username" => $validatedRequest["username"]."_".($i+1), "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $maxId]);
                 }
 
                 UserSbWip::insert($subUserArr);
