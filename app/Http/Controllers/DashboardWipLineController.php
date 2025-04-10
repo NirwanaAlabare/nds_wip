@@ -44,6 +44,7 @@ class DashboardWipLineController extends Controller
             'id' => $id,
         ]);
     }
+
     public function trigger_wip_line(Request $request)
     {
         $validated = $request->validate([

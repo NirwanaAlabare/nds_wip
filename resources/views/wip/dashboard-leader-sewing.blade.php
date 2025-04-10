@@ -139,6 +139,13 @@
     <script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
     <script>
+        function formatDateTick(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate();
+            const month = date.toLocaleString('default', { month: 'short' }); // e.g., "Apr"
+            return `${day} ${month}`;
+        }
+
         // Set Custom Dashboard View
         document.body.style.maxHeight = "100vh";
         // document.body.style.overflow = "hidden";
@@ -243,7 +250,7 @@
                                 if (value.leader_nik != currentLeader.leader_nik) {
                                     lineLeaderList.push(
                                             {
-                                            x: (new Date(currentLeader.tanggal).getTime()),
+                                            x: formatDateTick(currentLeader.tanggal),
                                             borderColor: '#00E396',
                                             label: {
                                                 borderColor: '#00E396',
@@ -324,7 +331,7 @@
                             if (value.leader_nik != currentLeader.leader_nik) {
                                 lineLeaderList.push(
                                         {
-                                        x: (new Date(currentLeader.tanggal).getTime()),
+                                        x: formatDateTick(currentLeader.tanggal),
                                         borderColor: '#00E396',
                                         label: {
                                             borderColor: '#00E396',
@@ -417,7 +424,7 @@
             let dailyData = data.data.filter((item) => item.mins_avail > 0 && item.output > 0);
 
             dailyData.forEach(item => {
-                tglArr.push(item.tanggal);
+                tglArr.push(formatDateTick(item.tanggal));
                 efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
                 rftArr.push((item.rft / item.output * 100).round(2));
             });
@@ -478,11 +485,11 @@
                 },
                 xaxis: {
                     categories: tglArr,
-                    type: "datetime",
                     labels: {
                         style: {
                             fontSize: "11px",
-                        }
+                        },
+                        rotate: -90
                     }
                 },
                 noData: {
