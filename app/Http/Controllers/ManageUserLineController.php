@@ -55,12 +55,15 @@ class ManageUserLineController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $maxId = UserLine::whereNotNull("line_id")->max("line_id");
+
             $create = UserLine::create([
                 "FullName" => $validatedRequest["name"],
                 "username" => $validatedRequest["username"],
                 "Password" => $validatedRequest["password"],
                 "password_encrypt" => Hash::make($validatedRequest["password"]),
-                "Groupp" => $request["type"]
+                "Groupp" => $request["type"],
+                "line_id" => $maxId
             ]);
 
             if ($create) {
