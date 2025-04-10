@@ -199,8 +199,8 @@
                             <label class="form-label">From</label>
                             <select class="form-select select2bs4merge" name="defect_type_from" id="defect_type_from">
                                 <option value="">Pilih Defect</option>
-                                @foreach ($defectTypes as $defectType)
-                                    <option value="{{ $defectType->id }}">{{ $defectType->defect_type }}</option>
+                                @foreach ($allDefectTypes as $defectType)
+                                    <option value="{{ $defectType->id }}">{{ $defectType->id." - ".$defectType->defect_type." - ".($defectType->hidden ? $defectType->hidden : 'N') }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -209,7 +209,7 @@
                             <select class="form-select select2bs4merge" name="defect_type_to" id="defect_type_to">
                                 <option value="">Pilih Defect</option>
                                 @foreach ($defectTypes as $defectType)
-                                    <option value="{{ $defectType->id }}">{{ $defectType->defect_type }}</option>
+                                    <option value="{{ $defectType->id }}">{{ $defectType->id." - ".$defectType->defect_type }}</option>
                                 @endforeach
                             </select>
                         </div>
