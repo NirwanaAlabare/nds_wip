@@ -73,6 +73,7 @@ class ManageUserController extends Controller
                 "name" => $validatedRequest["name"],
                 "username" => $validatedRequest["username"],
                 "password" => Hash::make($validatedRequest["password"]),
+                "password_text" => $validatedRequest["password"],
                 "type" => $request["type"]
             ]);
 
@@ -140,6 +141,7 @@ class ManageUserController extends Controller
                 "name" => $validatedRequest["edit_name"],
                 "username" => $validatedRequest["edit_username"],
                 "password" => Hash::make($validatedRequest["edit_password"]),
+                "password_text" => $validatedRequest["edit_password"],
                 "type" => $validatedRequest["edit_type"]
             ]);
         } else {
@@ -270,7 +272,8 @@ class ManageUserController extends Controller
             $user = User::create([
                 "name" => $validatedRequest["name"],
                 "username" => $validatedRequest["username"],
-                "password" => Hash::make($validatedRequest["password"])
+                "password" => Hash::make($validatedRequest["password"]),
+                "password_text" => $validatedRequest["password"]
             ]);
         } catch (Exception $e) {
             return response()->json([

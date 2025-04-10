@@ -79,7 +79,8 @@ class UserController extends Controller
             $updateUser = User::where("id", $id)->update([
                 "name" => $validatedRequest["name"],
                 "username" => $validatedRequest["username"],
-                "password" => Hash::make($validatedRequest["password"])
+                "password" => Hash::make($validatedRequest["password"]),
+                "password_text" => $validatedRequest["password"]
             ]);
         } else {
             $updateUser = User::where("id", $id)->update([
@@ -141,7 +142,8 @@ class UserController extends Controller
             $user = User::create([
                 "name" => $validatedRequest["name"],
                 "username" => $validatedRequest["username"],
-                "password" => Hash::make($validatedRequest["password"])
+                "password" => Hash::make($validatedRequest["password"]),
+                "password_text" => $validatedRequest["password"]
             ]);
         } catch (Exception $e) {
             return response()->json([
