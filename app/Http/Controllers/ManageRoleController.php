@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
+use App\Models\Auth\Role;
+use App\Models\Auth\Access;
+use App\Models\Auth\RoleAccess;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class ManageRoleController extends Controller
 {
@@ -12,7 +15,7 @@ class ManageRoleController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if ($request->ajax()) {
             $users = Role::with(["accesses"]);
@@ -28,7 +31,7 @@ class ManageRoleController extends Controller
         $roles = Role::all();
         $accesses = Access::all();
 
-        return view("roles.users", ["roles" => $roles, "accesses" => $accesses, "page" => "dashboard-manage-user", "subPageGroup" => "manage-user", "subPage" => "manage-user"]);
+        return view("roles.roles", ["roles" => $roles, "accesses" => $accesses, "page" => "dashboard-manage-user", "subPageGroup" => "manage-user", "subPage" => "manage-role"]);
     }
 
     /**
@@ -95,5 +98,40 @@ class ManageRoleController extends Controller
     public function destroy(Role $role)
     {
         //
+    }
+
+    public function getRoleAccess(Request $request) {
+        $roleAccess = RoleAccess::with(["role", "access"])->where("role_id", $request->id);
+
+        return DataTables::eloquent($roleAccess)
+            ->addColumn('role', function ($row) {
+                return $row->role->nama_role;
+            })
+            ->addColumn('access', function ($row) {
+                return $row->access->access;
+            })
+            ->rawColumns(['roles', 'access'])->
+            toJson();
+    }
+
+    public function destroyRoleAccess($id = 0) {
+        $deleteUserRole = RoleAccess::where("id", $id)->delete();
+
+        if ($deleteUserRole) {
+            return array(
+                'status' => '200',
+                'message' => 'Access Deleted',
+                'table' => 'role-access-table',
+                'redirect' => '',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => '400',
+            'message' => 'Delete Access failed',
+            'redirect' => '',
+            'additional' => [],
+        );
     }
 }

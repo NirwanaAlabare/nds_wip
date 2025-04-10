@@ -17,6 +17,8 @@ class UserLine extends Model
 
     protected $guarded = [];
 
+    public $timestamps = false;
+
     public function masterPlans()
     {
         return $this->hasMany(MasterPlan::class, 'sewing_line', 'username');

@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 // User
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ManageUserController;
+use App\Http\Controllers\ManageRoleController;
+use App\Http\Controllers\ManageUserLineController;
 
 // Dashboard WIP Line
 use App\Http\Controllers\DashboardWipLineController;
@@ -1740,6 +1742,28 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/get-user-role', 'getUserRole')->name('get-user-role');
         Route::delete('/destroy-user-role/{id?}', 'destroyUserRole')->name('destroy-user-role');
+    });
+
+    // Manage Role
+    Route::controller(ManageRoleController::class)->prefix("manage-role")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-role');
+        Route::post('/store', 'store')->name('store-role');
+        Route::put('/update', 'update')->name('update-role');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-role');
+
+        Route::get('/get-role-access', 'getRoleAccess')->name('get-role-access');
+        Route::delete('/destroy-role-access/{id?}', 'destroyRoleAccess')->name('destroy-role-access');
+    });
+
+    // Manage
+    Route::controller(ManageUserLineController::class)->prefix("manage-user-line")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-user-line');
+        Route::post('/store', 'store')->name('store-user-line');
+        Route::put('/update', 'update')->name('update-user-line');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-user-line');
+
+        Route::get('/get-user-line-sub', 'getUserLineSub')->name('get-user-line-sub');
+        Route::delete('/destroy-user-line-sub/{id?}', 'destroyUserLineSub')->name('destroy-user-line-sub');
     });
 });
 
