@@ -102,6 +102,7 @@ class LoadingLineController extends Controller
                             ".$detailDateFilter."
                         GROUP BY
                             loading_line.tanggal_loading,
+                            loading_line.loading_plan_id,
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
                             stocker_input.so_det_id,
