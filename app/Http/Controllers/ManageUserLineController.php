@@ -21,7 +21,7 @@ class ManageUserLineController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $users = UserLine::selectRaw("line_id as id, FullName as name, username, Password as password, Groupp as type")->whereIn("Groupp", ["SEWING", "ALLSEWING", "MENDING", "SPOTCLEANING"])->orderBy("line_id", "asc");
+            $users = UserLine::selectRaw("line_id as id, FullName as name, username, Password as password, Groupp as type")->whereIn("Groupp", ["SEWING", "ALLSEWING", "MENDING", "SPOTCLEANING"])->orderBy("line_id", "desc");
 
             return DataTables::eloquent($users)->toJson();
         }
@@ -99,10 +99,10 @@ class ManageUserLineController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\User  $user
+     * @param  \App\Models\UserLine  $user
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
+    public function show(UserLine $user)
     {
         //
     }
@@ -110,10 +110,10 @@ class ManageUserLineController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\User  $user
+     * @param  \App\Models\UserLine  $user
      * @return \Illuminate\Http\Response
      */
-    public function edit(User $user)
+    public function edit(UserLine $user)
     {
         //
     }
@@ -122,7 +122,7 @@ class ManageUserLineController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $user
+     * @param  \App\Models\UserLine  $user
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request)
@@ -197,25 +197,60 @@ class ManageUserLineController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\User  $user
+     * @param  \App\Models\UserLine  $user
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $user, $id)
+    public function destroy(UserLine $user, $id)
     {
         if ($id) {
-            $deleteUser = UserLine::where("line_id", $id)->delete();
+            $subUserLine = addQuotesAround(UserSbWip::where("line_id", $id)->pluck("id")->implode(" "));
 
-            if ($deleteUser) {
-                UserSbWip::where("line_id", $id)->delete();
+            $dataOutput = collect(
+                    DB::connection("mysql_sb")->select("
+                        SELECT output.* FROM (
+                            (select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE created_by in (".$subUserLine.") LIMIT 1)
+                            UNION
+                            (select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE created_by in (".$subUserLine.") LIMIT 1)
+                            UNION
+                            (select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE created_by in (".$subUserLine.") LIMIT 1)
+                        ) output
+                    ")
+                )->count();
 
-                return array(
-                    'status' => '200',
-                    'message' => 'User Deleted',
-                    'table' => 'manage-user-line-table',
-                    'redirect' => '',
-                    'additional' => [],
-                );
+            $dataOutputPacking = collect(
+                    DB::connection("mysql_sb")->select("
+                        SELECT output.* FROM (
+                            (select created_by, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE created_by = ".$id." LIMIT 1)
+                            UNION
+                            (select created_by, kode_numbering, id, created_at, updated_at from output_defects_packing WHERE created_by = ".$id." LIMIT 1)
+                            UNION
+                            (select created_by, kode_numbering, id, created_at, updated_at from output_rejects_packing WHERE created_by = ".$id." LIMIT 1)
+                        ) output
+                    ")
+                )->count();
+
+            if ($dataOutput + $dataOutputPacking < 1) {
+                $deleteUser = UserLine::where("line_id", $id)->delete();
+
+                if ($deleteUser) {
+                    UserSbWip::where("line_id", $id)->delete();
+
+                    return array(
+                        'status' => '200',
+                        'message' => 'User Deleted',
+                        'table' => 'manage-user-line-table',
+                        'redirect' => '',
+                        'additional' => [],
+                    );
+                }
             }
+
+            return array(
+                'status' => '400',
+                'message' => 'User sudah memiliki Output',
+                'redirect' => '',
+                'additional' => [],
+            );
         }
 
         return array(
@@ -233,13 +268,34 @@ class ManageUserLineController extends Controller
     }
 
     public function destroyUserLineSub($id = 0) {
-        $deleteSubUser = UserSbWip::where("id", $id)->delete();
+        $dataOutput = collect(
+            DB::connection("mysql_sb")->select("
+                SELECT output.* FROM (
+                    (select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE created_by = '".$id."' LIMIT 1)
+                    UNION
+                    (select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE created_by = '".$id."' LIMIT 1)
+                    UNION
+                    (select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE created_by = '".$id."' LIMIT 1)
+                ) output
+            ")
+        )->count();
 
-        if ($deleteSubUser) {
+        if ($dataOutput < 1) {
+            $deleteSubUser = UserSbWip::where("id", $id)->delete();
+
+            if ($deleteSubUser) {
+                return array(
+                    'status' => '200',
+                    'message' => 'Sub User Deleted',
+                    'table' => 'sub-user-table',
+                    'redirect' => '',
+                    'additional' => [],
+                );
+            }
+        } else {
             return array(
-                'status' => '200',
-                'message' => 'Sub User Deleted',
-                'table' => 'sub-user-table',
+                'status' => '400',
+                'message' => 'User sudah memiliki Output',
                 'redirect' => '',
                 'additional' => [],
             );
