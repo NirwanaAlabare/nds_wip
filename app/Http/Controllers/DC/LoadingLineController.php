@@ -479,6 +479,7 @@ class LoadingLineController extends Controller
                 loading_line_plan.style,
                 loading_line_plan.color,
                 loading_line_plan.line_id,
+                COALESCE(loading_line.no_bon, '-') no_bon,
                 COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
                 COALESCE(form_cut_input.no_cut, '-') no_cut
             FROM
