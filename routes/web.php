@@ -603,6 +603,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
         Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
+        Route::post('/print-stocker-checked-add', 'printStockerCheckedAdd')->name('print-stocker-checked-add');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
         Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
         Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
