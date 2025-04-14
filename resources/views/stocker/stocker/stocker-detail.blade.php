@@ -305,7 +305,7 @@
                             @endforeach
                         </div>
                         <div class="d-flex justify-content-end p-3">
-                            <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStocker()"><i class="fa fa-print"></i> Generate Checked Stocker</button>
+                            <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStocker()"><i class="fa fa-print"></i> Generate Checked Stocker Additional</button>
                         </div>
                     </div>
                 </div>
@@ -343,6 +343,7 @@
                                 <hr>
                                 @php
                                     $indexAdditional = 0;
+                                    $partIndexAdditional = 0;
 
                                     $currentGroupAdditional = "";
                                     $currentGroupStockerAdditional = 0;
@@ -376,7 +377,8 @@
 
                                             @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
-                                                $indexAdditional += $dataRatioAdditional->count();
+                                                $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
+                                                $partIndexAdditional += $dataPartDetailAdditional->count();
                                             @endphp
 
                                             {{-- Change initial group --}}
@@ -403,7 +405,8 @@
 
                                                 @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
                                                 @php
-                                                    $indexAdditional += $dataRatioAdditional->count();
+                                                    $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
+                                                    $partIndexAdditional += $dataPartDetailAdditional->count();
                                                 @endphp
                                             @endif
                                         @else
@@ -427,7 +430,8 @@
 
                                                 @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
                                                 @php
-                                                    $indexAdditional += $dataRatioAdditional->count();
+                                                    $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
+                                                    $partIndexAdditional += $dataPartDetailAdditional->count();
                                                 @endphp
                                             @endif
                                         @endif
@@ -457,7 +461,8 @@
 
                                             @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
-                                                $indexAdditional += $dataRatioAdditional->count();
+                                                $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
+                                                $partIndexAdditional += $dataPartDetailAdditional->count();
                                             @endphp
 
                                             {{-- Change initial group --}}
@@ -484,7 +489,8 @@
 
                                                 @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
                                                 @php
-                                                    $indexAdditional += $dataRatioAdditional->count();
+                                                    $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
+                                                    $partIndexAdditional += $dataPartDetailAdditional->count();
                                                 @endphp
                                             @endif
                                         @else
@@ -508,7 +514,8 @@
 
                                                 @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
                                                 @php
-                                                    $indexAdditional += $dataRatio->count()
+                                                    $indexAdditional += $dataRatio->count() * $dataPartDetailAdditional->count();
+                                                    $partIndexAdditional += $dataPartDetailAdditional->count();
                                                 @endphp
                                             @endif
                                         @endif
@@ -516,6 +523,9 @@
                                 @endforeach
                             @endif
                         </div>
+                    </div>
+                    <div class="d-flex justify-content-end p-3">
+                        <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStockerAdd()"><i class="fa fa-print"></i> Generate Checked Stocker</button>
                     </div>
                 </div>
                 <div class="mb-5">
@@ -831,11 +841,21 @@
 
                 let generateStocker = document.getElementsByClassName('generate-'+generatableIndex);
 
+                let generateStockerAdd = document.getElementsByClassName('generate-add-'+generatableIndex);
+
                 for (let j = 0; j < generateStocker.length; j++) {
                     if (generatableValue) {
                         generateStocker[j].removeAttribute('disabled');
                     } else {
                         generateStocker[j].setAttribute('disabled', true);
+                    }
+                }
+
+                for (let k = 0; k < generateStockerAdd.length; k++) {
+                    if (generatableValue) {
+                        generateStockerAdd[k].removeAttribute('disabled');
+                    } else {
+                        generateStockerAdd[k].setAttribute('disabled', true);
                     }
                 }
             }
@@ -1444,6 +1464,86 @@
 
                 $.ajax({
                     url: '{{ route('print-stocker-checked') }}',
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: stockerForm,
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = fileName+".pdf";
+                            link.click();
+
+                            swal.close();
+
+                            window.location.reload();
+                        }
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        generating = false;
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis stocker yang akan di print',
+                });
+            }
+        }
+
+        function generateCheckedStockerAdd() {
+            let generateStockerCheck = document.getElementsByClassName('generate-stocker-check-add');
+
+            let checkedCount = 0;
+            for (let i = 0; i < generateStockerCheck.length; i++) {
+                if (generateStockerCheck[i].checked) {
+                    checkedCount++;
+                }
+            }
+
+            if (checkedCount > 0) {
+                generating = true;
+
+                let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+                let no_ws = document.getElementById("no_ws_add").value;
+                let style = document.getElementById("style_add").value;
+                let color = document.getElementById("color_add").value;
+                let panel = document.getElementById("panel_add").value;
+                let no_form_cut = document.getElementById("no_form_cut").value;
+
+                let fileName = [
+                    no_ws,
+                    style,
+                    color,
+                    panel,
+                    no_form_cut
+                ].join('-');
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    url: '{{ route('print-stocker-checked-add') }}',
                     type: 'post',
                     processData: false,
                     contentType: false,
