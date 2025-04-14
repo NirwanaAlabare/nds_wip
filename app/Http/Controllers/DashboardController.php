@@ -2169,6 +2169,8 @@ class DashboardController extends Controller
                     GROUP BY
                         id_item
                 ) cutting_roll ON cutting_roll.id_item = req_roll.id_item
+                where
+                    ((COALESCE(roll_out, 0) - COALESCE(roll_out_today, 0)) - (COALESCE(total_roll, 0) - COALESCE(total_roll_today, 0)) > 0) OR (COALESCE(roll_out_today, 0) > 0) OR (COALESCE(total_roll_today, 0) > 0) OR ((COALESCE(roll_out, 0) - COALESCE(total_roll, 0)) > 0)
                 order by
                     roll_out_today desc,
                     total_roll_today desc,
