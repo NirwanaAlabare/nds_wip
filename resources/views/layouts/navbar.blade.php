@@ -367,11 +367,11 @@
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'loading-dc' ? 'active' : '' }}">Loading</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('bon-loading-line') }}" class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
                                         Bon Loading <i class="fa-solid fa-ticket-simple"></i>
                                     </a>
-                                </li>
+                                </li> --}}
                                 <li>
                                     <a href="{{ route('loading-line') }}" class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
                                         Loading Line <i class="fa-solid fa-users-line"></i>
