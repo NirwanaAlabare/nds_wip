@@ -72,6 +72,7 @@ use App\Http\Controllers\Sewing\TransferOutputController;
 use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\UndoOutputController;
+use App\Http\Controllers\Sewing\ReportDefectController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -1002,6 +1003,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/export-data', 'exportData')->name('reportEfficiency.exportData');
 
         Route::post('/transfer-data', 'transfer')->name('reportEfficiency.transferData');
+    });
+
+    // Report Defect
+    Route::controller(ReportDefectController::class)->prefix('report-defect')->middleware('role:sewing')->group(function () {
+        Route::get('/index', 'index')->name("report-defect");
     });
 
     // Report Efficiency New

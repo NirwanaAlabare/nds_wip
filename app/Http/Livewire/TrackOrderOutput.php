@@ -274,7 +274,7 @@ class TrackOrderOutput extends Component
                 $this->dailyOrderOutputs = $dailyOrderOutputSql->get();
 
             if ($this->dailyOrderOutputs->sum("output") > 50000) {
-                $this->emit("alert", "Worksheet memiliki banyak data, Loading akan memakan waktu lama");
+                $this->emit("alert", "Jika Worksheet memiliki banyak data, Loading akan memakan waktu yang cukup lama");
             }
 
             \Log::info("Query Completed");

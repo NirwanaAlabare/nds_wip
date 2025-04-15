@@ -91,17 +91,17 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("cutting")
                                 <li>
-                                    <a href="{{ route('spreading') }}" class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
+                                    <a href="{{ route('spreading') }}" class="dropdown-item {{ $routeName == 'spreading' ? 'active' : '' }}">
                                         Spreading <i class="fas fa-scroll fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('form-cut-input') }}" class="appeared dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
+                                    <a href="{{ route('form-cut-input') }}" class="appeared dropdown-item {{ $routeName == 'form-cut-input' ? 'active' : '' }}">
                                         Form Cutting <i class="fas fa-cut fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('form-cut-piping') }}" class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}">
+                                    <a href="{{ route('form-cut-piping') }}" class="dropdown-item {{ $routeName == 'form-cut-piping' ? 'active' : '' }}">
                                         Piping <i class="fa-solid fa-paperclip"></i>
                                     </a>
                                 </li>
@@ -114,7 +114,7 @@
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'cuttingplan-cutting' ? 'active' : '' }}">Cutting Plan</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
-                                    <a href="{{ route('cut-plan') }}" class="dropdown-item {{ $subPage == 'cut-plan' ? 'active' : '' }}">
+                                    <a href="{{ route('cut-plan') }}" class="dropdown-item {{ $routeName == 'cut-plan' ? 'active' : '' }}">
                                         Cutting Plan Date <i class="fas fa-map fa-sm"></i>
                                     </a>
                                 </li>
@@ -129,7 +129,7 @@
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed Form</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
-                                    <a href="{{ route('manage-cutting') }}" class="dropdown-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
+                                    <a href="{{ route('manage-cutting') }}" class="dropdown-item {{ $routeName == 'manage-cutting' ? 'active' : '' }}">
                                         Completed Form <i class="fa-solid fa-check-to-slot"></i>
                                     </a>
                                 </li>
@@ -169,7 +169,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('pemakaian-roll') }}" class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
+                                    <a href="{{ route('pemakaian-roll') }}" class="dropdown-item {{ $routeName == 'pemakaian-roll' ? 'active' : '' }}">
                                         Pemakaian Kain <i class="fa fa-file"></i>
                                     </a>
                                 </li>
@@ -184,22 +184,22 @@
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-piping' ? 'active' : '' }}">Piping</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
-                                    <a href="{{ route('master-piping') }}" class="dropdown-item {{ $subPage == 'master-piping' ? 'active' : '' }}">
+                                    <a href="{{ route('master-piping') }}" class="dropdown-item {{ $routeName == 'master-piping' ? 'active' : '' }}">
                                         Master <i class="fa-solid fa-gear"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('piping-process') }}" class="dropdown-item {{ $subPage == 'piping-process' ? 'active' : '' }}">
+                                    <a href="{{ route('piping-process') }}" class="dropdown-item {{ $routeName == 'piping-process' ? 'active' : '' }}">
                                         Process <i class="fa-solid fa-ring"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('piping-loading') }}" class="dropdown-item {{ $subPage == 'piping-loading' ? 'active' : '' }}">
+                                    <a href="{{ route('piping-loading') }}" class="dropdown-item {{ $routeName == 'piping-loading' ? 'active' : '' }}">
                                         Loading <i class="fa-solid fa-right-to-bracket"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('piping-stock') }}" class="dropdown-item {{ $subPage == 'piping-stock' ? 'active' : '' }}">
+                                    <a href="{{ route('piping-stock') }}" class="dropdown-item {{ $routeName == 'piping-stock' ? 'active' : '' }}">
                                         Stock <i class="fa-solid fa-toolbox"></i>
                                     </a>
                                 </li>
@@ -229,7 +229,7 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("stocker")
                                 <li>
-                                    <a href="{{ route('master-part') }}" class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
+                                    <a href="{{ route('master-part') }}" class="dropdown-item {{ $routeName == 'master-part' ? 'active' : '' }}">
                                         Master Part <i class="fas fa-plus-square fa-sm"></i>
                                     </a>
                                 </li>
@@ -247,7 +247,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}">
+                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $routeName == 'stocker' ? 'active' : '' }}">
                                         Stocker <i class="fa-solid fa-note-sticky"></i>
                                     </a>
                                 </li>
@@ -273,7 +273,7 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
                                 <li>
-                                    <a href="{{ route('dc-in') }}" class="dropdown-item {{ $subPage == 'dc-in' ? 'active' : '' }}">
+                                    <a href="{{ route('dc-in') }}" class="dropdown-item {{ $routeName == 'dc-in' ? 'active' : '' }}">
                                         DC In <i class="fas fa-qrcode fa-sm"></i>
                                     </a>
                                 </li>
@@ -285,12 +285,12 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
                                 <li>
-                                    <a href="{{ route('secondary-inhouse') }}" class="dropdown-item {{ $subPage == 'secondary-inhouse' ? 'active' : '' }}">
+                                    <a href="{{ route('secondary-inhouse') }}" class="dropdown-item {{ $routeName == 'secondary-inhouse' ? 'active' : '' }}">
                                         Secondary Dalam <i class="fas fa-house-user"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('secondary-in') }}" class="dropdown-item {{ $subPage == 'secondary-in' ? 'active' : '' }}">
+                                    <a href="{{ route('secondary-in') }}" class="dropdown-item {{ $routeName == 'secondary-in' ? 'active' : '' }}">
                                         Secondary In <i class="fas fa-sign-in-alt"></i>
                                     </a>
                                 </li>
@@ -307,17 +307,17 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
                                 <li>
-                                    <a href="{{ route('rack') }}" class="dropdown-item {{ $subPage == 'rack' ? 'active' : '' }}">
+                                    <a href="{{ route('rack') }}" class="dropdown-item {{ $routeName == 'rack' ? 'active' : '' }}">
                                         Master Rak <i class="fa-solid fa-plus-square fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stock-rack') }}" class="dropdown-item {{ $subPage == 'stock-rack' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-rack') }}" class="dropdown-item {{ $routeName == 'stock-rack' ? 'active' : '' }}">
                                         Rak <i class="fa-solid fa-table fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stock-rack-visual') }}" class="dropdown-item {{ $subPage == 'stock-rack-visual' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-rack-visual') }}" class="dropdown-item {{ $routeName == 'stock-rack-visual' ? 'active' : '' }}">
                                         Stok Rak <i class="fa-solid fa-th-list"></i>
                                     </a>
                                 </li>
@@ -329,17 +329,17 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
                                 <li>
-                                    <a href="{{ route('stock-dc-complete') }}" class="dropdown-item {{ $subPage == 'stok-dc-complete' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-dc-complete') }}" class="dropdown-item {{ $routeName == 'stok-dc-complete' ? 'active' : '' }}">
                                         Stocker Complete <i class="fa-solid fa-circle-check"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stock-dc-incomplete') }}" class="dropdown-item {{ $subPage == 'stok-dc-incomplete' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-dc-incomplete') }}" class="dropdown-item {{ $routeName == 'stok-dc-incomplete' ? 'active' : '' }}">
                                         Stocker Incomplete <i class="fa-solid fa-spinner"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stock-dc-wip') }}" class="dropdown-item {{ $subPage == 'stok-dc-wip' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-dc-wip') }}" class="dropdown-item {{ $routeName == 'stok-dc-wip' ? 'active' : '' }}">
                                         WIP <i class="fa-solid fa-shuffle"></i>
                                     </a>
                                 </li>
@@ -351,12 +351,12 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
                                 <li>
-                                    <a href="{{ route('trolley') }}" class="dropdown-item {{ $subPage == 'trolley' ? 'active' : '' }}">
+                                    <a href="{{ route('trolley') }}" class="dropdown-item {{ $routeName == 'trolley' ? 'active' : '' }}">
                                         Master Trolley <i class="fas fa-plus-square fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stock-trolley') }}" class="dropdown-item {{ $subPage == 'stock-trolley' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-trolley') }}" class="dropdown-item {{ $routeName == 'stock-trolley' ? 'active' : '' }}">
                                         Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
@@ -368,17 +368,17 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
                                 <li>
-                                    <a href="{{ route('bon-loading-line') }}" class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
+                                    <a href="{{ route('bon-loading-line') }}" class="dropdown-item {{ $routeName == 'bon-loading-line' ? 'active' : '' }}">
                                         Bon Loading <i class="fa-solid fa-ticket-simple"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('loading-line') }}" class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
+                                    <a href="{{ route('loading-line') }}" class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
                                         Loading Line <i class="fa-solid fa-users-line"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('summary-loading') }}" class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
+                                    <a href="{{ route('summary-loading') }}" class="dropdown-item {{ $routeName == 'summary-loading' ? 'active' : '' }}">
                                         Summary Loading <i class="fa-solid fa-list-check"></i>
                                     </a>
                                 </li>
@@ -390,7 +390,7 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("dc")
                                 <li>
-                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}">
+                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $routeName == 'stocker-list' ? 'active' : '' }}">
                                         Stocker List <i class="fa-solid fa-list-ul"></i>
                                     </a>
                                 </li>
@@ -401,12 +401,12 @@
                                     <a href="{{ route('stocker-balance') }}" class="dropdown-item {{ $subPage == 'stocker-balance' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
                                 </li> --}}
                                 <li>
-                                    <a href="{{ route('year-sequence') }}" class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}">
+                                    <a href="{{ route('year-sequence') }}" class="dropdown-item {{ $routeName == 'year-sequence' ? 'active' : '' }}">
                                         Set Year Sequence <i class="fa-solid fa-list-ol"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('modify-year-sequence') }}" class="dropdown-item {{ $subPage == 'modify-year-sequence' ? 'active' : '' }}">
+                                    <a href="{{ route('modify-year-sequence') }}" class="dropdown-item {{ $routeName == 'modify-year-sequence' ? 'active' : '' }}">
                                         Modify Year Sequence <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
                                 </li>
@@ -421,17 +421,17 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @role("sewing")
                                 <li>
-                                    <a href="{{ route('master-line') }}" class="dropdown-item {{ $subPage == 'master-line' ? 'active' : '' }}">
+                                    <a href="{{ route('master-line') }}" class="dropdown-item {{ $routeName == 'master-line' ? 'active' : '' }}">
                                         Master Line <i class="fa-solid fa-people-group"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('master-plan') }}" class="dropdown-item {{ $subPage == 'master-plan' ? 'active' : '' }}">
+                                    <a href="{{ route('master-plan') }}" class="dropdown-item {{ $routeName == 'master-plan' ? 'active' : '' }}">
                                         Master Plan <i class="fa-solid fa-gears"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('master-defect') }}" class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
+                                    <a href="{{ route('master-defect') }}" class="dropdown-item {{ $routeName == 'master-defect' ? 'active' : '' }}">
                                         Master Defect <i class="fa-solid fa-circle-exclamation"></i>
                                     </a>
                                 </li>
@@ -453,7 +453,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('report-hourly') }}" class="dropdown-item {{ $subPage == 'report-hourly' ? 'active' : '' }}">
+                                    <a href="{{ route('report-hourly') }}" class="dropdown-item {{ $routeName == 'report-hourly' ? 'active' : '' }}">
                                         Hourly Output <i class="fa-solid fa-clock fa-sm"></i>
                                     </a>
                                 </li>
@@ -475,7 +475,7 @@
                                     </li>
                                 @endrole
                                 <li>
-                                    <a href="{{ route('undo-output-history') }}" class="dropdown-item {{ $subPage == 'undo-output-history' ? 'active' : '' }}">
+                                    <a href="{{ route('undo-output-history') }}" class="dropdown-item {{ $routeName == 'undo-output-history' ? 'active' : '' }}">
                                         Undo Output History <i class="fa-solid fa-rotate-left"></i>
                                     </a>
                                 </li>
@@ -492,8 +492,13 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('report-defect-in-out') }}" class="dropdown-item {{ $subPage == 'report-defect-in-out' ? 'active' : '' }}">
+                                    <a href="{{ route('report-defect-in-out') }}" class="dropdown-item {{ $routeName == 'report-defect-in-out' ? 'active' : '' }}">
                                         Report Defect In Out <i class="fa-solid fa-circle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('report-defect') }}" class="dropdown-item {{ $routeName == 'report-defect' ? 'active' : '' }}">
+                                        Report Defect <i class="fa-solid fa-file-circle-exclamation"></i>
                                     </a>
                                 </li>
                             @endrole
