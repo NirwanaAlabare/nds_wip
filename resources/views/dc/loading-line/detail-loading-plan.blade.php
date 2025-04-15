@@ -26,6 +26,20 @@
             <div class="row mb-3">
                 <div class="col-md-3">
                     <div class="mb-1">
+                        <label><small>Dari</small></label>
+                        <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ $dateFrom }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-1">
+                        <label><small>Sampai</small></label>
+                        <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ $dateTo }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3"></div>
+                <div class="col-md-3"></div>
+                <div class="col-md-3">
+                    <div class="mb-1">
                         <div class="form-group">
                             <label><small>Line</small></label>
                             <input class="form-control" type="text" id="line" name="line" value="{{ strtoupper(str_replace('_', ' ', $loadingLinePlan->userLine->username)) }}" readonly>

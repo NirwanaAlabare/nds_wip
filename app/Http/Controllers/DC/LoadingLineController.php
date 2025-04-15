@@ -416,8 +416,11 @@ class LoadingLineController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, $id, $dateFrom, $dateTo)
     {
+        $dateFrom = $dateFrom ? $dateFrom : date("Y-m-d");
+        $dateTo = $dateTo ? $dateTo : date("Y-m-d");
+
         if ($request->ajax()) {
             $lineStocker = LoadingLinePlan::selectRaw("
                 stocker_input.color,
@@ -496,7 +499,8 @@ class LoadingLineController extends Controller
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                 LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
             WHERE
-                loading_line_plan.id = '".$id."'
+                loading_line_plan.id = '".$id."' and
+                (loading_line.tanggal_loading between '".$dateFrom."' and '".$dateTo."')
             GROUP BY
                 stocker_input.id_qr_stocker
             ORDER BY
@@ -507,7 +511,7 @@ class LoadingLineController extends Controller
                 stocker_input.range_awal
         ");
 
-        return view("dc.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan, "loadingLines" => $loadingLines]);
+        return view("dc.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan, "loadingLines" => $loadingLines, "dateFrom" => $dateFrom, "dateTo" => $dateTo,]);
     }
 
     /**

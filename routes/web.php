@@ -806,7 +806,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(LoadingLineController::class)->prefix("loading-line")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('loading-line');
         Route::get('/total-loading', 'totalLoading')->name('total-loading-line');
-        Route::get('/detail/{id?}', 'show')->name('detail-loading-plan');
+        Route::get('/detail/{id?}/{dateFrom?}/{dateTo?}', 'show')->name('detail-loading-plan');
         Route::get('/create', 'create')->name('create-loading-plan');
         Route::post('/store', 'store')->name('store-loading-plan');
         Route::get('/edit/{id?}', 'edit')->name('edit-loading-plan');
