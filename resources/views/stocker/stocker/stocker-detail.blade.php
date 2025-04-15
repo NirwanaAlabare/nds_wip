@@ -305,7 +305,7 @@
                             @endforeach
                         </div>
                         <div class="d-flex justify-content-end p-3">
-                            <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStocker()"><i class="fa fa-print"></i> Generate Checked Stocker Additional</button>
+                            <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStocker()"><i class="fa fa-print"></i> Generate Checked Stocker</button>
                         </div>
                     </div>
                 </div>
@@ -523,9 +523,9 @@
                                 @endforeach
                             @endif
                         </div>
-                    </div>
-                    <div class="d-flex justify-content-end p-3">
-                        <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStockerAdd()"><i class="fa fa-print"></i> Generate Checked Stocker</button>
+                        <div class="d-flex justify-content-end p-3">
+                            <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStockerAdd()"><i class="fa fa-print"></i> Generate Checked Stocker Additional</button>
+                        </div>
                     </div>
                 </div>
                 <div class="mb-5">
