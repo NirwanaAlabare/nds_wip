@@ -126,6 +126,7 @@ use App\Http\Controllers\PPICDashboardController;
 //  PPIC
 use App\Http\Controllers\PPIC_MasterSOController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
+use App\Http\Controllers\PPIC_MonitoringMaterialController;
 use App\Http\Controllers\ReportHourlyController;
 // PACKING
 use App\Http\Controllers\PackingDashboardController;
@@ -1689,6 +1690,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_ppic_monitoring_order_size', 'get_ppic_monitoring_order_size')->name('get_ppic_monitoring_order_size');
         Route::get('/show_lap_monitoring_order', 'show_lap_monitoring_order')->name('show_lap_monitoring_order');
         Route::post('/export_excel_monitoring_order', 'export_excel_monitoring_order')->name('export_excel_monitoring_order');
+    });
+
+    // PPIC Monitoring Order
+    Route::controller(PPIC_MonitoringMaterialController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
+        Route::get('/ppic_monitoring_material', 'ppic_monitoring_material')->name('ppic_monitoring_material');
+        Route::get('/get_ppic_monitoring_material_style', 'get_ppic_monitoring_material_style')->name('get_ppic_monitoring_material_style');
+        Route::get('/show_lap_monitoring_material_f_det', 'show_lap_monitoring_material_f_det')->name('show_lap_monitoring_material_f_det');
+        Route::post('/export_excel_monitoring_material', 'export_excel_monitoring_material')->name('export_excel_monitoring_material');
     });
 
     // Report Hourly Output
