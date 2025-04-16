@@ -81,7 +81,7 @@
                             <th>Qty Order</th>
                             <th>Cons WS</th>
                             <th>Need Material</th>
-                            <th>Total</th>
+                            <th>Need Total</th>
                             <th>Penerimaan Gudang</th>
                             <th>Return Produksi</th>
                             <th>Pengeluaran Produksi</th>
@@ -254,7 +254,14 @@
                     {
                         data: 'total_output_pcs_cons_ws'
                     },
-                ]
+                ],
+                rowsGroup: [
+                    7, 8, 9, 10, 11, 15 // Adjust this index to the correct column (zero-based)
+                ],
+                columnDefs: [{
+                    "className": "align-middle",
+                    "targets": "_all"
+                }]
             });
         }
 
