@@ -235,7 +235,7 @@
                                     @endif
                                 </select>
                             </div>
-                            @if ($groupBy == "size")
+                            {{-- @if ($groupBy == "size")
                                 <div class="mb-3">
                                     <label>Size</label>
                                     <select class="form-select form-select-sm" name="size" id="size" wire:model="sizeFilter">
@@ -247,7 +247,7 @@
                                         @endif
                                     </select>
                                 </div>
-                            @endif
+                            @endif --}}
                         </div>
                     </div>
                 </div>
