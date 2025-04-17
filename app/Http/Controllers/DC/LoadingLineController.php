@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LoadingLinePlan;
 use App\Models\SignalBit\UserLine;
+use App\Models\LoadingLine;
 use App\Exports\ExportLaporanLoading;
 use App\Exports\DC\ExportLoadingLine;
 use Yajra\DataTables\Facades\DataTables;
@@ -842,5 +843,51 @@ class LoadingLineController extends Controller
         ini_set("max_execution_time", 36000);
 
         return Excel::download(new ExportLaporanLoading($request->dateFrom, $request->dateTo), 'Laporan Loading '.$request->dateFrom.' - '.$request->dateTo.'.xlsx');
+    }
+
+    public function modifyLoadingLine(Request $request)
+    {
+        ini_set("max_execution_time", 36000);
+
+        if ($request->ajax()) {
+            $stockerIds = addQuotesAround($request->stocker_ids);
+
+            $loadingLine = LoadingLine::selectRaw("
+                    GROUP_CONCAT(loading_line.id SEPARATOR ', ') loading_line_ids,
+                    GROUP_CONCAT(stocker_input.id_qr_stocker SEPARATOR ', ') stocker_ids,
+                    loading_line.tanggal_loading,
+                    loading_line.nama_line,
+                    stocker_input.act_costing_ws,
+                    stocker_input.color,
+                    stocker_input.size,
+                    stocker_input.lokasi,
+                    trolley.nama_trolley as trolley,
+                    COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod) qty,
+                    (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace) dc_qty,
+                    (secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace) secondary_in_qty,
+                    (secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace) secondary_inhouse_qty,
+                    loading_line.qty loading_qty,
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range_awal_akhir
+                ")->
+                leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("trolley_stocker", "trolley_stocker.id", "=", "stocker_input.id")->
+                leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+                whereRaw("stocker_input.id_qr_stocker in (".$stockerIds.")")->
+                groupBy(
+                    'stocker_input.form_cut_id',
+                    'stocker_input.form_reject_id',
+                    'stocker_input.so_det_id',
+                    'stocker_input.group_stocker',
+                    'stocker_input.ratio'
+                )->
+                get();
+
+            return DataTables::of($loadingLine)->toJson();
+        }
+
+        return view("dc.loading-line.modify-loading-line", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'modify-loading-line']);
     }
 }

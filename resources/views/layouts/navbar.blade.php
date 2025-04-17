@@ -434,15 +434,18 @@
                                     </a>
                                 </li> --}}
                                 <li>
-                                    <a href="{{ route('loading-line') }}"
-                                        class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
+                                    <a href="{{ route('loading-line') }}" class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
                                         Loading Line <i class="fa-solid fa-users-line"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('summary-loading') }}"
-                                        class="dropdown-item {{ $routeName == 'summary-loading' ? 'active' : '' }}">
+                                    <a href="{{ route('summary-loading') }}" class="dropdown-item {{ $routeName == 'summary-loading' ? 'active' : '' }}">
                                         Summary Loading <i class="fa-solid fa-list-check"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('modify-loading-line') }}" class="dropdown-item {{ $routeName == 'modify-loading' ? 'active' : '' }}">
+                                        Modify Loading <i class="fa-solid fa-sliders"></i>
                                     </a>
                                 </li>
                             @endrole
@@ -654,10 +657,17 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('dashboard-wip') }}" class="nav-link" target="_blank">
+                        <a href="{{ route('dashboard-wip') }}" class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}" target="_blank">
                             Dashboard
                         </a>
                     </li>
+                    @role('superadmin')
+                        <li class="nav-item">
+                            <a href="{{ route('sewing-tools') }}" class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
+                                Tools
+                            </a>
+                        </li>
+                    @endrole
                 @endif
 
                 @if ($page == 'dashboard-warehouse')

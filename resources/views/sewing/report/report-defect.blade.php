@@ -61,6 +61,12 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="17">Total</td>
+                            <td id="total-defect">...</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -253,12 +259,50 @@
                     targets: "_all"
                 },
                 {
-                    targets: [16, 17],
+                    targets: [17, 18],
                     render: function (data, type, row) {
                         return formatDateTime(data);
                     },
                 }
-            ]
+            ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(17).footer()).html('Total');
+                $(api.column(18).footer()).html("...");
+
+                $.ajax({
+                    url: '{{ route('total-loading-line') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        dateFrom : $('#dateFrom').val(),
+                        dateTo : $('#dateTo').val(),
+                        defect_types : $('#defect_types').val(),
+                        defect_areas : $('#defect_areas').val(),
+                        defect_status : $('#defect_status').val(),
+                        sewing_line : $('#sewing_line').val(),
+                        ws : $('#ws').val(),
+                        style : $('#style').val(),
+                        color : $('#color').val(),
+                        size : $('#size').val(),
+                        external_type : $('#external_type').val(),
+                        external_in : $('#external_in').val(),
+                        external_out : $('#external_out').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(17).footer()).html("Total");
+                            $(api.column(18).footer()).html(response);
+                        }
+                    },
+                    error: function(jqXHR) {
+                        console.error(jqXHR);
+                    },
+                })
+            },
         });
 
         function reportDefectDatatableReload() {

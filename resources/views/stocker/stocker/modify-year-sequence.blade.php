@@ -208,7 +208,6 @@
             $("#switch-method").prop("checked", false);
         });
 
-
         $("#year").on("change", function () {
             getSequence();
         });
