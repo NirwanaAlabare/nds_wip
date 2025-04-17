@@ -409,6 +409,8 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
                 x.`user` = '".$user."' and
+                y.id is not null and
+                ms.id is not null and
                 y.form_reject_id is null
             group by
                 ms.id_qr_stocker
@@ -439,6 +441,8 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
                 x.`user` = '".$user."' and
+                y.id is not null and
+                ms.id is not null and
                 y.form_reject_id is not null
             group by
                 ms.id_qr_stocker
