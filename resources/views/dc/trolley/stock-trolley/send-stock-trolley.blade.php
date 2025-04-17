@@ -500,9 +500,9 @@
 
             await clearTrolleyScan();
 
-            await initLineScan();
-
             document.getElementById("loading").classList.add("d-none");
+
+            await initLineScan();
         }
 
         async function toTrolley() {
@@ -520,9 +520,9 @@
 
             await clearLineScan();
 
-            await initTrolleyScan();
-
             document.getElementById("loading").classList.add("d-none");
+
+            await initTrolleyScan();
         }
     </script>
 @endsection
