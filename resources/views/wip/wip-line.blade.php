@@ -670,7 +670,7 @@
                                     <p class="card-title mt-3"
                                         style="font-size: 50px; color: #282828; line-height: 40px;"
                                         id="deffect-garment-qty-2"></p>
-                                    <p style="color: #64748b; font-size: 16px;">DEFFECT GARMENT QTY</p>
+                                    <p style="color: #64748b; font-size: 16px;">DEFECT GARMENT QTY</p>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: center;">
@@ -723,7 +723,7 @@
                                 <div
                                     style="position: absolute; bottom: -18%; left: 50%;  transform: translate(-50%, -50%);">
                                     <p style="color: #000000; font-weight: bold; font-size: 20px; margin-top:20px;">
-                                        DEFFECT RATE</p>
+                                        DEFECT RATE</p>
                                 </div>
                             </div>
                         </div>
@@ -800,7 +800,7 @@
                                 <div class="p-0 m-0"
                                     style="height: 40px;  background-color: #FFFFFF; display: flex; align-items: center; justify-content: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                     <h5 style="font-size: 18px; color:#072c66; font-weight: bold;">
-                                        LIST DEFFECT
+                                        LIST DEFECT
                                     </h5>
                                 </div>
                                 <div id="defect-list" class="px-0 w-100"
