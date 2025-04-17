@@ -326,23 +326,8 @@ class StockerController extends Controller
 
         $dataAdditional = DB::table("stocker_ws_additional")->where("form_cut_id", $dataSpreading->form_cut_id)->first();
 
-        $dataRatioAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
-            stocker_ws_additional_detail.id additional_detail_id,
-            stocker_ws_additional_detail.so_det_id,
-            COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) size,
-            COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), stocker_ws_additional_detail.size) size_dest,
-            stocker_ws_additional_detail.ratio
-        ")->
-        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_ws_additional_detail.so_det_id")->
-        leftJoin("stocker_ws_additional", "stocker_ws_additional.id", "=", "stocker_ws_additional_detail.stocker_additional_id")->
-        leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_ws_additional.form_cut_id")->
-        where("stocker_ws_additional.id", ($dataAdditional ? $dataAdditional->id : ''))->
-        // where("marker_input_detail.ratio", ">", "0")->
-        orderBy("stocker_ws_additional_detail.id", "asc")->
-        groupBy("stocker_ws_additional_detail.id")->
-        get();
-
-        $dataPartDetailAdditional = StockerAdditional::selectRaw("
+        if ($dataAdditional) {
+            $dataPartDetailAdditional = StockerAdditional::selectRaw("
                 part_detail.id,
                 master_part.nama_part,
                 master_part.bag,
@@ -356,13 +341,72 @@ class StockerController extends Controller
             leftJoin("part_detail", "part_detail.part_id", "part.id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
-            where("stocker_ws_additional.id", ($dataAdditional ? $dataAdditional->id : ''))->
+            where("stocker_ws_additional.id", $dataAdditional->id)->
             groupBy("master_part.id")->
             get();
 
+            $dataRatioAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
+                stocker_ws_additional_detail.id additional_detail_id,
+                stocker_ws_additional_detail.so_det_id,
+                COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) size,
+                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), stocker_ws_additional_detail.size) size_dest,
+                stocker_ws_additional_detail.ratio
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_ws_additional_detail.so_det_id")->
+            leftJoin("stocker_ws_additional", "stocker_ws_additional.id", "=", "stocker_ws_additional_detail.stocker_additional_id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_ws_additional.form_cut_id")->
+            where("stocker_ws_additional.id", $dataAdditional->id)->
+            // where("marker_input_detail.ratio", ">", "0")->
+            orderBy("stocker_ws_additional_detail.id", "asc")->
+            groupBy("stocker_ws_additional_detail.id")->
+            get();
+
+            $dataStockerAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
+                    MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                    stocker_ws_additional.color,
+                    stocker_ws_additional_detail.so_det_id,
+                    COALESCE(stocker_input.ratio, stocker_ws_additional_detail.ratio) ratio,
+                    MAX(form_cut_input.no_form) no_form,
+                    form_cut_input.no_cut,
+                    MAX(stocker_input.id) stocker_id,
+                    MAX(stocker_input.shade) shade,
+                    MAX(stocker_input.group_stocker) group_stocker,
+                    MAX(stocker_input.qty_ply) qty_ply,
+                    MIN(CAST(stocker_input.range_awal as UNSIGNED)) range_awal,
+                    MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
+                    modify_size_qty.modified_qty,
+                    modify_size_qty.difference_qty
+                ")->
+                leftJoin("stocker_ws_additional", "stocker_ws_additional.id", "=", "stocker_ws_additional_detail.stocker_additional_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_ws_additional.form_cut_id")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                leftJoin("stocker_input", function ($join) {
+                    $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("stocker_input.so_det_id", "=", "stocker_ws_additional_detail.so_det_id");
+                })->
+                leftJoin("modify_size_qty", function ($join) {
+                    $join->on("modify_size_qty.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("modify_size_qty.so_det_id", "=", "stocker_ws_additional_detail.so_det_id");
+                })->
+                where("stocker_ws_additional.act_costing_ws", $dataAdditional->act_costing_ws)->
+                where("stocker_ws_additional.color", $dataAdditional->color)->
+                where("stocker_ws_additional.panel", $dataAdditional->panel)->
+                where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+                where("part_form.part_id", $dataSpreading->part_id)->
+                // where("marker_input_detail.ratio", ">", "0")->
+                groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "stocker_ws_additional_detail.so_det_id")->
+                orderBy("form_cut_input.no_cut", "desc")->
+                orderBy("form_cut_input.no_form", "desc")->
+                get();
+        } else {
+            $dataPartDetailAdditional = null;
+            $dataRatioAdditional = null;
+            $dataStockerAdditional = null;
+        }
+
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
+        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**
