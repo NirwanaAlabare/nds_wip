@@ -29,7 +29,7 @@ class TrolleyStockerController extends Controller
                 trolley.id,
                 trolley_stocker.tanggal_alokasi,
                 stocker.act_costing_ws,
-                (CASE WHEN stocker.tipe = 'REJECT' THEN stocker.style ELSE marker_input.style END) style,
+                (CASE WHEN stocker.tipe = 'REJECT' THEN stocker.style ELSE master_sb_ws.styleno END) style,
                 stocker.color,
                 trolley.nama_trolley,
                 SUM(stocker.qty_ply) qty
@@ -45,6 +45,7 @@ class TrolleyStockerController extends Controller
                     (
                         SELECT
                             stocker_input.id,
+                            stocker_input.so_det_id,
                             (CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.color,
@@ -82,6 +83,7 @@ class TrolleyStockerController extends Controller
                 'stocker.id', '=', 'trolley_stocker.stocker_id'
             )->
             leftJoin("marker_input", "marker_input.kode", "=", "stocker.id_marker")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker.so_det_id")->
             groupBy('trolley.id', 'stocker.act_costing_ws', 'marker_input.style', 'stocker.color')->
             orderByRaw("ISNULL(SUM(stocker.qty_ply)) asc")->
             orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc")->
