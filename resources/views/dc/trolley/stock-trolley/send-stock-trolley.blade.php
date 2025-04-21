@@ -94,7 +94,7 @@
                             <div>
                                 <input type="text" class="form-control" id="no_bon" name="no_bon" value="" placeholder="No. BON">
                             </div>
-                            <button class="btn btn-success btn-sm float-end" onclick="sendToLine(this)"><i class="fa fa-plus fa-sm"></i> Kirim</button>
+                            <button type="button" class="btn btn-success btn-sm float-end" onclick="sendToLine(this)"><i class="fa fa-plus fa-sm"></i> Kirim</button>
                         </div>
                     </div>
                 </div>
@@ -234,143 +234,166 @@
             document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length+" (Total Qty : "+totalQty+")";
         });
 
-        function sendToLine(element) {
-            let date = new Date();
-
-            let day = date.getDate();
-            let month = date.getMonth() + 1;
-            let year = date.getFullYear();
-
-            let tanggalLoading = `${year}-${month}-${day}`
-
-            let selectedStockerTable = $('#datatable-trolley-stock').DataTable().rows('.selected').data();
-            let selectedStocker = [];
-
-            for (let key in selectedStockerTable) {
-                if (!isNaN(key)) {
-                    console.log(selectedStockerTable[key]);
-                    selectedStocker.push({
-                        stocker_ids: selectedStockerTable[key][0]
-                    });
-                }
-            }
-
-            let lineId = document.getElementById('line_id').value;
-            let destinationTrolleyId = document.getElementById('destination_trolley_id').value;
-            let noBon = document.getElementById('no_bon').value;
-
-            if (tanggalLoading && selectedStocker.length > 0) {
-                if (document.getElementById("loading")) {
-                    document.getElementById("loading").classList.remove("d-none");
-                }
-
-                element.setAttribute('disabled', true);
-
-                $.ajax({
-                    type: "POST",
-                    url: '{!! route('submit-send-trolley-stock') !!}',
-                    data: {
-                        tanggal_loading: tanggalLoading,
-                        selectedStocker: selectedStocker,
-                        destination: destination,
-                        line_id: lineId,
-                        destination_trolley_id: destinationTrolleyId,
-                        no_bon: noBon,
-                    },
-                    success: function(res) {
-                        if (document.getElementById("loading")) {
-                            document.getElementById("loading").classList.add("d-none");
-                        }
-
-                        element.removeAttribute('disabled');
-
-                        if (res.status == 200) {
-                            iziToast.success({
-                                title: 'Success',
-                                message: res.message,
-                                position: 'topCenter'
-                            });
+        async function sendToLine(element) {
+            if (!document.getElementById("no_bon").value) {
+                return Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Harap isi no. bon',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    }).then(() => {
+                        if (isNotNull(res.redirect)) {
+                            if (res.redirect != 'reload') {
+                                location.href = res.redirect;
+                            } else {
+                                location.reload();
+                            }
                         } else {
-                            iziToast.error({
-                                title: 'Error',
-                                message: res.message,
-                                position: 'topCenter'
-                            });
+                            location.reload();
                         }
+                    });
+            } else {
+                let date = new Date();
 
-                        if (res.additional) {
-                            let message = "";
+                let day = date.getDate();
+                let month = date.getMonth() + 1;
+                let year = date.getFullYear();
 
-                            if (res.additional['success'].length > 0) {
-                                res.additional['success'].forEach(element => {
-                                    message += element['stocker'] + " - Berhasil <br>";
+                let tanggalLoading = `${year}-${month}-${day}`
+
+                let selectedStockerTable = $('#datatable-trolley-stock').DataTable().rows('.selected').data();
+                let selectedStocker = [];
+
+                for (let key in selectedStockerTable) {
+                    if (!isNaN(key)) {
+                        console.log(selectedStockerTable[key]);
+                        selectedStocker.push({
+                            stocker_ids: selectedStockerTable[key][0]
+                        });
+                    }
+                }
+
+                let lineId = document.getElementById('line_id').value;
+                let destinationTrolleyId = document.getElementById('destination_trolley_id').value;
+                let noBon = document.getElementById('no_bon').value;
+
+                if (tanggalLoading && selectedStocker.length > 0) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.remove("d-none");
+                    }
+
+                    element.setAttribute('disabled', true);
+
+                    $.ajax({
+                        type: "POST",
+                        url: '{!! route('submit-send-trolley-stock') !!}',
+                        data: {
+                            tanggal_loading: tanggalLoading,
+                            selectedStocker: selectedStocker,
+                            destination: destination,
+                            line_id: lineId,
+                            destination_trolley_id: destinationTrolleyId,
+                            no_bon: noBon,
+                        },
+                        success: function(res) {
+                            if (document.getElementById("loading")) {
+                                document.getElementById("loading").classList.add("d-none");
+                            }
+
+                            element.removeAttribute('disabled');
+
+                            if (res.status == 200) {
+                                document.getElementById("no_bon").value = "";
+
+                                iziToast.success({
+                                    title: 'Success',
+                                    message: res.message,
+                                    position: 'topCenter'
+                                });
+                            } else {
+                                iziToast.error({
+                                    title: 'Error',
+                                    message: res.message,
+                                    position: 'topCenter'
                                 });
                             }
 
-                            if (res.additional['fail'].length > 0) {
-                                res.additional['fail'].forEach(element => {
-                                    message += element['stocker'] + " - Gagal <br>";
-                                });
-                            }
+                            if (res.additional) {
+                                let message = "";
 
-                            if (res.additional['exist'].length > 0) {
-                                res.additional['exist'].forEach(element => {
-                                    message += element['stocker'] + " - Sudah Ada <br>";
-                                });
-                            }
+                                if (res.additional['success'].length > 0) {
+                                    res.additional['success'].forEach(element => {
+                                        message += element['stocker'] + " - Berhasil <br>";
+                                    });
+                                }
 
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'Hasil Transfer',
-                                html: message,
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                            }).then(() => {
-                                if (isNotNull(res.redirect)) {
-                                    if (res.redirect != 'reload') {
-                                        location.href = res.redirect;
+                                if (res.additional['fail'].length > 0) {
+                                    res.additional['fail'].forEach(element => {
+                                        message += element['stocker'] + " - Gagal <br>";
+                                    });
+                                }
+
+                                if (res.additional['exist'].length > 0) {
+                                    res.additional['exist'].forEach(element => {
+                                        message += element['stocker'] + " - Sudah Ada <br>";
+                                    });
+                                }
+
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Hasil Transfer',
+                                    html: message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                }).then(() => {
+                                    if (isNotNull(res.redirect)) {
+                                        if (res.redirect != 'reload') {
+                                            location.href = res.redirect;
+                                        } else {
+                                            location.reload();
+                                        }
                                     } else {
                                         location.reload();
                                     }
-                                } else {
-                                    location.reload();
-                                }
-                            });
+                                });
+                            }
+                        },
+                        error: function(jqXHR) {
+                            if (document.getElementById("loading")) {
+                                document.getElementById("loading").classList.add("d-none");
+                            }
+
+                            element.removeAttribute('disabled');
+
+                            // let res = jqXHR.responseJSON;
+                            // let message = '';
+
+                            // for (let key in res.errors) {
+                            //     message = res.errors[key];
+                            // }
+
+                            // iziToast.error({
+                            //     title: 'Error',
+                            //     message: 'Terjadi kesalahan. ' + message,
+                            //     position: 'topCenter'
+                            // });
+
+                            console.log(jqXHR);
                         }
-                    },
-                    error: function(jqXHR) {
-                        if (document.getElementById("loading")) {
-                            document.getElementById("loading").classList.add("d-none");
-                        }
-
-                        element.removeAttribute('disabled');
-
-                        // let res = jqXHR.responseJSON;
-                        // let message = '';
-
-                        // for (let key in res.errors) {
-                        //     message = res.errors[key];
-                        // }
-
-                        // iziToast.error({
-                        //     title: 'Error',
-                        //     message: 'Terjadi kesalahan. ' + message,
-                        //     position: 'topCenter'
-                        // });
-
-                        console.log(jqXHR);
-                    }
-                })
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    html: "Harap pilih line/trolley dan tentukan stocker nya",
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                });
+                    })
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: "Harap pilih line/trolley dan tentukan stocker nya",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    });
+                }
             }
         }
 
@@ -500,9 +523,9 @@
 
             await clearTrolleyScan();
 
-            await initLineScan();
-
             document.getElementById("loading").classList.add("d-none");
+
+            await initLineScan();
         }
 
         async function toTrolley() {
@@ -520,9 +543,9 @@
 
             await clearLineScan();
 
-            await initTrolleyScan();
-
             document.getElementById("loading").classList.add("d-none");
+
+            await initTrolleyScan();
         }
     </script>
 @endsection

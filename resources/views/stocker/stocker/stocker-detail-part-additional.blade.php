@@ -11,7 +11,7 @@
         <div class="accordion-item">
             <div class="d-flex justify-content-between align-items-center">
                 <h2 class="accordion-header w-75">
-                    <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen1-{{ $indexAdditional }}" aria-expanded="false" aria-controls="panelsStayOpen1-collapseTwo">
+                    <button class="accordion-button accordion-sb-secondary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen1-{{ $indexAdditional }}" aria-expanded="false" aria-controls="panelsStayOpen1-collapseTwo">
                         <div class="d-flex w-75 justify-content-between align-items-center">
                             <p class="w-25 mb-0">{{ $partDetailAdd->nama_part." - ".$partDetailAdd->bag }}</p>
                             <p class="w-50 mb-0">{{ $partDetailAdd->tujuan." - ".$partDetailAdd->proses }}</p>
@@ -21,7 +21,7 @@
                 <div class="accordion-header-side col-3">
                     <div class="form-check ms-3">
                         <input class="form-check-input generate-stocker-check-add generate-add-{{ $partDetailAdd->id }}" type="checkbox" id="generate_add{{ $partIndexAdditional }}" name="generate_stocker_add[{{ $partIndexAdditional }}]" data-group="generate-add-{{ $partDetailAdd->id }}" value="{{ $partDetailAdd->id }}" onchange="massChange(this)" disabled>
-                        <label class="form-check-label fw-bold text-sb">
+                        <label class="form-check-label fw-bold text-sb-secondary">
                             Generate Stocker Additional
                         </label>
                     </div>
@@ -55,8 +55,11 @@
                                         }
 
                                         if ($qtyAdditional > 0) :
-                                        $rangeAwalAdditional = 1 + $qtyBeforeAdditional;
-                                        $rangeAkhirAdditional = $qtyBeforeAdditional + $qtyAdditional;
+                                            $stockerThis = $dataStockerAdditional ? $dataStockerAdditional->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
+                                            $stockerBefore = $dataStockerAdditional ? $dataStockerAdditional->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc('no_cut')->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
+
+                                            $rangeAwalAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBeforeAdditional) : "-") : 1 + ($qtyBeforeAdditional)) : 1 + ($qtyBeforeAdditional));
+                                            $rangeAkhirAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qtyAdditional + ($qtyBeforeAdditional) : "-") : $qtyAdditional + ($qtyBeforeAdditional)) : $qtyAdditional + ($qtyBeforeAdditional));
                                     @endphp
                                     <tr>
                                         <input type="hidden" name="part_detail_id_add[{{ $indexAdditional }}]" id="part_detail_id_add_{{ $indexAdditional }}" value="{{ $partDetailAdd->id }}">
@@ -88,7 +91,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                        <button type="button" class="btn btn-sm btn-danger fw-bold float-end mb-3" onclick="printStockerAllSizeAdd('{{ $partDetailAdd->id }}', '{{ $currentGroupAdditional }}', '{{ $currentTotalAdditional }}');" {{ $generatableAdd ? '' : 'disabled' }}>Generate All Size <i class="fas fa-print"></i></button>
+                        <button type="button" class="btn btn-sm btn-no fw-bold float-end mb-3" onclick="printStockerAllSizeAdd('{{ $partDetailAdd->id }}', '{{ $currentGroupAdditional }}', '{{ $currentTotalAdditional }}');" {{ $generatableAdd ? '' : 'disabled' }}>Generate All Size <i class="fas fa-print"></i></button>
                         <input type="hidden" class="generatable" name="generatable_add[{{ $partIndexAdditional }}]" id="generatable_add_{{ $partIndexAdditional }}" data-group="{{ $partDetailAdd->id }}" value="{{ $generatableAdd }}">
                     </div>
                 </div>

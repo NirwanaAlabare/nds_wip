@@ -761,6 +761,9 @@
                                 <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
                                     Mutasi Detail
                                 </a>
+                                <a href="{{ route('lap-mutasi-barcode') }}" class="dropdown-item">
+                                    Mutasi Barcode
+                                </a>
                             </li>
                         </ul>
                     </li>

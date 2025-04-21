@@ -579,6 +579,31 @@ table.sticky-table .fixed-column {
     box-shadow: none !important;
 }
 
+.accordion-item .accordion-button.accordion-sb-secondary  {
+    background-color: var(--light-color);
+}
+
+.accordion-button.accordion-sb-secondary {
+    background-color: var(--sb-secondary-color) !important;
+    color: var(--light-color) !important;
+    font-weight: 600;
+    border-top-right-radius: 0px !important;
+}
+
+.accordion-button.accordion-sb-secondary.collapsed {
+    background-color: #fff !important;
+    color: var(--sb-secondary-color) !important;
+    font-weight: 600;
+    border-top-right-radius: 0px !important;
+}
+
+.accordion-button.accordion-sb-secondary:focus {
+    z-index: 3;
+    border-color: none !important;
+    outline: 0;
+    box-shadow: none !important;
+}
+
 .accordion-button.accordion-blue {
     background-color: var(--rework-color) !important;
     color: var(--light-color) !important;

@@ -120,7 +120,7 @@
                     </div>
                 </div>
                 <div class="mb-5">
-                    <h5 class="fw-bold mb-3 ps-1">Print Stocker</h5>
+                    <h5 class="fw-bold text-sb mb-3 ps-1">Print Stocker</h5>
                     <div class="card">
                         <div class="card-body">
                             @php
@@ -310,7 +310,7 @@
                     </div>
                 </div>
                 <div class="mb-5">
-                    <h5 class="fw-bold mb-3 ps-1">Additional Stocker</h5>
+                    <h5 class="text-sb-secondary fw-bold mb-3 ps-1">Additional Stocker</h5>
                     <div class="card">
                         <div class="card-body">
                             @if (!$dataAdditional)
@@ -324,23 +324,23 @@
                                 <input type="hidden" value="{{ $dataAdditional->act_costing_ws }}" id="id_ws_add" readonly>
                                 <div class="row my-3">
                                     <div class="col-md-3">
-                                        <label class="form-label">No. WS</label>
-                                        <input type="text" class="form-control" value="{{ $dataAdditional->act_costing_ws }}" id="no_ws_add" name="no_ws_add" readonly>
+                                        <label><small>No. WS</small></label>
+                                        <input type="text" class="form-control form-control-sm" value="{{ $dataAdditional->act_costing_ws }}" id="no_ws_add" name="no_ws_add" readonly>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Style</label>
-                                        <input type="text" class="form-control" value="{{ $dataAdditional->style }}" id="style_add" name="style_add" readonly>
+                                        <label><small>Style</small></label>
+                                        <input type="text" class="form-control form-control-sm" value="{{ $dataAdditional->style }}" id="style_add" name="style_add" readonly>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Color</label>
-                                        <input type="text" class="form-control" value="{{ $dataAdditional->color }}" id="color_add" name="color_add" readonly>
+                                        <label><small>Color</small></label>
+                                        <input type="text" class="form-control form-control-sm" value="{{ $dataAdditional->color }}" id="color_add" name="color_add" readonly>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Panel</label>
-                                        <input type="text" class="form-control" value="{{ $dataAdditional->panel }}" id="panel_add" name="panel_add" readonly>
+                                        <label><small>Panel</small></label>
+                                        <input type="text" class="form-control form-control-sm" value="{{ $dataAdditional->panel }}" id="panel_add" name="panel_add" readonly>
                                     </div>
                                 </div>
-                                <hr>
+                                <hr style="margin-top: 1rem; margin-bottom: 1rem; border: 1px; border-top-width: 1px; border-top-style: none; border-top-color: currentcolor; border-top: 1px solid rgb(149, 149, 149);">
                                 @php
                                     $indexAdditional = 0;
                                     $partIndexAdditional = 0;
@@ -524,7 +524,7 @@
                             @endif
                         </div>
                         <div class="d-flex justify-content-end p-3">
-                            <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStockerAdd()"><i class="fa fa-print"></i> Generate Checked Stocker Additional</button>
+                            <button type="button" class="btn btn-no btn-sm mb-3 w-auto" onclick="generateCheckedStockerAdd()"><i class="fa fa-print"></i> Generate Checked Stocker Additional</button>
                         </div>
                     </div>
                 </div>
