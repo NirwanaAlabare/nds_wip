@@ -25,13 +25,14 @@
                     <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> STK-12332</b><br>&nbsp;&nbsp;&nbsp;<b> STK-12433</b><br>&nbsp;&nbsp;&nbsp;<b> STK-12651</b></div>
                 </div>
                 <div class="col-md-6">
-                    <button class="btn btn-block btn-primary mt-1" onclick="currentStockerTableReload()"><i class="fa fa-search"></i> Check</button>
+                    <button class="btn btn-block btn-sb-secondary mt-1" onclick="currentStockerTableReload()"><i class="fa fa-search"></i> Check</button>
                 </div>
             </div>
             <div class="table-responsive">
                 <table class="table table-sm table-bordered w-100'" id="current-stocker-table">
                     <thead>
                         <tr>
+                            <th>IDs</th>
                             <th>Stocker IDs</th>
                             <th>Tanggal Loading</th>
                             <th>Line</th>
@@ -53,8 +54,24 @@
                 </table>
             </div>
             <div class="mt-3">
-                <label class="form-label">Total</label>
-                <input type="number" class="form-control" readonly>
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Line</label>
+                        <select class="form-select select2bs4" name="line_id" id="line_id">
+                            <option value="">Pilih Line</option>
+                            @foreach ($lines as $line)
+                                <option value="{{ $line->line_id }}">{{ strtoupper(str_replace("_", " ", $line->username)) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Total</label>
+                        <input type="number" class="form-control" id="total_update" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-sb btn-block" onclick="updateStocker()">UPDATE</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -69,6 +86,20 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        // Initialize Select2 Elements
+        $('.select2').select2()
+
+        // Initialize Select2BS4 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'rounded'
+        })
+
         let currentStockerTable = $("#current-stocker-table").DataTable({
             ordering: false,
             processing: true,
@@ -80,6 +111,9 @@
                 },
             },
             columns: [
+                {
+                    data:'ids'
+                },
                 {
                     data:'stocker_ids'
                 },
@@ -125,15 +159,78 @@
             ],
             columnDefs: [
                 {
-                    targets: "_all",
-                    className: "text-nowrap"
+                    targets: [0],
+                    className: "hidden",
+                    render: (data, type, row, meta) => {
+                        // Hidden Size Input
+                        return '<input type="hidden" id="id-' + meta.row + '" name="ids['+meta.row+']" value="' + data + '" readonly />'
+                    }
                 },
+                {
+                    targets: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                    className: "text-nowrap"
+                }
             ],
         });
 
         function currentStockerTableReload() {
             $("#current-stocker-table").DataTable().ajax.reload(() => {
                 $("#total_update").val(currentStockerTable.page.info().recordsTotal);
+            });
+        }
+
+        function updateStocker() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('modify-loading-line-update') }}",
+                data: {
+                    stockerIds: $("#stocker_ids").val(),
+                    lineId : $("#line_id").val(),
+                },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response);
+                    if (response.status == 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            html: response.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: 'Terjadi Kesalahan',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+
+                    currentStockerTableReload();
+                },
+                error: function(jqXHR) {
+                    console.error(jqXHR);
+                }
             });
         }
     </script>
