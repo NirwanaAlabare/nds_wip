@@ -731,4 +731,127 @@ order by id_item asc, color asc
 
         return response()->json($data_monitoring_mat_f_det);
     }
+
+
+    public function get_ppic_monitoring_material_column(Request $request)
+    {
+        $style = $request->style;
+        $buyer = $request->buyer;
+
+        // Step 1: Get the dynamic list of (month, year)
+        $periods = DB::connection('mysql_sb')->select("
+        WITH gmt AS (
+            SELECT sd.id AS id_so_det, id_jo, kpno, styleno, sd.*
+            FROM so_det sd
+            JOIN so ON sd.id_so = so.id
+            JOIN act_costing ac ON so.id_cost = ac.id
+            JOIN jo_det jd ON so.id = jd.id_so
+            JOIN mastersupplier ms ON ac.id_buyer = ms.id_supplier
+            WHERE ac.styleno = '255k0011' AND ms.supplier = 'KANMAX ENTERPRISES LTD' AND sd.cancel = 'N' AND so.cancel_h = 'N'
+        ),
+        bom AS (
+            SELECT a.*, mp.nama_panel, gmt.qty AS qty_order
+            FROM bom_jo_item a
+            JOIN gmt ON gmt.id_so_det = a.id_so_det AND gmt.id_jo = a.id_jo
+            LEFT JOIN masterpanel mp ON a.id_panel = mp.id
+            WHERE status = 'M'
+        ),
+        output_det AS (
+            SELECT id_item, itemdesc,
+                CASE WHEN a.unit = 'YRD' THEN ROUND(cons * 0.9144, 2) ELSE cons END AS cons_ws_konv,
+                nama_panel,
+                SUM(qty_po) AS qty_po,
+                MONTH(tgl_shipment) AS bln,
+                YEAR(tgl_shipment) AS thn
+            FROM bom a
+            JOIN masteritem mi ON a.id_item = mi.id_gen
+            JOIN laravel_nds.ppic_master_so p ON a.id_so_det = p.id_so_det
+            WHERE mi.mattype = 'F' AND nama_panel IS NOT NULL
+            GROUP BY id_item, itemdesc, nama_panel, cons_ws_konv, MONTH(tgl_shipment), YEAR(tgl_shipment)
+        )
+        SELECT bln, thn
+        FROM output_det
+        GROUP BY bln, thn
+        ORDER BY thn, bln
+    ", [$style, $buyer]);
+
+        // Step 2: Build dynamic columns from that result
+        $monthNames = [
+            1 => 'Jan',
+            2 => 'Feb',
+            3 => 'Mar',
+            4 => 'Apr',
+            5 => 'May',
+            6 => 'Jun',
+            7 => 'Jul',
+            8 => 'Aug',
+            9 => 'Sep',
+            10 => 'Oct',
+            11 => 'Nov',
+            12 => 'Dec'
+        ];
+        $dynamicSelects = [];
+
+        foreach ($periods as $p) {
+            $colName = $monthNames[$p->bln] . '_' . $p->thn;
+            $dynamicSelects[] = "SUM(CASE WHEN bln = {$p->bln} AND thn = {$p->thn} THEN qty_po ELSE 0 END) AS `$colName`";
+        }
+
+        $selectString = implode(",\n", $dynamicSelects);
+
+        // Step 3: Final dynamic query
+        $finalQuery = "
+WITH gmt as (
+select sd.id as id_so_det,id_jo,kpno,styleno, sd.* from so_det sd
+inner join so on sd.id_so = so.id
+inner join act_costing ac on so.id_cost = ac.id
+inner join jo_det jd on so.id = jd.id_so
+inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
+where ac.styleno = '255k0011' and ms.supplier = 'KANMAX ENTERPRISES LTD' and sd.cancel = 'N' and so.cancel_h = 'N'
+),
+bom as (
+select a.*, mp.nama_panel, gmt.qty qty_order from bom_jo_item a
+inner join gmt on gmt.id_so_det  = a.id_so_det and gmt.id_jo = a.id_jo
+left join masterpanel mp on a.id_panel = mp.id
+where status = 'M'
+),
+output_det as (
+SELECT id_item, itemdesc, cons_ws_konv, sum(qty_po) qty_po, nama_panel, month(tgl_shipment) bln, year(tgl_shipment) thn FROM
+(
+SELECT
+id_so_det,
+mi.id_item,
+mi.itemdesc,
+	case
+			when a.unit = 'YRD' THEN round(cons * 0.9144,2)
+			else cons
+			end as cons_ws_konv,
+nama_panel
+from bom a
+inner join masteritem mi on a.id_item = mi.id_gen
+where mi.mattype = 'F' and nama_panel is not null
+group by id_so_det, 	case
+			when a.unit = 'YRD' THEN round(cons * 0.9144,2)
+			else cons
+			end, nama_panel
+)	a
+inner join laravel_nds.ppic_master_so p on a.id_so_det = p.id_so_det
+group by id_item, cons_ws_konv, nama_panel, month(tgl_shipment), year(tgl_shipment)
+order by month(tgl_shipment) asc, year(tgl_shipment) asc, nama_panel asc
+)
+        SELECT
+            id_item, itemdesc, nama_panel, cons_ws_konv,
+            $selectString
+        FROM output_det a
+        GROUP BY id_item, itemdesc, nama_panel, cons_ws_konv
+        ORDER BY nama_panel asc
+    ";
+
+        $finalData = DB::connection('mysql_sb')->select($finalQuery, [$style, $buyer]);
+
+        return response()->json([
+            'columns' => $periods,
+            'data' => $finalData
+        ]);
+    }
 }

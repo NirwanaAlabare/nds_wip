@@ -73,6 +73,7 @@ use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\UndoOutputController;
 use App\Http\Controllers\Sewing\ReportDefectController;
+use App\Http\Controllers\Sewing\SewingToolsController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -819,6 +820,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/summary', 'summary')->name('summary-loading');
         Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
         Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
+
+        Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
+        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
     });
 
     // Bon Loading
@@ -1068,6 +1072,12 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
+    });
+
+    Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("sewing")->group(function () {
+        Route::get('/', 'index')->name("sewing-tools");
+        Route::post('/miss-masterplan', 'missMasterPlan')->name("miss-masterplan");
+        Route::post('/miss-rework', 'missRework')->name("miss-rework");
     });
 
     // Mutasi Mesin
@@ -1707,6 +1717,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_ppic_monitoring_material_style', 'get_ppic_monitoring_material_style')->name('get_ppic_monitoring_material_style');
         Route::get('/show_lap_monitoring_material_f_det', 'show_lap_monitoring_material_f_det')->name('show_lap_monitoring_material_f_det');
         Route::post('/export_excel_monitoring_material', 'export_excel_monitoring_material')->name('export_excel_monitoring_material');
+        Route::get('/get_ppic_monitoring_material_column', 'get_ppic_monitoring_material_column')->name('get_ppic_monitoring_material_column');
     });
 
     // Report Hourly Output
