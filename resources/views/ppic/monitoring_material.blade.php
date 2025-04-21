@@ -59,7 +59,7 @@
                         id='style_filter'></select>
                 </div>
                 <div class="mb-3 flex-fill d-flex align-items-end">
-                    <a onclick="dataTableReload()" class="btn btn-outline-primary btn-sm position-relative">
+                    <a onclick="dataTableReload();get_column()" class="btn btn-outline-primary btn-sm position-relative">
                         <i class="fas fa-search fa-sm"></i>
                     </a>
                     <a onclick="export_excel()" class="btn btn-outline-success btn-sm ms-2">
@@ -112,6 +112,19 @@
                     </tfoot> --}}
                 </table>
             </div>
+
+            <label class="form-label"><b>Fabric - Conv Pcs To Shipment</b></label>
+
+            <div class="table-responsive mt-4">
+                <table id="datatable_conv" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead class="table-primary">
+                        <tr id="tableHeadRow" style="text-align: center; vertical-align: middle"></tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+
 
         </div>
     </div>
@@ -460,6 +473,79 @@
                         confirmButtonText: 'Okay'
                     });
                 }
+            });
+        }
+
+        function get_column() {
+            let buyer_filter = $("#buyer_filter").val();
+            let style_filter = $("#style_filter").val();
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('get_ppic_monitoring_material_column') }}',
+                data: {
+                    buyer: buyer_filter,
+                    style: style_filter
+                },
+                success: function(response) {
+                    const columns = response.columns;
+                    const data = response.data;
+
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                    ];
+
+                    const dynamicColumnNames = columns.map(c => `${monthNames[c.bln - 1]} ${c.thn}`);
+
+                    const tableData = data.map(row => {
+                        return {
+                            id: row.id_item,
+                            month: row.nama_panel,
+                            values: dynamicColumnNames.map(col => {
+                                const key = col.replace(' ', '_'); // example: 'Feb_2025'
+                                return row[key] ?? 0;
+                            })
+                        };
+                    });
+
+                    buildDynamicTable(dynamicColumnNames, tableData);
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", status, error);
+                }
+            });
+        }
+
+        function buildDynamicTable(columnNames, dataRows) {
+            const headRow = document.getElementById('tableHeadRow');
+            const tableBody = document.getElementById('tableBody');
+
+            headRow.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            ['ID Item', 'Nama Panel'].forEach(header => {
+                const th = document.createElement('th');
+                th.innerText = header;
+                headRow.appendChild(th);
+            });
+
+            columnNames.forEach(name => {
+                const th = document.createElement('th');
+                th.innerText = name;
+                headRow.appendChild(th);
+            });
+
+            dataRows.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${row.id}</td><td>${row.month}</td>`;
+
+                row.values.forEach(val => {
+                    const td = document.createElement('td');
+                    td.innerText = val;
+                    tr.appendChild(td);
+                });
+
+                tableBody.appendChild(tr);
             });
         }
     </script>

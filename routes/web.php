@@ -1698,6 +1698,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_ppic_monitoring_material_style', 'get_ppic_monitoring_material_style')->name('get_ppic_monitoring_material_style');
         Route::get('/show_lap_monitoring_material_f_det', 'show_lap_monitoring_material_f_det')->name('show_lap_monitoring_material_f_det');
         Route::post('/export_excel_monitoring_material', 'export_excel_monitoring_material')->name('export_excel_monitoring_material');
+        Route::get('/get_ppic_monitoring_material_column', 'get_ppic_monitoring_material_column')->name('get_ppic_monitoring_material_column');
     });
 
     // Report Hourly Output
