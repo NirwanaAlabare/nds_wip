@@ -352,7 +352,7 @@ class TrolleyStockerController extends Controller
         $i = 0;
         foreach ($similarStockerData as $stocker) {
 
-            $trolleyStockCheck = TrolleyStocker::where("stocker_id", $stocker['id'])->first();
+            $trolleyStockCheck = TrolleyStocker::where("stocker_id", $stocker['id'])->where("status", "active")->first();
             if (!$trolleyStockCheck) {
                 array_push($trolleyStockArr, [
                     "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),

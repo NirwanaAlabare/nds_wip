@@ -73,6 +73,7 @@ use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\UndoOutputController;
 use App\Http\Controllers\Sewing\ReportDefectController;
+use App\Http\Controllers\Sewing\SewingToolsController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -819,6 +820,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/summary', 'summary')->name('summary-loading');
         Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
         Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
+
+        Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
+        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
     });
 
     // Bon Loading
@@ -1068,6 +1072,12 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
+    });
+
+    Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("sewing")->group(function () {
+        Route::get('/', 'index')->name("sewing-tools");
+        Route::post('/miss-masterplan', 'missMasterPlan')->name("miss-masterplan");
+        Route::post('/miss-rework', 'missRework')->name("miss-rework");
     });
 
     // Mutasi Mesin
