@@ -11,7 +11,9 @@ use App\Models\FormCutInputDetailLap;
 use App\Models\FormCutReject;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
+use App\Models\Part;
 use App\Models\PartDetail;
+use App\Models\PartForm;
 use App\Models\ModifySizeQty;
 use App\Models\MonthCount;
 use App\Models\YearSequence;
@@ -192,6 +194,14 @@ class StockerController extends Controller
             where("form_cut_input.id", $formCutId)->
             groupBy("form_cut_input.id")->
             first();
+
+        $dataPartForm = PartForm::selectRaw("part_form.form_id, form_cut_input.no_cut")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            where("marker_input.color", $dataSpreading->color)->
+            where("part_form.part_id", $dataSpreading->part_id)->
+            whereRaw("(form_cut_input.no_cut < ".$dataSpreading->no_cut." or form_cut_input.no_cut > ".$dataSpreading->no_cut.")")->
+            get();
 
         $dataPartDetail = PartDetail::selectRaw("
                 part_detail.id,
@@ -406,7 +416,7 @@ class StockerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
+        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataPartForm" => $dataPartForm, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**
@@ -1948,7 +1958,7 @@ class StockerController extends Controller
             }
 
             // Adjust stocker data
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->where("notes", "!=", "ADDITIONAL")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
             $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             $currentStockerSize = "";

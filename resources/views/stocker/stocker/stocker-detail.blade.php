@@ -24,6 +24,22 @@
             </div>
         </div>
         <div class="card-body">
+            @php
+                $dataPartFormPrevious = $dataPartForm->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc("no_cut")->first();
+                $dataPartFormNext = $dataPartForm->where("no_cut", ">", $dataSpreading->no_cut)->sortBy("no_cut")->first();
+            @endphp
+            <div class="d-flex justify-content-between mb-3">
+                <div>
+                    @if ($dataPartFormPrevious)
+                        <a href="{{ route('show-stocker')."/".$dataPartFormPrevious->form_id }}" class="text-sb"><u><< Prev</u></a>
+                    @endif
+                </div>
+                <div>
+                    @if ($dataPartFormNext)
+                        <a href="{{ route('show-stocker')."/".$dataPartFormNext->form_id }}" class="text-sb"><u>Next >></u></a>
+                    @endif
+                </div>
+            </div>
             <div class="d-flex justify-content-end gap-3 mb-3">
                 <button type="button" class="btn btn-success btn-sm" onclick="countStockerUpdate()">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> No. Stocker
