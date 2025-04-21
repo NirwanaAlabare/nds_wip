@@ -19,6 +19,51 @@ class SewingToolsController extends Controller
         ]);
     }
 
+    public function missUser() {
+        $masterUser = collect(DB::connection("mysql_sb")->select("
+            SELECT
+                output_rfts.id,
+                userpassword.line_id as actual_line_id,
+                userpassword.username as sewing_line,
+                master_plan.sewing_line as plan_sewing_line
+                plan_line.line_id as plan_line_id
+            FROM
+                output_rfts
+                LEFT JOIN user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                LEFT JOIN userpassword on userpassword.line_id = user_sb_wip.line_id
+                LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+                LEFT JOIN userpassword as plan_line on plan_line.line_id = userpassword.line_id
+            WHERE
+                output_rfts.updated_at between '".date("Y-m-d H:i:s", strtotime(date("Y-m-d").' -1 month'))."' and '".date("Y-m-d H:i:s")."'
+                AND (userpassword.username != master_plan.sewing_line)
+        "));
+
+        $success = [];
+        $fails = [];
+        $unavailable = [];
+        foreach ($masterUser as $mu) {
+            if ($mu->sewing_line && $mu->plan_sewing_line) {
+                $updateRft = Rft::where("id", $mu->id)->update([
+                    "created_by" => $mu->plan_line_id
+                ]);
+
+                if ($updateRft) {
+                    array_push($success, $mu->id);
+                } else {
+                    array_push($fails, $mu->id);
+                }
+            }
+        }
+
+        return array(
+            'status' => 200,
+            'message' => 'Berhasil mengubah '.count($success).' data <br> Tidak dapat menemukan master plan '.count($unavailable).' data <br> Gagal mengubah '.count($fails).' data',
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
+    }
+
     public function missMasterPlan() {
         $masterPlan = collect(DB::connection("mysql_sb")->select("
             SELECT
