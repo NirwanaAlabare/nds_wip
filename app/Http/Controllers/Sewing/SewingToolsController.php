@@ -43,7 +43,7 @@ class SewingToolsController extends Controller
                 LEFT JOIN master_plan actual on actual.id_ws = act_costing.id and actual.sewing_line = userpassword.username and actual.tgl_plan <= master_plan.tgl_plan
             WHERE
                 output_rfts.updated_at between '".date("Y-m-d H:i:s", strtotime(date("Y-m-d").' -1 month'))."' and '".date("Y-m-d H:i:s")."'
-                AND act_costing_plan.id != act_costing.id
+                AND (act_costing_plan.id != act_costing.id)
         "));
 
         $success = [];
