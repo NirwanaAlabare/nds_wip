@@ -120,6 +120,7 @@ use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
 use App\Http\Controllers\TransferBpbController;
+use App\Http\Controllers\LapMutasiBarcodeController;
 
 use App\Http\Controllers\PPICDashboardController;
 
@@ -1347,6 +1348,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('lap-mutasi-detail');
         // export excel
         Route::get('/export_excel_mut_detail', 'export_excel_mut_detail')->name('export_excel_mut_detail');
+        // Route::get('/export', 'export')->name('export');
+    });
+
+    //laporan mutasi barcode
+    Route::controller(LapMutasiBarcodeController::class)->prefix("lap-mutasi-barcode")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('lap-mutasi-barcode');
+        // export excel
+        Route::get('/export_excel_mut_barcode', 'export_excel_mut_barcode')->name('export_excel_mut_barcode');
         // Route::get('/export', 'export')->name('export');
     });
 
