@@ -14,6 +14,14 @@ class Stocker extends Model
     protected $guarded = [];
 
     /**
+     * Get the master sb ws.
+     */
+    public function masterSbWs()
+    {
+        return $this->belongsTo(MasterSbWs::class, 'so_det_id', 'id_so_det');
+    }
+
+    /**
      * Get the part.
      */
     public function partDetail()
