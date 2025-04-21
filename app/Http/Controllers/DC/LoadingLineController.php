@@ -931,9 +931,9 @@ class LoadingLineController extends Controller
                 $line = $lines->where("line_id", $request->lineId)->first();
 
                 $loadingLinePlan = LoadingLinePlan::where("line_id", $request->lineId)->
-                    where("act_costing_id", $loadingLine->loadingPlan->act_costing_id)->
-                    where("color", $loadingLine->loadingPlan->color)->
-                    where("tanggal", $loadingLine->loadingPlan->tanggal)->
+                    where("act_costing_id", $loadingLine->stocker->act_costing_id)->
+                    where("color", $loadingLine->stocker->color)->
+                    where("tanggal", $loadingLine->tanggal_loading)->
                     first();
 
                 if ($loadingLinePlan) {
@@ -951,14 +951,14 @@ class LoadingLineController extends Controller
                     $newLoadingPlan = LoadingLinePlan::create([
                         "line_id" => $request->lineId,
                         "kode" => $kodeLoadingPlan,
-                        "act_costing_id" => $loadingLine->loadingPlan->act_costing_id,
-                        "act_costing_ws" => $loadingLine->loadingPlan->act_costing_ws,
-                        "buyer" => $loadingLine->loadingPlan->buyer,
-                        "style" => $loadingLine->loadingPlan->style,
-                        "color" => $loadingLine->loadingPlan->color,
+                        "act_costing_id" => $loadingLine->stocker->masterSbWs->id_act_cost,
+                        "act_costing_ws" => $loadingLine->stocker->act_costing_ws,
+                        "buyer" => $loadingLine->stocker->masterSbWs->buyer,
+                        "style" => $loadingLine->stocker->masterSbWs->styleno,
+                        "color" => $loadingLine->stocker->masterSbWs->color,
                         "target_sewing" => $loadingLine->loadingPlan->target_sewing,
                         "target_loading" => $loadingLine->loadingPlan->target_loading,
-                        "tanggal" => $loadingLine->loadingPlan->tanggal,
+                        "tanggal" => $loadingLine->tanggal_loading,
                     ]);
 
                     $loadingLine->line_id = $request->lineId;

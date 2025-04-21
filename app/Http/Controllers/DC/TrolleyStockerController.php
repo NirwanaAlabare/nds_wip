@@ -29,7 +29,7 @@ class TrolleyStockerController extends Controller
                 trolley.id,
                 trolley_stocker.tanggal_alokasi,
                 stocker.act_costing_ws,
-                (CASE WHEN stocker.tipe = 'REJECT' THEN stocker.style ELSE marker_input.style END) style,
+                (CASE WHEN stocker.tipe = 'REJECT' THEN stocker.style ELSE master_sb_ws.styleno END) style,
                 stocker.color,
                 trolley.nama_trolley,
                 SUM(stocker.qty_ply) qty
@@ -45,6 +45,7 @@ class TrolleyStockerController extends Controller
                     (
                         SELECT
                             stocker_input.id,
+                            stocker_input.so_det_id,
                             (CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.color,
@@ -82,6 +83,7 @@ class TrolleyStockerController extends Controller
                 'stocker.id', '=', 'trolley_stocker.stocker_id'
             )->
             leftJoin("marker_input", "marker_input.kode", "=", "stocker.id_marker")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker.so_det_id")->
             groupBy('trolley.id', 'stocker.act_costing_ws', 'marker_input.style', 'stocker.color')->
             orderByRaw("ISNULL(SUM(stocker.qty_ply)) asc")->
             orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc")->
@@ -109,7 +111,7 @@ class TrolleyStockerController extends Controller
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
+                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -147,7 +149,7 @@ class TrolleyStockerController extends Controller
                     $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
                 })->
                 filterColumn('style', function($query, $keyword) {
-                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) LIKE '%".$keyword."%'");
+                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
@@ -180,7 +182,7 @@ class TrolleyStockerController extends Controller
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
+                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -217,7 +219,7 @@ class TrolleyStockerController extends Controller
                     $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
                 })->
                 filterColumn('style', function($query, $keyword) {
-                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) LIKE '%".$keyword."%'");
+                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
@@ -516,7 +518,7 @@ class TrolleyStockerController extends Controller
                 GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                 stocker_input.act_costing_ws,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
+                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -589,11 +591,11 @@ class TrolleyStockerController extends Controller
                             $storeLoadingPlan = LoadingLinePlan::create([
                                 "line_id" => $lineData['line_id'],
                                 "kode" => $kodeLoadingPlan,
-                                "act_costing_id" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->act_costing_id : $thisStockerData->formReject->act_costing_id),
-                                "act_costing_ws" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->act_costing_ws : $thisStockerData->formReject->act_costing_ws),
-                                "buyer" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->buyer : $thisStockerData->formReject->buyer),
-                                "style" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->style : $thisStockerData->formReject->style),
-                                "color" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->color : $thisStockerData->formReject->color),
+                                "act_costing_id" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->act_costing_id : $thisStockerData->formReject->act_costing_id),
+                                "act_costing_ws" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->act_costing_ws : $thisStockerData->formReject->act_costing_ws),
+                                "buyer" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->buyer : $thisStockerData->formReject->buyer),
+                                "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->style : $thisStockerData->formReject->style),
+                                "color" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : $thisStockerData->formReject->color),
                                 "tanggal" => $request['tanggal_loading'],
                             ]);
 

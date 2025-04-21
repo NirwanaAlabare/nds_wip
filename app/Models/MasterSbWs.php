@@ -15,7 +15,7 @@ class MasterSbWs extends Model
 
     public $timestamps = false;
 
-    public function masterSbWs()
+    public function markerDetails()
     {
         return $this->hasMany(MarkerDetail::class, 'so_det_id', 'id_so_det');
     }
