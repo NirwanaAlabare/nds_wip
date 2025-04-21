@@ -669,8 +669,7 @@ END jam) a))) target from (
                    AND DATE_FORMAT(tgl_plan, '%Y-%m-%d') = ?
                    AND cancel = ?
                    GROUP BY gambar
-                   ORDER BY id ASC
-                   LIMIT 1",
+                   ORDER BY id ASC",
             [$lineId, $tanggal, 'N'],
         );
         return $query;
