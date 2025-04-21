@@ -252,8 +252,8 @@ class DCInController extends Controller
         $data_header = DB::select("
             SELECT
                 a.act_costing_ws,
-                COALESCE(fr.buyer, m.buyer) buyer,
-                COALESCE(fr.style, m.style) styleno,
+                COALESCE(msb.buyer, m.buyer, fr.buyer) buyer,
+                COALESCE(msb.styleno, m.style, fr.style) styleno,
                 a.color,
                 COALESCE(msb.size, a.size) size,
                 a.panel,

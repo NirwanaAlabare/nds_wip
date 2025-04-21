@@ -301,7 +301,7 @@ class TrolleyStockerController extends Controller
 
             if ($updateStocker) {
                 return array(
-                    'status' => 200,
+                    'status' => 201,
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
@@ -380,7 +380,7 @@ class TrolleyStockerController extends Controller
 
             if ($updateStocker) {
                 return array(
-                    'status' => 200,
+                    'status' => 201,
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
                     'table' => 'datatable-trolley-stock',
@@ -516,7 +516,7 @@ class TrolleyStockerController extends Controller
                 GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                 stocker_input.act_costing_ws,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
+                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
