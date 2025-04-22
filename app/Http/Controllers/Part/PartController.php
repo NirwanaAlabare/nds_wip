@@ -13,6 +13,7 @@ use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
+use App\Models\DcIn;
 use App\Models\ModifySizeQty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -561,18 +562,31 @@ class PartController extends Controller
             "edit_proses" => "required",
         ]);
 
-        $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
-            update([
-                'master_secondary_id' => $validatedRequest['edit_proses'],
-            ]);
+        $checkDc = DcIn::leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
+            where("part_detail_id", $validatedRequest['edit_id'])->
+            count();
 
-        if ($update_part) {
+        if ($checkDc < 1) {
+            $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
+                update([
+                    'master_secondary_id' => $validatedRequest['edit_proses'],
+                ]);
+
+            if ($update_part) {
+                return array(
+                    'status' => '201',
+                    'table' => 'datatable_list_part',
+                    'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" berhasil diupdate',
+                );
+            }
+        } else {
             return array(
-                'status' => '201',
+                'status' => '400',
                 'table' => 'datatable_list_part',
-                'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" berhasil diupdate',
+                'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" sudah masuk ke DC',
             );
         }
+
         return array(
             'status' => '400',
             'table' => 'datatable_list_part',
