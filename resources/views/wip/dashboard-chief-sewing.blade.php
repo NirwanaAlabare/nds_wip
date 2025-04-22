@@ -322,6 +322,7 @@
             imageElement.classList.add("img-fluid")
             // imageElement.style.width = "200px";
             // imageElement.style.height = "150px";
+            imageElement.style.marginTop = "auto";
             imageElement.style.marginLeft = "auto";
             imageElement.style.marginRight = "auto";
             imageContainer.appendChild(imageElement);
@@ -800,6 +801,7 @@
                 imageElement.classList.add("img-fluid")
                 // imageElement.style.width = "200px";
                 // imageElement.style.height = "150px";
+                imageElement.style.marginTop = "auto";
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
                 imageContainer.appendChild(imageElement);

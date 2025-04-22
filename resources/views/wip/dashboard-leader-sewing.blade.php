@@ -80,6 +80,25 @@
         .horizontal-grid-box {
             background: #ffffff;
         }
+
+        .profile-frame {
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid #cbcbcb;
+            /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); */
+            margin-top: auto;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .profile-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 @endsection
 
@@ -394,6 +413,10 @@
             imageContainer.classList.add("d-flex")
             imageContainer.classList.add("flex-column")
             imageContainer.classList.add("align-items-center")
+            let imageSubContainer = document.createElement("div")
+            imageSubContainer.classList.add("profile-frame");
+            imageSubContainer.style.width = "83px";
+            imageSubContainer.style.height = "83px";
             let imageElement = document.createElement("img");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -402,7 +425,8 @@
             imageElement.style.marginLeft = "auto";
             imageElement.style.marginRight = "auto";
             // imageElement.style.height = "100px";
-            imageContainer.appendChild(imageElement);
+            imageSubContainer.appendChild(imageElement);
+            imageContainer.appendChild(imageSubContainer);
             imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
             employeeContainer.appendChild(imageContainer);
 
@@ -535,6 +559,10 @@
                 imageContainer.classList.add("d-flex")
                 imageContainer.classList.add("flex-column")
                 imageContainer.classList.add("align-items-center")
+                let imageSubContainer = document.createElement("div");
+                imageSubContainer.classList.add("profile-frame");
+                imageSubContainer.style.width = "83px";
+                imageSubContainer.style.height = "83px";
                 let imageElement = document.createElement("img");
                 imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
                 imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
