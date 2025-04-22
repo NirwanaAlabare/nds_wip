@@ -67,6 +67,24 @@
             height: 100%;
             object-fit: cover;
         }
+
+        .profile-frame {
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid #cbcbcb;
+            /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); */
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .profile-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 @endsection
 
@@ -292,6 +310,10 @@
             chiefContainer.classList.add("col-3");
             chiefContainer.classList.add("p-1");
             chiefContainer.classList.add("border");
+            let imageContainer = document.createElement("div");
+            imageContainer.classList.add("profile-frame");
+            imageContainer.style.width = "75px";
+            imageContainer.style.height = "75px";
             let imageElement = document.createElement("img");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -301,7 +323,8 @@
             // imageElement.style.height = "150px";
             imageElement.style.marginLeft = "auto";
             imageElement.style.marginRight = "auto";
-            chiefContainer.appendChild(imageElement);
+            imageContainer.appendChild(imageElement);
+            chiefContainer.appendChild(imageContainer);
             chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
 
             // Leader
@@ -320,6 +343,10 @@
                 leaderElement.classList.add("flex-column");
                 let leaderImageContainer = document.createElement("div");
                 leaderImageContainer.classList.add("m-auto");
+                let leaderImageSubContainer = document.createElement("div");
+                leaderImageSubContainer.classList.add("profile-frame");
+                leaderImageSubContainer.style.width = "33px";
+                leaderImageSubContainer.style.height = "33px";
                 let leaderImageElement = document.createElement("img");
                 leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                 leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -327,7 +354,8 @@
                 leaderImageElement.classList.add("img-fluid")
                 // leaderImageElement.style.width = "50px";
                 // leaderImageElement.style.height = "50px";
-                leaderImageContainer.appendChild(leaderImageElement)
+                leaderImageSubContainer.appendChild(leaderImageElement)
+                leaderImageContainer.appendChild(leaderImageSubContainer)
                 leaderElement.appendChild(leaderImageContainer);
                 leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
                 leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
@@ -760,6 +788,10 @@
                 chiefContainer.classList.add("col-3");
                 chiefContainer.classList.add("p-1");
                 chiefContainer.classList.add("border");
+                let imageContainer = document.createElement("div");
+                imageContainer.classList.add("profile-frame");
+                imageContainer.style.width = "75px";
+                imageContainer.style.height = "75px";
                 let imageElement = document.createElement("img");
                 imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png";
                 imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -770,7 +802,8 @@
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
                 imageElement.style.marginBottom = "10px";
-                chiefContainer.appendChild(imageElement);
+                imageContainer.appendChild(imageElement);
+                chiefContainer.appendChild(imageContainer);
                 chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
 
                 // Leader
@@ -789,6 +822,10 @@
                     leaderElement.classList.add("flex-column");
                     let leaderImageContainer = document.createElement("div");
                     leaderImageContainer.classList.add("m-auto");
+                    let leaderImageSubContainer = document.createElement("div");
+                    leaderImageSubContainer.classList.add("profile-frame");
+                    leaderImageSubContainer.style.width = "33px";
+                    leaderImageSubContainer.style.height = "33px";
                     let leaderImageElement = document.createElement("img");
                     leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -796,7 +833,8 @@
                     leaderImageElement.classList.add("img-fluid")
                     // leaderImageElement.style.width = "50px";
                     // leaderImageElement.style.height = "50px";
-                    leaderImageContainer.appendChild(leaderImageElement)
+                    leaderImageSubContainer.appendChild(leaderImageElement)
+                    leaderImageContainer.appendChild(leaderImageSubContainer)
                     leaderElement.appendChild(leaderImageContainer);
                     leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
                     leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
