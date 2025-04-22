@@ -1015,6 +1015,7 @@ Route::middleware('auth')->group(function () {
     // Report Defect
     Route::controller(ReportDefectController::class)->prefix('report-defect')->middleware('role:sewing')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
+        Route::get('/total', 'total')->name("total-defect");
     });
 
     // Report Efficiency New

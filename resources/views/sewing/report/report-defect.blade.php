@@ -64,7 +64,9 @@
                     <tfoot>
                         <tr>
                             <td colspan="17">Total</td>
-                            <td id="total-defect">...</td>
+                            <td>
+                                <span id="total-defect">...</span>
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -259,7 +261,7 @@
                     targets: "_all"
                 },
                 {
-                    targets: [17, 18],
+                    targets: [16, 17],
                     render: function (data, type, row) {
                         return formatDateTime(data);
                     },
@@ -268,11 +270,11 @@
             footerCallback: async function(row, data, start, end, display) {
                 var api = this.api(),data;
 
-                $(api.column(17).footer()).html('Total');
-                $(api.column(18).footer()).html("...");
+                $(api.column(16).footer()).html('Total');
+                $(api.column(17).footer()).html("...");
 
                 $.ajax({
-                    url: '{{ route('total-loading-line') }}',
+                    url: '{{ route('total-defect') }}',
                     dataType: 'json',
                     dataSrc: 'data',
                     data: {
@@ -294,8 +296,8 @@
                         console.log(response);
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
-                            $(api.column(17).footer()).html("Total");
-                            $(api.column(18).footer()).html(response);
+                            $(api.column(16).footer()).html("Total");
+                            $(api.column(17).footer()).html(response);
                         }
                     },
                     error: function(jqXHR) {
@@ -306,7 +308,6 @@
         });
 
         function reportDefectDatatableReload() {
-            console.log($('#defect_types').val());
             $('#report-defect-table').DataTable().ajax.reload();
         }
     </script>

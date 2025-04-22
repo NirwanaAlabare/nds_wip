@@ -662,11 +662,13 @@
                         </a>
                     </li>
                     @role('superadmin')
-                        <li class="nav-item">
-                            <a href="{{ route('sewing-tools') }}" class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
-                            </a>
-                        </li>
+                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                            <li class="nav-item">
+                                <a href="{{ route('sewing-tools') }}" class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
+                                    Tools
+                                </a>
+                            </li>
+                        @endif
                     @endrole
                 @endif
 
