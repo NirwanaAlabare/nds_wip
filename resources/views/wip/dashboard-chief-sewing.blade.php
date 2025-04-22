@@ -73,6 +73,7 @@
             overflow: hidden;
             border: 1px solid #cbcbcb;
             /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); */
+            margin-top: auto;
             margin-left: auto;
             margin-right: auto;
             display: flex;
@@ -801,7 +802,6 @@
                 // imageElement.style.height = "150px";
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
-                imageElement.style.marginBottom = "10px";
                 imageContainer.appendChild(imageElement);
                 chiefContainer.appendChild(imageContainer);
                 chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
