@@ -553,6 +553,33 @@ class PartController extends Controller
         );
     }
 
+    public function updatePartSecondary(Request $request)
+    {
+        $validatedRequest = $request->validate([
+            "edit_id" => "required",
+            "edit_tujuan" => "required",
+            "edit_proses" => "required",
+        ]);
+
+        $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
+            update([
+                'master_secondary_id' => $validatedRequest['edit_proses'],
+            ]);
+
+        if ($update_part) {
+            return array(
+                'status' => '201',
+                'table' => 'datatable_list_part',
+                'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" berhasil diupdate',
+            );
+        }
+        return array(
+            'status' => '400',
+            'table' => 'datatable_list_part',
+            'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" gagal diupdate',
+        );
+    }
+
     public function getFormCut(Request $request, $id = 0)
     {
         $formCutInputs = FormCutInput::selectRaw("

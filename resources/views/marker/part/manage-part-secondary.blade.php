@@ -164,6 +164,58 @@
             </div>
         </div>
     </div>
+    <!-- Edit Modal -->
+    <form action="{{ route('update-part-secondary') }}" method="post" id="update_part_secondary_form" onsubmit="submitForm(this, event)">
+        @method("PUT")
+        <div class="modal fade" id="editPartSecondaryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPartSecondaryModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb">
+                        <h1 class="modal-title fs-5" id="editPartSecondaryModalLabel"><i class="fa fa-edit"></i> Edit Part Detail</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="hidden" class="form-control" readonly id="edit_id" name="edit_id">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Part</label>
+                            <input type="text" class="form-control" id="edit_nama_part" name="edit_nama_part" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cons</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="edit_cons" name="edit_cons" readonly>
+                                <input type="text" class="form-control" id="edit_unit" name="edit_unit" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tujuan</label>
+                            <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
+                                @foreach ($data_tujuan as $datatujuan)
+                                    <option value="{{ $datatujuan->isi }}">
+                                        {{ $datatujuan->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proses</label>
+                            <select class="form-select select2bs4" name="edit_proses" id="edit_proses">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-sb-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-sb">Simpan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
 @endsection
 
 @section('custom-script')
@@ -194,8 +246,8 @@
             $("#txtcons").val('').trigger('change');
         }
 
-        function getproses() {
-            let cbotuj = document.form.cbotuj.value;
+        function getproses(element, basedOn) {
+            let cbotuj = basedOn ? basedOn.value : document.form.cbotuj.value;
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('get_proses') }}',
@@ -208,7 +260,12 @@
             console.log(html != "");
 
             if (html != "") {
-                $("#cboproses").html(html);
+                if (element) {
+                    element.innerHTML = html;
+                    console.log(element.innerHTML, html);
+                } else {
+                    $("#cboproses").html(html);
+                }
             }
         };
 
@@ -256,6 +313,9 @@
                         className: "text-center",
                         render: (data, type, row, meta) => {
                             return `
+                                <button class='btn btn-primary btn-sm' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
+                                    <i class='fa fa-edit'></i>
+                                </button>
                                 <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' `+(row.total_stocker > 0 ? 'disabled' : '')+`>
                                     <i class='fa fa-trash'></i>
                                 </button>
