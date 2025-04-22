@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('production:missrework')->hourly()->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
+        $schedule->command('production:missrework')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
     }
 
     /**
