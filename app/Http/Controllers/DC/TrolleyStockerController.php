@@ -571,7 +571,6 @@ class TrolleyStockerController extends Controller
                     $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->where("tanggal", $request['tanggal_loading'])->first();
 
                     $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
-
                     if ($isExist < 1) {
                         if ($loadingLinePlan) {
                             array_push($loadingStockArr, [
