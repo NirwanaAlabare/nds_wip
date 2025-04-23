@@ -805,6 +805,7 @@ class ReportOutput extends Component
                     )")->
                     groupByRaw("act_costing.kpno, master_plan.id_ws, act_costing.styleno, COALESCE(line.sewing_line, master_plan.sewing_line)")->
                     get();
+
                 } else if ($this->group == "style") {
                     $masterPlans = MasterPlan::all();
 
@@ -844,7 +845,7 @@ class ReportOutput extends Component
                         $join->on("so_det.id_so", "=", "so.id");
                         $join->on("so_det.color", "=", "master_plan.color");
                     })->
-                    leftJoin(DB::raw("(
+                    join(DB::raw("(
                         SELECT
                             master_plan.id_ws,
                             output_rfts".($this->qcType).".master_plan_id,

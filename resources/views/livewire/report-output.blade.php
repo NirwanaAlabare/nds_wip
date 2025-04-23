@@ -522,9 +522,11 @@
                         <tr>
                             <th rowspan="2" class="align-middle text-center">Style</th>
                             <th rowspan="2" class="align-middle text-center">Line</th>
-                            <th colspan="5" class="text-center">Output</th>
-                            <th colspan="3" class="text-center">Rate</th>
-                            <th colspan="3" class="text-center">Total</th>
+                            <th rowspan="2" class="align-middle text-center">NIK Leader</th>
+                            <th rowspan="2" class="align-middle text-center">Leader</th>
+                            <th colspan="5" class="align-middle text-center">Output</th>
+                            <th colspan="3" class="align-middle text-center">Rate</th>
+                            <th colspan="3" class="align-middle text-center">Total</th>
                             <th rowspan="2" class="align-middle text-center">Last Input</th>
                         </tr>
                         <tr>
@@ -997,6 +999,7 @@
                         dateTo : dateTo,
                         range : range,
                         search : search,
+                        group : @this.group
                     },
                     xhrFields: { responseType : 'blob' },
                     success: function(res) {
