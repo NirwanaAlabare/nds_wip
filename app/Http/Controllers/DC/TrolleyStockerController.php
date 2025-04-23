@@ -284,6 +284,8 @@ class TrolleyStockerController extends Controller
                 "tanggal_alokasi" => date('Y-m-d'),
                 "created_at" => Carbon::now(),
                 "updated_at" => Carbon::now(),
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username
             ]);
 
             $i++;
@@ -303,7 +305,7 @@ class TrolleyStockerController extends Controller
 
             if ($updateStocker) {
                 return array(
-                    'status' => 201,
+                    'status' => 202,
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
@@ -361,7 +363,9 @@ class TrolleyStockerController extends Controller
                     "trolley_id" => $validatedRequest['trolley_id'],
                     "stocker_id" => $stocker['id'],
                     "status" => "active",
-                    "tanggal_alokasi" => date('Y-m-d')
+                    "tanggal_alokasi" => date('Y-m-d'),
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username
                 ]);
             }
 
@@ -382,7 +386,7 @@ class TrolleyStockerController extends Controller
 
             if ($updateStocker) {
                 return array(
-                    'status' => 201,
+                    'status' => 202,
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
                     'table' => 'datatable-trolley-stock',
@@ -564,7 +568,7 @@ class TrolleyStockerController extends Controller
                 for ($i = 0; $i < count($stockerIds); $i++) {
                     $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
 
-                    $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->first();
+                    $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->where("tanggal", $request['tanggal_loading'])->first();
 
                     $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
 
@@ -582,6 +586,8 @@ class TrolleyStockerController extends Controller
                                 "no_bon" => $request['no_bon'],
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
                             ]);
                         } else {
                             $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
@@ -597,6 +603,8 @@ class TrolleyStockerController extends Controller
                                 "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->styleno : $thisStockerData->formReject->style),
                                 "color" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : $thisStockerData->formReject->color),
                                 "tanggal" => $request['tanggal_loading'],
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
                             ]);
 
                             array_push($loadingStockArr, [
@@ -611,6 +619,8 @@ class TrolleyStockerController extends Controller
                                 "no_bon" => $request['no_bon'],
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
                             ]);
                         }
                     } else {

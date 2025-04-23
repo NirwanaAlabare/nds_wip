@@ -175,8 +175,8 @@
         $(document).ready(async () => {
             document.getElementById("kode_stocker").focus();
 
-            $('#trolley_id').val("").trigger("change");
-            $('#kode_stocker').val("").trigger("change");
+            // $('#trolley_id').val("").trigger("change");
+            // $('#kode_stocker').val("").trigger("change");
 
             await initTrolleyScan();
             await initStockerScan();
@@ -402,7 +402,7 @@
         });
 
         function clearAll() {
-            $('#trolley_id').val("").trigger("change");
+            // $('#trolley_id').val("").trigger("change");
 
             clearStockerData();
         }

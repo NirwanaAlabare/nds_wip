@@ -85,10 +85,10 @@ class SewingToolsController extends Controller
                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
                 LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 LEFT JOIN act_costing act_costing_plan on act_costing_plan.id = master_plan.id_ws
-                LEFT JOIN master_plan actual on actual.id_ws = act_costing.id and actual.sewing_line = userpassword.username and actual.tgl_plan <= master_plan.tgl_plan
+                LEFT JOIN master_plan actual on actual.id_ws = act_costing.id and actual.color = so_det.color and actual.sewing_line = userpassword.username and actual.tgl_plan = master_plan.tgl_plan
             WHERE
                 output_rfts.updated_at between '".date("Y-m-d H:i:s", strtotime(date("Y-m-d").' -1 month'))."' and '".date("Y-m-d H:i:s")."'
-                AND (act_costing_plan.id != act_costing.id)
+                AND (act_costing_plan.id != act_costing.id OR actual.color != so_det.color)
         "));
 
         $success = [];
@@ -106,11 +106,25 @@ class SewingToolsController extends Controller
                     array_push($fails, $mp->id);
                 }
             } else {
+                if ($mp->actual_act_costing_id) {
+                    $updateRft = Rft::where("id", $mp->id)->update([
+                        "master_plan_id" => $mp->master_plan_id
+                    ]);
+
+                    if ($updateRft) {
+                        array_push($success, $mp->id);
+                    } else {
+                        array_push($fails, $mp->id);
+                    }
+                } else {
+                    array_push($unavailable, $mp->id);
+                }
                 $soDet = SoDet::select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->act_costing_plan_id)->where("so_det.color", $mp->master_plan_color)->where("so_det.size", $mp->size)->first();
 
                 if ($soDet) {
                     $rft = Rft::where("id", $mp->id)->first();
                     $rft->so_det_id = $soDet->id;
+                    $rft->created_by = $soDet->id;
                     $rft->save();
 
                     if ($rft) {

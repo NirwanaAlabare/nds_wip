@@ -60,6 +60,7 @@ use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\DC\LoadingLineController;
 use App\Http\Controllers\DC\BonLoadingController;
+use App\Http\Controllers\DC\DcToolsController;
 
 // Sewing
 use App\Http\Controllers\Sewing\MasterLineController;
@@ -210,6 +211,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-sizes-new', 'getSizes')->name('get-sizes');
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
+
+        Route::get('/general-tools', 'generalTools')->name('general-tools');
+        Route::post('/update-general-order', 'updateGeneralOrder')->name('update-general-order');
     });
 
     // Worksheet
@@ -851,6 +855,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
     });
 
+    // DC Tools
+    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:dc')->group(function () {
+        Route::get('/', 'index')->name('dc-tools');
+        Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
+    });
+
     // Sewing :
     // Master Line
     Route::controller(MasterLineController::class)->prefix("master-line")->middleware('role:sewing')->group(function () {
@@ -1015,6 +1025,7 @@ Route::middleware('auth')->group(function () {
     // Report Defect
     Route::controller(ReportDefectController::class)->prefix('report-defect')->middleware('role:sewing')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
+        Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
     });
 

@@ -482,7 +482,16 @@
                                 </li>
                             @endrole
                         </ul>
-                    <li>
+                    </li>
+                    @role('superadmin')
+                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                            <li class="nav-item">
+                                <a href="{{ route('dc-tools') }}" class="nav-link {{ $routeName == 'dc-tools' ? 'active' : '' }}" target="_blank">
+                                    Tools
+                                </a>
+                            </li>
+                        @endif
+                    @endrole
                 @endif
 
                 @if ($page == 'dashboard-sewing-eff')

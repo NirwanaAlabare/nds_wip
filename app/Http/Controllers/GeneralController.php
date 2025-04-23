@@ -9,6 +9,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use App\Models\Stocker;
+use App\Models\MarkerInput;
+use App\Models\Part;
+use App\Models\CuttingPlanOutput;
+use App\Models\StockerAdditional;
+use App\Models\Piping;
+use App\Models\MasterPiping;
+use App\Models\PipingProcess;
+use App\Models\FormCutReject;
+use App\Models\LoadingLinePlan;
 use PDF;
 
 class GeneralController extends Controller
@@ -303,5 +313,206 @@ class GeneralController extends Controller
 
             return $users;
         }
+    }
+
+    public function generalTools(Request $request) {
+        $orders = DB::table("master_sb_ws")->
+            selectRaw("
+                master_sb_ws.id_act_cost act_costing_id,
+                master_sb_ws.ws act_costing_ws
+            ")->
+            groupBy("master_sb_ws.id_act_cost")->
+            orderBy("master_sb_ws.id_act_cost", "desc")->
+            limit(1000)->
+            get();
+
+        return view('general.tools.tools', [
+            "orders" => $orders,
+        ]);
+    }
+
+    public function updateGeneralOrder(Request $request) {
+        ini_set('max_execution_time', 3600); // 1 hour
+
+        $orderInfo = DB::table("master_sb_ws")->
+            selectRaw("
+                master_sb_ws.buyer buyer,
+                master_sb_ws.id_act_cost act_costing_id,
+                master_sb_ws.ws act_costing_ws,
+                master_sb_ws.styleno style,
+                master_sb_ws.color,
+                GROUP_CONCAT(DISTINCT marker_input.id) as marker_ids,
+                GROUP_CONCAT(DISTINCT part.id) as part_ids,
+                GROUP_CONCAT(DISTINCT cutting_plan_output.id) as cutting_plan_ids,
+                null as stocker_ids,
+                GROUP_CONCAT(DISTINCT stocker_ws_additional.id) as stocker_ws_additional_ids,
+                GROUP_CONCAT(DISTINCT master_piping.id) as master_piping_ids,
+                GROUP_CONCAT(DISTINCT form_cut_piping.id) as form_cut_piping_ids,
+                GROUP_CONCAT(DISTINCT form_cut_reject.id) as form_cut_reject_ids,
+                GROUP_CONCAT(DISTINCT loading_line_plan.id) as loading_line_plan_ids
+            ")->
+            leftJoin("marker_input", function ($join) {
+                $join->on("marker_input.act_costing_id", "=", "master_sb_ws.id_act_cost");
+                $join->on("master_sb_ws.color", 'LIKE', DB::raw('CONCAT("%", marker_input.color, "%")'));
+            })->
+            leftJoin("part", function ($join) {
+                $join->on("part.act_costing_id", "=", "master_sb_ws.id_act_cost");
+            })->
+            leftJoin("cutting_plan_output", function ($join) {
+                $join->on("cutting_plan_output.id_ws", "=", "master_sb_ws.id_act_cost");
+                $join->on("master_sb_ws.color", 'LIKE', DB::raw('CONCAT("%", cutting_plan_output.color, "%")'));
+            })->
+            leftJoin("stocker_ws_additional", function ($join) {
+                $join->on("stocker_ws_additional.act_costing_id", "=", "master_sb_ws.id_act_cost");
+                $join->on("master_sb_ws.color", 'LIKE', DB::raw('CONCAT("%", stocker_ws_additional.color, "%")'));
+            })->
+            leftJoin("master_piping", function ($join) {
+                $join->on("master_piping.act_costing_id", "=", "master_sb_ws.id_act_cost");
+            })->
+            leftJoin("form_cut_piping", function ($join) {
+                $join->on("form_cut_piping.act_costing_id", "=", "master_sb_ws.id_act_cost");
+                $join->on("master_sb_ws.color", 'LIKE', DB::raw('CONCAT("%", form_cut_piping.color, "%")'));
+            })->
+            leftJoin("form_cut_reject", function ($join) {
+                $join->on("form_cut_reject.act_costing_id", "=", "master_sb_ws.id_act_cost");
+                $join->on("master_sb_ws.color", 'LIKE', DB::raw('CONCAT("%", form_cut_reject.color, "%")'));
+            })->
+            leftJoin("loading_line_plan", function ($join) {
+                $join->on("loading_line_plan.act_costing_id", "=", "master_sb_ws.id_act_cost");
+                $join->on("master_sb_ws.color", 'LIKE', DB::raw('CONCAT("%", loading_line_plan.color, "%")'));
+            })->
+            whereIn("master_sb_ws.id_act_cost", $request->ids)->
+            groupBy("master_sb_ws.id_act_cost", "master_sb_ws.color")->
+            get();
+
+        $marker = 0;
+        $part = 0;
+        $cuttingPlan = 0;
+        $stocker = 0;
+        $stockerAdditional = 0;
+        $piping = 0;
+        $masterPiping = 0;
+        $pipingProcess = 0;
+        $formCutReject = 0;
+        $loadingLinePlan = 0;
+        foreach ($orderInfo as $oi) {
+            if (strlen($oi->marker_ids) > 0) {
+                $updateData = Marker::whereRaw("id in (".$oi->marker_ids.")")->update([
+                    "buyer" => $oi->buyer,
+                    "act_costing_id" => $oi->act_costing_id,
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "style" => $oi->style,
+                    "color" => $oi->color
+                ]);
+
+                if ($updateData) {
+                    $marker++;
+                }
+            }
+
+            if (strlen($oi->part_ids) > 0) {
+                $updateData = Part::whereRaw("id in (".$oi->part_ids.")")->update([
+                    "buyer" => $oi->buyer,
+                    "act_costing_id" => $oi->act_costing_id,
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "style" => $oi->style
+                ]);
+
+                if ($updateData) {
+                    $part++;
+                }
+            }
+
+            if (strlen($oi->cutting_plan_ids) > 0) {
+                $updateData = CuttingPlanOutput::whereRaw("id in (".$oi->cutting_plan_ids.")")->update([
+                    "ws" => $oi->act_costing_ws,
+                    "style" => $oi->style,
+                    "color" => $oi->color
+                ]);
+
+                if ($updateData) {
+                    $cuttingPlan++;
+                }
+            }
+
+            if ($oi->act_costing_ws && $oi->color) {
+                $updateData = Stocker::where("act_costing_ws", $oi->act_costing_ws)->whereRaw("'".$oi->color."' LIKE CONCAT('%', stocker_input.color, '%')")->update([
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "color" => $oi->color
+                ]);
+
+                if ($updateData) {
+                    $stocker++;
+                }
+            }
+
+            if (strlen($oi->stocker_ws_additional_ids) > 0) {
+                $updateData = StockerAdditional::whereRaw("id in (".$oi->stocker_ws_additional_ids.")")->update([
+                    "buyer" => $oi->buyer,
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "style" => $oi->style,
+                    "color" => $oi->color
+                ]);
+
+                if ($updateData) {
+                    $stockerAdditional++;
+                }
+            }
+
+            if (strlen($oi->master_piping_ids) > 0) {
+                $updateData = MasterPiping::whereRaw("id in (".$oi->master_piping_ids.")")->update([
+                    "buyer" => $oi->buyer,
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "style" => $oi->style
+                ]);
+
+                if ($updateData) {
+                    $masterPiping++;
+                }
+            }
+
+            if (strlen($oi->form_cut_piping_ids) > 0) {
+                $updateData = Piping::whereRaw("id in (".$oi->form_cut_piping_ids.")")->update([
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "style" => $oi->style,
+                    "color" => $oi->color
+                ]);
+
+                if ($updateData) {
+                    $piping++;
+                }
+            }
+
+            if (strlen($oi->form_cut_reject_ids) > 0) {
+                $updateData = FormCutReject::whereRaw("id in (".$oi->form_cut_reject_ids.")")->update([
+                    "buyer" => $oi->buyer,
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "style" => $oi->style,
+                    "color" => $oi->color
+                ]);
+
+                if ($updateData) {
+                    $formCutReject++;
+                }
+            }
+
+            if (strlen($oi->loading_line_plan_ids) > 0) {
+                $updateData = LoadingLinePlan::whereRaw("id in (".$oi->loading_line_plan_ids.")")->update([
+                    "buyer" => $oi->buyer,
+                    "act_costing_ws" => $oi->act_costing_ws,
+                    "style" => $oi->style,
+                    "color" => $oi->color
+                ]);
+
+                if ($updateData) {
+                    $loadingLinePlan++;
+                }
+            }
+        }
+
+        return array(
+            'status' => 200,
+            'message' => 'Berhasil memperbarui '.$marker.' data marker <br> Berhasil memperbarui '.$part.' data part <br> Berhasil memperbarui '.$cuttingPlan.' data cutting plan <br> Berhasil memperbarui '.$stocker.' data stocker <br> Berhasil memperbarui '.$stockerAdditional.' data stocker additional <br> Berhasil memperbarui '.$piping.' data piping <br> Berhasil memperbarui '.$masterPiping.' data master piping <br> Berhasil memperbarui '.$pipingProcess.' data piping process <br> Berhasil memperbarui '.$formCutReject.' data form cut reject <br> Berhasil memperbarui '.$loadingLinePlan.' data loading line plan',
+        );
     }
 }
