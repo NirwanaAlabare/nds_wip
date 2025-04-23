@@ -880,7 +880,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-sb" id="filter-modal-button" wire:onc>
+                    <button type="button" class="btn btn-sb" id="filter-modal-button">
                         <i class="fa fa-check"></i>
                         Apply
                     </button>
@@ -962,7 +962,7 @@
         })
 
         $('#filter-modal-button').on('click', () => {
-            filter();
+            $('#filterModal').modal("hide");
         });
 
         async function filter() {

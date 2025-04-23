@@ -118,7 +118,7 @@
                     @if ($currentLine != $line->username)
                         @php
                             // Legacy :
-                            if (($range == "custom" && date('Y-m-d H:i:s') >= $dateFrom.' 16:00:00') || date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
+                            if (date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
                                 // $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") > 0 ? $lines->where("username", $line->username)->sum("total_target") : $lines->where("username", $line->username)->sum("total_target_back_date");
                                 // $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") > 0 ? $lines->where("username", $line->username)->sum("mins_avail") : $lines->where("username", $line->username)->sum("mins_avail_back_date");
                                 $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
