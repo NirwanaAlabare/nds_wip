@@ -591,10 +591,10 @@ class TrolleyStockerController extends Controller
                             $storeLoadingPlan = LoadingLinePlan::create([
                                 "line_id" => $lineData['line_id'],
                                 "kode" => $kodeLoadingPlan,
-                                "act_costing_id" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->act_costing_id : $thisStockerData->formReject->act_costing_id),
-                                "act_costing_ws" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->act_costing_ws : $thisStockerData->formReject->act_costing_ws),
+                                "act_costing_id" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->id_act_cost : $thisStockerData->formReject->act_costing_id),
+                                "act_costing_ws" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->ws : $thisStockerData->formReject->act_costing_ws),
                                 "buyer" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->buyer : $thisStockerData->formReject->buyer),
-                                "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->style : $thisStockerData->formReject->style),
+                                "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->styleno : $thisStockerData->formReject->style),
                                 "color" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : $thisStockerData->formReject->color),
                                 "tanggal" => $request['tanggal_loading'],
                             ]);
