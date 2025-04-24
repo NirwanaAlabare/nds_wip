@@ -20,7 +20,7 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-4 d-none">
                     <a type="button" class="home-item" onclick="missMasterPlan()">
                         <div class="card">
                             <div class="card-body">

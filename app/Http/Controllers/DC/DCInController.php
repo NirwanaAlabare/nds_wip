@@ -107,7 +107,7 @@ class DCInController extends Controller
         }
 
         if ($request->style) {
-            $additionalQuery .= " and msb.style LIKE '%".$request->style."%'";
+            $additionalQuery .= " and msb.styleno LIKE '%".$request->style."%'";
         }
 
         if ($request->color) {

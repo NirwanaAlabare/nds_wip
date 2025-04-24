@@ -99,6 +99,11 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
-    ],
 
+        'deletePartDetail' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/deletePartDetail/deletePartDetail.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+    ],
 ];
