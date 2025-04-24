@@ -637,7 +637,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('dashboard-chief-sewing-range', [date('Y-m-d'), date('Y-m-d')]) }}"
+                                    <a href="{{ route('dashboard-chief-sewing-range', [date('Y-m-d', strtotime(date("Y-m-d")." -14 days")), date('Y-m-d')]) }}"
                                         class="dropdown-item {{ $routeName == 'dashboard-chief-sewing-range' ? 'active' : '' }}">
                                         Chief Performance <i class="fa-solid fa-file"></i>
                                     </a>

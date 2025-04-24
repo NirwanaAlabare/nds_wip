@@ -853,7 +853,7 @@ END jam) a))) target from (
 
     function chiefSewingRange($from = 0, $to = 0) {
         $from = $from ? $from : date("Y-m-d");
-        $to = $to ? $to : date("Y-m-d");
+        $to = $to ? $to : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
 
         return view('wip.dashboard-chief-sewing-range', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'chief-sewing-range', "from" => $from, "to" => $to]);
     }
