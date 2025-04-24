@@ -417,6 +417,12 @@ function submitForm(e, evt) {
                     title: res.message,
                     position: 'topCenter'
                 });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: "Gagal",
+                    html: res.message,
+                });
             }
 
             if (res.table != '') {

@@ -869,26 +869,26 @@ class LoadingLineController extends Controller
             $loadingLines = LoadingLine::selectRaw("
                     GROUP_CONCAT(stocker_input.id SEPARATOR ', ') ids,
                     GROUP_CONCAT(loading_line.id SEPARATOR ', ') loading_line_ids,
-                    GROUP_CONCAT(stocker_input.id_qr_stocker SEPARATOR ', ') stocker_ids,
+                    GROUP_CONCAT(stocker_input.id SEPARATOR ', ') stocker_ids,
                     loading_line.tanggal_loading,
                     loading_line.nama_line,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
                     stocker_input.size,
-                    stocker_input.lokasi,
-                    trolley.nama_trolley as trolley,
-                    COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod) qty,
-                    (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace) dc_qty,
-                    (secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace) secondary_in_qty,
-                    (secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace) secondary_inhouse_qty,
-                    loading_line.qty loading_qty,
+                    GROUP_CONCAT(DISTINCT stocker_input.lokasi) as lokasi,
+                    GROUP_CONCAT(DISTINCT trolley.nama_trolley) as trolley,
+                    GROUP_CONCAT(DISTINCT COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod)) qty,
+                    GROUP_CONCAT(DISTINCT (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace)) dc_qty,
+                    GROUP_CONCAT(DISTINCT (secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace)) secondary_in_qty,
+                    GROUP_CONCAT(DISTINCT (secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace)) secondary_inhouse_qty,
+                    MIN(loading_line.qty) loading_qty,
                     CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range_awal_akhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")->
                 leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                leftJoin("trolley_stocker", "trolley_stocker.id", "=", "stocker_input.id")->
+                leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 whereIn("stocker_input.id", $allStockerIds)->
                 groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
