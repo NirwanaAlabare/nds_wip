@@ -571,7 +571,8 @@
                 imageElement.style.marginLeft = "auto";
                 imageElement.style.marginRight = "auto";
                 // imageElement.style.height = "100px";
-                imageContainer.appendChild(imageElement);
+                imageSubContainer.appendChild(imageElement);
+                imageContainer.appendChild(imageSubContainer);
                 imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
                 nameElement.appendChild(imageContainer);
 
