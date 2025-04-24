@@ -1027,6 +1027,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
         Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
+
+        Route::post('/report-defect-export', 'reportDefectExport')->name("report-defect-export");
     });
 
     // Report Efficiency New

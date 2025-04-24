@@ -23,17 +23,17 @@
                 <div class="d-flex align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari </label>
-                        <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload()">
+                        <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
                     <span class="mb-2"> - </span>
                     <div>
                         <label class="form-label">Sampai </label>
-                        <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload()">
+                        <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
                     <button class="btn btn-primary"><i class="fa fa-search"></i></button>
                     <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 </div>
-                <button class="btn btn-success">Export <i class="fa fa-file-excel"></i></button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal">Export <i class="fa fa-file-excel"></i></button>
             </div>
             <div class="table-responsive mt-3">
                 <table class="table table-bordered table-sm" id="report-defect-table">
@@ -51,8 +51,9 @@
                             <th>Defect Area</th>
                             <th>Status</th>
                             <th>Rework ID</th>
-                            <th>External Status</th>
                             <th>External ID</th>
+                            <th>External Type</th>
+                            <th>External Status</th>
                             <th>External IN</th>
                             <th>External OUT</th>
                             <th>Created At</th>
@@ -179,6 +180,28 @@
         </div>
     </div>
 
+    <!-- Report Defect -->
+    <div class="modal fade" id="reportDefectModal" tabindex="-1" aria-labelledby="reportDefectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="reportDefectModalLabel">Report Defect</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Report Type</label>
+                    <select class="form-select select2bs4" name="report_type" id="report_type">
+                        <option value="defect_rate">Defect Rate</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('custom-script')
@@ -194,6 +217,10 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $(document).ready(function () {
+            updateFilterOption();
+        });
+
         // Select2 Autofocus
         // $(document).on('select2:open', () => {
         //     document.querySelector('.select2-search__field').focus();
@@ -248,8 +275,9 @@
                 {data: 'defect_area',name: 'defect_area'},
                 {data: 'defect_status',name: 'defect_status'},
                 {data: 'rework_id',name: 'rework_id'},
-                {data: 'external_status',name: 'external_status'},
                 {data: 'external_id',name: 'external_id'},
+                {data: 'external_type',name: 'external_type'},
+                {data: 'external_status',name: 'external_status'},
                 {data: 'external_in',name: 'external_in'},
                 {data: 'external_out',name: 'external_out'},
                 {data: 'created_at',name: 'created_at'},
@@ -261,7 +289,19 @@
                     targets: "_all"
                 },
                 {
-                    targets: [16, 17],
+                    targets: [0],
+                    render: function (data, type, row) {
+                        return data ? data : "-";
+                    }
+                },
+                {
+                    targets: [11, 12, 13, 14, 15, 16],
+                    render: function (data, type, row) {
+                        return data ? data : "-";
+                    }
+                },
+                {
+                    targets: [17, 18],
                     render: function (data, type, row) {
                         return formatDateTime(data);
                     },
@@ -307,8 +347,143 @@
             },
         });
 
-        function reportDefectDatatableReload() {
+        async function reportDefectDatatableReload() {
             $('#report-defect-table').DataTable().ajax.reload();
+        }
+
+        async function updateFilterOption() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            $.ajax({
+                url: '{{ route('filter-defect') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    dateFrom : $('#dateFrom').val(),
+                    dateTo : $('#dateTo').val()
+                },
+                success: function(response) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    if (response) {
+                        console.log(response.lines && response.lines.length > 0);
+                        // lines options
+                        if (response.lines && response.lines.length > 0) {
+                            let lines = response.lines;
+                            $('#sewing_line').empty();
+                            $.each(lines, function(index, value) {
+                                $('#sewing_line').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // orders option
+                        if (response.orders && response.orders.length > 0) {
+                            let orders = response.orders;
+                            $('#ws').empty();
+                            $.each(orders, function(index, value) {
+                                $('#ws').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // styles option
+                        if (response.styles && response.styles.length > 0) {
+                            let styles = response.styles;
+                            $('#style').empty();
+                            $.each(styles, function(index, value) {
+                                $('#style').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // colors option
+                        if (response.colors && response.colors.length > 0) {
+                            let colors = response.colors;
+                            $('#color').empty();
+                            $.each(colors, function(index, value) {
+                                $('#color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // sizes option
+                        if (response.sizes && response.sizes.length > 0) {
+                            let sizes = response.sizes;
+                            $('#size').empty();
+                            $.each(sizes, function(index, value) {
+                                $('#size').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
+        }
+
+        function exportExcel(elm) {
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            $.ajax({
+                url: "{{ route("report-defect-export") }}",
+                type: 'post',
+                data: {
+                    dateFrom : $("#dateFrom").val(),
+                    dateTo : $("#dateTo").val(),
+                    sewingLine : $("#sewing_line").val(),
+                    ws: $("#ws").val(),
+                    style: $("#style").val(),
+                    color: $("#color").val(),
+                    type: $("#report_type").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Data berhasil di export.',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Output Rate "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
         }
     </script>
 @endsection
