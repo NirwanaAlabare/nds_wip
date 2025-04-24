@@ -107,7 +107,7 @@
         <div class="d-flex justify-content-between align-items-end mb-1 gap-3">
             <div class="d-flex align-items-end gap-3 w-auto">
                 <div>
-                    <input type="date" class="form-control" id="from" value="{{ $from ? $from : date("Y-m-d") }}">
+                    <input type="date" class="form-control" id="from" value="{{ $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days")) }}">
                 </div>
                 <div class="mb-2">
                     <span> - </span>
