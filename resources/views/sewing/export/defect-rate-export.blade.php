@@ -1,5 +1,20 @@
 <table>
     <tr>
+        <th colspan="14" style="font-weight: 800;">Defect Rate {{ $dateFrom." s/d ".$dateTo }}</th>
+    </tr>
+    <tr>
+        <th style="font-weight: 800;">Worksheet : {{ $ws }}</th>
+    </tr>
+    <tr>
+        <th style="font-weight: 800;">Style : {{ $style }}</th>
+    </tr>
+    <tr>
+        <th style="font-weight: 800;">Color : {{ $color }}</th>
+    </tr>
+    <tr>
+        <th style="font-weight: 800;">Line : {{ $sewingLine }}</th>
+    </tr>
+    <tr>
         <th style="font-weight: 800; border: 1px solid #000;">Tanggal</th>
         <th style="font-weight: 800; border: 1px solid #000;">Style</th>
         <th style="font-weight: 800; border: 1px solid #000;">Buyer</th>

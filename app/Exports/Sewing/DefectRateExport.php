@@ -6,6 +6,7 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithCharts;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Chart\Chart;
 use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
 use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
@@ -14,12 +15,30 @@ use PhpOffice\PhpSpreadsheet\Chart\Legend;
 use PhpOffice\PhpSpreadsheet\Chart\Title;
 use DB;
 
-class DefectRateExport implements FromView, ShouldAutoSize, WithCharts
+class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 {
     protected $query;
+    protected $dateFrom;
+    protected $dateTo;
+    protected $ws;
+    protected $style;
+    protected $color;
+    protected $sewingLine;
+    protected $rowCount;
 
-    function __construct($query) {
+    function __construct($query, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine) {
         $this->query = $query;
+        $this->dateFrom = $dateFrom;
+        $this->dateTo = $dateTo;
+        $this->ws = $ws ? $ws : "All WS";
+        $this->style = $style ? $style : "All Style";
+        $this->color = $color ? $color : "All Color";
+        $this->sewingLine = $sewingLine ? $sewingLine : "All Sewing Line";
+    }
+
+    public function title(): string
+    {
+        return 'Defect Rate';
     }
 
     public function view(): View
@@ -30,7 +49,13 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts
 
         return view('sewing.export.defect-rate-export', [
             'rowCount' => $this->rowCount,
-            'defectRates' => $defectRates
+            'defectRates' => $defectRates,
+            'dateFrom' => $this->dateFrom,
+            'dateTo' => $this->dateTo,
+            'ws' => $this->ws,
+            'style' => $this->style,
+            'color' => $this->color,
+            'sewingLine' => $this->sewingLine,
         ]);
     }
 
@@ -41,13 +66,13 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts
         $categoriesRftRate = [];
         $valuesRftRate = [];
 
-        $labelsRftRate = [new DataSeriesValues('String', 'Worksheet!$L$1', null, 1)];
+        $labelsRftRate = [new DataSeriesValues('String', '$L$6', null, 1)];
 
 
-        $categoriesRftRate = [new DataSeriesValues('String', 'Worksheet!$A$2:$B$'.($this->rowCount+1), null, $this->rowCount)];
+        $categoriesRftRate = [new DataSeriesValues('String', '$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
 
         array_push($valuesRftRate,
-            new DataSeriesValues('Number', 'Worksheet!$L$2:$L$'.($this->rowCount+1), null, $this->rowCount),
+            new DataSeriesValues('Number', '$L$7:$L$'.($this->rowCount+6), null, $this->rowCount),
         );
 
         // Build RFT Rate Chart
@@ -57,21 +82,21 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts
         $legendRftRate = new Legend();
         $chartRftRate  = new Chart('RFT Rate', new Title('RFT Rate'), $legendRftRate, $plotRftRate);
 
-        $chartRftRate->setTopLeftPosition('P2');
-        $chartRftRate->setBottomRightPosition('AJ27');
+        $chartRftRate->setTopLeftPosition('P5');
+        $chartRftRate->setBottomRightPosition('AJ30');
 
         // Defect/Reject Rate
         $labelsDefectRate = [];
         $categoriesDefectRate = [];
         $valuesDefectRate = [];
 
-        $labelsDefectRate = [new DataSeriesValues('String', 'Worksheet!$M$1', null, 1), new DataSeriesValues('String', 'Worksheet!$N$1', null, 1)];
+        $labelsDefectRate = [new DataSeriesValues('String', '$M$6', null, 1), new DataSeriesValues('String', '$N$6', null, 1)];
 
-        $categoriesDefectRate = [new DataSeriesValues('String', 'Worksheet!$A$2:$B$'.($this->rowCount+1), null, $this->rowCount)];
+        $categoriesDefectRate = [new DataSeriesValues('String', '$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
 
         array_push($valuesDefectRate,
-            new DataSeriesValues('Number', 'Worksheet!$M$2:$M$'.($this->rowCount+1), null, $this->rowCount),
-            new DataSeriesValues('Number', 'Worksheet!$N$2:$N$'.($this->rowCount+1), null, $this->rowCount),
+            new DataSeriesValues('Number', '$M$7:$M$'.($this->rowCount+6), null, $this->rowCount),
+            new DataSeriesValues('Number', '$N$7:$N$'.($this->rowCount+6), null, $this->rowCount),
         );
 
         // Build Defect/Reject DefectRate Chart
@@ -81,8 +106,8 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts
         $legendDefectRate = new Legend();
         $chartDefectRate  = new Chart('Defect/Reject Rate', new Title('Defect/Reject Rate'), $legendDefectRate, $plotDefectRate);
 
-        $chartDefectRate->setTopLeftPosition('P28');
-        $chartDefectRate->setBottomRightPosition('AJ53');
+        $chartDefectRate->setTopLeftPosition('P31');
+        $chartDefectRate->setBottomRightPosition('AJ55');
 
         return [$chartRftRate, $chartDefectRate];
     }

@@ -64,8 +64,8 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="17">Total</td>
-                            <td>
+                            <td class="fw-bold" colspan="18">Total</td>
+                            <td class="fw-bold">
                                 <span id="total-defect">...</span>
                             </td>
                         </tr>
@@ -190,8 +190,9 @@
                 </div>
                 <div class="modal-body">
                     <label class="form-label">Report Type</label>
-                    <select class="form-select select2bs4" name="report_type" id="report_type">
+                    <select class="select2bs4report" name="report_type[]" id="report_type" multiple="multiple">
                         <option value="defect_rate">Defect Rate</option>
+                        <option value="top_defect">Top Defect</option>
                     </select>
                 </div>
                 <div class="modal-footer">
@@ -239,6 +240,11 @@
         $('.select2bs4filter').select2({
             theme: 'bootstrap4',
             dropdownParent: $("#filterModal")
+        });
+
+        $('.select2bs4report').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#reportDefectModal",)
         });
 
         $('#report-defect-table').DataTable({
@@ -336,8 +342,8 @@
                         console.log(response);
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
-                            $(api.column(16).footer()).html("Total");
-                            $(api.column(17).footer()).html(response);
+                            $(api.column(17).footer()).html("Total");
+                            $(api.column(18).footer()).html(response);
                         }
                     },
                     error: function(jqXHR) {
@@ -440,7 +446,7 @@
                     ws: $("#ws").val(),
                     style: $("#style").val(),
                     color: $("#color").val(),
-                    type: $("#report_type").val()
+                    types: $("#report_type").val()
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
@@ -460,7 +466,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Output Rate "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
+                    link.download = "Output Defect Rate "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     elm.removeAttribute('disabled');

@@ -121,7 +121,7 @@
 
     function addQuotesAround($inputStr) {
         // Split the input string by one or more whitespace characters
-        $parts = preg_split('/\s+/', $inputStr);
+        $parts = preg_split('/\r\n|\r|\n/', $inputStr);
 
         // Process each part and add quotes around every item
         foreach ($parts as &$part) {
