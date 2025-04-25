@@ -99,15 +99,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         for ($i = 0; $i < $this->rowCount; $i++) {
             // Defect
             array_push($labelsDefect,
-                new DataSeriesValues('String', '$A$'.($i+7).':$D$'.($i+7).'', null, 5),
+                new DataSeriesValues('String', '$A$'.($i+7).':$D$'.($i+7).'', null, 5)
             );
 
             array_push($categoriesDefect,
-                new DataSeriesValues('String', '$E$'.($i+6).':$'.$this->colAlphabet.'$'.($i+6).'', null, 5),
+                new DataSeriesValues('String', '$E$6:$'.$this->colAlphabet.'$6', null, 5)
             );
 
             array_push($valuesDefect,
-                new DataSeriesValues('Number', '$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5),
+                new DataSeriesValues('Number', '$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
             );
         }
 

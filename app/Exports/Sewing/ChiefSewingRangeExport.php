@@ -149,7 +149,7 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
             );
 
             array_push($categoriesEff,
-                new DataSeriesValues('String', 'Worksheet!$B$'.($i+1).':$'.$this->colAlphabet.'$'.($i+1).'', null, 5),
+                new DataSeriesValues('String', 'Worksheet!$B$1:$'.$this->colAlphabet.'$1', null, 5),
             );
 
             array_push($valuesEff,
@@ -162,7 +162,7 @@ class ChiefSewingRangeExport implements FromView, ShouldAutoSize, WithCharts
             );
 
             array_push($categoriesRft,
-                new DataSeriesValues('String', 'Worksheet!$B$'.($this->rowCount+$i+3).':$'.$this->colAlphabet.'$'.($this->rowCount+$i+3).'', null, 5),
+                new DataSeriesValues('String', 'Worksheet!$B$'.($this->rowCount+3).':$'.$this->colAlphabet.'$'.($this->rowCount+3).'', null, 5),
             );
 
             array_push($valuesRft,

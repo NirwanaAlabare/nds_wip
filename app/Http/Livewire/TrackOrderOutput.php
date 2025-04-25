@@ -66,7 +66,7 @@ class TrackOrderOutput extends Component
     public function updatedSelectedOrder()
     {
         $firstPlan = MasterPlan::selectRaw("tgl_plan")->where("id_ws", $this->selectedOrder)->orderBy("tgl_plan", "asc")->first();
-        $lastPlan = Rft::selectRaw("output_rfts.updated_at as tgl_plan")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->where("master_plan.id_ws", $this->selectedOrder)->orderBy("output_rfts.updated_at", "desc")->first();
+        $lastPlan = Rft::selectRaw("DATE(output_rfts.updated_at) as tgl_plan")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->where("master_plan.id_ws", $this->selectedOrder)->orderBy("output_rfts.updated_at", "desc")->first();
 
         if ($firstPlan) {
             $this->dateFromFilter = $firstPlan->tgl_plan;
@@ -80,8 +80,6 @@ class TrackOrderOutput extends Component
     public function render()
     {
         ini_set("max_execution_time", 3600);
-
-        // dd($this->dateFromFilter, $this->dateToFilter);
 
         $this->loadingOrderOutput = false;
 
