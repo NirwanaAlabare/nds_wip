@@ -47,8 +47,8 @@
                 closeOnClick: true
             });
 
-            alert("alert!");
-            console.log("alert!");
+            alert("Loading Selesai!");
+            // console.log("alert!");
         });
     </script>
 @endsection
