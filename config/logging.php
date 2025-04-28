@@ -105,5 +105,11 @@ return [
             'path' => storage_path('logs/deletePartDetail/deletePartDetail.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
+
+        'resetStockerForm' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/resetStockerForm/resetStockerForm.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
     ],
 ];
