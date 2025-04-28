@@ -65,8 +65,8 @@
                     <tfoot>
                         <tr>
                             <td class="fw-bold" colspan="18">Total</td>
-                            <td class="fw-bold">
-                                <span id="total-defect">...</span>
+                            <td class="fw-bold" id="total_data">
+                                ...
                             </td>
                         </tr>
                     </tfoot>
@@ -436,6 +436,22 @@
                 position: 'topCenter'
             });
 
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data... <br><br> Total Defect : '+(document.getElementById("total_data").innerHTML)+' <br> Est. <b>0</b>s...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
             $.ajax({
                 url: "{{ route("report-defect-export") }}",
                 type: 'post',
@@ -449,7 +465,7 @@
                     types: $("#report_type").val()
                 },
                 xhrFields: { responseType : 'blob' },
-                success: function(res) {
+                success: async function(res) {
                     elm.removeAttribute('disabled');
                     elm.innerText = "Export ";
                     let icon = document.createElement('i');
@@ -461,6 +477,16 @@
                         title: 'Success',
                         message: 'Data berhasil di export.',
                         position: 'topCenter'
+                    });
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        html: 'Data berhasil di export.',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#082149",
                     });
 
                     var blob = new Blob([res]);

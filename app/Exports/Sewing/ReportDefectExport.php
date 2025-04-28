@@ -20,6 +20,9 @@
 
         public function __construct($defectReportQuery, $topDefectQuery, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine)
         {
+            ini_set('max_execution_time', 3600); // boost only once here
+            ini_set('memory_limit', '1024M'); // adjust as needed
+
             $this->defectReportQuery = $defectReportQuery;
             $this->topDefectQuery = $topDefectQuery;
             $this->dateFrom = $dateFrom;
