@@ -46,6 +46,7 @@ use App\Http\Controllers\Cutting\PipingStockController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
+use App\Http\Controllers\Stocker\StockerToolsController;
 
 // DC
 use App\Http\Controllers\DC\DCInController;
@@ -199,6 +200,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('get-general-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('get-general-number');
+        // get no form
+        Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
 
         // new general
         // get buyers
@@ -685,6 +688,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker-reject-all-size/{partDetailId?}', 'printStockerRejectAllSize')->name('print-stocker-reject-all-size');
         Route::post('/print-stocker-reject-checked', 'printStockerRejectChecked')->name('print-stocker-reject-checked');
         Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
+    });
+
+    // Stocker Tools
+    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
+        // form
+        Route::get('/index', 'index')->name('stocker-tools');
+
+        // reset stocker
+        Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
     });
 
     // DC :

@@ -17,6 +17,7 @@ use App\Models\StockerAdditional;
 use App\Models\Piping;
 use App\Models\MasterPiping;
 use App\Models\PipingProcess;
+use App\Models\FormCutInput;
 use App\Models\FormCutReject;
 use App\Models\LoadingLinePlan;
 use PDF;
@@ -41,6 +42,19 @@ class GeneralController extends Controller
     public function create(Request $request)
     {
         //
+    }
+
+    public function getNoFormCut(Request $request)
+    {
+        $formCuts = FormCutInput::selectRaw('form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) as total_stocker')
+            ->leftJoin('stocker_input', 'stocker_input.form_cut_id', '=', 'form_cut_input.id')
+            ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
+            ->groupBy('form_cut_input.id')
+            ->havingRaw('COUNT(stocker_input.id) > 0')
+            ->orderBy('form_cut_input.updated_at', 'desc')
+            ->get();
+
+        return $formCuts ? json_encode($formCuts) : null;
     }
 
     public function getBuyers(Request $request)

@@ -50,6 +50,7 @@
                             </li>
                         </ul>
                     </li>
+
                 @endif
 
                 @if ($page == 'dashboard-marker')
@@ -297,6 +298,15 @@
                             @endrole
                         </ul>
                     </li>
+                    @role('superadmin')
+                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                            <li class="nav-item">
+                                <a href="{{ route('stocker-tools') }}" class="nav-link {{ $routeName == 'stocker-tools' ? 'active' : '' }}" target="_blank">
+                                    Tools
+                                </a>
+                            </li>
+                        @endif
+                    @endrole
                     {{-- <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'track-stocker' ? 'active' : '' }}">Track Stocker</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
