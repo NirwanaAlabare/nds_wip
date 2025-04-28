@@ -54,7 +54,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $this->rowCountStyle = $topDefect->groupBy("style_grouping")->count();
 
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $topDefect->groupBy("tanggal")->count()+3;
+        $colCount = $topDefect->groupBy("tanggal")->count()+2;
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);
@@ -111,7 +111,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCount; $i++) {
             array_push($labelsDefect,
-                new DataSeriesValues('String', '$A$'.($i+7).':$D$'.($i+7).'', null, 5)
+                new DataSeriesValues('String', '$A$'.($i+7).':$C$'.($i+7).'', null, 5)
             );
 
             array_push($categoriesDefect,
@@ -139,7 +139,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCountLine; $i++) {
             array_push($labelsDefectLine,
-                new DataSeriesValues('String', '$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
+                new DataSeriesValues('String', '$A$'.($i+$this->rowCount+10).':$A$'.($i+$this->rowCount+10).'', null, 5)
             );
 
             array_push($categoriesDefectLine,
@@ -167,7 +167,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCountStyle; $i++) {
             array_push($labelsDefectStyle,
-                new DataSeriesValues('String', '$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+                new DataSeriesValues('String', '$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$A$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
             );
 
             array_push($categoriesDefectStyle,

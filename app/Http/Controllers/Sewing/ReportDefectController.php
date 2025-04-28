@@ -633,9 +633,9 @@ class ReportDefectController extends Controller
         if (in_array('top_defect', $types)) {
             $topDefectQuery = "
                 SELECT
-                    CONCAT(userpassword.username, act_costing.styleno, so_det.color, output_defect_types.id) as grouping,
-                    CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
-                    CONCAT(act_costing.styleno, output_defect_types.id) as style_grouping,
+                    CONCAT(userpassword.username, act_costing.styleno, so_det.color) as grouping,
+                    CONCAT(userpassword.username) as line_grouping,
+                    CONCAT(act_costing.styleno) as style_grouping,
                     userpassword.username sewing_line,
                     act_costing.styleno style,
                     so_det.color,
@@ -679,5 +679,9 @@ class ReportDefectController extends Controller
             'status' => 400,
             'message' => 'Terjadi kesalahan',
         );
+    }
+
+    public function dailyDefect(Request $request) {
+        //
     }
 }
