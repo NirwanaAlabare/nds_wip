@@ -9,6 +9,7 @@ use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\Rft;
 use App\Models\YearSequence;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use DB;
 
 class SewingToolsController extends Controller
@@ -54,6 +55,15 @@ class SewingToolsController extends Controller
                 }
             }
         }
+
+        Log::channel('missUserOutput')->info([
+            "Repair User Output Based on Master Plan",
+            "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+            "Total Data ".count($success),
+            "Success" => $success,
+            "Fails" => $fails,
+            "Unavailable" => $unavailable
+        ]);
 
         return array(
             'status' => 200,
@@ -101,24 +111,16 @@ class SewingToolsController extends Controller
                 ]);
 
                 if ($updateRft) {
-                    array_push($success, $mp->id);
+                    array_push($success, [$mp, "change output master plan"]);
                 } else {
-                    array_push($fails, $mp->id);
+                    array_push($fails, [$mp, "change output master plan"]);
                 }
             } else {
                 if ($mp->actual_act_costing_id) {
                     $updateRft = Rft::where("id", $mp->id)->update([
                         "master_plan_id" => $mp->master_plan_id
                     ]);
-
-                    if ($updateRft) {
-                        array_push($success, $mp->id);
-                    } else {
-                        array_push($fails, $mp->id);
-                    }
-                } else {
-                    array_push($unavailable, $mp->id);
-                }
+                } 
                 $soDet = SoDet::select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->act_costing_plan_id)->where("so_det.color", $mp->master_plan_color)->where("so_det.size", $mp->size)->first();
 
                 if ($soDet) {
@@ -131,16 +133,25 @@ class SewingToolsController extends Controller
                         $yearSequence = YearSequence::where("id_year_sequence", $rft->kode_numbering)->update(["so_det_id" => $rft->so_det_id]);
 
                         if ($yearSequence) {
-                            array_push($success, $mp->id);
+                            array_push($success, [$mp, "change output origin"]);
                         }
                     } else {
-                        array_push($fails, $mp->id);
+                        array_push($fails, [$mp, "change output origin"]);
                     }
                 } else {
-                    array_push($unavailable, $mp->id);
+                    array_push($unavailable, [$mp, "change output origin"]);
                 }
             }
         }
+
+        Log::channel('missMasterPlanOutput')->info([
+            "Repair Master Plan Missing Output",
+            "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+            "Total Data ".count($success),
+            "Success" => $success,
+            "Fails" => $fails,
+            "Unavailable" => $unavailable
+        ]);
 
         return array(
             'status' => 200,
@@ -181,6 +192,13 @@ class SewingToolsController extends Controller
         $storeToRft = Rft::insert($reworkArr);
 
         if ($storeToRework && $storeToRft) {
+            Log::channel('missReworkOutput')->info([
+                "Repair Defect->Rework->RFT Chain Data",
+                "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                "Total Data ".count($defects),
+                $reworks
+            ]);
+
             return array(
                 'status' => 200,
                 'message' => 'Berhasil memperbaiki <br> Data Defect = '.count($defects).' <br> Data Rework = '.count($reworks).'',
