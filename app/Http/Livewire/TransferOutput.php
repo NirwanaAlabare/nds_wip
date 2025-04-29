@@ -14,6 +14,7 @@ use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\MasterPlan;
+use Illuminate\Support\Facades\Log;
 use DB;
 
 class TransferOutput extends Component
@@ -131,6 +132,14 @@ class TransferOutput extends Component
                 }
 
                 if ($messageSuccess != "") {
+                    Log::channel('transferOutput')->info([
+                        "Moving Output Data by QR Number",
+                        $this->outputType,
+                        "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                        "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."'",
+                        "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                    ]);
+
                     $this->emit('alert', 'success', $messageSuccess);
                 }
 
@@ -248,6 +257,14 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
+                Log::channel('transferOutput')->info([
+                    "Moving All Output Data",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
+
                 $this->emit('alert', 'success', $messageSuccess);
             }
 
@@ -321,6 +338,14 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
+                Log::channel('transferOutput')->info([
+                    "Moving Output RFT Data",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
+
                 $this->emit('alert', 'success', $messageSuccess);
             }
 
@@ -391,6 +416,14 @@ class TransferOutput extends Component
                     $rft->so_det_id = $toSoDet->id;
                     $rft->save();
                 }
+
+                Log::channel('transferOutput')->info([
+                    "Moving Output RFT Data Size ".$this->transferRftSize." ".$this->transferRftQty." PCS",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
 
                 $this->emit('alert', 'success', $rfts->count()." RFT Berhasil di Transfer");
             } else {
@@ -479,6 +512,14 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
+                Log::channel('transferOutput')->info([
+                    "Moving Output Defect Data",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
+
                 $this->emit('alert', 'success', $messageSuccess);
             }
 
@@ -549,6 +590,14 @@ class TransferOutput extends Component
                     $defect->so_det_id = $toSoDet->id;
                     $defect->save();
                 }
+
+                Log::channel('transferOutput')->info([
+                    "Moving Output Defect Data Size ".$this->transferDefectSize." ".$this->transferDefectQty." PCS",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
 
                 $this->emit('alert', 'success', $defects->count()." Defect Berhasil di Transfer");
             } else {
@@ -629,6 +678,14 @@ class TransferOutput extends Component
                     "so_det_id" => $toSoDet->id,
                 ]);
 
+                Log::channel('transferOutput')->info([
+                    "Moving Output Rework Data Size ".$this->transferReworkSize." ".$this->transferReworkQty." PCS",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
+
                 $this->emit('alert', 'success', $defects->count()." Rework Berhasil di Transfer");
             } else {
                 $this->emit('alert', 'error', "Harap pilih size dan tentukan qty yang akan di transfer");
@@ -700,6 +757,14 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
+                Log::channel('transferOutput')->info([
+                    "Moving Output Reject Data",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
+
                 $this->emit('alert', 'success', $messageSuccess);
             }
 
@@ -777,6 +842,14 @@ class TransferOutput extends Component
                     "master_plan_id" => $this->toSelectedMasterPlan,
                     "created_by" => $this->outputType == "_packing" ? $toLine->username : $toLine->id,
                     "so_det_id" => $toSoDet->id,
+                ]);
+
+                Log::channel('transferOutput')->info([
+                    "Moving Output Reject Data Size ".$this->transferRejectSize." ".$this->transferRejectQty." PCS",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
                 ]);
 
                 $this->emit('alert', 'success', $rejects->count()." Reject Berhasil di Transfer");

@@ -111,5 +111,11 @@ return [
             'path' => storage_path('logs/resetStockerForm/resetStockerForm.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
+
+        'transferOutput' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/transferOutput/transferOutput.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
     ],
 ];

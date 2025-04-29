@@ -33,7 +33,7 @@ class TransferOutputController extends Controller
         }
 
         return view('sewing.transfer-output', [
-            "subPageGroup" => "sewing-sewing", "subPage" => "sewing-transfer", "page" => "dashboard-sewing-eff"
-        ]);
+            "page" => "dashboard-sewing-eff"
+        ]); 
     }
 }
