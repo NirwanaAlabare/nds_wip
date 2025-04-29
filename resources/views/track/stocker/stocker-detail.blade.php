@@ -34,7 +34,7 @@
     @endphp
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="text-sb fw-bold">{{ $firstWs ? $firstWs->ws : '-' }}</h5>
-        <a href="{{ route('track-stocker') }}" class="btn btn-primary btn-sm"><i class="fa fa-reply"></i> Kembali ke Stock List</a>
+        <a href="{{ $page == "dashboard-stocker" ? route('dashboard-stocker') : route('track-stocker') }}" class="btn btn-primary btn-sm"><i class="fa fa-reply"></i> Kembali ke Stock List</a>
     </div>
     <input type="hidden" value="{{ $firstWs ? $firstWs->id_act_cost : '-' }}" id="id">
     <div class="row sticky" style="background: #f4f6f9;">
