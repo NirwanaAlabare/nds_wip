@@ -659,7 +659,7 @@ class OutMaterialController extends Controller
                 'jenis_dok' => $request['txt_dok_bc'],
                 'id_supplier' => $request['txt_idsupp'],
                 'id_jo' => $request['txt_id_jo'],
-                'jenis_trans' => '',
+                'jenis_trans' => $request['txt_jns_klr'],
             ]);
             $jml_qtyout = $request["qty_sdh_out"][$i] + $request["input_qty"][$i];
 
