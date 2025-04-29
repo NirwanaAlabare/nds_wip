@@ -61,12 +61,12 @@ class KonfPemasukanController extends Controller
      public function getdatapenerimaan(Request $request)
     {
 
-    $det_item = DB::connection('mysql_sb')->select("select no_dok,kpno,styleno,a.id_jo,a.id_item,goods_code,itemdesc, sum(qty_sj) qty,satuan from whs_lokasi_inmaterial a 
-inner join masteritem b on b.id_item = a.id_item 
+    $det_item = DB::connection('mysql_sb')->select("select no_dok,kpno,styleno,a.id_jo,a.id_item,goods_code,itemdesc, sum(qty_sj) qty,satuan from whs_lokasi_inmaterial a
+inner join masteritem b on b.id_item = a.id_item
 left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo where no_dok = '" . $request->no_bpb . "' GROUP BY no_dok,a.id_jo,a.id_item");
 
         $html = '<div class="table-responsive">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;">No WS</th>
@@ -133,10 +133,10 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     $sqlupdate = DB::connection('mysql_sb')->select("update bpb set qty = qty_temp where bpbno_int ='".$request['id_bpb'][$i]."' ");
                 }
 
-            $cekdata = DB::connection('mysql_sb')->select("select SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc,bpb.confirm,bpbno, bpbno_int, bpb.bpbdate, bpb.id_supplier, supplier, mattype, n_code_category, 
-			if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass, bpb.curr, COALESCE(ph.tax,0) tax,bpb.username, bpb.dateinput, 
+            $cekdata = DB::connection('mysql_sb')->select("select SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc,bpb.confirm,bpbno, bpbno_int, bpb.bpbdate, bpb.id_supplier, supplier, mattype, n_code_category,
+			if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass, bpb.curr, COALESCE(ph.tax,0) tax,bpb.username, bpb.dateinput,
 			round(SUM(((qty - COALESCE(qty_reject,0)) * price) + (((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as total,round(SUM(((qty - COALESCE(qty_reject,0)) * price)),2) as dpp,round(SUM((((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as ppn
-			from bpb 
+			from bpb
 			inner join masteritem mi on bpb.id_item = mi.id_item
 			inner join mastersupplier ms on bpb.id_supplier = ms.id_supplier
 			left join po_header ph on bpb.pono = ph.pono
@@ -441,7 +441,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
 
             }
             }
-        
+
         $massage = 'Approved Data Successfully';
 
             return array(
@@ -450,7 +450,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 "additional" => [],
                 // "redirect" => url('/konfirmasi-pemasukan')
             );
-        
+
     }
 
 
@@ -460,7 +460,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
- 
+
 
     /**
      * Display the specified resource.
@@ -468,7 +468,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -488,7 +488,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-   
+
     /**
      * Remove the specified resource from storage.
      *
@@ -500,7 +500,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
         //
     }
 
-  
 
-    
+
+
 }

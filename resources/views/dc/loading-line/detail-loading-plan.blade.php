@@ -72,7 +72,7 @@
                     </div>
                 </div>
             </div>
-            <table class="table table-bordered table-sm" id="datatable-stocker">
+            <table class="table table-bordered table" id="datatable-stocker">
                 <thead>
                     <tr>
                         <th>No. WS</th>

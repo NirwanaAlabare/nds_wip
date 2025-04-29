@@ -20,7 +20,7 @@
                 <span>-</span>
                 <input type="date" class="form form-control form-control-sm mb-1" id="tanggal_akhir" name="tanggal_akhir" value="{{ date("Y-m-d") }}" onchange="datatableReload()">
             </div>
-            <table class="table table-bordered table-sm w-100" id="undo-history-table">
+            <table class="table table-bordered table w-100" id="undo-history-table">
                 <thead>
                     <th>Tanggal Plan</th>
                     <th>Line</th>

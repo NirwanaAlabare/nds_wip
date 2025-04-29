@@ -88,7 +88,7 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-bordered table-hover table-sm" id="datatable-dc">
+            <table class="table table-bordered table-hover table" id="datatable-dc">
                 <thead>
                     <tr>
                         <th>No. WS</th>

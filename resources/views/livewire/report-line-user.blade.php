@@ -17,7 +17,7 @@
     </div>
 
     <div class="row table-responsive">
-        <table class="table table-sm table-bordered mt-3">
+        <table class="table table table-bordered mt-3">
             <thead>
                 <tr>
                     <th class="text-center">Line</th>

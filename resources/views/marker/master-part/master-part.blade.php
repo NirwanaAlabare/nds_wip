@@ -18,7 +18,7 @@
                 Baru
             </button>
             <div class="table-responsive">
-                <table id="datatable-master-part" class="table table-bordered table-sm w-100">
+                <table id="datatable-master-part" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th class="align-bottom">Action</th>

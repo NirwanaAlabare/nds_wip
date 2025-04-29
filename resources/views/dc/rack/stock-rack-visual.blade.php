@@ -53,7 +53,7 @@
                     <div class="carousel-inner">
                         @foreach ($racks->groupBy('grup') as $rackGroup )
                             <div class="carousel-item {{ $loop->first ? 'active' : '' }} mt-3" id="carousel-{{ $loop->index }}" data-group="{{ $rackGroup[0]['grup'] }}">
-                                <table class="table table-bordered table-sm bg-white">
+                                <table class="table table-bordered table bg-white">
                                     @foreach ($racks->where('grup', $rackGroup[0]['grup']) as $rack)
                                         <tr>
                                             @foreach ($rack->rackDetails as $rackDetail)
@@ -124,7 +124,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-bordered table-sm" id="detail-table">
+                    <table class="table table-bordered table" id="detail-table">
                         <tbody>
                         </tbody>
                     </table>

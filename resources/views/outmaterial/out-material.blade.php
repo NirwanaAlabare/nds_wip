@@ -105,7 +105,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class="col-md-6" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
@@ -126,7 +126,7 @@
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Cari No BPPB..." onkeyup="carigrdok()">
         </div>
         <div class="table-responsive" style="max-height: 400px">
-            <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No BPPB</th>
@@ -506,12 +506,12 @@ $('.select2type').select2({
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending') {
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                    <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button>
                     </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                         <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     </div>`;
                     }
@@ -529,9 +529,9 @@ $('.select2type').select2({
     function approve_outmaterial($no_bppb){
         // alert($id);
         let no_bppb  = $no_bppb;
-    
+
     $('#txt_nodok').val(no_bppb);
-    $('#modal-appv-material').modal('show');  
+    $('#modal-appv-material').modal('show');
     }
 
 

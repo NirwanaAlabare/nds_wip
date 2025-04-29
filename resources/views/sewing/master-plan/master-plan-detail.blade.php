@@ -158,7 +158,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm table-bordered" id="datatable-master-plan">
+                <table class="table table table-bordered" id="datatable-master-plan">
                     <thead>
                         <tr>
                             <th>WS Number</th>

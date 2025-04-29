@@ -130,7 +130,7 @@
 
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm no-wrap w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped -wrap w-100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Buyer</th>

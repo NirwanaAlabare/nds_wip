@@ -41,7 +41,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive w-100">
-                <table class="table table-sm table-bordered W-100" id="ws-table">
+                <table class="table table table-bordered W-100" id="ws-table">
                     <thead>
                         <tr>
                             <th>Tanggal Kirim</th>

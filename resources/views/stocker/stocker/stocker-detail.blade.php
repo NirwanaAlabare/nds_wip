@@ -28,11 +28,18 @@
                 $dataPartFormPrevious = $dataPartForm->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc("no_cut")->first();
                 $dataPartFormNext = $dataPartForm->where("no_cut", ">", $dataSpreading->no_cut)->sortBy("no_cut")->first();
             @endphp
-            <div class="d-flex justify-content-between mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     @if ($dataPartFormPrevious)
                         <a href="{{ route('show-stocker')."/".$dataPartFormPrevious->form_id }}" class="text-sb"><u><< Prev</u></a>
                     @endif
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" name="gotocut" id="gotocut" onchange="redirectToCut(this)">
+                        @foreach ($dataPartForm->sortBy("no_cut") as $dpf)
+                            <option value="{{ route("show-stocker")."/".$dpf->form_id }}" {{ $dpf->no_cut == $dataSpreading->no_cut ? "selected='true'" : "" }}>{{ $dpf->no_cut }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     @if ($dataPartFormNext)
@@ -547,7 +554,7 @@
                 <div class="mb-5">
                     <h5 class="fw-bold mb-3 ps-1">Print Numbering</h5>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm" id="table-ratio-numbering">
+                        <table class="table table-bordered table" id="table-ratio-numbering">
                             <thead>
                                 <th>Size</th>
                                 <th>Ratio</th>
@@ -664,7 +671,7 @@
                 <div class="modal-body">
                     <form action="#" method="post" id="mod-size-qty-form">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-sm" id="table-ratio-numbering">
+                            <table class="table table-bordered table" id="table-ratio-numbering">
                                 <thead>
                                     <th>Size</th>
                                     <th>Ratio</th>
@@ -786,7 +793,7 @@
                                 </div>
                             </div>
                             <div class="table-responsive">
-                                <table id="orderQtyDatatable" class="table table-bordered table-striped table-sm w-100">
+                                <table id="orderQtyDatatable" class="table table-bordered table-striped table w-100">
                                     <thead>
                                         <tr>
                                             <th>WS</th>
@@ -1912,6 +1919,13 @@
                     swal.close();
                 }
             });
+        }
+
+        function redirectToCut(select) {
+            const url = select.value;
+            if (url) {
+                window.location.href = url;
+            }
         }
     </script>
 @endsection

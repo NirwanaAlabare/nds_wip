@@ -652,7 +652,7 @@ class MarkerController extends Controller
                         </div>
                         <div class='card-body' style='display: none;'>
                             <div class='table-responsive'>
-                                <table class='table table-bordered table-sm w-100' id='detail-marker-ratio'>
+                                <table class='table table-bordered table w-100' id='detail-marker-ratio'>
                                     <thead>
                                         <tr>
                                             <th class='text-center'>Size</th>
@@ -683,7 +683,7 @@ class MarkerController extends Controller
                         </div>
                         <div class='card-body' style='display: none;'>
                             <div class='table-responsive'>
-                                <table class='table table-bordered table-sm w-100' id='detail-marker-form'>
+                                <table class='table table-bordered table w-100' id='detail-marker-form'>
                                     <thead>
                                         <tr>
                                             <th>Act</th>

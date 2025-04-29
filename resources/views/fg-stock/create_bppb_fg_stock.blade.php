@@ -26,7 +26,7 @@
                         <div class='row'>
                             <div class="col-md-12 table-responsive">
                                 <table id="datatable_modal"
-                                    class="table table-bordered table-hover table-sm w-100 text-wrap">
+                                    class="table table-bordered table-hover 100 text-wrap">
                                     <thead>
                                         <tr>
                                             <th>Lokasi</th>
@@ -160,7 +160,7 @@
                         Total : <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                             id = 'total_qty_chk'>
                         <div class="table-responsive">
-                            <table id="datatable_det" class="table table-bordered table-sm w-100 table-hover text-nowrap">
+                            <table id="datatable_det" class="table table-bordered 100 table-hover text-nowrap">
                                 <thead class="table-primary">
                                     <tr>
                                         <th>Lokasi</th>

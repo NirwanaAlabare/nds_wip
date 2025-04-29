@@ -127,7 +127,7 @@
             </div>
         </div>
         <div class="card-body table-responsive" style="display: block">
-            <table class="table table-bordered table-sm" id="trolley-stock-datatable">
+            <table class="table table-bordered table" id="trolley-stock-datatable">
                 <thead>
                     <tr>
                         <th>Act</th>

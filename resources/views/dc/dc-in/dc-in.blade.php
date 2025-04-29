@@ -82,7 +82,7 @@
                         <div class="row">
                             <div class='col-sm-12'>
                                 <div class="table-responsive">
-                                    <table id="datatable-scan" class="table table-bordered  table-sm w-100">
+                                    <table id="datatable-scan" class="table table-bordered  table w-100">
                                         <thead>
                                             <tr>
                                                 <th>No Stocker</th>
@@ -150,7 +150,7 @@
                 <div class="d-flex justify-content-end">
                     <button type="button" class="btn btn-success btn-sm mb-3" onclick="exportExcel('list')"><i class="fa fa-file-excel"></i> Excel</button>
                 </div>
-                <table id="datatable-input" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable-input" class="table table-bordered table-striped table w-100 text-nowrap">
                     <thead>
                         <tr>
                             <th>Tgl Transaksi</th>
@@ -202,7 +202,7 @@
                 <div class="d-flex justify-content-end">
                     <button type="button" class="btn btn-success btn-sm mb-3" onclick="exportExcel('detail')"><i class="fa fa-file-excel"></i> Excel</button>
                 </div>
-                <table id="datatable-detail" class="table table-bordered table-striped table-sm w-100">
+                <table id="datatable-detail" class="table table-bordered table-striped table w-100">
                     <thead>
                         <tr>
                             <th>WS</th>

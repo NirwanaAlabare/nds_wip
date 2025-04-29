@@ -71,7 +71,7 @@
             </tr>
         </table>
         <br>
-        <table class="table table-bordered table-striped table-sm w-100 text-nowrap">
+        <table class="table table-bordered table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">Length</th>
@@ -121,7 +121,7 @@
             </tr>
         </table>
         <br>
-        <table class="table table-bordered table-striped table-sm w-100 text-nowrap">
+        <table class="table table-bordered table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">Up To 3"</th>

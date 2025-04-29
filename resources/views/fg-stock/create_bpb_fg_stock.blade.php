@@ -38,7 +38,7 @@
                         </div>
                     </div>
                     <div class="col-md-12 table-responsive">
-                        <table id="datatable_modal" class="table table-bordered table-hover table-sm w-100">
+                        <table id="datatable_modal" class="table table-bordered table-hover 100">
                             <thead>
                                 <tr>
                                     <th>Buyer</th>
@@ -223,7 +223,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="datatable_tmp" class="table table-bordered table-sm w-100">
+                            <table id="datatable_tmp" class="table table-bordered 100">
                                 <thead>
                                     <tr>
                                         <th>No. Karton</th>

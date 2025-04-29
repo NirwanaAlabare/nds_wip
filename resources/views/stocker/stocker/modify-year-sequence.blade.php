@@ -64,7 +64,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-sm table-bordered w-100'" id="current-range-table">
+                <table class="table table table-bordered w-100'" id="current-range-table">
                     <thead>
                         <tr>
                             <th>QR</th>

@@ -68,7 +68,7 @@
                         <input type="text" class="form-control" id="group" name="group">
                     </div>
                     <div class="col-md-12 table-responsive">
-                        <table class="table table-bordered table-sm mt-3" id="cutting-reject-table">
+                        <table class="table table-bordered table mt-3" id="cutting-reject-table">
                             <thead>
                                 <tr>
                                     <th>So Det ID</th>

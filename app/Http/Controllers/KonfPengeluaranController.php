@@ -60,12 +60,12 @@ class KonfPengeluaranController extends Controller
     public function getdatapengeluaran(Request $request)
     {
 
-    $det_item = DB::connection('mysql_sb')->select("select no_bppb,kpno,styleno,a.id_jo,a.id_item,goods_code,itemdesc, sum(qty_out) qty,satuan from whs_bppb_det a 
-inner join masteritem b on b.id_item = a.id_item 
+    $det_item = DB::connection('mysql_sb')->select("select no_bppb,kpno,styleno,a.id_jo,a.id_item,goods_code,itemdesc, sum(qty_out) qty,satuan from whs_bppb_det a
+inner join masteritem b on b.id_item = a.id_item
 left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo where no_bppb = '" . $request->no_bppb . "' GROUP BY no_bppb,a.id_jo,a.id_item");
 
         $html = '<div class="table-responsive">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;">No WS</th>
@@ -122,10 +122,10 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'confirm_date' => $timestamp,
             ]);
 
-            $cekdata = DB::connection('mysql_sb')->select("select bppbno,bppbno_int,bppbdate,curr,id_supplier,supplier,mattype,n_code_category,matclass,curr,COALESCE(tax,0) tax,username,dateinput,(dpp + (dpp * (COALESCE(tax,0)/100))) total,dpp,(dpp * (COALESCE(tax,0)/100)) ppn from (select bppbno, bppbno_int, bppb.bppbdate, bppb.id_supplier, supplier, mattype, n_code_category, 
-        if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass, bppb.curr,bppb.username, bppb.dateinput, 
+            $cekdata = DB::connection('mysql_sb')->select("select bppbno,bppbno_int,bppbdate,curr,id_supplier,supplier,mattype,n_code_category,matclass,curr,COALESCE(tax,0) tax,username,dateinput,(dpp + (dpp * (COALESCE(tax,0)/100))) total,dpp,(dpp * (COALESCE(tax,0)/100)) ppn from (select bppbno, bppbno_int, bppb.bppbdate, bppb.id_supplier, supplier, mattype, n_code_category,
+        if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass, bppb.curr,bppb.username, bppb.dateinput,
         SUM(((qty) * price)) as dpp,bpbno_ro
-        from bppb 
+        from bppb
         inner join masteritem mi on bppb.id_item = mi.id_item
         inner join mastersupplier ms on bppb.id_supplier = ms.id_supplier
         where bppbno_int IN ('".$request['id_bpb'][$i]."') group by bppbno_int) a left join
@@ -219,7 +219,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 } else {
                     $kata1 = "";
                 }
-        }   
+        }
 
             $kata2 = "DARI";
 
@@ -330,7 +330,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
 
             }
             }
-        
+
         $massage = 'Approved Data Successfully';
 
             return array(
@@ -339,7 +339,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 "additional" => [],
                 // "redirect" => url('/konfirmasi-pemasukan')
             );
-        
+
     }
 
 
@@ -349,7 +349,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
- 
+
 
     /**
      * Display the specified resource.
@@ -357,7 +357,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -377,7 +377,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-   
+
     /**
      * Remove the specified resource from storage.
      *
@@ -389,7 +389,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
         //
     }
 
-  
 
-    
+
+
 }

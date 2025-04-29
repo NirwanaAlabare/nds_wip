@@ -174,7 +174,7 @@
                     </div>
                 </form>
                 <div class="table-responsive">
-                    <table id="part-table" class="table table-bordered table-sm w-100">
+                    <table id="part-table" class="table table-bordered table w-100">
                         <thead>
                             <tr>
                                 <th>Action</th>
@@ -258,7 +258,7 @@
                         <div id="marker-detail-1" class="accordion-collapse collapse" data-bs-parent="#marker-detail">
                             <div class="accordion-body">
                                 <div class="table-responsive">
-                                    <table id="marker-table" class="table table-bordered table-sm w-100">
+                                    <table id="marker-table" class="table table-bordered table w-100">
                                         <thead>
                                             <tr>
                                                 <th class="align-bottom">Action</th>
@@ -423,7 +423,7 @@
                         <div id="form-detail-1" class="accordion-collapse collapse" data-bs-parent="#form-detail">
                             <div class="accordion-body">
                                 <div class="table-responsive">
-                                    <table id="form-table" class="table table-bordered table-sm w-100">
+                                    <table id="form-table" class="table table-bordered table w-100">
                                         <thead>
                                             <tr>
                                                 <th>Action</th>
@@ -601,7 +601,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-12 table-responsive">
-                                    <table id="form-ratio-table" class="table table-bordered table-striped table-sm w-100">
+                                    <table id="form-ratio-table" class="table table-bordered table-striped table w-100">
                                         <thead>
                                             <tr>
                                                 <th>Size</th>
@@ -714,7 +714,7 @@
                         <div id="roll-detail-1" class="accordion-collapse collapse" data-bs-parent="#roll-detail">
                             <div class="accordion-body">
                                 <div class="table-responsive">
-                                    <table id="roll-table" class="table table-bordered table-hover table-sm w-100">
+                                    <table id="roll-table" class="table table-bordered table-hover table w-100">
                                         <thead>
                                             <tr>
                                                 <th>Color</th>
@@ -832,7 +832,7 @@
                         <div id="stocker-detail-1" class="accordion-collapse collapse" data-bs-parent="#stocker-detail">
                             <div class="accordion-body">
                                 <div class="table-responsive">
-                                    <table id="stocker-table" class="table table-bordered table-sm w-100">
+                                    <table id="stocker-table" class="table table-bordered table w-100">
                                         <thead>
                                             <tr>
                                                 <th>Color</th>

@@ -144,7 +144,7 @@
                     </div> -->
 
               <!--   </div>
-            </div> 
+            </div>
         -->
     </div>
 </div>
@@ -161,7 +161,7 @@
         <div class="form-group row">
 
             <div class="table-responsive" >
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                     <thead>
                         <tr>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
@@ -204,7 +204,7 @@
             <div class="form-group row">
 
                 <div class="table-responsive" >
-                    <table id="datatable4" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <table id="datatable4" class="table table-bordered table-striped 100 text-nowrap">
                         <thead>
                             <tr>
                                 <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
@@ -248,7 +248,7 @@
                 <div class="form-group row">
 
                     <div class="table-responsive" >
-                        <table id="datatable2" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                        <table id="datatable2" class="table table-bordered table-striped 100 text-nowrap">
                             <thead>
                                 <tr>
                                     <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi Aktual</th>
@@ -282,7 +282,7 @@
             <div class="form-group row">
 
                 <div class="table-responsive" >
-                    <table id="datatable3" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <table id="datatable3" class="table table-bordered table-striped 100 text-nowrap">
                         <thead>
                             <tr>
                                 <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
@@ -628,7 +628,7 @@
                         document.getElementById('txt_roll_barcode').value = res.no_roll;
                         document.getElementById('txt_unit_barcode').value = res.unit;
                         savedatabarcode();
-                    });  
+                    });
                 }
             }else if (res.barcode_so != null) {
                Swal.fire({

@@ -231,7 +231,7 @@
                 <div class="d-flex justify-content-end mb-3">
                     <button class="btn btn-sm btn-success" onclick="exportExcel('list')"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
-                <table id="datatable-input" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable-input" class="table table-bordered table-striped table w-100 text-nowrap">
                     <thead>
                         <tr>
                             <th>Tgl Transaksi</th>
@@ -274,7 +274,7 @@
                 <div class="d-flex justify-content-end mb-3">
                     <button class="btn btn-sm btn-success" onclick="exportExcel('detail')"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
-                <table id="datatable-detail" class="table table-bordered table-striped table-sm w-100">
+                <table id="datatable-detail" class="table table-bordered table-striped table w-100">
                     <thead>
                         <tr>
                             <th>WS</th>

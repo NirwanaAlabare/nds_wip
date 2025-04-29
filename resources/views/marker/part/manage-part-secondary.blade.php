@@ -145,7 +145,7 @@
                         </div>
                     </form>
                     <div class="table-responsive">
-                        <table id="datatable_list_part" class="table table-bordered table-sm w-100">
+                        <table id="datatable_list_part" class="table table-bordered table w-100">
                             <thead>
                                 <tr>
                                     <th>Action</th>

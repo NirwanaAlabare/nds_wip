@@ -95,7 +95,7 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-striped table-sm text-center w-100">
+                    <table id="datatable" class="table table-bordered table-striped xt-center w-100">
                         <thead>
                             <tr>
                                 <th>Size</th>

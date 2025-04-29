@@ -22,7 +22,7 @@
                 </div>
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-sm w-100" id="detail-produksi-table">
+                <table class="table table w-100" id="detail-produksi-table">
                     <thead>
                         <tr>
                             <th>Action</th>
