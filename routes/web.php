@@ -1860,6 +1860,10 @@ Route::get('/cutting-output-list-all', [DashboardController::class, 'cuttingOutp
 Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware('auth')->name('cutting-output-list-panels');
 Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware('auth')->name('cutting-output-list-data');
 Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware('auth')->name('cutting-stock-list-data');
+
+Route::get('/dashboard-stocker', [DashboardController::class, 'stocker'])->middleware('auth')->name('dashboard-stocker');
+Route::get('/dashboard-stocker/show/{actCostingId?}', [DashboardController::class, 'showStocker'])->middleware('auth')->name('dashboard-stocker-show');
+
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
@@ -1884,9 +1888,9 @@ Route::get('/trigger', function () {
 //     return view('dashboard', ['page' => 'dashboard-cutting']);
 // })->middleware('auth')->name('dashboard-cutting');
 
-Route::get('/dashboard-stocker', function () {
-    return view('dashboard', ['page' => 'dashboard-stocker']);
-})->middleware('auth')->name('dashboard-stocker');
+// Route::get('/dashboard-stocker', function () {
+//     return view('dashboard', ['page' => 'dashboard-stocker']);
+// })->middleware('auth')->name('dashboard-stocker');
 
 //warehouse
 // Route::get('/dashboard-warehouse', function () {
