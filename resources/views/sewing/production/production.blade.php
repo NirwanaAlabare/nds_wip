@@ -29,7 +29,7 @@
             <div class="card-body">
                 <h6 class="mb-3 text-muted float-end">Terakhir input : {{ $lastUpdate->last_update }}</h6>
                 <div class="table-responsive">
-                    <table class="table table-sm w-100" id="produksi-table">
+                    <table class="table table w-100" id="produksi-table">
                         <thead>
                             <tr>
                                 <th>Action</th>

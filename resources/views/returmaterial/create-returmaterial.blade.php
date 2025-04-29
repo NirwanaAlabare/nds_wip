@@ -224,7 +224,7 @@
         </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 
     <div class="card card-sb card-outline">
@@ -242,7 +242,7 @@
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
     <div class="table-responsive"style="max-height: 500px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">No JO</th>
@@ -342,7 +342,7 @@
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
                     <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
                 </div>
-    
+
             </div>
         </div>
     </form>
@@ -418,7 +418,7 @@
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
                     <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
                 </div>
-    
+
             </div>
         </div>
     </form>
@@ -687,7 +687,7 @@ function submitFormScan(e, evt) {
     });
 }
 
-        
+
 
         function sum_qty_item(val){
             var table = document.getElementById("tableshow");
@@ -718,10 +718,10 @@ function submitFormScan(e, evt) {
                         $('#qty_out'+i).val(qty_out);
                         $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
                     }
-                    sum_out += parseFloat(qty_out); 
+                    sum_out += parseFloat(qty_out);
                 }
             }
-                h_qty_out = sum_out + ' ' + satuan; 
+                h_qty_out = sum_out + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
                 h_sum_bal = sum_bal + ' ' + satuan;
                 $('#m_qty_out').val(h_qty_out.toFixed(2));
@@ -760,11 +760,11 @@ function submitFormScan(e, evt) {
                         $('#qty_out'+i).val(qty_out);
                         $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
                     }
-                    sum_out += parseFloat(qty_out); 
+                    sum_out += parseFloat(qty_out);
                 }
             }
 
-                h_qty_out = sum_out + ' ' + satuan; 
+                h_qty_out = sum_out + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
                 h_sum_bal = sum_bal + ' ' + satuan;
                 $('#m_qty_out2').val(h_qty_out.toFixed(2));
@@ -776,7 +776,7 @@ function submitFormScan(e, evt) {
 
 
 
-       
+
         async function getlistdata() {
             return datatable.ajax.reload(() => {
                 document.getElementById('jumlah_data').value = datatable.data().count();
@@ -900,12 +900,12 @@ function submitFormScan(e, evt) {
                     }
                 }
             });
-        
+
     }
 
     function out_scan($id_item,$id_jo,$qty_req,$unit,$noreq){
         let id_item = $id_item;
-        let id_jo = $id_jo; 
+        let id_jo = $id_jo;
         let qty_req = $qty_req;
         let unit = $unit;
         let no_bppb = $('#txt_nobppb').val();
@@ -925,13 +925,13 @@ function submitFormScan(e, evt) {
         $('#m_qty_out_h2').val('');
         $('#m_qty_bal2').val('');
         $('#m_qty_bal_h2').val('');
-    
-        $('#modal-out-barcode').modal('show');  
+
+        $('#modal-out-barcode').modal('show');
     }
 
     function getlist_barcode($id_item,$id_jo){
         let iditem = $id_item;
-        let idjo = $id_jo; 
+        let idjo = $id_jo;
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -952,7 +952,7 @@ function submitFormScan(e, evt) {
 
     function out_manual($id_item,$id_jo,$qty_req,$unit){
         let id_item = $id_item;
-        let id_jo = $id_jo; 
+        let id_jo = $id_jo;
         let qty_req = $qty_req;
         let unit = $unit;
         let no_bppb = $('#txt_nobppb').val();
@@ -968,13 +968,13 @@ function submitFormScan(e, evt) {
         $('#m_qty_out_h').val('');
         $('#m_qty_bal').val('');
         $('#m_qty_bal_h').val('');
-    
-        $('#modal-out-manual').modal('show');  
+
+        $('#modal-out-manual').modal('show');
     }
 
     function getlist_showitem($id_item,$id_jo){
         let iditem = $id_item;
-        let idjo = $id_jo; 
+        let idjo = $id_jo;
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1021,7 +1021,7 @@ function submitFormScan(e, evt) {
                 if (cek.checked == true){
                 t_roll += parseFloat(cek.value);
                 $("#qty_out"+i).prop("disabled", false);
-                } 
+                }
             }
             $('#t_roll').val(t_roll);
         }

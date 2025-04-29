@@ -116,7 +116,7 @@
                     </div> -->
 
               <!--   </div>
-            </div> 
+            </div>
  -->
         </div>
     </div>
@@ -133,7 +133,7 @@
         <div class="form-group row">
 
             <div class="table-responsive" >
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                     <thead>
                         <tr>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi</th>
@@ -305,7 +305,7 @@
                                     <div class="form-group">
                                         <label><small>Location</small></label>
                                         <select class="form-control select2supp" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
-                                            
+
                                         </select>
                                     </div>
                                 </div>

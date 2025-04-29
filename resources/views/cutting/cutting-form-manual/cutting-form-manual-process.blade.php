@@ -190,7 +190,7 @@
                             $totalCutQtyPly = 0;
                         @endphp
                         <div class="table-responsive {{ $formCutInputData->marker ? 'd-none' : '' }}">
-                            <table id="ratio-datatable" class="table table-bordered table-striped table-sm w-100">
+                            <table id="ratio-datatable" class="table table-bordered table-striped table w-100">
                                 <thead>
                                     <tr>
                                         <th>Size</th>
@@ -216,7 +216,7 @@
 
                         @if ($formCutInputData->marker)
                             <div class="table-responsive">
-                                <table id="ratio-datatable" class="table table-bordered table-striped table-sm w-100">
+                                <table id="ratio-datatable" class="table table-bordered table-striped table w-100">
                                     <thead>
                                         <tr>
                                             <th>Size</th>
@@ -942,7 +942,7 @@
                                     </div>
                                 </div>
                                 <div class="w-100 h-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
-                                    <table class="table table-bordered table-sm" id="timeRecordTable">
+                                    <table class="table table-bordered table" id="timeRecordTable">
                                         <thead>
                                             <tr>
                                                 <th>Lap</th>
@@ -992,7 +992,7 @@
                             <div class="w-100 h-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
                                 <form action="#" method="post" id="lost-time-form">
                                     <input type="hidden" id="current_lost_time" name="current_lost_time">
-                                    <table class="table table-bordered table-sm" id="lostTimeTable">
+                                    <table class="table table-bordered table" id="lostTimeTable">
                                         <thead>
                                             <tr>
                                                 <th>No.</th>
@@ -1022,7 +1022,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="w-100 table-responsive my-3">
-                                <table class="table table-bordered table-sm" id="scannedItemTable">
+                                <table class="table table-bordered table" id="scannedItemTable">
                                     <thead>
                                         <tr>
                                             <th>No.</th>

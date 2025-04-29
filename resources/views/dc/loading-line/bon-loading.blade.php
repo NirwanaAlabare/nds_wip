@@ -213,7 +213,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm table-bordered" id="loading-line-history">
+                <table class="table table table-bordered" id="loading-line-history">
                     <thead>
                         <tr>
                             <th>Tanggal</th>

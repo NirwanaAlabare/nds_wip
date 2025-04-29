@@ -91,7 +91,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class="col-md-4" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
@@ -112,7 +112,7 @@
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Cari No BPPB..." onkeyup="carigrdok()">
         </div>
         <div class="table-responsive" style="max-height: 400px;">
-            <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No RO</th>
@@ -473,7 +473,7 @@ $('.select2type').select2({
             {
                 data: 'id'
             }
-            
+
         ],
         columnDefs: [{
                 targets: [5],
@@ -506,20 +506,20 @@ $('.select2type').select2({
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending') {
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                    <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                         <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     </div>`;
                     }
                 }
             }
-       
+
         ]
     });
-    //<button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
+    //<button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button>
 
     function dataTableReload() {
         datatable.ajax.reload();
@@ -529,23 +529,23 @@ $('.select2type').select2({
     function approve_outmaterial($no_bppb){
         // alert($id);
         let no_bppb  = $no_bppb;
-    
+
     $('#txt_nodok').val(no_bppb);
-    $('#modal-appv-material').modal('show');  
+    $('#modal-appv-material').modal('show');
     }
 
 
     function nonactive_lokasi($id,$status,$kode_lok){
         // alert($id);
         let id  = $id;
-        let status  = $status;       
-        let kode  = $kode_lok; 
+        let status  = $status;
+        let kode  = $kode_lok;
         let idnya  = $id;
-    
+
     $('#txt_kode_lok').val(kode);
     $('#id_lok').val(idnya);
     $('#status_lok').val(status);
-    $('#modal-active-lokasi').modal('show');  
+    $('#modal-active-lokasi').modal('show');
     }
 
 
@@ -555,15 +555,15 @@ $('.select2type').select2({
         $("#BUNDLE_edit").prop("checked", false);
         $("#BOX_edit").prop("checked", false);
         $("#PACK_edit").prop("checked", false);
-        let kapasitas  = $kapasitas;       
-        let inisial_lok  = $inisial_lok; 
+        let kapasitas  = $kapasitas;
+        let inisial_lok  = $inisial_lok;
         let idnya  = $id;
-        let baris  = $baris;       
-        let level  = $level; 
+        let baris  = $baris;
+        let level  = $level;
         let nomor  = $nomor;
         let area  = $area;
         let unit  = $unit;
-        let u_roll  = $u_roll; 
+        let u_roll  = $u_roll;
         let u_bundle  = $u_bundle;
         let u_box  = $u_box;
         let u_pack  = $u_pack;
@@ -585,7 +585,7 @@ $('.select2type').select2({
         if (u_pack == 'PACK') {
             $("#PACK_edit").prop("checked", true);
         }
-    
+
     $('#txt_id').val(idnya);
     $('#txt_inisial').val(inisial_lok);
     $('#txt_capacity').val(kapasitas);
@@ -593,13 +593,13 @@ $('.select2type').select2({
     $('#txt_level').val(level);
     $('#txt_num').val(nomor);
     $('#txt_area').val(area);
-    // document.getElementById('txt_area').value=area; 
-    // document.getElementById('txt_area').selected=true; 
-    $('#modal-edit-lokasi').modal('show'); 
+    // document.getElementById('txt_area').value=area;
+    // document.getElementById('txt_area').selected=true;
+    $('#modal-edit-lokasi').modal('show');
     }
 
     function tambahdata(){
-    $('#modal-tambah-lokasi').modal('show'); 
+    $('#modal-tambah-lokasi').modal('show');
     }
 </script>
 

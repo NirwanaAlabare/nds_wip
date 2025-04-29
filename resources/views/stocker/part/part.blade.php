@@ -32,7 +32,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable-part" class="table table-bordered table-sm w-100">
+                <table id="datatable-part" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th class="align-bottom">Action</th>
@@ -109,7 +109,7 @@
                         </div>
                         <div class="col-md-12">
                             <div class="table-responsive mb-3">
-                                <table class="table table-bordered table-sm w-100" id="datatable-part-form">
+                                <table class="table table-bordered table w-100" id="datatable-part-form">
                                     <thead>
                                         <tr>
                                             <th>Act</th>

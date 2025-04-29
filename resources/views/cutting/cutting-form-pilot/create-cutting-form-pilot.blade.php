@@ -155,7 +155,7 @@
                         @endphp
 
                         <div class="table-responsive {{ isset($formCutInputData) && $formCutInputData ? ($formCutInputData->marker ? 'd-none' : '') : '' }}">
-                            <table id="ratio-datatable" class="table table-bordered table-striped table-sm w-100">
+                            <table id="ratio-datatable" class="table table-bordered table-striped table w-100">
                                 <thead>
                                     <tr>
                                         <th>Size</th>
@@ -181,7 +181,7 @@
 
                         @if (isset($formCutInputData) && $formCutInputData && $formCutInputData->marker)
                             <div class="table-responsive">
-                                <table id="ratio-datatable" class="table table-bordered table-striped table-sm w-100">
+                                <table id="ratio-datatable" class="table table-bordered table-striped table w-100">
                                     <thead>
                                         <tr>
                                             <th>Size</th>

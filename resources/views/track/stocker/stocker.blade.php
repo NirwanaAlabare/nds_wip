@@ -41,7 +41,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-sm w-100" id="stocker-table">
+                <table class="table table-bordered table w-100" id="stocker-table">
                     <thead>
                         <tr>
                             <th>Action</th>

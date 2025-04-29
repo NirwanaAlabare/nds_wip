@@ -31,7 +31,7 @@
                 </div>
             </div> --}}
             <div class="table-responsive">
-                <table id="datatable-rack" class="table table-bordered table-sm w-100">
+                <table id="datatable-rack" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th>Kode Rak</th>

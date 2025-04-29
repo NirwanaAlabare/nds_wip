@@ -57,7 +57,7 @@
         </div>
         <div class="table-responsive mt-3">
             {{-- Legacy --}}
-                {{-- <table class="table table-sm table-bordered align-middle mt-3">
+                {{-- <table class="table table table-bordered align-middle mt-3">
                     <thead>
                         <tr>
                             <th colspan="10" class="text-center">{{ strtoupper(str_replace("_", "", $this->selectedDefectType)) }}</th>

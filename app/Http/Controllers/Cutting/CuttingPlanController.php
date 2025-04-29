@@ -544,7 +544,7 @@ class CuttingPlanController extends Controller
                 $markerDetailData = $row->formCutInput && $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails : null;
 
                 $markerDetailInfo = "
-                        <table class='table table-bordered table-sm w-auto'>
+                        <table class='table table-bordered table w-auto'>
                             <thead>
                                 <tr>
                                     <th>Size</th>

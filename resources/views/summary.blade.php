@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100">
+                <table id="datatable" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th>Action</th>
@@ -210,7 +210,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-12 table-responsive">
-                                    <table id="datatable-ratio" class="table table-bordered table-striped table-sm w-100">
+                                    <table id="datatable-ratio" class="table table-bordered table-striped table w-100">
                                         <thead>
                                             <tr>
                                                 <th>Size</th>

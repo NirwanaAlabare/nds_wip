@@ -102,7 +102,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="stocker-table" class="table table-bordered table-sm w-100">
+                    <table id="stocker-table" class="table table-bordered table w-100">
                         <thead>
                             <tr>
                                 <th>Color</th>

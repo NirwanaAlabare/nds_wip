@@ -74,7 +74,7 @@
                     <button type="button" class="btn btn-primary btn-sm btn-block" onclick="printSisaKain()"><i class="fa fa-print"></i> Print Sticker</button>
                 </div>
                 <div class="col-md-12">
-                    <table class="table table-bordered w-100 table-sm" id="datatable">
+                    <table class="table table-bordered w-100 table" id="datatable">
                         <thead>
                             <tr>
                                 <th>No.Form</th>

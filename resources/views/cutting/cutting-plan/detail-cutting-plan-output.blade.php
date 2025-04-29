@@ -93,7 +93,7 @@
                 </button>
             </div>
             <div class="table-responsive">
-                <table id="datatable-form" class="table table-bordered table-sm w-100">
+                <table id="datatable-form" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th>Tanggal Form</th>
@@ -138,7 +138,7 @@
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
-                    <table id="datatable-add-form" class="table table-bordered table-sm w-100">
+                    <table id="datatable-add-form" class="table table-bordered table w-100">
                         <thead>
                             <tr>
                                 <th><input class="me-1" type="checkbox" id="checkAllForm" onchange="checkAllForm(this)"></th>

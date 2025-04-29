@@ -82,7 +82,7 @@
 
             </div>
             <div class="table-responsive" id="table_range" style="display: none;">
-                <table id="datatable_range" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable_range" class="table table-bordered table-striped 100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Line</th>
@@ -96,7 +96,7 @@
                 </table>
             </div>
             <div class="table-responsive" id="table_buyer" style="display: none;">
-                <table id="datatable_buyer" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable_buyer" class="table table-bordered table-striped 100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Buyer</th>

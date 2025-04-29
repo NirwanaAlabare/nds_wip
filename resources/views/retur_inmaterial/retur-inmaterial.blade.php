@@ -91,7 +91,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class="col-md-6" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
@@ -117,7 +117,7 @@
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search Data..." onkeyup="carigrdok()">
         </div>
         <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No RI</th>
@@ -475,7 +475,7 @@ $('.select2type').select2({
             {
                 data: 'id'
             }
-            
+
         ],
         columnDefs: [{
                 targets: [4],
@@ -492,18 +492,18 @@ $('.select2type').select2({
             {
                 targets: [8],
                 render: (data, type, row, meta) => {
-                 if (row.qty_balance == 0) {   
-                    return `<div class='d-flex gap-1 justify-content-center'> 
+                 if (row.qty_balance == 0) {
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-retur-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" style='color:green;'></i></a>
                     </div>`;
                 }else if(row.qty_balance == row.qty){
-                   return `<div class='d-flex gap-1 justify-content-center'> 
+                   return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-retur-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" aria-hidden="true" style='color:red;'></i></a>
-                    </div>`; 
+                    </div>`;
                 }else{
-                    return `<div class='d-flex gap-1 justify-content-center'> 
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-retur-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" aria-hidden="true" style='color:#FFD700;'></i></a>
-                    </div>`; 
+                    </div>`;
                 }
                 }
             },
@@ -512,34 +512,34 @@ $('.select2type').select2({
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending' && row.qty_balance == 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance == 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance != 0) {
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                     </div>`;
                     }
-                   //  return `<div class='d-flex gap-1 justify-content-center'> 
+                   //  return `<div class='d-flex gap-1 justify-content-center'>
                    // <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                    //  <button type='button' class='btn btn-sm btn-warning' onclick='printlokasi("` + data + `")'><i class="fa-solid fa-print "></i></button>
                    //  <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("")'><i class="fa-solid fa-barcode"></i></button>
-                   //  <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
+                   //  <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button>
                    //  </div>`;
                 }
             }
@@ -549,14 +549,14 @@ $('.select2type').select2({
             //     render: (data, type, row, meta) => {
             //         console.log(row);
             //         if (row.status == 'Active') {
-            //         return `<div class='d-flex gap-1 justify-content-center'> 
+            //         return `<div class='d-flex gap-1 justify-content-center'>
             //        <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.id + `","` + row.kapasitas + `","` + row.inisial_lok + `","` + row.baris_lok + `","` + row.level_lok + `","` + row.no_lok + `","` + row.area_lok + `","` + row.unit + `","` + row.unit_roll + `","` + row.unit_bundle + `","` + row.unit_box + `","` + row.unit_pack + `")'><i class='fa fa-wrench'></i></button>
             //         <button type='button' class='btn btn-sm btn-info' onclick='printlokasi("` + row.id + `")'><i class='fa fa-file-pdf'></i></button>
-            //         <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-unlock-alt'></i></button> 
+            //         <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-unlock-alt'></i></button>
             //         </div>`;
             //         }else{
-            //             return `<div class='d-flex gap-1 justify-content-center'> 
-            //         <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-lock'></i></button> 
+            //             return `<div class='d-flex gap-1 justify-content-center'>
+            //         <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-lock'></i></button>
             //         </div>`;
             //         }
             //     }
@@ -572,23 +572,23 @@ $('.select2type').select2({
     function approve_inmaterial($nodok){
         // alert($id);
         let nodok  = $nodok;
-    
+
     $('#txt_nodok').val(nodok);
-    $('#modal-appv-material').modal('show');  
+    $('#modal-appv-material').modal('show');
     }
 
 
     function nonactive_lokasi($id,$status,$kode_lok){
         // alert($id);
         let id  = $id;
-        let status  = $status;       
-        let kode  = $kode_lok; 
+        let status  = $status;
+        let kode  = $kode_lok;
         let idnya  = $id;
-    
+
     $('#txt_kode_lok').val(kode);
     $('#id_lok').val(idnya);
     $('#status_lok').val(status);
-    $('#modal-active-lokasi').modal('show');  
+    $('#modal-active-lokasi').modal('show');
     }
 
 
@@ -598,15 +598,15 @@ $('.select2type').select2({
         $("#BUNDLE_edit").prop("checked", false);
         $("#BOX_edit").prop("checked", false);
         $("#PACK_edit").prop("checked", false);
-        let kapasitas  = $kapasitas;       
-        let inisial_lok  = $inisial_lok; 
+        let kapasitas  = $kapasitas;
+        let inisial_lok  = $inisial_lok;
         let idnya  = $id;
-        let baris  = $baris;       
-        let level  = $level; 
+        let baris  = $baris;
+        let level  = $level;
         let nomor  = $nomor;
         let area  = $area;
         let unit  = $unit;
-        let u_roll  = $u_roll; 
+        let u_roll  = $u_roll;
         let u_bundle  = $u_bundle;
         let u_box  = $u_box;
         let u_pack  = $u_pack;
@@ -628,7 +628,7 @@ $('.select2type').select2({
         if (u_pack == 'PACK') {
             $("#PACK_edit").prop("checked", true);
         }
-    
+
     $('#txt_id').val(idnya);
     $('#txt_inisial').val(inisial_lok);
     $('#txt_capacity').val(kapasitas);
@@ -636,13 +636,13 @@ $('.select2type').select2({
     $('#txt_level').val(level);
     $('#txt_num').val(nomor);
     $('#txt_area').val(area);
-    // document.getElementById('txt_area').value=area; 
-    // document.getElementById('txt_area').selected=true; 
-    $('#modal-edit-lokasi').modal('show'); 
+    // document.getElementById('txt_area').value=area;
+    // document.getElementById('txt_area').selected=true;
+    $('#modal-edit-lokasi').modal('show');
     }
 
     function tambahdata(){
-    $('#modal-tambah-lokasi').modal('show'); 
+    $('#modal-tambah-lokasi').modal('show');
     }
 </script>
 

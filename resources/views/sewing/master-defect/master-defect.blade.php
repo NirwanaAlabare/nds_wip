@@ -32,7 +32,7 @@
                         Defect Type Baru
                     </button>
                     <div class="table-responsive">
-                        <table id="datatable-defect-type" class="table table-bordered table-sm w-100">
+                        <table id="datatable-defect-type" class="table table-bordered table w-100">
                             <thead>
                                 <tr>
                                     <th>Act</th>
@@ -52,7 +52,7 @@
                         Defect Area Baru
                     </button>
                     <div class="table-responsive">
-                        <table id="datatable-defect-area" class="table table-bordered table-sm w-100">
+                        <table id="datatable-defect-area" class="table table-bordered table w-100">
                             <thead>
                                 <tr>
                                     <th>Act</th>

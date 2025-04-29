@@ -108,7 +108,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatable_det" class="table table-bordered table-sm w-100">
+                    <table id="datatable_det" class="table table-bordered 100">
                         <thead class="table-primary">
                             <tr>
                                 <th>Lokasi</th>

@@ -25,7 +25,7 @@
                     <div class="modal-body">
                         <div class='row'>
                             <div class="col-md-12 table-responsive">
-                                <table id="datatable_delete" class="table table-bordered table-hover table-sm w-100 nowrap">
+                                <table id="datatable_delete" class="table table-bordered table-hover 100 nowrap">
                                     <thead class="table-danger">
                                         <tr style='text-align:center; vertical-align:middle'>
                                             <th>
@@ -193,7 +193,7 @@
                                 </a>
                             </div>
                             <div class="table-responsive">
-                                <table id="datatable_det_karton" class="table table-bordered table-sm w-100 text-nowrap">
+                                <table id="datatable_det_karton" class="table table-bordered 100 text-nowrap">
                                     <thead class="table-warning">
                                         <tr>
                                             <th>PO #</th>
@@ -224,7 +224,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="datatable_summary" class="table table-bordered table-sm w-100 text-nowrap">
+                                <table id="datatable_summary" class="table table-bordered 100 text-nowrap">
                                     <thead class="table-warning">
                                         <tr>
                                             <th>WS #</th>
@@ -262,7 +262,7 @@
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table id="datatable_det_terinput_karton"
-                                    class="table table-bordered table-sm w-100 text-nowrap">
+                                    class="table table-bordered 100 text-nowrap">
                                     <thead class="table-success">
                                         <tr>
                                             <th>PO #</th>
@@ -293,7 +293,7 @@
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table id="datatable_summary_terinput"
-                                    class="table table-bordered table-sm w-100 text-nowrap">
+                                    class="table table-bordered 100 text-nowrap">
                                     <thead class="table-success">
                                         <tr>
                                             <th>WS #</th>

@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
+                    <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
                         <thead>
                             <tr>
                                 <th class="text-center">Lokasi</th>
@@ -125,7 +125,7 @@
                         <!-- style="height: 400px" -->
                         <div class="table-responsive" id="table_modal">
 
-                        </div> 
+                        </div>
                     </div>
                 </div>
             </div>
@@ -458,7 +458,7 @@
 
                         }
                     },
-                }); 
+                });
             }else{
                 let tgl_filter = document.getElementById("tgl_filter").value;
                 let item_so = document.getElementById("item_so").value;
@@ -494,9 +494,9 @@
 
                         }
                     },
-                }); 
+                });
             }
-            
+
 
         }
 
@@ -536,11 +536,11 @@
 
                     }
                 },
-            }); 
+            });
 
         }
     </script>
-<!-- 
+<!--
         <script type="text/javascript">
         function copysaldo(data) {
             let tgl_filter = document.getElementById("tgl_filter").value;

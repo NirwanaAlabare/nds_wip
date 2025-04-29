@@ -256,7 +256,7 @@
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
     <div class="table-responsive"style="max-height: 500px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Style</th>
@@ -451,7 +451,7 @@
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
         });
-        
+
 
         //Initialize Select2 Elements
         $('.select2').select2()
@@ -1003,7 +1003,7 @@ function submitFormScan(e, evt) {
         $('#m_qty_out_h2').val('');
         $('#m_qty_bal2').val('');
         $('#m_qty_bal_h2').val('');
-        $('#modal-out-barcode').modal('show');  
+        $('#modal-out-barcode').modal('show');
     }
 
     function getlist_barcode($id_item,$id_jo,$noreq){
@@ -1048,7 +1048,7 @@ function submitFormScan(e, evt) {
         $('#m_qty_out_h').val('');
         $('#m_qty_bal').val('');
         $('#m_qty_bal_h').val('');
-        $('#modal-out-manual').modal('show');  
+        $('#modal-out-manual').modal('show');
     }
 
     function getlist_showitem($id_item,$id_jo){

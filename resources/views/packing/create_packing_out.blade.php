@@ -91,7 +91,7 @@
                                 </div>
                             </div> --}}
                             <div class="table-responsive">
-                                <table id="datatable_summary" class="table table-bordered table-sm w-100 text-nowrap">
+                                <table id="datatable_summary" class="table table-bordered 100 text-nowrap">
                                     <thead>
                                         <tr>
                                             <th>PO #</th>
@@ -139,7 +139,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="datatable_history" class="table table-bordered table-sm w-100 text-nowrap">
+                            <table id="datatable_history" class="table table-bordered 100 text-nowrap">
                                 <thead>
                                     <tr>
                                         <th>Tgl. Input</th>

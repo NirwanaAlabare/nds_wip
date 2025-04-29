@@ -133,7 +133,7 @@
                             </div>
                         </div>
                     </div>
-                    <table id="ratio-datatable" class="table table-striped table-bordered table-sm w-100 text-center mt-3">
+                    <table id="ratio-datatable" class="table table-striped table-bordered table w-100 text-center mt-3">
                         <thead>
                             <tr>
                                 <th class="label-fetch">Size</th>
@@ -345,7 +345,7 @@
                     <div class="w-100 h-100 table-responsive mt-3">
                         <form action="#" method="post" id="lost-time-form">
                             <input type="hidden" id="current_lost_time" name="current_lost_time">
-                            <table class="table table-bordered table-sm" id="lostTimeTable">
+                            <table class="table table-bordered table" id="lostTimeTable">
                                 <thead>
                                     <tr>
                                         <th>No.</th>
@@ -385,7 +385,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="w-100 table-responsive my-3">
-                                <table class="table table-bordered table-sm" id="scannedItemTable">
+                                <table class="table table-bordered table" id="scannedItemTable">
                                     <thead>
                                         <tr>
                                             <th>No.</th>
@@ -877,13 +877,20 @@
                             <div class="col-md-12">
                                 <div class="row justify-content-between">
                                     <div class="col-md-4">
-                                        <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
+                                        <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()" {{ $stockerData ? 'disabled' : '' }}><i class="fa fa-trash"></i> HAPUS</button>
                                     </div>
                                     <div class="col-md-4">
-                                        <button type="button" class="btn btn-yes btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-save"></i> SIMPAN</button>
+                                        <button type="button" class="btn btn-yes btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="storeTimeRecord()" {{ $stockerData ? 'disabled' : '' }}><i class="fa fa-save"></i> SIMPAN</button>
                                     </div>
                                 </div>
                             </div>
+                            @if ($stockerData)
+                                <div class="col-md-12">
+                                    <div class="alert alert-danger mt-3" role="alert">
+                                        Tidak dapat mengubah form. Form sudah menjadi stocker. <a href="{{ route('show-stocker') }}/{{ $id }}" target="_blank"><b>Ke Halaman Stocker.</b></a>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </form>
                 </div>

@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-sm table-bordered" id="report-detail-output-table">
+                <table class="table table table-bordered" id="report-detail-output-table">
                     <thead>
                         <tr>
                             <th>Tanggal</th>
@@ -63,7 +63,7 @@
                 </div>
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-sm table-bordered" id="report-detail-output-packing-table">
+                <table class="table table table-bordered" id="report-detail-output-packing-table">
                     <thead>
                         <tr>
                             <th>Tanggal</th>

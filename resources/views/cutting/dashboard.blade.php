@@ -122,7 +122,7 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-bordered table-hover table-sm w-100" id="datatable-cutting">
+            <table class="table table-bordered table-hover table w-100" id="datatable-cutting">
                 <thead>
                     <tr>
                         <th>No. WS</th>

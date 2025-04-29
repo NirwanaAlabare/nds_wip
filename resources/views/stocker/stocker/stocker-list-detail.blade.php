@@ -134,7 +134,7 @@
         <div class="card-body">
             <div class="table-responsive">
                 <form action="#" method="post" id="month-count-form">
-                    <table class="table table-bordered table-sm w-100" id="datatable">
+                    <table class="table table-bordered table w-100" id="datatable">
                         <thead>
                             <th>Number</th>
                             <th>Year Sequence</th>

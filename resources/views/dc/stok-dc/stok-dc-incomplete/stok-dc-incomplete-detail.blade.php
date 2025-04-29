@@ -68,7 +68,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable-incomplete-stocker" class="table table-bordered table-sm w-100">
+                <table id="datatable-incomplete-stocker" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th>No. Form</th>

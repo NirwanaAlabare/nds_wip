@@ -100,7 +100,7 @@
     <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search GR Document..." onkeyup="carigrdok()">
 </div> -->
 <div class="table-responsive">
-    <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
+    <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
         <thead>
             <tr>
                 <th class="text-center">No Transaksi</th>
@@ -183,7 +183,7 @@
                             </div>
                             <div class="col-md-12">
                                 <div class="mb-1">
-                                
+
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -224,7 +224,7 @@
                             </div>
                             <div class="col-md-12">
                                 <div class="mb-1">
-                          
+
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -267,7 +267,7 @@
                         <div class="form-group row">
                             <div class="col-md-12">
                                 <div class="mb-1">
-                                    
+
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -308,7 +308,7 @@
                             </div>
                             <div class="col-md-12">
                                 <div class="mb-1">
-                     
+
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -431,7 +431,7 @@
             //     targets: [7],
             //     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
             // },
-            
+
             {
                 targets: [9],
                 render: (data, type, row, meta) => {

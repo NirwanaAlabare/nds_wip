@@ -192,7 +192,7 @@
                 </h5>
             </div>
             <div class="card-body table-responsive">
-                <table id="orderQtyDatatable" class="table table-bordered table-striped table-sm w-100">
+                <table id="orderQtyDatatable" class="table table-bordered table-striped table w-100">
                     <thead>
                         <tr>
                             <th>WS</th>

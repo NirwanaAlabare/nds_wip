@@ -164,6 +164,16 @@ class SewingToolsController extends Controller
         // Get Reworks Data with Of Course Missing RFT
         $reworks = collect(DB::connection("mysql_sb")->select("select null as id, output_defects.master_plan_id, output_defects.so_det_id, 'REWORK' as status, output_reworks.id as rework_id, output_defects.created_by, output_reworks.created_at, output_reworks.updated_at, output_defects.kode_numbering, output_defects.kode_numbering no_cut_size from output_reworks left join output_defects on output_defects.id = output_reworks.defect_id left join output_rfts on output_rfts.rework_id = output_reworks.id where output_rfts.id is null"));
 
+        if ($reworks->count() > 0) {
+            return array(
+                'status' => 400,
+                'message' => 'Tidak ada rework yang hilang',
+                'redirect' => '',
+                'table' => '',
+                'additional' => [],
+            );
+        }
+
         $reworkArr = $reworks->map(function ($item, $key) {
             return (array) $item;
         })->toArray();

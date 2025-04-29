@@ -40,7 +40,7 @@
                <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
             </div>
             <div class="table-responsive">
-                <table id="datatable-loading-line" class="table table-bordered table-sm w-100">
+                <table id="datatable-loading-line" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th>Line</th>

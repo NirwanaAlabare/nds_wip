@@ -54,7 +54,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class=" col-12 col-md-5" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
@@ -75,7 +75,7 @@
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search Data..." onkeyup="carigrdok()">
         </div>
         <div class="table-responsive" style="max-height: 400px">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No Request</th>
@@ -236,7 +236,7 @@ $('.select2type').select2({
             {
                 data: 'bppbno'
             }
-            
+
         ],
         columnDefs: [{
                 targets: [9,10],
@@ -273,14 +273,14 @@ $('.select2type').select2({
                       return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('edit-reqmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.bppbno + `")'><i class="fa-solid fa-print "></i></button>
-                    </div>`;  
+                    </div>`;
                     }
                     return `<div class='d-flex gap-1 justify-content-center'>
                     -
                     </div>`;
                 }
             }
-            
+
         ]
     });
 
@@ -292,23 +292,23 @@ $('.select2type').select2({
     function approve_inmaterial($nodok){
         // alert($id);
         let nodok  = $nodok;
-    
+
     $('#txt_nodok').val(nodok);
-    $('#modal-appv-material').modal('show');  
+    $('#modal-appv-material').modal('show');
     }
 
 
     function nonactive_lokasi($id,$status,$kode_lok){
         // alert($id);
         let id  = $id;
-        let status  = $status;       
-        let kode  = $kode_lok; 
+        let status  = $status;
+        let kode  = $kode_lok;
         let idnya  = $id;
-    
+
     $('#txt_kode_lok').val(kode);
     $('#id_lok').val(idnya);
     $('#status_lok').val(status);
-    $('#modal-active-lokasi').modal('show');  
+    $('#modal-active-lokasi').modal('show');
     }
 
 
@@ -318,15 +318,15 @@ $('.select2type').select2({
         $("#BUNDLE_edit").prop("checked", false);
         $("#BOX_edit").prop("checked", false);
         $("#PACK_edit").prop("checked", false);
-        let kapasitas  = $kapasitas;       
-        let inisial_lok  = $inisial_lok; 
+        let kapasitas  = $kapasitas;
+        let inisial_lok  = $inisial_lok;
         let idnya  = $id;
-        let baris  = $baris;       
-        let level  = $level; 
+        let baris  = $baris;
+        let level  = $level;
         let nomor  = $nomor;
         let area  = $area;
         let unit  = $unit;
-        let u_roll  = $u_roll; 
+        let u_roll  = $u_roll;
         let u_bundle  = $u_bundle;
         let u_box  = $u_box;
         let u_pack  = $u_pack;
@@ -348,7 +348,7 @@ $('.select2type').select2({
         if (u_pack == 'PACK') {
             $("#PACK_edit").prop("checked", true);
         }
-    
+
     $('#txt_id').val(idnya);
     $('#txt_inisial').val(inisial_lok);
     $('#txt_capacity').val(kapasitas);
@@ -356,13 +356,13 @@ $('.select2type').select2({
     $('#txt_level').val(level);
     $('#txt_num').val(nomor);
     $('#txt_area').val(area);
-    // document.getElementById('txt_area').value=area; 
-    // document.getElementById('txt_area').selected=true; 
-    $('#modal-edit-lokasi').modal('show'); 
+    // document.getElementById('txt_area').value=area;
+    // document.getElementById('txt_area').selected=true;
+    $('#modal-edit-lokasi').modal('show');
     }
 
     function tambahdata(){
-    $('#modal-tambah-lokasi').modal('show'); 
+    $('#modal-tambah-lokasi').modal('show');
     }
 </script>
 

@@ -54,7 +54,7 @@
                         <?php
                             $status = '';
                             if ($msupp->id_supplier == $dh->id_supplier) {
-                                $status = 'selected="selected"';                            
+                                $status = 'selected="selected"';
                             }else{
                                 $status = '';
                             }
@@ -103,7 +103,7 @@
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
     <div class="table-responsive"style="max-height: 500px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">JO #</th>
@@ -135,7 +135,7 @@
                         </td>
                         <td value="{{$detdata->qty_out}}">{{$detdata->qty_out}}</td>
                         <td value="{{$detdata->unit}}">{{$detdata->unit}}</td>
-                        
+
                     </tr>
                     <?php $i++; ?>
                     @endforeach
@@ -268,7 +268,7 @@
         }
 
         function getlist_item($id_jo){
-        let idjo = $id_jo; 
+        let idjo = $id_jo;
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -288,7 +288,7 @@
         }
 
         function getsum_item($id_jo){
-        let idjo = $id_jo; 
+        let idjo = $id_jo;
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -327,7 +327,7 @@
         //     ajax: {
         //         url: '{{ route("get-detail-list") }}',
         //         data: function (d) {
-        //             d.txt_supp = $('#txt_supp').val(); 
+        //             d.txt_supp = $('#txt_supp').val();
         //             d.txt_fill = $('#txt_po').val() ? $('#txt_po').val() : $('#txt_wsglobal').val();
         //             d.name_fill = $('#txt_po').val() ? 'PO' : 'WS';
         //             // alert(d.name_fill);
@@ -439,7 +439,7 @@
         //             className: "d-none",
         //             render: (data, type, row, meta) => '<input type="hidden" id="det_unit' + meta.row + '" name="det_unit['+meta.row+']" value="' + data + '" readonly />'
         //         },
-                
+
         //         {
         //             targets: [9],
         //             render: (data, type, row, meta) => {

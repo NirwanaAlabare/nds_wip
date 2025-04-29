@@ -56,7 +56,7 @@
 
     @if ($qcType == '_finish')
         <div class="table-responsive mt-3">
-            <table class="table table-bordered table-sm">
+            <table class="table table-bordered table">
                 <tr>
                     <th rowspan="2" class="align-middle text-center fw-bold">Line</th>
                     <th rowspan="2" class="align-middle text-center fw-bold">NIK</th>
@@ -176,7 +176,7 @@
         {{-- Group By Line --}}
         @if ($this->group == 'line')
             <div class="row table-responsive {{ $this->group == 'line' ? '' : 'd-none' }}">
-                <table class="table table-sm table-bordered mt-3">
+                <table class="table table table-bordered mt-3">
                     <thead>
                         <tr>
                             <th rowspan="2" class="align-middle text-center">Line</th>
@@ -348,7 +348,7 @@
         {{-- Group By WS --}}
         @if ($this->group == 'ws')
             <div class="row table-responsive {{ $this->group == 'ws' ? '' : 'd-none' }}">
-                <table class="table table-sm table-bordered mt-3">
+                <table class="table table table-bordered mt-3">
                     <thead>
                         <tr>
                             <th rowspan="2" class="align-middle text-center">WS Number</th>
@@ -517,7 +517,7 @@
         {{-- Group By Style --}}
         @if ($this->group == 'style')
             <div class="row table-responsive {{ $this->group == 'style' ? '' : 'd-none' }}">
-                <table class="table table-sm table-bordered mt-3">
+                <table class="table table table-bordered mt-3">
                     <thead>
                         <tr>
                             <th rowspan="2" class="align-middle text-center">Style</th>
@@ -683,7 +683,7 @@
     {{-- Top 5 Defects --}}
     <h5 class="mt-3 text-sb text-center fw-bold">Top 5 Defects</h5>
     <div class="row table-responsive">
-        <table class="table table-sm table-bordered mt-3">
+        <table class="table table table-bordered mt-3">
             <thead>
                 <tr>
                     <th class="text-center">No.</th>

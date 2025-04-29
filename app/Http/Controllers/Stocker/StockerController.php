@@ -200,7 +200,7 @@ class StockerController extends Controller
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where("marker_input.color", $dataSpreading->color)->
             where("part_form.part_id", $dataSpreading->part_id)->
-            whereRaw("(form_cut_input.no_cut < ".$dataSpreading->no_cut." or form_cut_input.no_cut > ".$dataSpreading->no_cut.")")->
+            whereRaw("(form_cut_input.no_cut <= ".$dataSpreading->no_cut." or form_cut_input.no_cut > ".$dataSpreading->no_cut.")")->
             get();
 
         $dataPartDetail = PartDetail::selectRaw("

@@ -30,7 +30,7 @@
             <div id="panelsStayOpen-{{ $index }}" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm" id="table-ratio-{{ $index }}">
+                        <table class="table table-bordered table" id="table-ratio-{{ $index }}">
                             <thead>
                                 <th>Size</th>
                                 <th>Ratio</th>

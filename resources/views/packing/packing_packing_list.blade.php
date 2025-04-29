@@ -129,7 +129,7 @@
                         </div>
                         <div class="table-responsive">
                             <table id="datatable_upload_tambah"
-                                class="table table-bordered table-sm w-100 table-hover display nowrap">
+                                class="table table-bordered 100 table-hover display nowrap">
                                 <thead class="table-primary">
                                     <tr style='text-align:center; vertical-align:middle'>
                                         <th>Tgl. Shipment</th>
@@ -210,7 +210,7 @@
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_detail_packing_list"
-                                class="table table-bordered table-hover table-sm w-100 nowrap">
+                                class="table table-bordered table-hover 100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>PO</th>
@@ -299,7 +299,7 @@
                         <div class='row'>
                             <div class="col-md-12 table-responsive">
                                 <table id="datatable_detail_packing_list_hapus"
-                                    class="table table-bordered table-sm w-100 text-nowrap">
+                                    class="table table-bordered 100 text-nowrap">
                                     <thead class="table-primary">
                                         <tr style='text-align:center; vertical-align:middle'>
                                             <th>
@@ -456,7 +456,7 @@
                         </div>
                         <div class="table-responsive">
                             <table id="datatable_upload"
-                                class="table table-bordered table-sm w-100 table-hover display nowrap">
+                                class="table table-bordered 100 table-hover display nowrap">
                                 <thead class="table-primary">
                                     <tr style='text-align:center; vertical-align:middle'>
                                         <th>Tgl. Shipment</th>
@@ -515,7 +515,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Tgl. Shipment</th>

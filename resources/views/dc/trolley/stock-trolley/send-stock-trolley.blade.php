@@ -99,7 +99,7 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered w-100" id="datatable-trolley-stock">
+                    <table class="table table table-bordered w-100" id="datatable-trolley-stock">
                         <thead>
                             <tr>
                                 <th class="d-none">Stocker IDs</th>

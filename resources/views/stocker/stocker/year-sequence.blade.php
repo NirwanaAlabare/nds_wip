@@ -170,7 +170,7 @@
             <div class="my-3">
                 <div>
                     <form action="#" method="post" id="year-sequence-form">
-                        <table class="table table-bordered table-sm w-100" id="year-sequence-table">
+                        <table class="table table-bordered table w-100" id="year-sequence-table">
                             <thead>
                                 <th>Number</th>
                                 <th>Year Sequence</th>

@@ -42,7 +42,7 @@
             </div>
         </div>
         <div class="row table-responsive">
-            <table class="table table-sm table-bordered align-middle mt-3">
+            <table class="table ble-bordered align-middle mt-3">
                 <thead>
                     <tr>
                         <th colspan="9">{{ $this->selectedDefectType }}</th>
@@ -94,7 +94,7 @@
             </button>
         </div>
         <div class="row table-responsive">
-            <table class="table table-sm table-bordered mt-3">
+            <table class="table ble-bordered mt-3">
                 <thead>
                     <tr>
                         <th colspan="6" class="text-center">{{ ucfirst(str_replace("_"," ",$this->selectedLine != '' ? $this->selectedLine : '-')) }}</th>

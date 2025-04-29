@@ -681,7 +681,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable-master-kendaraan" class="table table-bordered table-sm w-100  nowrap">
+                        <table id="datatable-master-kendaraan" class="table table-bordered 100  nowrap">
                             <thead class="table-info">
                                 <tr style='text-align:center; vertical-align:middle'>
                                     <th>Plat No</th>
@@ -723,7 +723,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable-master-bensin" class="table table-bordered table-sm w-100  nowrap">
+                        <table id="datatable-master-bensin" class="table table-bordered 100  nowrap">
                             <thead class="table-info">
                                 <tr style='text-align:center; vertical-align:middle'>
                                     <th>Jenis</th>
@@ -769,7 +769,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable-trans" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                <table id="datatable-trans" class="table table-bordered 100 table-hover display nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>No. Form</th>

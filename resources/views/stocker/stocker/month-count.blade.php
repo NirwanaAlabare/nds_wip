@@ -149,7 +149,7 @@
             <div class="my-3">
                 <div>
                     <form action="#" method="post" id="month-count-form">
-                        <table class="table table-bordered table-sm w-100" id="month-count-table">
+                        <table class="table table-bordered table w-100" id="month-count-table">
                             <thead>
                                 <th>Number</th>
                                 <th>Year Month</th>

@@ -36,7 +36,7 @@
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal">Export <i class="fa fa-file-excel"></i></button>
             </div>
             <div class="table-responsive mt-3">
-                <table class="table table-bordered table-sm" id="report-defect-table">
+                <table class="table table-bordered table" id="report-defect-table">
                     <thead>
                         <tr>
                             <th>Kode Numbering</th>
