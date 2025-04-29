@@ -56,7 +56,7 @@ class SewingToolsController extends Controller
             }
         }
 
-        Log::channel('transferOutput')->info([
+        Log::channel('missUserOutput')->info([
             "Repair User Output Based on Master Plan",
             "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
             "Total Data ".count($success),
@@ -144,7 +144,7 @@ class SewingToolsController extends Controller
             }
         }
 
-        Log::channel('transferOutput')->info([
+        Log::channel('missMasterPlanOutput')->info([
             "Repair Master Plan Missing Output",
             "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
             "Total Data ".count($success),
@@ -192,7 +192,7 @@ class SewingToolsController extends Controller
         $storeToRft = Rft::insert($reworkArr);
 
         if ($storeToRework && $storeToRft) {
-            Log::channel('transferOutput')->info([
+            Log::channel('missReworkOutput')->info([
                 "Repair Defect->Rework->RFT Chain Data",
                 "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                 "Total Data ".count($defects),
