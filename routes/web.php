@@ -1101,7 +1101,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
     });
 
-    Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("sewing")->group(function () {
+    Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
         Route::post('/miss-masterplan', 'missMasterPlan')->name("miss-masterplan");
         Route::post('/miss-rework', 'missRework')->name("miss-rework");

@@ -20,6 +20,15 @@
         </div>
         <div class="card-body">
             <div class="row">
+                <div class="col-md-4">
+                    <a href="{{ route('sewing-transfer-output') }}" type="button" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"> <i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Output</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
                 <div class="col-md-4 d-none">
                     <a type="button" class="home-item" onclick="missMasterPlan()">
                         <div class="card">
