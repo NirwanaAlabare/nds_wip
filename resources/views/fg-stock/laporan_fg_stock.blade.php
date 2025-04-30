@@ -57,7 +57,7 @@
                 </div>
 
                 <div class="table-responsive" id="table_penerimaan" style="display: none;">
-                    <table id="datatable_penerimaan" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                    <table id="datatable_penerimaan" class="table table-bordered 100 table-hover display nowrap">
                         <thead class="table-primary">
                             <tr style='text-align:center; vertical-align:middle'>
                                 <th>No. Trans</th>
@@ -80,7 +80,7 @@
 
                 <div class="table-responsive" id="table_pengeluaran" style="display: none;">
                     <table id="datatable_pengeluaran"
-                        class="table table-bordered table-sm w-100 table-hover display nowrap">
+                        class="table table-bordered 100 table-hover display nowrap">
                         <thead class="table-primary">
                             <tr style='text-align:center; vertical-align:middle'>
                                 <th>No. Trans</th>
@@ -103,7 +103,7 @@
                 </div>
 
                 <div class="table-responsive" id="table_mutasi" style="display: none;">
-                    <table id="datatable_mutasi" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                    <table id="datatable_mutasi" class="table table-bordered 100 table-hover display nowrap">
                         <thead class="table-primary">
                             <tr style='text-align:center; vertical-align:middle'>
                                 <th>ID So Det</th>

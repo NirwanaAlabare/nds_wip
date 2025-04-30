@@ -388,7 +388,7 @@
 
             let parentElement = document.getElementById("chief-table");
             parentElement.innerHTML = `
-                <div class="d-flex flex-column gap-1" id="chief-table-header">
+                <div class="d-flex flex-column gap-1" id="chief-table-header" style="position: sticky; left: -5px; background: #e9e9e9; border-left: 6px solid #e9e9e9; border-right: 6px solid #e9e9e9;">
                     <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
                         <span class="text-nowrap fw-bold p-1">NAMA CHIEF</span>
                     </div>
@@ -510,8 +510,8 @@
 
             // Rank
             parentElement.innerHTML += `
-                <div class="d-flex flex-column gap-1" id="chief-table-header">
-                    <div class="d-flex flex-column gap-1" id="chief-table-header">
+                <div class="d-flex flex-column gap-1" id="chief-table-footer" style="position: sticky; right: -5px; background: #e9e9e9; border-left: 6px solid #e9e9e9; border-right: 6px solid #e9e9e9;">
+                    <div class="d-flex flex-column gap-1">
                         <div class="d-flex justify-content-center align-items-center horizontal-grid-box" style="height: 50px;">
                             <span class="text-nowrap fw-bold">RANK</span>
                         </div>

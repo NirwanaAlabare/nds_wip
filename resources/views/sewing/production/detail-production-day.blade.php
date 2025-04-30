@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-sm w-100" id="detail-produksi-day-table">
+                <table class="table table w-100" id="detail-produksi-day-table">
                     <thead>
                         <tr>
                             <th>Action</th>

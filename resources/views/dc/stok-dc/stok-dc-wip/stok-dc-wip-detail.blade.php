@@ -48,7 +48,7 @@
                     <div id="panelsStayOpen-complete" class="accordion-collapse collapse show">
                         <div class="accordion-body">
                             <div class="table-responsive">
-                                <table id="datatable-complete-stocker" class="table table-bordered table-sm w-100">
+                                <table id="datatable-complete-stocker" class="table table-bordered table w-100">
                                     <thead>
                                         <tr>
                                             <th>Color</th>
@@ -92,7 +92,7 @@
                     <div id="panelsStayOpen-incomplete" class="accordion-collapse collapse show">
                         <div class="accordion-body">
                             <div class="table-responsive">
-                                <table id="datatable-incomplete-stocker" class="table table-bordered table-sm w-100">
+                                <table id="datatable-incomplete-stocker" class="table table-bordered table w-100">
                                     <thead>
                                         <tr>
                                             <th>Color</th>

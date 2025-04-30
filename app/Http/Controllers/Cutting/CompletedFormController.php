@@ -156,6 +156,8 @@ class CompletedFormController extends Controller
     }
 
     public function detailCutting($id) {
+        $stockerData = Stocker::where("form_cut_id", $id)->first();
+
         $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id)->first();
 
         $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->groupBy('act_costing.id')->where('act_costing.id', $formCutInputData->act_costing_id)->get();
@@ -181,6 +183,7 @@ class CompletedFormController extends Controller
         return view("cutting.completed-form.completed-form-detail", [
             'id' => $id,
             'meja' => $meja,
+            'stockerData' => $stockerData,
             'formCutInputData' => $formCutInputData,
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,

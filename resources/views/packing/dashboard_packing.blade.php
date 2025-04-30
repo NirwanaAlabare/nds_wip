@@ -76,7 +76,7 @@
 
         <div class="card-body">
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm no-wrap w-100">
+                <table id="datatable" class="table table-bordered table-striped -wrap w-100">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th width="10%">Line</th>

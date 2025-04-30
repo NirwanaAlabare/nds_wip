@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LoadingLinePlan;
 use App\Models\SignalBit\UserLine;
+use App\Models\LoadingLine;
+use App\Models\Stocker;
 use App\Exports\ExportLaporanLoading;
 use App\Exports\DC\ExportLoadingLine;
 use Yajra\DataTables\Facades\DataTables;
@@ -842,5 +844,138 @@ class LoadingLineController extends Controller
         ini_set("max_execution_time", 36000);
 
         return Excel::download(new ExportLaporanLoading($request->dateFrom, $request->dateTo), 'Laporan Loading '.$request->dateFrom.' - '.$request->dateTo.'.xlsx');
+    }
+
+    public function modifyLoadingLine(Request $request)
+    {
+        ini_set("max_execution_time", 36000);
+
+        if ($request->ajax()) {
+            $stockerIds = addQuotesAround($request->stocker_ids);
+
+            $stockerDatas = Stocker::whereRaw("id_qr_stocker in (".$stockerIds.")")->get();
+
+            $allStockerIds = [];
+            foreach($stockerDatas as $stockerData) {
+                $similarStockerData = Stocker::where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+                    where("so_det_id", $stockerData->so_det_id)->
+                    where("group_stocker", $stockerData->group_stocker)->
+                    where("ratio", $stockerData->ratio)->
+                    get();
+
+                array_push($allStockerIds, ...$similarStockerData->pluck('id')->toArray());
+            }
+
+            $loadingLines = LoadingLine::selectRaw("
+                    GROUP_CONCAT(stocker_input.id SEPARATOR ', ') ids,
+                    GROUP_CONCAT(loading_line.id SEPARATOR ', ') loading_line_ids,
+                    GROUP_CONCAT(stocker_input.id SEPARATOR ', ') stocker_ids,
+                    loading_line.tanggal_loading,
+                    loading_line.nama_line,
+                    stocker_input.act_costing_ws,
+                    stocker_input.color,
+                    stocker_input.size,
+                    GROUP_CONCAT(DISTINCT stocker_input.lokasi) as lokasi,
+                    GROUP_CONCAT(DISTINCT trolley.nama_trolley) as trolley,
+                    GROUP_CONCAT(DISTINCT COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod)) qty,
+                    GROUP_CONCAT(DISTINCT (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace)) dc_qty,
+                    GROUP_CONCAT(DISTINCT (secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace)) secondary_in_qty,
+                    GROUP_CONCAT(DISTINCT (secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace)) secondary_inhouse_qty,
+                    MIN(loading_line.qty) loading_qty,
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range_awal_akhir
+                ")->
+                leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+                leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+                whereIn("stocker_input.id", $allStockerIds)->
+                groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+                get();
+
+            return DataTables::of($loadingLines)->toJson();
+        }
+
+        $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
+
+        return view("dc.loading-line.modify-loading-line", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'modify-loading-line', 'lines' => $lines]);
+    }
+
+    public function modifyLoadingLineUpdate(Request $request) {
+        $stockerIds = addQuotesAround($request->stockerIds);
+
+        $stockerDatas = Stocker::whereRaw("id_qr_stocker in (".$stockerIds.")")->get();
+
+        $allLoadingLineIds = [];
+        foreach($stockerDatas as $stockerData) {
+            $similarStockerData = Stocker::selectRaw("loading_line.id")->
+                leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+                where(($stockerData->form_reject_id > 0 ? "stocker_input.form_reject_id" : "stocker_input.form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+                where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.group_stocker", $stockerData->group_stocker)->
+                where("stocker_input.ratio", $stockerData->ratio)->
+                get();
+
+            array_push($allLoadingLineIds, ...$similarStockerData->pluck('id')->toArray());
+        }
+
+        $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
+
+        $loadingLines = LoadingLine::whereIn("id", $allLoadingLineIds)->get();
+
+        $success = [];
+        $fails = [];
+        foreach ($loadingLines as $loadingLine) {
+            if ($loadingLine->loadingPlan) {
+                $line = $lines->where("line_id", $request->lineId)->first();
+
+                $loadingLinePlan = LoadingLinePlan::where("line_id", $request->lineId)->
+                    where("act_costing_id", $loadingLine->stocker->act_costing_id)->
+                    where("color", $loadingLine->stocker->color)->
+                    where("tanggal", $loadingLine->tanggal_loading)->
+                    first();
+
+                if ($loadingLinePlan) {
+                    $loadingLine->line_id = $request->lineId;
+                    $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId);
+                    $loadingLine->loading_plan_id = $loadingLinePlan->id;
+                    $loadingLine->save();
+
+                    array_push($success, $loadingLine->id);
+                } else {
+                    $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
+                    $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
+                    $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
+
+                    $newLoadingPlan = LoadingLinePlan::create([
+                        "line_id" => $request->lineId,
+                        "kode" => $kodeLoadingPlan,
+                        "act_costing_id" => $loadingLine->stocker->masterSbWs->id_act_cost,
+                        "act_costing_ws" => $loadingLine->stocker->act_costing_ws,
+                        "buyer" => $loadingLine->stocker->masterSbWs->buyer,
+                        "style" => $loadingLine->stocker->masterSbWs->styleno,
+                        "color" => $loadingLine->stocker->masterSbWs->color,
+                        "target_sewing" => $loadingLine->loadingPlan->target_sewing,
+                        "target_loading" => $loadingLine->loadingPlan->target_loading,
+                        "tanggal" => $loadingLine->tanggal_loading,
+                    ]);
+
+                    $loadingLine->line_id = $request->lineId;
+                    $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId, 2);
+                    $loadingLine->loading_plan_id = $newLoadingPlan->id;
+                    $loadingLine->save();
+
+                    array_push($success, $loadingLine->id);
+                }
+            } else {
+                array_push($fails, $loadingLine->id);
+            }
+        }
+
+        return array(
+            "status" => 200,
+            "message" => "Berhasil '".count($success)."' <br> Gagal ".count($fails),
+        );
     }
 }

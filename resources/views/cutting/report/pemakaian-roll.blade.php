@@ -32,7 +32,7 @@
                 <button class="btn btn-success btn-sm mb-3" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
             </div>
             <div class="table-responsive">
-                <table class="table table-bordered table-sm" id="datatable">
+                <table class="table table-bordered table" id="datatable">
                     <thead>
                         <tr>
                             <th>Action</th>
@@ -200,7 +200,7 @@
                             <button type="button" class="btn btn-success btn-sm btn-block" onclick="exportExcelDetail(this)"><i class="fa fa-file-excel"></i> Export</button>
                         </div>
                     </div>
-                    <table class="table table-sm table-bordered w-100" id="datatable-detail">
+                    <table class="table table table-bordered w-100" id="datatable-detail">
                         <thead>
                             <tr>
                                 <th>ID Roll</th>

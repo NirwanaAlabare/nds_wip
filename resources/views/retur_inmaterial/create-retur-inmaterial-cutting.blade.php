@@ -217,7 +217,7 @@
                 </div>
             </div>
         </div>
-    </div>   
+    </div>
 </div>
 
 <div class="card card-sb card-outline">
@@ -235,7 +235,7 @@
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
             </div>
             <div class="table-responsive"style="max-height: 500px">
-                <table id="datatable" class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
                     <thead>
                         <tr>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">WS</th>
@@ -399,7 +399,7 @@
             await updateSizeList();
         });
 
-        
+
 
         function get_nobppb(val) {
            return $.ajax({
@@ -639,7 +639,7 @@ function ri_scan($id_item,$id_jo,$bppbno_int){
         $('#m_qty_out_h2').val('');
         $('#m_qty_bal2').val('');
         $('#m_qty_bal_h2').val('');
-        $('#modal-out-barcode').modal('show');  
+        $('#modal-out-barcode').modal('show');
     }
 
     function getlist_barcode($id_item,$id_jo,$bppbno_int){

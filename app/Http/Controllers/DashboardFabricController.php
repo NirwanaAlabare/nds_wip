@@ -76,14 +76,14 @@ class DashboardFabricController extends Controller
 
     $det_item = DB::connection('mysql_sb')->select("select no_barcode,buyer,no_ws,no_lot,no_roll,id_jo,id_item,goods_code,itemdesc,CONCAT(round(qty - COALESCE(qty_out,0),2),' ',unit) qty from (select a.no_barcode,a.buyer,a.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc, a.qty,a.unit,a.no_roll, a.no_lot from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where a.qty > 0 and qty_mut is null and a.kode_lok = '" . $request->kode_lok . "'
 UNION
-select a.no_barcode,mb.supplier buyer,a.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty_sj,a.satuan,a.no_roll, a.no_lot from whs_lokasi_inmaterial a 
+select a.no_barcode,mb.supplier buyer,a.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty_sj,a.satuan,a.no_roll, a.no_lot from whs_lokasi_inmaterial a
 inner join masteritem b on b.id_item = a.id_item
 inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo
 inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y' and qty_mutasi is null and a.kode_lok = '" . $request->kode_lok . "') a left JOIN
 (select id_roll,no_rak,sum(qty_out) qty_out from whs_bppb_det where no_rak = '" . $request->kode_lok . "' and status = 'Y' GROUP BY id_roll) b on a.no_barcode = b.id_roll where round(qty - COALESCE(qty_out,0),2) > 0 GROUP BY no_barcode order by no_lot,no_roll asc");
 
         $html = '<div class="table-responsive">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;">No Barcode</th>
@@ -128,13 +128,13 @@ inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y
     {
 
     $det_item = DB::connection('mysql_sb')->select("select buyer,no_ws,id_jo,id_item,goods_code,itemdesc,concat(count(qty_sj), ' ROLL') qty_roll from (
-select a.no_barcode,mb.supplier buyer,a.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty_sj from whs_lokasi_inmaterial a 
+select a.no_barcode,mb.supplier buyer,a.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty_sj from whs_lokasi_inmaterial a
 inner join masteritem b on b.id_item = a.id_item
 inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo
 inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y' and qty_mutasi is null and DATE_FORMAT(a.created_at, '%Y-%m-%d') = CURRENT_DATE()) a GROUP BY id_jo,id_item");
 
         $html = '<div class="table-responsive">
-            <table id="tableshow2" class="table table-head-fixed table-bordered table-striped table-sm w-100">
+            <table id="tableshow2" class="table table-head-fixed table-bordered table-striped table w-100">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 15%;">Buyer</th>
@@ -173,14 +173,14 @@ inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y
     {
 
     $det_item = DB::connection('mysql_sb')->select("select buyer,no_ws,id_jo,id_item,goods_code,itemdesc,concat(count(qty_out), ' ROLL') qty_roll from (
-select a.no_roll,mb.supplier buyer,h.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty_out from whs_bppb_det a 
+select a.no_roll,mb.supplier buyer,h.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty_out from whs_bppb_det a
 inner join whs_bppb_h h on h.no_bppb = a.no_bppb
 inner join masteritem b on b.id_item = a.id_item
 inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo
 inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y' and DATE_FORMAT(a.created_at, '%Y-%m-%d') = CURRENT_DATE()) a GROUP BY id_jo,id_item");
 
         $html = '<div class="table-responsive">
-            <table id="tableshow3" class="table table-head-fixed table-bordered table-striped table-sm w-100">
+            <table id="tableshow3" class="table table-head-fixed table-bordered table-striped table w-100">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 15%;">Buyer</th>
@@ -229,7 +229,7 @@ inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y
         //
     }
 
-  
 
-    
+
+
 }

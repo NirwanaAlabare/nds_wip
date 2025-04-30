@@ -29,7 +29,7 @@ class TrolleyStockerController extends Controller
                 trolley.id,
                 trolley_stocker.tanggal_alokasi,
                 stocker.act_costing_ws,
-                (CASE WHEN stocker.tipe = 'REJECT' THEN stocker.style ELSE marker_input.style END) style,
+                (CASE WHEN stocker.tipe = 'REJECT' THEN stocker.style ELSE master_sb_ws.styleno END) style,
                 stocker.color,
                 trolley.nama_trolley,
                 SUM(stocker.qty_ply) qty
@@ -45,6 +45,7 @@ class TrolleyStockerController extends Controller
                     (
                         SELECT
                             stocker_input.id,
+                            stocker_input.so_det_id,
                             (CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.color,
@@ -82,6 +83,7 @@ class TrolleyStockerController extends Controller
                 'stocker.id', '=', 'trolley_stocker.stocker_id'
             )->
             leftJoin("marker_input", "marker_input.kode", "=", "stocker.id_marker")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker.so_det_id")->
             groupBy('trolley.id', 'stocker.act_costing_ws', 'marker_input.style', 'stocker.color')->
             orderByRaw("ISNULL(SUM(stocker.qty_ply)) asc")->
             orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc")->
@@ -109,7 +111,7 @@ class TrolleyStockerController extends Controller
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
+                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -147,7 +149,7 @@ class TrolleyStockerController extends Controller
                     $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
                 })->
                 filterColumn('style', function($query, $keyword) {
-                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) LIKE '%".$keyword."%'");
+                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
@@ -180,7 +182,7 @@ class TrolleyStockerController extends Controller
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
+                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
                     (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -217,7 +219,7 @@ class TrolleyStockerController extends Controller
                     $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
                 })->
                 filterColumn('style', function($query, $keyword) {
-                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) LIKE '%".$keyword."%'");
+                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
@@ -264,11 +266,37 @@ class TrolleyStockerController extends Controller
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
-        $similarStockerData = Stocker::where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id")->
+            where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+            leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             where("so_det_id", $stockerData->so_det_id)->
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
             get();
+
+        $incompleteNonSecondary = $similarStockerData->where("tujuan", "NON SECONDARY")->
+            whereNull("dc_id");
+
+        $incompleteSecondary = $similarStockerData->whereIn("tujuan", ["SECONDARY DALAM", "SECONDARY LUAR"])->
+            whereNull("secondary_id");
+
+        if ($incompleteNonSecondary->count() > 0 || $incompleteSecondary->count() > 0) {
+            return array(
+                'status' => 400,
+                'message' => 
+                    "Stocker tidak bisa dialokasikan".
+                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker Non Secondary belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
+                    ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
+                'redirect' => '',
+                'table' => 'trolley-stock-datatable',
+                'callback' => 'clearAll()',
+                'additional' => [],
+            );
+        }
 
         $trolleyStockArr = [];
 
@@ -282,6 +310,8 @@ class TrolleyStockerController extends Controller
                 "tanggal_alokasi" => date('Y-m-d'),
                 "created_at" => Carbon::now(),
                 "updated_at" => Carbon::now(),
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username
             ]);
 
             $i++;
@@ -301,7 +331,7 @@ class TrolleyStockerController extends Controller
 
             if ($updateStocker) {
                 return array(
-                    'status' => 200,
+                    'status' => 202,
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
@@ -352,14 +382,16 @@ class TrolleyStockerController extends Controller
         $i = 0;
         foreach ($similarStockerData as $stocker) {
 
-            $trolleyStockCheck = TrolleyStocker::where("stocker_id", $stocker['id'])->first();
+            $trolleyStockCheck = TrolleyStocker::where("stocker_id", $stocker['id'])->where("status", "active")->first();
             if (!$trolleyStockCheck) {
                 array_push($trolleyStockArr, [
                     "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
                     "trolley_id" => $validatedRequest['trolley_id'],
                     "stocker_id" => $stocker['id'],
                     "status" => "active",
-                    "tanggal_alokasi" => date('Y-m-d')
+                    "tanggal_alokasi" => date('Y-m-d'),
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username
                 ]);
             }
 
@@ -380,11 +412,11 @@ class TrolleyStockerController extends Controller
 
             if ($updateStocker) {
                 return array(
-                    'status' => 200,
+                    'status' => 202,
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
-                    'table' => 'datatable-trolley-stock',
-                    'callback' => 'datatableTrolleyStockReload()',
+                    'table' => 'trolley-stock-datatable',
+                    'callback' => 'trolleyStockDatatableReload()',
                     'additional' => [],
                 );
             }
@@ -393,8 +425,8 @@ class TrolleyStockerController extends Controller
                 'status' => 400,
                 'message' => 'Stocker gagal dialokasi',
                 'redirect' => '',
-                'table' => 'datatable-trolley-stock',
-                'callback' => 'datatableTrolleyStockReload()',
+                'table' => 'trolley-stock-datatable',
+                'callback' => 'trolleyStockDatatableReload()',
                 'additional' => [],
             );
         }
@@ -403,8 +435,8 @@ class TrolleyStockerController extends Controller
             'status' => 400,
             'message' => 'Stocker gagal dialokasi',
             'redirect' => '',
-            'table' => 'datatable-trolley-stock',
-            'callback' => 'datatableTrolleyStockReload()',
+            'table' => 'trolley-stock-datatable',
+            'callback' => 'trolleyStockDatatableReload()',
             'additional' => [],
         );
     }
@@ -478,8 +510,8 @@ class TrolleyStockerController extends Controller
                     'status' => 200,
                     'message' => 'Stocker berhasil disingkirkan',
                     'redirect' => '',
-                    'table' => 'datatable-trolley-stock',
-                    'callback' => 'datatableTrolleyStockReload()',
+                    'table' => 'trolley-stock-datatable',
+                    'callback' => 'trolleyStockDatatableReload()',
                     'additional' => [],
                 );
             }
@@ -488,8 +520,8 @@ class TrolleyStockerController extends Controller
                 'status' => 400,
                 'message' => 'Stocker gagal  disingkirkan',
                 'redirect' => '',
-                'table' => 'datatable-trolley-stock',
-                'callback' => 'datatableTrolleyStockReload()',
+                'table' => 'trolley-stock-datatable',
+                'callback' => 'trolleyStockDatatableReload()',
                 'additional' => [],
             );
         }
@@ -498,8 +530,8 @@ class TrolleyStockerController extends Controller
             'status' => 400,
             'message' => 'Stocker gagal  disingkirkan',
             'redirect' => '',
-            'table' => 'datatable-trolley-stock',
-            'callback' => 'datatableTrolleyStockReload()',
+            'table' => 'trolley-stock-datatable',
+            'callback' => 'trolleyStockDatatableReload()',
             'additional' => [],
         );
     }
@@ -516,7 +548,7 @@ class TrolleyStockerController extends Controller
                 GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                 stocker_input.act_costing_ws,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
+                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -562,10 +594,9 @@ class TrolleyStockerController extends Controller
                 for ($i = 0; $i < count($stockerIds); $i++) {
                     $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
 
-                    $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->first();
+                    $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->where("tanggal", $request['tanggal_loading'])->first();
 
                     $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
-
                     if ($isExist < 1) {
                         if ($loadingLinePlan) {
                             array_push($loadingStockArr, [
@@ -580,6 +611,8 @@ class TrolleyStockerController extends Controller
                                 "no_bon" => $request['no_bon'],
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
                             ]);
                         } else {
                             $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
@@ -589,12 +622,14 @@ class TrolleyStockerController extends Controller
                             $storeLoadingPlan = LoadingLinePlan::create([
                                 "line_id" => $lineData['line_id'],
                                 "kode" => $kodeLoadingPlan,
-                                "act_costing_id" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->act_costing_id : $thisStockerData->formReject->act_costing_id),
-                                "act_costing_ws" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->act_costing_ws : $thisStockerData->formReject->act_costing_ws),
-                                "buyer" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->buyer : $thisStockerData->formReject->buyer),
-                                "style" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->style : $thisStockerData->formReject->style),
-                                "color" => ($thisStockerData->formCut ? $thisStockerData->formCut->marker->color : $thisStockerData->formReject->color),
+                                "act_costing_id" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->id_act_cost : $thisStockerData->formReject->act_costing_id),
+                                "act_costing_ws" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->ws : $thisStockerData->formReject->act_costing_ws),
+                                "buyer" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->buyer : $thisStockerData->formReject->buyer),
+                                "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->styleno : $thisStockerData->formReject->style),
+                                "color" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : $thisStockerData->formReject->color),
                                 "tanggal" => $request['tanggal_loading'],
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
                             ]);
 
                             array_push($loadingStockArr, [
@@ -609,6 +644,8 @@ class TrolleyStockerController extends Controller
                                 "no_bon" => $request['no_bon'],
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
                             ]);
                         }
                     } else {

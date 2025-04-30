@@ -169,7 +169,7 @@
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_tracking"
-                                class="table table-bordered table-striped table-sm w-100 nowrap">
+                                class="table table-bordered table-striped 100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>Tgl. Transaksi</th>
@@ -281,7 +281,7 @@
                                 <div class='row'>
                                     <div class="col-md-12 table-responsive">
                                         <table id="datatable_edit"
-                                            class="table table-bordered table-hover table-sm w-100 text-nowrap">
+                                            class="table table-bordered table-hover 100 text-nowrap">
                                             <thead class="table-primary">
                                                 <tr style='text-align:center; vertical-align:middle'>
                                                     <th>ID SO Det</th>
@@ -362,7 +362,7 @@
                                 <div class='row'>
                                     <div class="col-md-12 table-responsive">
                                         <table id="datatable_hapus"
-                                            class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                                            class="table table-bordered table-striped 100 text-nowrap">
                                             <thead class="table-primary">
                                                 <tr style='text-align:center; vertical-align:middle'>
                                                     <th>
@@ -460,7 +460,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable_preview" class="table table-bordered table-sm w-100 text-nowrap">
+                <table id="datatable_preview" class="table table-bordered 100 text-nowrap">
                     <thead class="table-info">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>ID SO Det</th>
@@ -563,7 +563,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>ID</th>

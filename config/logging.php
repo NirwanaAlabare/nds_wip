@@ -99,6 +99,41 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
-    ],
 
+        'deletePartDetail' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/deletePartDetail/deletePartDetail.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
+        'resetStockerForm' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/resetStockerForm/resetStockerForm.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
+        'transferOutput' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/transferOutput/transferOutput.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+        
+        'missReworkOutput' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/missReworkOutput/missReworkOutput.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],  
+
+        'missMasterPlanOutput' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/missMasterPlanOutput/missMasterPlanOutput.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+        
+        'missUserOutput' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/missUserOutput/missUserOutput.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+    ],
 ];

@@ -65,7 +65,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable-select" class="table table-bordered table-sm w-100">
+                        <table id="datatable-select" class="table table-bordered table w-100">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -105,7 +105,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable-selected" class="table table-bordered table-sm w-100">
+                        <table id="datatable-selected" class="table table-bordered table w-100">
                             <thead>
                                 <tr>
                                     <th>ID</th>

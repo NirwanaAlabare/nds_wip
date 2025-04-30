@@ -669,8 +669,7 @@ END jam) a))) target from (
                    AND DATE_FORMAT(tgl_plan, '%Y-%m-%d') = ?
                    AND cancel = ?
                    GROUP BY gambar
-                   ORDER BY id ASC
-                   LIMIT 1",
+                   ORDER BY id ASC",
             [$lineId, $tanggal, 'N'],
         );
         return $query;
@@ -853,14 +852,14 @@ END jam) a))) target from (
     }
 
     function chiefSewingRange($from = 0, $to = 0) {
-        $from = $from ? $from : date("Y-m-d");
+        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $to ? $to : date("Y-m-d");
 
         return view('wip.dashboard-chief-sewing-range', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'chief-sewing-range', "from" => $from, "to" => $to]);
     }
 
     function chiefSewingRangeData(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d");
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
 
         $efficiencyLine = DB::connection("mysql_sb")->select("
@@ -933,14 +932,14 @@ END jam) a))) target from (
     }
 
     function chiefSewingRangeDataExport(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d");
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
 
         return Excel::download(new ChiefSewingRangeExport($from, $to), 'chief_sewing_range.xlsx');
     }
 
     function leaderSewing(Request $request, $from = 0, $to = 0) {
-        $from = $from ? $from : date("Y-m-d");
+        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $to ? $to : date("Y-m-d");
         $buyerId = $request->buyer_id;
 
@@ -959,7 +958,7 @@ END jam) a))) target from (
     }
 
     function leaderSewingData(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d");
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
 
@@ -1036,7 +1035,7 @@ END jam) a))) target from (
     }
 
     function leaderSewingRangeDataExport(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d");
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyer = $request->buyer ? $request->buyer : "";
 

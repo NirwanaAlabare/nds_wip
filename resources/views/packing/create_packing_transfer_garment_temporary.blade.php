@@ -81,7 +81,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="datatable_tmp" class="table table-bordered table-sm w-100 text-nowrap">
+                            <table id="datatable_tmp" class="table table-bordered 100 text-nowrap">
                                 <thead>
                                     <tr>
                                         <th>PO</th>

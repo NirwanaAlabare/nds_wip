@@ -46,6 +46,7 @@ use App\Http\Controllers\Cutting\PipingStockController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
+use App\Http\Controllers\Stocker\StockerToolsController;
 
 // DC
 use App\Http\Controllers\DC\DCInController;
@@ -60,6 +61,7 @@ use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\DC\LoadingLineController;
 use App\Http\Controllers\DC\BonLoadingController;
+use App\Http\Controllers\DC\DcToolsController;
 
 // Sewing
 use App\Http\Controllers\Sewing\MasterLineController;
@@ -73,6 +75,7 @@ use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\UndoOutputController;
 use App\Http\Controllers\Sewing\ReportDefectController;
+use App\Http\Controllers\Sewing\SewingToolsController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -198,6 +201,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('get-general-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('get-general-number');
+        // get no form
+        Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
 
         // new general
         // get buyers
@@ -210,6 +215,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-sizes-new', 'getSizes')->name('get-sizes');
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
+
+        Route::get('/general-tools', 'generalTools')->name('general-tools');
+        Route::post('/update-general-order', 'updateGeneralOrder')->name('update-general-order');
     });
 
     // Worksheet
@@ -258,6 +266,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
         Route::get('/get_proses', 'get_proses')->name('get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
+        Route::put('/update-part-secondary', 'updatePartSecondary')->name('update-part-secondary');
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
@@ -682,6 +691,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
     });
 
+    // Stocker Tools
+    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
+        // form
+        Route::get('/index', 'index')->name('stocker-tools');
+
+        // reset stocker
+        Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
+    });
+
     // DC :
     // // DC IN BACKUP
     // Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
@@ -820,6 +838,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/summary', 'summary')->name('summary-loading');
         Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
         Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
+
+        Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
+        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
     });
 
     // Bon Loading
@@ -845,6 +866,12 @@ Route::middleware('auth')->group(function () {
     Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('stock-dc-wip');
         Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
+    });
+
+    // DC Tools
+    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:dc')->group(function () {
+        Route::get('/', 'index')->name('dc-tools');
+        Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
     });
 
     // Sewing :
@@ -1011,6 +1038,10 @@ Route::middleware('auth')->group(function () {
     // Report Defect
     Route::controller(ReportDefectController::class)->prefix('report-defect')->middleware('role:sewing')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
+        Route::get('/filter', 'filter')->name("filter-defect");
+        Route::get('/total', 'total')->name("total-defect");
+
+        Route::post('/report-defect-export', 'reportDefectExport')->name("report-defect-export");
     });
 
     // Report Efficiency New
@@ -1069,6 +1100,12 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
+    });
+
+    Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
+        Route::get('/', 'index')->name("sewing-tools");
+        Route::post('/miss-masterplan', 'missMasterPlan')->name("miss-masterplan");
+        Route::post('/miss-rework', 'missRework')->name("miss-rework");
     });
 
     // Mutasi Mesin
@@ -1829,6 +1866,10 @@ Route::get('/cutting-output-list-all', [DashboardController::class, 'cuttingOutp
 Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware('auth')->name('cutting-output-list-panels');
 Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware('auth')->name('cutting-output-list-data');
 Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware('auth')->name('cutting-stock-list-data');
+
+Route::get('/dashboard-stocker', [DashboardController::class, 'stocker'])->middleware('auth')->name('dashboard-stocker');
+Route::get('/dashboard-stocker/show/{actCostingId?}', [DashboardController::class, 'showStocker'])->middleware('auth')->name('dashboard-stocker-show');
+
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
@@ -1853,9 +1894,9 @@ Route::get('/trigger', function () {
 //     return view('dashboard', ['page' => 'dashboard-cutting']);
 // })->middleware('auth')->name('dashboard-cutting');
 
-Route::get('/dashboard-stocker', function () {
-    return view('dashboard', ['page' => 'dashboard-stocker']);
-})->middleware('auth')->name('dashboard-stocker');
+// Route::get('/dashboard-stocker', function () {
+//     return view('dashboard', ['page' => 'dashboard-stocker']);
+// })->middleware('auth')->name('dashboard-stocker');
 
 //warehouse
 // Route::get('/dashboard-warehouse', function () {

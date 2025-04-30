@@ -194,7 +194,7 @@ input[type=file]::file-selector-button:hover {
         </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 @endforeach
 
@@ -208,7 +208,7 @@ input[type=file]::file-selector-button:hover {
     <div class="card-body">
     <div class="form-group row">
     <div class="table-responsive" style="max-height: 300px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Lot</th>
@@ -256,9 +256,9 @@ input[type=file]::file-selector-button:hover {
                     </button>
                         </div>
                         <div class="modal-body">
- 
+
                             {{ csrf_field() }}
- 
+
                            <!--  <label>Pilih file excel</label>
                             <div class="form-group">
                                 <input type="file" name="file" required="required">
@@ -270,7 +270,7 @@ input[type=file]::file-selector-button:hover {
                                 <input type="file" name="file" required="required">
                             </label>
 
- 
+
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
@@ -493,7 +493,7 @@ input[type=file]::file-selector-button:hover {
                             timer: 5000,
                             timerProgressBar: true
                         })
-                         $('#importExcel').modal('hide'); 
+                         $('#importExcel').modal('hide');
 
                         getlistdata();
                         getqtyUpload();
@@ -562,7 +562,7 @@ input[type=file]::file-selector-button:hover {
             {
                 data: 'kode_lok'
             }
-            
+
         ],
         columnDefs: [
                 {
@@ -624,11 +624,11 @@ input[type=file]::file-selector-button:hover {
     </script>
     <script type="text/javascript">
     function addlocation($ws,$id_jo, $id_item,$kode_item, $qty, $unit, $balance,$desc){
-        let ws = $ws; 
-        let id_jo = $id_jo; 
+        let ws = $ws;
+        let id_jo = $id_jo;
         let id_item = $id_item;
         let kode_item = $kode_item;
-        let qty = $qty; 
+        let qty = $qty;
         let unit = $unit;
         let balance = $balance;
         let desc = $desc;
@@ -643,11 +643,11 @@ input[type=file]::file-selector-button:hover {
     $('#m_unit').val(unit);
     $('#m_idjo').val(id_jo);
     $('#m_iditem').val(id_item);
-    $('#modal-add-lokasi').modal('show');  
+    $('#modal-add-lokasi').modal('show');
     }
 
     function OpenModal(){
-       $('#importExcel').modal('show'); 
+       $('#importExcel').modal('show');
     }
 
     function getlist_addlokasi(){
@@ -676,11 +676,11 @@ input[type=file]::file-selector-button:hover {
 
 
     function showlocation($ws,$id_jo, $id_item,$kode_item, $qty, $unit, $balance,$desc){
-        let ws = $ws; 
-        let id_jo = $id_jo; 
+        let ws = $ws;
+        let id_jo = $id_jo;
         let id_item = $id_item;
         let kode_item = $kode_item;
-        let qty = $qty; 
+        let qty = $qty;
         let unit = $unit;
         let balance = $balance;
         let desc = $desc;
@@ -695,12 +695,12 @@ input[type=file]::file-selector-button:hover {
     $('#m_unit2').val(unit);
     $('#m_idjo2').val(id_jo);
     $('#m_iditem2').val(id_item);
-    $('#modal-show-lokasi').modal('show');  
+    $('#modal-show-lokasi').modal('show');
     }
 
     function getlist_showlokasi($ws,$id_jo, $id_item){
         let ws = $ws;
-        let id_jo = $id_jo; 
+        let id_jo = $id_jo;
         let id_item = $id_item;
         return $.ajax({
                 headers: {

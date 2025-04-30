@@ -127,7 +127,7 @@
             </div>
         </div>
         <div class="card-body table-responsive" style="display: block">
-            <table class="table table-bordered table-sm" id="trolley-stock-datatable">
+            <table class="table table-bordered table" id="trolley-stock-datatable">
                 <thead>
                     <tr>
                         <th>Act</th>
@@ -175,8 +175,8 @@
         $(document).ready(async () => {
             document.getElementById("kode_stocker").focus();
 
-            $('#trolley_id').val("").trigger("change");
-            $('#kode_stocker').val("").trigger("change");
+            // $('#trolley_id').val("").trigger("change");
+            // $('#kode_stocker').val("").trigger("change");
 
             await initTrolleyScan();
             await initStockerScan();
@@ -402,7 +402,7 @@
         });
 
         function clearAll() {
-            $('#trolley_id').val("").trigger("change");
+            // $('#trolley_id').val("").trigger("change");
 
             clearStockerData();
         }

@@ -46,12 +46,12 @@ class QcPassController extends Controller
                     )
                 ";
             }
-            
+
 
 
             $data_m_lokasi = DB::connection('mysql_sb')->select("
             select * from (select * from whs_qc_insp) a LEFT JOIN
-(select no_insp noinsp, GROUP_CONCAT(inspektor)inspektr from (select DISTINCT no_insp,inspektor from whs_qc_insp_det) a GROUP BY no_insp) b on b.noinsp = a.no_insp 
+(select no_insp noinsp, GROUP_CONCAT(inspektor)inspektr from (select DISTINCT no_insp,inspektor from whs_qc_insp_det) a GROUP BY no_insp) b on b.noinsp = a.no_insp
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             ");
@@ -164,7 +164,7 @@ order by bpbdate asc limit 1
 
     public function showdata($id)
     {
-        
+
 
         $kode_insp = DB::connection('mysql_sb')->select("select no_insp from whs_qc_insp where id = '".$id."'");
         $data_header = DB::connection('mysql_sb')->select("select *,UPPER(fabric_name) fabricname from whs_qc_insp where id = '".$id."'");
@@ -202,7 +202,7 @@ order by bpbdate asc limit 1
 
     public function updatestatus(Request $request)
     {
-        
+
         $id = $request['id_lok'];
         $status = $request['status_lok'];
         if ($status == 'Active') {
@@ -223,7 +223,7 @@ order by bpbdate asc limit 1
                 "additional" => [],
                 "redirect" => url('/master-lokasi')
             );
-        
+
     }
 
     /**
@@ -253,12 +253,12 @@ order by bpbdate asc limit 1
          $kodeins = DB::connection('mysql_sb')->select("
             select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'INS' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_insp) is null,'00001',LPAD(SUBSTR(MAX(no_insp),10,5)+1,5,0)) nomor from whs_qc_insp where MONTH(tgl_insp) = MONTH(CURRENT_DATE()) and YEAR(tgl_insp) = YEAR(CURRENT_DATE())) a");
          $kode_ins = $kodeins ? $kodeins[0]->kode : null;
-           
-        
+
+
         $timestamp = Carbon::now();
         $nomor = $kode_ins;
         //$validatedRequest['txt_no_ins']
-  
+
             $inspectStore = QcInspect::create([
                 'no_insp' => $kode_ins,
                 'tgl_insp' => $validatedRequest['tgl_ins'],
@@ -287,11 +287,11 @@ order by bpbdate asc limit 1
                 "additional" => [],
                 "redirect" => url('qc-pass/create-qcpass/'.$id_ins)
             );
-        
+
     }
 
     public function storedefect(Request $request)
-    {   
+    {
         $delete_tempdef = DefectTemp::where('user_created',Auth::user()->name)->delete();
         $timestamp = Carbon::now();
         $DefectTempData = [];
@@ -323,13 +323,13 @@ order by bpbdate asc limit 1
                 "additional" => [],
                 // "redirect" => url('/qc-pass')
             );
-        
+
     }
 
 
     public function getDetailList(Request $request)
     {
-    
+
             $data_detail = DB::connection('mysql_sb')->select("select id,lenght_fabric,kode_def,COALESCE(upto3,0) upto3, COALESCE(over3,0) over3,COALESCE(over6,0) over6, COALESCE(over9,0) over9,CONCAT(width_det1,'->',width_det2) width_det from whs_qc_insp_dettemp where user_created = '".Auth::user()->name."'");
 
         return json_encode([
@@ -343,7 +343,7 @@ order by bpbdate asc limit 1
 
     public function getDataSum(Request $request)
     {
-    
+
             $data_detail = DB::connection('mysql_sb')->select("select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,akt_poin,IF(akt_poin > 20,'REJECT','PASS') status,stat_save from (select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,round((x/(width_fabric * l_actual)),2) akt_poin,'save' stat_save from (select *, (upto3 + over3 + over6 + over9) ttl_poin, ((upto3 + over3 + over6 + over9) * 36 * 100) x , b.lenght_actual l_actual from (select no_insp, (COALESCE(SUM(upto3),0) * 1) upto3, (COALESCE(SUM(over3),0) * 2 ) over3, (COALESCE(SUM(over6),0) * 3) over6, (COALESCE(SUM(over9),0) * 4) over9,no_form,no_roll from whs_qc_insp_det GROUP BY no_form) a inner join (select no_form noform,lenght_actual from whs_qc_insp_sum) b on b.noform = a.no_form inner join (select no_form form_no,ROUND(sum(width_det2)/COUNT(width_det2),2) width_fabric from (select no_form,width_det2 from whs_qc_insp_det where width_det2 is not null) a GROUP BY no_form) c on c.form_no = a.no_form ) a where no_insp = '".$request->no_insp."'
 UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,round((x/(width_fabric * '".$request->akt_lenght."')),2) akt_poin,'-' stat_save from (select *, (upto3 + over3 + over6 + over9) ttl_poin, ((upto3 + over3 + over6 + over9) * 36 * 100) x from (select (COALESCE(SUM(upto3),0) * 1) upto3, (COALESCE(SUM(over3),0) * 2 ) over3, (COALESCE(SUM(over6),0) * 3) over6, (COALESCE(SUM(over9),0) * 4) over9,no_form,no_roll from whs_qc_insp_dettemp where user_created = '".Auth::user()->name."') a inner join (select no_form form_no,ROUND(sum(width_det2)/COUNT(width_det2),2) width_fabric from (select no_form,width_det2 from whs_qc_insp_dettemp where width_det2 is not null and user_created = '".Auth::user()->name."') a GROUP BY no_form) c on c.form_no = a.no_form) a) a");
 
@@ -420,7 +420,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
 
     public function storeQcTemp(Request $request)
     {
-      
+
         // $validatedRequest = $request->validate([
         //     "txt_no_ins" => "required",
         //     "tgl_ins" => "required",
@@ -435,8 +435,8 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
         if ($request['txt_kode_qc'] != '') {
         $data_def = DB::connection('mysql_sb')->insert("insert into whs_qc_insp_deftemp select * from whs_defect_temp where user_created = '".Auth::user()->name."'");
         }
-           
-        
+
+
         $timestamp = Carbon::now();
 
 
@@ -486,13 +486,13 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 "additional" => [],
                 // "redirect" => url('/qc-pass/create-qcpass/5')
             );
-        
+
     }
 
 
     public function storeQcSave(Request $request)
     {
-      
+
         $validatedRequest = $request->validate([
             "txt_akt_lenght" => "required",
         ]);
@@ -500,12 +500,12 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
         $noform = DB::connection('mysql_sb')->select("
             select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'FRM' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_form) is null,'00001',LPAD(SUBSTR(MAX(no_form),10,5)+1,5,0)) nomor from whs_qc_insp_det where MONTH(tgl_form) = MONTH(CURRENT_DATE()) and YEAR(tgl_form) = YEAR(CURRENT_DATE())) a");
         $no_form = $noform ? $noform[0]->kode : null;
-           
+
         $data_detail = DB::connection('mysql_sb')->insert("insert into whs_qc_insp_det select id,no_insp,'".$no_form."' no_form, tgl_form,no_roll,weight_fabric, unit_convert, weight_convert,width_fabric,fabric_supp,inspektor,no_mesin,aktual,gramage,lenght_fabric,kode_def,upto3,over3,over6,over9,width_det1,width_det2,user_created,inp_width_fabric,unit_width_fabric,inp_width_det1,unit_width_det1,inp_width_det2,unit_width_det2,created_at,updated_at from whs_qc_insp_dettemp where user_created = '".Auth::user()->name."'");
         $data_def = DB::connection('mysql_sb')->insert("insert into whs_qc_insp_def select id,kode,nama_defect,created_at,updated_at,lenght,user_created,'".$no_form."' no_form from whs_qc_insp_deftemp where user_created = '".Auth::user()->name."'");
         $delete_tempdef = DefectTemp::where('user_created',Auth::user()->name)->delete();
         $delete_qctempdef = QcDefectTemp::where('user_created',Auth::user()->name)->delete();
-        
+
         $timestamp = Carbon::now();
 
             $inspectSumData = [];
@@ -535,12 +535,12 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 "additional" => [],
                 // "redirect" => url('/qc-pass/create-qcpass/5')
             );
-        
+
     }
 
     public function deleteqctemp(Request $request)
     {
-      
+
         $delete_temp = QcInspectTemp::where('id', $request->id_temp)
               ->delete();
 
@@ -552,12 +552,12 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 "additional" => [],
                 // "redirect" => url('/qc-pass/create-qcpass/5')
             );
-        
+
     }
 
     public function deleteqcdet(Request $request)
     {
-      
+
         $delete_det = QcInspectDet::where('no_form', $request->id_temp)
               ->delete();
         $delete_sum = QcInspectSum::where('no_form', $request->id_temp)
@@ -573,7 +573,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 "additional" => [],
                 // "redirect" => url('/qc-pass/create-qcpass/5')
             );
-        
+
     }
 
     public function simpanedit(Request $request)
@@ -609,7 +609,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 'unit' => 'ROLL',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['BUNDLE_edit'] == 'on') {
              $unitStore2 = UnitLokasi::create([
@@ -617,7 +617,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 'unit' => 'BUNDLE',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['BOX_edit'] == 'on') {
              $unitStore3 = UnitLokasi::create([
@@ -625,7 +625,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 'unit' => 'BOX',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['PACK_edit'] == 'on') {
              $unitStore4 = UnitLokasi::create([
@@ -633,7 +633,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 'unit' => 'PACK',
                 'status' => 'Y',
             ]);
-            
+
         }
 
         $timestamp = Carbon::now();
@@ -669,14 +669,14 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 "additional" => [],
             );
     }
-        
+
     }
 
 
     public function printlokasi(Request $request, $id)
     {
-       
-       
+
+
             $dataLokasi = MasterLokasi::selectRaw("
                     CONCAT(inisial_lok,baris_lok,level_lok,no_lok) kode_lok,
                     kode_lok kode,
@@ -696,7 +696,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 $generatedFilePath = public_path('pdf/'.$fileName);
 
                 return response()->download($generatedFilePath);
-        
+
     }
 
 
@@ -706,7 +706,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -737,12 +737,12 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
                 level_lok,
                 no_lok,
                 unit,
-                kapasitas, 
-                CONCAT(create_by, ' ',create_date) create_user, 
+                kapasitas,
+                CONCAT(create_by, ' ',create_date) create_user,
                 status from whs_master_lokasi where id = '$id'");
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
-       
+
         return view('master.update-lokasi', ["dataLokasi" => $dataLokasi,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
     }
 
@@ -752,7 +752,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
         $det_data = DB::connection('mysql_sb')->select("select a.id,a.no_insp,tgl_insp,no_form,lenght_fabric,kode_def,COALESCE(upto3,0) upto3, COALESCE(over3,0) over3,COALESCE(over6,0) over6, COALESCE(over9,0) over9,CONCAT(width_det1,'->',width_det2) width_det  from whs_qc_insp a inner join whs_qc_insp_det b on b.no_insp = a.no_insp where a.id = '". $request->id_h . "' ");
 
         $html = '<div class="table-responsive" style="max-height: 200px">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100 text-nowrap">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width:;">Lenght</th>
@@ -768,7 +768,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
             // $jml_qty_sj = 0;
             // $jml_qty_ak = 0;
         foreach ($det_data as $det) {
-    
+
             $html .= ' <tr>
                         <td class="text-left">' . $det->lenght_fabric . '</td>
                         <td class="text-right">' . $det->kode_def . '</td>
@@ -799,7 +799,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
         //
     }
 
-  
 
-    
+
+
 }

@@ -13,9 +13,16 @@ use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
+use App\Models\DCIn;
+use App\Models\SecondaryIn;
+use App\Models\SecondaryInHouse;
+use App\Models\RackDetailStocker;
+use App\Models\TrolleyStocker;
+use App\Models\LoadingLine;
 use App\Models\ModifySizeQty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -553,6 +560,46 @@ class PartController extends Controller
         );
     }
 
+    public function updatePartSecondary(Request $request)
+    {
+        $validatedRequest = $request->validate([
+            "edit_id" => "required",
+            "edit_tujuan" => "required",
+            "edit_proses" => "required",
+        ]);
+
+        $checkDc = DcIn::leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
+            where("part_detail_id", $validatedRequest['edit_id'])->
+            count();
+
+        if ($checkDc < 1) {
+            $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
+                update([
+                    'master_secondary_id' => $validatedRequest['edit_proses'],
+                ]);
+
+            if ($update_part) {
+                return array(
+                    'status' => '201',
+                    'table' => 'datatable_list_part',
+                    'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" berhasil diupdate',
+                );
+            }
+        } else {
+            return array(
+                'status' => '400',
+                'table' => 'datatable_list_part',
+                'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" sudah masuk ke DC',
+            );
+        }
+
+        return array(
+            'status' => '400',
+            'table' => 'datatable_list_part',
+            'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" gagal diupdate',
+        );
+    }
+
     public function getFormCut(Request $request, $id = 0)
     {
         $formCutInputs = FormCutInput::selectRaw("
@@ -976,9 +1023,36 @@ class PartController extends Controller
     }
 
     public function destroyPartDetail($id=0) {
+        ini_set('max_execution_time', 3600);
+
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail->delete()) {
+            // Delete related stocker input
+            $stockers = Stocker::where('part_detail_id', $id)->get();
+            $stockerIdQrs = $stockers->pluck('id_qr_stocker')->toArray();
+            $stockerIds = $stockers->pluck('id')->toArray();
+
+            // Log the deletion
+            Log::channel('deletePartDetail')->info([
+                "Deleting Data",
+                "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
+            ]);
+
+            $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
+            $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
+            $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
+            $deleteLoadingLine = LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
+
             return array(
                 'status' => 200,
                 'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil dihapus. <br> "'.$partDetail->id.'"',

@@ -15,6 +15,13 @@ class LoadingLine extends Model
     protected $guarded = [];
 
     /**
+     * Get the loading plan.
+     */
+    public function loadingPlan() {
+        return $this->belongsTo(LoadingLinePlan::class, 'loading_plan_id', 'id');
+    }
+
+    /**
      * Get the userline.
      */
     public function userLine() {

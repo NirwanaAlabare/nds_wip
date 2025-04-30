@@ -267,7 +267,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <table id="datatable" class="table table-bordered table-striped table-sm w-100">
+                            <table id="datatable" class="table table-bordered table-striped table w-100">
                                 <thead>
                                     <tr>
                                         <th style='width:30%;text-align: center;'>Size</th>

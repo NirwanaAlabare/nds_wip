@@ -85,7 +85,7 @@
                                 <div class='row'>
                                     <div class="col-md-12 table-responsive">
                                         <table id="datatable_preview"
-                                            class="table table-bordered table-sm w-100 text-nowrap">
+                                            class="table table-bordered 100 text-nowrap">
                                             <thead class="table-primary">
                                                 <tr style='text-align:center; vertical-align:middle'>
                                                     <th>Buyer</th>
@@ -147,7 +147,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-hover table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-hover 100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Kode Lokasi</th>

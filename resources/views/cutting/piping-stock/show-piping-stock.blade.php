@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-hover table-sm w-100">
+                <table id="datatable" class="table table-bordered table-hover table w-100">
                     <thead>
                         <tr>
                             <th>ID Piping</th>

@@ -29,7 +29,7 @@
                         <div id="panelsStayOpen{{ $loop->index }}" class="accordion-collapse collapse show">
                             <div class="accordion-body">
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-sm w-100">
+                                    <table class="table table-bordered table w-100">
                                         <thead>
                                             <tr>
                                                 <th>Rak</th>

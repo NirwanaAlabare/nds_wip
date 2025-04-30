@@ -335,7 +335,7 @@ function submitForm(e, evt) {
                 // $('.modal').modal('hide');
 
                 Swal.fire({
-                    icon: 'error',
+                    icon: 'success',
                     title: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,
@@ -416,6 +416,12 @@ function submitForm(e, evt) {
                     title: 'Error',
                     title: res.message,
                     position: 'topCenter'
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: "Gagal",
+                    html: res.message,
                 });
             }
 

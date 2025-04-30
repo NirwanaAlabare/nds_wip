@@ -48,7 +48,7 @@
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Data..." onkeyup="caridata()">
         </div> -->
     <div class="table-responsive">
-        <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
+        <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
             <thead>
                 <tr>
                     <th>No BPB</th>

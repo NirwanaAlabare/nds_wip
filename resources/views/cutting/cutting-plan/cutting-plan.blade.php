@@ -27,7 +27,7 @@
                     </div>
                     <div class="mb-3">
                         <div class="table-responsive">
-                            <table id="datatable-form" class="table table-bordered table-sm w-100">
+                            <table id="datatable-form" class="table table-bordered table w-100">
                                 <thead>
                                     <tr>
                                         <th>Tanggal</th>
@@ -159,7 +159,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100">
+                <table id="datatable" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th>Action</th>

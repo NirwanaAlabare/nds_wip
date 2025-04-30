@@ -97,11 +97,11 @@ class ReturInMaterialController extends Controller
 
     public function getNobppb(Request $request)
     {
-        $nomorbppb = DB::connection('mysql_sb')->select("select a.*,(a.qty - COALESCE(qty_ri,0)) qty_sisa from (select bppbno isi,concat(if(bppbno_int!='',bppbno_int,bppbno),'|',supplier) tampil, sum(a.qty) qty from 
-            bppb a inner join mastersupplier s on a.id_supplier=s.id_supplier 
-            left join so_det sod on a.id_so_det=sod.id 
-            left join jo_det jod on sod.id_so=jod.id_so 
-            left join jo on jo.id=jod.id_jo  
+        $nomorbppb = DB::connection('mysql_sb')->select("select a.*,(a.qty - COALESCE(qty_ri,0)) qty_sisa from (select bppbno isi,concat(if(bppbno_int!='',bppbno_int,bppbno),'|',supplier) tampil, sum(a.qty) qty from
+            bppb a inner join mastersupplier s on a.id_supplier=s.id_supplier
+            left join so_det sod on a.id_so_det=sod.id
+            left join jo_det jod on sod.id_so=jod.id_so
+            left join jo on jo.id=jod.id_jo
             where bppbdate = '" . $request->tgl_ri . "' and LEFT(bppbno_int,2) = 'GK'
             group by bppbno order by bppbno) a left join (select b.ori_dok,a.id_jo,a.id_item,a.no_ws,sum(COALESCE(qty_good,0) - COALESCE(qty_reject,0)) qty_ri from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and ori_dok != '-' GROUP BY b.ori_dok) b on b.ori_dok = a.isi where (a.qty - COALESCE(qty_ri,0)) > 0");
 
@@ -116,7 +116,7 @@ class ReturInMaterialController extends Controller
 
     public function getTujuan(Request $request)
     {
-        $tujuan = DB::connection('mysql_sb')->select("select nama_pilihan isi,nama_pilihan tampil 
+        $tujuan = DB::connection('mysql_sb')->select("select nama_pilihan isi,nama_pilihan tampil
             from masterpilihan where kode_pilihan = '" . $request->type_bc . "' ");
 
         $html = "<option value=''>Pilih Tujuan</option>";
@@ -141,7 +141,7 @@ class ReturInMaterialController extends Controller
     {
 
         $data_detail = DB::connection('mysql_sb')->select("select bppbno_int, a.id_bppb,a.id_so_det, a.id_jo,a.id_item,a.kpno, a.goods_code, a.itemdesc,a.color,round(a.qty - COALESCE(qty_ri,0),2) qty, a.unit,a.confirm,coalesce(c.qty_temp,0) qty_temp from (select bppbno_int,bppbno,a.id id_bppb,a.id_so_det,a.id_jo,a.id_item,ac.kpno,s.goods_code,s.itemdesc itemdesc,s.color,a.qty, a.unit,a.confirm from bppb a inner join masteritem s on a.id_item=s.id_item inner join jo_det jd on a.id_jo = jd.id_jo inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where bppbno='" . $request->sj_asal . "' order by a.id_item desc) a left join (select b.ori_dok,a.id_jo,a.id_item,a.no_ws,sum(COALESCE(qty_good,0) - COALESCE(qty_reject,0)) qty_ri from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.ori_dok = '" . $request->sj_asal . "') b on b.ori_dok = a.bppbno and b.id_item = a.id_item and b.id_jo = a.id_jo LEFT JOIN (select id_jo,id_item,sum(qty_sj) qty_temp from whs_lokasi_inmaterial_temp where created_by  = '".Auth::user()->name."' GROUP BY id_jo,id_item) c on c.id_jo = a.id_jo and c.id_item = a.id_item");
-        
+
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -236,7 +236,7 @@ class ReturInMaterialController extends Controller
                 $txtid_supplier = $detdata[0]->id_supplier;
                 $txtid_gudang = $detdata[0]->id_gudang;
                 $txtid_so_det = $detdata[0]->id_so_det;
-                
+
                 // dd($detdata);
                 array_push($inmaterialDetailData, [
                     "id_item" => $request["id_item"][$i],
@@ -373,7 +373,7 @@ class ReturInMaterialController extends Controller
         $t_created_at = $caritemp->created_at;
         $t_updated_at = $caritemp->updated_at;
         $t_nilai_barang = $caritemp->nilai_barang;
-        
+
 
     $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
                 $barcode = $sql_barcode[0]->kode;
@@ -464,7 +464,7 @@ public function savelokasiretur(Request $request)
                 if (intval($request["qty_ak"][$i]) == 0) {
                     $data_aktual = $request["qty_sj"][$i];
                 }else{
-                    $data_aktual = $request["qty_ak"][$i]; 
+                    $data_aktual = $request["qty_ak"][$i];
                 }
                 $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
                 $barcode = $sql_barcode[0]->kode;
@@ -556,7 +556,7 @@ public function saveuploadlokasirtr(Request $request)
             if (intval($request["qty_aktual"][$i]) == 0) {
                 $data_aktual = $request["qty_bpb"][$i];
             }else{
-                $data_aktual = $request["qty_aktual"][$i]; 
+                $data_aktual = $request["qty_aktual"][$i];
             }
             $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
             $barcode = $sql_barcode[0]->kode;
@@ -650,11 +650,11 @@ public function createricutting()
 
 public function getNobppbCutting(Request $request)
 {
-    $nomorbppb = DB::connection('mysql_sb')->select("select a.*,(a.qty - COALESCE(qty_ri,0)) qty_sisa from (select bppbno isi,concat(if(bppbno_int!='',bppbno_int,bppbno),'|',supplier) tampil, sum(a.qty) qty from 
-        bppb a inner join mastersupplier s on a.id_supplier=s.id_supplier 
-        left join so_det sod on a.id_so_det=sod.id 
-        left join jo_det jod on sod.id_so=jod.id_so 
-        left join jo on jo.id=jod.id_jo  
+    $nomorbppb = DB::connection('mysql_sb')->select("select a.*,(a.qty - COALESCE(qty_ri,0)) qty_sisa from (select bppbno isi,concat(if(bppbno_int!='',bppbno_int,bppbno),'|',supplier) tampil, sum(a.qty) qty from
+        bppb a inner join mastersupplier s on a.id_supplier=s.id_supplier
+        left join so_det sod on a.id_so_det=sod.id
+        left join jo_det jod on sod.id_so=jod.id_so
+        left join jo on jo.id=jod.id_jo
         where bppbdate = '" . $request->tgl_ri . "' and a.id_supplier = '432' and LEFT(bppbno_int,2) = 'GK'
         group by bppbno order by bppbno) a left join (select b.ori_dok,a.id_jo,a.id_item,a.no_ws,sum(COALESCE(qty_good,0) - COALESCE(qty_reject,0)) qty_ri from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and ori_dok != '-' GROUP BY b.ori_dok) b on b.ori_dok = a.isi where (a.qty - COALESCE(qty_ri,0)) > 0");
 
@@ -702,7 +702,7 @@ public function showdetailbarcodeout(Request $request)
     }
 
     $html .= '<div class="table-responsive" style="max-height: 300px">
-    <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100 text-nowrap">
+    <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100 text-nowrap">
     <thead>
     <tr>
     <th class="text-center" style="font-size: 0.6rem;">No Barcode</th>
@@ -779,7 +779,7 @@ public function savebarcoderiscan(Request $request)
             $no_roll_buyer = $sql_data_barcode[0]->no_roll_buyer;
             $no_lot = $sql_data_barcode[0]->no_lot;
             $satuan = $sql_data_barcode[0]->satuan;
-            
+
             //  $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
             // $barcode = $sql_barcode[0]->kode;
 
@@ -829,9 +829,9 @@ public function savebarcoderiscan(Request $request)
 
 public function deletescanritemp(Request $request)
     {
-        
+
         $deletescan = InMaterialLokasiTemp::where('id_jo',$request['id_jo'])->where('id_item',$request['id_item'])->where('created_by',Auth::user()->name)->delete();
-        
+
     }
 
 
@@ -841,7 +841,7 @@ public function deletescanritemp(Request $request)
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -861,7 +861,7 @@ public function deletescanritemp(Request $request)
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Remove the specified resource from storage.
@@ -876,5 +876,5 @@ public function deletescanritemp(Request $request)
 
 
 
-    
+
 }

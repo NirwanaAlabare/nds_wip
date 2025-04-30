@@ -223,7 +223,7 @@
             </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 @endforeach
 
@@ -242,7 +242,7 @@
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
     <div class="table-responsive"style="max-height: 500px">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Ws</th>
@@ -286,7 +286,7 @@
                             @endif
                              @if($detdata->qty_sisa <= 0)
                             <div class='d-flex gap-1 justify-content-center'>
-                                <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}");getlist_showlokasi("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-clipboard-check fa-lg"></i></button> 
+                                <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}");getlist_showlokasi("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-clipboard-check fa-lg"></i></button>
                             </div>
                             @endif
                         </td>
@@ -530,7 +530,7 @@
 
                 </div>
             </div>
-    
+
             </div>
         </div>
     </form>
@@ -583,7 +583,7 @@
             document.getElementById('store-inmaterial').reset();
         }
 
-    
+
         function sum_qty_aktual(){
             var table2 = document.getElementById("datatable_list");
             var qty2 = 0;
@@ -738,11 +738,11 @@
     </script>
     <script type="text/javascript">
     function addlocation($ws,$id_jo, $id_item,$kode_item, $qty, $unit, $balance,$desc,$qty_sisa){
-        let ws = $ws; 
-        let id_jo = $id_jo; 
+        let ws = $ws;
+        let id_jo = $id_jo;
         let id_item = $id_item;
         let kode_item = $kode_item;
-        let qty = $qty; 
+        let qty = $qty;
         let unit = $unit;
         let balance = $qty_sisa;
         let desc = $desc;
@@ -759,12 +759,12 @@
     $('#m_idjo').val(id_jo);
     $('#m_iditem').val(id_item);
     $('#txtidgr').val(id);
-    $('#modal-add-lokasi').modal('show'); 
+    $('#modal-add-lokasi').modal('show');
 
     $('#m_qty_det').val('');
     $('#m_lot').val('');
     $('#ttl_qty_sj').val('');
-    $('#ttl_qty_aktual').val(''); 
+    $('#ttl_qty_aktual').val('');
     }
 
     function getlist_addlokasi(){
@@ -798,11 +798,11 @@
 
 
     function showlocation($ws,$id_jo, $id_item,$kode_item, $qty, $unit, $balance,$desc,$qty_sisa){
-        let ws = $ws; 
-        let id_jo = $id_jo; 
+        let ws = $ws;
+        let id_jo = $id_jo;
         let id_item = $id_item;
         let kode_item = $kode_item;
-        let qty = $qty; 
+        let qty = $qty;
         let unit = $unit;
         let balance = $qty_sisa;
         let desc = $desc;
@@ -817,12 +817,12 @@
     $('#m_unit2').val(unit);
     $('#m_idjo2').val(id_jo);
     $('#m_iditem2').val(id_item);
-    $('#modal-show-lokasi').modal('show');  
+    $('#modal-show-lokasi').modal('show');
     }
 
     function getlist_showlokasi($ws,$id_jo, $id_item){
         let ws = $ws;
-        let id_jo = $id_jo; 
+        let id_jo = $id_jo;
         let id_item = $id_item;
         return $.ajax({
                 headers: {

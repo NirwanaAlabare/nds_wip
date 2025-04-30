@@ -80,7 +80,7 @@
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search Data..." onkeyup="carigrdok()">
         </div> -->
         <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No Transfer</th>

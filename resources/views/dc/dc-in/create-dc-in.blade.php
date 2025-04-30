@@ -248,7 +248,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatable-scan" class="table table-bordered table-sm w-100 display nowrap">
+                    <table id="datatable-scan" class="table table-bordered table w-100 display nowrap">
                         <thead>
                             <tr>
                                 <th>Action</th>

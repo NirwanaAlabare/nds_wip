@@ -22,7 +22,7 @@
                 </div>
                 <div class="modal-body" id="detail">
                     <div class="col-md-12 table-responsive">
-                        <table id="datatable-modal" class="table table-bordered table-striped table-sm w-100">
+                        <table id="datatable-modal" class="table table-bordered table-striped 100">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -97,7 +97,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-sm w-100">
+                    <table id="datatable" class="table table-bordered 100">
                         <thead>
                             <tr>
                                 <th>No</th>

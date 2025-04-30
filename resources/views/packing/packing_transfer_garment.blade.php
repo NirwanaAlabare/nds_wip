@@ -26,7 +26,7 @@
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_stok_temporary"
-                                class="table table-bordered table-striped table-sm w-100 nowrap">
+                                class="table table-bordered table-striped 100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>Buyer</th>
@@ -106,7 +106,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>No. Trans</th>

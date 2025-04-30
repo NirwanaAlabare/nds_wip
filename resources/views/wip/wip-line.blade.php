@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NDS - WIP</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('dist/img/tabicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     @include('layouts.link')
@@ -784,7 +785,7 @@
                                 <div class="show-defect-area" id="show-defect-area">
                                     <div
                                         class="position-relative d-flex flex-column justify-content-center align-items-center">
-                                        <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+                                        <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
                                             <div class="carousel-inner" id="carousel-inner">
                                             </div>
                                         </div>
@@ -1415,7 +1416,7 @@
 
         carouselContainer.empty();
         linkGambar1.forEach((gambar1, index) => {
-            const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
+            const isActive = index === 1 ? 'active' : ''; // Set item pertama sebagai active
             const defectPoints = positionDefect
                 .filter(posdef => posdef.image === gambar1.image)
                 .map(posdef => `
@@ -1428,7 +1429,7 @@
             let link = location.protocol !== 'https:' ? 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' : 'https://10.10.5.62:8143/erp/pages/prod_new/upload_files/';
             // Add carousel item
             const carouselItem = `
-                                    <div class="${isActive}">
+                                    <div class="carousel-item ${isActive}" data-bs-interval="4500">
                                         <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 420px; padding-bottom: 20px;">
                                             ${defectPoints}
                                             <img style="opacity: .8; width: auto; height: 420px;"

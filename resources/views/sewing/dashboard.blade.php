@@ -78,7 +78,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered table-sm" id="datatable-sewing-output">
+            <table class="table table-bordered table" id="datatable-sewing-output">
                 <thead>
                     <tr>
                         <th>Tanggal Order</th>

@@ -35,7 +35,7 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100">
+            <table id="datatable" class="table table-bordered table-striped 100">
                 <thead>
                     <tr>
                         <th>No Form</th>

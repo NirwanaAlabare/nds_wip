@@ -41,7 +41,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-sm w-100" id="stocker-table">
+                <table class="table table-bordered table w-100" id="stocker-table">
                     <thead>
                         <tr>
                             <th>Action</th>
@@ -172,7 +172,7 @@
                     targets: [0],
                     className: "text-nowrap text-center",
                     render: function (data, type, row, meta) {
-                        let column = '<a href="{{ route('track-stocker-detail') }}/'+data+'" target="_blank" class="btn btn-success btn-sm"><i class="fa fa-search-plus"></i></a>';
+                        let column = '<a href="{{ $page == 'dashboard-stocker' ? route('dashboard-stocker-show') : route('track-stocker-detail') }}/'+data+'" target="_blank" class="btn btn-success btn-sm"><i class="fa fa-search-plus"></i></a>';
                         return column;
                     }
                 },

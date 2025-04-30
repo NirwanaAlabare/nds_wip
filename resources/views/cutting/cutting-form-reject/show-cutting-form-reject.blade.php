@@ -104,7 +104,7 @@
                                     <div id="panelsStayOpen-{{ $i }}" class="accordion-collapse collapse">
                                         <div class="accordion-body">
                                             <div class="table-responsive">
-                                                <table class="table table-bordered table-sm" id="table-ratio-{{ $i }}">
+                                                <table class="table table-bordered table" id="table-ratio-{{ $i }}">
                                                     <thead>
                                                         <th class="d-none">ID</th>
                                                         <th class="d-none">So Det Id</th>

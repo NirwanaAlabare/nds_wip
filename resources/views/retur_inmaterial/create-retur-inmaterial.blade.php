@@ -230,7 +230,7 @@
         </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 
     <div class="card card-sb card-outline">
@@ -248,7 +248,7 @@
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
     <div class="table-responsive"style="max-height: 500px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">WS</th>
@@ -341,7 +341,7 @@
             await updateSizeList();
         });
 
-        
+
 
         function get_nobppb(val) {
            return $.ajax({
@@ -509,7 +509,7 @@
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="no_ws' + meta.row + '" name="no_ws['+meta.row+']" value="' + data + '" readonly />'
                 }
-                
+
             ]
         });
 

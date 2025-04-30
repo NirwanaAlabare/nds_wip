@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-sm table-bordered" id="report-produksi-table">
+                <table class="table table table-bordered" id="report-produksi-table">
                     <thead>
                         <tr>
                             <th>Line</th>

@@ -158,7 +158,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm table-bordered" id="datatable-master-plan">
+                <table class="table table table-bordered" id="datatable-master-plan">
                     <thead>
                         <tr>
                             <th>WS Number</th>
@@ -196,7 +196,7 @@
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="9" class="text-center">Data tidak ditemukan</td>
+                                <td colspan="11" class="text-center">Data tidak ditemukan</td>
                             </tr>
                         @endif
                     </tbody>

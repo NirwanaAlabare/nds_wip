@@ -46,13 +46,15 @@
 
 @section('content')
     <div class="container my-4">
-        <div class="row">
+        <div class="row justify-content-start align-items-center">
             @foreach ($lines as $line)
                 <div class="col-md-4 col-lg-3 mb-4">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-body text-center">
-                            <h5 class="card-title fw-bold">{{ str_replace("SEWING ", "", $line->name) }}</h5>
-                            <a href="{{ url('dashboard-wip/wip-line/' . $line->id) }}" class="btn btn-primary btn-sm">View Details</a>
+                            <div class="d-flex justify-content-between align-items-center h-100 gap-3">
+                                <h5 class="card-title fw-bold">{{ str_replace("SEWING ", "", $line->name) }}</h5>
+                                <a href="{{ url('dashboard-wip/wip-line/' . $line->id) }}" class="btn btn-primary btn-sm">Details</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -61,7 +63,7 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <h5 class="card-title fw-bold">CHIEF</h5>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#chiefDashboard" class="btn btn-primary btn-sm">View Details</button>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#chiefDashboard" class="btn btn-primary btn-sm">Details</button>
                     </div>
                 </div>
             </div>
@@ -69,7 +71,7 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <h5 class="card-title fw-bold">CHIEF RANGE</h5>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#chiefRangeDashboard" class="btn btn-primary btn-sm">View Details</button>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#chiefRangeDashboard" class="btn btn-primary btn-sm">Details</button>
                     </div>
                 </div>
             </div>

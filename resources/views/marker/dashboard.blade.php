@@ -80,7 +80,7 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-bordered table-sm w-100" id="datatable-marker">
+            <table class="table table-bordered 100" id="datatable-marker">
                 <thead>
                     <tr>
                         <th>Buyer</th>

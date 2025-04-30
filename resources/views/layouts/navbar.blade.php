@@ -50,6 +50,7 @@
                             </li>
                         </ul>
                     </li>
+
                 @endif
 
                 @if ($page == 'dashboard-marker')
@@ -297,6 +298,15 @@
                             @endrole
                         </ul>
                     </li>
+                    @role('superadmin')
+                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                            <li class="nav-item">
+                                <a href="{{ route('stocker-tools') }}" class="nav-link {{ $routeName == 'stocker-tools' ? 'active' : '' }}" target="_blank">
+                                    Tools
+                                </a>
+                            </li>
+                        @endif
+                    @endrole
                     {{-- <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'track-stocker' ? 'active' : '' }}">Track Stocker</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
@@ -434,15 +444,18 @@
                                     </a>
                                 </li> --}}
                                 <li>
-                                    <a href="{{ route('loading-line') }}"
-                                        class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
+                                    <a href="{{ route('loading-line') }}" class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
                                         Loading Line <i class="fa-solid fa-users-line"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('summary-loading') }}"
-                                        class="dropdown-item {{ $routeName == 'summary-loading' ? 'active' : '' }}">
+                                    <a href="{{ route('summary-loading') }}" class="dropdown-item {{ $routeName == 'summary-loading' ? 'active' : '' }}">
                                         Summary Loading <i class="fa-solid fa-list-check"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('modify-loading-line') }}" class="dropdown-item {{ $routeName == 'modify-loading' ? 'active' : '' }}">
+                                        Modify Loading <i class="fa-solid fa-sliders"></i>
                                     </a>
                                 </li>
                             @endrole
@@ -479,7 +492,16 @@
                                 </li>
                             @endrole
                         </ul>
-                    <li>
+                    </li>
+                    @role('superadmin')
+                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                            <li class="nav-item">
+                                <a href="{{ route('dc-tools') }}" class="nav-link {{ $routeName == 'dc-tools' ? 'active' : '' }}" target="_blank">
+                                    Tools
+                                </a>
+                            </li>
+                        @endif
+                    @endrole
                 @endif
 
                 @if ($page == 'dashboard-sewing-eff')
@@ -544,14 +566,6 @@
                                         Track Output <i class="fa-solid fa-shuffle"></i>
                                     </a>
                                 </li>
-                                @role('superadmin')
-                                    <li>
-                                        <a href="{{ route('sewing-transfer-output') }}"
-                                            class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
-                                            Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                                        </a>
-                                    </li>
-                                @endrole
                                 <li>
                                     <a href="{{ route('undo-output-history') }}"
                                         class="dropdown-item {{ $routeName == 'undo-output-history' ? 'active' : '' }}">
@@ -625,13 +639,13 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('dashboard-chief-sewing-range', [date('Y-m-d'), date('Y-m-d')]) }}"
+                                    <a href="{{ route('dashboard-chief-sewing-range', [date('Y-m-d', strtotime(date("Y-m-d")." -14 days")), date('Y-m-d')]) }}"
                                         class="dropdown-item {{ $routeName == 'dashboard-chief-sewing-range' ? 'active' : '' }}">
                                         Chief Performance <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('dashboard-leader-sewing', [date('Y-m-d'), date('Y-m-d')]) }}"
+                                    <a href="{{ route('dashboard-leader-sewing', [date('Y-m-d', strtotime(date("Y-m-d")." -14 days")), date('Y-m-d')]) }}"
                                         class="dropdown-item {{ $routeName == 'dashboard-leader-sewing' ? 'active' : '' }}">
                                         Line Performance <i class="fa-solid fa-file"></i>
                                     </a>
@@ -654,10 +668,19 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('dashboard-wip') }}" class="nav-link" target="_blank">
+                        <a href="{{ route('dashboard-wip') }}" class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}" target="_blank">
                             Dashboard
                         </a>
                     </li>
+                    @role('superadmin')
+                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                            <li class="nav-item">
+                                <a href="{{ route('sewing-tools') }}" class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
+                                    Tools
+                                </a>
+                            </li>
+                        @endif
+                    @endrole
                 @endif
 
                 @if ($page == 'dashboard-warehouse')
