@@ -211,8 +211,8 @@
             <th text-align: center; vertical-align: middle;">Retur Produksi</th>
             <th text-align: center; vertical-align: middle;">Adjustment</th>
 
-            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Subkontraktor</th>
             <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Produksi</th>
+            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Subkontraktor</th>
             <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Sample</th>
             <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Retur Pembelian</th>
             <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Adjustment</th>
@@ -395,8 +395,8 @@
                 "Pengembalian Dari Subkontraktor",
                 "Retur Produksi",
                 "Adjustment",
-                "Subkontraktor",
                 "Produksi",
+                "Subkontraktor",
                 "Sample",
                 "Retur Pembelian",
                 "Adjustment",
