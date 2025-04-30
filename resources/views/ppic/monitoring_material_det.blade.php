@@ -69,7 +69,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-tv"></i> Monitoring Material</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-tv"></i> Monitoring Material Detail</h5>
         </div>
         <div class="card-body">
             <div class="d-flex flex-wrap gap-3 mb-3">
@@ -116,12 +116,10 @@
             </div>
 
 
-            <div class="table-responsive mt-4">
-                <table id="datatable_conv" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+            <div class="table-responsive">
+                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead class="table-primary">
-                        <tr id="tableHeadRow" style="text-align: center; vertical-align: middle"></tr>
                     </thead>
-                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
 
@@ -137,6 +135,7 @@
     <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
+
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -168,7 +167,7 @@
             let buyer_filter = $("#buyer_filter").val();
             $.ajax({
                 type: "GET",
-                url: '{{ route('get_ppic_monitoring_material_style') }}',
+                url: '{{ route('get_ppic_monitoring_material_det_style') }}',
                 data: {
                     buyer: buyer_filter
                 },
@@ -183,8 +182,139 @@
             });
         }
 
+        function dataTableReload() {
+            if (!$("#style_filter").val()) {
+                alert("Harap Isi Style Filter");
+                return;
+            }
+
+            // Clear existing thead
+            $('#datatable thead').html('');
+
+            // Create the first header row (group titles)
+            const headerRow1 = `
+    <tr>
+        <th rowspan="2" style="text-align: center; vertical-align: middle;">ID Item</th>
+        <th rowspan="2" style="text-align: center; vertical-align: middle;">Item Desc</th>
+        <th rowspan="2" style="text-align: center; vertical-align: middle;">Tgl. Transaksi</th>
+        <th colspan="4" style="text-align: center; vertical-align: middle;">Penerimaan</th>
+        <th colspan="6" style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Pengeluaran</th>
+        <th rowspan="2" style="text-align: center; vertical-align: middle;">Unit</th>
+    </tr>`;
+
+
+            // Create the second header row (sub-columns)
+            const headerRow2 = `
+        <tr style="text-align: center; vertical-align: middle;">
+            <th text-align: center; vertical-align: middle;">Pembelian</th>
+            <th text-align: center; vertical-align: middle;">Pengembalian Dari Subkontraktor</th>
+            <th text-align: center; vertical-align: middle;">Retur Produksi</th>
+            <th text-align: center; vertical-align: middle;">Adjustment</th>
+
+            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Subkontraktor</th>
+            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Produksi</th>
+            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Sample</th>
+            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Retur Pembelian</th>
+            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Adjustment</th>
+            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Lainnya</th>
+        </tr>
+    `;
+
+            // Append both header rows to the thead
+            $('#datatable thead').append(headerRow1 + headerRow2);
+
+            // Now initialize/re-initialize DataTable
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                $('#datatable').DataTable().clear().draw();
+                $('#datatable').DataTable().destroy();
+            }
+
+            $('#datatable').DataTable({
+                scrollY: "400px",
+                serverSide: false,
+                processing: true,
+                responsive: true,
+                scrollX: true,
+                scrollCollapse: true,
+                paging: false,
+                ordering: false,
+                autoWidth: true,
+                searching: true,
+                fixedColumns: {
+                    leftColumns: 3
+                },
+                columnDefs: [{
+                    className: 'align-middle text-center',
+                    targets: '_all'
+                }],
+                ajax: {
+                    url: '{{ route('show_lap_monitoring_material_f_detail') }}',
+                    data: function(d) {
+                        d.buyer_filter = $('#buyer_filter').val();
+                        d.style_filter = $('#style_filter').val();
+                    },
+                    beforeSend: function() {
+                        $('#loadingOverlay').fadeIn();
+                    },
+                    complete: function() {
+                        $('#loadingOverlay').fadeOut();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('DataTable AJAX Error:', error);
+                        $('#loadingOverlay').fadeOut();
+                    }
+                },
+                columns: [{
+                        data: 'id_item'
+                    },
+                    {
+                        data: 'itemdesc'
+                    },
+                    {
+                        data: 'tgl_dok_fix'
+                    },
+                    {
+                        data: 'qty_pembelian'
+                    },
+                    {
+                        data: 'qty_retur_subkon'
+                    },
+                    {
+                        data: 'qty_retur_prod'
+                    },
+                    {
+                        data: 'qty_adj'
+                    },
+                    {
+                        data: 'qty_out_prod'
+                    },
+                    {
+                        data: 'qty_out_subkon'
+                    },
+                    {
+                        data: 'qty_out_sample'
+                    },
+                    {
+                        data: 'qty_retur_pembelian'
+                    },
+                    {
+                        data: 'qty_out_adj'
+                    },
+                    {
+                        data: 'qty_out_lainnya'
+                    },
+                    {
+                        data: 'unit_konv'
+                    }
+                ]
+            });
+        }
+
+
+
+
         async function export_excel() {
-            if ($('#datatable_conv tbody tr').length === 0) {
+            if ($('#datatable tbody tr').length === 0) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Oops!',
@@ -200,36 +330,15 @@
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Monitoring Material');
 
-            // 🔹 Filter values for title
             const buyer = $("#buyer_filter").val() || "All Buyers";
             const style = $("#style_filter").val() || "All Styles";
-
             const fileBuyer = buyer.replace(/\s+/g, '_');
             const fileStyle = style.replace(/\s+/g, '_');
             const today = new Date().toISOString().split('T')[0];
 
-            // 🔹 Header DOM extraction
-            const headerRows = document.querySelectorAll('#datatable_conv thead tr');
-            const firstHeaderCells = headerRows[0].querySelectorAll('th');
-            const secondHeaderCells = headerRows[1]?.querySelectorAll('th') || [];
+            const lastColumn = 'N'; // Column 14 (A to N)
 
-            const staticHeaderCount = 17; // Adjust this if static columns change
-
-            // 🔹 Helper: Excel column name
-            function getExcelColumnName(colNumber) {
-                let columnName = '';
-                while (colNumber > 0) {
-                    let remainder = (colNumber - 1) % 26;
-                    columnName = String.fromCharCode(65 + remainder) + columnName;
-                    colNumber = Math.floor((colNumber - 1) / 26);
-                }
-                return columnName;
-            }
-
-            const totalColumns = firstHeaderCells.length + (secondHeaderCells.length || 0);
-            const lastColumn = getExcelColumnName(staticHeaderCount + secondHeaderCells.length);
-
-            // 🔹 Title rows (Buyer + Style)
+            // Title Rows
             worksheet.mergeCells(`A1:${lastColumn}1`);
             worksheet.getCell('A1').value = `Buyer : ${buyer}`;
             worksheet.getCell('A1').font = {
@@ -254,17 +363,52 @@
 
             worksheet.addRow([]); // Spacer row
 
-            // ─── Header Row 1 (Static Headers + "Shipment") ───
+            // Header Definitions
+            const headerRow1Data = [{
+                    label: "ID Item",
+                    rowspan: 2
+                },
+                {
+                    label: "Item Desc",
+                    rowspan: 2
+                },
+                {
+                    label: "Tgl. Transaksi",
+                    rowspan: 2
+                },
+                {
+                    label: "Penerimaan",
+                    colspan: 4
+                },
+                {
+                    label: "Pengeluaran",
+                    colspan: 6
+                },
+                {
+                    label: "Unit",
+                    rowspan: 2
+                }
+            ];
+
+            const headerRow2Data = [
+                "Pembelian",
+                "Pengembalian Dari Subkontraktor",
+                "Retur Produksi",
+                "Adjustment",
+                "Subkontraktor",
+                "Produksi",
+                "Sample",
+                "Retur Pembelian",
+                "Adjustment",
+                "Lainnya"
+            ];
+
+            // Header Row 1
             const headerRow1 = worksheet.getRow(4);
-            let colIndex = 1;
-
-            firstHeaderCells.forEach(th => {
-                const colspan = parseInt(th.getAttribute('colspan')) || 1;
-                const rowspan = parseInt(th.getAttribute('rowspan')) || 1;
-                const text = th.innerText.trim();
-
-                const cell = headerRow1.getCell(colIndex);
-                cell.value = text;
+            let col = 1;
+            headerRow1Data.forEach(item => {
+                const cell = headerRow1.getCell(col);
+                cell.value = item.label;
                 cell.font = {
                     bold: true,
                     color: {
@@ -279,25 +423,23 @@
                     type: 'pattern',
                     pattern: 'solid',
                     fgColor: {
-                        argb: 'FF007BFF'
-                    }
+                        argb: 'FF4682B4'
+                    } // Steel Blue
                 };
 
-                if (colspan > 1) {
-                    worksheet.mergeCells(4, colIndex, 4, colIndex + colspan - 1);
+                if (item.colspan) {
+                    worksheet.mergeCells(4, col, 4, col + item.colspan - 1);
+                    col += item.colspan;
+                } else if (item.rowspan) {
+                    worksheet.mergeCells(4, col, 4 + item.rowspan - 1, col);
+                    col += 1;
                 }
-                if (rowspan > 1) {
-                    worksheet.mergeCells(4, colIndex, 4 + rowspan - 1, colIndex);
-                }
-
-                colIndex += colspan;
             });
 
-            // ─── Header Row 2 (Shipment Months) ───
+            // Header Row 2
             const headerRow2 = worksheet.getRow(5);
-            secondHeaderCells.forEach((th, i) => {
-                const text = th.innerText.trim();
-                const cell = headerRow2.getCell(staticHeaderCount + i + 1); // Start after static headers
+            headerRow2Data.forEach((text, index) => {
+                const cell = headerRow2.getCell(4 + index); // Starts from column 4
                 cell.value = text;
                 cell.font = {
                     bold: true,
@@ -313,21 +455,21 @@
                     type: 'pattern',
                     pattern: 'solid',
                     fgColor: {
-                        argb: 'FF007BFF'
+                        argb: 'FF4682B4'
                     }
                 };
             });
 
-            // ─── Data Rows ───
+            // Data Rows
             const dataStartRow = 6;
-            const tableRows = document.querySelectorAll('#datatable_conv tbody tr');
+            const tableRows = document.querySelectorAll('#datatable tbody tr');
 
-            tableRows.forEach((row, index) => {
+            tableRows.forEach((row, rowIndex) => {
                 const rowData = Array.from(row.querySelectorAll('td')).map(td => td.innerText.trim());
-                worksheet.getRow(dataStartRow + index).values = rowData;
+                worksheet.getRow(dataStartRow + rowIndex).values = rowData;
             });
 
-            // ─── Format Columns ───
+            // Column Formatting
             worksheet.columns.forEach(col => {
                 col.width = 20;
                 col.alignment = {
@@ -336,7 +478,7 @@
                 };
             });
 
-            // ─── Zebra Striping & Borders ───
+            // Zebra Striping + Borders
             worksheet.eachRow({
                 includeEmpty: false
             }, (row, rowNumber) => {
@@ -346,7 +488,7 @@
                         pattern: 'solid',
                         fgColor: {
                             argb: 'FFF1F1F1'
-                        }
+                        } // light gray
                     };
                 }
                 row.eachCell({
@@ -369,7 +511,7 @@
                 });
             });
 
-            // ─── Download Excel ───
+            // Export
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -379,205 +521,6 @@
             link.href = URL.createObjectURL(blob);
             link.download = `Monitoring_${fileBuyer}_${fileStyle}_${today}.xlsx`;
             link.click();
-
-            $("#loadingOverlay").fadeOut();
-        }
-
-
-        function formatColName(col) {
-            const parts = col.split('_');
-
-            const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
-
-            // Format: cap_out_feb_2025
-            if (parts.length === 4) {
-                const prefix = parts[0] === 'pct' ? '%' :
-                    parts[0] === 'cap' ? 'Output' :
-                    parts[0] === 'blc' ? 'Balance' : parts[0];
-                const month = capitalize(parts[2]);
-                const year = parts[3];
-                return `${prefix} ${month} ${year}`;
-            }
-
-            // Format: feb_2025
-            if (parts.length === 2) {
-                const month = capitalize(parts[0]);
-                const year = parts[1];
-                return `Shipment ${month} ${year}`;
-            }
-
-            return col;
-        }
-
-
-        function capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
-
-
-        function dataTableReload() {
-            if (!$("#style_filter").val()) {
-                alert("Harap Isi Style Filter");
-                return;
-            }
-
-            // Destroy existing table if needed
-            if ($.fn.DataTable.isDataTable('#datatable_conv')) {
-                $('#datatable_conv').DataTable().clear().draw();
-                $('#datatable_conv').DataTable().destroy();
-            }
-
-            $("#loadingOverlay").fadeIn();
-            let buyer_filter = $("#buyer_filter").val();
-            let style_filter = $("#style_filter").val();
-
-            $.ajax({
-                type: "GET",
-                url: '{{ route('show_lap_monitoring_material_f_det') }}',
-                data: {
-                    buyer: buyer_filter,
-                    style: style_filter
-                },
-                success: function(response) {
-                    const columns = response.columns;
-                    const data = response.data;
-
-                    // Format the dynamic column headers
-                    const dynamicColumnNames = columns.map(col => formatColName(col));
-
-                    // Format the table data
-                    const tableData = data.map(row => ({
-                        id_item: row.id_item,
-                        itemdesc: row.itemdesc,
-                        color: row.color,
-                        col_gmt: row.col_gmt,
-                        nama_panel: row.nama_panel,
-                        qty_order: row.qty_order,
-                        cons_ws_konv: row.cons_ws_konv,
-                        need_material: row.need_material,
-                        tot_mat: row.tot_mat,
-                        qty_pembelian: row.qty_pembelian,
-                        qty_retur_prod: row.qty_retur_prod,
-                        qty_out_prod: row.qty_out_prod,
-                        blc_mat: row.blc_mat,
-                        unit_konv: row.unit_konv,
-                        output_pcs_cons_ws: row.output_pcs_cons_ws,
-                        blc_order: row.blc_order,
-                        total_output_pcs_cons_ws: row.total_output_pcs_cons_ws,
-                        values: row.values
-                    }));
-
-                    buildDynamicTable(dynamicColumnNames, tableData);
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error:", status, error);
-                    $("#loadingOverlay").fadeOut();
-                }
-            });
-        }
-
-        function buildDynamicTable(columnNames, dataRows) {
-            const thead = document.querySelector('#datatable_conv thead');
-            const tbody = document.getElementById('tableBody');
-
-            thead.innerHTML = ''; // Clear entire thead
-            tbody.innerHTML = ''; // Clear tbody
-
-            // Destroy if already initialized
-            if ($.fn.DataTable.isDataTable('#datatable_conv')) {
-                $('#datatable_conv').DataTable().clear().destroy();
-            }
-
-            // First row (static headers + Shipment colspan)
-            const mainHeaderRow = document.createElement('tr');
-
-            const staticHeaders = [
-                'ID Item', 'Item Desc', 'Color', 'Color Gmt',
-                'Panel', 'Qty Order', 'Cons WS',
-                'Need Material', 'Need Total', 'Penerimaan Gudang', 'Return Produksi',
-                'Pengeluaran Produksi', 'Blc Material', 'Unit',
-                'Output Pcs (Cons WS)', 'Blc To Order', 'Total Pcs (Cons WS)'
-            ];
-
-            staticHeaders.forEach(header => {
-                const th = document.createElement('th');
-                th.innerText = header;
-                th.rowSpan = 2;
-                th.style.verticalAlign = 'middle';
-                th.className = 'align-middle text-center';
-                mainHeaderRow.appendChild(th);
-            });
-
-            // Shipment grouped header
-            const shipmentTh = document.createElement('th');
-            shipmentTh.colSpan = columnNames.length;
-            shipmentTh.innerText = 'Shipment';
-            shipmentTh.className = 'text-center';
-            mainHeaderRow.appendChild(shipmentTh);
-
-            // Second row (dynamic columns)
-            const shipmentDetailRow = document.createElement('tr');
-            columnNames.forEach(name => {
-                const th = document.createElement('th');
-                th.innerText = name;
-                th.className = 'text-center';
-                shipmentDetailRow.appendChild(th);
-            });
-
-            // Append both header rows to thead
-            thead.appendChild(mainHeaderRow);
-            thead.appendChild(shipmentDetailRow);
-
-            // Populate tbody
-            dataRows.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-            <td>${row.id_item}</td>
-            <td>${row.itemdesc}</td>
-            <td>${row.color}</td>
-            <td>${row.col_gmt}</td>
-            <td>${row.nama_panel}</td>
-            <td>${row.qty_order}</td>
-            <td>${row.cons_ws_konv}</td>
-            <td>${row.need_material}</td>
-            <td>${row.tot_mat}</td>
-            <td>${row.qty_pembelian}</td>
-            <td>${row.qty_retur_prod}</td>
-            <td>${row.qty_out_prod}</td>
-            <td>${row.blc_mat}</td>
-            <td>${row.unit_konv}</td>
-            <td>${row.output_pcs_cons_ws}</td>
-            <td>${row.blc_order}</td>
-            <td>${row.total_output_pcs_cons_ws}</td>
-        `;
-                row.values.forEach(val => {
-                    const td = document.createElement('td');
-                    td.innerText = val;
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-
-            // Re-initialize DataTable
-            $('#datatable_conv').DataTable({
-                scrollY: "400px",
-                serverSide: false,
-                processing: true,
-                responsive: true,
-                scrollX: true,
-                scrollCollapse: true,
-                paging: false,
-                ordering: false,
-                autoWidth: true,
-                searching: true,
-                fixedColumns: {
-                    leftColumns: 3
-                },
-                columnDefs: [{
-                    className: 'align-middle text-center',
-                    targets: '_all'
-                }]
-            });
 
             $("#loadingOverlay").fadeOut();
         }

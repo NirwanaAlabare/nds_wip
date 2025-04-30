@@ -1130,6 +1130,12 @@
                                     Monitoring Material <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('ppic_monitoring_material_det') }}"
+                                    class="dropdown-item {{ $subPage == 'ppic_monitoring_material_det' ? 'active' : '' }}">
+                                    Monitoring Material Detail <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
