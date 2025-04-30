@@ -7,6 +7,8 @@ use App\Models\LoadingLine;
 use App\Models\LoadingLinePlan;
 use App\Models\YearSequence;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use DB;
 
 class DcToolsController extends Controller

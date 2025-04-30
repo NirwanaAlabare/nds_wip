@@ -15,6 +15,7 @@ use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\MasterPlan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use DB;
 
 class TransferOutput extends Component

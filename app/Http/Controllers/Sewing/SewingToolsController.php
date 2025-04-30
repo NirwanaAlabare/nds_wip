@@ -10,6 +10,7 @@ use App\Models\SignalBit\Rft;
 use App\Models\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use DB;
 
 class SewingToolsController extends Controller
@@ -120,7 +121,7 @@ class SewingToolsController extends Controller
                     $updateRft = Rft::where("id", $mp->id)->update([
                         "master_plan_id" => $mp->master_plan_id
                     ]);
-                } 
+                }
                 $soDet = SoDet::select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->act_costing_plan_id)->where("so_det.color", $mp->master_plan_color)->where("so_det.size", $mp->size)->first();
 
                 if ($soDet) {
