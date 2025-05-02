@@ -1,0 +1,2 @@
+PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 20480 bytes) in C:\xampp\htdocs\nds_wip_local\vendor\laravel\framework\src\Illuminate\Collections\Collection.php on line 695
+PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 20480 bytes) in C:\xampp\htdocs\nds_wip_local\vendor\symfony\error-handler\Error\FatalError.php on line 89

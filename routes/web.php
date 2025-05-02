@@ -1104,8 +1104,9 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
-        Route::post('/miss-masterplan', 'missMasterPlan')->name("miss-masterplan");
-        Route::post('/miss-rework', 'missRework')->name("miss-rework");
+        Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
+        Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
+        Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
     });
 
     // Mutasi Mesin
