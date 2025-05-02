@@ -72,6 +72,10 @@ class ReportDefectController extends Controller
                 $defect->whereIn("userpassword.username", $request->sewing_line);
             }
 
+            if ($request->buyer && count($request->buyer) > 0) {
+                $defect->whereIn("mastersupplier.Supplier", $request->buyer);
+            }
+
             if ($request->ws && count($request->ws) > 0) {
                 $defect->whereIn("act_costing.kpno", $request->ws);
             }
@@ -253,6 +257,10 @@ class ReportDefectController extends Controller
             $defect->whereIn("userpassword.username", $request->sewing_line);
         }
 
+        if ($request->buyer && count($request->buyer) > 0) {
+            $defect->whereIn("mastersupplier.Supplier", $request->buyer);
+        }
+
         if ($request->ws && count($request->ws) > 0) {
             $defect->whereIn("act_costing.kpno", $request->ws);
         }
@@ -292,6 +300,11 @@ class ReportDefectController extends Controller
         $sewingLine = "";
         if ($request->sewing_line && count($request->sewing_line) > 0) {
             $sewingLine = addQuotesAround(implode("\n", $request->sewing_line));
+        }
+
+        $buyer = "";
+        if ($request->buyer && count($request->buyer) > 0) {
+            $buyer = addQuotesAround(implode("\n", $request->buyer));
         }
 
         $ws = "";
@@ -383,6 +396,7 @@ class ReportDefectController extends Controller
                                 rfts.updated_at >= '".$dateFrom." 00:00:00' AND rfts.updated_at <= '".$dateTo." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
+                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
@@ -417,6 +431,7 @@ class ReportDefectController extends Controller
                                 defects.updated_at >= '".$dateFrom." 00:00:00' AND defects.updated_at <= '".$dateTo." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
+                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
@@ -449,6 +464,7 @@ class ReportDefectController extends Controller
                                 rejects.updated_at >= '".$dateFrom." 00:00:00' AND rejects.updated_at <= '".$dateTo." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
+                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
@@ -543,6 +559,7 @@ class ReportDefectController extends Controller
                                 rfts.updated_at >= '".$dateFrom." 00:00:00' AND rfts.updated_at <= '".$dateTo." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
+                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
@@ -577,6 +594,7 @@ class ReportDefectController extends Controller
                                 defects.updated_at >= '".$dateFrom." 00:00:00' AND defects.updated_at <= '".$dateTo." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
+                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
@@ -609,6 +627,7 @@ class ReportDefectController extends Controller
                                 rejects.updated_at >= '".$dateFrom." 00:00:00' AND rejects.updated_at <= '".$dateTo." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
+                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
@@ -650,8 +669,10 @@ class ReportDefectController extends Controller
                     LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
                     LEFT JOIN so ON so.id = so_det.id_so
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                 WHERE
                     output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                    ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                     ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                     ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                     ".($color ? "AND so_det.color in (".$color.")" : "")."

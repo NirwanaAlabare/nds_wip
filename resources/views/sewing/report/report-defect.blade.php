@@ -118,6 +118,15 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Buyer</label>
+                        <select class="select2bs4filter" name="buyer[]" multiple="multiple" id="buyer">
+                            <option value="">Buyer</option>
+                            @foreach ($suppliers as $supplier)
+                                <option value="{{ $supplier }}">{{ $supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">No. WS</label>
                         <select class="select2bs4filter" name="ws[]" multiple="multiple" id="ws">
                             <option value="">SEMUA</option>
@@ -259,6 +268,7 @@
                     d.defect_areas = $('#defect_areas').val();
                     d.defect_status = $('#defect_status').val();
                     d.sewing_line = $('#sewing_line').val();
+                    d.buyer = $('#buyer').val();
                     d.ws = $('#ws').val();
                     d.style = $('#style').val();
                     d.color = $('#color').val();
@@ -330,6 +340,7 @@
                         defect_areas : $('#defect_areas').val(),
                         defect_status : $('#defect_status').val(),
                         sewing_line : $('#sewing_line').val(),
+                        buyer : $('#buyer').val(),
                         ws : $('#ws').val(),
                         style : $('#style').val(),
                         color : $('#color').val(),
@@ -355,6 +366,8 @@
 
         async function reportDefectDatatableReload() {
             $('#report-defect-table').DataTable().ajax.reload();
+
+            $('#filterModal').modal('hide');
         }
 
         async function updateFilterOption() {
@@ -379,6 +392,14 @@
                             $('#sewing_line').empty();
                             $.each(lines, function(index, value) {
                                 $('#sewing_line').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // suppliers option
+                        if (response.suppliers && response.suppliers.length > 0) {
+                            let suppliers = response.suppliers;
+                            $('#buyer').empty();
+                            $.each(suppliers, function(index, value) {
+                                $('#buyer').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
                         // orders option
@@ -459,6 +480,7 @@
                     dateFrom : $("#dateFrom").val(),
                     dateTo : $("#dateTo").val(),
                     sewingLine : $("#sewing_line").val(),
+                    buyer: $("#buyer").val(),
                     ws: $("#ws").val(),
                     style: $("#style").val(),
                     color: $("#color").val(),
