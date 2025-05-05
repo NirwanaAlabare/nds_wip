@@ -203,6 +203,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('get-general-number');
         // get no form
         Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
+        // get group
+        Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
 
         // new general
         // get buyers
