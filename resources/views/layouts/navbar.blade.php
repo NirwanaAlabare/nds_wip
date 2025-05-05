@@ -598,6 +598,12 @@
                                         Report Defect <i class="fa-solid fa-file-circle-exclamation"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('defect-map') }}"
+                                        class="dropdown-item {{ $routeName == 'defect-map' ? 'active' : '' }}">
+                                        Defect Map <i class="fa-solid fa-percentage"></i>
+                                    </a>
+                                </li>
                             @endrole
                         </ul>
                     </li>

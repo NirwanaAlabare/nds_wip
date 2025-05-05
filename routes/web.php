@@ -1041,6 +1041,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
 
+        Route::get('/defect-map', 'defectMap')->name("defect-map");
+        Route::get('/defect-map/data', 'defectMapData')->name("defect-map-data");
+
         Route::post('/report-defect-export', 'reportDefectExport')->name("report-defect-export");
     });
 
