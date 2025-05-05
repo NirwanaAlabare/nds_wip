@@ -47,7 +47,11 @@ class StockerToolsController extends Controller
 
         if ($validatedRequest) {
             // Delete related stocker input
-            $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->get();
+            if ($request->group) {
+                $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->where('group_stocker', $request->group)->get();
+            } else {
+                $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->get();
+            }
             $stockerIdQrs = $stockers->pluck('id_qr_stocker')->toArray();
             $stockerIds = $stockers->pluck('id')->toArray();
 
