@@ -368,20 +368,30 @@
 
         async function placeDefectPoint(data) {
             let dataGroup = Object.entries(
-                Object.groupBy(data, ({ gambar }) => gambar)).map(([gambar, items]) => ({
-                    gambar: gambar,
+                Object.groupBy(data, ({ styleno, gambar }) => `${styleno}||${gambar}`)
+            ).map(([key, items]) => {
+                const [styleno, gambar] = key.split('||');
+                return {
+                    styleno,
+                    gambar,
                     items
-                })
-            );
+                };
+            });
 
             let parentElement = document.getElementById("defect-map-images");
             parentElement.innerHTML = '';
 
             dataGroup.forEach(async function (item) {  
+                // Title
+                let defectAreaImageTitle = document.createElement('h3');
+                defectAreaImageTitle.classList.add('text-sb');
+                defectAreaImageTitle.classList.add('fw-bold');
+                defectAreaImageTitle.innerHTML = item.styleno;
+                
                 // Defect Area Image
                 let scrollDefectAreaImageContainer = document.createElement('div');
                 scrollDefectAreaImageContainer.classList.add("col-md-8"); 
-                
+
                 let scrollDefectAreaImage = document.createElement('div');
                 scrollDefectAreaImage.classList.add("scroll-defect-area-img");
                 scrollDefectAreaImage.classList.add("image-frame");
@@ -420,6 +430,7 @@
                 listContainer.appendChild(listOrder);
 
                 // Append to Parent
+                parentElement.appendChild(defectAreaImageTitle);
                 parentElement.appendChild(scrollDefectAreaImageContainer);
                 parentElement.appendChild(listContainer);
 
