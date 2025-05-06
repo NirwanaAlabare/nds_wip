@@ -162,7 +162,8 @@ class TransferOutput extends Component
             $this->fromSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -170,14 +171,15 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             // To SoDet List
             $this->toSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -185,7 +187,7 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
             whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
@@ -200,7 +202,11 @@ class TransferOutput extends Component
             $messageSuccess = "";
             $messageNotFound = "";
             foreach ($this->fromSoDet as $fromSoDet) {
-                $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                $toSoDet = $this->toSoDet->where("color", $fromSoDet->color)->where("size", $fromSoDet->size)->where("dest", $fromSoDet->dest)->first();
+
+                if (!$toSoDet) {
+                    $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                }
 
                 if ($toSoDet) {
                     // Transfer Output
