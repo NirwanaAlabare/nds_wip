@@ -221,8 +221,12 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $(window).on('load', function () {
+            console.log('Everything including images is loaded');
+        });
+
         $(document).ready(function () {
-            updateFilterOption();  
+            updateFilterOption();
         });
 
         // Select2 Autofocus
@@ -349,22 +353,128 @@
                     await placeDefectPoint(response);
 
                     let defectAreaImagePoints = document.getElementsByClassName("all-defect-area-img-point");
-                    console.log("defect area image", defectAreaImagePoints);
                     for (let i = 0; i < defectAreaImagePoints.length; i++) {
                         // Get the parent
                         const parent = defectAreaImagePoints[i].parentElement;
 
                         // Search inside the parent for the desired class
-                        const image = parent.querySelector('.all-defect-area-img');
-                        let rect = image.getBoundingClientRect();
+                        const image = await parent.querySelector('.all-defect-area-img');
 
-                        // Image point
-                        defectAreaImagePoints[i].style.width = 0.03 * rect.width+'px';
-                        defectAreaImagePoints[i].style.height = defectAreaImagePoints[i].style.width;
+                        if (image.complete && image.naturalWidth !== 0) {
+                            console.log("✅ Image loaded successfully");
+
+                            let rect = image.getBoundingClientRect();
+                            // Image point
+                            defectAreaImagePoints[i].style.width = 0.03 * rect.width+'px';
+                            defectAreaImagePoints[i].style.height = defectAreaImagePoints[i].style.width;
+                            // console.log(defectAreaImagePoints[i].off, defectAreaImagePoints[i].);
+                            defectAreaImagePoints[i].style.left = (defectAreaImagePoints[i].offsetLeft - (0.015 * rect.width))+'px';
+                            defectAreaImagePoints[i].style.top = (defectAreaImagePoints[i].offsetTop - (0.015 * rect.width))+'px';
+                        } else {
+                            console.log("❌ Image not loaded or failed");
+                        }
                     }
                 }
             });
         }
+
+        // async function placeDefectPoint(data) {
+        //     let dataGroup = Object.entries(
+        //         Object.groupBy(data, ({ styleno, gambar }) => `${styleno}||${gambar}`)
+        //     ).map(([key, items]) => {
+        //         const [styleno, gambar] = key.split('||');
+        //         return {
+        //             styleno,
+        //             gambar,
+        //             items
+        //         };
+        //     });
+
+        //     let parentElement = document.getElementById("defect-map-images");
+        //     parentElement.innerHTML = '';
+
+        //     dataGroup.forEach(async function (item) {
+        //         // Title
+        //         let defectAreaImageTitle = document.createElement('h3');
+        //         defectAreaImageTitle.classList.add('text-sb');
+        //         defectAreaImageTitle.classList.add('fw-bold');
+        //         defectAreaImageTitle.innerHTML = item.styleno;
+
+        //         // Defect Area Image
+        //         let scrollDefectAreaImageContainer = document.createElement('div');
+        //         scrollDefectAreaImageContainer.classList.add("col-md-8");
+
+        //         let scrollDefectAreaImage = document.createElement('div');
+        //         scrollDefectAreaImage.classList.add("scroll-defect-area-img");
+        //         scrollDefectAreaImage.classList.add("image-frame");
+
+        //         let defectAreaImageContainer = document.createElement('div');
+        //         defectAreaImageContainer.classList.add("all-defect-area-img-container");
+
+        //         let defectAreaImage = new Image();
+        //         defectAreaImage.classList.add("all-defect-area-img");
+        //         defectAreaImage.src = 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/'+item.gambar;
+        //         defectAreaImageContainer.appendChild(defectAreaImage);
+
+        //         // List
+        //         let defectTypeGroup = Object.entries(
+        //             Object.groupBy(item.items, ({ defect_type, }) => defect_type )).map(([defect_type, items]) => ({
+        //                 defect_type: defect_type,
+        //                 items
+        //             })
+        //         ).sort((a, b) => b.items.length - a.items.length);
+
+        //         let listContainer = document.createElement('div');
+        //         listContainer.classList.add("col-md-4");
+        //         let listTitle = document.createElement('h5');
+        //         listTitle.classList.add("text-sb");
+        //         listTitle.innerHTML = 'Defect List';
+        //         let listOrder = document.createElement('ol');
+
+        //         defectTypeGroup.forEach(item => {
+        //             let list = document.createElement('li');
+        //             list.innerHTML =  item.defect_type+" ("+item.items.length+")";
+
+        //             listOrder.appendChild(list);
+        //         });
+
+        //         listContainer.appendChild(listTitle);
+        //         listContainer.appendChild(listOrder);
+
+        //         // Append to Parent
+        //         parentElement.appendChild(defectAreaImageTitle);
+        //         parentElement.appendChild(scrollDefectAreaImageContainer);
+        //         parentElement.appendChild(listContainer);
+
+        //         defectAreaImage.onload = function () {
+        //             console.log(defectAreaImage);
+        //             let rect = defectAreaImage.getBoundingClientRect();
+
+        //             // You can now safely use rect
+        //             console.log("Image dimensions:", rect.width, rect.height, defectAreaImage);
+
+        //             // For Defect Items
+        //             for(i = 0; i < item.items.length; i++) {
+        //                 let defectAreaImagePoint = document.createElement('img');
+        //                 defectAreaImagePoint.classList.add("all-defect-area-img-point");
+
+        //                 defectAreaImagePoint.style.width = 0.03 * rect.width+'px';
+        //                 defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
+        //                 defectAreaImagePoint.style.left =  'calc('+item.items[i].defect_area_x+'% - '+0.015 * rect.width+'px)';
+        //                 defectAreaImagePoint.style.top =  'calc('+item.items[i].defect_area_y+'% - '+0.015 * rect.width+'px)';
+
+        //                 defectAreaImageContainer.appendChild(defectAreaImagePoint);
+        //             }
+        //             scrollDefectAreaImage.appendChild(defectAreaImageContainer);
+        //             scrollDefectAreaImageContainer.appendChild(scrollDefectAreaImage);
+        //         };
+
+        //         // If the image is already cached (i.e., complete), trigger the onload manually
+        //         if (defectAreaImage.complete && defectAreaImage.naturalWidth !== 0) {
+        //             defectAreaImage.onload(); // Trigger the onload event manually if the image is already cached
+        //         }
+        //     });
+        // }
 
         async function placeDefectPoint(data) {
             let dataGroup = Object.entries(
@@ -379,50 +489,49 @@
             });
 
             let parentElement = document.getElementById("defect-map-images");
-            parentElement.innerHTML = '';
+            parentElement.innerHTML = ''; // Clear previous content
 
-            dataGroup.forEach(async function (item) {  
+            for (const item of dataGroup) {
                 // Title
                 let defectAreaImageTitle = document.createElement('h3');
-                defectAreaImageTitle.classList.add('text-sb');
-                defectAreaImageTitle.classList.add('fw-bold');
+                defectAreaImageTitle.classList.add('text-sb', 'fw-bold');
                 defectAreaImageTitle.innerHTML = item.styleno;
-                
+
                 // Defect Area Image
                 let scrollDefectAreaImageContainer = document.createElement('div');
-                scrollDefectAreaImageContainer.classList.add("col-md-8"); 
+                scrollDefectAreaImageContainer.classList.add("col-md-8");
 
                 let scrollDefectAreaImage = document.createElement('div');
-                scrollDefectAreaImage.classList.add("scroll-defect-area-img");
-                scrollDefectAreaImage.classList.add("image-frame");
+                scrollDefectAreaImage.classList.add("scroll-defect-area-img", "image-frame");
 
                 let defectAreaImageContainer = document.createElement('div');
                 defectAreaImageContainer.classList.add("all-defect-area-img-container");
 
-                let defectAreaImage = document.createElement('img');
+                let defectAreaImage = new Image();
                 defectAreaImage.classList.add("all-defect-area-img");
-                defectAreaImage.src = 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/'+item.gambar;
+                defectAreaImage.src = 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' + item.gambar;
+
                 defectAreaImageContainer.appendChild(defectAreaImage);
 
-                // List 
+                // List
                 let defectTypeGroup = Object.entries(
-                    Object.groupBy(item.items, ({ defect_type, }) => defect_type )).map(([defect_type, items]) => ({
-                        defect_type: defect_type,
-                        items
-                    })
-                ).sort((a, b) => b.items.length - a.items.length);
+                    Object.groupBy(item.items, ({ defect_type }) => defect_type)
+                ).map(([defect_type, items]) => ({
+                    defect_type: defect_type,
+                    items
+                })).sort((a, b) => b.items.length - a.items.length);
 
                 let listContainer = document.createElement('div');
                 listContainer.classList.add("col-md-4");
+
                 let listTitle = document.createElement('h5');
                 listTitle.classList.add("text-sb");
                 listTitle.innerHTML = 'Defect List';
-                let listOrder = document.createElement('ol');
 
+                let listOrder = document.createElement('ol');
                 defectTypeGroup.forEach(item => {
                     let list = document.createElement('li');
-                    list.innerHTML =  item.defect_type+" ("+item.items.length+")"; 
-
+                    list.innerHTML = `${item.defect_type} (${item.items.length})`;
                     listOrder.appendChild(list);
                 });
 
@@ -434,28 +543,36 @@
                 parentElement.appendChild(scrollDefectAreaImageContainer);
                 parentElement.appendChild(listContainer);
 
-                defectAreaImage.onload = function () {
-                    let rect = defectAreaImage.getBoundingClientRect();
+                // Wait for the image to load
+                await new Promise(resolve => {
+                    defectAreaImage.onload = function () {
+                        let rect = defectAreaImage.getBoundingClientRect();
+                        console.log("Image dimensions:", rect.width, rect.height, defectAreaImage);
 
-                    // You can now safely use rect
-                    console.log("Image dimensions:", rect.width, rect.height, defectAreaImage);
+                        // For Defect Items
+                        for(let i = 0; i < item.items.length; i++) {
+                            let defectAreaImagePoint = document.createElement('img');
+                            defectAreaImagePoint.classList.add("all-defect-area-img-point");
 
-                    // For Defect Items
-                    for(i = 0; i < item.items.length; i++) {
-                        let defectAreaImagePoint = document.createElement('img');
-                        defectAreaImagePoint.classList.add("all-defect-area-img-point");
+                            defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
+                            defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
+                            defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
+                            defectAreaImagePoint.style.top = `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
 
-                        defectAreaImagePoint.style.width = 0.03 * rect.width+'px';
-                        defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
-                        defectAreaImagePoint.style.left =  'calc('+item.items[i].defect_area_x+'% - '+0.015 * rect.width+'px)';
-                        defectAreaImagePoint.style.top =  'calc('+item.items[i].defect_area_y+'% - '+0.015 * rect.width+'px)';
+                            defectAreaImageContainer.appendChild(defectAreaImagePoint);
+                        };
 
-                        defectAreaImageContainer.appendChild(defectAreaImagePoint);
+                        scrollDefectAreaImage.appendChild(defectAreaImageContainer);
+                        scrollDefectAreaImageContainer.appendChild(scrollDefectAreaImage);
+                        resolve(); // Resolve the promise once loading is done
+                    };
+
+                    // Trigger onload manually if image is already cached
+                    if (defectAreaImage.complete && defectAreaImage.naturalWidth !== 0) {
+                        defectAreaImage.onload(); // Trigger the onload event if cached
                     }
-                    scrollDefectAreaImage.appendChild(defectAreaImageContainer);
-                    scrollDefectAreaImageContainer.appendChild(scrollDefectAreaImage);
-                };
-            });
+                });
+            }
         }
     </script>
 
