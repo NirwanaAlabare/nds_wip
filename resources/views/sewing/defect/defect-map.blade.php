@@ -178,7 +178,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i class="fa-solid fa-broom"></i></button>
-                    <button type="button" class="btn btn-success" onclick="reportDefectDatatableReload()">Simpan <i class="fa-solid fa-check"></i></button>
+                    <button type="button" class="btn btn-success" onclick="showDefectMap()">Simpan <i class="fa-solid fa-check"></i></button>
                 </div>
             </div>
         </div>
@@ -221,17 +221,8 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
-        $(window).on('load', function () {
-            console.log('Everything including images is loaded');
-        });
-
         $(document).ready(function () {
             updateFilterOption();
-        });
-
-        // Select2 Autofocus
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
         });
 
         // Initialize Select2 Elements
@@ -253,6 +244,21 @@
             dropdownParent: $("#reportDefectModal",)
         });
 
+        function rainbowStop(h) {
+            let f = (n, k = (n + h * 12) % 12) => 0.5 - 0.5 * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            let rgb2hex = (r, g, b) =>
+                "#" +
+                [r, g, b]
+                .map(x =>
+                    Math.round(x * 255)
+                    .toString(16)
+                    .padStart(2, 0)
+                )
+                .join("");
+
+            return rgb2hex(f(0), f(8), f(4));
+        }
+
         async function updateFilterOption() {
             document.getElementById('loading').classList.remove('d-none');
 
@@ -268,7 +274,6 @@
                     document.getElementById('loading').classList.add('d-none');
 
                     if (response) {
-                        console.log(response.lines && response.lines.length > 0);
                         // lines options
                         if (response.lines && response.lines.length > 0) {
                             let lines = response.lines;
@@ -330,7 +335,7 @@
         async function showDefectMap() {
             document.getElementById("loading").classList.remove("d-none");
 
-            $.ajax({
+            await $.ajax({
                 url: "{{ route('defect-map-data') }}",
                 type: "get",
                 data: {
@@ -348,10 +353,9 @@
                 },
                 dataType: "json",
                 success: async function (response) {
-                    document.getElementById("loading").classList.add("d-none");
-
                     await placeDefectPoint(response);
 
+                    // After image loaded
                     let defectAreaImagePoints = document.getElementsByClassName("all-defect-area-img-point");
                     for (let i = 0; i < defectAreaImagePoints.length; i++) {
                         // Get the parent
@@ -367,7 +371,6 @@
                             // Image point
                             defectAreaImagePoints[i].style.width = 0.03 * rect.width+'px';
                             defectAreaImagePoints[i].style.height = defectAreaImagePoints[i].style.width;
-                            // console.log(defectAreaImagePoints[i].off, defectAreaImagePoints[i].);
                             defectAreaImagePoints[i].style.left = (defectAreaImagePoints[i].offsetLeft - (0.015 * rect.width))+'px';
                             defectAreaImagePoints[i].style.top = (defectAreaImagePoints[i].offsetTop - (0.015 * rect.width))+'px';
                         } else {
@@ -376,6 +379,8 @@
                     }
                 }
             });
+
+            document.getElementById("loading").classList.add("d-none");
         }
 
         // async function placeDefectPoint(data) {
@@ -515,11 +520,15 @@
 
                 // List
                 let defectTypeGroup = Object.entries(
-                    Object.groupBy(item.items, ({ defect_type }) => defect_type)
-                ).map(([defect_type, items]) => ({
-                    defect_type: defect_type,
-                    items
-                })).sort((a, b) => b.items.length - a.items.length);
+                    Object.groupBy(item.items, ({ defect_type, defect_type_id }) => `${defect_type}||${defect_type_id}`)
+                ).map(([key, items]) => {
+                    const [defect_type, defect_type_id] = key.split('||');
+                    return {
+                        defect_type,
+                        defect_type_id,
+                        items
+                    };
+                }).sort((a, b) => b.items.length - a.items.length);
 
                 let listContainer = document.createElement('div');
                 listContainer.classList.add("col-md-4");
@@ -529,9 +538,23 @@
                 listTitle.innerHTML = 'Defect List';
 
                 let listOrder = document.createElement('ol');
-                defectTypeGroup.forEach(item => {
+                defectTypeGroup.forEach((item, index) => {
                     let list = document.createElement('li');
                     list.innerHTML = `${item.defect_type} (${item.items.length})`;
+
+                    let badge = document.createElement('span');
+                    badge.style.display = 'inline-block';
+                    badge.style.width = '15px';
+                    badge.style.height = '15px';
+                    badge.style.borderRadius = '50%';
+                    badge.style.background = rainbowStop(((index+1)*5)/100);
+                    badge.style.borderColor = rainbowStop(((index+1)*5)/100);
+                    badge.style.margin = '0 3px';
+                    badge.style.position = 'relative';
+                    badge.style.top = '2px';
+                    badge.style.opacity = '90%';
+
+                    list.appendChild(badge);
                     listOrder.appendChild(list);
                 });
 
@@ -554,6 +577,11 @@
                             let defectAreaImagePoint = document.createElement('img');
                             defectAreaImagePoint.classList.add("all-defect-area-img-point");
 
+                            let defectTypeIndexes = defectTypeGroup.map((type, index) => { return type.defect_type_id == item.items[i].defect_type_id ? index+1 : -1; }).filter(index => index > 0);
+
+                            defectAreaImagePoint.setAttribute('defect_type', item.items[i].defect_type_id);
+                            defectAreaImagePoint.style.background = rainbowStop((defectTypeIndexes[0]*5)/100);
+                            defectAreaImagePoint.style.borderColor = rainbowStop((defectTypeIndexes[0]*5)/100);
                             defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
                             defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
                             defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
