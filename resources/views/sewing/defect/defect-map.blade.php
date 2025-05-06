@@ -95,7 +95,8 @@
                 </div>
                 <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 <button class="btn btn-primary" onclick="showDefectMap()"><i class="fa fa-search"></i></button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button>
+                <button class="btn btn-danger d-none" onclick="exportAsImage()"><i class="fa fa-file-pdf"></i></button>
+                {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button> --}}
             </div>
             <div class="row g-3 mt-3" id="defect-map-images">
                 <div class="col-md-8">
@@ -220,6 +221,12 @@
 
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    {{-- PDF --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <script>
         $(document).ready(function () {
             updateFilterOption();
@@ -602,6 +609,59 @@
                 });
             }
         }
+
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+
+            const element = document.getElementById('defect-map-images');
+            const canvas = await html2canvas(element);
+            const imgData = canvas.toDataURL('image/png');
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('defect-map.pdf');
+        }
+
+        async function exportAsImage() {
+            const element = document.getElementById('defect-map-images');
+            const canvas = await html2canvas(element);
+            const image = canvas.toDataURL('image/png');
+
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = 'defect-map.png';
+            link.click();
+        }
+
+        // async function exportToPDF() {
+        //     const element = document.getElementById('defect-map-images');
+
+        //     // Opsi untuk meningkatkan kualitas PDF
+        //     var opt = {
+        //         margin: [15, 0, 15, 0],
+        //         filename: 'defect map.pdf',
+        //         image: { type: 'jpeg', quality: 1 },
+        //         html2canvas: {
+        //             dpi: 192, // Resolusi DPI
+        //             scale: 4, // Skala untuk meningkatkan kualitas
+        //             letterRendering: true,
+        //             useCORS: true // Mengizinkan penggunaan CORS
+        //         },
+        //         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        //     };
+
+        //     // Menghasilkan PDF dengan opsi yang ditentukan
+        //     html2pdf()
+        //         .from(element)
+        //         .set(opt) // Mengatur opsi
+        //         .save()
+        //         .then(function() {
+        //         window.close(); // Tutup jendela setelah mengunduh PDF
+        //     });
+        // }
     </script>
 
     {{-- <script>

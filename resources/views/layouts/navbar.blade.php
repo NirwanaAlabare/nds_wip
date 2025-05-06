@@ -601,7 +601,7 @@
                                 <li>
                                     <a href="{{ route('defect-map') }}"
                                         class="dropdown-item {{ $routeName == 'defect-map' ? 'active' : '' }}">
-                                        Defect Map <i class="fa-solid fa-percentage"></i>
+                                        Defect Map <i class="fa-solid fa-map-pin"></i>
                                     </a>
                                 </li>
                             @endrole
