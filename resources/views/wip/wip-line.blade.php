@@ -1416,7 +1416,7 @@
 
         carouselContainer.empty();
         linkGambar1.forEach((gambar1, index) => {
-            const isActive = index === 1 ? 'active' : ''; // Set item pertama sebagai active
+            const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
             const defectPoints = positionDefect
                 .filter(posdef => posdef.image === gambar1.image)
                 .map(posdef => `
