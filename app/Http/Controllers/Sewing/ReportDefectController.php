@@ -891,7 +891,7 @@ class ReportDefectController extends Controller
 
     public function defectMapData(Request $request) {
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d', strtotime('-7 days'));
-        $dateTo = $request->dateTo ? $request->dateFrom : date('Y-m-d');
+        $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
         $sewingLine = "";
         if ($request->sewing_line && count($request->sewing_line) > 0) {
@@ -928,9 +928,9 @@ class ReportDefectController extends Controller
             "output_defects.defect_area_x",
             "output_defects.defect_area_y",
             "output_defect_types.defect_type"
-        )-> 
+        )->
         leftJoin("output_defect_types", "output_defect_types.id", "=", "output_defects.defect_type_id")->
-        leftJoin("output_defect_areas", "output_defect_areas.id", "=", "output_defects.defect_area_id")-> 
+        leftJoin("output_defect_areas", "output_defect_areas.id", "=", "output_defects.defect_area_id")->
         leftJoin("so_det", "so_det.id", "=", "output_defects.so_det_id")->
         leftJoin("so", "so.id", "=", "so_det.id_so")->
         leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
@@ -951,9 +951,9 @@ class ReportDefectController extends Controller
         if ($request->defect_areas && count($request->defect_areas) > 0) {
             $defect->whereIn("output_defect_areas.id", $request->defect_areas);
         }
-            
+
         $defectMap = $defect->get();
 
         return json_encode($defectMap);
-    }   
+    }
 }
