@@ -402,7 +402,8 @@ class SpreadingController extends Controller
             ]);
 
             // Similar Form No. Cutting Update
-            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
                 where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
                 where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
@@ -423,8 +424,8 @@ class SpreadingController extends Controller
                 }
             }
 
-            $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->get();
-            $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->delete();
+            $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
+            $deleteSpreadingFormDetail = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
             if ($deleteSpreadingFormDetail) {
                 $idFormDetailLapArr = [];
                 foreach ($spreadingFormDetails as $spreadingFormDetail) {
