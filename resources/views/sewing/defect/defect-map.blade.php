@@ -62,7 +62,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title">
-                <i class="fa-solid fa-file-circle-exclamation"></i> Defect Map
+                <i class="fa-solid fa-map-pin"></i> Defect Map
             </h5>
         </div>
         <div class="card-body">
@@ -95,7 +95,7 @@
                 </div>
                 <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 <button class="btn btn-primary" onclick="showDefectMap()"><i class="fa fa-search"></i></button>
-                <button class="btn btn-danger d-none" onclick="exportAsImage()"><i class="fa fa-file-pdf"></i></button>
+                <button class="btn btn-danger" onclick="exportToPDF()"><i class="fa fa-file-pdf"></i></button>
                 {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button> --}}
             </div>
             <div class="row g-3 mt-3" id="defect-map-images">
@@ -521,7 +521,7 @@
 
                 let defectAreaImage = new Image();
                 defectAreaImage.classList.add("all-defect-area-img");
-                defectAreaImage.src = 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' + item.gambar;
+                defectAreaImage.src = 'http://localhost/proxy/?url=http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' + item.gambar;
 
                 defectAreaImageContainer.appendChild(defectAreaImage);
 
@@ -613,19 +613,46 @@
         async function exportToPDF() {
             const { jsPDF } = window.jspdf;
 
+            // Get the element to export
             const element = document.getElementById('defect-map-images');
-            const canvas = await html2canvas(element);
+
+            // Capture the element using html2canvas
+            const canvas = await html2canvas(element, { useCORS: true, allowTaint: true });
             const imgData = canvas.toDataURL('image/png');
 
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            // Get the aspect ratio of the image
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const aspectRatio = imgWidth / imgHeight;
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save('defect-map.pdf');
+            // Create a new PDF
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            // Get the A4 PDF dimensions (in mm)
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            // Adjust PDF size to match the image's aspect ratio
+            let newPdfWidth = pdfWidth;
+            let newPdfHeight = newPdfWidth / aspectRatio;
+
+            // If the calculated height exceeds the PDF's height, adjust based on height
+            if (newPdfHeight > pdfHeight) {
+                newPdfHeight = pdfHeight;
+                newPdfWidth = newPdfHeight * aspectRatio;
+            }
+
+            // Create a PDF with the adjusted size
+            const newPdf = new jsPDF('p', 'mm', [newPdfWidth, newPdfHeight]);
+
+            // Add the image to the adjusted PDF
+            newPdf.addImage(imgData, 'PNG', 0, 0, newPdfWidth, newPdfHeight);
+
+            // Save the PDF
+            newPdf.save('defect-map.pdf');
         }
 
-        async function exportAsImage() {
+        async function exportToImage() {
             const element = document.getElementById('defect-map-images');
             const canvas = await html2canvas(element);
             const image = canvas.toDataURL('image/png');
@@ -663,319 +690,4 @@
         //     });
         // }
     </script>
-
-    {{-- <script>
-        $(document).ready(function () {
-            updateFilterOption();
-        });
-
-        // Select2 Autofocus
-        // $(document).on('select2:open', () => {
-        //     document.querySelector('.select2-search__field').focus();
-        // });
-
-        // Initialize Select2 Elements
-        $('.select2').select2();
-
-        // Initialize Select2BS4 Elements
-        $('.select2bs4').select2({
-            theme: 'bootstrap4',
-            containerCssClass:  rounded'
-        });
-
-        // Initialize Select2BS4 Elements Filter Modal
-        $('.select2bs4filter').select2({
-            theme: 'bootstrap4',
-            dropdownParent: $("#filterModal")
-        });
-
-        $('.select2bs4report').select2({
-            theme: 'bootstrap4',
-            dropdownParent: $("#reportDefectModal",)
-        });
-
-        $('#report-defect-table').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{!! route('report-defect') !!}',
-                data: function (d) {
-                    d.dateFrom = $('#dateFrom').val();
-                    d.dateTo = $('#dateTo').val();
-                    d.defect_types = $('#defect_types').val();
-                    d.defect_areas = $('#defect_areas').val();
-                    d.defect_status = $('#defect_status').val();
-                    d.sewing_line = $('#sewing_line').val();
-                    d.buyer = $('#buyer').val();
-                    d.ws = $('#ws').val();
-                    d.style = $('#style').val();
-                    d.color = $('#color').val();
-                    d.size = $('#size').val();
-                    d.external_type = $('#external_type').val();
-                    d.external_in = $('#external_in').val();
-                    d.external_out = $('#external_out').val();
-                }
-            },
-            columns: [
-                {data: 'kode_numbering',name: 'kode_numbering'},
-                {data: 'buyer',name: 'buyer'},
-                {data: 'ws',name: 'ws'},
-                {data: 'style',name: 'style'},
-                {data: 'color',name: 'color'},
-                {data: 'size',name: 'size'},
-                {data: 'dest',name: 'dest'},
-                {data: 'sewing_line',name: 'sewing_line'},
-                {data: 'defect_type',name: 'defect_type'},
-                {data: 'defect_area',name: 'defect_area'},
-                {data: 'defect_status',name: 'defect_status'},
-                {data: 'rework_id',name: 'rework_id'},
-                {data: 'external_id',name: 'external_id'},
-                {data: 'external_type',name: 'external_type'},
-                {data: 'external_status',name: 'external_status'},
-                {data: 'external_in',name: 'external_in'},
-                {data: 'external_out',name: 'external_out'},
-                {data: 'created_at',name: 'created_at'},
-                {data: 'updated_at',name: 'updated_at'}
-            ],
-            columnDefs: [
-                {
-                    className: "text-nowrap",
-                    targets: "_all"
-                },
-                {
-                    targets: [0],
-                    render: function (data, type, row) {
-                        return data ? data : "-";
-                    }
-                },
-                {
-                    targets: [11, 12, 13, 14, 15, 16],
-                    render: function (data, type, row) {
-                        return data ? data : "-";
-                    }
-                },
-                {
-                    targets: [17, 18],
-                    render: function (data, type, row) {
-                        return formatDateTime(data);
-                    },
-                }
-            ],
-            footerCallback: async function(row, data, start, end, display) {
-                var api = this.api(),data;
-
-                $(api.column(16).footer()).html('Total');
-                $(api.column(17).footer()).html("...");
-
-                $.ajax({
-                    url: '{{ route('total-defect') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                    data: {
-                        dateFrom : $('#dateFrom').val(),
-                        dateTo : $('#dateTo').val(),
-                        defect_types : $('#defect_types').val(),
-                        defect_areas : $('#defect_areas').val(),
-                        defect_status : $('#defect_status').val(),
-                        sewing_line : $('#sewing_line').val(),
-                        buyer : $('#buyer').val(),
-                        ws : $('#ws').val(),
-                        style : $('#style').val(),
-                        color : $('#color').val(),
-                        size : $('#size').val(),
-                        external_type : $('#external_type').val(),
-                        external_in : $('#external_in').val(),
-                        external_out : $('#external_out').val()
-                    },
-                    success: function(response) {
-                        console.log(response);
-                        if (response) {
-                            // Update footer by showing the total with the reference of the column index
-                            $(api.column(17).footer()).html("Total");
-                            $(api.column(18).footer()).html(response);
-                        }
-                    },
-                    error: function(jqXHR) {
-                        console.error(jqXHR);
-                    },
-                })
-            },
-        });
-
-        async function reportDefectDatatableReload() {
-            $('#report-defect-table').DataTable().ajax.reload();
-
-            $('#filterModal').modal('hide');
-        }
-
-        async function updateFilterOption() {
-            document.getElementById('loading').classList.remove('d-none');
-
-            $.ajax({
-                url: '{{ route('filter-defect') }}',
-                dataType: 'json',
-                dataSrc: 'data',
-                data: {
-                    dateFrom : $('#dateFrom').val(),
-                    dateTo : $('#dateTo').val()
-                },
-                success: function(response) {
-                    document.getElementById('loading').classList.add('d-none');
-
-                    if (response) {
-                        console.log(response.lines && response.lines.length > 0);
-                        // lines options
-                        if (response.lines && response.lines.length > 0) {
-                            let lines = response.lines;
-                            $('#sewing_line').empty();
-                            $.each(lines, function(index, value) {
-                                $('#sewing_line').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // suppliers option
-                        if (response.suppliers && response.suppliers.length > 0) {
-                            let suppliers = response.suppliers;
-                            $('#buyer').empty();
-                            $.each(suppliers, function(index, value) {
-                                $('#buyer').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // orders option
-                        if (response.orders && response.orders.length > 0) {
-                            let orders = response.orders;
-                            $('#ws').empty();
-                            $.each(orders, function(index, value) {
-                                $('#ws').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // styles option
-                        if (response.styles && response.styles.length > 0) {
-                            let styles = response.styles;
-                            $('#style').empty();
-                            $.each(styles, function(index, value) {
-                                $('#style').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // colors option
-                        if (response.colors && response.colors.length > 0) {
-                            let colors = response.colors;
-                            $('#color').empty();
-                            $.each(colors, function(index, value) {
-                                $('#color').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // sizes option
-                        if (response.sizes && response.sizes.length > 0) {
-                            let sizes = response.sizes;
-                            $('#size').empty();
-                            $.each(sizes, function(index, value) {
-                                $('#size').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                    }
-                },
-                error: function(jqXHR) {
-                    document.getElementById('loading').classList.add('d-none');
-
-                    console.error(jqXHR);
-                },
-            })
-        }
-
-        function exportExcel(elm) {
-            elm.setAttribute('disabled', 'true');
-            elm.innerText = "";
-            let loading = document.createElement('div');
-            loading.classList.add('loading-small');
-            elm.appendChild(loading);
-
-            iziToast.info({
-                title: 'Exporting...',
-                message: 'Data sedang di export. Mohon tunggu...',
-                position: 'topCenter'
-            });
-
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data... <br><br> Total Defect : '+(document.getElementById("total_data").innerHTML)+' <br> Est. <b>0</b>s...',
-                didOpen: () => {
-                    Swal.showLoading();
-
-                    let estimatedTime = 0;
-                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
-                    estimatedTimeInterval = setInterval(() => {
-                        estimatedTime++;
-                        estimatedTimeElement.textContent = estimatedTime;
-                    }, 1000);
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                url: "{{ route("report-defect-export") }}",
-                type: 'post',
-                data: {
-                    dateFrom : $("#dateFrom").val(),
-                    dateTo : $("#dateTo").val(),
-                    sewingLine : $("#sewing_line").val(),
-                    buyer: $("#buyer").val(),
-                    ws: $("#ws").val(),
-                    style: $("#style").val(),
-                    color: $("#color").val(),
-                    types: $("#report_type").val()
-                },
-                xhrFields: { responseType : 'blob' },
-                success: async function(res) {
-                    elm.removeAttribute('disabled');
-                    elm.innerText = "Export ";
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa-solid');
-                    icon.classList.add('fa-file-excel');
-                    elm.appendChild(icon);
-
-                    iziToast.success({
-                        title: 'Success',
-                        message: 'Data berhasil di export.',
-                        position: 'topCenter'
-                    });
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        html: 'Data berhasil di export.',
-                        showCancelButton: false,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Oke',
-                        confirmButtonColor: "#082149",
-                    });
-
-                    var blob = new Blob([res]);
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = "Output Defect Rate "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
-                    link.click();
-                }, error: function (jqXHR) {
-                    elm.removeAttribute('disabled');
-                    elm.innerText = "Export ";
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa-solid');
-                    icon.classList.add('fa-file-excel');
-                    elm.appendChild(icon);
-
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    console.log(res.message);
-                    for (let key in res.errors) {
-                        message += res.errors[key]+' ';
-                        document.getElementById(key).classList.add('is-invalid');
-                    };
-                    iziToast.error({
-                        title: 'Error',
-                        message: message,
-                        position: 'topCenter'
-                    });
-                }
-            });
-        }
-    </script> --}}
 @endsection
