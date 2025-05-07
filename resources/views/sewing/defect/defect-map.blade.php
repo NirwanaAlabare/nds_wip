@@ -521,7 +521,7 @@
 
                 let defectAreaImage = new Image();
                 defectAreaImage.classList.add("all-defect-area-img");
-                defectAreaImage.src = 'http://localhost/proxy/?url=http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' + item.gambar;
+                defectAreaImage.src = '/proxy/?url=http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' + item.gambar;
 
                 defectAreaImageContainer.appendChild(defectAreaImage);
 
