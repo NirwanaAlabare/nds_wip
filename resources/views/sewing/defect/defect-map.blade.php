@@ -611,46 +611,52 @@
         }
 
         async function exportToPDF() {
+            document.getElementById("loading").classList.remove("d-none");
+
             const { jsPDF } = window.jspdf;
 
-            // Get the element to export
             const element = document.getElementById('defect-map-images');
-
-            // Capture the element using html2canvas
             const canvas = await html2canvas(element, { useCORS: true, allowTaint: true });
             const imgData = canvas.toDataURL('image/png');
 
-            // Get the aspect ratio of the image
             const imgWidth = canvas.width;
             const imgHeight = canvas.height;
             const aspectRatio = imgWidth / imgHeight;
 
-            // Create a new PDF
-            const pdf = new jsPDF('p', 'mm', 'a4');
+            // A4 standard sizes
+            const a4Portrait = { width: 210, height: 297 };
+            const a4Landscape = { width: 297, height: 210 };
 
-            // Get the A4 PDF dimensions (in mm)
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
+            // Choose orientation based on aspect ratio
+            const isLandscape = aspectRatio > 1;
 
-            // Adjust PDF size to match the image's aspect ratio
-            let newPdfWidth = pdfWidth;
-            let newPdfHeight = newPdfWidth / aspectRatio;
+            // Set base PDF size
+            let pdfWidth = isLandscape ? a4Landscape.width : a4Portrait.width;
+            let pdfHeight = pdfWidth / aspectRatio;
 
-            // If the calculated height exceeds the PDF's height, adjust based on height
-            if (newPdfHeight > pdfHeight) {
-                newPdfHeight = pdfHeight;
-                newPdfWidth = newPdfHeight * aspectRatio;
+            // If height exceeds page size, scale based on height
+            const maxPdfHeight = isLandscape ? a4Landscape.height : a4Portrait.height;
+            if (pdfHeight > maxPdfHeight) {
+                pdfHeight = maxPdfHeight;
+                pdfWidth = pdfHeight * aspectRatio;
             }
 
-            // Create a PDF with the adjusted size
-            const newPdf = new jsPDF('p', 'mm', [newPdfWidth, newPdfHeight]);
+            // Enforce a minimum width so narrow PDFs look okay
+            const minPdfWidth = 210; // keep it readable
+            if (pdfWidth < minPdfWidth) {
+                pdfWidth = minPdfWidth;
+                pdfHeight = pdfWidth / aspectRatio;
+            }
 
-            // Add the image to the adjusted PDF
-            newPdf.addImage(imgData, 'PNG', 0, 0, newPdfWidth, newPdfHeight);
+            // Create the PDF with calculated size and orientation
+            const pdf = new jsPDF(isLandscape ? 'l' : 'p', 'mm', [pdfWidth, pdfHeight]);
 
-            // Save the PDF
-            newPdf.save('defect-map.pdf');
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('defect-map.pdf');
+
+            document.getElementById("loading").classList.add("d-none");
         }
+
 
         async function exportToImage() {
             const element = document.getElementById('defect-map-images');
