@@ -554,8 +554,8 @@
                     badge.style.width = '15px';
                     badge.style.height = '15px';
                     badge.style.borderRadius = '50%';
-                    badge.style.background = rainbowStop(((index+1)*5)/100);
-                    badge.style.borderColor = rainbowStop(((index+1)*5)/100);
+                    badge.style.background = index > 6 ? '#bdbdbd' : rainbowStop(((index)*15)/100);
+                    badge.style.borderColor = index > 6 ? '#bdbdbd' : rainbowStop(((index)*15)/100);
                     badge.style.margin = '0 3px';
                     badge.style.position = 'relative';
                     badge.style.top = '2px';
@@ -584,11 +584,11 @@
                             let defectAreaImagePoint = document.createElement('img');
                             defectAreaImagePoint.classList.add("all-defect-area-img-point");
 
-                            let defectTypeIndexes = defectTypeGroup.map((type, index) => { return type.defect_type_id == item.items[i].defect_type_id ? index+1 : -1; }).filter(index => index > 0);
+                            let defectTypeIndexes = defectTypeGroup.map((type, index) => { return type.defect_type_id == item.items[i].defect_type_id ? index : -1; }).filter(index => index >= 0);
 
                             defectAreaImagePoint.setAttribute('defect_type', item.items[i].defect_type_id);
-                            defectAreaImagePoint.style.background = rainbowStop((defectTypeIndexes[0]*5)/100);
-                            defectAreaImagePoint.style.borderColor = rainbowStop((defectTypeIndexes[0]*5)/100);
+                            defectAreaImagePoint.style.background = defectTypeIndexes[0] > 6 ? '#bdbdbd' : rainbowStop((defectTypeIndexes[0]*15)/100);
+                            defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 6 ? '#bdbdbd' : rainbowStop((defectTypeIndexes[0]*15)/100);
                             defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
                             defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
                             defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
