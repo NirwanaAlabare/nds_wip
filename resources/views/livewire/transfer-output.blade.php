@@ -253,7 +253,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_rft" id="size_rft" wire:model="transferRftSize" placeholder="Pilih Size">
                             <option value="">Pilih Size</option>
@@ -264,14 +264,18 @@
                             @endif
                         </select>
                     </div>
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Total :</label>
                         <input type="number" class="form-control" name="transfer_rft_qty" id="transfer_rft_qty" wire:model="transferRftQty" placeholder="Qty">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-sb" wire:click="transferRftDetail()">SEND</button>
+                    <div class="d-flex justify-content-end gap-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-rft fw-bold" wire:click="transferRftDetail()">SEND</button>
+                    </div>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <h5 class="text-center">OR</h5>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <button type="button" class="btn btn-rft btn-block fw-bold" wire:click="transferRft()">SEND ALL RFT</button>
                 </div>
             </div>
         </div>
@@ -289,7 +293,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_defect" id="size_defect" wire:model="transferDefectSize" placeholder="Pilih Size">
                             <option value="">Pilih Size</option>
@@ -300,14 +304,18 @@
                             @endif
                         </select>
                     </div>
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Total :</label>
                         <input type="number" class="form-control" name="transfer_defect_qty" id="transfer_defect_qty" wire:model="transferDefectQty" placeholder="Qty">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-sb" wire:click="transferDefectDetail()">SEND</button>
+                    <div class="d-flex justify-content-end gap-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-defect fw-bold" wire:click="transferDefectDetail()">SEND</button>
+                    </div>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <h5 class="text-center">OR</h5>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <button type="button" class="btn btn-defect btn-block fw-bold" wire:click="transferDefect()">SEND ALL DEFECT</button>
                 </div>
             </div>
         </div>
@@ -325,7 +333,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_rework" id="size_rework" wire:model="transferReworkSize" placeholder="Pilih Size">
                             <option value="">Pilih Size</option>
@@ -336,14 +344,18 @@
                             @endif
                         </select>
                     </div>
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Total :</label>
                         <input type="number" class="form-control" name="transfer_rework_qty" id="transfer_rework_qty" wire:model="transferReworkQty" placeholder="Qty">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-sb" wire:click="transferReworkDetail()">SEND</button>
+                    <div class="d-flex justify-content-end gap-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-rework fw-bold" wire:click="transferReworkDetail()">SEND</button>
+                    </div>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <h5 class="text-center">OR</h5>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <button type="button" class="btn btn-rework btn-block fw-bold" wire:click="transferRework()">SEND ALL REWORK</button>
                 </div>
             </div>
         </div>
@@ -361,7 +373,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_reject" id="size_reject" wire:model="transferRejectSize" placeholder="Pilih Size">
                             <option value="">Pilih Size</option>
@@ -372,14 +384,18 @@
                             @endif
                         </select>
                     </div>
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label">Total :</label>
                         <input type="number" class="form-control" name="transfer_reject_qty" id="transfer_reject_qty" wire:model="transferRejectQty" placeholder="Qty">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-sb" wire:click="transferRejectDetail()">SEND</button>
+                    <div class="d-flex justify-content-end gap-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-reject fw-bold" wire:click="transferRejectDetail()">SEND</button>
+                    </div>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <h5 class="text-center">OR</h5>
+                    <hr style="border-top: 1px solid #7b7b7b;">
+                    <button type="button" class="btn btn-reject btn-block fw-bold" wire:click="transferReject()">SEND ALL REJECT</button>
                 </div>
             </div>
         </div>
