@@ -485,30 +485,14 @@ class TransferOutput extends Component
                         update output_defects".$this->outputType."
                         left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                         set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_defects".$this->outputType.".kode_numbering is null
+                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_defects".$this->outputType.".kode_numbering is null and output_defects".$this->outputType.".defect_status = 'defect'
                     ");
                     if ($transferDefect) {
                         $soDetDefect = DB::connection("mysql_sb")->statement("
                             update output_defects".$this->outputType."
                             left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                             set output_defects".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_defects.kode_numbering is null
-                        ");
-                    }
-
-                    // Transfer Rft/Rework
-                    $transferRftRework = DB::connection("mysql_sb")->statement("
-                        update output_rfts".$this->outputType."
-                        left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
-                        set output_rfts".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null and output_rfts".$this->outputType.".kode_numbering is null
-                    ");
-                    if ($transferRftRework) {
-                        $soDetRftRework = DB::connection("mysql_sb")->statement("
-                            update output_rfts".$this->outputType."
-                            left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
-                            set output_rfts".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null and output_rfts".$this->outputType.".kode_numbering is null
+                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_defects.kode_numbering is null and output_defects".$this->outputType.".defect_status = 'defect'
                         ");
                     }
 
@@ -612,6 +596,103 @@ class TransferOutput extends Component
             }
         } else {
             $this->emit('alert', 'error', "Harap pilih line dan masterplan dengan lengkap");
+        }
+    }
+
+    public function transferRework()
+    {
+        if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+            // From SoDet List
+            $this->fromSoDet = MasterPlan::selectRaw("
+                so_det.id,
+                so_det.color,
+                so_det.size
+            ")->
+            leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+            leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+            leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+            whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
+            whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+            whereRaw("so_det.color = master_plan.color")->
+            groupBy("so_det.color", "so_det.size")->
+            get();
+
+            // To SoDet List
+            $this->toSoDet = MasterPlan::selectRaw("
+                so_det.id,
+                so_det.color,
+                so_det.size
+            ")->
+            leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+            leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+            leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+            whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
+            whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
+            whereRaw("so_det.color = master_plan.color")->
+            groupBy("so_det.color", "so_det.size")->
+            get();
+
+            $messageSuccess = "";
+            $messageNotFound = "";
+            foreach ($this->fromSoDet as $fromSoDet) {
+                $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+
+                if ($toSoDet) {
+                    // Transfer Defect
+                    $transferDefect = DB::connection("mysql_sb")->statement("
+                        update output_defects".$this->outputType."
+                        left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
+                        set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
+                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_defects".$this->outputType.".kode_numbering is null and output_defects".$this->outputType.".defect_status = 'reworked'
+                    ");
+                    if ($transferDefect) {
+                        $soDetDefect = DB::connection("mysql_sb")->statement("
+                            update output_defects".$this->outputType."
+                            left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
+                            set output_defects".$this->outputType.".so_det_id = '".$toSoDet->id."'
+                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_defects.kode_numbering is null and output_defects".$this->outputType.".defect_status = 'reworked'
+                        ");
+                    }
+
+                    // Transfer Rft/Rework
+                    $transferRftRework = DB::connection("mysql_sb")->statement("
+                        update output_rfts".$this->outputType."
+                        left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
+                        set output_rfts".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
+                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null and output_rfts".$this->outputType.".kode_numbering is null
+                    ");
+                    if ($transferRftRework) {
+                        $soDetRftRework = DB::connection("mysql_sb")->statement("
+                            update output_rfts".$this->outputType."
+                            left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
+                            set output_rfts".$this->outputType.".so_det_id = '".$toSoDet->id."'
+                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null and output_rfts".$this->outputType.".kode_numbering is null
+                        ");
+                    }
+
+                    $messageSuccess .= $fromSoDet->size." success <br>";
+                } else {
+                    $messageNotFound .= $fromSoDet->size." not found <br>";
+                }
+            }
+
+            if ($messageSuccess != "") {
+                Log::channel('transferOutput')->info([
+                    "Moving Output Defect Data",
+                    $this->outputType,
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
+                    "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
+                ]);
+
+                $this->emit('alert', 'success', $messageSuccess);
+            }
+
+            if ($messageNotFound != "") {
+                $this->emit('alert', 'warning', $messageNotFound);
+            }
+        } else {
+            $this->emit("alert", "warning", "Harap pilih line dan master plan dengan lengkap");
         }
     }
 
