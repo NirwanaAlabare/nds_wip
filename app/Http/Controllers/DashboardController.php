@@ -1837,7 +1837,8 @@ class DashboardController extends Controller
                     orderBy("master_part.nama_part", "asc")->
                     orderBy("stocker_input.so_det_id", "asc")->
                     orderBy("stocker_input.shade", "desc")->
-                    orderBy("stocker_input.id_qr_stocker", "asc");
+                    orderBy("stocker_input.id_qr_stocker", "asc")->
+                    groupBy("stocker_input.id");
 
                 return DataTables::eloquent($dc)->toJson();
             }
