@@ -33,6 +33,11 @@ class TransferOutput extends Component
     public $toMasterPlans;
     public $toSoDet;
 
+    public $rft;
+    public $defect;
+    public $reject;
+    public $rework;
+
     public $transferRftQty;
     public $transferRftSize;
     public $transferDefectQty;
@@ -203,25 +208,30 @@ class TransferOutput extends Component
             $messageNotFound = "";
             foreach ($this->fromSoDet as $fromSoDet) {
                 $toSoDet = $this->toSoDet->where("color", $fromSoDet->color)->where("size", $fromSoDet->size)->where("dest", $fromSoDet->dest)->first();
-
+                
                 if (!$toSoDet) {
                     $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
                 }
 
                 if ($toSoDet) {
+                    $kodeNumbering = "";
+                    if ($toSoDet->id != $fromSoDet->id) {
+                        $kodeNumberingNull = " and kode_numbering is null";
+                    }
+
                     // Transfer Output
                     $transferOutput = DB::connection("mysql_sb")->statement("
                         update output_rfts".$this->outputType."
                         left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
                         set output_rfts".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_rfts".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
-                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."'
+                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' ".$kodeNumberingNull."
                     ");
                     if ($transferOutput) {
                         $soDetOutput = DB::connection("mysql_sb")->statement("
                             update output_rfts".$this->outputType."
                             left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
                             set output_rfts".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."'
+                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' ".$kodeNumberingNull."
                         ");
                     }
 
@@ -230,14 +240,14 @@ class TransferOutput extends Component
                         update output_defects".$this->outputType."
                         left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                         set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_defects".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
-                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."'
+                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' ".$kodeNumberingNull."
                     ");
                     if ($transferDefect) {
                         $soDetDefect = DB::connection("mysql_sb")->statement("
                             update output_defects".$this->outputType."
                             left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                             set output_defects".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."'
+                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' ".$kodeNumberingNull."
                         ");
                     }
 
@@ -246,14 +256,14 @@ class TransferOutput extends Component
                         update output_rejects".$this->outputType."
                         left join master_plan on master_plan.id = output_rejects".$this->outputType.".master_plan_id
                         set output_rejects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_rejects".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
-                        where output_rejects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."'
+                        where output_rejects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."' ".$kodeNumberingNull."
                     ");
                     if ($transferReject) {
                         $soDetReject = DB::connection("mysql_sb")->statement("
                             update output_rejects".$this->outputType."
                             left join master_plan on master_plan.id = output_rejects".$this->outputType.".master_plan_id
                             set output_rejects".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."'
+                            where output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' ".$kodeNumberingNull."
                         ");
                     }
 
@@ -290,7 +300,8 @@ class TransferOutput extends Component
             $this->fromSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -298,14 +309,15 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             // To SoDet List
             $this->toSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -313,28 +325,37 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
             whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             $messageSuccess = "";
             $messageNotFound = "";
             foreach ($this->fromSoDet as $fromSoDet) {
-                $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                $toSoDet = $this->toSoDet->where("color", $fromSoDet->color)->where("size", $fromSoDet->size)->where("dest", $fromSoDet->dest)->first();
+
+                if (!$toSoDet) {
+                    $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                }
 
                 if ($toSoDet) {
+                    $kodeNumberingNull = "";
+                    if ($fromSoDet->id != $toSoDet->id) {
+                        $kodeNumberingNull = " and kode_numbering is null";
+                    }
+
                     // Transfer Output
                     $transferOutput = DB::connection("mysql_sb")->statement("
                         update output_rfts".$this->outputType."
                         left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
                         set output_rfts".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_rfts".$this->outputType.".status != 'REWORK' and output_rfts".$this->outputType.".rework_id is null and output_rfts".$this->outputType.".kode_numbering is null
+                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_rfts".$this->outputType.".status != 'REWORK' and output_rfts".$this->outputType.".rework_id is null ".$kodeNumberingNull."
                     ");
                     if ($transferOutput) {
                         $soDetOutput = DB::connection("mysql_sb")->statement("
                             update output_rfts".$this->outputType."
                             left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
                             set output_rfts".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status != 'REWORK' and output_rfts".$this->outputType.".rework_id is null and output_rfts".$this->outputType.".kode_numbering is null
+                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status != 'REWORK' and output_rfts".$this->outputType.".rework_id is null ".$kodeNumberingNull."
                         ");
                     }
 
@@ -402,7 +423,8 @@ class TransferOutput extends Component
                 $this->toSoDet = MasterPlan::selectRaw("
                         so_det.id,
                         so_det.color,
-                        so_det.size
+                        so_det.size,
+                        so_det.dest
                     ")->
                     leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
                     leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -410,18 +432,24 @@ class TransferOutput extends Component
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
                     whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
-                    groupBy("so_det.color", "so_det.size")->
+                    groupBy("so_det.id")->
                     orderBy("so_det.id")->
                     get();
 
-                $toSoDet = $this->toSoDet->where("size", $this->transferRftSize)->first();
-
                 foreach ($rfts as $rft) {
-                    $rft->timestamps = false;
-                    $rft->master_plan_id = $this->toSelectedMasterPlan;
-                    $rft->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
-                    $rft->so_det_id = $toSoDet->id;
-                    $rft->save();
+                    $currentToSoDet = $this->toSoDet->where("id", $rft->so_det_idid)->first();
+
+                    if (!$currentToSoDet) {
+                        $currentToSoDet = $this->toSoDet->where("size", $this->transferRftSize)->first();
+                    }
+
+                    if ($rft->so_det_id == $currentToSoDet->id || $rft->kode_numbering == null) {
+                        $rft->timestamps = false;
+                        $rft->master_plan_id = $this->toSelectedMasterPlan;
+                        $rft->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
+                        $rft->so_det_id = $currentToSoDet->id;
+                        $rft->save();   
+                    }
                 }
 
                 Log::channel('transferOutput')->info([
@@ -448,7 +476,8 @@ class TransferOutput extends Component
             $this->fromSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -456,14 +485,15 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             // To SoDet List
             $this->toSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -471,28 +501,37 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
             whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             $messageSuccess = "";
             $messageNotFound = "";
             foreach ($this->fromSoDet as $fromSoDet) {
-                $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                $toSoDet = $this->toSoDet->where("color", $fromSoDet->color)->where("size", $fromSoDet->size)->where("dest", $fromSoDet->dest)->first();
+
+                if (!$toSoDet) {
+                    $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                }
 
                 if ($toSoDet) {
+                    $kodeNumberingNull = "";
+                    if ($fromSoDet->id != $toSoDet->id) {
+                        $kodeNumberingNull = " and kode_numbering is null";
+                    }
+
                     // Transfer Defect
                     $transferDefect = DB::connection("mysql_sb")->statement("
                         update output_defects".$this->outputType."
                         left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                         set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_defects".$this->outputType.".kode_numbering is null and output_defects".$this->outputType.".defect_status = 'defect'
+                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_defects".$this->outputType.".defect_status = 'defect' ".$kodeNumberingNull."
                     ");
                     if ($transferDefect) {
                         $soDetDefect = DB::connection("mysql_sb")->statement("
                             update output_defects".$this->outputType."
                             left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                             set output_defects".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_defects.kode_numbering is null and output_defects".$this->outputType.".defect_status = 'defect'
+                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_defects".$this->outputType.".defect_status = 'defect' ".$kodeNumberingNull."
                         ");
                     }
 
@@ -568,18 +607,24 @@ class TransferOutput extends Component
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
                     whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
-                    groupBy("so_det.color", "so_det.size")->
+                    groupBy("so_det.id")->
                     orderBy("so_det.id")->
                     get();
 
-                $toSoDet = $this->toSoDet->where("size", $this->transferDefectSize)->first();
-
                 foreach ($defects as $defect) {
-                    $defect->timestamps = false;
-                    $defect->master_plan_id = $this->toSelectedMasterPlan;
-                    $defect->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
-                    $defect->so_det_id = $toSoDet->id;
-                    $defect->save();
+                    $currentToSoDet = $this->toSoDet->where("id", $defect->so_det_id)->first();
+
+                    if (!$currentToSoDet) {
+                        $currentToSoDet = $this->toSoDet->where("size", $this->transferDefectSize)->first();
+                    }
+
+                    if ($defect->so_det_id == $currentToSoDet->id || $defect->kode_numbering == null) {
+                        $defect->timestamps = false;
+                        $defect->master_plan_id = $this->toSelectedMasterPlan;
+                        $defect->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
+                        $defect->so_det_id = $currentToSoDet->id;
+                        $defect->save();
+                    }
                 }
 
                 Log::channel('transferOutput')->info([
@@ -606,7 +651,8 @@ class TransferOutput extends Component
             $this->fromSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -614,14 +660,15 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             // To SoDet List
             $this->toSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -629,28 +676,37 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
             whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             $messageSuccess = "";
             $messageNotFound = "";
             foreach ($this->fromSoDet as $fromSoDet) {
-                $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                $toSoDet = $this->toSoDet->where("color", $fromSoDet->color)->where("size", $fromSoDet->size)->where("dest", $fromSoDet->dest)->first();
+
+                if (!$toSoDet) {
+                    $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                }
 
                 if ($toSoDet) {
+                    $kodeNumberingNull = "";
+                    if ($fromSoDet->id != $toSoDet->id) {
+                        $kodeNumberingNull = " and kode_numbering is null";
+                    }
+
                     // Transfer Defect
                     $transferDefect = DB::connection("mysql_sb")->statement("
                         update output_defects".$this->outputType."
                         left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                         set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_defects".$this->outputType.".kode_numbering is null and output_defects".$this->outputType.".defect_status = 'reworked'
+                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and output_defects".$this->outputType.".defect_status = 'reworked' ".$kodeNumberingNull."
                     ");
                     if ($transferDefect) {
                         $soDetDefect = DB::connection("mysql_sb")->statement("
                             update output_defects".$this->outputType."
                             left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
                             set output_defects".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_defects.kode_numbering is null and output_defects".$this->outputType.".defect_status = 'reworked'
+                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_defects".$this->outputType.".defect_status = 'reworked' ".$kodeNumberingNull."
                         ");
                     }
 
@@ -659,14 +715,14 @@ class TransferOutput extends Component
                         update output_rfts".$this->outputType."
                         left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
                         set output_rfts".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null and output_rfts".$this->outputType.".kode_numbering is null
+                        where output_rfts".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null ".$kodeNumberingNull."
                     ");
                     if ($transferRftRework) {
                         $soDetRftRework = DB::connection("mysql_sb")->statement("
                             update output_rfts".$this->outputType."
                             left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
                             set output_rfts".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null and output_rfts".$this->outputType.".kode_numbering is null
+                            where output_rfts".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_rfts".$this->outputType.".status = 'REWORK' and output_rfts".$this->outputType.".rework_id is not null ".$kodeNumberingNull."
                         ");
                     }
 
@@ -742,29 +798,33 @@ class TransferOutput extends Component
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
                     whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
-                    groupBy("so_det.color", "so_det.size")->
+                    groupBy("so_det.id")->
                     orderBy("so_det.id")->
                     get();
 
-                $toSoDet = $this->toSoDet->where("size", $this->transferReworkSize)->first();
-
                 $reworkIds = [];
                 foreach ($defects as $defect) {
-                    $defect->timestamps = false;
-                    $defect->master_plan_id = $this->toSelectedMasterPlan;
-                    $defect->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
-                    $defect->so_det_id = $toSoDet->id;
-                    $defect->save();
+                    $currentToSoDet = $this->toSoDet->where("id", $defect->so_det_id)->first();
 
-                    array_push($reworkIds, $defect->rework->id);
+                    if (!$currentToSoDet) {
+                        $currentToSoDet = $this->toSoDet->where("size", $this->transferReworkSize)->first();
+                    }
+
+                    if ($defect->so_det_id == $currentToSoDet->id || $defect->kode_numbering == null) {
+                        $defect->timestamps = false;
+                        $defect->master_plan_id = $this->toSelectedMasterPlan;
+                        $defect->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
+                        $defect->so_det_id = $currentToSoDet->id;
+                        $defect->save();
+
+                        // RFT Rework
+                        DB::connection("mysql_sb")->table("output_rfts".$this->outputType)->where("rework_id", $defect->rework->id)->update([
+                            "master_plan_id" => $this->toSelectedMasterPlan,
+                            "created_by" => $this->outputType == "_packing" ? $toLine->username : $toLine->id,
+                            "so_det_id" => $currentToSoDet->id,
+                        ]);
+                    }
                 }
-
-                // RFT Rework
-                DB::connection("mysql_sb")->table("output_rfts".$this->outputType)->whereIn("rework_id", $reworkIds)->update([
-                    "master_plan_id" => $this->toSelectedMasterPlan,
-                    "created_by" => $this->outputType == "_packing" ? $toLine->username : $toLine->id,
-                    "so_det_id" => $toSoDet->id,
-                ]);
 
                 Log::channel('transferOutput')->info([
                     "Moving Output Rework Data Size ".$this->transferReworkSize." ".$this->transferReworkQty." PCS",
@@ -790,7 +850,8 @@ class TransferOutput extends Component
             $this->fromSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -798,14 +859,15 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             // To SoDet List
             $this->toSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                so_det.dest
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -813,28 +875,53 @@ class TransferOutput extends Component
             whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
             whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
-            groupBy("so_det.color", "so_det.size")->
+            groupBy("so_det.id")->
             get();
 
             $messageSuccess = "";
             $messageNotFound = "";
             foreach ($this->fromSoDet as $fromSoDet) {
-                $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                $toSoDet = $this->toSoDet->where("color", $fromSoDet->color)->where("size", $fromSoDet->size)->where("dest", $fromSoDet->dest)->first();
+
+                if (!$toSoDet) {
+                    $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
+                }
 
                 if ($toSoDet) {
+                    $kodeNumberingNull = "";
+                    if ($fromSoDet->id != $toSoDet->id) {
+                        $kodeNumberingNull = " and kode_numbering is null";
+                    }
+
                     // Transfer Reject
                     $transferReject = DB::connection("mysql_sb")->statement("
                         update output_rejects".$this->outputType."
                         left join master_plan on master_plan.id = output_rejects".$this->outputType.".master_plan_id
                         set output_rejects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
-                        where output_rejects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' and output_rejects".$this->outputType.".kode_numbering is null
+                        where output_rejects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' ".$kodeNumberingNull."
                     ");
                     if ($transferReject) {
                         $soDetReject = DB::connection("mysql_sb")->statement("
                             update output_rejects".$this->outputType."
                             left join master_plan on master_plan.id = output_rejects".$this->outputType.".master_plan_id
                             set output_rejects".$this->outputType.".so_det_id = '".$toSoDet->id."'
-                            where output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and output_rejects".$this->outputType.".kode_numbering is null
+                            where output_rejects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' ".$kodeNumberingNull."
+                        ");
+                    }
+
+                    // Transfer Defect Rejected
+                    $transferDefect = DB::connection("mysql_sb")->statement("
+                        update output_defects".$this->outputType."
+                        left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
+                        set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."'
+                        where output_defects".$this->outputType.".master_plan_id = '".$this->fromSelectedMasterPlan."' and output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.sewing_line = '".$this->toLine."' and defect_status = 'rejected' ".$kodeNumberingNull."
+                    ");
+                    if ($transferDefect) {
+                        $soDetDefect = DB::connection("mysql_sb")->statement("
+                            update output_defects".$this->outputType."
+                            left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
+                            set output_defects".$this->outputType.".so_det_id = '".$toSoDet->id."'
+                            where output_defects".$this->outputType.".so_det_id = '".$fromSoDet->id."' and master_plan.id = '".$this->toSelectedMasterPlan."' and master_plan.sewing_line = '".$this->toLine."' and defect_status = 'rejected' ".$kodeNumberingNull."
                         ");
                     }
 
@@ -900,7 +987,8 @@ class TransferOutput extends Component
                 $this->toSoDet = MasterPlan::selectRaw("
                         so_det.id,
                         so_det.color,
-                        so_det.size
+                        so_det.size,
+                        so_det.dest
                     ")->
                     leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
                     leftJoin("so", "so.id_cost", "=", "act_costing.id")->
@@ -908,7 +996,7 @@ class TransferOutput extends Component
                     whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
                     whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
                     whereRaw("so_det.color = master_plan.color")->
-                    groupBy("so_det.color", "so_det.size")->
+                    groupBy("so_det.id")->
                     orderBy("so_det.id")->
                     get();
 
@@ -916,21 +1004,27 @@ class TransferOutput extends Component
 
                 $defectIds = [];
                 foreach ($rejects as $reject) {
-                    $reject->timestamps = false;
-                    $reject->master_plan_id = $this->toSelectedMasterPlan;
-                    $reject->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
-                    $reject->so_det_id = $toSoDet->id;
-                    $reject->save();
+                    $currentToSoDet = $this->toSoDet->where("id", $reject->so_det_id)->first();
 
-                    array_push($defectIds, $reject->defect_id);
+                    if (!$currentToSoDet) {
+                        $currentToSoDet = $this->toSoDet->where("size", $this->transferRejectSize)->first();
+                    }
+
+                    if ($reject->so_det_id == $currentToSoDet->id || $reject->kode_numbering == null) {
+                        $reject->timestamps = false;
+                        $reject->master_plan_id = $this->toSelectedMasterPlan;
+                        $reject->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
+                        $reject->so_det_id = $currentToSoDet->id;
+                        $reject->save();
+
+                        // Defect Reject
+                        DB::connection("mysql_sb")->table("output_defects".$this->outputType)->whereIn("id", $reject->defect_id)->update([
+                            "master_plan_id" => $this->toSelectedMasterPlan,
+                            "created_by" => $this->outputType == "_packing" ? $toLine->username : $toLine->id,
+                            "so_det_id" => $currentToSoDet->id,
+                        ]); 
+                    }
                 }
-
-                // Defect Reject
-                DB::connection("mysql_sb")->table("output_defects".$this->outputType)->whereIn("id", $defectIds)->update([
-                    "master_plan_id" => $this->toSelectedMasterPlan,
-                    "created_by" => $this->outputType == "_packing" ? $toLine->username : $toLine->id,
-                    "so_det_id" => $toSoDet->id,
-                ]);
 
                 Log::channel('transferOutput')->info([
                     "Moving Output Reject Data Size ".$this->transferRejectSize." ".$this->transferRejectQty." PCS",
@@ -1045,11 +1139,19 @@ class TransferOutput extends Component
             $this->fromSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                SUM(COALESCE(rft.rft, 0)) rft,
+                SUM(COALESCE(defect.defect, 0)) defect,
+                SUM(COALESCE(rework.rework, 0)) rework,
+                SUM(COALESCE(reject.reject, 0)) reject
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
             leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+            leftJoin(DB::raw("(select COUNT(id) rft, so_det_id, master_plan_id from output_rfts".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' group by so_det_id, master_plan_id) rft"), "so_det.id", "=", "rft.so_det_id")->
+            leftJoin(DB::raw("(select COUNT(id) defect, so_det_id, master_plan_id from output_defects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' and defect_status = 'defect' group by so_det_id, master_plan_id) defect"), "so_det.id", "=", "defect.so_det_id")->
+            leftJoin(DB::raw("(select COUNT(id) rework, so_det_id, master_plan_id from output_defects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' and defect_status = 'reworked' group by so_det_id, master_plan_id) rework"), "so_det.id", "=", "rework.so_det_id")->
+            leftJoin(DB::raw("(select COUNT(id) reject, so_det_id, master_plan_id from output_rejects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' group by so_det_id, master_plan_id) reject"), "so_det.id", "=", "reject.so_det_id")->
             whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
@@ -1093,13 +1195,21 @@ class TransferOutput extends Component
             $this->toSoDet = MasterPlan::selectRaw("
                 so_det.id,
                 so_det.color,
-                so_det.size
+                so_det.size,
+                SUM(COALESCE(rft.rft, 0)) rft,
+                SUM(COALESCE(defect.defect, 0)) defect,
+                SUM(COALESCE(rework.rework, 0)) rework,
+                SUM(COALESCE(reject.reject, 0)) reject
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
             leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+            leftJoin(DB::raw("(select COUNT(id) rft, so_det_id, master_plan_id from output_rfts".$this->outputType." where master_plan_id = '".$this->toSelectedMasterPlan."' group by so_det_id, master_plan_id) rft"), "so_det.id", "=", "rft.so_det_id")->
+            leftJoin(DB::raw("(select COUNT(id) defect, so_det_id, master_plan_id from output_defects".$this->outputType." where master_plan_id = '".$this->toSelectedMasterPlan."' and defect_status = 'defect' group by so_det_id, master_plan_id) defect"), "so_det.id", "=", "defect.so_det_id")->
+            leftJoin(DB::raw("(select COUNT(id) rework, so_det_id, master_plan_id from output_defects".$this->outputType." where master_plan_id = '".$this->toSelectedMasterPlan."' and defect_status = 'reworked' group by so_det_id, master_plan_id) rework"), "so_det.id", "=", "rework.so_det_id")->
+            leftJoin(DB::raw("(select COUNT(id) reject, so_det_id, master_plan_id from output_rejects".$this->outputType." where master_plan_id = '".$this->toSelectedMasterPlan."' group by so_det_id, master_plan_id) reject"), "so_det.id", "=", "reject.so_det_id")->
             whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
-            whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
+            whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->
             groupBy("so_det.color", "so_det.size")->
             orderBy("so_det.id")->
