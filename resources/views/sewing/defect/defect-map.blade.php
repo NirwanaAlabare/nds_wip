@@ -102,7 +102,7 @@
                 <div>
                     <select class="form-select" name="department" id="department" onchange="showDefectMap()">
                         <option value="" selected>END-LINE</option>
-                        <option value="packing">PACKING-LINE</option>
+                        <option value="_packing">PACKING-LINE</option>
                     </select>
                 </div>
             </div>
