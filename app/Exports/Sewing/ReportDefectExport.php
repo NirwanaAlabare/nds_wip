@@ -17,8 +17,9 @@
         protected $style;
         protected $color;
         protected $sewingLine;
+        protected $department;
 
-        public function __construct($defectRateQuery, $topDefectQuery, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine)
+        public function __construct($defectRateQuery, $topDefectQuery, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine, $department)
         {
             ini_set('max_execution_time', 3600); // boost only once here
             ini_set('memory_limit', '1024M'); // adjust as needed
@@ -31,6 +32,7 @@
             $this->style = $style ? $style : "All Style";
             $this->color = $color ? $color : "All Color";
             $this->sewingLine = $sewingLine ? $sewingLine : "All Sewing Line";
+            $this->department = $department ? $department : "";
         }
 
         public function sheets(): array
@@ -38,11 +40,11 @@
             $sheets = [];
 
             if ($this->defectRateQuery) {
-                $sheets[] = new DefectRateExport($this->defectRateQuery, $this->dateFrom, $this->dateTo, $this->ws, $this->style, $this->color, $this->sewingLine);
+                $sheets[] = new DefectRateExport($this->defectRateQuery, $this->dateFrom, $this->dateTo, $this->ws, $this->style, $this->color, $this->sewingLine, $this->department);
             }
 
             if ($this->topDefectQuery) {
-                $sheets[] = new TopDefectExport($this->topDefectQuery, $this->dateFrom, $this->dateTo, $this->ws, $this->style, $this->color, $this->sewingLine);
+                $sheets[] = new TopDefectExport($this->topDefectQuery, $this->dateFrom, $this->dateTo, $this->ws, $this->style, $this->color, $this->sewingLine, $this->department);
             }
 
             if(count($sheets) < 1) {

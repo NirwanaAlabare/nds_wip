@@ -30,7 +30,14 @@
                         <label class="form-label">Sampai </label>
                         <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
-                    <button class="btn btn-primary"><i class="fa fa-search"></i></button>
+                    <div>
+                        <label class="form-label">Department</label>
+                        <select class="form-select" name="department" id="department" onchange="reportDefectDatatableReload(); updateFilterOption();">
+                            <option value="" selected>END-LINE</option>
+                            <option value="_packing">PACKING-LINE</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="reportDefectDatatableReload(); updateFilterOption();"><i class="fa fa-search"></i></button>
                     <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 </div>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal">Export <i class="fa fa-file-excel"></i></button>
@@ -276,6 +283,7 @@
                     d.external_type = $('#external_type').val();
                     d.external_in = $('#external_in').val();
                     d.external_out = $('#external_out').val();
+                    d.department = $('#department').val();
                 }
             },
             columns: [
@@ -347,7 +355,8 @@
                         size : $('#size').val(),
                         external_type : $('#external_type').val(),
                         external_in : $('#external_in').val(),
-                        external_out : $('#external_out').val()
+                        external_out : $('#external_out').val(),
+                        department : $('#department').val()
                     },
                     success: function(response) {
                         console.log(response);
@@ -379,7 +388,8 @@
                 dataSrc: 'data',
                 data: {
                     dateFrom : $('#dateFrom').val(),
-                    dateTo : $('#dateTo').val()
+                    dateTo : $('#dateTo').val(),
+                    department : $('#department').val()
                 },
                 success: function(response) {
                     document.getElementById('loading').classList.add('d-none');

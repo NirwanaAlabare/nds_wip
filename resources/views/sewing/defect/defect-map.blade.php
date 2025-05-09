@@ -66,7 +66,7 @@
             </h5>
         </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
                 <div>
                     <label class="form-label">Dari </label>
                     <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}" onchange="updateFilterOption();">
@@ -97,6 +97,14 @@
                 <button class="btn btn-primary" onclick="showDefectMap()"><i class="fa fa-search"></i></button>
                 <button class="btn btn-danger" onclick="exportToPDF()"><i class="fa fa-file-pdf"></i></button>
                 {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button> --}}
+            </div>
+            <div class="d-flex justify-content-center align-items-center gap-3 my-3">
+                <div>
+                    <select class="form-select" name="department" id="department" onchange="showDefectMap()">
+                        <option value="" selected>END-LINE</option>
+                        <option value="packing">PACKING-LINE</option>
+                    </select>
+                </div>
             </div>
             <div class="row g-3 mt-3" id="defect-map-images">
                 <div class="col-md-8">
@@ -357,6 +365,7 @@
                     style : $('#style').val(),
                     color : $('#color').val(),
                     size : $('#size').val(),
+                    department : $('#department').val(),
                 },
                 dataType: "json",
                 success: async function (response) {

@@ -24,9 +24,10 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
     protected $style;
     protected $color;
     protected $sewingLine;
+    protected $department;
     protected $rowCount;
 
-    function __construct($query, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine) {
+    function __construct($query, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine, $department) {
         $this->query = $query;
         $this->dateFrom = $dateFrom;
         $this->dateTo = $dateTo;
@@ -34,6 +35,7 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
         $this->style = $style ? $style : "All Style";
         $this->color = $color ? $color : "All Color";
         $this->sewingLine = $sewingLine ? $sewingLine : "All Sewing Line";
+        $this->department = $department ? $department : "";
     }
 
     public function title(): string
@@ -56,6 +58,7 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
             'style' => $this->style,
             'color' => $this->color,
             'sewingLine' => $this->sewingLine,
+            'department' => $this->department,
         ]);
     }
 
@@ -69,7 +72,7 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
         $labelsRftRate = [new DataSeriesValues('String', 'DefectRate!$L$6', null, 1)];
 
 
-        $categoriesRftRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
+        $categoriesRftRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$F$'.($this->rowCount+6), null, $this->rowCount)];
 
         array_push($valuesRftRate,
             new DataSeriesValues('Number', 'DefectRate!$L$7:$L$'.($this->rowCount+6), null, $this->rowCount),
@@ -83,7 +86,7 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
         $chartRftRate  = new Chart('RFT Rate', new Title('RFT Rate'), $legendRftRate, $plotRftRate);
 
         $chartRftRate->setTopLeftPosition('P5');
-        $chartRftRate->setBottomRightPosition('AJ30');
+        $chartRftRate->setBottomRightPosition('AO30');
 
         // Defect/Reject Rate
         $labelsDefectRate = [];
@@ -92,7 +95,7 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
 
         $labelsDefectRate = [new DataSeriesValues('String', 'DefectRate!$M$6', null, 1), new DataSeriesValues('String', '$N$6', null, 1)];
 
-        $categoriesDefectRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
+        $categoriesDefectRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$F$'.($this->rowCount+6), null, $this->rowCount)];
 
         array_push($valuesDefectRate,
             new DataSeriesValues('Number', 'DefectRate!$M$7:$M$'.($this->rowCount+6), null, $this->rowCount),
@@ -107,7 +110,7 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
         $chartDefectRate  = new Chart('Defect/Reject Rate', new Title('Defect/Reject Rate'), $legendDefectRate, $plotDefectRate);
 
         $chartDefectRate->setTopLeftPosition('P31');
-        $chartDefectRate->setBottomRightPosition('AJ55');
+        $chartDefectRate->setBottomRightPosition('AO55');
 
         return [$chartRftRate, $chartDefectRate];
     }
