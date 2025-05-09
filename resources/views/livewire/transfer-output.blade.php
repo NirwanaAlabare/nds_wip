@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferReject, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput, outputType'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferDefectDetail, transferRework, transferReworkDetail, transferReject, transferRejectDetail, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput, outputType'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -259,7 +259,7 @@
                             <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
-                                    <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
+                                    <option value="{{ $soDet->size }}">{{ $soDet->size." - ".$soDet->rft }}</option>
                                 @endforeach
                             @endif
                         </select>
@@ -299,7 +299,7 @@
                             <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
-                                    <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
+                                    <option value="{{ $soDet->size }}">{{ $soDet->size." - ".$soDet->defect }}</option>
                                 @endforeach
                             @endif
                         </select>
@@ -339,7 +339,7 @@
                             <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
-                                    <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
+                                    <option value="{{ $soDet->size }}">{{ $soDet->size." - ".$soDet->rework }}</option>
                                 @endforeach
                             @endif
                         </select>
@@ -379,7 +379,7 @@
                             <option value="">Pilih Size</option>
                             @if ($fromSoDet)
                                 @foreach ($fromSoDet as $soDet)
-                                    <option value="{{ $soDet->size }}">{{ $soDet->size }}</option>
+                                    <option value="{{ $soDet->size }}">{{ $soDet->size." - ".$soDet->reject }}</option>
                                 @endforeach
                             @endif
                         </select>
