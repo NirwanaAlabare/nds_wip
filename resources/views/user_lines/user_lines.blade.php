@@ -39,6 +39,7 @@
                             <th>Username</th>
                             <th>Password</th>
                             <th>Group</th>
+                            <th>Locked</th>
                         </thead>
                         <tbody>
                         </tbody>
@@ -69,6 +70,13 @@
                         <div class="mb-3">
                             <label class="form-label">Password</label>
                             <input type="text" class="form-control" name="password" id="password" value="">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lock</label>
+                            <select class="form-select" name="locked" id="locked">
+                                <option value="">Unlock</option>
+                                <option value="1">Lock</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Group</label>
@@ -127,6 +135,13 @@
                                 <option value="{{ strtoupper("sewing") }}">{{ strtoupper("sewing") }}</option>
                                 <option value="{{ strtoupper("mending") }}">{{ strtoupper("mending") }}</option>
                                 <option value="{{ strtoupper("spotcleaning") }}">{{ strtoupper("spotcleaning") }}</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lock</label>
+                            <select class="form-select" name="edit_locked" id="edit_locked">
+                                <option value="">Unlock</option>
+                                <option value="1">Lock</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -211,6 +226,9 @@
                 },
                 {
                     data: 'type'
+                },
+                {
+                    data: 'locked'
                 }
             ],
             columnDefs: [
