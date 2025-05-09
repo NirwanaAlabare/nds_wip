@@ -559,7 +559,7 @@
                     badge.style.margin = '0 3px';
                     badge.style.position = 'relative';
                     badge.style.top = '2px';
-                    badge.style.opacity = '90%';
+                    badge.style.opacity = index > 6 ? '60%' : '90%';
 
                     list.appendChild(badge);
                     listOrder.appendChild(list);
@@ -593,6 +593,7 @@
                             defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
                             defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
                             defectAreaImagePoint.style.top = `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
+                            defectAreaImagePoint.style.opacity = defectTypeIndexes[0] > 6 ? '60%' : '90%';
 
                             defectAreaImageContainer.appendChild(defectAreaImagePoint);
                         };
