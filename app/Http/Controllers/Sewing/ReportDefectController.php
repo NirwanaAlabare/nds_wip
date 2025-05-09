@@ -640,11 +640,17 @@ class ReportDefectController extends Controller
                         ) reject on reject.master_plan_id_reject = output.master_plan_id and reject.tgl_plan_reject = output.tgl_plan and reject.tgl_reject = output.tgl_output and reject.color = output.color
                     GROUP BY
                         output.tgl_output,
-                        output.style
+                        output.style,
+                        output.ws,
+                        output.color,
+                        output.sewing_line
                 ) output
                 order by
                     output.tgl_output,
-                    output.style
+                    output.style,
+                    output.ws,
+                    output.color,
+                    output.sewing_line
             ";
         }
 

@@ -38,7 +38,7 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
 
     public function title(): string
     {
-        return 'Defect Rate';
+        return 'DefectRate';
     }
 
     public function view(): View
@@ -66,13 +66,13 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
         $categoriesRftRate = [];
         $valuesRftRate = [];
 
-        $labelsRftRate = [new DataSeriesValues('String', '$L$6', null, 1)];
+        $labelsRftRate = [new DataSeriesValues('String', 'DefectRate!$L$6', null, 1)];
 
 
-        $categoriesRftRate = [new DataSeriesValues('String', '$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
+        $categoriesRftRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
 
         array_push($valuesRftRate,
-            new DataSeriesValues('Number', '$L$7:$L$'.($this->rowCount+6), null, $this->rowCount),
+            new DataSeriesValues('Number', 'DefectRate!$L$7:$L$'.($this->rowCount+6), null, $this->rowCount),
         );
 
         // Build RFT Rate Chart
@@ -90,13 +90,13 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
         $categoriesDefectRate = [];
         $valuesDefectRate = [];
 
-        $labelsDefectRate = [new DataSeriesValues('String', '$M$6', null, 1), new DataSeriesValues('String', '$N$6', null, 1)];
+        $labelsDefectRate = [new DataSeriesValues('String', 'DefectRate!$M$6', null, 1), new DataSeriesValues('String', '$N$6', null, 1)];
 
-        $categoriesDefectRate = [new DataSeriesValues('String', '$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
+        $categoriesDefectRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$B$'.($this->rowCount+6), null, $this->rowCount)];
 
         array_push($valuesDefectRate,
-            new DataSeriesValues('Number', '$M$7:$M$'.($this->rowCount+6), null, $this->rowCount),
-            new DataSeriesValues('Number', '$N$7:$N$'.($this->rowCount+6), null, $this->rowCount),
+            new DataSeriesValues('Number', 'DefectRate!$M$7:$M$'.($this->rowCount+6), null, $this->rowCount),
+            new DataSeriesValues('Number', 'DefectRate!$N$7:$N$'.($this->rowCount+6), null, $this->rowCount),
         );
 
         // Build Defect/Reject DefectRate Chart
