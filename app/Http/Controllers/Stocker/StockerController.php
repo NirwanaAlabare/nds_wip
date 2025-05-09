@@ -1923,6 +1923,9 @@ class StockerController extends Controller
         $rangeAwal = 0;
         $sizeRangeAkhir = collect();
 
+        $rangeAwalAdd = 0;
+        $sizeRangeAkhirAdd = collect();
+
         $currentColor = "";
         $currentNumber = 0;
 
@@ -1934,6 +1937,9 @@ class StockerController extends Controller
             if ($formCut->color != $currentColor) {
                 $rangeAwal = 0;
                 $sizeRangeAkhir = collect();
+
+                $rangeAwalAdd = 0;
+                $sizeRangeAkhirAdd = collect();
 
                 $currentColor = $formCut->color;
                 $currentNumber = 0;
@@ -2025,6 +2031,56 @@ class StockerController extends Controller
                 groupBy("form_cut_id", "size")->
                 get();
 
+            // Stocker Additional
+            $stockerFormAdd = Stocker::where("form_cut_id", $formCut->id_form)->where("notes", "ADDITIONAL")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+
+            $currentStockerPartAdd = $stockerFormAdd->first() ? $stockerFormAdd->first()->part_detail_id : "";
+            $currentStockerSizeAdd = "";
+            $currentStockerGroupAdd = "initial";
+            $currentStockerRatioAdd = 0;
+
+            foreach ($stockerFormAdd as $key => $stocker) {
+                $lembarGelaran = 1;
+                if ($stocker->group_stocker) {
+                    $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
+                } else {
+                    $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                }
+
+                if ($currentStockerPartAdd == $stocker->part_detail_id) {
+                    if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
+                        $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
+
+                        if ($modifyThis) {
+                            $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
+                        }
+                    }
+
+                    if (isset($sizeRangeAkhirAdd[$stocker->so_det_id]) && ($currentStockerSizeAdd != $stocker->so_det_id || $currentStockerGroupAdd != $stocker->group_stocker || $currentStockerRatioAdd != $stocker->ratio)) {
+                        $rangeAwalAdd = $sizeRangeAkhirAdd[$stocker->so_det_id] + 1;
+                        $sizeRangeAkhirAdd[$stocker->so_det_id] = ($sizeRangeAkhirAdd[$stocker->so_det_id] + $lembarGelaran);
+
+                        $currentStockerSizeAdd = $stocker->so_det_id;
+                        $currentStockerGroupAdd = $stocker->group_stocker;
+                        $currentStockerRatioAdd = $stocker->ratio;
+                    } else if (!isset($sizeRangeAkhirAdd[$stocker->so_det_id])) {
+                        $rangeAwalAdd =  1;
+                        $sizeRangeAkhirAdd->put($stocker->so_det_id, $lembarGelaran);
+                    }
+                }
+
+                $stocker->so_det_id && (($sizeRangeAkhirAdd[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhirAdd[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
+                $stocker->range_awal = $rangeAwal;
+                $stocker->range_akhir = $stocker->so_det_id ? $sizeRangeAkhirAdd[$stocker->so_det_id] : 0;
+                $stocker->save();
+
+                if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
+                    $stocker->cancel = "y";
+                    $stocker->save();
+                }
+            }
+
+            // Numbering Data
             foreach ($numbers as $number) {
                 if (isset($sizeRangeAkhir[$number->so_det_id])) {
                     if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
