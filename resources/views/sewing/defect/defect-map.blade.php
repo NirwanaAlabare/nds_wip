@@ -503,6 +503,8 @@
             let parentElement = document.getElementById("defect-map-images");
             parentElement.innerHTML = ''; // Clear previous content
 
+            var colorList = ['#e31010', '#104fe3', '#ebcd0c', '#830ceb', '#12e02a', '#ed790c', '#f54980', '#10ded7', '#854008', '#bdbdbd'];
+
             for (const item of dataGroup) {
                 // Title
                 let defectAreaImageTitle = document.createElement('h3');
@@ -546,23 +548,25 @@
 
                 let listOrder = document.createElement('ol');
                 defectTypeGroup.forEach((item, index) => {
-                    let list = document.createElement('li');
-                    list.innerHTML = `${item.defect_type} (${item.items.length})`;
+                    if (index <= 9) {
+                        let list = document.createElement('li');
+                        list.innerHTML = `${item.defect_type} (${item.items.length})`;
 
-                    let badge = document.createElement('span');
-                    badge.style.display = 'inline-block';
-                    badge.style.width = '15px';
-                    badge.style.height = '15px';
-                    badge.style.borderRadius = '50%';
-                    badge.style.background = index > 6 ? '#bdbdbd' : rainbowStop(((index)*15)/100);
-                    badge.style.borderColor = index > 6 ? '#bdbdbd' : rainbowStop(((index)*15)/100);
-                    badge.style.margin = '0 3px';
-                    badge.style.position = 'relative';
-                    badge.style.top = '2px';
-                    badge.style.opacity = '90%';
+                        let badge = document.createElement('span');
+                        badge.style.display = 'inline-block';
+                        badge.style.width = '15px';
+                        badge.style.height = '15px';
+                        badge.style.borderRadius = '50%';
+                        badge.style.background = index > 9 ? '#bdbdbd' : colorList[index];
+                        badge.style.borderColor = index > 9 ? '#bdbdbd' : colorList[index];
+                        badge.style.margin = '0 3px';
+                        badge.style.position = 'relative';
+                        badge.style.top = '2px';
+                        badge.style.opacity = '90%';
 
-                    list.appendChild(badge);
-                    listOrder.appendChild(list);
+                        list.appendChild(badge);
+                        listOrder.appendChild(list);
+                    }
                 });
 
                 listContainer.appendChild(listTitle);
@@ -586,15 +590,17 @@
 
                             let defectTypeIndexes = defectTypeGroup.map((type, index) => { return type.defect_type_id == item.items[i].defect_type_id ? index : -1; }).filter(index => index >= 0);
 
-                            defectAreaImagePoint.setAttribute('defect_type', item.items[i].defect_type_id);
-                            defectAreaImagePoint.style.background = defectTypeIndexes[0] > 6 ? '#bdbdbd' : rainbowStop((defectTypeIndexes[0]*15)/100);
-                            defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 6 ? '#bdbdbd' : rainbowStop((defectTypeIndexes[0]*15)/100);
-                            defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
-                            defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
-                            defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
-                            defectAreaImagePoint.style.top = `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
+                            if (defectTypeIndexes.length > 0) {
+                                defectAreaImagePoint.setAttribute('defect_type', item.items[i].defect_type_id);
+                                defectAreaImagePoint.style.background = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
+                                defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
+                                defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
+                                defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
+                                defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
+                                defectAreaImagePoint.style.top = `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
 
-                            defectAreaImageContainer.appendChild(defectAreaImagePoint);
+                                defectAreaImageContainer.appendChild(defectAreaImagePoint);
+                            }
                         };
 
                         scrollDefectAreaImage.appendChild(defectAreaImageContainer);
