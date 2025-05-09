@@ -594,12 +594,12 @@
 
                         // For Defect Items
                         for(let i = 0; i < item.items.length; i++) {
-                            let defectAreaImagePoint = document.createElement('img');
-                            defectAreaImagePoint.classList.add("all-defect-area-img-point");
-
                             let defectTypeIndexes = defectTypeGroup.map((type, index) => { return type.defect_type_id == item.items[i].defect_type_id ? index : -1; }).filter(index => index >= 0);
 
-                            if (defectTypeIndexes.length > 0) {
+                            if (defectTypeIndexes.length > 0 && defectTypeIndexes[0] <= 9) {
+                                let defectAreaImagePoint = document.createElement('div');
+                                defectAreaImagePoint.classList.add("all-defect-area-img-point");
+
                                 defectAreaImagePoint.setAttribute('defect_type', item.items[i].defect_type_id);
                                 defectAreaImagePoint.style.background = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
                                 defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
