@@ -75,6 +75,26 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center h-100 gap-3">
+                            <h5 class="card-title fw-bold">FACTORY DASHBOARD</h5>
+                            <a href="http://10.10.5.62:8000/dashboard-wip/factory" class="btn btn-primary btn-sm">Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center h-100 gap-3">
+                            <h5 class="card-title fw-bold">FACTORY DEFECT DASHBOARD</h5>
+                            <a href="http://10.10.5.62:8000/dashboard-wip/factory_defect" class="btn btn-primary btn-sm">Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Modal -->
             <div class="modal fade" id="chiefDashboard" tabindex="-1" aria-labelledby="chiefDashboardLabel" aria-hidden="true">
