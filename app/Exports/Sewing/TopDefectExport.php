@@ -83,7 +83,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
             $this->colAlphabetChartStart = $alphabets[$colAlphabetChartStart];
         }
 
-        $colAlphabetChartEnd = $colCount+($this->rowCount > 23 ? 23 : $this->rowCount);
+        $colAlphabetChartEnd = $colCount+($this->rowCount > 23 ? 23 : ($this->rowCount < 11 ? 11 : $this->rowCount));
         if ($colAlphabetChartEnd > (count($alphabets)-1)) {
             $colStack = floor($colAlphabetChartEnd/(count($alphabets)-1));
             $colStackModulo = $colAlphabetChartEnd%(count($alphabets)-1);
@@ -133,7 +133,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $chartDefect  = new Chart('Line Style Defect Chart', new Title('Defect Chart'), $legendDefect, $plotDefect);
 
         $chartDefect->setTopLeftPosition($this->colAlphabetChartStart.'6');
-        $chartDefect->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : $this->rowCount));
+        $chartDefect->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : ($this->rowCount < 5 ? 5+6 : $this->rowCount+6)));
 
         // Defect Line
         $labelsDefectLine = [];
@@ -161,7 +161,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $chartDefectLine  = new Chart('Line Defect Chart', new Title('Line Defect Chart'), $legendDefectLine, $plotDefectLine);
 
         $chartDefectLine->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+9));
-        $chartDefectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : $this->rowCountLine)));
+        $chartDefectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : ($this->rowCountLine < 5 ? 5 : $this->rowCountLine))));
 
         // Defect Style
         $labelsDefectStyle = [];
@@ -189,7 +189,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $chartDefectStyle  = new Chart('Style Defect Chart', new Title('Style Defect Chart'), $legendDefectStyle, $plotDefectStyle);
 
         $chartDefectStyle->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+$this->rowCountLine+11));
-        $chartDefectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : $this->rowCountStyle)));
+        $chartDefectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : ($this->rowCountStyle < 5 ? 5 : $this->rowCountStyle))));
 
         return [$chartDefect, $chartDefectLine, $chartDefectStyle];
     }
