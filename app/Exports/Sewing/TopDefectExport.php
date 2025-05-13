@@ -56,7 +56,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $this->rowCountStyle = $topDefect->groupBy("style_grouping")->count();
 
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $topDefect->groupBy("tanggal")->count()+2;
+        $colCount = $topDefect->groupBy("tanggal")->count()+3;
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);
@@ -74,7 +74,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
             $this->colAlphabetSub = $alphabets[$colAlphabetSub];
         }
 
-        $colAlphabetChartStart = $colCount+3;
+        $colAlphabetChartStart = $colCount+3+1;
         if ($colAlphabetChartStart > (count($alphabets)-1)) {
             $colStack = floor($colAlphabetChartStart/(count($alphabets)-1));
             $colStackModulo = $colAlphabetChartStart%(count($alphabets)-1);
@@ -83,7 +83,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
             $this->colAlphabetChartStart = $alphabets[$colAlphabetChartStart];
         }
 
-        $colAlphabetChartEnd = $colCount+($this->rowCount > 23 ? 23 : ($this->rowCount < 11 ? 11 : $this->rowCount));
+        $colAlphabetChartEnd = $colCount+($this->rowCount > 23 ? 23 : ($this->rowCount < 11 ? 11 : $this->rowCount))+1;
         if ($colAlphabetChartEnd > (count($alphabets)-1)) {
             $colStack = floor($colAlphabetChartEnd/(count($alphabets)-1));
             $colStackModulo = $colAlphabetChartEnd%(count($alphabets)-1);
@@ -114,15 +114,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCount; $i++) {
             array_push($labelsDefect,
-                new DataSeriesValues('String', 'TopDefect!$A$'.($i+7).':$C$'.($i+7).'', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$A$'.($i+7).':$D$'.($i+7).'', null, 5)
             );
 
             array_push($categoriesDefect,
-                new DataSeriesValues('String', 'TopDefect!$D$6:$'.$this->colAlphabet.'$6', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$E$6:$'.$this->colAlphabet.'$6', null, 5)
             );
 
             array_push($valuesDefect,
-                new DataSeriesValues('Number', 'TopDefect!$D$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
+                new DataSeriesValues('Number', 'TopDefect!$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
             );
         }
 
@@ -142,15 +142,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCountLine; $i++) {
             array_push($labelsDefectLine,
-                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+10).':$A$'.($i+$this->rowCount+10).'', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
             );
 
             array_push($categoriesDefectLine,
-                new DataSeriesValues('String', 'TopDefect!$B$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
+                new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
             );
 
             array_push($valuesDefectLine,
-                new DataSeriesValues('Number', 'TopDefect!$B$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
+                new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
             );
         }
 
@@ -170,15 +170,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCountStyle; $i++) {
             array_push($labelsDefectStyle,
-                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$A$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
             );
 
             array_push($categoriesDefectStyle,
-                new DataSeriesValues('String', 'TopDefect!$B$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
+                new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
             );
 
             array_push($valuesDefectStyle,
-                new DataSeriesValues('Number', 'TopDefect!$B$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+                new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
             );
         }
 

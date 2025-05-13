@@ -675,7 +675,7 @@ class ReportDefectController extends Controller
                                 left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$dateFrom." 00:00:00' AND rfts.updated_at <= '".$dateTo." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
                                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
@@ -776,9 +776,9 @@ class ReportDefectController extends Controller
         if (in_array('top_defect', $types)) {
             $topDefectQuery = "
                 SELECT
-                    CONCAT(userpassword.username, act_costing.styleno, so_det.color) as grouping,
-                    CONCAT(userpassword.username) as line_grouping,
-                    CONCAT(act_costing.styleno) as style_grouping,
+                    CONCAT(userpassword.username, act_costing.styleno, so_det.color, output_defect_types.id) as grouping,
+                    CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
+                    CONCAT(act_costing.styleno, output_defect_types.id) as style_grouping,
                     userpassword.username sewing_line,
                     act_costing.styleno style,
                     so_det.color,
