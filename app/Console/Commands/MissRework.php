@@ -79,6 +79,14 @@ class MissRework extends Command
         $storeToRftPacking = RftPacking::insert($reworkPackingArr);
 
         if ($storeToRework && $storeToRft && $storeToReworkPacking && $storeToRftPacking) {
+            Log::channel('missReworkOutput')->info([
+                "Repair Defect->Rework->RFT Chain Data",
+                "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                "Total Data ".count($defects),
+                "Total Data Packing ".count($defectsPacking),
+                $reworks
+            ]);
+
             return array(
                 'status' => 200,
                 'message' => 'Berhasil memperbaiki <br> Data Defect = '.count($defects).' <br> Data Rework = '.count($reworks).' <br> Data Defect Packing = '.count($defectsPacking).' <br> Data Rework Packing = '.count($reworksPacking),

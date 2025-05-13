@@ -7,6 +7,8 @@ use App\Models\SignalBit\SoDet;
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\Rft;
+use App\Models\SignalBit\ReworkPacking;
+use App\Models\SignalBit\RftPacking;
 use App\Models\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -249,11 +251,30 @@ class SewingToolsController extends Controller
 
         $storeToRft = Rft::insert($reworkArr);
 
+        // Get Defects with Missing Rework Packing
+        $defectsPacking = collect(DB::connection("mysql_sb")->select("select null as id, output_defects_packing.id as defect_id, 'NORMAL' as status, output_defects_packing.created_by, output_defects_packing.created_at, output_defects_packing.updated_at from output_defects_packing left join output_reworks_packing on output_reworks_packing.defect_id = output_defects_packing.id where output_reworks_packing.id is null and defect_status = 'reworked'"));
+
+        $defectPackingArr = $defectsPacking->map(function ($item, $key) {
+            return (array) $item;
+        })->toArray();
+
+        $storeToReworkPacking = ReworkPacking::insert($defectPackingArr);
+
+        // Get Reworks Data with Of Course Missing RFT Packing
+        $reworksPacking = collect(DB::connection("mysql_sb")->select("select null as id, output_defects_packing.master_plan_id, output_defects_packing.so_det_id, 'REWORK' as status, output_reworks_packing.id as rework_id, output_defects_packing.created_by, output_reworks_packing.created_at, output_reworks_packing.updated_at, output_defects_packing.kode_numbering, output_defects_packing.kode_numbering no_cut_size from output_reworks_packing left join output_defects_packing on output_defects_packing.id = output_reworks_packing.defect_id left join output_rfts_packing on output_rfts_packing.rework_id = output_reworks_packing.id where output_rfts_packing.id is null"));
+
+        $reworkPackingArr = $reworksPacking->map(function ($item, $key) {
+            return (array) $item;
+        })->toArray();
+
+        $storeToRftPacking = RftPacking::insert($reworkPackingArr);
+
         if ($storeToRework && $storeToRft) {
             Log::channel('missReworkOutput')->info([
                 "Repair Defect->Rework->RFT Chain Data",
                 "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                "Total Data ".count($defects),
+                "Total Data ".count($defects)." - ".$defects,
+                "Total Data Packing ".count($defectsPacking)." - ".$defectsPacking,
                 $reworks
             ]);
 
