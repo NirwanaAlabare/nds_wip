@@ -560,6 +560,7 @@
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
                     elm.removeAttribute('disabled');
+                    elm.innerHTML = "";
                     let icon = document.createElement('i');
                     icon.classList.add('fa-solid');
                     icon.classList.add('fa-file-excel');
