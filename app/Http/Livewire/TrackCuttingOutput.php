@@ -75,6 +75,8 @@ class TrackCuttingOutput extends Component
 
     public function render()
     {
+        ini_set('max_execution_time', 3600);
+
         $this->loadingOrderOutput = false;
 
         $dateFilter = " AND COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) between '".$this->dateFromFilter."' and '".$this->dateToFilter."' ";
@@ -352,6 +354,10 @@ class TrackCuttingOutput extends Component
             );
 
             $this->dailyOrderOutputs = $dailyOrderOutputSql;
+
+        if ($this->dailyOrderOutputs->sum("qty") > 50000) {
+            $this->emit("alert", "Jika Worksheet memiliki banyak data, Loading akan memakan waktu yang cukup lama");
+        }
 
         \Log::info("Query Completed");
 

@@ -36,5 +36,19 @@
                 $('#loadingOrderOutput').removeClass('hidden');
             }
         });
+
+        Livewire.on('alert', (message) => {
+            // Error Alert
+            iziToast.error({
+                title: 'Info',
+                message: message,
+                position: 'topCenter',
+                timeout: false,
+                closeOnClick: true
+            });
+
+            alert("Loading Selesai!");
+            // console.log("alert!");
+        });
     </script>
 @endsection

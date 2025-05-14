@@ -38,8 +38,6 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
     public function view(): View
     {
         $this->loadingOrderOutput = false;
-
-        dd($this->order);
         
         $dateFilter = " AND COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) between '".$this->dateFrom."' and '".$this->dateTo."' ";
         $orderFilterQuery = $this->order ? " AND marker_cutting.act_costing_id = '".$this->order."' " : "";
