@@ -13,11 +13,11 @@
         <div class="col-12 col-lg-6 col-xl-4">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateFrom" value="{{ $dateFromFilter }}">
+                    <input type="date" class="form-control form-control-sm" id="dateFrom" wire:model="dateFromFilter" value="{{ $dateFromFilter }}">
                 </div>
                 <div> - </div>
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateTo" value="{{ $dateToFilter }}">
+                    <input type="date" class="form-control form-control-sm" id="dateTo" wire:model="dateToFilter" value="{{ $dateToFilter }}">
                 </div>
                 <span class="badge bg-sb text-light">CUT</span>
             </div>
@@ -57,13 +57,13 @@
         @endif
             <thead>
                 <tr>
-                    <th>No. WS</th>
-                    <th>Style</th>
-                    <th>Color</th>
-                    <th>Meja</th>
-                    <th>Panel</th>
+                    <td>No. WS</td>
+                    <td>Style</td>
+                    <td>Color</td>
+                    <td>Meja</td>
+                    <td>Panel</td>
                     @if ($groupBy == 'size')
-                        <th>Size</th>
+                        <td>Size</td>
                     @endif
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
@@ -72,11 +72,10 @@
                                     <th>{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                                 <?php
                             }
-
                     ?>
-                            <th class="text-center">TOTAL</th>
-                        </tr>
-            </thead>
+                    <th class="text-center">TOTAL</th>
+                </tr>
+            <thead>
             <tbody>
                     <?php
 
@@ -94,7 +93,7 @@
                                 ?>
                                     <tr>
                                         @if ($dailyGroup->ws != $currentWs)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->ws }}</span></td>
 
                                             @php
                                                 $currentWs = $dailyGroup->ws;
@@ -104,7 +103,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->style }}</span></td>
 
                                             @php
                                                 $currentStyle = $dailyGroup->style;
@@ -113,7 +112,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
 
                                             @php
                                                 $currentColor = $dailyGroup->color;
@@ -121,7 +120,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja != $currentMeja)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->count(); }}"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
 
                                             @php
                                                 $currentMeja = $dailyGroup->id_meja;
@@ -129,7 +128,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja == $currentMeja && $dailyGroup->panel != $currentPanel)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('panel', $dailyGroup->panel)->count(); }}"><span>{{ $dailyGroup->panel }}</span></td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('panel', $dailyGroup->panel)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->panel }}</span></td>
 
                                             @php
                                                 $currentPanel = $dailyGroup->panel;
@@ -267,6 +266,64 @@
 
 @push('scripts')
     <script>
+        // async function setFixedColumn() {
+        //     var table = document.querySelector('table.sticky-table');
+        //     var trs = table.querySelectorAll('tr');
+        //     var tds = [].map.call(trs, tr => tr.querySelectorAll('td.fixed-column'));
+
+        //     let column = 0;
+        //     let currentRowSpan = 0;
+        //     let currentRow = [];
+        //     let currentWidth = 0;
+        //     let currentCells = 0;
+        //     for (var i = 0; i < trs.length; i++) {
+        //         if (currentRowSpan <= 1) {
+        //             column = 0;
+        //             currentRowSpan = 0;
+        //             currentRow = [];
+        //             currentWidth = 0;
+        //             currentCells = 0;
+        //         } else {
+        //             currentRowSpan--;
+        //         }
+
+        //         for (var j = 0; j < tds[i].length; j++) {
+        //             tds[i][j].style.left = (column - currentWidth) + "px";
+
+        //             if (j != tds[i].length - 1) {
+        //                 if (currentWidth < 1) {
+        //                     column += tds[i][j].offsetWidth;
+        //                 }
+        //             } else {
+        //                 tds[i][j].style.left = column + "px";
+        //             }
+
+        //             if (i > 0 && Number(tds[i][j].getAttribute("rowspan")) >= 1) {
+        //                 if (currentRowSpan < Number(tds[i][j].getAttribute("rowspan"))) {
+        //                     currentRowSpan = Number(tds[i][j].getAttribute("rowspan"));
+        //                 } else if (currentRowSpan >= Number(tds[i][j].getAttribute("rowspan"))) {
+        //                     if (j == tds[i].length - 1 || j == tds[i].length - 2 || j == tds[i].length - 3) {
+        //                         currentWidth = tds[i][j].offsetWidth;
+        //                         currentCells = trs[i].cells.length;
+        //                     } else {
+        //                         if (currentCells > 0) {
+
+        //                             let currentRowFilter = currentRow.filter((item) => item.currentCells >= trs[i].cells.length);
+        //                             let currentRowFilterWidth = currentRowFilter[currentRowFilter.length-1] ? (Math.round(Number(currentRowFilter[currentRowFilter.length-1].currentWidth))) : 0;
+
+        //                             tds[i][j].style.left = ((column-currentWidth)-currentRowFilterWidth)+"px";
+        //                         }
+
+        //                         console.log(tds[i][j], column, currentWidth, currentCells, j, tds[i].length-2);
+
+        //                         currentRow.push({"currentWidth" : tds[i][j].offsetWidth, "currentCells": trs[i].cells.length });
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
         document.addEventListener("DOMContentLoaded", () => {
             // new DataTable('#trackdatatable', {
             //     fixedColumns: {
@@ -329,6 +386,13 @@
 
                 Livewire.emit('loadingStart');
             });
+        });
+
+        Livewire.on("initFixedColumn", () => {
+            setTimeout(async function () {
+                // setFixedColumn();
+
+            }, 1000);
         });
 
         async function updateSupplierList(dateFrom, dateTo) {

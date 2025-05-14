@@ -59,6 +59,20 @@ class TrackCuttingOutput extends Component
         $this->sizeFilter = null;
     }
 
+    public function updatedSelectedOrder()
+    {
+        $firstPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderBy("tgl_form_cut", "asc")->first();
+        $lastPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderBy("tgl_form_cut", "desc")->first();
+
+        if ($firstPlan) {
+            $this->dateFromFilter = $firstPlan->tanggal;
+            $this->dateToFilter = $lastPlan->tanggal;
+        } else {
+            $this->dateFromFilter = date("Y-m-d");
+            $this->dateToFilter = date("Y-m-d");
+        }
+    }
+
     public function render()
     {
         $this->loadingOrderOutput = false;
@@ -337,14 +351,15 @@ class TrackCuttingOutput extends Component
                 ")
             );
 
-            // dd($dailyOrderOutputSql);
-
             $this->dailyOrderOutputs = $dailyOrderOutputSql;
-
-            // dd($this->dailyOrderOutputs);
 
         \Log::info("Query Completed");
 
         return view('livewire.track-cutting-output');
+    }
+
+    public function dehydrate()
+    {
+        $this->emit("initFixedColumn");
     }
 }
