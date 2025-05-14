@@ -469,15 +469,29 @@
 
             Swal.fire({
                 title: 'Please Wait...',
-                html: 'Exporting Data... <br><br> Total Defect : '+(document.getElementById("total_data").innerHTML)+' <br> Est. <b>0</b>s...',
+                html: `Exporting Data... <br><br> Total Defect : `+(document.getElementById("total_data").innerHTML)+` <br> <div class="progress mt-3"><div class="progress-bar bg-sb" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>`,
                 didOpen: () => {
                     Swal.showLoading();
 
-                    let estimatedTime = 0;
-                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    let divider = 0
+                    if ($("#report_type").val().includes("defect_rate") && !$("#report_type").val().includes("top_defect")) {
+                        divider = 560;
+                    } else if (!$("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
+                        divider = 230;
+                    } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
+                        divider = 130;
+                    }
+
+                    let times = Number(document.getElementById("total_data").innerText)/divider;
+                    let cumulative = Number(100/times).round(2);
+                    let percent = 0;
+                    const progress = Swal.getPopup().querySelector("div.progress-bar");
+
                     estimatedTimeInterval = setInterval(() => {
-                        estimatedTime++;
-                        estimatedTimeElement.textContent = estimatedTime;
+                        if (percent < 95) {
+                            percent += cumulative;
+                            progress.style.width = percent + "%";
+                        }
                     }, 1000);
                 },
                 allowOutsideClick: false,
