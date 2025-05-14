@@ -78,10 +78,10 @@ class SpreadingController extends Controller
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
+                    CONCAT(COALESCE(a2.total_lembar, a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
                     COALESCE(a.qty_ply, 0) qty_ply,
                     COALESCE(b.gelar_qty, 0) gelar_qty,
-                    COALESCE(a.total_lembar, '0') total_lembar,
+                    COALESCE(a2.total_lembar, a.total_lembar, '0') total_lembar,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
@@ -92,6 +92,7 @@ class SpreadingController extends Controller
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
+                    left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
                     left join cutting_plan on cutting_plan.form_cut_id = a.id
                     left join users on users.id = a.no_meja
                     left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
