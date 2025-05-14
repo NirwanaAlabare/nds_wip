@@ -96,7 +96,7 @@
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Please Wait...',
-                        html: 'Fixing Miss User Output Data... <br><br> Est. <b>0</b>s...',
+                        html: 'Fixing Miss User Output Data...  <br><br> <b>0</b>s elapsed...',
                         didOpen: () => {
                             Swal.showLoading();
 
@@ -165,7 +165,7 @@
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Please Wait...',
-                        html: 'Fixing Miss Master Plan Output Data... <br><br> Est. <b>0</b>s...',
+                        html: 'Fixing Miss Master Plan Output Data...  <br><br> <b>0</b>s elapsed...',
                         didOpen: () => {
                             Swal.showLoading();
 
@@ -234,7 +234,7 @@
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Please Wait...',
-                        html: 'Fixing Rework Output Data... <br><br> Est. <b>0</b>s...',
+                        html: 'Fixing Rework Output Data...  <br><br> <b>0</b>s elapsed...',
                         didOpen: () => {
                             Swal.showLoading();
 
