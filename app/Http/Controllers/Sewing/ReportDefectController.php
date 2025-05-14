@@ -207,8 +207,7 @@ class ReportDefectController extends Controller
             leftJoin("so_det", "so_det.id", "=", "output_defects_packing.so_det_id")->
             leftJoin("so", "so.id", "=", "so_det.id_so")->
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
-            leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects_packing.created_by")->
-            leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+            leftJoin("userpassword", "userpassword.username", "=", "output_defects_packing.created_by")->
             leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
             leftJoin("output_reworks", "output_reworks.defect_id", "=", "output_defects_packing.id")->
             leftJoin("output_defect_types", "output_defect_types.id", "=", "output_defects_packing.defect_type_id")->
