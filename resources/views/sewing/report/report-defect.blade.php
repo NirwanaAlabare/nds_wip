@@ -508,7 +508,8 @@
                     ws: $("#ws").val(),
                     style: $("#style").val(),
                     color: $("#color").val(),
-                    types: $("#report_type").val()
+                    types: $("#report_type").val(),
+                    department: $("#department").val()
                 },
                 xhrFields: { responseType : 'blob' },
                 success: async function(res) {

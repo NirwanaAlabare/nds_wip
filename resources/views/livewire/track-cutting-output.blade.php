@@ -42,7 +42,7 @@
                     </select>
                 </div>
                 <div>
-                    <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')" wire:ignore>
+                    <button class="btn btn-success" onclick="exportExcel(this)" wire:ignore>
                         <i class="fa fa-file-excel fa-sm"></i>
                     </button>
                 </div>
@@ -554,8 +554,8 @@
                     dateTo:$("#dateTo").val(),
                     outputType:$("#output-type").val(),
                     groupBy:$("#group-by").val(),
-                    order:order,
-                    buyer:buyer,
+                    order:$("#order").val(),
+                    buyer:$("#supplier").val(),
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
