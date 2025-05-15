@@ -60,7 +60,7 @@
 
         Livewire.on('alert', (message) => {
             // Error Alert
-            iziToast.error({
+            iziToast.warning({
                 title: 'Info',
                 message: message,
                 position: 'topCenter',

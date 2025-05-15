@@ -359,8 +359,8 @@ class TrackCuttingOutput extends Component
 
             $this->dailyOrderOutputs = $dailyOrderOutputSql;
 
-        if (intval($this->dailyOrderOutputs->sum("qty")) > 50000) {
-            $this->emit("alert", "Jika Worksheet memiliki banyak data, Loading akan memakan waktu yang cukup lama (".intval($this->dailyOrderOutputs->sum("qty")).")");
+        if ($this->dailyOrderOutputs->count() > 500) {
+            $this->emit("alert", "Big Data. '".$this->dailyOrderOutputs->count()."' data.");
         }
 
         \Log::info("Query Completed");
