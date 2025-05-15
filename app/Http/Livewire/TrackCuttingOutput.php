@@ -322,6 +322,7 @@ class TrackCuttingOutput extends Component
                                         AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                                         AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                         ".$dateFilter."
+                                        ".($this->mejaFilter ? "AND form_cut_input.no_meja = '".$this->mejaFilter."'" :  "")."
                                     GROUP BY
                                         form_cut_input.id
                                 ) form_cut on form_cut.id_marker = marker_input.kode
@@ -330,6 +331,9 @@ class TrackCuttingOutput extends Component
                             where
                                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                                 AND marker_input_detail.ratio > 0
+                                ".($this->colorFilter ? "AND marker_input.color = '".$this->colorFilter."'" :  "")."
+                                ".($this->groupBy == "size" && $this->sizeFilter ? "AND marker_input_detail.size = '".$this->sizeFilter."'" : "")."
+                                ".($this->selectedOrder ? "AND marker_input.act_costing_id = '".$this->selectedOrder."'" : "")."
                             group by
                                 marker_input.id,
                                 marker_input_detail.so_det_id,
@@ -355,14 +359,17 @@ class TrackCuttingOutput extends Component
 
             $this->dailyOrderOutputs = $dailyOrderOutputSql;
 
-        if ($this->dailyOrderOutputs->sum("qty") > 50000) {
-            $this->emit("alert", "Jika Worksheet memiliki banyak data, Loading akan memakan waktu yang cukup lama");
+        if (intval($this->dailyOrderOutputs->sum("qty")) > 50000) {
+            $this->emit("alert", "Jika Worksheet memiliki banyak data, Loading akan memakan waktu yang cukup lama (".intval($this->dailyOrderOutputs->sum("qty")).")");
         }
 
         \Log::info("Query Completed");
 
-        $this->emit("initFixedColumn");
-
         return view('livewire.track-cutting-output');
     }
+
+    // public function dehydrate()
+    // {
+    //     $this->emit("initFixedColumn");
+    // }
 }

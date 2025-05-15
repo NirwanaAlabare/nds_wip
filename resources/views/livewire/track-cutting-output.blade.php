@@ -127,12 +127,6 @@
                                 </tr>
                             <?php
                         }
-                    } else {
-                        ?>
-                            <tr>
-                                <td colspan="{{ $groupBy == "size" ? '7' : '4' }}">Data tidak ditemukan</td>
-                            </tr>
-                        <?php
                     }
                 ?>
             </tbody>
@@ -290,33 +284,33 @@
             });
 
             $('#dateFrom').on('change', async function (e) {
-                @this.set('dateFromFilter', this.value);
+                await clearFixedColumn();
 
-                clearFixedColumn();
+                @this.set('dateFromFilter', this.value);
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
 
             $('#dateTo').on('change', async function (e) {
-                @this.set('dateToFilter', this.value);
+                await clearFixedColumn();
 
-                clearFixedColumn();
+                @this.set('dateToFilter', this.value);
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
 
             $('#supplier').on('change', async function (e) {
-                @this.set('selectedSupplier', this.value);
+                await clearFixedColumn();
 
-                clearFixedColumn();
+                @this.set('selectedSupplier', this.value);
 
                 updateWsList($('#dateFrom').val(), $('#dateTo').val(), this.value);
             });
 
             $('#order').on('change', async function (e) {
-                @this.set('loadingOrderOutput', true);
+                await clearFixedColumn();
 
-                clearFixedColumn();
+                @this.set('loadingOrderOutput', true);
 
                 @this.set('selectedOrder', this.value);
 
@@ -324,23 +318,25 @@
             });
 
             $('#color').on('change', async function (e) {
-                @this.set('loadingOrderOutput', true);
+                await clearFixedColumn();
 
-                clearFixedColumn();
+                @this.set('loadingOrderOutput', true);
 
                 Livewire.emit('loadingStart');
             });
 
             $('#meja').on('change', async function (e) {
+                await clearFixedColumn();
+
                 @this.set('loadingOrderOutput', true);
 
                 Livewire.emit('loadingStart');
             });
 
             $('#size').on('change', async function (e) {
-                @this.set('loadingOrderOutput', true);
+                await clearFixedColumn();
 
-                clearFixedColumn();
+                @this.set('loadingOrderOutput', true);
 
                 Livewire.emit('loadingStart');
             });
@@ -363,27 +359,13 @@
         });
 
         function clearFixedColumn() {
-            console.log("clearFixedColumn");
+            $('#trackdatatable').DataTable().destroy();
 
-            if ($.fn.DataTable.isDataTable('#trackdatatable')) {
-                // Destroy the existing DataTable
-                $('#trackdatatable').DataTable().destroy();
-            }
+            console.log("clearFixedColumn");
         }
 
-        Livewire.on("clearFixedColumn", () => {
-            console.log("clearFixedColumn");
-
-            if ($.fn.DataTable.isDataTable('#trackdatatable')) {
-                // Destroy the existing DataTable
-                $('#trackdatatable').DataTable().destroy();
-            }
-        });
-
-        Livewire.on("initFixedColumn", () => {
-            console.log("initFixedColumn");
-
-            if (!$.fn.DataTable.isDataTable('#trackdatatable')) {
+        async function setFixedColumn() {
+            setTimeout(function () {
                 // Initialize DataTable again
                 var datatable = $('#trackdatatable').DataTable({
                     fixedColumns: {
@@ -404,11 +386,32 @@
                         5
                     ]
                 });
-            }
+            }, 500);
 
-            setTimeout(async function () {
+            setTimeout(function () {
                 $('#trackdatatable').DataTable().columns.adjust();
-            }, 5000);
+            }, 1000);
+
+            console.log("initFixedColumn");
+        }
+
+        Livewire.on("clearFixedColumn", () => {
+            clearFixedColumn();
+        });
+
+        Livewire.on("initFixedColumn", () => {
+            setFixedColumn();
+
+            setTimeout(function () {
+                $('#trackdatatable').DataTable().columns.adjust();
+            }, 1000);
+        });
+
+        // Run after any Livewire update
+        Livewire.hook('message.processed', () => {
+            setTimeout(() => {
+                setFixedColumn();
+            }, 0);
         });
 
         async function updateSupplierList(dateFrom, dateTo) {
