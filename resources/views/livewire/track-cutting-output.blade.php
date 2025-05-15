@@ -49,150 +49,105 @@
             </div>
         </div>
     </div>
-    <div class="table-responsive justify-content-center">
-        @if (!$loadingOrderOutput)
-            <table class="table table-bordered sticky-table">
-        @else
-            <table class="table table-bordered sticky-table" wire:poll.30000ms>
-        @endif
+    <div class="table-responsive">
+        <table class="table table-bordered w-auto" id="trackdatatable">
             <thead>
                 <tr>
-                    <td>No. WS</td>
-                    <td>Style</td>
-                    <td>Color</td>
-                    <td>Meja</td>
-                    <td>Panel</td>
+                    <td class="bg-sb text-light">No. WS</td>
+                    <td class="bg-sb text-light">Style</td>
+                    <td class="bg-sb text-light">Color</td>
+                    <td class="bg-sb text-light">Meja</td>
+                    <td class="bg-sb text-light">Panel</td>
                     @if ($groupBy == 'size')
-                        <td>Size</td>
+                        <td class="bg-sb text-light">Size</td>
                     @endif
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
                             foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                                 ?>
-                                    <th>{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
+                                    <th class="bg-sb text-light">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                                 <?php
                             }
                     ?>
-                    <th class="text-center">TOTAL</th>
+                    <th class="bg-sb text-light text-center">TOTAL</th>
                 </tr>
-            <thead>
+            </thead>
             <tbody>
-                    <?php
+                <?php
+                        $currentWs = null;
+                        $currentStyle = null;
+                        $currentColor = null;
+                        $currentMeja = null;
+                        $currentPanel = null;
+                        $currentSize = null;
 
-                            $currentWs = null;
-                            $currentStyle = null;
-                            $currentColor = null;
-                            $currentMeja = null;
-                            $currentPanel = null;
-                            $currentSize = null;
+                        $dateOutputs = collect();
+                        $totalOutput = null;
 
-                            $dateOutputs = collect();
-                            $totalOutput = null;
-
-                            foreach ($dailyOrderGroup as $dailyGroup) {
-                                ?>
-                                    <tr>
-                                        @if ($dailyGroup->ws != $currentWs)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->ws }}</span></td>
-
-                                            @php
-                                                $currentWs = $dailyGroup->ws;
-                                                $currentStyle = null;
-                                                $currentColor = null;
-                                                $currentMeja = null;
-                                            @endphp
-                                        @endif
-                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->style }}</span></td>
-
-                                            @php
-                                                $currentStyle = $dailyGroup->style;
-                                                $currentColor = null;
-                                                $currentMeja = null;
-                                            @endphp
-                                        @endif
-                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
-
-                                            @php
-                                                $currentColor = $dailyGroup->color;
-                                                $currentMeja = null;
-                                            @endphp
-                                        @endif
-                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja != $currentMeja)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->count(); }}"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
-
-                                            @php
-                                                $currentMeja = $dailyGroup->id_meja;
-                                                $currentPanel = null;
-                                            @endphp
-                                        @endif
-                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja == $currentMeja && $dailyGroup->panel != $currentPanel)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('panel', $dailyGroup->panel)->count(); }}"><span class="bg-light text-dark">{{ $dailyGroup->panel }}</span></td>
-
-                                            @php
-                                                $currentPanel = $dailyGroup->panel;
-                                            @endphp
-                                        @endif
-                                        @if ($groupBy == "size")
-                                            <td class="text-nowrap">{{ $dailyGroup->size }}</td>
-                                        @endif
-
-                                        @php
-                                            $thisRowOutput = 0;
-                                        @endphp
-                                        @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
-                                            @php
-                                                $thisOutput = 0;
-
-                                                if ($groupBy == 'size') {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("qty");
-                                                } else {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->sum("qty");
-                                                }
-
-                                                if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
-                                                    $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
-                                                } else {
-                                                    $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
-                                                }
-                                                $thisRowOutput += $thisOutput;
-                                            @endphp
-
-                                            <td class="text-end text-nowrap">
-                                                {{ num($thisOutput) }}
-                                            </td>
-                                        @endforeach
-                                        <td class="fw-bold text-end text-nowrap fs-5">
-                                            {{ num($thisRowOutput) }}
-                                        </td>
-                                        @php
-                                            $totalOutput += $thisRowOutput;
-                                        @endphp
-                                    </tr>
-                                <?php
-                            }
-                        } else {
+                        foreach ($dailyOrderGroup as $dailyGroup) {
                             ?>
                                 <tr>
-                                    <td colspan="{{ $groupBy == "size" ? '7' : '4' }}">Data tidak ditemukan</td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->ws }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->style }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->panel }}</span></td>
+                                        <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                                    @php
+                                        $thisRowOutput = 0;
+                                    @endphp
+                                    @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
+                                        @php
+                                            $thisOutput = 0;
+
+                                            if ($groupBy == 'size') {
+                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("qty");
+                                            } else {
+                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->sum("qty");
+                                            }
+
+                                            if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
+                                                $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
+                                            } else {
+                                                $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
+                                            }
+                                            $thisRowOutput += $thisOutput;
+                                        @endphp
+
+                                        <td class="text-end text-nowrap">
+                                            {{ num($thisOutput) }}
+                                        </td>
+                                    @endforeach
+                                    <td class="fw-bold text-end text-nowrap fs-5">
+                                        {{ num($thisRowOutput) }}
+                                    </td>
+                                    @php
+                                        $totalOutput += $thisRowOutput;
+                                    @endphp
                                 </tr>
                             <?php
                         }
-                    ?>
+                    } else {
+                        ?>
+                            <tr>
+                                <td colspan="{{ $groupBy == "size" ? '7' : '4' }}">Data tidak ditemukan</td>
+                            </tr>
+                        <?php
+                    }
+                ?>
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="{{ $groupBy == "size" ? '6' : '5' }}" class="text-end">
+                    <th colspan="{{ $groupBy == "size" ? '6' : '5' }}" class="bg-sb text-light text-end">
                         TOTAL
                     </th>
                     @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
                         @foreach ($dateOutputs as $dateOutput)
-                            <td class="fw-bold text-end text-nowrap fs-5">
+                            <td class="fw-bold text-end text-nowrap fs-5 bg-sb text-light">
                                 {{ num($dateOutput) }}
                             </td>
                         @endforeach
-                        <td class="fw-bold text-end text-nowrap fs-5">{{ num($totalOutput) }}</td>
+                        <td class="fw-bold text-end text-nowrap fs-5 bg-sb text-light">{{ num($totalOutput) }}</td>
                     @endif
                 </tr>
             </tfoot>
@@ -325,15 +280,6 @@
         // }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // new DataTable('#trackdatatable', {
-            //     fixedColumns: {
-            //         start: 1,
-            //         end: 1
-            //     },
-            //     paging: true,
-            //     scrollX: true
-            // });
-
             // select2
             $('#supplier').select2({
                 theme: "bootstrap4",
@@ -346,11 +292,15 @@
             $('#dateFrom').on('change', async function (e) {
                 @this.set('dateFromFilter', this.value);
 
+                clearFixedColumn();
+
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
 
             $('#dateTo').on('change', async function (e) {
                 @this.set('dateToFilter', this.value);
+
+                clearFixedColumn();
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
@@ -358,11 +308,15 @@
             $('#supplier').on('change', async function (e) {
                 @this.set('selectedSupplier', this.value);
 
+                clearFixedColumn();
+
                 updateWsList($('#dateFrom').val(), $('#dateTo').val(), this.value);
             });
 
             $('#order').on('change', async function (e) {
                 @this.set('loadingOrderOutput', true);
+
+                clearFixedColumn();
 
                 @this.set('selectedOrder', this.value);
 
@@ -371,6 +325,8 @@
 
             $('#color').on('change', async function (e) {
                 @this.set('loadingOrderOutput', true);
+
+                clearFixedColumn();
 
                 Livewire.emit('loadingStart');
             });
@@ -384,15 +340,75 @@
             $('#size').on('change', async function (e) {
                 @this.set('loadingOrderOutput', true);
 
+                clearFixedColumn();
+
                 Livewire.emit('loadingStart');
+            });
+
+            var datatable = $('#trackdatatable').DataTable({
+                paging: false,
+                ordering: false,
+                searching: false,
+                scrollX: true,
+                serverSide: false,
+                rowsGroup: [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ]
             });
         });
 
-        Livewire.on("initFixedColumn", () => {
-            setTimeout(async function () {
-                // setFixedColumn();
+        function clearFixedColumn() {
+            console.log("clearFixedColumn");
 
-            }, 1000);
+            if ($.fn.DataTable.isDataTable('#trackdatatable')) {
+                // Destroy the existing DataTable
+                $('#trackdatatable').DataTable().destroy();
+            }
+        }
+
+        Livewire.on("clearFixedColumn", () => {
+            console.log("clearFixedColumn");
+
+            if ($.fn.DataTable.isDataTable('#trackdatatable')) {
+                // Destroy the existing DataTable
+                $('#trackdatatable').DataTable().destroy();
+            }
+        });
+
+        Livewire.on("initFixedColumn", () => {
+            console.log("initFixedColumn");
+
+            if (!$.fn.DataTable.isDataTable('#trackdatatable')) {
+                // Initialize DataTable again
+                var datatable = $('#trackdatatable').DataTable({
+                    fixedColumns: {
+                        start: 6,
+                        end: 1
+                    },
+                    paging: false,
+                    ordering: false,
+                    searching: false,
+                    scrollX: true,
+                    serverSide: false,
+                    rowsGroup: [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                });
+            }
+
+            setTimeout(async function () {
+                $('#trackdatatable').DataTable().columns.adjust();
+            }, 5000);
         });
 
         async function updateSupplierList(dateFrom, dateTo) {

@@ -193,7 +193,7 @@
                                 <li>
                                     <a href="{{ route('track-cutting-output') }}"
                                         class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
-                                        Order Cutting Output <i class="fa fa-file"></i>
+                                        Track Cutting Output <i class="fa fa-file"></i>
                                     </a>
                                 </li>
                                 <li>

@@ -361,11 +361,8 @@ class TrackCuttingOutput extends Component
 
         \Log::info("Query Completed");
 
-        return view('livewire.track-cutting-output');
-    }
-
-    public function dehydrate()
-    {
         $this->emit("initFixedColumn");
+
+        return view('livewire.track-cutting-output');
     }
 }
