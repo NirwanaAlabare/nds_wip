@@ -94,7 +94,7 @@ class TransferOutput extends Component
     {
         $newKodeNumbering = addQuotesAround($this->kodeNumbering);
 
-        if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
+        // if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             if ($this->kodeNumbering) {
                 $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
                     user_sb_wip.id,
@@ -155,9 +155,9 @@ class TransferOutput extends Component
             } else {
                 $this->emit("alert", "warning", "Harap cantumkan kode numbering seperti contoh");
             }
-        } else {
-            $this->emit("alert", "warning", "Harap pilih line dan master plan dengan lengkap");
-        }
+        // } else {
+        //     $this->emit("alert", "warning", "Harap pilih line dan master plan dengan lengkap");
+        // }
     }
 
     public function transferAll()
@@ -208,7 +208,7 @@ class TransferOutput extends Component
             $messageNotFound = "";
             foreach ($this->fromSoDet as $fromSoDet) {
                 $toSoDet = $this->toSoDet->where("color", $fromSoDet->color)->where("size", $fromSoDet->size)->where("dest", $fromSoDet->dest)->first();
-                
+
                 if (!$toSoDet) {
                     $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
                 }
@@ -448,7 +448,7 @@ class TransferOutput extends Component
                         $rft->master_plan_id = $this->toSelectedMasterPlan;
                         $rft->created_by = $this->outputType == "_packing" ? $toLine->username : $toLine->id;
                         $rft->so_det_id = $currentToSoDet->id;
-                        $rft->save();   
+                        $rft->save();
                     }
                 }
 
@@ -1022,7 +1022,7 @@ class TransferOutput extends Component
                             "master_plan_id" => $this->toSelectedMasterPlan,
                             "created_by" => $this->outputType == "_packing" ? $toLine->username : $toLine->id,
                             "so_det_id" => $currentToSoDet->id,
-                        ]); 
+                        ]);
                     }
                 }
 
