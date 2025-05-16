@@ -729,6 +729,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-dc-in');
         Route::delete('/destroy', 'destroy')->name('destroy');
 
+        Route::get('/filter_dc_in', 'filter_dc_in')->name('filter-dc-in');
+        Route::get('/filter_detail_dc_in', 'filter_detail_dc_in')->name('filter-detail-dc-in');
+
         Route::get('/get_proses', 'get_proses')->name('get_proses_dc_in');
         Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
         Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
