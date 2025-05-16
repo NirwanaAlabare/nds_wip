@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ["containerFluid" => true])
 
 @section('custom-link')
     <!-- DataTables CSS -->

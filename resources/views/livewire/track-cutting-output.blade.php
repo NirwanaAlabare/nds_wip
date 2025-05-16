@@ -346,6 +346,7 @@
                 ordering: false,
                 searching: false,
                 scrollX: true,
+                scrollY: '400px',
                 serverSide: false,
                 rowsGroup: [
                     0,
@@ -376,6 +377,7 @@
                     ordering: false,
                     searching: false,
                     scrollX: true,
+                    scrollY: "400px",
                     serverSide: false,
                     rowsGroup: [
                         0,
