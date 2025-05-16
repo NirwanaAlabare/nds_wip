@@ -104,7 +104,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Simpan </button>
+                        <button type="submit" class="btn btn-success">Simpan <i class="fas fa-check"></i> </button>
                     </div>
                 </div>
             </div>
@@ -126,13 +126,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableReload(); updateFilterDcIn(); updateFilterDetailDcIn();">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload(); updateFilterDcIn(); updateFilterDetailDcIn();">
                 </div>
             </div>
             <h5 class="card-title fw-bold mb-3" id="dc-in-title">List Transaksi DC IN</h5>
@@ -147,7 +145,8 @@
             </ul>
             <br>
             <div class="table-responsive" id="list-dc">
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-end gap-1">
+                    <button type="button" class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#filterDcModal"><i class="fa fa-filter"></i></button>
                     <button type="button" class="btn btn-success btn-sm mb-3" onclick="exportExcel('list')"><i class="fa fa-file-excel"></i> Excel</button>
                 </div>
                 <table id="datatable-input" class="table table-bordered table-striped table w-100 text-nowrap">
@@ -199,7 +198,8 @@
             </div>
 
             <div class="table-responsive" id="detail-dc">
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-end gap-1">
+                    <button type="button" class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#filterDetailDcModal"><i class="fa fa-filter"></i></button>
                     <button type="button" class="btn btn-success btn-sm mb-3" onclick="exportExcel('detail')"><i class="fa fa-file-excel"></i> Excel</button>
                 </div>
                 <table id="datatable-detail" class="table table-bordered table-striped table w-100">
@@ -232,6 +232,158 @@
             </div>
         </div>
     </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterDcModal" tabindex="-1" aria-labelledby="filterDcModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="filterDcModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Stock</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_tipe[]" id="dc_filter_tipe" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Buyer</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_buyer[]" id="dc_filter_buyer" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Worksheet</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_ws[]" id="dc_filter_ws" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Style</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_style[]" id="dc_filter_style" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Color</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_color[]" id="dc_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Part</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_part[]" id="dc_filter_part" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Size</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_size[]" id="dc_filter_size" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">No. Cut</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_no_cut[]" id="dc_filter_no_cut" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tujuan</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_tujuan[]" id="dc_filter_tujuan" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tempat</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_tempat[]" id="dc_filter_tempat" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Lokasi</label>
+                                <select class="form-select select2bs4filterdc" name="dc_filter_lokasi[]" id="dc_filter_lokasi" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sb" onclick="datatableReload()" data-bs-dismiss="modal">Simpan <i class="fa fa-check"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterDetailDcModal" tabindex="-1" aria-labelledby="filterDetailDcModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="filterDetailDcModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Buyer</label>
+                                <select class="form-select select2bs4filterdetaildc" name="detail_dc_filter_buyer[]" id="detail_dc_filter_buyer" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Worksheet</label>
+                                <select class="form-select select2bs4filterdetaildc" name="detail_dc_filter_ws[]" id="detail_dc_filter_ws" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Style</label>
+                                <select class="form-select select2bs4filterdetaildc" name="detail_dc_filter_style[]" id="detail_dc_filter_style" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Color</label>
+                                <select class="form-select select2bs4filterdetaildc" name="detail_dc_filter_color[]" id="detail_dc_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Proses</label>
+                                <select class="form-select select2bs4filterdetaildc" name="detail_dc_filter_lokasi[]" id="detail_dc_filter_lokasi" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sb" onclick="datatableReload()" data-bs-dismiss="modal">Simpan <i class="fa fa-check"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -244,6 +396,16 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $('.select2bs4filterdc').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#filterDcModal")
+        });
+
+        $('.select2bs4filterdetaildc').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#filterDetailDcModal")
+        });
+
         var listFilter = [
             'tgl_trans_filter',
             'id_qr_filter',
@@ -357,7 +519,18 @@
                         'qty_replace': $('#qty_replace_filter').val(),
                         'qty_in': $('#qty_in_filter').val(),
                         'qty_buyer': $('#qty_buyer_filter').val(),
-                        'user':$('#user_filter').val()
+                        'user': $('#user_filter').val(),
+                        'dc_filter_tipe': $('#dc_filter_tipe').val(),
+                        'dc_filter_buyer': $('#dc_filter_buyer').val(),
+                        'dc_filter_ws': $('#dc_filter_ws').val(),
+                        'dc_filter_style': $('#dc_filter_style').val(),
+                        'dc_filter_color': $('#dc_filter_color').val(),
+                        'dc_filter_part': $('#dc_filter_part').val(),
+                        'dc_filter_size': $('#dc_filter_size').val(),
+                        'dc_filter_no_cut': $('#dc_filter_no_cut').val(),
+                        'dc_filter_tujuan': $('#dc_filter_tujuan').val(),
+                        'dc_filter_tempat': $('#dc_filter_tempat').val(),
+                        'dc_filter_lokasi': $('#dc_filter_lokasi').val()
                     },
                     success: function(response) {
                         console.log(response);
@@ -394,6 +567,17 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.dc_filter_tipe = $('#dc_filter_tipe').val();
+                    d.dc_filter_buyer = $('#dc_filter_buyer').val();
+                    d.dc_filter_ws = $('#dc_filter_ws').val();
+                    d.dc_filter_style = $('#dc_filter_style').val();
+                    d.dc_filter_color = $('#dc_filter_color').val();
+                    d.dc_filter_part = $('#dc_filter_part').val();
+                    d.dc_filter_size = $('#dc_filter_size').val();
+                    d.dc_filter_no_cut = $('#dc_filter_no_cut').val();
+                    d.dc_filter_tujuan = $('#dc_filter_tujuan').val();
+                    d.dc_filter_tempat = $('#dc_filter_tempat').val();
+                    d.dc_filter_lokasi = $('#dc_filter_lokasi').val();
                 },
             },
             columns: [
@@ -547,6 +731,11 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.detail_dc_filter_buyer = $('#detail_dc_filter_buyer').val();
+                    d.detail_dc_filter_ws = $('#detail_dc_filter_ws').val();
+                    d.detail_dc_filter_style = $('#detail_dc_filter_style').val();
+                    d.detail_dc_filter_color = $('#detail_dc_filter_color').val();
+                    d.detail_dc_filter_lokasi = $('#detail_dc_filter_lokasi').val();
                 },
             },
             columns: [
@@ -595,19 +784,9 @@
 
         function datatableReload() {
             $('#datatable-input').DataTable().ajax.reload();
+
             $('#datatable-detail').DataTable().ajax.reload();
         }
-
-    </script>
-
-
-
-
-    <script>
-        // $('.select2bs4').select2({
-        //     theme: 'bootstrap4',
-        //     dropdownParent: $("#editMejaModal")
-        // })
 
         // Scan QR Module :
         // Variable List :
@@ -676,7 +855,6 @@
                 dropdownParent: $("#exampleModal")
             })
             $('#cbotuj').val('').trigger('change');
-
         })
     </script>
     <script>
@@ -844,6 +1022,182 @@
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
             }
+        }
+
+        async function updateFilterDcIn() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            $.ajax({
+                url: '{{ route('filter-dc-in') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    dateFrom : $('#tgl-awal').val(),
+                    dateTo : $('#tgl-akhir').val(),
+                },
+                success: function(response) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    if (response) {
+                        if (response.tipe && response.tipe.length > 0) {
+                            let tipe = response.tipe;
+                            $("#dc_filter_tipe").empty();
+                            $.each(tipe, function(index, value) {
+                                $('#dc_filter_tipe').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.buyer && response.buyer.length > 0) {
+                            let buyer = response.buyer;
+                            $("#dc_filter_buyer").empty();
+                            $.each(buyer, function(index, value) {
+                                $('#dc_filter_buyer').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.ws && response.ws.length > 0) {
+                            let ws = response.ws;
+                            $("#dc_filter_ws").empty();
+                            $.each(ws, function(index, value) {
+                                $('#dc_filter_ws').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.style && response.style.length > 0) {
+                            let style = response.style;
+                            $("#dc_filter_style").empty();
+                            $.each(style, function(index, value) {
+                                $('#dc_filter_style').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.color && response.color.length > 0) {
+                            let color = response.color;
+                            $("#dc_filter_color").empty();
+                            $.each(color, function(index, value) {
+                                $('#dc_filter_color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.part && response.part.length > 0) {
+                            let part = response.part;
+                            $("#dc_filter_part").empty();
+                            $.each(part, function(index, value) {
+                                $('#dc_filter_part').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.size && response.size.length > 0) {
+                        let size = response.size;
+                            $("#dc_filter_size").empty();
+                            $.each(size, function(index, value) {
+                                $('#dc_filter_size').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.no_cut && response.no_cut.length > 0) {
+                            let no_cut = response.no_cut;
+                            $("#dc_filter_no_cut").empty();
+                            $.each(no_cut, function(index, value) {
+                                $('#dc_filter_no_cut').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.tujuan && response.tujuan.length > 0) {
+                            let tujuan = response.tujuan;
+                            $("#dc_filter_tujuan").empty();
+                            $.each(tujuan, function(index, value) {
+                                $('#dc_filter_tujuan').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.tempat && response.tempat.length > 0) {
+                            let tempat = response.tempat;
+                            $("#dc_filter_tempat").empty();
+                            $.each(tempat, function(index, value) {
+                                $('#dc_filter_tempat').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.lokasi && response.lokasi.length > 0) {
+                            let lokasi = response.lokasi;
+                            $("#dc_filter_lokasi").empty();
+                            $.each(lokasi, function(index, value) {
+                                $('#dc_filter_lokasi').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
+        }
+
+        async function updateFilterDetailDcIn() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            $.ajax({
+                url: '{{ route('filter-detail-dc-in') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    dateFrom : $('#tgl-awal').val(),
+                    dateTo : $('#tgl-akhir').val(),
+                },
+                success: function(response) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    if (response) {
+                        if (response.buyer && response.buyer.length > 0) {
+                            let buyer = response.buyer;
+                            $("#detail_dc_filter_buyer").empty();
+                            $.each(buyer, function(index, value) {
+                                $('#detail_dc_filter_buyer').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.ws && response.ws.length > 0) {
+                            let ws = response.ws;
+                            $("#detail_dc_filter_ws").empty();
+                            $.each(ws, function(index, value) {
+                                $('#detail_dc_filter_ws').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.style && response.style.length > 0) {
+                            let style = response.style;
+                            $("#detail_dc_filter_style").empty();
+                            $.each(style, function(index, value) {
+                                $('#detail_dc_filter_style').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.color && response.color.length > 0) {
+                            let color = response.color;
+                            $("#detail_dc_filter_color").empty();
+                            $.each(color, function(index, value) {
+                                $('#detail_dc_filter_color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.lokasi && response.lokasi.length > 0) {
+                            let lokasi = response.lokasi;
+                            $("#detail_dc_filter_lokasi").empty();
+                            $.each(lokasi, function(index, value) {
+                                $('#detail_dc_filter_lokasi').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
         }
     </script>
 @endsection

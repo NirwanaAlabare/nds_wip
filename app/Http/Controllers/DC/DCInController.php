@@ -38,6 +38,40 @@ class DCInController extends Controller
                 $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
             }
 
+            if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
+                $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
+            }
+            if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
+                $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+            }
+            if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
+                $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+            }
+            if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
+                $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+            }
+            if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
+                $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+            }
+            if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
+                $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
+            }
+            if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
+                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
+            }
+            if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
+                $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
+            }
+            if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
+                $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->dc_filter_tujuan)).")";
+            }
+            if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
+                $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->dc_filter_tempat)).")";
+            }
+            if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
+                $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->dc_filter_lokasi)).")";
+            }
+
             $data_input = DB::select("
                 SELECT
                     UPPER(a.id_qr_stocker) id_qr_stocker,
@@ -80,6 +114,82 @@ class DCInController extends Controller
         }
 
         return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function filter_dc_in(Request $request) {
+        $additionalQuery = '';
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
+        }
+
+        $data_input = collect(DB::select("
+            SELECT
+                UPPER(a.id_qr_stocker) id_qr_stocker,
+                (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                a.tgl_trans,
+                s.act_costing_ws,
+                s.color,
+                p.buyer,
+                p.style,
+                a.qty_awal,
+                a.qty_reject,
+                a.qty_replace,
+                (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+                a.tujuan,
+                a.lokasi,
+                a.tempat,
+                a.created_at,
+                a.user,
+                f.no_cut,
+                COALESCE(msb.size, s.size) size,
+                mp.nama_part
+            from
+                dc_in_input a
+                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                left join form_cut_input f on f.id = s.form_cut_id
+                left join form_cut_reject fr on fr.id = s.form_reject_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on pd.part_id = p.id
+                left join master_part mp on mp.id = pd.master_part_id
+            where
+                a.tgl_trans is not null
+                ".$additionalQuery."
+            order by
+                a.tgl_trans desc
+        "));
+
+        $tipe = $data_input->groupBy("tipe")->keys();
+        $act_costing_ws = $data_input->groupBy("act_costing_ws")->keys();
+        $color = $data_input->groupBy("color")->keys();
+        $buyer = $data_input->groupBy("buyer")->keys();
+        $style = $data_input->groupBy("style")->keys();
+        $tujuan = $data_input->groupBy("tujuan")->keys();
+        $lokasi = $data_input->groupBy("lokasi")->keys();
+        $tempat = $data_input->groupBy("tempat")->keys();
+        $part = $data_input->groupBy("nama_part")->keys();
+        $no_cut = $data_input->groupBy("no_cut")->keys();
+        $size = $data_input->groupBy("size")->keys();
+
+        return  array(
+            "tipe" => $tipe,
+            "ws" => $act_costing_ws,
+            "color" => $color,
+            "buyer" => $buyer,
+            "style" => $style,
+            "tujuan" => $tujuan,
+            "lokasi" => $lokasi,
+            "tempat" => $tempat,
+            "part" => $part,
+            "no_cut" => $no_cut,
+            "size" => $size
+        );
     }
 
     public function total_dc_in(Request $request)
@@ -162,6 +272,40 @@ class DCInController extends Controller
             $additionalQuery .= " and a.user LIKE '%".$request->user."%'";
         }
 
+        if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
+            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
+        }
+        if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
+            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+        }
+        if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
+            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+        }
+        if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
+            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+        }
+        if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
+            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+        }
+        if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
+            $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
+        }
+        if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
+        }
+        if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
+            $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
+        }
+        if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
+            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->dc_filter_tujuan)).")";
+        }
+        if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
+            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->dc_filter_tempat)).")";
+        }
+        if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
+            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->dc_filter_lokasi)).")";
+        }
+
         $data_input = DB::select("
             SELECT
                 SUM(a.qty_awal) qty_awal,
@@ -222,9 +366,25 @@ class DCInController extends Controller
                 $additionalQuery .= " and (dc.tgl_trans <= '" . $request->dateTo . "') ";
             }
 
+            if ($request->detail_dc_filter_buyer && count($request->detail_dc_filter_buyer) > 0) {
+                $additionalQuery .= " and m.buyer in (".addQuotesAround(implode("\n", $request->detail_dc_filter_buyer)).")";
+            }
+            if ($request->detail_dc_filter_ws && count($request->detail_dc_filter_ws) > 0) {
+                $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->detail_dc_filter_ws)).")";
+            }
+            if ($request->detail_dc_filter_style && count($request->detail_dc_filter_style) > 0) {
+                $additionalQuery .= " and styleno in (".addQuotesAround(implode("\n", $request->detail_dc_filter_style)).")";
+            }
+            if ($request->detail_dc_filter_color && count($request->detail_dc_filter_color) > 0) {
+                $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->detail_dc_filter_color)).")";
+            }
+            if ($request->detail_dc_filter_lokasi && count($request->detail_dc_filter_lokasi) > 0) {
+                $additionalQuery .= " and dc.lokasi in (".addQuotesAround(implode("\n", $request->detail_dc_filter_lokasi)).")";
+            }
+
             $data_detail = DB::select("
                 select
-                    s.act_costing_ws, m.buyer,s.color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
+                    s.act_costing_ws, m.buyer, s.color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
                 from
                     dc_in_input dc
                     left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -240,6 +400,46 @@ class DCInController extends Controller
         }
 
         return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function filter_detail_dc_in(Request $request) {
+        $additionalQuery = '';
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and (dc.tgl_trans >= '" . $request->dateFrom . "') ";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and (dc.tgl_trans <= '" . $request->dateTo . "') ";
+        }
+
+        $data_detail = collect(DB::select("
+            select
+                s.act_costing_ws, m.buyer, s.color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
+            from
+                dc_in_input dc
+                left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws m on s.so_det_id = m.id_so_det
+            where
+                dc.tgl_trans is not null
+                ".$additionalQuery."
+            group by
+                m.ws,m.buyer,m.styleno,m.color,dc.lokasi
+        "));
+
+        $act_costing_ws = $data_detail->groupBy("act_costing_ws")->keys();
+        $color = $data_detail->groupBy("color")->keys();
+        $buyer = $data_detail->groupBy("buyer")->keys();
+        $style = $data_detail->groupBy("styleno")->keys();
+        $lokasi = $data_detail->groupBy("lokasi")->keys();
+
+        return array(
+            "ws" => $act_costing_ws,
+            "color" => $color,
+            "buyer" => $buyer,
+            "style" => $style,
+            "lokasi" => $lokasi,
+        );
     }
 
     public function exportExcelDetail(Request $request)
