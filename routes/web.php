@@ -768,7 +768,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-in');
         Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
 
-        Route::get('/filter-sec-in', 'filterSecondaryIn')->name('filter-secondary');
+        Route::get('/filter-sec-in', 'filterSecondaryIn')->name('filter-sec-in');
+        Route::get('/filter-detail-sec-in', 'filterDetailSecondaryIn')->name('filter-detail-sec-in');
 
         Route::get('/export-excel', 'exportExcel')->name('secondary-in-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-in-detail-export-excel');
