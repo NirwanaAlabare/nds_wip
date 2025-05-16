@@ -277,27 +277,27 @@ class CompletedFormController extends Controller
         $itemRemain = $validatedRequest['current_sisa_kain'];
 
         // Extension Things
-        // if ($validatedRequest['current_sambungan'] > 0) {
-        //     // After Extension
-        //     $detailAfter = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
-        //         where('id_roll', $validatedRequest['current_id_roll'])->
-        //         where('id', '>', $validatedRequest['current_id'])->
-        //         orderBy('id', 'asc')->
-        //         first();
+        if ($validatedRequest['current_sambungan'] > 0) {
+            // After Extension
+            $detailAfter = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
+                where('id_roll', $validatedRequest['current_id_roll'])->
+                where('id', '>', $validatedRequest['current_id'])->
+                orderBy('id', 'asc')->
+                first();
 
-        //     if ($detailAfter) {
-        //         $itemRemain = $detailAfter->sisa_kain;
+            if ($detailAfter) {
+                $itemRemain = $detailAfter->sisa_kain;
 
-        //         $detailAfter->id_roll = $validatedRequest['current_id_roll'];
-        //         $detailAfter->id_item = $validatedRequest['current_id_item'];
-        //         $detailAfter->group_roll = $validatedRequest['current_group'];
-        //         $detailAfter->lot = $request["current_lot"];
-        //         $detailAfter->roll = $validatedRequest['current_roll'];
-        //         $detailAfter->qty = ($itemQty-$validatedRequest['current_total_pemakaian_roll']);
-        //         $detailAfter->short_roll = $detailAfter->total_pemakaian_roll-($itemQty-$validatedRequest['current_total_pemakaian_roll']);
-        //         $detailAfter->save();
-        //     }
-        // }
+                $detailAfter->id_roll = $validatedRequest['current_id_roll'];
+                $detailAfter->id_item = $validatedRequest['current_id_item'];
+                $detailAfter->group_roll = $validatedRequest['current_group'];
+                $detailAfter->lot = $request["current_lot"];
+                $detailAfter->roll = $validatedRequest['current_roll'];
+                $detailAfter->qty = ($itemQty-$validatedRequest['current_total_pemakaian_roll']);
+                $detailAfter->short_roll = $detailAfter->total_pemakaian_roll-($itemQty-$validatedRequest['current_total_pemakaian_roll']);
+                $detailAfter->save();
+            }
+        }
 
         $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             where('form_cut_id', $validatedRequest['id'])->
