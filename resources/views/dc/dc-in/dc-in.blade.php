@@ -842,6 +842,9 @@
             reset();
 
             switchTable("list");
+
+            updateFilterDcIn();
+            updateFilterDetailDcIn();
         })
 
         $('#exampleModal').on('show.bs.modal', function(e) {

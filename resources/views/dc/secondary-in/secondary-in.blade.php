@@ -855,6 +855,8 @@
         $(document).ready(function() {
             reset();
             list();
+            updateFilterSec();
+            updateFilterDetailSec();
         })
 
         $('#exampleModal').on('show.bs.modal', function(e) {
