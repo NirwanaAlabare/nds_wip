@@ -164,7 +164,7 @@ class ManageUserController extends Controller
             }
 
             return array(
-                'status' => '200',
+                'status' => '300',
                 'message' => 'Profile updated',
                 'table' => 'manage-user-table',
                 'redirect' => '',
