@@ -78,6 +78,9 @@ class SecondaryInhouseController extends Controller
             if ($request->sec_filter_lokasi && count($request->sec_filter_lokasi) > 0) {
                 $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
             }
+            if ($request->size_filter && count($request->size_filter) > 0) {
+                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+            }
 
             $data_input = DB::select("
                 SELECT a.*,
