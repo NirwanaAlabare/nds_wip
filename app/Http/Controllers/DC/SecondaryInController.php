@@ -315,7 +315,7 @@ class SecondaryInController extends Controller
         $act_costing_ws = $data_input->groupBy("act_costing_ws")->keys();
         $color = $data_input->groupBy("color")->keys();
         $buyer = $data_input->groupBy("buyer")->keys();
-        $style = $data_input->groupBy("style")->keys();
+        $style = $data_input->groupBy("styleno")->keys();
         $lokasi = $data_input->groupBy("lokasi")->keys();
 
         return  array(
