@@ -72,6 +72,9 @@
                     </div>
                 </div>
             </div>
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#filterDetailLoadingModal"><i class="fa fa-filter"></i> Filter</button>
+            </div>
             <table class="table table-bordered table" id="datatable-stocker">
                 <thead>
                     <tr>
@@ -153,6 +156,86 @@
             </table>
         </div>
     </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterDetailLoadingModal" tabindex="-1" aria-labelledby="filterDetailLoadingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="filterDetailLoadingModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Stock</label>
+                                <select class="form-select select2bs4filter" name="filter_tipe[]" id="filter_tipe" multiple="multiple">
+                                    @foreach ($loadingLines->groupBy("tipe")->keys() as $item)
+                                        <option value="{{ $item }}">{{ $item }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Size</label>
+                                <select class="form-select select2bs4filter" name="filter_size[]" id="filter_size" multiple="multiple">
+                                    @foreach ($loadingLines->groupBy("size")->keys() as $item)
+                                        <option value="{{ $item }}">{{ $item }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Group</label>
+                                <select class="form-select select2bs4filter" name="filter_group[]" id="filter_group" multiple="multiple">
+                                    @foreach ($loadingLines->groupBy("shade")->keys() as $item)
+                                        <option value="{{ $item }}">{{ $item }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">No. Form</label>
+                                <select class="form-select select2bs4filter" name="filter_no_form[]" id="filter_no_form" multiple="multiple">
+                                    @foreach ($loadingLines->groupBy("no_form")->keys() as $item)
+                                        <option value="{{ $item }}">{{ $item }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">No. Cut</label>
+                                <select class="form-select select2bs4filter" name="filter_no_cut[]" id="filter_no_cut" multiple="multiple">
+                                    @foreach ($loadingLines->groupBy("no_cut")->keys() as $item)
+                                        <option value="{{ $item }}">{{ $item }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">No. Bon</label>
+                                <select class="form-select select2bs4filter" name="filter_no_bon[]" id="filter_no_bon" multiple="multiple">
+                                    @foreach ($loadingLines->groupBy("no_bon")->keys() as $item)
+                                        <option value="{{ $item }}">{{ $item }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sb" data-bs-dismiss="modal" id="apply-filter">Simpan <i class="fa fa-check"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -166,8 +249,13 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
+        $('.select2bs4filter').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#filterDetailLoadingModal")
+        });
+
         $(document).ready(() => {
-            let stockerDatatable = $("#datatable-stocker").DataTable({
+            var stockerDatatable = $("#datatable-stocker").DataTable({
                 ordering: false,
                 pageLength: 25,
                 rowsGroup: [
@@ -224,6 +312,36 @@
 
                 document.getElementById('total-qty').innerHTML = Number(totalQty).toLocaleString('ID-id');
                 document.getElementById('latest-update').innerHTML = latestUpdate;
+            });
+
+            // Clear any existing custom filters
+            $.fn.dataTable.ext.search = [];
+
+            // Custom filter with multiple select
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                const filter_no_form = $('#filter_no_form').val();
+                const filter_size = $('#filter_size').val();
+                const filter_group = $('#filter_group').val();
+                const filter_tipe = $('#filter_tipe').val();
+                const filter_no_bon = $('#filter_no_bon').val();
+
+                const no_form = data[3];
+                const size = data[4];
+                const group = data[6];
+                const tipe = data[10];
+                const no_bon = data[11];
+
+                const match_no_form = !filter_no_form || filter_no_form.length === 0 || filter_no_form.includes(no_form);
+                const match_size = !filter_size || filter_size.length === 0 || filter_size.includes(size);
+                const match_group = !filter_group || filter_group.length === 0 || filter_group.includes(group);
+                const match_tipe = !filter_tipe || filter_tipe.length === 0 || filter_tipe.includes(tipe);
+                const match_no_bon = !filter_no_bon || filter_no_bon.length === 0 || filter_no_bon.includes(no_bon);
+
+                return match_no_form && match_size && match_group && match_tipe && match_no_bon;
+            });
+
+            $("#apply-filter").on("click", function() {
+                stockerDatatable.draw();
             });
         });
     </script>

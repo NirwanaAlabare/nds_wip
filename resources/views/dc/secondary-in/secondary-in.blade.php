@@ -986,13 +986,13 @@
         }
 
         function list() {
-            document.getElementById("judul").textContent = "List Transaksi Inhouse / Dalam";
+            document.getElementById("judul").textContent = "List Transaksi  In";
             document.getElementById("show_datatable_input").style.display = 'block';
             document.getElementById("show_datatable_detail").style.display = 'none';
         }
 
         function detail() {
-            document.getElementById("judul").textContent = "Detail Transaksi Inhouse / Dalam";
+            document.getElementById("judul").textContent = "Detail Transaksi In";
             document.getElementById("show_datatable_input").style.display = 'none';
             document.getElementById("show_datatable_detail").style.display = 'block';
             $('#datatable-detail').DataTable().ajax.reload();
