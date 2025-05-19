@@ -756,6 +756,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
         Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
 
+        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
+        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
+
         Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
     });
