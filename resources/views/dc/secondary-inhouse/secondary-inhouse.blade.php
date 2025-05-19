@@ -773,9 +773,6 @@
         }
     </script>
 
-
-
-
     <script>
         // $('.select2bs4').select2({
         //     theme: 'bootstrap4',
@@ -1027,6 +1024,10 @@
             Swal.close()
         }
 
+        $('#size_filter').on('change', function() {
+            datatableReload();
+        });
+
         async function updateFilterSec() {
             document.getElementById('loading').classList.remove('d-none');
 
@@ -1093,8 +1094,10 @@
                         if (response.size && response.size.length > 0) {
                         let size = response.size;
                             $("#sec_filter_size").empty();
+                            $('#size_filter').empty();
                             $.each(size, function(index, value) {
                                 $('#sec_filter_size').append('<option value="'+value+'">'+value+'</option>');
+                                $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
 
