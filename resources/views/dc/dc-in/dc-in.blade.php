@@ -409,6 +409,7 @@
         var listFilter = [
             'tgl_trans_filter',
             'id_qr_filter',
+            'tipe_filter',
             'ws_filter',
             'style_filter',
             'color_filter',
@@ -429,16 +430,20 @@
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
+            if (listFilter[i] == 'size_filter') {
+                $(this).html('<select class="form-select" id="'+listFilter[i]+'" multiple="multiple" style="min-width: 90px;"></select>');
+            } else {
+                $(this).html('<input type="text" class="form-control" id="'+listFilter[i]+'"/>');
 
-            $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            }
         });
 
         let datatable = $("#datatable-input").DataTable({
@@ -548,6 +553,10 @@
                         alert('cek');
                     },
                 })
+
+                $('#size_filter').select2({
+                    theme: 'bootstrap4',
+                });
             },
             ordering: false,
             processing: true,
@@ -578,6 +587,7 @@
                     d.dc_filter_tujuan = $('#dc_filter_tujuan').val();
                     d.dc_filter_tempat = $('#dc_filter_tempat').val();
                     d.dc_filter_lokasi = $('#dc_filter_lokasi').val();
+                    d.size_filter = $('#size_filter').val();
                 },
             },
             columns: [
@@ -1027,6 +1037,10 @@
             }
         }
 
+        $('#size_filter').on('change', function() {
+            datatableReload();
+        });
+
         async function updateFilterDcIn() {
             document.getElementById('loading').classList.remove('d-none');
 
@@ -1091,10 +1105,15 @@
                         }
 
                         if (response.size && response.size.length > 0) {
-                        let size = response.size;
+                            let size = response.size;
                             $("#dc_filter_size").empty();
                             $.each(size, function(index, value) {
                                 $('#dc_filter_size').append('<option value="'+value+'">'+value+'</option>');
+                            });
+
+                            $("#size_filter").empty();
+                            $.each(size, function(index, value) {
+                                $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
 
