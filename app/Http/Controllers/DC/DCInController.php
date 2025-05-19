@@ -59,6 +59,9 @@ class DCInController extends Controller
             if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
                 $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
             }
+            if ($request->size_filter && count($request->size_filter) > 0) {
+                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+            }
             if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
                 $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
             }
@@ -228,8 +231,11 @@ class DCInController extends Controller
             $additionalQuery .= " and mp.nama_part LIKE '%".$request->part."%'";
         }
 
-        if ($request->size) {
-            $additionalQuery .= " and msb.size LIKE '%".$request->size."%'";
+        // if ($request->size) {
+        //     $additionalQuery .= " and msb.size LIKE '%".$request->size."%'";
+        // }
+        if ($request->size_filter && count($request->size_filter) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
         }
 
         if ($request->no_cut) {
