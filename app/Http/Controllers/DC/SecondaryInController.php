@@ -71,6 +71,9 @@ class SecondaryInController extends Controller
             if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
                 $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
             }
+            if ($request->size_filter && count($request->size_filter) > 0) {
+                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+            }
             if ($request->sec_filter_no_cut && count($request->sec_filter_no_cut) > 0) {
                 $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
             }
@@ -124,6 +127,7 @@ class SecondaryInController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
+
         return view('dc.secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in", "data_rak" => $data_rak, "data_trolley" => $data_trolley], ['tgl_skrg' => $tgl_skrg]);
     }
 

@@ -183,7 +183,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -478,16 +477,21 @@
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
-            $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
+            if (i == 7) {
+                $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
+            } else {
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            }
         });
 
         let datatable = $("#datatable-input").DataTable({
@@ -545,6 +549,10 @@
                 $(api.column(13).footer()).html(sumTotalReject);
                 $(api.column(14).footer()).html(sumTotalReplace);
                 $(api.column(15).footer()).html(sumTotalIn);
+
+                $('#size_filter').select2({
+                    theme: 'bootstrap4',
+                });
             },
             ordering: false,
             processing: true,
@@ -575,6 +583,7 @@
                     d.sec_filter_tujuan = $('#sec_filter_tujuan').val();
                     d.sec_filter_lokasi = $('#sec_filter_lokasi').val();
                     d.sec_filter_lokasi_rak = $('#sec_filter_lokasi_rak').val();
+                    d.size_filter = $('#size_filter').val();
                 },
             },
             columns: [
@@ -1122,8 +1131,10 @@
                         if (response.size && response.size.length > 0) {
                         let size = response.size;
                             $("#sec_filter_size").empty();
+                            $('#size_filter').empty();
                             $.each(size, function(index, value) {
                                 $('#sec_filter_size').append('<option value="'+value+'">'+value+'</option>');
+                                $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
 
@@ -1239,5 +1250,9 @@
                 },
             })
         }
+
+        $('#size_filter').on("change", function() {
+            datatableReload();
+        });
     </script>
 @endsection
