@@ -499,7 +499,7 @@
 
         async function placeDefectPoint(data) {
             let dataGroup = Object.entries(
-                Object.groupBy(data, ({ styleno, gambar }) => `${styleno}||${gambar}`)
+                objectGroupBy(data, ({ styleno, gambar }) => `${styleno}||${gambar}`)
             ).map(([key, items]) => {
                 const [styleno, gambar] = key.split('||');
                 return {
@@ -538,7 +538,7 @@
 
                 // List
                 let defectTypeGroup = Object.entries(
-                    Object.groupBy(item.items, ({ defect_type, defect_type_id }) => `${defect_type}||${defect_type_id}`)
+                    objectGroupBy(item.items, ({ defect_type, defect_type_id }) => `${defect_type}||${defect_type_id}`)
                 ).map(([key, items]) => {
                     const [defect_type, defect_type_id] = key.split('||');
                     return {

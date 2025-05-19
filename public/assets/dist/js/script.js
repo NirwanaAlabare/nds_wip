@@ -659,3 +659,11 @@ function isElement(o){
         o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
     );
 }
+
+function objectGroupBy(array, keyFn) {
+    return array.reduce((acc, item) => {
+      const key = keyFn(item);
+      (acc[key] ||= []).push(item);
+      return acc;
+    }, {});
+}
