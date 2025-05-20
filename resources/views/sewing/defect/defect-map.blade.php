@@ -510,7 +510,7 @@
             });
 
             let parentElement = document.getElementById("defect-map-images");
-            parentElement.innerHTML = ''; // Clear previous content
+            parentElement.innerHTML = '';
 
             var colorList = ['#e31010', '#104fe3', '#ebcd0c', '#830ceb', '#12e02a', '#ed790c', '#f54980', '#10ded7', '#854008', '#bdbdbd'];
 
@@ -628,6 +628,71 @@
         async function exportToPDF() {
             document.getElementById("loading").classList.remove("d-none");
 
+            let filters = document.createElement('div');
+            filters.id = 'filter-list';
+            filters.classList.add('d-flex');
+            filters.classList.add('flex-wrap');
+            filters.classList.add('justify-content-start');
+            filters.classList.add('text-sb');
+            filters.classList.add('mb-3');
+            filters.classList.add('gap-3');
+
+            if ($('#dateFrom').val()) {
+                filters.innerHTML += "<div class='text-sb'>From : <b>"+$('#dateFrom').val()+"</b> <br></div>";
+            }
+
+            if ($('#dateTo').val()) {
+                filters.innerHTML += "<div class='text-sb'>To : <b>"+$('#dateTo').val()+"</b> <br></div>";
+            }
+
+            filters.innerHTML += "<div class='text-sb'>Department : <b>"+($('#department').val() ? $('#department').val() : 'END-LINE')+"</b> <br></div>";
+
+            let defect_types = $('#defect_types option:selected').map(function () {
+                return $(this).text();
+            }).get()
+            if (defect_types.length > 0) {
+                filters.innerHTML += "<div class='text-sb'>Filter defect types : <b>"+defect_types.join(', ')+"</b> <br></div>";
+            }
+
+            let defect_areas = $('#defect_areas option:selected').map(function () {
+                return $(this).text();
+            }).get()
+            if (defect_areas.length > 0) {
+                filters.innerHTML += "<div class='text-sb'>Filter defect areas : <b>"+defect_areas.join(', ')+"</b> <br></div>";
+            }
+
+            if (Array.isArray($('#defect_status').val()) && $('#defect_status').val().length) {
+                filters.innerHTML += "<div class='text-sb'>Filter defect status : <b>"+($('#defect_status').val()).join(', ')+"</b> <br></div>";
+            }
+
+            if (Array.isArray($('#sewing_line').val()) && $('#sewing_line').val().length) {
+                filters.innerHTML += "<div class='text-sb'>Filter sewing line : <b>"+($('#sewing_line').val()).join(', ')+"</b> <br></div>";
+            }
+
+            if (Array.isArray($('#buyer').val()) && $('#buyer').val().length) {
+                filters.innerHTML += "<div class='text-sb'>Filter buyer : <b>"+($('#buyer').val()).join(', ')+"</b> <br></div>";
+            }
+
+            if (Array.isArray($('#ws').val()) && $('#ws').val().length) {
+                filters.innerHTML += "<div class='text-sb'>Filter ws : <b>"+($('#ws').val()).join(', ')+"</b> <br></div>";
+            }
+
+            if (Array.isArray($('#style').val()) && $('#style').val().length) {
+                filters.innerHTML += "<div class='text-sb'>Filter style : <b>"+($('#style').val()).join(', ')+"</b> <br></div>";
+            }
+
+            if (Array.isArray($('#color').val()) && $('#color').val().length) {
+                filters.innerHTML += "<div class='text-sb'>Filter color : <b>"+($('#color').val()).join(', ')+"</b> <br></div>";
+            }
+
+            if (Array.isArray($('#size').val()) && $('#size').val().length) {
+                filters.innerHTML += "<div class='text-sb'>Filter size : <b>"+($('#size').val()).join(', ')+"</b> <br></div>";
+            }
+
+            filters.innerHTML += '</div>';
+
+            document.getElementById("defect-map-images").prepend(filters);
+
             const { jsPDF } = window.jspdf;
 
             const element = document.getElementById('defect-map-images');
@@ -668,6 +733,8 @@
 
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save('defect-map.pdf');
+
+            filters.remove();
 
             document.getElementById("loading").classList.add("d-none");
         }
