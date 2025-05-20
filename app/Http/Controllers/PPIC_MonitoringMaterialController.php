@@ -454,7 +454,8 @@ where mi.mattype = 'F' and nama_panel is not null
 group by id_so_det, 	case
 			when a.unit = 'YRD' THEN round(cons * 0.9144,3)
 			else cons
-			end, nama_panel
+			end, nama_panel,
+            mi.id_item
 )	a
 inner join laravel_nds.ppic_master_so p on a.id_so_det = p.id_so_det
 group by id_item, cons_ws_konv, nama_panel, month(tgl_shipment), year(tgl_shipment)
@@ -475,13 +476,15 @@ FROM
 (
 SELECT
 a.id_item,
-a.id_item id_item_mat,
+a.id_item AS id_item_mat,
 a.itemdesc,
 a.color,
 a.mattype,
+a.nama_panel AS nama_panel_mat,
 a.nama_panel,
 a.qty_order,
 a.cons_ws_konv,
+a.cons_ws_konv AS cons_ws_konv_mat,
 a.need_material,
 a.unit_konv,
 round(b.tot_mat,2) tot_mat,
@@ -507,8 +510,10 @@ left join
         GROUP BY id_item, nama_panel, cons_ws_konv
 ) b on a.id_item = b.id_item and a.cons_ws_konv = b.cons_ws_konv
 left join col_gmt c on a.id_item_mat = c.id_item
-order by a.id_item asc, color asc
+order by a.id_item asc,a.nama_panel asc, color asc
         ");
+
+
 
         // Build final dynamic column names (to send to frontend)
         $finalDynamicColumnNames = [];
@@ -531,9 +536,9 @@ order by a.id_item asc, color asc
                 'itemdesc' => $rowArray['itemdesc'],
                 'color' => $rowArray['color'],
                 'col_gmt' => $rowArray['col_gmt'],
-                'nama_panel' => $rowArray['nama_panel'],
+                'nama_panel' => $rowArray['nama_panel_mat'],
                 'qty_order' => $rowArray['qty_order'],
-                'cons_ws_konv' => $rowArray['cons_ws_konv'],
+                'cons_ws_konv' => $rowArray['cons_ws_konv_mat'],
                 'need_material' => $rowArray['need_material'],
                 'tot_mat' => $rowArray['tot_mat'],
                 'qty_pembelian' => $rowArray['qty_pembelian'],

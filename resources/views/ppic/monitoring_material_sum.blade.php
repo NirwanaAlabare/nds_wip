@@ -69,7 +69,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-tv"></i> Monitoring Material Detail</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-tv"></i> Monitoring Material Summary</h5>
         </div>
         <div class="card-body">
             <div class="d-flex flex-wrap gap-3 mb-3">
@@ -167,7 +167,7 @@
             let buyer_filter = $("#buyer_filter").val();
             $.ajax({
                 type: "GET",
-                url: '{{ route('get_ppic_monitoring_material_det_style') }}',
+                url: '{{ route('get_ppic_monitoring_material_sum_style') }}',
                 data: {
                     buyer: buyer_filter
                 },
@@ -193,32 +193,33 @@
 
             // Create the first header row (group titles)
             const headerRow1 = `
-    <tr>
-        <th rowspan="2" style="text-align: center; vertical-align: middle;">ID Item</th>
-        <th rowspan="2" style="text-align: center; vertical-align: middle;">Item Desc</th>
-        <th rowspan="2" style="text-align: center; vertical-align: middle;">Tgl. Transaksi</th>
-        <th colspan="4" style="text-align: center; vertical-align: middle;">Penerimaan</th>
-        <th colspan="6" style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Pengeluaran</th>
-        <th rowspan="2" style="text-align: center; vertical-align: middle;">Unit</th>
-    </tr>`;
+<tr>
+    <th rowspan="2" style="text-align: center; vertical-align: middle;">ID Item</th>
+    <th rowspan="2" style="text-align: center; vertical-align: middle;">Item Desc</th>
+    <th colspan="4" style="text-align: center; vertical-align: middle;">Penerimaan</th>
+    <th colspan="6" style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Pengeluaran</th>
+    <th rowspan="2" style="text-align: center; vertical-align: middle;">Balance</th>
+    <th rowspan="2" style="text-align: center; vertical-align: middle;">Unit</th>
+</tr>`;
+
 
 
             // Create the second header row (sub-columns)
             const headerRow2 = `
-        <tr style="text-align: center; vertical-align: middle;">
-            <th text-align: center; vertical-align: middle;">Pembelian</th>
-            <th text-align: center; vertical-align: middle;">Pengembalian Dari Subkontraktor</th>
-            <th text-align: center; vertical-align: middle;">Retur Produksi</th>
-            <th text-align: center; vertical-align: middle;">Adjustment</th>
+<tr style="text-align: center; vertical-align: middle;">
+    <th style="text-align: center; vertical-align: middle;">Pembelian</th>
+    <th style="text-align: center; vertical-align: middle;">Pengembalian Dari Subkontraktor</th>
+    <th style="text-align: center; vertical-align: middle;">Retur Produksi</th>
+    <th style="text-align: center; vertical-align: middle;">Adjustment</th>
 
-            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Produksi</th>
-            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Subkontraktor</th>
-            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Sample</th>
-            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Retur Pembelian</th>
-            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Adjustment</th>
-            <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Lainnya</th>
-        </tr>
-    `;
+    <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Produksi</th>
+    <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Subkontraktor</th>
+    <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Sample</th>
+    <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Retur Pembelian</th>
+    <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Adjustment</th>
+    <th style="background-color: #4682B4; color: white; text-align: center; vertical-align: middle;">Lainnya</th>
+</tr>`;
+
 
             // Append both header rows to the thead
             $('#datatable thead').append(headerRow1 + headerRow2);
@@ -241,14 +242,14 @@
                 autoWidth: true,
                 searching: true,
                 fixedColumns: {
-                    leftColumns: 3
+                    leftColumns: 2
                 },
                 columnDefs: [{
                     className: 'align-middle text-center',
                     targets: '_all'
                 }],
                 ajax: {
-                    url: '{{ route('show_lap_monitoring_material_f_detail') }}',
+                    url: '{{ route('show_lap_monitoring_material_f_sum') }}',
                     data: function(d) {
                         d.buyer_filter = $('#buyer_filter').val();
                         d.style_filter = $('#style_filter').val();
@@ -269,9 +270,6 @@
                     },
                     {
                         data: 'itemdesc'
-                    },
-                    {
-                        data: 'tgl_dok_fix'
                     },
                     {
                         data: 'qty_pembelian'
@@ -304,14 +302,14 @@
                         data: 'qty_out_lainnya'
                     },
                     {
+                        data: 'balance'
+                    },
+                    {
                         data: 'unit_konv'
                     }
                 ]
             });
         }
-
-
-
 
         async function export_excel() {
             if ($('#datatable tbody tr').length === 0) {
@@ -328,7 +326,7 @@
             $("#loadingOverlay").fadeIn();
 
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Monitoring Material');
+            const worksheet = workbook.addWorksheet('Monitoring Material Summary');
 
             const buyer = $("#buyer_filter").val() || "All Buyers";
             const style = $("#style_filter").val() || "All Styles";
@@ -336,10 +334,8 @@
             const fileStyle = style.replace(/\s+/g, '_');
             const today = new Date().toISOString().split('T')[0];
 
-            const lastColumn = 'N'; // Column 14 (A to N)
-
-            // Title Rows
-            worksheet.mergeCells(`A1:${lastColumn}1`);
+            // === Title Rows ===
+            worksheet.mergeCells('A1:N1');
             worksheet.getCell('A1').value = `Buyer : ${buyer}`;
             worksheet.getCell('A1').font = {
                 bold: true,
@@ -350,7 +346,7 @@
                 horizontal: 'left'
             };
 
-            worksheet.mergeCells(`A2:${lastColumn}2`);
+            worksheet.mergeCells('A2:N2');
             worksheet.getCell('A2').value = `Style : ${style}`;
             worksheet.getCell('A2').font = {
                 bold: true,
@@ -361,54 +357,41 @@
                 horizontal: 'left'
             };
 
-            worksheet.addRow([]); // Spacer row
+            worksheet.addRow([]); // Spacer Row
 
-            // Header Definitions
-            const headerRow1Data = [{
-                    label: "ID Item",
-                    rowspan: 2
-                },
-                {
-                    label: "Item Desc",
-                    rowspan: 2
-                },
-                {
-                    label: "Tgl. Transaksi",
-                    rowspan: 2
-                },
-                {
-                    label: "Penerimaan",
-                    colspan: 4
-                },
-                {
-                    label: "Pengeluaran",
-                    colspan: 6
-                },
-                {
-                    label: "Unit",
-                    rowspan: 2
-                }
-            ];
-
-            const headerRow2Data = [
-                "Pembelian",
-                "Pengembalian Dari Subkontraktor",
-                "Retur Produksi",
-                "Adjustment",
-                "Produksi",
-                "Subkontraktor",
-                "Sample",
-                "Retur Pembelian",
-                "Adjustment",
-                "Lainnya"
-            ];
-
-            // Header Row 1
+            // === Header Row 1 (Row 4) ===
             const headerRow1 = worksheet.getRow(4);
-            let col = 1;
-            headerRow1Data.forEach(item => {
-                const cell = headerRow1.getCell(col);
-                cell.value = item.label;
+            let colIndex = 1;
+
+            // ID Item
+            worksheet.mergeCells(4, colIndex, 5, colIndex);
+            headerRow1.getCell(colIndex++).value = "ID Item";
+
+            // Item Desc
+            worksheet.mergeCells(4, colIndex, 5, colIndex);
+            headerRow1.getCell(colIndex++).value = "Item Desc";
+
+            // Penerimaan (4 columns)
+            worksheet.mergeCells(4, colIndex, 4, colIndex + 3);
+            headerRow1.getCell(colIndex).value = "Penerimaan";
+            colIndex += 4;
+
+            // Pengeluaran (6 columns)
+            worksheet.mergeCells(4, colIndex, 4, colIndex + 5);
+            headerRow1.getCell(colIndex).value = "Pengeluaran";
+            colIndex += 6;
+
+            // Balance
+            worksheet.mergeCells(4, colIndex, 5, colIndex);
+            headerRow1.getCell(colIndex++).value = "Balance";
+
+            // Unit
+            worksheet.mergeCells(4, colIndex, 5, colIndex);
+            headerRow1.getCell(colIndex).value = "Unit";
+
+            // Style the first header row
+            for (let i = 1; i <= 14; i++) {
+                const cell = headerRow1.getCell(i);
                 cell.font = {
                     bold: true,
                     color: {
@@ -426,20 +409,24 @@
                         argb: 'FF4682B4'
                     }
                 };
+            }
 
-                if (item.colspan) {
-                    worksheet.mergeCells(4, col, 4, col + item.colspan - 1);
-                    col += item.colspan;
-                } else if (item.rowspan) {
-                    worksheet.mergeCells(4, col, 4 + item.rowspan - 1, col);
-                    col += 1;
-                }
-            });
-
-            // Header Row 2
+            // === Header Row 2 (Row 5) ===
             const headerRow2 = worksheet.getRow(5);
-            headerRow2Data.forEach((text, index) => {
-                const cell = headerRow2.getCell(4 + index); // Starts from column 4 (D)
+            const subHeaders = [
+                "Pembelian",
+                "Pengembalian Dari Subkontraktor",
+                "Retur Produksi",
+                "Adjustment",
+                "Produksi",
+                "Subkontraktor",
+                "Sample",
+                "Retur Pembelian",
+                "Adjustment",
+                "Lainnya"
+            ];
+            subHeaders.forEach((text, i) => {
+                const cell = headerRow2.getCell(i + 3);
                 cell.value = text;
                 cell.font = {
                     bold: true,
@@ -460,15 +447,15 @@
                 };
             });
 
-            // Data Rows
+            // === Data Rows ===
             const dataStartRow = 6;
             const tableRows = document.querySelectorAll('#datatable tbody tr');
 
             tableRows.forEach((row, rowIndex) => {
                 const rowData = Array.from(row.querySelectorAll('td')).map((td, i) => {
                     const text = td.innerText.trim();
-                    // Columns D (4) to M (13) should be numbers
-                    if (i >= 3 && i <= 12) {
+                    // Columns 3 to 12 (D to M) are numeric
+                    if (i >= 2 && i <= 11) {
                         const number = parseFloat(text.replace(/,/g, ''));
                         return isNaN(number) ? 0 : number;
                     }
@@ -477,7 +464,7 @@
                 worksheet.getRow(dataStartRow + rowIndex).values = rowData;
             });
 
-            // Column Formatting
+            // === Column Formatting ===
             worksheet.columns.forEach(col => {
                 col.width = 20;
                 col.alignment = {
@@ -486,12 +473,12 @@
                 };
             });
 
-            // Apply number format to columns D to M (4 to 13)
+            // Format numeric columns (D to M)
             for (let i = 4; i <= 13; i++) {
-                worksheet.getColumn(i).numFmt = '#,##0.00'; // or use '0' if decimals are not needed
+                worksheet.getColumn(i).numFmt = '#,##0.00';
             }
 
-            // Zebra Striping + Borders
+            // === Zebra Striping + Borders ===
             worksheet.eachRow({
                 includeEmpty: false
             }, (row, rowNumber) => {
@@ -524,7 +511,7 @@
                 });
             });
 
-            // Export
+            // === Export the File ===
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

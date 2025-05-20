@@ -184,7 +184,7 @@
         }
 
         async function export_excel() {
-            if ($('#datatable_conv tbody tr').length === 0) {
+            if ($('#datatable_conv tbody tr').length === 0 || !window.dataRows?.length) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Oops!',
@@ -200,22 +200,25 @@
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Monitoring Material');
 
-            // 🔹 Filter values for title
             const buyer = $("#buyer_filter").val() || "All Buyers";
             const style = $("#style_filter").val() || "All Styles";
-
             const fileBuyer = buyer.replace(/\s+/g, '_');
             const fileStyle = style.replace(/\s+/g, '_');
             const today = new Date().toISOString().split('T')[0];
 
-            // 🔹 Header DOM extraction
-            const headerRows = document.querySelectorAll('#datatable_conv thead tr');
-            const firstHeaderCells = headerRows[0].querySelectorAll('th');
-            const secondHeaderCells = headerRows[1]?.querySelectorAll('th') || [];
+            const staticHeaders = [
+                'ID Item', 'Item Desc', 'Color', 'Color Gmt',
+                'Panel', 'Qty Order', 'Cons WS',
+                'Need Material', 'Need Total', 'Penerimaan Gudang', 'Return Produksi',
+                'Pengeluaran Produksi', 'Blc Material', 'Unit',
+                'Output Pcs (Cons WS)', 'Blc To Order', 'Total Pcs (Cons WS)'
+            ];
 
-            const staticHeaderCount = 17; // Adjust this if static columns change
+            const dynamicColumnNames = window.dynamicColumnNames || [];
+            const dataRows = window.dataRows || [];
+            const totalColumns = staticHeaders.length + dynamicColumnNames.length;
 
-            // 🔹 Helper: Excel column name
+            // Column name conversion
             function getExcelColumnName(colNumber) {
                 let columnName = '';
                 while (colNumber > 0) {
@@ -226,11 +229,38 @@
                 return columnName;
             }
 
-            const totalColumns = firstHeaderCells.length + (secondHeaderCells.length || 0);
-            const lastColumn = getExcelColumnName(staticHeaderCount + secondHeaderCells.length);
+            const mergedCells = new Set();
 
-            // 🔹 Title rows (Buyer + Style)
-            worksheet.mergeCells(`A1:${lastColumn}1`);
+            function safeMerge(ws, startRow, startCol, endRow, endCol) {
+                const key = `${startRow}:${startCol}:${endRow}:${endCol}`;
+                if (!mergedCells.has(key)) {
+                    ws.mergeCells(startRow, startCol, endRow, endCol);
+                    mergedCells.add(key);
+                }
+            }
+
+            function styleHeader(cell) {
+                cell.font = {
+                    bold: true,
+                    color: {
+                        argb: 'FFFFFFFF'
+                    }
+                };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: {
+                        argb: 'FF007BFF'
+                    }
+                };
+                cell.alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center'
+                };
+            }
+
+            // Title Rows
+            safeMerge(worksheet, 1, 1, 1, totalColumns);
             worksheet.getCell('A1').value = `Buyer : ${buyer}`;
             worksheet.getCell('A1').font = {
                 bold: true,
@@ -241,7 +271,7 @@
                 horizontal: 'left'
             };
 
-            worksheet.mergeCells(`A2:${lastColumn}2`);
+            safeMerge(worksheet, 2, 1, 2, totalColumns);
             worksheet.getCell('A2').value = `Style : ${style}`;
             worksheet.getCell('A2').font = {
                 bold: true,
@@ -252,82 +282,106 @@
                 horizontal: 'left'
             };
 
-            worksheet.addRow([]); // Spacer row
+            worksheet.addRow([]); // spacer
 
-            // ─── Header Row 1 (Static Headers + "Shipment") ───
+            // Header Rows
             const headerRow1 = worksheet.getRow(4);
-            let colIndex = 1;
-
-            firstHeaderCells.forEach(th => {
-                const colspan = parseInt(th.getAttribute('colspan')) || 1;
-                const rowspan = parseInt(th.getAttribute('rowspan')) || 1;
-                const text = th.innerText.trim();
-
-                const cell = headerRow1.getCell(colIndex);
+            staticHeaders.forEach((text, i) => {
+                const cell = headerRow1.getCell(i + 1);
                 cell.value = text;
-                cell.font = {
-                    bold: true,
-                    color: {
-                        argb: 'FFFFFFFF'
-                    }
-                };
-                cell.alignment = {
-                    vertical: 'middle',
-                    horizontal: 'center'
-                };
-                cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: {
-                        argb: 'FF007BFF'
-                    }
-                };
-
-                if (colspan > 1) {
-                    worksheet.mergeCells(4, colIndex, 4, colIndex + colspan - 1);
-                }
-                if (rowspan > 1) {
-                    worksheet.mergeCells(4, colIndex, 4 + rowspan - 1, colIndex);
-                }
-
-                colIndex += colspan;
+                styleHeader(cell);
+                safeMerge(worksheet, 4, i + 1, 5, i + 1); // rowspan 2
             });
 
-            // ─── Header Row 2 (Shipment Months) ───
+            const shipmentStart = staticHeaders.length + 1;
+            const shipmentEnd = shipmentStart + dynamicColumnNames.length - 1;
+
+            if (dynamicColumnNames.length > 0) {
+                const cell = headerRow1.getCell(shipmentStart);
+                cell.value = 'Shipment';
+                styleHeader(cell);
+                safeMerge(worksheet, 4, shipmentStart, 4, shipmentEnd);
+            }
+
             const headerRow2 = worksheet.getRow(5);
-            secondHeaderCells.forEach((th, i) => {
-                const text = th.innerText.trim();
-                const cell = headerRow2.getCell(staticHeaderCount + i + 1); // Start after static headers
-                cell.value = text;
-                cell.font = {
-                    bold: true,
-                    color: {
-                        argb: 'FFFFFFFF'
-                    }
-                };
-                cell.alignment = {
-                    vertical: 'middle',
-                    horizontal: 'center'
-                };
-                cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: {
-                        argb: 'FF007BFF'
-                    }
-                };
+            dynamicColumnNames.forEach((name, i) => {
+                const cell = headerRow2.getCell(shipmentStart + i);
+                cell.value = name;
+                styleHeader(cell);
             });
 
-            // ─── Data Rows ───
+            // Data rows
             const dataStartRow = 6;
-            const tableRows = document.querySelectorAll('#datatable_conv tbody tr');
+            dataRows.forEach((row, idx) => {
+                const excelRow = worksheet.getRow(dataStartRow + idx);
+                const rowData = [
+                    row.id_item, row.itemdesc, row.color, row.col_gmt, row.nama_panel,
+                    row.qty_order, row.cons_ws_konv, row.need_material, row.tot_mat,
+                    row.qty_pembelian, row.qty_retur_prod, row.qty_out_prod, row.blc_mat,
+                    row.unit_konv, row.output_pcs_cons_ws, row.blc_order, row.total_output_pcs_cons_ws,
+                    ...(row.values || [])
+                ];
+                excelRow.values = rowData;
 
-            tableRows.forEach((row, index) => {
-                const rowData = Array.from(row.querySelectorAll('td')).map(td => td.innerText.trim());
-                worksheet.getRow(dataStartRow + index).values = rowData;
+                // Style negative Blc To Order
+                const blcToOrderVal = parseFloat(row.blc_order);
+                if (!isNaN(blcToOrderVal) && blcToOrderVal < 0) {
+                    const cell = excelRow.getCell(16);
+                    cell.font = {
+                        color: {
+                            argb: 'FFFF0000'
+                        },
+                        bold: true
+                    };
+                }
+
+                // Style shipment % < 100
+                (row.values || []).forEach((val, i) => {
+                    const strVal = val.toString();
+                    const numVal = parseFloat(strVal.replace('%', '').trim());
+                    if (strVal.includes('%') && !isNaN(numVal) && numVal < 100) {
+                        const cell = excelRow.getCell(staticHeaders.length + 1 + i);
+                        cell.font = {
+                            color: {
+                                argb: 'FFFF0000'
+                            },
+                            bold: true
+                        };
+                    }
+                });
             });
 
-            // ─── Format Columns ───
+            // Freeze pane
+            worksheet.views = [{
+                state: 'frozen',
+                ySplit: dataStartRow - 1,
+                xSplit: 3
+            }];
+
+            // Merge same values (row grouping simulation)
+            const groupColumns = [1, 2, 3, 4, 5, 9, 10, 11, 12, 17];
+
+            function mergeSameValuesVertically(ws, colIdx) {
+                let startRow = dataStartRow;
+                while (startRow < dataStartRow + dataRows.length) {
+                    let endRow = startRow;
+                    const val = ws.getCell(startRow, colIdx).value;
+                    while (
+                        endRow + 1 <= dataStartRow + dataRows.length - 1 &&
+                        ws.getCell(endRow + 1, colIdx).value === val
+                    ) {
+                        endRow++;
+                    }
+                    if (endRow > startRow) {
+                        safeMerge(ws, startRow, colIdx, endRow, colIdx);
+                    }
+                    startRow = endRow + 1;
+                }
+            }
+
+            groupColumns.forEach(idx => mergeSameValuesVertically(worksheet, idx));
+
+            // Style columns
             worksheet.columns.forEach(col => {
                 col.width = 20;
                 col.alignment = {
@@ -336,7 +390,7 @@
                 };
             });
 
-            // ─── Zebra Striping & Borders ───
+            // Zebra striping and borders
             worksheet.eachRow({
                 includeEmpty: false
             }, (row, rowNumber) => {
@@ -349,9 +403,7 @@
                         }
                     };
                 }
-                row.eachCell({
-                    includeEmpty: false
-                }, cell => {
+                row.eachCell(cell => {
                     cell.border = {
                         top: {
                             style: 'thin'
@@ -369,7 +421,7 @@
                 });
             });
 
-            // ─── Download Excel ───
+            // Download
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -421,7 +473,6 @@
                 return;
             }
 
-            // Destroy existing table if needed
             if ($.fn.DataTable.isDataTable('#datatable_conv')) {
                 $('#datatable_conv').DataTable().clear().draw();
                 $('#datatable_conv').DataTable().destroy();
@@ -442,10 +493,8 @@
                     const columns = response.columns;
                     const data = response.data;
 
-                    // Format the dynamic column headers
                     const dynamicColumnNames = columns.map(col => formatColName(col));
 
-                    // Format the table data
                     const tableData = data.map(row => ({
                         id_item: row.id_item,
                         itemdesc: row.itemdesc,
@@ -464,8 +513,12 @@
                         output_pcs_cons_ws: row.output_pcs_cons_ws,
                         blc_order: row.blc_order,
                         total_output_pcs_cons_ws: row.total_output_pcs_cons_ws,
-                        values: row.values
+                        values: row.values || [],
+                        group_key: `${row.id_item}_${row.nama_panel}_${row.total_output_pcs_cons_ws}` // Added
                     }));
+
+                    window.dynamicColumnNames = dynamicColumnNames;
+                    window.dataRows = tableData;
 
                     buildDynamicTable(dynamicColumnNames, tableData);
                 },
@@ -480,16 +533,12 @@
             const thead = document.querySelector('#datatable_conv thead');
             const tbody = document.getElementById('tableBody');
 
-            thead.innerHTML = ''; // Clear entire thead
-            tbody.innerHTML = ''; // Clear tbody
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
 
-            // Destroy if already initialized
             if ($.fn.DataTable.isDataTable('#datatable_conv')) {
-                $('#datatable_conv').DataTable().clear().destroy();
+                $('#datatable_conv').DataTable().destroy();
             }
-
-            // First row (static headers + Shipment colspan)
-            const mainHeaderRow = document.createElement('tr');
 
             const staticHeaders = [
                 'ID Item', 'Item Desc', 'Color', 'Color Gmt',
@@ -499,66 +548,95 @@
                 'Output Pcs (Cons WS)', 'Blc To Order', 'Total Pcs (Cons WS)'
             ];
 
-            staticHeaders.forEach(header => {
+            const blcOrderIndex = staticHeaders.indexOf('Blc To Order');
+            const totalOutputIndex = staticHeaders.indexOf('Total Pcs (Cons WS)');
+
+            // Header row 1
+            const mainHeaderRow = document.createElement('tr');
+            staticHeaders.forEach((header, index) => {
                 const th = document.createElement('th');
+
                 th.innerText = header;
                 th.rowSpan = 2;
                 th.style.verticalAlign = 'middle';
-                th.className = 'align-middle text-center';
+                th.className = index <= 5 ? 'align-middle text-start' : 'align-middle text-end';
                 mainHeaderRow.appendChild(th);
             });
 
-            // Shipment grouped header
             const shipmentTh = document.createElement('th');
             shipmentTh.colSpan = columnNames.length;
             shipmentTh.innerText = 'Shipment';
             shipmentTh.className = 'text-center';
             mainHeaderRow.appendChild(shipmentTh);
 
-            // Second row (dynamic columns)
+            // Header row 2
             const shipmentDetailRow = document.createElement('tr');
             columnNames.forEach(name => {
                 const th = document.createElement('th');
                 th.innerText = name;
-                th.className = 'text-center';
+                th.className = 'text-end align-middle';
                 shipmentDetailRow.appendChild(th);
             });
 
-            // Append both header rows to thead
             thead.appendChild(mainHeaderRow);
             thead.appendChild(shipmentDetailRow);
 
-            // Populate tbody
+            // Build table body
             dataRows.forEach(row => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-            <td>${row.id_item}</td>
-            <td>${row.itemdesc}</td>
-            <td>${row.color}</td>
-            <td>${row.col_gmt}</td>
-            <td>${row.nama_panel}</td>
-            <td>${row.qty_order}</td>
-            <td>${row.cons_ws_konv}</td>
-            <td>${row.need_material}</td>
-            <td>${row.tot_mat}</td>
-            <td>${row.qty_pembelian}</td>
-            <td>${row.qty_retur_prod}</td>
-            <td>${row.qty_out_prod}</td>
-            <td>${row.blc_mat}</td>
-            <td>${row.unit_konv}</td>
-            <td>${row.output_pcs_cons_ws}</td>
-            <td>${row.blc_order}</td>
-            <td>${row.total_output_pcs_cons_ws}</td>
-        `;
+
+                const rowData = [
+                    row.id_item,
+                    row.itemdesc,
+                    row.color,
+                    row.col_gmt,
+                    row.nama_panel,
+                    row.qty_order,
+                    row.cons_ws_konv,
+                    row.need_material,
+                    row.tot_mat,
+                    row.qty_pembelian,
+                    row.qty_retur_prod,
+                    row.qty_out_prod,
+                    row.blc_mat,
+                    row.unit_konv,
+                    row.output_pcs_cons_ws,
+                    row.blc_order,
+                    row.total_output_pcs_cons_ws
+                ];
+
+                rowData.forEach((value, idx) => {
+                    const td = document.createElement('td');
+                    td.innerText = value;
+                    td.className = idx <= 5 ? 'text-start align-middle' : 'text-end align-middle';
+
+                    if (idx === blcOrderIndex && parseFloat(value) < 0) {
+                        td.style.color = 'red';
+                        td.style.fontWeight = 'bold';
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                // Dynamic shipment columns
                 row.values.forEach(val => {
                     const td = document.createElement('td');
                     td.innerText = val;
+                    td.className = 'text-end align-middle';
+
+                    const numericVal = parseFloat(val.toString().replace('%', '').trim());
+                    if (val.toString().includes('%') && !isNaN(numericVal) && numericVal < 100) {
+                        td.style.color = 'red';
+                        td.style.fontWeight = 'bold';
+                    }
+
                     tr.appendChild(td);
                 });
+
                 tbody.appendChild(tr);
             });
 
-            // Re-initialize DataTable
+            // Initialize DataTable
             $('#datatable_conv').DataTable({
                 scrollY: "400px",
                 serverSide: false,
@@ -574,9 +652,14 @@
                     leftColumns: 3
                 },
                 columnDefs: [{
-                    className: 'align-middle text-center',
-                    targets: '_all'
-                }]
+                    targets: '_all',
+                    className: 'align-middle'
+                }],
+                rowsGroup: [
+                    0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 4,
+                    16 // Adjust this index to the correct column (zero-based)
+                ]
+                // Removed rowGroup logic as GroupKey is deleted
             });
 
             $("#loadingOverlay").fadeOut();
