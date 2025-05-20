@@ -6,6 +6,10 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
 
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
     <style>
         div.dataTables_wrapper div.dataTables_processing {
             top: 15%;
@@ -82,6 +86,9 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
+
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -208,7 +215,7 @@
                         'styleFilter': $('#styleFilter').val(),
                         'colorFilter': $('#colorFilter').val(),
                         'trolleyFilter': $('#trolleyFilter').val(),
-                        'trolleyColorFilter': $('#trolleyColorFilter').val()
+                        'trolleyColorFilter': $('#trolleyColorFilter').val(),
                     },
                     success: function(response) {
                         console.log(response);
