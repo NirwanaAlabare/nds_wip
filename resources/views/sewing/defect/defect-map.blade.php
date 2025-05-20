@@ -645,7 +645,7 @@
                 filters.innerHTML += "<div class='text-sb'>To : <b>"+$('#dateTo').val()+"</b> <br></div>";
             }
 
-            filters.innerHTML += "<div class='text-sb'>Department : <b>"+($('#department').val() ? $('#department').val() : 'END-LINE')+"</b> <br></div>";
+            filters.innerHTML += "<div class='text-sb'>Department : <b>"+($('#department').val() ? $('#department option:selected').text() : 'END-LINE')+"</b> <br></div>";
 
             let defect_types = $('#defect_types option:selected').map(function () {
                 return $(this).text();
