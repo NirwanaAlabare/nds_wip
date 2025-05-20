@@ -729,7 +729,7 @@
 
             Swal.fire({
                 title: 'Please Wait...',
-                html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
+                html: 'Exporting Data...  <br><br> <b>0</b>s elapsed...',
                 didOpen: () => {
                     Swal.showLoading();
 

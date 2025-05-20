@@ -78,10 +78,10 @@ class SpreadingController extends Controller
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
+                    CONCAT(COALESCE(a2.total_lembar, a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
                     COALESCE(a.qty_ply, 0) qty_ply,
                     COALESCE(b.gelar_qty, 0) gelar_qty,
-                    COALESCE(a.total_lembar, '0') total_lembar,
+                    COALESCE(a2.total_lembar, a.total_lembar, '0') total_lembar,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
@@ -92,6 +92,7 @@ class SpreadingController extends Controller
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
+                    left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
                     left join cutting_plan on cutting_plan.form_cut_id = a.id
                     left join users on users.id = a.no_meja
                     left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
@@ -402,7 +403,8 @@ class SpreadingController extends Controller
             ]);
 
             // Similar Form No. Cutting Update
-            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
                 where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
                 where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
@@ -423,8 +425,8 @@ class SpreadingController extends Controller
                 }
             }
 
-            $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->get();
-            $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->delete();
+            $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
+            $deleteSpreadingFormDetail = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
             if ($deleteSpreadingFormDetail) {
                 $idFormDetailLapArr = [];
                 foreach ($spreadingFormDetails as $spreadingFormDetail) {

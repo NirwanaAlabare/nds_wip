@@ -24,13 +24,14 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
     protected $style;
     protected $color;
     protected $sewingLine;
+    protected $department;
     protected $rowCount;
     protected $colAlphabet;
     protected $colAlphabetSub;
     protected $colAlphabetChartStart;
     protected $colAlphabetChartEnd;
 
-    function __construct($query, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine) {
+    function __construct($query, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine, $department) {
         $this->query = $query;
         $this->dateFrom = $dateFrom;
         $this->dateTo = $dateTo;
@@ -38,11 +39,12 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $this->style = $style ? $style : "All Style";
         $this->color = $color ? $color : "All Color";
         $this->sewingLine = $sewingLine ? $sewingLine : "All Sewing Line";
+        $this->department = $department ? $department : "";
     }
 
     public function title(): string
     {
-        return 'Top Defect';
+        return 'TopDefect';
     }
 
     public function view(): View
@@ -54,7 +56,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $this->rowCountStyle = $topDefect->groupBy("style_grouping")->count();
 
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $topDefect->groupBy("tanggal")->count()+2;
+        $colCount = $topDefect->groupBy("tanggal")->count()+3;
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);
@@ -72,7 +74,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
             $this->colAlphabetSub = $alphabets[$colAlphabetSub];
         }
 
-        $colAlphabetChartStart = $colCount+3;
+        $colAlphabetChartStart = $colCount+3+1;
         if ($colAlphabetChartStart > (count($alphabets)-1)) {
             $colStack = floor($colAlphabetChartStart/(count($alphabets)-1));
             $colStackModulo = $colAlphabetChartStart%(count($alphabets)-1);
@@ -81,7 +83,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
             $this->colAlphabetChartStart = $alphabets[$colAlphabetChartStart];
         }
 
-        $colAlphabetChartEnd = $colCount+($this->rowCount > 23 ? 23 : $this->rowCount);
+        $colAlphabetChartEnd = $colCount+($this->rowCount > 23 ? 23 : ($this->rowCount < 11 ? 11 : $this->rowCount))+1;
         if ($colAlphabetChartEnd > (count($alphabets)-1)) {
             $colStack = floor($colAlphabetChartEnd/(count($alphabets)-1));
             $colStackModulo = $colAlphabetChartEnd%(count($alphabets)-1);
@@ -97,6 +99,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
             'style' => $this->style,
             'color' => $this->color,
             'sewingLine' => $this->sewingLine,
+            'department' => $this->department,
             'rowCount' => $this->rowCount,
             'topDefect' => $topDefect
         ]);
@@ -111,15 +114,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCount; $i++) {
             array_push($labelsDefect,
-                new DataSeriesValues('String', '$A$'.($i+7).':$C$'.($i+7).'', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$A$'.($i+7).':$D$'.($i+7).'', null, 5)
             );
 
             array_push($categoriesDefect,
-                new DataSeriesValues('String', '$E$6:$'.$this->colAlphabet.'$6', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$E$6:$'.$this->colAlphabet.'$6', null, 5)
             );
 
             array_push($valuesDefect,
-                new DataSeriesValues('Number', '$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
+                new DataSeriesValues('Number', 'TopDefect!$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
             );
         }
 
@@ -130,7 +133,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $chartDefect  = new Chart('Line Style Defect Chart', new Title('Defect Chart'), $legendDefect, $plotDefect);
 
         $chartDefect->setTopLeftPosition($this->colAlphabetChartStart.'6');
-        $chartDefect->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : $this->rowCount));
+        $chartDefect->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : ($this->rowCount < 5 ? 5+6 : $this->rowCount+6)));
 
         // Defect Line
         $labelsDefectLine = [];
@@ -139,15 +142,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCountLine; $i++) {
             array_push($labelsDefectLine,
-                new DataSeriesValues('String', '$A$'.($i+$this->rowCount+10).':$A$'.($i+$this->rowCount+10).'', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
             );
 
             array_push($categoriesDefectLine,
-                new DataSeriesValues('String', '$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
+                new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
             );
 
             array_push($valuesDefectLine,
-                new DataSeriesValues('Number', '$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
+                new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
             );
         }
 
@@ -158,7 +161,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $chartDefectLine  = new Chart('Line Defect Chart', new Title('Line Defect Chart'), $legendDefectLine, $plotDefectLine);
 
         $chartDefectLine->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+9));
-        $chartDefectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : $this->rowCountLine)));
+        $chartDefectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : ($this->rowCountLine < 5 ? 5 : $this->rowCountLine))));
 
         // Defect Style
         $labelsDefectStyle = [];
@@ -167,15 +170,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
         for ($i = 0; $i < $this->rowCountStyle; $i++) {
             array_push($labelsDefectStyle,
-                new DataSeriesValues('String', '$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$A$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
             );
 
             array_push($categoriesDefectStyle,
-                new DataSeriesValues('String', '$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
+                new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
             );
 
             array_push($valuesDefectStyle,
-                new DataSeriesValues('Number', '$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+                new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
             );
         }
 
@@ -186,7 +189,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $chartDefectStyle  = new Chart('Style Defect Chart', new Title('Style Defect Chart'), $legendDefectStyle, $plotDefectStyle);
 
         $chartDefectStyle->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+$this->rowCountLine+11));
-        $chartDefectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : $this->rowCountStyle)));
+        $chartDefectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : ($this->rowCountStyle < 5 ? 5 : $this->rowCountStyle))));
 
         return [$chartDefect, $chartDefectLine, $chartDefectStyle];
     }

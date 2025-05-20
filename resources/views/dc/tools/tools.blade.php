@@ -55,7 +55,7 @@
         function emptyOrderLoading() {
             Swal.fire({
                 title: 'Please Wait...',
-                html: 'Fixing Data... <br><br> Est. <b>0</b>s...',
+                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
                 didOpen: () => {
                     Swal.showLoading();
 

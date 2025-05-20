@@ -192,7 +192,7 @@
                                 <li>
                                     <a href="{{ route('track-cutting-output') }}"
                                         class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
-                                        Order Cutting Output <i class="fa fa-file"></i>
+                                        Track Cutting Output <i class="fa fa-file"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -600,6 +600,12 @@
                                     <a href="{{ route('report-defect') }}"
                                         class="dropdown-item {{ $routeName == 'report-defect' ? 'active' : '' }}">
                                         Report Defect <i class="fa-solid fa-file-circle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('defect-map') }}"
+                                        class="dropdown-item {{ $routeName == 'defect-map' ? 'active' : '' }}">
+                                        Defect Map <i class="fa-solid fa-map-pin"></i>
                                     </a>
                                 </li>
                             @endrole

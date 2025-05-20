@@ -454,7 +454,7 @@ class LoadingLineController extends Controller
 
         $loadingLinePlan = LoadingLinePlan::where("id", $id)->with(['loadingLines', 'loadingLines.stocker', 'loadingLines.stocker.dcIn', 'loadingLines.stocker.dcIn.secondaryIn', 'loadingLines.stocker.dcIn.secondaryInHouse'])->first();
 
-        $loadingLines = DB::select("
+        $loadingLines = collect(DB::select("
             SELECT
                 COALESCE( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) tanggal_loading,
                 loading_line.loading_plan_id,
@@ -511,7 +511,7 @@ class LoadingLineController extends Controller
                 stocker_input.form_reject_id,
                 stocker_input.so_det_id,
                 stocker_input.range_awal
-        ");
+        "));
 
         return view("dc.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan, "loadingLines" => $loadingLines, "dateFrom" => $dateFrom, "dateTo" => $dateTo,]);
     }

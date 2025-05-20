@@ -59,8 +59,24 @@ class TrackCuttingOutput extends Component
         $this->sizeFilter = null;
     }
 
+    public function updatedSelectedOrder()
+    {
+        $firstPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderBy("tgl_form_cut", "asc")->first();
+        $lastPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderBy("tgl_form_cut", "desc")->first();
+
+        if ($firstPlan) {
+            $this->dateFromFilter = $firstPlan->tanggal;
+            $this->dateToFilter = $lastPlan->tanggal;
+        } else {
+            $this->dateFromFilter = date("Y-m-d");
+            $this->dateToFilter = date("Y-m-d");
+        }
+    }
+
     public function render()
     {
+        ini_set('max_execution_time', 3600);
+
         $this->loadingOrderOutput = false;
 
         $dateFilter = " AND COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) between '".$this->dateFromFilter."' and '".$this->dateToFilter."' ";
@@ -306,6 +322,7 @@ class TrackCuttingOutput extends Component
                                         AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                                         AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                         ".$dateFilter."
+                                        ".($this->mejaFilter ? "AND form_cut_input.no_meja = '".$this->mejaFilter."'" :  "")."
                                     GROUP BY
                                         form_cut_input.id
                                 ) form_cut on form_cut.id_marker = marker_input.kode
@@ -314,6 +331,9 @@ class TrackCuttingOutput extends Component
                             where
                                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                                 AND marker_input_detail.ratio > 0
+                                ".($this->colorFilter ? "AND marker_input.color = '".$this->colorFilter."'" :  "")."
+                                ".($this->groupBy == "size" && $this->sizeFilter ? "AND marker_input_detail.size = '".$this->sizeFilter."'" : "")."
+                                ".($this->selectedOrder ? "AND marker_input.act_costing_id = '".$this->selectedOrder."'" : "")."
                             group by
                                 marker_input.id,
                                 marker_input_detail.so_det_id,
@@ -337,14 +357,19 @@ class TrackCuttingOutput extends Component
                 ")
             );
 
-            // dd($dailyOrderOutputSql);
-
             $this->dailyOrderOutputs = $dailyOrderOutputSql;
 
-            // dd($this->dailyOrderOutputs);
+        if ($this->dailyOrderOutputs->count() > 500) {
+            $this->emit("alert", "Big Data. '".$this->dailyOrderOutputs->count()."' data.");
+        }
 
         \Log::info("Query Completed");
 
         return view('livewire.track-cutting-output');
     }
+
+    // public function dehydrate()
+    // {
+    //     $this->emit("initFixedColumn");
+    // }
 }

@@ -232,8 +232,9 @@ class CuttingPlanController extends Controller
                     GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
                     coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act,
-                    COALESCE(a.total_lembar, '0') total_lembar
+                    COALESCE(a2.total_lembar, a.total_lembar, '0') total_lembar
                 FROM `form_cut_input` a
+                left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
@@ -501,7 +502,7 @@ class CuttingPlanController extends Controller
                     $query->whereRaw("app = '" . $approveFilter . "'");
                 }
             })->addIndexColumn()->addColumn('form_info', function ($row) {
-                $totalLembar = ($row->formCutInput ? $row->formCutInput->total_lembar : 0);
+                $totalLembar = ($row->formCutInput->formCutInputDetails ? $row->formCutInput->formCutInputDetails->sum('lembar_gelaran') : 0);
                 $qtyPly = ($row->formCutInput ? $row->formCutInput->qty_ply : 0);
 
                 $formInfo = "<ul class='list-group'>";
@@ -782,7 +783,7 @@ class CuttingPlanController extends Controller
                 UPPER(b.unit_comma_marker) unit_comma_marker,
                 b.lebar_marker,
                 UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                COALESCE(a.total_lembar, 0) total_lembar,
+                COALESCE(a2.total_lembar, a.total_lembar, 0) total_lembar,
                 a.qty_ply,
                 b.gelar_qty,
                 b.po_marker,
@@ -792,6 +793,7 @@ class CuttingPlanController extends Controller
                 CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                 GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
             FROM `form_cut_input` a
+            left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
             left join marker_input b on a.id_marker = b.kode
             left join marker_input_detail on b.id = marker_input_detail.marker_id
             left join master_size_new on marker_input_detail.size = master_size_new.size
@@ -885,7 +887,7 @@ class CuttingPlanController extends Controller
                 UPPER(b.unit_comma_marker) unit_comma_marker,
                 b.lebar_marker,
                 UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                COALESCE(a.total_lembar, 0) total_lembar,
+                COALESCE(a2.total_lembar, a.total_lembar, 0) total_lembar,
                 a.qty_ply,
                 b.gelar_qty,
                 b.po_marker,
@@ -895,6 +897,7 @@ class CuttingPlanController extends Controller
                 CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                 GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
             FROM `form_cut_input` a
+            left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
             left join marker_input b on a.id_marker = b.kode
             left join marker_input_detail on b.id = marker_input_detail.marker_id
             left join master_size_new on marker_input_detail.size = master_size_new.size

@@ -29,7 +29,16 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-4 d-none">
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="missUser()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-users-line"></i> Fix Output User Line</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
                     <a type="button" class="home-item" onclick="missMasterPlan()">
                         <div class="card">
                             <div class="card-body">
@@ -74,96 +83,209 @@
             dropdownParent: $('#mergeDefectTypeModal')
         });
 
-        function missMasterPlan() {
+        function missUser() {
             Swal.fire({
-                title: 'Please Wait...',
-                html: 'Fixing Data... <br><br> Est. <b>0</b>s...',
-                didOpen: () => {
-                    Swal.showLoading();
+                title: 'Fix Miss User Output',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data output user line?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Miss User Output Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
 
-                    let estimatedTime = 0;
-                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
-                    estimatedTimeInterval = setInterval(() => {
-                        estimatedTime++;
-                        estimatedTimeElement.textContent = estimatedTime;
-                    }, 1000);
-                },
-                allowOutsideClick: false,
-            });
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
 
-            $.ajax({
-                type: "post",
-                url: "{{ route('miss-masterplan') }}",
-                dataType: "json",
-                success: function (response) {
-                    if (response.status == 200) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            html: response.message,
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            html: 'Terjadi kesalahan',
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    }
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('sewing-miss-user') }}",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: response && response.message ? response.message : "Terjadi Kesalahan",
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Info',
+                        html: "Proses dibatalkan",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#082149",
+                    });
                 }
             });
         }
 
+        function missMasterPlan() {
+            Swal.fire({
+                title: 'Fix Miss Master Plan Output',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data output master plan?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Miss Master Plan Output Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
+
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('sewing-miss-masterplan') }}",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: response && response.message ? response.message : "Terjadi Kesalahan",
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Info',
+                        html: "Proses dibatalkan",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#082149",
+                    });
+                }
+            })
+        }
+
         function missRework() {
             Swal.fire({
-                title: 'Please Wait...',
-                html: 'Fixing Data... <br><br> Est. <b>0</b>s...',
-                didOpen: () => {
-                    Swal.showLoading();
+                title: 'Fix Miss Rework Output',
+                html: '<span class="text-danger"><span class="text-danger"><b>Critical</b></span></span> <br> Yakin akan mengubah data output rework?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Rework Output Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
 
-                    let estimatedTime = 0;
-                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
-                    estimatedTimeInterval = setInterval(() => {
-                        estimatedTime++;
-                        estimatedTimeElement.textContent = estimatedTime;
-                    }, 1000);
-                },
-                allowOutsideClick: false,
-            });
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
 
-            $.ajax({
-                type: "post",
-                url: "{{ route('miss-rework') }}",
-                dataType: "json",
-                success: function (response) {
-                    if (response.status == 200) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            html: response.message,
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            html: 'Terjadi kesalahan',
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    }
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('sewing-miss-rework') }}",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: response && response.message ? response.message : "Terjadi Kesalahan",
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Info',
+                        html: "Proses dibatalkan",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#082149",
+                    });
                 }
             });
         }

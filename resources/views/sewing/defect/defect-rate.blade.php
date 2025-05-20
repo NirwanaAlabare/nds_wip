@@ -30,14 +30,7 @@
                         <label class="form-label">Sampai </label>
                         <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
-                    <div>
-                        <label class="form-label">Department</label>
-                        <select class="form-select" name="department" id="department" onchange="reportDefectDatatableReload(); updateFilterOption();">
-                            <option value="" selected>END-LINE</option>
-                            <option value="_packing">PACKING-LINE</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" onclick="reportDefectDatatableReload(); updateFilterOption();"><i class="fa fa-search"></i></button>
+                    <button class="btn btn-primary"><i class="fa fa-search"></i></button>
                     <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 </div>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal">Export <i class="fa fa-file-excel"></i></button>
@@ -283,7 +276,6 @@
                     d.external_type = $('#external_type').val();
                     d.external_in = $('#external_in').val();
                     d.external_out = $('#external_out').val();
-                    d.department = $('#department').val();
                 }
             },
             columns: [
@@ -355,8 +347,7 @@
                         size : $('#size').val(),
                         external_type : $('#external_type').val(),
                         external_in : $('#external_in').val(),
-                        external_out : $('#external_out').val(),
-                        department : $('#department').val()
+                        external_out : $('#external_out').val()
                     },
                     success: function(response) {
                         console.log(response);
@@ -388,8 +379,7 @@
                 dataSrc: 'data',
                 data: {
                     dateFrom : $('#dateFrom').val(),
-                    dateTo : $('#dateTo').val(),
-                    department : $('#department').val()
+                    dateTo : $('#dateTo').val()
                 },
                 success: function(response) {
                     document.getElementById('loading').classList.add('d-none');
@@ -469,29 +459,15 @@
 
             Swal.fire({
                 title: 'Please Wait...',
-                html: `Exporting Data... <br><br> Total Defect : `+(document.getElementById("total_data").innerHTML)+` <br> <div class="progress mt-3"><div class="progress-bar bg-sb" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>`,
+                html: 'Exporting Data... <br><br> Total Defect : '+(document.getElementById("total_data").innerHTML)+' <br> Est. <b>0</b>s...',
                 didOpen: () => {
                     Swal.showLoading();
 
-                    let divider = 0
-                    if ($("#report_type").val().includes("defect_rate") && !$("#report_type").val().includes("top_defect")) {
-                        divider = 560;
-                    } else if (!$("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
-                        divider = 230;
-                    } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
-                        divider = 130;
-                    }
-
-                    let times = Number(document.getElementById("total_data").innerText)/divider;
-                    let cumulative = Number(100/times).round(2);
-                    let percent = 0;
-                    const progress = Swal.getPopup().querySelector("div.progress-bar");
-
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
                     estimatedTimeInterval = setInterval(() => {
-                        if (percent < 95) {
-                            percent += cumulative;
-                            progress.style.width = percent + "%";
-                        }
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
                     }, 1000);
                 },
                 allowOutsideClick: false,
@@ -508,8 +484,7 @@
                     ws: $("#ws").val(),
                     style: $("#style").val(),
                     color: $("#color").val(),
-                    types: $("#report_type").val(),
-                    department: $("#department").val()
+                    types: $("#report_type").val()
                 },
                 xhrFields: { responseType : 'blob' },
                 success: async function(res) {
@@ -566,9 +541,3 @@
         }
     </script>
 @endsection
-
-
-
-
-
-

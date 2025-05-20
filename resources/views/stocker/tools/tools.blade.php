@@ -42,10 +42,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label class="form-label">No. Form</label>
-                    <select name="no_form" id="no_form" class="form-control select2bs4form" style="width: 100%;">
-                        <option value="">Pilih Form</option>
-                    </select>
+                    <div class="mb-3">
+                        <label class="form-label">No. Form</label>
+                        <select name="no_form" id="no_form" class="form-control select2bs4form" style="width: 100%;"  onchange="getFormGroupList()">
+                            <option value="">Pilih Form</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Group</label>
+                        <select name="form_group" id="form_group" class="form-control select2bs4form" style="width: 100%;">
+                            <option value="">Pilih Form Group</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
@@ -102,10 +110,33 @@
             });
         }
 
+        function getFormGroupList() {
+            $.ajax({
+                type: "get",
+                url: "{{ route('get-form-group') }}",
+                data: {
+                    form_cut_id: $("#no_form").val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response) {
+                        $('#form_group').empty();
+                        $('#form_group').append('<option value="">Pilih Form Group</option>');
+                        $.each(response, function (key, value) {
+                            $('#form_group').append('<option value="' + value.group_stocker + '">' + value.group_stocker + " - " + value.shade + '</option>');
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+                }
+            });
+        }
+
         function resetStockerForm() {
             Swal.fire({
                 title: 'Please Wait...',
-                html: 'Fixing Data... <br><br> Est. <b>0</b>s...',
+                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
                 didOpen: () => {
                     Swal.showLoading();
 
@@ -124,7 +155,8 @@
                 url: "{{ route('reset-stocker-form') }}",
                 data: {
                     form_cut_id: $('#no_form').val(),
-                    no_form: $('#no_form option:selected').text()
+                    no_form: $('#no_form option:selected').text(),
+                    form_group: $('#form_group').val()
                 },
                 dataType: "json",
                 success: function (response) {

@@ -183,7 +183,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -202,33 +201,32 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableReload(); updateFilterSec(); updateFilterDetailSec();">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload(); updateFilterSec(); updateFilterDetailSec();">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                        onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
                 </div>
             </div>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i
-                            class="fas fa-list"></i> List</button>
+                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i class="fas fa-list"></i> List</button>
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i
-                            class="fas fa-list"></i>
-                        Detail</button>
+                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i class="fas fa-list"></i>
+                        Detail
+                    </button>
                 </div>
             </div>
             <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi Secondary In</h5>
             <br>
             <br>
-            <div class="table-responsive" id = "show_datatable_input">
-                <div class="d-flex justify-content-end mb-3">
+            <div class="table-responsive" id="show_datatable_input">
+                <div class="d-flex justify-content-end mb-3 gap-1">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterSecModal"><i class="fa fa-filter"></i></button>
                     <button class="btn btn-sm btn-success" onclick="exportExcel('list')"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
                 <table id="datatable-input" class="table table-bordered table-striped table w-100 text-nowrap">
@@ -257,21 +255,18 @@
                     <tfoot>
                         <tr>
                             <th colspan="12"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_awal'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_reject'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_replace'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_in'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_awal'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_in'> </th>
                             <th colspan="2"></th>
                         </tr>
                     </tfoot>
                 </table>
             </div>
             <div class="table-responsive" id = "show_datatable_detail">
-                <div class="d-flex justify-content-end mb-3">
+                <div class="d-flex justify-content-end mb-3 gap-1">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterDetailSecModal"><i class="fa fa-filter"></i></button>
                     <button class="btn btn-sm btn-success" onclick="exportExcel('detail')"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
                 <table id="datatable-detail" class="table table-bordered table-striped table w-100">
@@ -292,22 +287,169 @@
                     <tfoot>
                         <tr>
                             <th colspan="4"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_int'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_reject_det'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_replace_det'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_out'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_balance'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_int'></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject_det'></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace_det'></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_out'></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_balance'></th>
                             <th></th>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterSecModal" tabindex="-1" aria-labelledby="filterSecModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="filterSecModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Stock</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_tipe[]" id="sec_filter_tipe" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Buyer</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_buyer[]" id="sec_filter_buyer" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Worksheet</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_ws[]" id="sec_filter_ws" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Style</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_style[]" id="sec_filter_style" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Color</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_color[]" id="sec_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Part</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_part[]" id="sec_filter_part" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Size</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_size[]" id="sec_filter_size" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">No. Cut</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_no_cut[]" id="sec_filter_no_cut" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tujuan Awal</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_tujuan[]" id="sec_filter_tujuan" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Lokasi Awal</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_lokasi[]" id="sec_filter_lokasi" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Lokasi Rak</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_lokasi_rak[]" id="sec_filter_lokasi_rak" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sb" onclick="datatableReload()" data-bs-dismiss="modal">Simpan <i class="fa fa-check"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterDetailSecModal" tabindex="-1" aria-labelledby="filterDetailSecModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="filterDetailSecModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Buyer</label>
+                                <select class="form-select select2bs4filterdetailsec" name="detail_sec_filter_buyer[]" id="detail_sec_filter_buyer" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Worksheet</label>
+                                <select class="form-select select2bs4filterdetailsec" name="detail_sec_filter_ws[]" id="detail_sec_filter_ws" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Style</label>
+                                <select class="form-select select2bs4filterdetailsec" name="detail_sec_filter_style[]" id="detail_sec_filter_style" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Color</label>
+                                <select class="form-select select2bs4filterdetailsec" name="detail_sec_filter_color[]" id="detail_sec_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Proses</label>
+                                <select class="form-select select2bs4filterdetailsec" name="detail_sec_filter_lokasi[]" id="detail_sec_filter_lokasi" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sb" onclick="datatableReload()" data-bs-dismiss="modal">Simpan <i class="fa fa-check"></i></button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -322,19 +464,34 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $('.select2bs4filtersec').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#filterSecModal")
+        });
+
+        $('.select2bs4filterdetailsec').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#filterDetailSecModal")
+        });
+
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
-            $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
+            if (i == 7) {
+                $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
+            } else {
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            }
         });
 
         let datatable = $("#datatable-input").DataTable({
@@ -392,6 +549,10 @@
                 $(api.column(13).footer()).html(sumTotalReject);
                 $(api.column(14).footer()).html(sumTotalReplace);
                 $(api.column(15).footer()).html(sumTotalIn);
+
+                $('#size_filter').select2({
+                    theme: 'bootstrap4',
+                });
             },
             ordering: false,
             processing: true,
@@ -411,6 +572,18 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.sec_filter_tipe = $('#sec_filter_tipe').val();
+                    d.sec_filter_buyer = $('#sec_filter_buyer').val();
+                    d.sec_filter_ws = $('#sec_filter_ws').val();
+                    d.sec_filter_style = $('#sec_filter_style').val();
+                    d.sec_filter_color = $('#sec_filter_color').val();
+                    d.sec_filter_part = $('#sec_filter_part').val();
+                    d.sec_filter_size = $('#sec_filter_size').val();
+                    d.sec_filter_no_cut = $('#sec_filter_no_cut').val();
+                    d.sec_filter_tujuan = $('#sec_filter_tujuan').val();
+                    d.sec_filter_lokasi = $('#sec_filter_lokasi').val();
+                    d.sec_filter_lokasi_rak = $('#sec_filter_lokasi_rak').val();
+                    d.size_filter = $('#size_filter').val();
                 },
             },
             columns: [
@@ -574,6 +747,11 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.detail_sec_filter_buyer = $('#detail_sec_filter_buyer').val();
+                    d.detail_sec_filter_ws = $('#detail_sec_filter_ws').val();
+                    d.detail_sec_filter_style = $('#detail_sec_filter_style').val();
+                    d.detail_sec_filter_color = $('#detail_sec_filter_color').val();
+                    d.detail_sec_filter_lokasi = $('#detail_sec_filter_lokasi').val();
                 },
             },
             columns: [
@@ -686,6 +864,8 @@
         $(document).ready(function() {
             reset();
             list();
+            updateFilterSec();
+            updateFilterDetailSec();
         })
 
         $('#exampleModal').on('show.bs.modal', function(e) {
@@ -806,13 +986,13 @@
         }
 
         function list() {
-            document.getElementById("judul").textContent = "List Transaksi Inhouse / Dalam";
+            document.getElementById("judul").textContent = "List Transaksi  In";
             document.getElementById("show_datatable_input").style.display = 'block';
             document.getElementById("show_datatable_detail").style.display = 'none';
         }
 
         function detail() {
-            document.getElementById("judul").textContent = "Detail Transaksi Inhouse / Dalam";
+            document.getElementById("judul").textContent = "Detail Transaksi In";
             document.getElementById("show_datatable_input").style.display = 'none';
             document.getElementById("show_datatable_detail").style.display = 'block';
             $('#datatable-detail').DataTable().ajax.reload();
@@ -884,5 +1064,195 @@
 
             Swal.close()
         }
+
+        async function updateFilterSec() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            $.ajax({
+                url: '{{ route('filter-sec-in') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    dateFrom : $('#tgl-awal').val(),
+                    dateTo : $('#tgl-akhir').val(),
+                },
+                success: function(response) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    if (response) {
+                        if (response.tipe && response.tipe.length > 0) {
+                            let tipe = response.tipe;
+                            $("#sec_filter_tipe").empty();
+                            $.each(tipe, function(index, value) {
+                                $('#sec_filter_tipe').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.buyer && response.buyer.length > 0) {
+                            let buyer = response.buyer;
+                            $("#sec_filter_buyer").empty();
+                            $.each(buyer, function(index, value) {
+                                $('#sec_filter_buyer').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.ws && response.ws.length > 0) {
+                            let ws = response.ws;
+                            $("#sec_filter_ws").empty();
+                            $.each(ws, function(index, value) {
+                                $('#sec_filter_ws').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.style && response.style.length > 0) {
+                            let style = response.style;
+                            $("#sec_filter_style").empty();
+                            $.each(style, function(index, value) {
+                                $('#sec_filter_style').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.color && response.color.length > 0) {
+                            let color = response.color;
+                            $("#sec_filter_color").empty();
+                            $.each(color, function(index, value) {
+                                $('#sec_filter_color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.part && response.part.length > 0) {
+                            let part = response.part;
+                            $("#sec_filter_part").empty();
+                            $.each(part, function(index, value) {
+                                $('#sec_filter_part').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.size && response.size.length > 0) {
+                        let size = response.size;
+                            $("#sec_filter_size").empty();
+                            $('#size_filter').empty();
+                            $.each(size, function(index, value) {
+                                $('#sec_filter_size').append('<option value="'+value+'">'+value+'</option>');
+                                $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.no_cut && response.no_cut.length > 0) {
+                            let no_cut = response.no_cut;
+                            $("#sec_filter_no_cut").empty();
+                            $.each(no_cut, function(index, value) {
+                                $('#sec_filter_no_cut').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.tujuan && response.tujuan.length > 0) {
+                            let tujuan = response.tujuan;
+                            $("#sec_filter_tujuan").empty();
+                            $.each(tujuan, function(index, value) {
+                                $('#sec_filter_tujuan').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.tempat && response.tempat.length > 0) {
+                            let tempat = response.tempat;
+                            $("#sec_filter_tempat").empty();
+                            $.each(tempat, function(index, value) {
+                                $('#sec_filter_tempat').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.lokasi && response.lokasi.length > 0) {
+                            let lokasi = response.lokasi;
+                            $("#sec_filter_lokasi").empty();
+                            $.each(lokasi, function(index, value) {
+                                $('#sec_filter_lokasi').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.lokasi_rak && response.lokasi_rak.length > 0) {
+                            let lokasi_rak = response.lokasi_rak;
+                            $("#sec_filter_lokasi_rak").empty();
+                            $.each(lokasi_rak, function(index, value) {
+                                $('#sec_filter_lokasi_rak').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
+        }
+
+        async function updateFilterDetailSec() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            $.ajax({
+                url: '{{ route('filter-detail-sec-in') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    dateFrom : $('#tgl-awal').val(),
+                    dateTo : $('#tgl-akhir').val(),
+                },
+                success: function(response) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    if (response) {
+                        if (response.buyer && response.buyer.length > 0) {
+                            let buyer = response.buyer;
+                            $("#detail_sec_filter_buyer").empty();
+                            $.each(buyer, function(index, value) {
+                                $('#detail_sec_filter_buyer').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.ws && response.ws.length > 0) {
+                            let ws = response.ws;
+                            $("#detail_sec_filter_ws").empty();
+                            $.each(ws, function(index, value) {
+                                $('#detail_sec_filter_ws').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.style && response.style.length > 0) {
+                            let style = response.style;
+                            $("#detail_sec_filter_style").empty();
+                            $.each(style, function(index, value) {
+                                $('#detail_sec_filter_style').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.color && response.color.length > 0) {
+                            let color = response.color;
+                            $("#detail_sec_filter_color").empty();
+                            $.each(color, function(index, value) {
+                                $('#detail_sec_filter_color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.lokasi && response.lokasi.length > 0) {
+                            let lokasi = response.lokasi;
+                            $("#detail_sec_filter_lokasi").empty();
+                            $.each(lokasi, function(index, value) {
+                                $('#detail_sec_filter_lokasi').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
+        }
+
+        $('#size_filter').on("change", function() {
+            datatableReload();
+        });
     </script>
 @endsection

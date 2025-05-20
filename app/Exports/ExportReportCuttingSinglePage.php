@@ -91,7 +91,7 @@
                                 COALESCE(marker_input.notes, form_cut.notes) notes,
                                 marker_input.gelar_qty marker_gelar,
                                 SUM(form_cut.qty_ply) spreading_gelar,
-                                SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar,
+                                SUM(COALESCE(form_cut.detail, form_cut.total_lembar)) form_gelar,
                                 SUM(modify_size_qty.difference_qty) form_diff
                             FROM
                                 marker_input

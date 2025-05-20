@@ -703,7 +703,7 @@
                                         <div class="mb-3">
                                             <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
                                             <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
-                                            <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                            <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran" {{ $stockerData ? 'readonly' : '' }}
                                                 onkeyup="
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
@@ -717,7 +717,8 @@
                                                     calculateShortRoll();
                                                     updatePlyProgress();
                                                     // calculateSisaKain();
-                                                ">
+                                                "
+                                            >
                                         </div>
                                     </div>
                                 </div>
@@ -875,22 +876,30 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <div class="row justify-content-between">
+                                {{-- <div class="row justify-content-between">
                                     <div class="col-md-4">
                                         <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()" {{ $stockerData ? 'disabled' : '' }}><i class="fa fa-trash"></i> HAPUS</button>
                                     </div>
                                     <div class="col-md-4">
                                         <button type="button" class="btn btn-yes btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="storeTimeRecord()" {{ $stockerData ? 'disabled' : '' }}><i class="fa fa-save"></i> SIMPAN</button>
                                     </div>
+                                </div> --}}
+                                <div class="row justify-content-between">
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-yes btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-save"></i> SIMPAN</button>
+                                    </div>
                                 </div>
                             </div>
-                            @if ($stockerData)
+                            {{-- @if ($stockerData)
                                 <div class="col-md-12">
                                     <div class="alert alert-danger mt-3" role="alert">
                                         Tidak dapat mengubah form. Form sudah menjadi stocker. <a href="{{ route('show-stocker') }}/{{ $id }}" target="_blank"><b>Ke Halaman Stocker.</b></a>
                                     </div>
                                 </div>
-                            @endif
+                            @endif --}}
                         </div>
                     </form>
                 </div>

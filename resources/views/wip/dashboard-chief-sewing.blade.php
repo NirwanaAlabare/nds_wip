@@ -568,24 +568,24 @@
             tdYesterdayRft.style.padding = "1px !important"
 
             if (index == 1) {
-                currentDayOne = before.tanggal;
-                currentDayTwo = yesterday.tanggal;
-                currentDayThree = today.tanggal;
+                currentDayOne = before ? before.tanggal : beforeDate;
+                currentDayTwo = yesterday ? yesterday.tanggal : yesterdayDate;
+                currentDayThree = today ? today.tanggal : todayDate;
 
-                if (formatDate(new Date()) > today.tanggal) {
+                if (formatDate(new Date()) > today ? today.tanggal : todayDate) {
                     let dayOneElement = document.getElementsByClassName("day-1");
                     for (let i = 0; i < dayOneElement.length; i++) {
-                        dayOneElement[i].innerHTML = formatDateLocal(before.tanggal);
+                        dayOneElement[i].innerHTML = formatDateLocal(before ? before.tanggal : beforeDate);
                     }
 
                     let dayTwoElement = document.getElementsByClassName("day-2");
                     for (let i = 0; i < dayTwoElement.length; i++) {
-                        dayTwoElement[i].innerHTML = formatDateLocal(yesterday.tanggal);
+                        dayTwoElement[i].innerHTML = formatDateLocal(yesterday ? yesterday.tanggal : yesterdayDate);
                     }
 
                     let dayThreeElement = document.getElementsByClassName("day-3");
                     for (let i = 0; i < dayThreeElement.length; i++) {
-                        dayThreeElement[i].innerHTML = formatDateLocal(today.tanggal);
+                        dayThreeElement[i].innerHTML = formatDateLocal(today ? today.tanggal : todayDate);
                     }
                 }
             }

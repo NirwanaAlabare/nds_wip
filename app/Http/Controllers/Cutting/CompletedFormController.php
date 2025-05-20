@@ -83,10 +83,10 @@ class CompletedFormController extends Controller
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
+                    CONCAT(COALESCE(a2.total_lembar, a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
                     COALESCE(a.qty_ply, 0) qty_ply,
                     COALESCE(b.gelar_qty, 0) gelar_qty,
-                    COALESCE(a.total_lembar, '0') total_lembar,
+                    COALESCE(a2.total_lembar, a.total_lembar, '0') total_lembar,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
@@ -97,11 +97,12 @@ class CompletedFormController extends Controller
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
-                left join cutting_plan on cutting_plan.form_cut_id = a.id
-                left join users on users.id = a.no_meja
-                left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
-                left join marker_input_detail on b.id = marker_input_detail.marker_id
-                left join master_size_new on marker_input_detail.size = master_size_new.size
+                    left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
+                    left join cutting_plan on cutting_plan.form_cut_id = a.id
+                    left join users on users.id = a.no_meja
+                    left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+                    left join marker_input_detail on b.id = marker_input_detail.marker_id
+                    left join master_size_new on marker_input_detail.size = master_size_new.size
                 where
                     a.id is not null and
                     a.status = 'SELESAI PENGERJAAN'
@@ -247,11 +248,9 @@ class CompletedFormController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $updateTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
-            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
-            where('form_cut_input.id', $validatedRequest['id'])->
-            where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
-            where('form_cut_input_detail.id', $validatedRequest['current_id'])->
+        $updateTimeRecordSummary = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
+            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
+            where('id', $validatedRequest['current_id'])->
             update([
                 "id_roll" => $validatedRequest['current_id_roll'],
                 "id_item" => $validatedRequest['current_id_item'],
@@ -275,12 +274,13 @@ class CompletedFormController extends Controller
                 "piping" => $validatedRequest['current_piping']
             ]);
 
-
         $itemRemain = $validatedRequest['current_sisa_kain'];
 
+        // Extension Things
         if ($validatedRequest['current_sambungan'] > 0) {
             // After Extension
             $detailAfter = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
+                where('id_roll', $validatedRequest['current_id_roll'])->
                 where('id', '>', $validatedRequest['current_id'])->
                 orderBy('id', 'asc')->
                 first();
@@ -300,10 +300,10 @@ class CompletedFormController extends Controller
         }
 
         $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
-            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
-            where('form_cut_input.id', $validatedRequest['id'])->
-            where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
-            where('form_cut_input_detail.id', $validatedRequest['current_id'])->first();
+            where('form_cut_id', $validatedRequest['id'])->
+            where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
+            where('id', $validatedRequest['current_id'])->
+            first();
 
         if ($updateTimeRecordSummary) {
             ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
@@ -454,7 +454,7 @@ class CompletedFormController extends Controller
                     }
 
                     // Adjust stocker data
-                    $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+                    $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->where("notes", "!=", "ADDITIONAL")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
                     $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
                     $currentStockerSize = "";

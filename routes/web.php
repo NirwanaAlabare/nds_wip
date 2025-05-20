@@ -204,6 +204,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('get-general-number');
         // get no form
         Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
+        // get group
+        Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
 
         // new general
         // get buyers
@@ -728,6 +730,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-dc-in');
         Route::delete('/destroy', 'destroy')->name('destroy');
 
+        Route::get('/filter_dc_in', 'filter_dc_in')->name('filter-dc-in');
+        Route::get('/filter_detail_dc_in', 'filter_detail_dc_in')->name('filter-detail-dc-in');
+
         Route::get('/get_proses', 'get_proses')->name('get_proses_dc_in');
         Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
         Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
@@ -752,6 +757,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
         Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
 
+        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
+        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
+
         Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
     });
@@ -763,6 +771,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-secondary-in');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-in');
         Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
+
+        Route::get('/filter-sec-in', 'filterSecondaryIn')->name('filter-sec-in');
+        Route::get('/filter-detail-sec-in', 'filterDetailSecondaryIn')->name('filter-detail-sec-in');
 
         Route::get('/export-excel', 'exportExcel')->name('secondary-in-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-in-detail-export-excel');
@@ -1042,6 +1053,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
 
+        Route::get('/defect-map', 'defectMap')->name("defect-map");
+        Route::get('/defect-map/data', 'defectMapData')->name("defect-map-data");
+
         Route::post('/report-defect-export', 'reportDefectExport')->name("report-defect-export");
     });
 
@@ -1105,8 +1119,9 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
-        Route::post('/miss-masterplan', 'missMasterPlan')->name("miss-masterplan");
-        Route::post('/miss-rework', 'missRework')->name("miss-rework");
+        Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
+        Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
+        Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
     });
 
     // Mutasi Mesin
