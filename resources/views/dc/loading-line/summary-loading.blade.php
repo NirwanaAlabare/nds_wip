@@ -339,8 +339,8 @@
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {
-                    dateFrom : $('#tgl-awal').val(),
-                    dateTo : $('#tgl-akhir').val(),
+                    dateFrom : $('#dateFrom').val(),
+                    dateTo : $('#dateTo').val(),
                 },
                 success: function(response) {
                     document.getElementById('loading').classList.add('d-none');
