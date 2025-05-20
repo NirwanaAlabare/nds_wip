@@ -50,7 +50,6 @@
                             </li>
                         </ul>
                     </li>
-
                 @endif
 
                 @if ($page == 'dashboard-marker')
@@ -299,9 +298,10 @@
                         </ul>
                     </li>
                     @role('superadmin')
-                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                        @if (Auth::user()->id == 1 || Auth::user()->id == 2)
                             <li class="nav-item">
-                                <a href="{{ route('stocker-tools') }}" class="nav-link {{ $routeName == 'stocker-tools' ? 'active' : '' }}" target="_blank">
+                                <a href="{{ route('stocker-tools') }}"
+                                    class="nav-link {{ $routeName == 'stocker-tools' ? 'active' : '' }}" target="_blank">
                                     Tools
                                 </a>
                             </li>
@@ -444,17 +444,20 @@
                                     </a>
                                 </li> --}}
                                 <li>
-                                    <a href="{{ route('loading-line') }}" class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
+                                    <a href="{{ route('loading-line') }}"
+                                        class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
                                         Loading Line <i class="fa-solid fa-users-line"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('summary-loading') }}" class="dropdown-item {{ $routeName == 'summary-loading' ? 'active' : '' }}">
+                                    <a href="{{ route('summary-loading') }}"
+                                        class="dropdown-item {{ $routeName == 'summary-loading' ? 'active' : '' }}">
                                         Summary Loading <i class="fa-solid fa-list-check"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('modify-loading-line') }}" class="dropdown-item {{ $routeName == 'modify-loading' ? 'active' : '' }}">
+                                    <a href="{{ route('modify-loading-line') }}"
+                                        class="dropdown-item {{ $routeName == 'modify-loading' ? 'active' : '' }}">
                                         Modify Loading <i class="fa-solid fa-sliders"></i>
                                     </a>
                                 </li>
@@ -494,9 +497,10 @@
                         </ul>
                     </li>
                     @role('superadmin')
-                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                        @if (Auth::user()->id == 1 || Auth::user()->id == 2)
                             <li class="nav-item">
-                                <a href="{{ route('dc-tools') }}" class="nav-link {{ $routeName == 'dc-tools' ? 'active' : '' }}" target="_blank">
+                                <a href="{{ route('dc-tools') }}"
+                                    class="nav-link {{ $routeName == 'dc-tools' ? 'active' : '' }}" target="_blank">
                                     Tools
                                 </a>
                             </li>
@@ -639,13 +643,13 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('dashboard-chief-sewing-range', [date('Y-m-d', strtotime(date("Y-m-d")." -14 days")), date('Y-m-d')]) }}"
+                                    <a href="{{ route('dashboard-chief-sewing-range', [date('Y-m-d', strtotime(date('Y-m-d') . ' -14 days')), date('Y-m-d')]) }}"
                                         class="dropdown-item {{ $routeName == 'dashboard-chief-sewing-range' ? 'active' : '' }}">
                                         Chief Performance <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('dashboard-leader-sewing', [date('Y-m-d', strtotime(date("Y-m-d")." -14 days")), date('Y-m-d')]) }}"
+                                    <a href="{{ route('dashboard-leader-sewing', [date('Y-m-d', strtotime(date('Y-m-d') . ' -14 days')), date('Y-m-d')]) }}"
                                         class="dropdown-item {{ $routeName == 'dashboard-leader-sewing' ? 'active' : '' }}">
                                         Line Performance <i class="fa-solid fa-file"></i>
                                     </a>
@@ -668,14 +672,16 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('dashboard-wip') }}" class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}" target="_blank">
+                        <a href="{{ route('dashboard-wip') }}"
+                            class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}" target="_blank">
                             Dashboard
                         </a>
                     </li>
                     @role('superadmin')
-                        @if(Auth::user()->id == 1 || Auth::user()->id == 2)
+                        @if (Auth::user()->id == 1 || Auth::user()->id == 2)
                             <li class="nav-item">
-                                <a href="{{ route('sewing-tools') }}" class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
+                                <a href="{{ route('sewing-tools') }}"
+                                    class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
                                     Tools
                                 </a>
                             </li>
@@ -1157,6 +1163,12 @@
                                 <a href="{{ route('ppic_monitoring_material_det') }}"
                                     class="dropdown-item {{ $subPage == 'ppic_monitoring_material_det' ? 'active' : '' }}">
                                     Monitoring Material Detail <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('ppic_monitoring_material_sum') }}"
+                                    class="dropdown-item {{ $subPage == 'ppic_monitoring_material_sum' ? 'active' : '' }}">
+                                    Monitoring Material Summary <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>
