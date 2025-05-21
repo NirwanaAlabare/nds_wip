@@ -36,7 +36,7 @@
                     <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#storeMasterLineModal"><i class="fa fa-plus"></i> NEW</a>
                 </div>
             </div>
-            <table id="datatable" class="table table-bordered">
+            <table id="datatable" class="table table-bordered w-100">
                 <thead>
                     <tr>
                         <th>Action</th>

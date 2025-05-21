@@ -263,7 +263,7 @@ class MasterLineController extends Controller
                 }
 
                 return array(
-                    "status" => 200,
+                    "status" => 300,
                     "message" => "Leader Line berhasil disimpan.",
                     "table" => "datatable",
                     "additional" => [$storeEmployeeLine],
@@ -410,7 +410,7 @@ class MasterLineController extends Controller
                 }
 
                 return array(
-                    "status" => 200,
+                    "status" => 300,
                     "message" => "Master Line berhasil diubah.",
                     "table" => "datatable",
                     "additional" => $updateEmployeeLine,
