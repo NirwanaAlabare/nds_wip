@@ -1012,7 +1012,7 @@
 
                     // Show Chief Daily Data
                     for (let i = 0; i < sortedChiefDailyEfficiency.length; i++) {
-                        appendRow(sortedChiefDailyEfficiency[i], i+1);
+                        updateRow(sortedChiefDailyEfficiency[i], i+1);
                     }
 
                     document.getElementById("loading").classList.add("d-none");
