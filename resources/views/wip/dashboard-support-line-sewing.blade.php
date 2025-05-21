@@ -99,19 +99,19 @@
                 <table class="table table-bordered w-100">
                     <thead>
                         <tr>
-                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 11px !important; padding: 1px !important;">Line Support Efficiency & RFT {{ $monthName }}</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1" style="font-size: 9px !important;padding: 1px !important;">H-2</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2" style="font-size: 9px !important;padding: 1px !important;">H-1</th>
-                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3" style="font-size: 9px !important;padding: 1px !important;">Hari Ini</th>
-                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Rank</th>
+                            <th rowspan="2" colspan="2" class="bg-sb text-light align-middle fw-bold text-center" style="font-size: 15px !important; padding: 10px !important;">Line Support Efficiency & RFT {{ $monthName }}</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-1 d-none" style="font-size: 9px !important;padding: 1px !important;">H-2</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-2 d-none" style="font-size: 9px !important;padding: 1px !important;">H-1</th>
+                            <th colspan="2" class="bg-sb text-light fw-bold align-middle text-center day-3 d-none" style="font-size: 9px !important;padding: 1px !important;">Hari Ini</th>
+                            <th rowspan="2" class="bg-sb text-light fw-bold align-middle text-center d-none" style="font-size: 9px !important;padding: 1px !important;">Rank</th>
                         </tr>
                         <tr>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
-                            <th class="bg-sb text-light fw-bold align-middle text-center" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center d-none" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center d-none" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center d-none" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center d-none" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center d-none" style="font-size: 9px !important;padding: 1px !important;">Effy</th>
+                            <th class="bg-sb text-light fw-bold align-middle text-center d-none" style="font-size: 9px !important;padding: 1px !important;">RFT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -597,7 +597,8 @@
                 ],
                 chart: {
                     id: "chart-"+index,
-                    height: "auto",
+                    width: "850",
+                    height: "300",
                     type: 'line',
                     zoom: {
                         enabled: true
@@ -609,9 +610,9 @@
                 colors: ['#082149', '#238380'],
                 dataLabels: {
                     enabled: true,
-                    style: {
-                        fontSize: "5px",
-                    }
+                    // style: {
+                    //     fontSize: "5px",
+                    // }
                 },
                 stroke: {
                     curve: 'smooth'
@@ -629,20 +630,20 @@
                     },
                 },
                 yaxis: {
-                    tickAmount: 1,
-                    labels: {
-                        style: {
-                            fontSize: "5px",
-                        }
-                    }
+                    tickAmount: 6,
+                    // labels: {
+                    //     style: {
+                    //         fontSize: "5px",
+                    //     }
+                    // }
                 },
                 xaxis: {
                     categories: tglArr,
-                    labels: {
-                        style: {
-                            fontSize: "6.5px",
-                        }
-                    }
+                    // labels: {
+                    //     style: {
+                    //         fontSize: "6.5px",
+                    //     }
+                    // }
                 },
                 noData: {
                     text: 'Data Not Found'
@@ -655,7 +656,7 @@
                     offsetX: -5,
                     fontSize: "8.5px",
                 },
-                redrawOnParentResize: true
+                // redrawOnParentResize: true
             };
 
             var chart = new ApexCharts(canvas, options);
@@ -693,6 +694,7 @@
             tdBeforeEff.id = "before-eff-"+index;
             tdBeforeEff.innerHTML = (before ? (before.mins_prod / before.mins_avail * 100).round(2) : 0)+"%";
             tr.appendChild(tdBeforeEff);
+            tdBeforeEff.classList.add("d-none");
             tdBeforeEff.classList.add("text-center");
             tdBeforeEff.classList.add("align-middle");
             tdBeforeEff.classList.add("fw-bold");
@@ -703,6 +705,7 @@
             tdBeforeRft.id = "before-rft-"+index;
             tdBeforeRft.innerHTML = (before ? (before.rft / before.output * 100).round(2) : 0)+"%";
             tr.appendChild(tdBeforeRft);
+            tdBeforeRft.classList.add("d-none");
             tdBeforeRft.classList.add("text-center");
             tdBeforeRft.classList.add("align-middle");
             tdBeforeRft.classList.add("fw-bold");
@@ -715,6 +718,7 @@
             tdYesterdayEff.id = "yesterday-eff-"+index;
             tdYesterdayEff.innerHTML = (yesterday ? (yesterday.mins_prod / yesterday.mins_avail * 100).round(2) : 0)+"%";
             tr.appendChild(tdYesterdayEff);
+            tdYesterdayEff.classList.add("d-none");
             tdYesterdayEff.classList.add("text-center");
             tdYesterdayEff.classList.add("align-middle");
             tdYesterdayEff.classList.add("fw-bold");
@@ -725,6 +729,7 @@
             tdYesterdayRft.id = "yesterday-rft-"+index;
             tdYesterdayRft.innerHTML = (yesterday ? (yesterday.rft / yesterday.output * 100).round(2) : 0)+"%";
             tr.appendChild(tdYesterdayRft);
+            tdYesterdayRft.classList.add("d-none");
             tdYesterdayRft.classList.add("text-center");
             tdYesterdayRft.classList.add("align-middle");
             tdYesterdayRft.classList.add("fw-bold");
@@ -737,6 +742,7 @@
             tdTodayEff.id = "today-eff-"+index;
             tdTodayEff.innerHTML = (today ? (today.mins_prod / today.mins_avail * 100).round(2) : 0)+"%";
             tr.appendChild(tdTodayEff);
+            tdTodayEff.classList.add("d-none");
             tdTodayEff.classList.add("text-center");
             tdTodayEff.classList.add("align-middle");
             tdTodayEff.classList.add("fw-bold");
@@ -748,6 +754,7 @@
             tdTodayRft.id = "today-rft-"+index;
             tdTodayRft.innerHTML = (today ? (today.rft / today.output * 100).round(2) : 0)+"%";
             tr.appendChild(tdTodayRft);
+            tdTodayRft.classList.add("d-none");
             tdTodayRft.classList.add("text-center");
             tdTodayRft.classList.add("align-middle");
             tdTodayRft.classList.add("fw-bold");
@@ -787,6 +794,7 @@
                 </div>
                 `;
             tr.appendChild(tdRank);
+            tdRank.classList.add("d-none");
             tdRank.classList.add("text-center");
             tdRank.classList.add("align-middle");
             tdRank.classList.add("fw-bold");
