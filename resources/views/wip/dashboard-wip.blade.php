@@ -115,14 +115,14 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <select class="select2bs4chief" name="year" id="year">
+                                    <select class="select2bs4chief" name="chief-year" id="chief-year">
                                         @foreach ($years as $y)
                                             <option value="{{ $y }}">{{ $y }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <select class="select2bs4chief" name="month" id="month">
+                                    <select class="select2bs4chief" name="chief-month" id="chief-month">
                                         @foreach ($months as $m)
                                             <option value="{{ $m['angka'] }}" {{ $m['angka'] == date("m") ? "selected" : "" }}>{{ $m['nama'] }}</option>
                                         @endforeach
@@ -148,10 +148,10 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}">
+                                    <input type="date" class="form-control" id="chief-range-dateFrom" name="chief-range-dateFrom" value="{{ date("Y-m-d") }}">
                                 </div>
                                 <div class="col-md-6">
-                                    <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}">
+                                    <input type="date" class="form-control" id="chief-range-dateTo" name="chief-range-dateTo" value="{{ date("Y-m-d") }}">
                                 </div>
                             </div>
                         </div>
@@ -173,14 +173,14 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <select class="select2bs4linesupport" name="year" id="year">
+                                    <select class="select2bs4linesupport" name="line-support-year" id="line-support-year">
                                         @foreach ($years as $y)
                                             <option value="{{ $y }}">{{ $y }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <select class="select2bs4linesupport" name="month" id="month">
+                                    <select class="select2bs4linesupport" name="line-support-month" id="line-support-month">
                                         @foreach ($months as $m)
                                             <option value="{{ $m['angka'] }}" {{ $m['angka'] == date("m") ? "selected" : "" }}>{{ $m['nama'] }}</option>
                                         @endforeach
@@ -246,17 +246,17 @@
         });
 
         function visitDashboardChief() {
-            window.open("{{ route("dashboard-chief-sewing") }}/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+            window.open("{{ route("dashboard-chief-sewing") }}/"+$("#chief-year").val()+"/"+$("#chief-month").val(), '_blank');
             // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
         }
 
         function visitDashboardChiefRange() {
-            window.open("{{ route("dashboard-chief-sewing-range") }}/"+$("#dateFrom").val()+"/"+$("#dateTo").val(), '_blank');
+            window.open("{{ route("dashboard-chief-sewing-range") }}/"+$("#chief-range-dateFrom").val()+"/"+$("#chief-range-dateTo").val(), '_blank');
             // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
         }
 
         function visitDashboardSupportLine() {
-            window.open("{{ route("dashboard-support-line-sewing") }}/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+            window.open("{{ route("dashboard-support-line-sewing") }}/"+$("#line-support-year").val()+"/"+$("#line-support-month").val(), '_blank');
             // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
         }
     </script>
