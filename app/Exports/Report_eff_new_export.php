@@ -48,7 +48,6 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
 
 
     public function view(): View
-
     {
         $data = DB::connection('mysql_sb')->select("SELECT
         a.tgl_trans,
