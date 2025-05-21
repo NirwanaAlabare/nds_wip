@@ -26,6 +26,7 @@
         "milon/barcode": "^10.0",
         "predis/predis": "^2.3",
         "simplesoftwareio/simple-qrcode": "^4.2",
+        "weidner/goutte": "^2.3",
         "yajra/laravel-datatables-oracle": "^9.21"
     },
     "require-dev": {
