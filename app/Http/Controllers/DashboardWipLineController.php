@@ -822,8 +822,8 @@ END jam) a))) target from (
                                 output_rfts rfts
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
-                                rfts.updated_at >= '".(date("Y-m-d", strtotime($year."-".$month."-01 -7 days")))." 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 10 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1124,5 +1124,83 @@ END jam) a))) target from (
         ");
 
         return $efficiencyLine;
+    }
+
+    function factoryDailyPerformance($year = 0, $month = 0) {
+        $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+
+        $yearVar = $year ? $year : date("Y");
+        $monthVar = $month ? $month : date("m");
+
+        return view('wip.dashboard-factory-daily-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'factory-daily-sewing', "year" => $yearVar, "month" => $monthVar, "monthName" => $months[num($monthVar)-1]["nama"], "months" => $months]);
+    }
+
+    function factoryDailyPerformanceData(Request $request) {
+        $month = $request->month ? $request->month : date("m");
+        $year = $request->year ? $request->year : date("Y");
+
+        $factoryDailyEfficiency = DB::connection("mysql_sb")->select("
+            select
+                output.tgl_output as tanggal,
+                output.sewing_line,
+                SUM(rft) rft,
+                SUM(output) output,
+                SUM(mins_prod) mins_prod,
+                SUM(mins_avail) mins_avail,
+                SUM(cumulative_mins_avail) cumulative_mins_avail
+            from
+                (
+                    SELECT
+                        output.tgl_output,
+                        output.tgl_plan,
+                        output.sewing_line,
+                        SUM(rft) rft,
+                        SUM(output) output,
+                        SUM(output * output.smv) mins_prod,
+                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
+                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
+                        MAX(output.last_update) last_update,
+                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
+                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
+                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
+                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                    FROM
+                        (
+                            SELECT
+                                DATE( rfts.updated_at ) tgl_output,
+                                COUNT( rfts.id ) output,
+                                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+                                MAX(rfts.updated_at) last_update,
+                                master_plan.id master_plan_id,
+                                master_plan.tgl_plan,
+                                master_plan.sewing_line,
+                                master_plan.man_power,
+                                master_plan.jam_kerja,
+                                master_plan.smv
+                            FROM
+                                output_rfts rfts
+                                inner join master_plan on master_plan.id = rfts.master_plan_id
+                                inner join act_costing on act_costing.id = master_plan.id_ws
+                                inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            where
+                                rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 10 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.cancel = 'N'
+                            GROUP BY
+                                master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
+                            order by
+                                sewing_line
+                        ) output
+                    GROUP BY
+                        output.sewing_line,
+                        output.tgl_output
+                ) output
+            group by
+                tgl_output
+            order by
+                tgl_output asc
+        ");
+
+        return $factoryDailyEfficiency;
     }
 }

@@ -47,18 +47,26 @@
 @section('content')
     <div class="container my-4">
         <div class="row justify-content-start align-items-center">
+            <div class="col-12">
+                <h4 class="text-sb fw-bold mb-3">Sewing Line Dashboard</h4>
+                <hr style="color: #222">
+            </div>
             @foreach ($lines as $line)
                 <div class="col-md-4 col-lg-3 mb-4">
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-body text-center">
                             <div class="d-flex justify-content-between align-items-center h-100 gap-3">
                                 <h5 class="card-title fw-bold">{{ str_replace("SEWING ", "", $line->name) }}</h5>
-                                <a href="{{ url('dashboard-wip/wip-line/' . $line->id) }}" class="btn btn-primary btn-sm">Details</a>
+                                <a href="{{ url('dashboard-wip/wip-line/' . $line->id) }}" class="btn btn-primary btn-sm" target="_blank">Details</a>
                             </div>
                         </div>
                     </div>
                 </div>
             @endforeach
+            <div class="col-12">
+                <h4 class="text-sb fw-bold mb-3">Sewing Team Dashboard</h4>
+                <hr style="color: #222">
+            </div>
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
@@ -83,12 +91,16 @@
                     </div>
                 </div>
             </div>
+            <div class="col-12">
+                <h4 class="text-sb fw-bold mb-3">Sewing Factory Dashboard</h4>
+                <hr style="color: #222">
+            </div>
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body text-center">
                         <div class="d-flex justify-content-between align-items-center h-100 gap-3">
                             <h5 class="card-title fw-bold">FACTORY DASHBOARD</h5>
-                            <a href="http://10.10.5.62:8000/dashboard-wip/factory" class="btn btn-primary btn-sm">Details</a>
+                            <a href="http://10.10.5.62:8000/dashboard-wip/factory" target="_blank" class="btn btn-primary btn-sm">Details</a>
                         </div>
                     </div>
                 </div>
@@ -98,7 +110,17 @@
                     <div class="card-body text-center">
                         <div class="d-flex justify-content-between align-items-center h-100 gap-3">
                             <h5 class="card-title fw-bold">FACTORY DEFECT DASHBOARD</h5>
-                            <a href="http://10.10.5.62:8000/dashboard-wip/factory_defect" class="btn btn-primary btn-sm">Details</a>
+                            <a href="http://10.10.5.62:8000/dashboard-wip/factory_defect" target="_blank" class="btn btn-primary btn-sm">Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center h-100 gap-3">
+                            <h5 class="card-title fw-bold">FACTORY DAILY PERFORMANCE</h5>
+                            <button type="button" data-bs-toggle="modal" data-bs-target="#factoryDailyPerformance" class="btn btn-primary btn-sm">Details</button>
                         </div>
                     </div>
                 </div>
@@ -194,6 +216,39 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="factoryDailyPerformance" tabindex="-1" aria-labelledby="factoryDailyPerformanceLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="factoryDailyPerformanceLabel">Visit Factory Daily Range</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select class="select2bs4factorydaily" name="factory-daily-year" id="factory-daily-year">
+                                        @foreach ($years as $y)
+                                            <option value="{{ $y }}">{{ $y }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <select class="select2bs4factorydaily" name="factory-daily-month" id="factory-daily-month">
+                                        @foreach ($months as $m)
+                                            <option value="{{ $m['angka'] }}" {{ $m['angka'] == date("m") ? "selected" : "" }}>{{ $m['nama'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="visitFactoryDailyPerformance()">Visit <i class="fa fa-share"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -221,6 +276,10 @@
         $('.select2bs4linesupport').select2({
             theme: 'bootstrap4',
             dropdownParent: $('#lineSupportDashboard')
+        })
+        $('.select2bs4factorydaily').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#factoryDailyPerformance')
         })
 
         $(function () {
@@ -257,6 +316,11 @@
 
         function visitDashboardSupportLine() {
             window.open("{{ route("dashboard-support-line-sewing") }}/"+$("#line-support-year").val()+"/"+$("#line-support-month").val(), '_blank');
+            // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+        }
+
+        function visitFactoryDailyPerformance() {
+            window.open("{{ route("dashboard-factory-daily-sewing") }}/"+$("#factory-daily-year").val()+"/"+$("#factory-daily-month").val(), '_blank');
             // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
         }
     </script>

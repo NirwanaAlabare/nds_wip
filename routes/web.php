@@ -1857,6 +1857,8 @@ Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::cla
 Route::post('/dashboard-wip/leader-sewing-range-data-export', [DashboardWipLineController::class, 'leaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-leader-sewing-range-data-export');
 Route::get('/dashboard-wip/support-line-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'supportLineSewing'])->name('dashboard-support-line-sewing');
 Route::get('/dashboard-wip/support-line-sewing-data', [DashboardWipLineController::class, 'supportLineSewingData'])->name('dashboard-support-line-sewing-data');
+Route::get('/dashboard-wip/factory-daily-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'factoryDailyPerformance'])->name('dashboard-factory-daily-sewing');
+Route::get('/dashboard-wip/factory-daily-sewing-data', [DashboardWipLineController::class, 'factoryDailyPerformanceData'])->name('dashboard-factory-daily-sewing-data');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
