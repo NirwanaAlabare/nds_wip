@@ -184,7 +184,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = Object.values(Object.groupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -693,7 +693,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = Object.values(Object.groupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
