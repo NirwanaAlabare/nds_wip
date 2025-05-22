@@ -283,11 +283,11 @@
             let efficiencyArr = [];
             let rftArr = [];
 
-            let dailyData = data.filter((item) => item.mins_avail > 0 && item.output > 0);
+            let dailyData = data.filter((item) => item.cumulative_mins_avail > 0 && item.output > 0);
 
             dailyData.forEach(item => {
                 tglArr.push(formatDateTick(item.tanggal));
-                efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
+                efficiencyArr.push((item.mins_prod / item.cumulative_mins_avail * 100).round(2));
                 rftArr.push((item.rft / item.output * 100).round(2));
             });
 
@@ -380,11 +380,11 @@
             let efficiencyArr = [];
             let rftArr = [];
 
-            let dailyData = data.filter((item) => item.mins_avail > 0 && item.output > 0);
+            let dailyData = data.filter((item) => item.cumulative_mins_avail > 0 && item.output > 0);
 
             dailyData.forEach(item => {
                 tglArr.push(formatDateTick(item.tanggal));
-                efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
+                efficiencyArr.push((item.mins_prod / item.cumulative_mins_avail * 100).round(2));
                 rftArr.push((item.rft / item.output * 100).round(2));
             });
 
