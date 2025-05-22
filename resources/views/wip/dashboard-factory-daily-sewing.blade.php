@@ -317,7 +317,7 @@
                 dataLabels: {
                     enabled: true,
                     style: {
-                        fontSize: "11px",
+                        fontSize: "14px",
                     }
                 },
                 stroke: {
@@ -340,7 +340,7 @@
                     tickAmount: 10,
                     labels: {
                         style: {
-                            fontSize: "11px",
+                            fontSize: "12px",
                         }
                     }
                 },
@@ -348,7 +348,7 @@
                     categories: tglArr,
                     labels: {
                         style: {
-                            fontSize: "11px",
+                            fontSize: "12px",
                         },
                     },
                     rotate: 0,             // Start with no rotation
@@ -363,7 +363,7 @@
                     // floating: true,
                     offsetY: 5,
                     offsetX: -5,
-                    fontSize: "15px",
+                    fontSize: "14px",
                 },
                 redrawOnParentResize: true
             };
