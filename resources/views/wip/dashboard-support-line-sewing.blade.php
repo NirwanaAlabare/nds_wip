@@ -174,8 +174,8 @@
         document.getElementById("loading").classList.remove("d-none");
 
         $('document').ready(async () => {
-            $.ajax({
-                url: "{{ route("dashboard-support-line-sewing-data") }}",
+            await $.ajax({
+                url: "{{ route("dashboard-chief-sewing-data") }}",
                 type: "get",
                 data: {
                     year: $("#year").val(),
@@ -1020,10 +1020,8 @@
 
                     // Show Chief Daily Data
                     for (let i = 0; i < sortedChiefDailyEfficiency.length; i++) {
-                        appendRow(sortedChiefDailyEfficiency[i], i+1);
+                        updateRow(sortedChiefDailyEfficiency[i], i+1);
                     }
-
-                    document.getElementById("loading").classList.add("d-none");
                 },
                 error: function (jqXHR) {
                     console.error(jqXHR);

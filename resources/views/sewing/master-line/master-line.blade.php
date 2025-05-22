@@ -334,10 +334,10 @@
                     data: 'leaderqc_name'
                 },
                 {
-                    data: 'technical_name'
+                    data: 'mechanic_name'
                 },
                 {
-                    data: 'mechanic_name'
+                    data: 'technical_name'
                 },
             ],
             columnDefs: [
