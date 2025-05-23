@@ -1866,18 +1866,27 @@ Route::get('/dashboard-track', [DashboardController::class, 'track'])->middlewar
 Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
 Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware('auth')->name('dashboard-wip');
 Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
+// Chief
 Route::get('/dashboard-wip/chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'chiefSewing'])->name('dashboard-chief-sewing');
 Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::class, 'chiefSewingData'])->name('dashboard-chief-sewing-data');
 Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->middleware('auth')->name('dashboard-chief-sewing-range');
+// Chief Range
 Route::get('/dashboard-wip/chief-sewing-range-data', [DashboardWipLineController::class, 'chiefSewingRangeData'])->middleware('auth')->name('dashboard-chief-sewing-range-data');
 Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineController::class, 'chiefSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-sewing-range-data-export');
+// Leader
 Route::get('/dashboard-wip/leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'leaderSewing'])->middleware('auth')->name('dashboard-leader-sewing');
 Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::class, 'leaderSewingData'])->middleware('auth')->name('dashboard-leader-sewing-data');
 Route::post('/dashboard-wip/leader-sewing-range-data-export', [DashboardWipLineController::class, 'leaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-leader-sewing-range-data-export');
+// Line Support
 Route::get('/dashboard-wip/support-line-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'supportLineSewing'])->name('dashboard-support-line-sewing');
 Route::get('/dashboard-wip/support-line-sewing-data', [DashboardWipLineController::class, 'supportLineSewingData'])->name('dashboard-support-line-sewing-data');
+// Factory
 Route::get('/dashboard-wip/factory-daily-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'factoryDailyPerformance'])->name('dashboard-factory-daily-sewing');
 Route::get('/dashboard-wip/factory-daily-sewing-data', [DashboardWipLineController::class, 'factoryDailyPerformanceData'])->name('dashboard-factory-daily-sewing-data');
+// Chief Leader
+Route::get('/dashboard-wip/chief-leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefLeaderSewing'])->middleware('auth')->name('dashboard-chief-leader-sewing');
+Route::get('/dashboard-wip/chief-leader-sewing-data', [DashboardWipLineController::class, 'chiefLeaderSewingData'])->middleware('auth')->name('dashboard-chief-leader-sewing-data');
+Route::post('/dashboard-wip/chief-leader-sewing-range-data-export', [DashboardWipLineController::class, 'chiefLeaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-leader-sewing-range-data-export');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
