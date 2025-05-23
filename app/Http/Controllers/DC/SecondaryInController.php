@@ -373,7 +373,47 @@ class SecondaryInController extends Controller
         return json_encode($cekdata[0]);
     }
 
-
+    public function cek_data_stocker_in_edit(Request $request)
+    {
+        $cekdata =  DB::select("
+        select
+        s.id_qr_stocker,
+        s.act_costing_ws,
+        msb.buyer,
+        no_cut,
+        msb.styleno as style,
+        s.color,
+        COALESCE(msb.size, s.size) size,
+        dc.tujuan,
+        dc.lokasi,
+        mp.nama_part,
+        if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
+        s.lokasi lokasi_tujuan,
+        s.tempat tempat_tujuan
+        from
+        (
+        select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
+        left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+        left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+        where dc.tujuan = 'SECONDARY DALAM' and
+        ifnull(sii.id_qr_stocker,'x') = 'x'
+        union
+        select dc.id_qr_stocker, 'x' cek_1, if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') cek_2  from dc_in_input dc
+        left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+        where dc.tujuan = 'SECONDARY LUAR'	and	if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') != 'x'
+        ) md
+        left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
+        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+        left join form_cut_input a on s.form_cut_id = a.id
+        left join part_detail p on s.part_detail_id = p.id
+        left join master_part mp on p.master_part_id = mp.id
+        left join marker_input mi on a.id_marker = mi.kode
+        left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
+        left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+        where s.id_qr_stocker =     '" . $request->txtqrstocker . "'
+        ");
+        return json_encode($cekdata[0]);
+    }
 
     // public function get_rak(Request $request)
     // {
@@ -620,6 +660,44 @@ class SecondaryInController extends Controller
         return array(
             'status' => 400,
             'message' => 'Data gagal disimpan',
+            'redirect' => '',
+            'table' => 'datatable-input',
+            'additional' => [],
+        );
+    }
+
+    public function update(Request $request)
+    {
+        $tgltrans = date('Y-m-d');
+        $timestamp = Carbon::now();
+
+        $validatedRequest = $request->validate([
+            "txtqtyreject" => "required"
+        ]);
+
+        $saveinhouse = SecondaryIn::updateOrCreate(
+            ['id_qr_stocker' => $request['txtno_stocker']],
+            [
+                'tgl_trans' => $tgltrans,
+                'qty_awal' => $request['txtqtyawal'],
+                'qty_reject' => $request['txtqtyreject'],
+                'qty_replace' => $request['txtqtyreplace'],
+                'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
+                'user' => Auth::user()->name,
+                'ket' => $request['txtket'],
+            ]
+        );
+
+        DB::update(
+            "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
+        );
+        // dd($savemutasi);
+        // $message .= "$tglpindah <br>";
+
+
+        return array(
+            'status' => 300,
+            'message' => 'Data Sudah Disimpan',
             'redirect' => '',
             'table' => 'datatable-input',
             'additional' => [],
