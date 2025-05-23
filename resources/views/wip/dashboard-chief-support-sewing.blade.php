@@ -257,7 +257,39 @@
                         let mechanicOutput = groupByRole(element, currentData?.tanggal, "mechanic");
                         let technicalOutput = groupByRole(element, currentData?.tanggal, "technical");
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "ieData": ieOutput, "leaderqcData": leaderqcOutput, "mechanicData": mechanicOutput, "technicalData": technicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
+                        let sortedIeOutput = ieOutput.sort(function(a, b) {
+                            let nameA = a && a.ie_name ? a.ie_name.toLowerCase() : '-';
+                            let nameB = b && b.ie_name ? b.ie_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        let sortedLeaderqcOutput = leaderqcOutput.sort(function(a, b) {
+                            let nameA = a && a.leaderqc_name ? a.leaderqc_name.toLowerCase() : '-';
+                            let nameB = b && b.leaderqc_name ? b.leaderqc_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        let sortedMechanicOutput = mechanicOutput.sort(function(a, b) {
+                            let nameA = a && a.mechanic_name ? a.mechanic_name.toLowerCase() : '-';
+                            let nameB = b && b.mechanic_name ? b.mechanic_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        let sortedTechnicalOutput = technicalOutput.sort(function(a, b) {
+                            let nameA = a && a.technical_name ? a.technical_name.toLowerCase() : '-';
+                            let nameB = b && b.technical_name ? b.technical_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "ieData": sortedIeOutput, "leaderqcData": sortedLeaderqcOutput, "mechanicData": sortedMechanicOutput, "technicalData": sortedTechnicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
