@@ -205,7 +205,18 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        // Sort date output efficiency
+                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -251,7 +262,7 @@
                             return 0;
                         });
 
-                        // IE Output
+                        // Support Output
                         let ieOutput = groupByRole(element, currentData?.tanggal, "ie");
                         let leaderqcOutput = groupByRole(element, currentData?.tanggal, "leaderqc");
                         let mechanicOutput = groupByRole(element, currentData?.tanggal, "mechanic");
@@ -289,7 +300,7 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "ieData": sortedIeOutput, "leaderqcData": sortedLeaderqcOutput, "mechanicData": sortedMechanicOutput, "technicalData": sortedTechnicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
+                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "ieData": sortedIeOutput, "leaderqcData": sortedLeaderqcOutput, "mechanicData": sortedMechanicOutput, "technicalData": sortedTechnicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -318,37 +329,10 @@
             });
         });
 
-        function groupByRole(element, currentDate, role) {
-            let output = [];
-            element.reduce((res, value) => {
-                if (value.tanggal === currentDate) {
-                    let id = value[`${role}_id`] ?? value.sewing_line;
-                    if (!res[id]) {
-                        res[id] = {
-                            id: value[`${role}_id`],
-                            [`${role}_nik`]: value[`${role}_nik`],
-                            [`${role}_name`]: value[`${role}_name`],
-                            sewing_line: "",
-                            mins_avail: 0,
-                            mins_prod: 0,
-                            output: 0,
-                            rft: 0
-                        };
-                        output.push(res[id]);
-                    }
-                    res[id].mins_avail += Number(value.cumulative_mins_avail);
-                    res[id].mins_prod += Number(value.mins_prod);
-                    res[id].output += Number(value.output);
-                    res[id].rft += Number(value.rft);
-                    res[id].sewing_line += value.sewing_line + "<br>";
-                }
-                return res;
-            }, {});
-            return output;
-        }
-
         var intervalData = setInterval(() => {
-            // updateData();
+            console.log("update data");
+
+            updateData();
         }, 60000);
 
         var currentDayOne = "";
@@ -978,7 +962,18 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        // Sort date output efficiency
+                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -1012,7 +1007,45 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        // Support Output
+                        let ieOutput = groupByRole(element, currentData?.tanggal, "ie");
+                        let leaderqcOutput = groupByRole(element, currentData?.tanggal, "leaderqc");
+                        let mechanicOutput = groupByRole(element, currentData?.tanggal, "mechanic");
+                        let technicalOutput = groupByRole(element, currentData?.tanggal, "technical");
+
+                        let sortedIeOutput = ieOutput.sort(function(a, b) {
+                            let nameA = a && a.ie_name ? a.ie_name.toLowerCase() : '-';
+                            let nameB = b && b.ie_name ? b.ie_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        let sortedLeaderqcOutput = leaderqcOutput.sort(function(a, b) {
+                            let nameA = a && a.leaderqc_name ? a.leaderqc_name.toLowerCase() : '-';
+                            let nameB = b && b.leaderqc_name ? b.leaderqc_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        let sortedMechanicOutput = mechanicOutput.sort(function(a, b) {
+                            let nameA = a && a.mechanic_name ? a.mechanic_name.toLowerCase() : '-';
+                            let nameB = b && b.mechanic_name ? b.mechanic_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        let sortedTechnicalOutput = technicalOutput.sort(function(a, b) {
+                            let nameA = a && a.technical_name ? a.technical_name.toLowerCase() : '-';
+                            let nameB = b && b.technical_name ? b.technical_name.toLowerCase() : '-';
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
+                            return 0;
+                        });
+
+                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "ieData": sortedIeOutput, "leaderqcData": sortedLeaderqcOutput, "mechanicData": sortedMechanicOutput, "technicalData": sortedTechnicalOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -1072,9 +1105,14 @@
                 chiefContainer.appendChild(imageContainer);
                 chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
 
+                let subEmployeeContainer = document.createElement("div");
+                subEmployeeContainer.classList.add("col-9");
+                subEmployeeContainer.classList.add("d-flex");
+                subEmployeeContainer.classList.add("flex-wrap");
+
                 // Leader
                 let leaderContainer = document.createElement("div");
-                leaderContainer.classList.add("col-9");
+                leaderContainer.classList.add("w-100");
                 let leadersElement = document.createElement("div");
                 leadersElement.classList.add("row");
                 leadersElement.classList.add("h-100");
@@ -1103,6 +1141,7 @@
                     leaderImageContainer.appendChild(leaderImageSubContainer)
                     leaderElement.appendChild(leaderImageContainer);
                     leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+leaderName+"</center></span>";
+                    leaderImageContainer.innerHTML += "<span class='text-dark fw-bold' style='font-size: 6.5px;'><center>LEADER</center></span>";
                     leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                     leadersElement.appendChild(leaderElement);
                 });
@@ -1117,13 +1156,14 @@
                 // IE
                 let ieContainer = document.createElement("div");
                 ieContainer.classList.add("col-2");
+                ieContainer.classList.add("p-0");
                 let iesElement = document.createElement("div");
                 iesElement.classList.add("d-flex");
                 iesElement.classList.add("flex-column");
                 iesElement.classList.add("border");
                 // iesElement.classList.add("gap-1");
                 iesElement.classList.add("h-100");
-                iesElement.innerHTML = '<p style="font-size: 7px;" class="text-center fw-bold bg-info mb-0">IE</p>';
+                iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
                 data.ieData.forEach(element => {
                     if (element.ie_name) {
                         let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
@@ -1150,6 +1190,7 @@
                         ieImageContainer.appendChild(ieImageSubContainer)
                         ieElement.appendChild(ieImageContainer);
                         ieImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+ieName+"</center></span>";
+                        ieImageContainer.innerHTML += "<span class='text-info fw-bold' style='font-size: 6.5px;'><center>IE</center></span>";
                         // ieImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                         iesElement.appendChild(ieElement);
                     }
@@ -1159,13 +1200,14 @@
                 // leaderqc
                 let leaderqcContainer = document.createElement("div");
                 leaderqcContainer.classList.add("col-2");
+                leaderqcContainer.classList.add("p-0");
                 let leaderqcsElement = document.createElement("div");
                 leaderqcsElement.classList.add("border");
                 leaderqcsElement.classList.add("d-flex");
                 leaderqcsElement.classList.add("flex-column");
                 // leaderqcsElement.classList.add("gap-1");
                 leaderqcsElement.classList.add("h-100");
-                leaderqcsElement.innerHTML = '<p style="font-size: 7px;" class="text-center fw-bold bg-danger mb-0">LEADER QC</p>';
+                leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
                 data.leaderqcData.forEach(element => {
                     if (element.leaderqc_name) {
                         let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
@@ -1192,6 +1234,7 @@
                         leaderqcImageContainer.appendChild(leaderqcImageSubContainer)
                         leaderqcElement.appendChild(leaderqcImageContainer);
                         leaderqcImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+leaderqcName+"</center></span>";
+                        leaderqcImageContainer.innerHTML += "<span class='text-danger fw-bold' style='font-size: 6.5px;'><center>LEADER QC</center></span>";
                         // leaderqcImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                         leaderqcsElement.appendChild(leaderqcElement);
                     }
@@ -1201,13 +1244,14 @@
                 // mechanic
                 let mechanicContainer = document.createElement("div");
                 mechanicContainer.classList.add("col-2");
+                mechanicContainer.classList.add("p-0");
                 let mechanicsElement = document.createElement("div");
                 mechanicsElement.classList.add("d-flex");
                 mechanicsElement.classList.add("flex-column");
                 mechanicsElement.classList.add("border");
                 // mechanicsElement.classList.add("gap-1");
                 mechanicsElement.classList.add("h-100");
-                mechanicsElement.innerHTML = '<p style="font-size: 7px;" class="text-center fw-bold bg-success mb-0">MECHANIC</p>';
+                mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
                 data.mechanicData.forEach(element => {
                     if (element.mechanic_name) {
                         let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
@@ -1234,6 +1278,7 @@
                         mechanicImageContainer.appendChild(mechanicImageSubContainer)
                         mechanicElement.appendChild(mechanicImageContainer);
                         mechanicImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+mechanicName+"</center></span>";
+                        mechanicImageContainer.innerHTML += "<span class='text-success fw-bold' style='font-size: 6.5px;'><center>MECHANIC</center></span>";
                         // mechanicImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                         mechanicsElement.appendChild(mechanicElement);
                     }
@@ -1243,13 +1288,14 @@
                 // technical
                 let technicalContainer = document.createElement("div");
                 technicalContainer.classList.add("col-2");
+                technicalContainer.classList.add("p-0");
                 let technicalsElement = document.createElement("div");
                 technicalsElement.classList.add("d-flex");
                 technicalsElement.classList.add("flex-column");
                 technicalsElement.classList.add("border");
                 // technicalsElement.classList.add("gap-1");
                 technicalsElement.classList.add("h-100");
-                technicalsElement.innerHTML = '<p style="font-size: 7px;" class="text-center fw-bold bg-primary mb-0">TECHNICAL</p>';
+                technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
                 data.technicalData.forEach(element => {
                     if (element.technical_name) {
                         let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
@@ -1276,6 +1322,7 @@
                         technicalImageContainer.appendChild(technicalImageSubContainer)
                         technicalElement.appendChild(technicalImageContainer);
                         technicalImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+technicalName+"</center></span>";
+                        technicalImageContainer.innerHTML += "<span class='text-primary fw-bold' style='font-size: 6.5px;'><center>TECHNICAL</center></span>";
                         // technicalImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                         technicalsElement.appendChild(technicalElement);
                     }
@@ -1412,6 +1459,35 @@
             } else {
                 appendRow(data, index);
             }
+        }
+
+        function groupByRole(element, currentDate, role) {
+            let output = [];
+            element.reduce((res, value) => {
+                if (value.tanggal === currentDate) {
+                    let id = value[`${role}_id`] ?? value.sewing_line;
+                    if (!res[id]) {
+                        res[id] = {
+                            id: value[`${role}_id`],
+                            [`${role}_nik`]: value[`${role}_nik`],
+                            [`${role}_name`]: value[`${role}_name`],
+                            sewing_line: "",
+                            mins_avail: 0,
+                            mins_prod: 0,
+                            output: 0,
+                            rft: 0
+                        };
+                        output.push(res[id]);
+                    }
+                    res[id].mins_avail += Number(value.cumulative_mins_avail);
+                    res[id].mins_prod += Number(value.mins_prod);
+                    res[id].output += Number(value.output);
+                    res[id].rft += Number(value.rft);
+                    res[id].sewing_line += value.sewing_line + "<br>";
+                }
+                return res;
+            }, {});
+            return output;
         }
     </script>
 @endsection

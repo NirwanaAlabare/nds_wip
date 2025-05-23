@@ -216,7 +216,18 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        // Sort date output efficiency
+                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -230,7 +241,7 @@
                         var mechanicOutput = groupByRole(element, currentTanggal, "mechanic");
                         var technicalOutput = groupByRole(element, currentTanggal, "technical");
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "ieData": ieOutput, "leaderqcData": leaderqcOutput, "mechanicData": mechanicOutput, "technicalData": technicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
+                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": sortedDateOutput, "ieData": ieOutput, "leaderqcData": leaderqcOutput, "mechanicData": mechanicOutput, "technicalData": technicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -881,7 +892,18 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        // Sort date output efficiency
+                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -964,7 +986,7 @@
                             return res;
                         }, {});
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "ieData": ieOutput, "leaderqcData": leaderqcOutput, "mechanicData": mechanicOutput, "technicalData": technicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
+                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": sortedDateOutput, "ieData": ieOutput, "leaderqcData": leaderqcOutput, "mechanicData": mechanicOutput, "technicalData": technicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency

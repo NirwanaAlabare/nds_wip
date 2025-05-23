@@ -205,7 +205,18 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        // Sort date output efficiency
+                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -251,7 +262,7 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
+                        chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
@@ -263,7 +274,7 @@
                             return -1;
                         }
                         return 0;
-                    });
+                    })
 
                     // Show Chief Daily Data
                     for (let i = 0; i < sortedChiefDailyEfficiency.length; i++) {
@@ -714,7 +725,18 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        // Sort date output efficiency
+                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -748,7 +770,7 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": dateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
