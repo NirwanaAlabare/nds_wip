@@ -293,7 +293,7 @@
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
-                                            onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()"
+                                            onkeydown="scanStocker(event, 'create')"
                                             autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
@@ -474,7 +474,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input" name="editqrstocker" id="editqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('editscanqr').click()" autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input" name="editqrstocker" id="editqrstocker" autocomplete="off" enterkeyhint="go" onkeydown="scanStocker(event, 'edit')" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
                                         <button class="btn btn-sm btn-primary" type="button" id="editscanqr" onclick="edit_scan_qr()">Scan</button>
@@ -1099,7 +1099,7 @@
         $('#editModal').on('show.bs.modal', function(e) {
             initScanEdit();
         })
-        
+
         $('#editModal').on('shown.bs.modal', function(e) {
             $('#editqrstocker').focus();
         })
@@ -1201,6 +1201,7 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log(response);
                     document.getElementById('edit_no_stocker').value = response.id_qr_stocker;
                     document.getElementById('edit_ws').value = response.act_costing_ws;
                     document.getElementById('edit_buyer').value = response.buyer;
@@ -1520,5 +1521,18 @@
         $('#size_filter').on("change", function() {
             datatableReload();
         });
+
+        function scanStocker(evt, type) {
+            console.log(evt, type);
+            if (evt.keyCode == 13) {
+                evt.preventDefault();
+
+                if (type == 'edit') {
+                    document.getElementById('editscanqr').click()
+                } else {
+                    document.getElementById('scanqr').click()
+                }
+            }
+        }
     </script>
 @endsection

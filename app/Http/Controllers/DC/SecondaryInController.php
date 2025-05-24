@@ -387,7 +387,10 @@ class SecondaryInController extends Controller
         dc.tujuan,
         dc.lokasi,
         mp.nama_part,
-        if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
+        si.qty_awal,
+        si.qty_reject,
+        si.qty_replace,
+        si.qty_in,
         s.lokasi lokasi_tujuan,
         s.tempat tempat_tujuan
         from
@@ -396,11 +399,7 @@ class SecondaryInController extends Controller
         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
         left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
         where dc.tujuan = 'SECONDARY DALAM' and
-        ifnull(sii.id_qr_stocker,'x') = 'x'
-        union
-        select dc.id_qr_stocker, 'x' cek_1, if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') cek_2  from dc_in_input dc
-        left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
-        where dc.tujuan = 'SECONDARY LUAR'	and	if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') != 'x'
+        ifnull(si.id_qr_stocker,'x') != 'x'
         ) md
         left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -410,7 +409,7 @@ class SecondaryInController extends Controller
         left join marker_input mi on a.id_marker = mi.kode
         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
         left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
-        where s.id_qr_stocker =     '" . $request->txtqrstocker . "'
+        where s.id_qr_stocker = '" . $request->txtqrstocker . "'
         ");
         return json_encode($cekdata[0]);
     }
@@ -672,24 +671,24 @@ class SecondaryInController extends Controller
         $timestamp = Carbon::now();
 
         $validatedRequest = $request->validate([
-            "txtqtyreject" => "required"
+            "edit_qtyreject" => "required"
         ]);
 
         $saveinhouse = SecondaryIn::updateOrCreate(
-            ['id_qr_stocker' => $request['txtno_stocker']],
+            ['id_qr_stocker' => $request['edit_no_stocker']],
             [
                 'tgl_trans' => $tgltrans,
-                'qty_awal' => $request['txtqtyawal'],
-                'qty_reject' => $request['txtqtyreject'],
-                'qty_replace' => $request['txtqtyreplace'],
-                'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
+                'qty_awal' => $request['edit_qtyawal'],
+                'qty_reject' => $request['edit_qtyreject'],
+                'qty_replace' => $request['edit_qtyreplace'],
+                'qty_in' => $request['edit_qtyawal'] - $request['edit_qtyreject'] + $request['edit_qtyreplace'],
                 'user' => Auth::user()->name,
-                'ket' => $request['txtket'],
+                'ket' => $request['edit_ket'],
             ]
         );
 
         DB::update(
-            "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
+            "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->edit_no_stocker . "'"
         );
         // dd($savemutasi);
         // $message .= "$tglpindah <br>";
