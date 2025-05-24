@@ -129,7 +129,7 @@
                         @endforeach
                     </select>
                 </div>
-                <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button>
+                {{-- <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button> --}}
             </div>
         </div>
         <div class="d-flex justify-content-center mb-1">
@@ -204,7 +204,7 @@
         var intervalData = setInterval(async function () {
             console.log("data update start");
 
-            // await updateData();
+            await updateData();
 
             console.log("data update finish");
         }, 60000);
@@ -237,20 +237,170 @@
                 success: async function (response) {
                     console.log("data", response);
 
+                    // leader group by
+                    let leaderEfficiency = objectValues(objectGroupBy(response, ({ leader_id }) => leader_id));
+                    leaderEfficiency = leaderEfficiency.map(element => {
+                        let total_mins_avail = 0;
+                        let total_mins_prod = 0;
+                        let total_output = 0;
+                        let total_rft = 0;
+
+                        element.reduce(function(res, value) {
+                            total_mins_avail += Number(value.cumulative_mins_avail);
+                            total_mins_prod += Number(value.mins_prod);
+                            total_output += Number(value.output);
+                            total_rft += Number(value.rft);
+
+                            return res;
+                        }, {});
+
+                        let totalEfficiency = (total_mins_prod/total_mins_avail*100);
+                        let totalRft = (total_output/total_rft*100);
+
+                        return {
+                            "id": element[0].leader_id,
+                            "totalValue": totalEfficiency+totalRft,
+                        }
+                    });
+
+                    // Sort leader output efficiency
+                    let sortedLeaderEfficiency = leaderEfficiency.sort(function(a,b){
+                        if (a.totalValue < b.totalValue) {
+                            return 1;
+                        }
+                        if (a.totalValue > b.totalValue) {
+                            return -1;
+                        }
+                        return 0;
+                    });
+
+                    // Line
+                    let lineEfficiency = objectValues(objectGroupBy(response, ({ line_id }) => line_id));
+
+                    let lineDailyEfficiency = [];
+                    lineEfficiency.forEach(element => {
+                        // Date Output
+                        let dateOutput = [];
+                        let lineLeaderList = [];
+                        let currentLeader = {
+                            "tanggal": element[0].tanggal,
+                            "leader_nik": element[0].leader_nik,
+                            "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
+                        };
+                        element.reduce(function(res, value) {
+                            if (!res[value.tanggal]) {
+                                res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                dateOutput.push(res[value.tanggal]);
+                            }
+                            // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
+                            res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
+                            res[value.tanggal].mins_prod += Number(value.mins_prod);
+                            res[value.tanggal].output += Number(value.output);
+                            res[value.tanggal].rft += Number(value.rft);
+
+                            if (value.leader_nik != currentLeader.leader_nik) {
+                                lineLeaderList.push(
+                                        {
+                                        x: formatDateTick(currentLeader.tanggal),
+                                        borderColor: '#00E396',
+                                        label: {
+                                            style: {
+                                                fontSize: "7px",
+                                            },
+                                            borderColor: '#00E396',
+                                            text: currentLeader.leader_name
+                                        },
+                                    }
+                                );
+                            }
+
+                            currentLeader = {
+                                "tanggal": value.tanggal,
+                                "leader_nik": value.leader_nik,
+                                "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
+                            };
+
+                            return res;
+                        }, {});
+
+                        // get leader
+                        console.log(sortedLeaderEfficiency);
+                        let leaderRank = sortedLeaderEfficiency.map(e => e.id).indexOf(element[element.length-1].leader_id ? element[element.length-1].leader_id : null);
+
+                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "leader_rank": leaderRank+1, "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList, "chief_id": element[element.length-1].chief_id});
+                    });
+
+                    // Sort line output efficiency
+                    let sortedLineEfficiency = lineDailyEfficiency.sort(function(a,b){
+                        if (a.leader_rank > b.leader_rank) {
+                            return 1;
+                        }
+                        if (a.leader_rank < b.leader_rank) {
+                            return -1;
+                        }
+                        return 0;
+                    });
+
+                    console.log(1, sortedLineEfficiency);
+
                     // Chief Group By
                     let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
 
-                    // Chief Daily Summary
-                    let chiefDailyEfficiency = [];
+                    let chiefLineEfficiency = [];
                     chiefEfficiency.forEach(element => {
-                        console.log(element);
+                        // Sort date output efficiency
+                        let sortedDateOutput = element.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
 
-                        dateLineOutput = [];
+                        // get current date
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
+                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
-                        let lineEfficiency = objectValues(objectGroupBy(element, ({ line_id }) => line_id));
+                        // get line data
+                        let lineEfficiency = sortedLineEfficiency.filter((item) => item.chief_id == currentData.chief_id && item.data.filter((d) => d.tanggal == currentData.tanggal).length > 0);
 
-                        console.log("subdata", dateLineOutput);
+                        // total
+                        let total_mins_avail = 0;
+                        let total_mins_prod = 0;
+                        let total_output = 0;
+                        let total_rft = 0;
+                        element.reduce(function(res, value) {
+                            total_mins_avail += Number(value.cumulative_mins_avail);
+                            total_mins_prod += Number(value.mins_prod);
+                            total_output += Number(value.output);
+                            total_rft += Number(value.rft);
+
+                            return res;
+                        }, {});
+
+                        let totalEfficiency = total_mins_prod/total_mins_avail * 100;
+                        let totalRft = total_rft/total_output * 100;
+
+                        chiefLineEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": lineEfficiency, "totalValue": totalEfficiency+totalRft});
                     });
+
+                    let sortedChiefLineEfficiency = chiefLineEfficiency.sort(function(a,b){
+                        if (a.totalValue < b.totalValue) {
+                            return 1;
+                        }
+                        if (a.totalValue > b.totalValue) {
+                            return -1;
+                        }
+                        return 0;
+                    });
+
+                    // Show Chief Daily Data
+                    for (let i = 0; i < sortedChiefLineEfficiency.length; i++) {
+                        appendRow(sortedChiefLineEfficiency[i], i+1);
+                    }
 
                     document.getElementById("loading").classList.add("d-none");
                 },
@@ -277,6 +427,46 @@
                 },
                 dataType: "json",
                 success: async function (response) {
+                    console.log("data", response);
+
+                    // leader group by
+                    let leaderEfficiency = objectValues(objectGroupBy(response, ({ leader_id }) => leader_id));
+                    leaderEfficiency = leaderEfficiency.map(element => {
+                        let total_mins_avail = 0;
+                        let total_mins_prod = 0;
+                        let total_output = 0;
+                        let total_rft = 0;
+
+                        element.reduce(function(res, value) {
+                            total_mins_avail += Number(value.cumulative_mins_avail);
+                            total_mins_prod += Number(value.mins_prod);
+                            total_output += Number(value.output);
+                            total_rft += Number(value.rft);
+
+                            return res;
+                        }, {});
+
+                        let totalEfficiency = (total_mins_prod/total_mins_avail*100);
+                        let totalRft = (total_output/total_rft*100);
+
+                        return {
+                            "id": element[0].leader_id,
+                            "totalValue": totalEfficiency+totalRft,
+                        }
+                    });
+
+                    // Sort leader output efficiency
+                    let sortedLeaderEfficiency = leaderEfficiency.sort(function(a,b){
+                        if (a.totalValue < b.totalValue) {
+                            return 1;
+                        }
+                        if (a.totalValue > b.totalValue) {
+                            return -1;
+                        }
+                        return 0;
+                    });
+
+                    // Line
                     let lineEfficiency = objectValues(objectGroupBy(response, ({ line_id }) => line_id));
 
                     let lineDailyEfficiency = [];
@@ -322,14 +512,83 @@
                             return res;
                         }, {});
 
-                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList});
+                        // get leader
+                        console.log(sortedLeaderEfficiency);
+                        let leaderRank = sortedLeaderEfficiency.map(e => e.id).indexOf(element[element.length-1].leader_id ? element[element.length-1].leader_id : null);
+
+                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "leader_rank": leaderRank+1, "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList, "chief_id": element[element.length-1].chief_id});
                     });
 
-                    console.log(lineDailyEfficiency);
+                    // Sort line output efficiency
+                    let sortedLineEfficiency = lineDailyEfficiency.sort(function(a,b){
+                        if (a.leader_rank > b.leader_rank) {
+                            return 1;
+                        }
+                        if (a.leader_rank < b.leader_rank) {
+                            return -1;
+                        }
+                        return 0;
+                    });
+
+                    console.log(1, sortedLineEfficiency);
+
+                    // Chief Group By
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+
+                    let chiefLineEfficiency = [];
+                    chiefEfficiency.forEach(element => {
+                        // Sort date output efficiency
+                        let sortedDateOutput = element.sort(function(a,b){
+                            if (a.tanggal > b.tanggal) {
+                                return 1;
+                            }
+                            if (a.tanggal < b.tanggal) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+
+                        // get current date
+                        let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
+                        let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
+
+                        // get line data
+                        let lineEfficiency = sortedLineEfficiency.filter((item) => item.chief_id == currentData.chief_id && item.data.filter((d) => d.tanggal == currentData.tanggal).length > 0);
+
+                        // total
+                        let total_mins_avail = 0;
+                        let total_mins_prod = 0;
+                        let total_output = 0;
+                        let total_rft = 0;
+                        element.reduce(function(res, value) {
+                            total_mins_avail += Number(value.cumulative_mins_avail);
+                            total_mins_prod += Number(value.mins_prod);
+                            total_output += Number(value.output);
+                            total_rft += Number(value.rft);
+
+                            return res;
+                        }, {});
+
+                        let totalEfficiency = total_mins_prod/total_mins_avail * 100;
+                        let totalRft = total_rft/total_output * 100;
+
+                        chiefLineEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": lineEfficiency, "totalValue": totalEfficiency+totalRft});
+                    });
+
+                    let sortedChiefLineEfficiency = chiefLineEfficiency.sort(function(a,b){
+                        if (a.totalValue < b.totalValue) {
+                            return 1;
+                        }
+                        if (a.totalValue > b.totalValue) {
+                            return -1;
+                        }
+                        return 0;
+                    });
 
                     // Show Chief Daily Data
-                    for (let i = 0; i < lineDailyEfficiency.length; i++) {
-                        updateRow(lineDailyEfficiency[i], i+1);
+                    for (let i = 0; i < sortedChiefLineEfficiency.length; i++) {
+                        updateRow(sortedChiefLineEfficiency[i], i+1);
                     }
                 },
                 error: function (jqXHR) {
@@ -342,8 +601,65 @@
         function appendRow(data, index) {
             let parentElement = document.getElementById('chief-leader-line-charts');
 
+            // Chief
+            let chiefElement = document.createElement("div");
+            chiefElement.id = "chief-"+index;
+            chiefElement.classList.add("col-md-2");
+            let chiefName = data.name ? data.name.split(" ")[0] : '-';
+            let chiefContainer = document.createElement("div");
+            chiefContainer.classList.add("w-100");
+            chiefContainer.classList.add("h-100");
+            chiefContainer.classList.add("p-3");
+            chiefContainer.classList.add("border");
+            chiefContainer.classList.add("border-sb");
+            chiefContainer.classList.add("rounded");
+            chiefContainer.classList.add("bg-white");
+            let chiefImageContainer = document.createElement("div");
+            chiefImageContainer.classList.add("profile-frame");
+            chiefImageContainer.style.width = "100px";
+            chiefImageContainer.style.height = "100px";
+            let chiefImageElement = document.createElement("img");
+            chiefImageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
+            chiefImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+            chiefImageElement.setAttribute("alt", "person")
+            chiefImageElement.classList.add("img-fluid")
+            // chiefImageElement.style.width = "200px";
+            // chiefImageElement.style.height = "150px";
+            chiefImageElement.style.marginTop = "auto";
+            chiefImageElement.style.marginLeft = "auto";
+            chiefImageElement.style.marginRight = "auto";
+            chiefImageContainer.appendChild(chiefImageElement);
+            chiefContainer.appendChild(chiefImageContainer);
+            chiefContainer.innerHTML += "<h5 class='text-sb fw-bold mt-3 text-center'>"+data.name.split(" ")[0]+"</h5>"
+            chiefContainer.innerHTML += "<h5 class='text-dark mt-1 text-center' style='font-weight: 400 !important;'>RANK "+index+"</h5>"
+            chiefElement.appendChild(chiefContainer);
+
+            // Line
+            let lineContainer = document.createElement("div");
+            lineContainer.classList.add("col-md-10");
+            let lineSubContainer = document.createElement("div");
+            lineSubContainer.id = "line-con-"+index;
+            lineSubContainer.classList.add("row");
+            lineSubContainer.classList.add("g-3");
+            lineContainer.appendChild(lineSubContainer);
+
+            parentElement.appendChild(chiefElement);
+            parentElement.appendChild(lineContainer);
+
+            // line data
+            let i = 0;
+            data.data.forEach(d => {
+                i++;
+
+                appendSubRow(lineSubContainer, d, index, i);
+            });
+        }
+
+        function appendSubRow(lineSubContainer, d, index, i) {
             // Container
             let div = document.createElement("div");
+            div.setAttribute("data-i", i);
+            div.classList.add("div-"+index);
             div.classList.add("col-md-4");
             let card = document.createElement("div");
             card.classList.add("card");
@@ -351,7 +667,7 @@
             card.classList.add("h-100");
             let cardHeader = document.createElement("div")
             cardHeader.classList.add("card-header");
-            cardHeader.innerHTML = "<h5 class='card-title fw-bold' id='line-"+index+"'>"+data.line+"</h5>";
+            cardHeader.innerHTML = "<h5 class='card-title fw-bold' id='line-"+index+"-"+i+"'>"+d.line+"</h5>";
             let cardBody = document.createElement("div")
             cardBody.classList.add("card-body");
             let container = document.createElement("div");
@@ -360,7 +676,7 @@
 
             // Image
             let employeeContainer = document.createElement("div");
-            employeeContainer.id = "employee-"+index;
+            employeeContainer.id = "employee-"+index+"-"+i;
             employeeContainer.classList.add("col-md-3");
             let imageContainer = document.createElement("div");
             imageContainer.classList.add("d-flex")
@@ -368,10 +684,10 @@
             imageContainer.classList.add("align-items-center")
             let imageSubContainer = document.createElement("div")
             imageSubContainer.classList.add("profile-frame");
-            imageSubContainer.style.width = "83px";
-            imageSubContainer.style.height = "83px";
+            imageSubContainer.style.width = "40px";
+            imageSubContainer.style.height = "40px";
             let imageElement = document.createElement("img");
-            imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
+            imageElement.src = "{{ asset('../storage/employee_profile') }}/"+d.nik+"%20"+d.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
             imageElement.setAttribute("alt", "person")
             imageElement.classList.add("img-fluid")
@@ -380,7 +696,8 @@
             // imageElement.style.height = "100px";
             imageSubContainer.appendChild(imageElement);
             imageContainer.appendChild(imageSubContainer);
-            imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
+            imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+d.name.split(" ")[0]+"</center></span>"
+            imageContainer.innerHTML += "<span class='text-dark mt-1'><center>RANK "+d.leader_rank+"</center></span>"
             employeeContainer.appendChild(imageContainer);
 
             // Chart
@@ -388,7 +705,7 @@
             chartContainer.classList.add("col-md-9");
             let canvasContainer = document.createElement("div");
             let canvas = document.createElement("div");
-            // canvas.id = "chart-"+index;
+            // canvas.id = "chart-"+index+"-"+i;
             canvas.classList.add("line-efficiency-chart");
             canvasContainer.appendChild(canvas);
             chartContainer.appendChild(canvasContainer);
@@ -398,7 +715,7 @@
             let targetEfficiencyArr = [];
             let rftArr = [];
 
-            let dailyData = data.data.filter((item) => item.mins_avail > 0 && item.output > 0);
+            let dailyData = d.data.filter((item) => item.mins_avail > 0 && item.output > 0);
 
             dailyData.forEach(item => {
                 tglArr.push(formatDateTick(item.tanggal));
@@ -418,7 +735,7 @@
                     },
                 ],
                 chart: {
-                    id: "chart-"+index,
+                    id: "chart-"+index+"-"+i,
                     type: 'line',
                     zoom: {
                         enabled: true
@@ -431,11 +748,11 @@
                 dataLabels: {
                     enabled: true,
                     style: {
-                        fontSize: "11px",
+                        fontSize: "7px",
                     }
                 },
                 annotations: {
-                    xaxis: data.leaders
+                    xaxis: d.leaders,
                 },
                 stroke: {
                     curve: 'smooth'
@@ -456,7 +773,7 @@
                     tickAmount: 1,
                     labels: {
                         style: {
-                            fontSize: "11px",
+                            fontSize: "7px",
                         }
                     }
                 },
@@ -464,7 +781,7 @@
                     categories: tglArr,
                     labels: {
                         style: {
-                            fontSize: "11px",
+                            fontSize: "7px",
                         },
                         rotate: -90
                     }
@@ -478,7 +795,7 @@
                     floating: true,
                     offsetY: 5,
                     offsetX: -5,
-                    fontSize: "11px",
+                    fontSize: "7px",
                 },
                 redrawOnParentResize: true
             };
@@ -492,17 +809,72 @@
             card.appendChild(cardBody);
             div.appendChild(card);
 
-            parentElement.appendChild(div);
+            lineSubContainer.appendChild(div);
 
             chart.render();
         }
 
         // Update Element
-        async function updateRow(data, index) {
-            if (document.getElementById("line-"+index)) {
+        function updateRow(data, index) {
+            if (document.getElementById("chief-"+index)) {
+                // Chief
+                let chiefElement = document.getElementById("chief-"+index);
+                chiefElement.innerHTML = "";
+                chiefElement.classList.add("col-md-2");
+                let chiefName = data.name ? data.name.split(" ")[0] : '-';
+                let chiefContainer = document.createElement("div");
+                chiefContainer.classList.add("w-100");
+                chiefContainer.classList.add("h-100");
+                chiefContainer.classList.add("p-3");
+                chiefContainer.classList.add("border");
+                chiefContainer.classList.add("border-sb");
+                chiefContainer.classList.add("rounded");
+                chiefContainer.classList.add("bg-white");
+                let chiefImageContainer = document.createElement("div");
+                chiefImageContainer.classList.add("profile-frame");
+                chiefImageContainer.style.width = "100px";
+                chiefImageContainer.style.height = "100px";
+                let chiefImageElement = document.createElement("img");
+                chiefImageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
+                chiefImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                chiefImageElement.setAttribute("alt", "person")
+                chiefImageElement.classList.add("img-fluid")
+                // chiefImageElement.style.width = "200px";
+                // chiefImageElement.style.height = "150px";
+                chiefImageElement.style.marginTop = "auto";
+                chiefImageElement.style.marginLeft = "auto";
+                chiefImageElement.style.marginRight = "auto";
+                chiefImageContainer.appendChild(chiefImageElement);
+                chiefContainer.appendChild(chiefImageContainer);
+                chiefContainer.innerHTML += "<h5 class='text-sb fw-bold mt-3 text-center'>"+data.name.split(" ")[0]+"</h5>"
+                chiefContainer.innerHTML += "<h5 class='text-dark mt-1 text-center' style='font-weight: 400 !important;'>RANK "+index+"</h5>"
+                chiefElement.appendChild(chiefContainer);
+
+                // delete extra line
+                let subElement = document.getElementsByClassName("div-"+index);
+                for (let i = 0; i < subElement.length; i++) {
+                    if (subElement[i].getAttribute("data-i") > (data.data.length+1)) {
+                        subElement[i].remove();
+                    }
+                }
+
+                // line data
+                let i = 0;
+                data.data.forEach(d => {
+                    i++;
+
+                    updateSubRow(d, index, i);
+                })
+            } else {
+                appendRow(data, index);
+            }
+        }
+
+        async function updateSubRow(data, index, i) {
+            if (document.getElementById("line-"+index+"-"+i)) {
                 // Name
-                let lineElement = document.getElementById("line-"+index);
-                let nameElement = document.getElementById("employee-"+index);
+                let lineElement = document.getElementById("line-"+index+"-"+i);
+                let nameElement = document.getElementById("employee-"+index+"-"+i);
 
                 lineElement.innerHTML = data.line;
                 nameElement.innerHTML = "";
@@ -530,7 +902,7 @@
                 nameElement.appendChild(imageContainer);
 
                 // Chart
-                let chartElement = document.getElementById("chart-"+index);
+                let chartElement = document.getElementById("chart-"+index+"-"+i);
 
                 let tglArr = [];
                 let efficiencyArr = [];
@@ -545,7 +917,7 @@
                     rftArr.push((item.rft / item.output * 100).round(2));
                 });
 
-                await ApexCharts.exec('chart-'+index, 'updateSeries', [
+                await ApexCharts.exec('chart-'+index+"-"+i, 'updateSeries', [
                         {
                             name: 'Efficiency',
                             data: efficiencyArr
@@ -556,7 +928,7 @@
                         },
                     ], true);
 
-                await ApexCharts.exec('chart-'+index, 'updateOptions', {
+                await ApexCharts.exec('chart-'+index+"-"+i, 'updateOptions', {
                         xaxis: {
                             categories: tglArr,
                         },
@@ -568,7 +940,11 @@
                         },
                     }, false, true);
             } else {
-                appendRow(data, index);
+                if (document.getElementById("line-con-"+index)) {
+                    let lineSubContainer = document.getElementById("line-con-"+index);
+
+                    appendSubRow(lineSubContainer, data, index, i);
+                }
             }
         }
 

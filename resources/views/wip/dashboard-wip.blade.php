@@ -91,14 +91,14 @@
                     </div>
                 </div>
             </div>
-            {{-- <div class="col-md-4 col-lg-3 mb-4">
+            <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <h5 class="card-title fw-bold">CHIEF LEADER</h5>
                         <a href="{{ route('dashboard-chief-leader-sewing') }}" target="_blank" class="btn btn-primary btn-sm">Details</a>
                     </div>
                 </div>
-            </div> --}}
+            </div>
             <div class="col-12">
                 <h4 class="text-sb fw-bold mb-3">Sewing Factory Dashboard</h4>
                 <hr style="color: #222">
