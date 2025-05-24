@@ -653,8 +653,6 @@
 
                 appendSubRow(lineSubContainer, d, index, i);
             });
-
-            parentElement.innerHTML += `<hr class='my-3' style='border-color: #222;' />`
         }
 
         function appendSubRow(lineSubContainer, d, index, i) {
