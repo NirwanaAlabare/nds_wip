@@ -237,6 +237,8 @@
                 success: async function (response) {
                     console.log("data", response);
 
+                    document.getElementById('chief-leader-line-charts').innerHTML = "";
+
                     // leader group by
                     let leaderEfficiency = objectValues(objectGroupBy(response, ({ leader_id }) => leader_id));
                     leaderEfficiency = leaderEfficiency.map(element => {
