@@ -1010,7 +1010,7 @@
                     }
 
                     // Restart the show after a short pause, if still in focus
-                    showTimeout = setTimeout(startFireworksShow, 5000);
+                    showTimeout = setTimeout(startFireworksShow, 10000);
                 }, finaleTime);
 
                 fireworksTimeouts.push(finale);
