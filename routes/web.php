@@ -1892,6 +1892,9 @@ Route::post('/dashboard-wip/chief-leader-sewing-range-data-export', [DashboardWi
 // Chief Top
 Route::get('/dashboard-wip/top-chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topChiefSewing'])->name('dashboard-top-chief-sewing');
 Route::get('/dashboard-wip/top-chief-sewing-data', [DashboardWipLineController::class, 'topChiefSewingData'])->name('dashboard-top-chief-sewing-data');
+// Leader Top
+Route::get('/dashboard-wip/top-leader-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topLeaderSewing'])->name('dashboard-top-leader-sewing');
+Route::get('/dashboard-wip/top-leader-sewing-data', [DashboardWipLineController::class, 'topLeaderSewingData'])->name('dashboard-top-leader-sewing-data');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');

@@ -185,7 +185,7 @@
     {{-- <swiper-container class="mySwiper" id="top-chief-carousel" autoplay-delay="30000" autoplay-disable-on-interaction="true" space-between="30" centered-slides="true">
         <swiper-slide id="carousel-1">
             <div class="swiper-no-swiping mt-5" id="chief-daily-efficiency-table" style="max-height: 100vh;">
-                
+
             </div>
         </swiper-slide>
     </swiper-container> --}}
@@ -194,10 +194,10 @@
         <h5 class="text-center">{{ strtoupper($monthName)." ".$year }}</h5>
 
         <div class="profile-frame text-center" style="min-width: 200px !important; width: 200px !important; min-height: 200px !important; height: 200px !important;">
-            <img src="https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="person" class="img-fluid" id='top-chief-img'>
+            <img src="{{ asset('dist/img/person.png') }}" alt="person" class="img-fluid" id='top-chief-img'>
         </div>
-        <h3 class="text-center text-sb mt-3" id="top-chief-name">SUKAMTONO</h3>
-        <div class="icon">
+        <h3 class="text-center text-sb mt-3" id="top-chief-name">EMPLOYEE</h3>
+        <div class="icon d-none" id="number-one-icon">
             <svg class="numeroUno" width="50" height="10" viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g class="championIcon">
                 <g class="sparks">
@@ -385,12 +385,13 @@
             theme: 'bootstrap4'
         })
 
-        document.getElementById("loading").classList.remove("d-none");
+        document.getElementById("loading-bg").classList.remove("d-none");
 
         $('document').ready(async () => {
             await updateData();
 
-            document.getElementById("loading").classList.add("d-none");
+            document.getElementById("loading-bg").classList.add("d-none");
+            document.getElementById("number-one-icon").classList.remove("d-none");
         });
 
         var intervalData = setInterval(() => {
@@ -975,31 +976,57 @@
             container.id = 'fireworks-container';
             document.body.appendChild(container);
 
-            function startFireworksShow() {
-                // Clear previous fireworks if needed
-                container.innerHTML = '';
+            let fireworksTimeouts = [];
+            let showTimeout = null;
+            let isPaused = false;
 
-                // Launch each firework at its scheduled time
-                fireworksData.forEach((data) => {
-                    setTimeout(() => {
-                        launchRocket(container, data);
-                    }, data.launchTime);
-                });
-
-                // Schedule grand finale
-                const maxLaunchTime = Math.max(...fireworksData.map((d) => d.launchTime));
-                const finaleTime = maxLaunchTime + 4000; // 4s after last rocket
-
-                setTimeout(() => {
-                    launchGrandFinaleRocket(container);
-
-                    // Restart the show after a short pause
-                    setTimeout(startFireworksShow, 5000); // wait 5s after finale
-                }, finaleTime);
+            function clearFireworks() {
+                fireworksTimeouts.forEach(timeout => clearTimeout(timeout));
+                fireworksTimeouts = [];
+                clearTimeout(showTimeout);
             }
 
-            // Start the first show
-            startFireworksShow();
+            function startFireworksShow() {
+                if (document.hidden) return; // Don't start if tab is not active
+
+                container.innerHTML = '';
+
+                // Schedule rockets
+                fireworksData.forEach((data) => {
+                    const t = setTimeout(() => {
+                        if (!document.hidden) {
+                            launchRocket(container, data);
+                        }
+                    }, data.launchTime);
+                    fireworksTimeouts.push(t);
+                });
+
+                const maxLaunchTime = Math.max(...fireworksData.map((d) => d.launchTime));
+                const finaleTime = maxLaunchTime + 4000;
+
+                const finale = setTimeout(() => {
+                    if (!document.hidden) {
+                        launchGrandFinaleRocket(container);
+                    }
+
+                    // Restart the show after a short pause, if still in focus
+                    showTimeout = setTimeout(startFireworksShow, 5000);
+                }, finaleTime);
+
+                fireworksTimeouts.push(finale);
+            }
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    isPaused = true;
+                    clearFireworks(); // Pause scheduled events
+                } else if (isPaused) {
+                    isPaused = false;
+                    startFireworksShow(); // Resume
+                }
+            });
+
+            startFireworksShow(); // Start first show
         });
 
         // -------------------------
@@ -1277,7 +1304,7 @@
         // -------------------------
         function launchGrandFinaleRocket(container) {
             const left = '50%';
-            const color = '#000';
+            const color = '#ddd';
 
             const rocketEl = document.createElement('div');
             rocketEl.className = 'firework-rocket';
@@ -1369,7 +1396,7 @@
 
                 const fragment = document.createElement('div');
                 fragment.className = 'firework-fragment';
-                fragment.style.backgroundColor = '#FFFFFF';
+                fragment.style.backgroundColor = '#ddd';
                 fragment.style.left = `${centerX}px`;
                 fragment.style.top = `${centerY}px`;
                 fragment.style.width = '3px';

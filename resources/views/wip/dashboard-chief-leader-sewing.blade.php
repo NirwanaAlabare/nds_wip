@@ -498,9 +498,12 @@
                                         x: formatDateTick(currentLeader.tanggal),
                                         borderColor: '#00E396',
                                         label: {
+                                            style: {
+                                                fontSize: "7px",
+                                            },
                                             borderColor: '#00E396',
                                             text: currentLeader.leader_name
-                                        }
+                                        },
                                     }
                                 );
                             }
@@ -901,6 +904,7 @@
                 imageSubContainer.appendChild(imageElement);
                 imageContainer.appendChild(imageSubContainer);
                 imageContainer.innerHTML += "<span class='text-sb fw-bold mt-1'><center>"+data.name.split(" ")[0]+"</center></span>"
+                imageContainer.innerHTML += "<span class='text-dark mt-1'><center>RANK "+data.leader_rank+"</center></span>"
                 nameElement.appendChild(imageContainer);
 
                 // Chart

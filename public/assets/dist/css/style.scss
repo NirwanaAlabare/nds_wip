@@ -1,5 +1,4 @@
 body {
-    background-image: url('/nds_wip_local/assets/dist/img/single_podium.jpg') !important;
     height: 100vh;
     padding: 0;
     margin: 0;
@@ -14,7 +13,7 @@ body {
 .numeroUno {
     position: relative;
     overflow: visible;
-    max-width: 450px;
+    max-width: 100%;
     width: 60vw;
     height: auto;
     .medalion {
@@ -303,6 +302,12 @@ body {
         transform: scale(0);
         animation: oneAnimation 0.8s 1s forwards ease;
     }
+    .two {
+        transform: translate(15px, 10px);
+        animation: twoAnimation 1s ease-in-out forwards;
+        transform-box: fill-box;
+        transform-origin: center;
+    }
     .sparks {
         opacity: 0;
         transform: scale(0.6);
@@ -410,6 +415,18 @@ body {
     }
     100% {
         transform: scale(1);
+    }
+}
+
+@keyframes twoAnimation {
+    0% {
+        transform: scale(0) translate(15, 10);
+    }
+    50% {
+        transform: scale(0.5) translate(15, 10);
+    }
+    100% {
+        transform: scale(1) translate(15, 10);
     }
 }
 
