@@ -1762,14 +1762,12 @@ Route::middleware('auth')->group(function () {
     // PPIC Monitoring Order
     Route::controller(PPIC_MonitoringMaterialController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_monitoring_material', 'ppic_monitoring_material')->name('ppic_monitoring_material');
-        Route::get('/get_ppic_monitoring_material_style', 'get_ppic_monitoring_material_style')->name('get_ppic_monitoring_material_style');
         Route::get('/show_lap_monitoring_material_f_det', 'show_lap_monitoring_material_f_det')->name('show_lap_monitoring_material_f_det');
     });
 
     // PPIC Monitoring Order Detail
     Route::controller(PPIC_MonitoringMaterialDetController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_monitoring_material_det', 'ppic_monitoring_material_det')->name('ppic_monitoring_material_det');
-        Route::get('/get_ppic_monitoring_material_det_style', 'get_ppic_monitoring_material_det_style')->name('get_ppic_monitoring_material_det_style');
         Route::get('/show_lap_monitoring_material_f_detail', 'show_lap_monitoring_material_f_detail')->name('show_lap_monitoring_material_f_detail');
     });
 
