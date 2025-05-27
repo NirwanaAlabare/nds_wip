@@ -385,7 +385,7 @@
         })
         $('.select2bs4topleader').select2({
             theme: 'bootstrap4',
-            dropdownParent: $('#topChiefDashboard')
+            dropdownParent: $('#topLeaderDashboard')
         })
 
         $(function () {
