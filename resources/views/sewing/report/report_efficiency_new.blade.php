@@ -19,7 +19,7 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-chart-area"></i> Report Efficiency</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
+            <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl. Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
@@ -40,6 +40,12 @@
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#scrapFromOrtaxModal">
+                        <i class="fa fa-download"></i>
+                        Download Kurs
+                    </button>
                 </div>
             </div>
 
@@ -86,6 +92,25 @@
                     </tfoot>
                 </table>
             </div>
+        </div>
+    </div>
+    <div class="modal fade" id="scrapFromOrtaxModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header bg-sb text-light">
+                <h1 class="modal-title fs-6">Download Data Kurs BI</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <label>Tanggal</label>
+                    <input type="date" class="form-control" value="{{ date('Y-m-d') }}" id="date">
+                </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-dark" id="scrapFromOrtax">Download</button>
+            </div>
+          </div>
         </div>
     </div>
 @endsection
@@ -332,5 +357,55 @@
                 },
             });
         }
+
+        document.getElementById('scrapFromOrtax').addEventListener('click', () => {
+            iziToast.info({
+                title: 'Downloading...',
+                message: 'Harap tunggu',
+                multiline: true
+            });
+
+            $.ajax({
+                type: "POST",
+                url: '{!! route('kursBi.scrapData') !!}',
+                data: {
+                    date: $('#date').val()
+                },
+                success: function(res) {
+                    console.log(res);
+                    if (res["status"] == "success") {
+                        let success = "";
+                        res["tanggalSuccess"].forEach(element => {
+                            success += "Tanggal "+element+" Success <br>"
+                        });
+
+                        let unavailable = "";
+                        res["tanggalUnavailable"].forEach(element => {
+                            unavailable += "Tanggal "+element+" Not Found <br>"
+                        });
+
+                        console.log(success + unavailable);
+
+                        Swal.fire({
+                            icon: res["status"],
+                            title: "Data Kurs BI berhasil diperbaharui.",
+                            html: success + unavailable,
+                            confirmButtonText: 'OK'
+                        });
+
+                        iziToast.hide({
+                            transitionOut: 'fadeOutUp'
+                        }, document.querySelector('.iziToast'));
+
+                        $('#kurs-bi-table').DataTable().ajax.reload();
+                    } else {
+                        iziToast.error({
+                            message: res["message"],
+                            multiline: true
+                        });
+                    }
+                }
+            });
+        });
     </script>
 @endsection

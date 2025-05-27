@@ -36,7 +36,7 @@
                     <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#storeMasterLineModal"><i class="fa fa-plus"></i> NEW</a>
                 </div>
             </div>
-            <table id="datatable" class="table table-bordered">
+            <table id="datatable" class="table table-bordered w-100">
                 <thead>
                     <tr>
                         <th>Action</th>
@@ -44,6 +44,10 @@
                         <th>Line</th>
                         <th>Chief</th>
                         <th>Leader</th>
+                        <th>IE</th>
+                        <th>Leader QC</th>
+                        <th>Mechanic</th>
+                        <th>Technical</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,6 +102,50 @@
                                 </select>
                                 <input type="hidden" class="form-control" name="leader_nik" id="leader_nik" readonly>
                                 <input type="hidden" class="form-control" name="leader_name" id="leader_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">IE</label>
+                                <select class="form-select select2bs4-create-modal" name="ie_id" id="ie_id">
+                                    <option value="">Pilih IE</option>
+                                    @foreach ($employeesIe as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="ie_nik" id="ie_nik" readonly>
+                                <input type="hidden" class="form-control" name="ie_name" id="ie_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Leader QC</label>
+                                <select class="form-select select2bs4-create-modal" name="leaderqc_id" id="leaderqc_id">
+                                    <option value="">Pilih Leader QC</option>
+                                    @foreach ($employeesLeaderQc as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="leaderqc_nik" id="leaderqc_nik" readonly>
+                                <input type="hidden" class="form-control" name="leaderqc_name" id="leaderqc_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Mechanic</label>
+                                <select class="form-select select2bs4-create-modal" name="mechanic_id" id="mechanic_id">
+                                    <option value="">Pilih Mechanic</option>
+                                    @foreach ($employeesMechanic as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="mechanic_nik" id="mechanic_nik" readonly>
+                                <input type="hidden" class="form-control" name="mechanic_name" id="mechanic_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Technical</label>
+                                <select class="form-select select2bs4-create-modal" name="technical_id" id="technical_id">
+                                    <option value="">Pilih Technical</option>
+                                    @foreach ($employeesTechnical as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="technical_nik" id="technical_nik" readonly>
+                                <input type="hidden" class="form-control" name="technical_name" id="technical_name" readonly>
                             </div>
                         </div>
                     </div>
@@ -162,6 +210,50 @@
                                 <input type="hidden" class="form-control" name="edit_leader_nik" id="edit_leader_nik" readonly>
                                 <input type="hidden" class="form-control" name="edit_leader_name" id="edit_leader_name" readonly>
                             </div>
+                            <div class="col-md-12">
+                                <label class="form-label">IE</label>
+                                <select class="form-select select2bs4-edit-modal" name="edit_ie_id" id="edit_ie_id">
+                                    <option value="">Pilih IE</option>
+                                    @foreach ($employeesIe as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="edit_ie_nik" id="edit_ie_nik" readonly>
+                                <input type="hidden" class="form-control" name="edit_ie_name" id="edit_ie_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Leader QC</label>
+                                <select class="form-select select2bs4-edit-modal" name="edit_leaderqc_id" id="edit_leaderqc_id">
+                                    <option value="">Pilih Leader QC</option>
+                                    @foreach ($employeesLeaderQc as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="edit_leaderqc_nik" id="edit_leaderqc_nik" readonly>
+                                <input type="hidden" class="form-control" name="edit_leaderqc_name" id="edit_leaderqc_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Mechanic</label>
+                                <select class="form-select select2bs4-edit-modal" name="edit_mechanic_id" id="edit_mechanic_id">
+                                    <option value="">Pilih Mechanic</option>
+                                    @foreach ($employeesMechanic as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="edit_mechanic_nik" id="edit_mechanic_nik" readonly>
+                                <input type="hidden" class="form-control" name="edit_mechanic_name" id="edit_mechanic_name" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Technical</label>
+                                <select class="form-select select2bs4-edit-modal" name="edit_technical_id" id="edit_technical_id">
+                                    <option value="">Pilih Technical</option>
+                                    @foreach ($employeesTechnical as $employee)
+                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" name="edit_technical_nik" id="edit_technical_nik" readonly>
+                                <input type="hidden" class="form-control" name="edit_technical_name" id="edit_technical_name" readonly>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between">
@@ -205,6 +297,8 @@
             processing: true,
             serverSide: true,
             paging: false,
+            scrollX: true,
+            scrollY: "500px",
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -233,6 +327,18 @@
                 {
                     data: 'leader_name'
                 },
+                {
+                    data: 'ie_name'
+                },
+                {
+                    data: 'leaderqc_name'
+                },
+                {
+                    data: 'mechanic_name'
+                },
+                {
+                    data: 'technical_name'
+                },
             ],
             columnDefs: [
                 {
@@ -251,6 +357,10 @@
                         `;
                     }
                 },
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
             ]
         });
 
@@ -273,6 +383,27 @@
             $("#leader_name").val($("#leader_id").find(":selected").attr("data-name"));
         })
 
+
+        $("#ie_id").on("change", function () {
+            $("#ie_nik").val($("#ie_id").find(":selected").attr("data-nik"));
+            $("#ie_name").val($("#ie_id").find(":selected").attr("data-name"));
+        })
+
+        $("#leaderqc_id").on("change", function () {
+            $("#leaderqc_nik").val($("#leaderqc_id").find(":selected").attr("data-nik"));
+            $("#leaderqc_name").val($("#leaderqc_id").find(":selected").attr("data-name"));
+        })
+
+        $("#mechanic_id").on("change", function () {
+            $("#mechanic_nik").val($("#mechanic_id").find(":selected").attr("data-nik"));
+            $("#mechanic_name").val($("#mechanic_id").find(":selected").attr("data-name"));
+        })
+
+        $("#technical_id").on("change", function () {
+            $("#technical_nik").val($("#technical_id").find(":selected").attr("data-nik"));
+            $("#technical_name").val($("#technical_id").find(":selected").attr("data-name"));
+        })
+
         // EDIT SELECT2
         $("#edit_line_id").on("change", function () {
             $("#edit_line_name").val($("#edit_line_id").find(":selected").text());
@@ -286,6 +417,26 @@
         $("#edit_leader_id").on("change", function () {
             $("#edit_leader_nik").val($("#edit_leader_id").find(":selected").attr("data-nik"));
             $("#edit_leader_name").val($("#edit_leader_id").find(":selected").attr("data-name"));
+        })
+
+        $("#edit_ie_id").on("change", function () {
+            $("#edit_ie_nik").val($("#edit_ie_id").find(":selected").attr("data-nik"));
+            $("#edit_ie_name").val($("#edit_ie_id").find(":selected").attr("data-name"));
+        })
+
+        $("#edit_leaderqc_id").on("change", function () {
+            $("#edit_leaderqc_nik").val($("#edit_leaderqc_id").find(":selected").attr("data-nik"));
+            $("#edit_leaderqc_name").val($("#edit_leaderqc_id").find(":selected").attr("data-name"));
+        })
+
+        $("#edit_mechanic_id").on("change", function () {
+            $("#edit_mechanic_nik").val($("#edit_mechanic_id").find(":selected").attr("data-nik"));
+            $("#edit_mechanic_name").val($("#edit_mechanic_id").find(":selected").attr("data-name"));
+        })
+
+        $("#edit_technical_id").on("change", function () {
+            $("#edit_technical_nik").val($("#edit_technical_id").find(":selected").attr("data-nik"));
+            $("#edit_technical_name").val($("#edit_technical_id").find(":selected").attr("data-name"));
         })
 
         function updateImage() {

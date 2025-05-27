@@ -1426,8 +1426,10 @@
             // updating est ampar & updating short roll & ply progress bar
             calculateEstAmpar();
 
+            // updating consumption
+            calculatePemakaianLembar();
+            calculateTotalPemakaian();
             calculateShortRoll();
-
             updatePlyProgress();
 
             // lock extension

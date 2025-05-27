@@ -21,9 +21,4 @@ class EmployeeLine extends Model
     {
         return $this->belongsTo(UserLine::class, 'line_id', 'line_id');
     }
-
-    public function leader()
-    {
-        return $this->belongsTo(ActCosting::class, 'id_ws', 'id');
-    }
 }

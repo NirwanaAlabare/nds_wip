@@ -239,7 +239,7 @@
 
                     document.getElementById('leader-line-charts').innerHTML = "";
 
-                    let lineEfficiency = Object.values(Object.groupBy(response, ({ line_id }) => line_id));
+                    let lineEfficiency = objectValues(objectGroupBy(response, ({ line_id }) => line_id));
 
                     if (lineEfficiency.length > 0) {
                         document.getElementById('leader-line-charts').style.justifyContent = "start";
@@ -324,7 +324,7 @@
                 },
                 dataType: "json",
                 success: async function (response) {
-                    let lineEfficiency = Object.values(Object.groupBy(response, ({ line_id }) => line_id));
+                    let lineEfficiency = objectValues(objectGroupBy(response, ({ line_id }) => line_id));
 
                     let lineDailyEfficiency = [];
                     lineEfficiency.forEach(element => {
@@ -387,6 +387,8 @@
 
         // Generate Element
         function appendRow(data, index) {
+            console.log("data", data);
+
             let parentElement = document.getElementById('leader-line-charts');
 
             // Container

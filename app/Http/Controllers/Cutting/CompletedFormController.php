@@ -280,7 +280,6 @@ class CompletedFormController extends Controller
         if ($validatedRequest['current_sambungan'] > 0) {
             // After Extension
             $detailAfter = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
-                where('id_roll', $validatedRequest['current_id_roll'])->
                 where('id', '>', $validatedRequest['current_id'])->
                 orderBy('id', 'asc')->
                 first();

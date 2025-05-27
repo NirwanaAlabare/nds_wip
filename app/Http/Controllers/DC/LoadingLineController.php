@@ -611,8 +611,8 @@ class LoadingLineController extends Controller
             $dateFilter = "";
             if ($request->dateFrom || $request->dateTo) {
                 $dateFilter = "HAVING ";
-                $dateFromFilter = " loading_stock.tanggal_loading >= '".$request->dateFrom."' ";
-                $dateToFilter = " loading_stock.tanggal_loading <= '".$request->dateTo."' ";
+                $dateFromFilter = " loading_stock.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
+                $dateToFilter = " loading_stock.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
                 if ($request->dateFrom && $request->dateTo) {
                     $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
@@ -630,8 +630,8 @@ class LoadingLineController extends Controller
             $innerDateFilter = "";
             if ($request->dateFrom || $request->dateTo) {
                 $innerDateFilter = "WHERE ";
-                $innerDateFromFilter = " loading_line.tanggal_loading >= '".$request->dateFrom."' ";
-                $innerDateToFilter = " loading_line.tanggal_loading <= '".$request->dateTo."' ";
+                $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
+                $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
                 if ($request->dateFrom && $request->dateTo) {
                     $innerDateFilter .= $innerDateFromFilter." AND ".$innerDateToFilter;
@@ -644,6 +644,26 @@ class LoadingLineController extends Controller
                         $innerDateFilter .= $innerDateToFilter;
                     }
                 }
+            }
+
+            $additionalFilter = "";
+            if ($request->filter_line && count($request->filter_line) > 0) {
+                $additionalFilter .= " and loading_stock.nama_line in (".addQuotesAround(implode("\n", $request->filter_line)).")";
+            }
+            if ($request->filter_ws && count($request->filter_ws) > 0) {
+                $additionalFilter .= " and loading_line_plan.act_costing_ws in (".addQuotesAround(implode("\n", $request->filter_ws)).")";
+            }
+            if ($request->filter_style && count($request->filter_style) > 0) {
+                $additionalFilter .= " and loading_line_plan.style in (".addQuotesAround(implode("\n", $request->filter_style)).")";
+            }
+            if ($request->filter_color && count($request->filter_color) > 0) {
+                $additionalFilter .= " and loading_line_plan.color in (".addQuotesAround(implode("\n", $request->filter_color)).")";
+            }
+            if ($request->filter_size && count($request->filter_size) > 0) {
+                $additionalFilter .= " and loading_stock.size in (".addQuotesAround(implode("\n", $request->filter_size)).")";
+            }
+            if ($request->size_filter && count($request->size_filter) > 0) {
+                $additionalFilter .= " and loading_stock.size in (".addQuotesAround(implode("\n", $request->size_filter)).")";
             }
 
             $line = DB::select("
@@ -694,6 +714,7 @@ class LoadingLineController extends Controller
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
+                    ".$additionalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
                     loading_line_plan.id,
@@ -713,14 +734,12 @@ class LoadingLineController extends Controller
         return view("dc.loading-line.summary-loading", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'summary-loading']);
     }
 
-    public function getTotalSummary(Request $request) {
-        ini_set("max_execution_time", 36000);
-
+    public function filterSummary(Request $request) {
         $dateFilter = "";
         if ($request->dateFrom || $request->dateTo) {
             $dateFilter = "HAVING ";
-            $dateFromFilter = " loading_stock.tanggal_loading >= '".$request->dateFrom."' ";
-            $dateToFilter = " loading_stock.tanggal_loading <= '".$request->dateTo."' ";
+            $dateFromFilter = " loading_stock.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
+            $dateToFilter = " loading_stock.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
             if ($request->dateFrom && $request->dateTo) {
                 $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
@@ -738,8 +757,125 @@ class LoadingLineController extends Controller
         $innerDateFilter = "";
         if ($request->dateFrom || $request->dateTo) {
             $innerDateFilter = "WHERE ";
-            $innerDateFromFilter = " loading_line.tanggal_loading >= '".$request->dateFrom."' ";
-            $innerDateToFilter = " loading_line.tanggal_loading <= '".$request->dateTo."' ";
+            $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
+            $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
+
+            if ($request->dateFrom && $request->dateTo) {
+                $innerDateFilter .= $innerDateFromFilter." AND ".$innerDateToFilter;
+            } else {
+                if ($request->dateTo) {
+                    $innerDateFilter .= $innerDateFromFilter;
+                }
+
+                if ($request->dateFrom) {
+                    $innerDateFilter .= $innerDateToFilter;
+                }
+            }
+        }
+
+        $line = collect(DB::select("
+            SELECT
+                loading_stock.tanggal_loading,
+                loading_line_plan.id,
+                loading_line_plan.line_id,
+                loading_stock.nama_line,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.style,
+                loading_line_plan.color,
+                loading_stock.size size,
+                sum( loading_stock.qty ) loading_qty
+            FROM
+                loading_line_plan
+                LEFT JOIN (
+                    SELECT
+                        MAX(COALESCE ( DATE ( loading_line.updated_at ), loading_line.tanggal_loading )) tanggal_loading,
+                        loading_line.loading_plan_id,
+                        loading_line.nama_line,
+                        (
+                            COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                            ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                            ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                            ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                        ) qty_old,
+                        MIN(loading_line.qty) qty,
+                        trolley.id trolley_id,
+                        trolley.nama_trolley,
+                        stocker_input.so_det_id,
+                        stocker_input.size
+                    FROM
+                        loading_line
+                        LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                        LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                        LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                        ".$innerDateFilter."
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.form_reject_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.ratio
+                ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
+            WHERE
+                loading_stock.tanggal_loading IS NOT NULL
+            GROUP BY
+                loading_stock.tanggal_loading,
+                loading_line_plan.id,
+                loading_stock.size
+                ".$dateFilter."
+            ORDER BY
+                loading_stock.tanggal_loading,
+                loading_line_plan.line_id,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.color,
+                loading_stock.so_det_id
+        "));
+
+        $lines = $line->groupBy("nama_line")->keys();
+        $ws = $line->groupBy("act_costing_ws")->keys();
+        $style = $line->groupBy("style")->keys();
+        $color = $line->groupBy("color")->keys();
+        $size = $line->groupBy("size")->keys();
+
+        return array(
+            'lines' => $lines,
+            'ws' => $ws,
+            'style' => $style,
+            'color' => $color,
+            'size' => $size,
+        );
+    }
+
+    public function getTotalSummary(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $dateFilter = "";
+        if ($request->dateFrom || $request->dateTo) {
+            $dateFilter = "HAVING ";
+            $dateFromFilter = " loading_stock.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
+            $dateToFilter = " loading_stock.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
+
+            if ($request->dateFrom && $request->dateTo) {
+                $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($request->dateTo) {
+                    $dateFilter .= $dateFromFilter;
+                }
+
+                if ($request->dateFrom) {
+                    $dateFilter .= $dateToFilter;
+                }
+            }
+        }
+
+        $innerDateFilter = "";
+        if ($request->dateFrom || $request->dateTo) {
+            $innerDateFilter = "WHERE ";
+            $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
+            $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
             if ($request->dateFrom && $request->dateTo) {
                 $innerDateFilter .= $innerDateFromFilter." AND ".$innerDateToFilter;
@@ -771,7 +907,28 @@ class LoadingLineController extends Controller
             $generalFilter .= " AND loading_line_plan.color LIKE '%".$request->color."%'";
         }
         if ($request->size) {
-            $generalFilter .= " AND loading_stock.size LIKE '%".$request->size."%'";
+            $generalFilter .= " and loading_stock.size in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+        }
+
+        $additionalFilter = "";
+
+        if ($request->filter_line && count($request->filter_line) > 0) {
+            $additionalFilter .= " and loading_stock.nama_line in (".addQuotesAround(implode("\n", $request->filter_line)).")";
+        }
+        if ($request->filter_ws && count($request->filter_ws) > 0) {
+            $additionalFilter .= " and loading_line_plan.act_costing_ws in (".addQuotesAround(implode("\n", $request->filter_ws)).")";
+        }
+        if ($request->filter_style && count($request->filter_style) > 0) {
+            $additionalFilter .= " and loading_line_plan.style in (".addQuotesAround(implode("\n", $request->filter_style)).")";
+        }
+        if ($request->filter_color && count($request->filter_color) > 0) {
+            $additionalFilter .= " and loading_line_plan.color in (".addQuotesAround(implode("\n", $request->filter_color)).")";
+        }
+        if ($request->filter_size && count($request->filter_size) > 0) {
+            $additionalFilter .= " and loading_stock.size in (".addQuotesAround(implode("\n", $request->filter_size)).")";
+        }
+        if ($request->size_filter && count($request->size_filter) > 0) {
+            $additionalFilter .= " and loading_stock.size in (".addQuotesAround(implode("\n", $request->size_filter)).")";
         }
 
         $line = DB::select("
@@ -823,6 +980,7 @@ class LoadingLineController extends Controller
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
                     ".$generalFilter."
+                    ".$additionalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
                     loading_line_plan.id,

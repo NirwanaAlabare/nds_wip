@@ -12,187 +12,6 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <form action="{{ route('store-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
-            @method('POST')
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5">Scan QR Secondary In</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row ">
-                            <div class="col-sm-12">
-                                <div class="mb-3">
-                                    <label class="form-label label-input">Scan QR Stocker</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
-                                            onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()"
-                                            autofocus>
-                                        {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
-                                        {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr"
-                                            onclick="scan_qr()">Scan</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div></div>
-                            </div>
-                            <div class="col-6">
-                                <div id="reader"></div>
-                            </div>
-                            <div class="col-3">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>No Stocker</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker' name='txtno_stocker' value='' readonly>
-                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form' name='txtno_form' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>WS</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Buyer</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>No Cut</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_cut' name='txtno_cut' value='' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Style</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtstyle' name='txtstyle' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Color</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtcolor' name='txtcolor' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Size</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtsize' name='txtsize' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Part</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value='' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Tujuan Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Lokasi Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value='' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Qty Awal</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyawal' name='txtqtyawal' value='' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value='' oninput='sum();'
-                                        style = 'border-color:blue;'>
-                                </div>
-                            </div>
-
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();'
-                                        style = 'border-color:blue;'>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Qty In</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value='' readonly style = 'border-color:green;'>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="row">
-                            <div class='col-md-6' id="rak-input">
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Rak</small></label>
-                                    <select class="form-control select2bs4" name="cborak" id="cborak" style="width: 100%;">
-                                        <option selected="selected" value="">Pilih Rak Tujuan</option>
-                                        @foreach ($data_rak as $datarak)
-                                            <option value="{{ $datarak->isi }}">
-                                                {{ $datarak->tampil }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class='col-md-6' id="trolley-input">
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Trolley</small></label>
-                                    <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley" style="width: 100%;">
-                                        <option selected="selected" value="">Pilih Trolley Tujuan</option>
-                                        @foreach ($data_trolley as $datatrolley)
-                                            <option value="{{ $datatrolley->isi }}">
-                                                {{ $datatrolley->tampil }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class='col-md-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Keterangan</small></label>
-                                    <input type='text' class='form-control' id='txtket' name='txtket' value='' style = 'border-color:blue;' autocomplete="off">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Simpan </button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Secondary In <i class="fas fa-sign-in-alt"></i></h5>
@@ -209,6 +28,9 @@
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" onclick="reset();"><i class="fas fa-edit"></i> Ubah</button>
                 </div>
             </div>
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -452,6 +274,331 @@
             </div>
         </div>
     </div>
+
+    {{-- Baru Modal --}}
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <form action="{{ route('store-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
+            @method('POST')
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5">Scan QR Secondary In</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row ">
+                            <div class="col-sm-12">
+                                <div class="mb-3">
+                                    <label class="form-label label-input">Scan QR Stocker</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
+                                            onkeydown="scanStocker(event, 'create')"
+                                            autofocus>
+                                        {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
+                                        {{-- style="display: none;" --}}
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr"
+                                            onclick="scan_qr()">Scan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div></div>
+                            </div>
+                            <div class="col-6">
+                                <div id="reader"></div>
+                            </div>
+                            <div class="col-3">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>No Stocker</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker' name='txtno_stocker' value='' readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form' name='txtno_form' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>WS</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Buyer</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>No Cut</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_cut' name='txtno_cut' value='' readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Style</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtstyle' name='txtstyle' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Color</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtcolor' name='txtcolor' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Size</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtsize' name='txtsize' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Part</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value='' readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Tujuan Asal</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Lokasi Asal</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value='' readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty Awal</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyawal' name='txtqtyawal' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Reject</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value='' oninput='sum();'
+                                        style = 'border-color:blue;'>
+                                </div>
+                            </div>
+
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Replacement</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();'
+                                        style = 'border-color:blue;'>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty In</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value='' readonly style = 'border-color:green;'>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+                            <div class='col-md-6' id="rak-input">
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Rak</small></label>
+                                    <select class="form-control select2bs4" name="cborak" id="cborak" style="width: 100%;">
+                                        <option selected="selected" value="">Pilih Rak Tujuan</option>
+                                        @foreach ($data_rak as $datarak)
+                                            <option value="{{ $datarak->isi }}">
+                                                {{ $datarak->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class='col-md-6' id="trolley-input">
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Trolley</small></label>
+                                    <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley" style="width: 100%;">
+                                        <option selected="selected" value="">Pilih Trolley Tujuan</option>
+                                        @foreach ($data_trolley as $datatrolley)
+                                            <option value="{{ $datatrolley->isi }}">
+                                                {{ $datatrolley->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class='col-md-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Keterangan</small></label>
+                                    <input type='text' class='form-control' id='txtket' name='txtket' value='' style = 'border-color:blue;' autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Simpan </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- Edit Modal --}}
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+        aria-hidden="true">
+        <form action="{{ route('update-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='editform' id='editform'>
+            @method('POST')
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5">Update Secondary In</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row ">
+                            <div class="col-sm-12">
+                                <div class="mb-3">
+                                    <label class="form-label label-input">Scan QR Stocker</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-sm border-input" name="editqrstocker" id="editqrstocker" autocomplete="off" enterkeyhint="go" onkeydown="scanStocker(event, 'edit')" autofocus>
+                                        {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
+                                        {{-- style="display: none;" --}}
+                                        <button class="btn btn-sm btn-primary" type="button" id="editscanqr" onclick="edit_scan_qr()">Scan</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div></div>
+                            </div>
+                            <div class="col-6">
+                                <div id="edit-reader"></div>
+                            </div>
+                            <div class="col-3">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>No Stocker</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_no_stocker' name='edit_no_stocker' value='' readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id='edit_no_form' name='edit_no_form' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>WS</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_ws' name='edit_ws' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Buyer</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_buyer' name='edit_buyer' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>No Cut</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_no_cut' name='edit_no_cut' value='' readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Style</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_style' name='edit_style' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Color</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_color' name='edit_color' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Size</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_size' name='edit_size' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Part</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_part' name='edit_part' value='' readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Tujuan Asal</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_tujuan' name='edit_tujuan' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Lokasi Asal</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_alokasi' name='edit_alokasi' value='' readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty Awal</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyawal' name='edit_qtyawal' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Reject</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyreject' name='edit_qtyreject' value='' oninput='editsum();'
+                                        style = 'border-color:blue;'>
+                                </div>
+                            </div>
+
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Replacement</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyreplace' name='edit_qtyreplace' value = '0' oninput='editsum();'
+                                        style = 'border-color:blue;'>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty In</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='edit_qtyin' name='edit_qtyin' value='' readonly style = 'border-color:green;'>
+                                </div>
+                            </div>
+
+                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Simpan </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -492,7 +639,7 @@
                     }
                 });
             }
-        });
+        })
 
         let datatable = $("#datatable-input").DataTable({
             "footerCallback": function(row, data, start, end, display) {
@@ -804,6 +951,7 @@
         }
     </script>
 
+    {{-- Baru Scan --}}
     <script>
         // $('.select2bs4').select2({
         //     theme: 'bootstrap4',
@@ -860,6 +1008,65 @@
             }
         }
     </script>
+
+    {{-- Ubah Scan --}}
+    <script>
+        // $('.select2bs4').select2({
+        //     theme: 'bootstrap4',
+        //     dropdownParent: $("#editMejaModal")
+        // })
+
+        // Scan QR Module :
+        // Variable List :
+        var edithtml5QrcodeScanner = null;
+
+        // Function List :
+        // -Initialize Scanner-
+        async function initScanEdit() {
+            if (document.getElementById("edit-reader")) {
+                if (edithtml5QrcodeScanner) {
+                    await edithtml5QrcodeScanner.clear();
+                }
+
+                function onScanSuccess(decodedText, decodedResult) {
+                    // handle the scanned code as you like, for example:
+                    console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                    // store to input text
+                    // let breakDecodedText = decodedText.split('-');
+
+                    document.getElementById('editqrstocker').value = decodedText;
+
+
+                    scan_qr();
+
+                    edithtml5QrcodeScanner.clear();
+
+                }
+
+                function onScanFailure(error) {
+                    // handle scan failure, usually better to ignore and keep scanning.
+                    // for example:
+                    console.warn(`Code scan error = ${error}`);
+                }
+
+                edithtml5QrcodeScanner = new Html5QrcodeScanner(
+                    "edit-reader", {
+                        fps: 10,
+                        qrbox: {
+                            width: 200,
+                            height: 200
+                        }
+                    },
+                    /* verbose= */
+                    false);
+
+
+                edithtml5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            }
+        }
+    </script>
+
     <script>
         $(document).ready(function() {
             reset();
@@ -868,6 +1075,7 @@
             updateFilterDetailSec();
         })
 
+        // Baru modal
         $('#exampleModal').on('show.bs.modal', function(e) {
             initScan();
             // $(document).on('select2:open', () => {
@@ -886,10 +1094,20 @@
         $('#exampleModal').on('shown.bs.modal', function(e) {
             $('#txtqrstocker').focus();
         })
+
+        // Edit modal
+        $('#editModal').on('show.bs.modal', function(e) {
+            initScanEdit();
+        })
+
+        $('#editModal').on('shown.bs.modal', function(e) {
+            $('#editqrstocker').focus();
+        })
     </script>
     <script>
         function reset() {
             $("#form").trigger("reset");
+            $("#editform").trigger("reset");
             // initScan();
         }
 
@@ -973,6 +1191,43 @@
             });
         };
 
+        function edit_scan_qr() {
+            let txtqrstocker = document.editform.editqrstocker.value;
+            let html = $.ajax({
+                type: "get",
+                url: '{{ route('cek_data_stocker_in_edit') }}',
+                data: {
+                    txtqrstocker: txtqrstocker
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response);
+                    document.getElementById('edit_no_stocker').value = response.id_qr_stocker;
+                    document.getElementById('edit_ws').value = response.act_costing_ws;
+                    document.getElementById('edit_buyer').value = response.buyer;
+                    document.getElementById('edit_no_cut').value = response.no_cut;
+                    document.getElementById('edit_style').value = response.style;
+                    document.getElementById('edit_color').value = response.color;
+                    document.getElementById('edit_size').value = response.size;
+                    document.getElementById('edit_part').value = response.nama_part;
+                    document.getElementById('edit_tujuan').value = response.tujuan;
+                    document.getElementById('edit_alokasi').value = response.lokasi;
+                    document.getElementById('edit_qtyawal').value = response.qty_awal;
+
+                    $("#edit_qtyreject").val(response.qty_reject);
+                    $("#edit_qtyreplace").val(response.qty_replace);
+                    $("#edit_qtyin").val(response.qty_in);
+                },
+                error: function(request, status, error) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Tidak Ada',
+                        showConfirmButton: true,
+                    })
+                },
+            });
+        };
+
         function sum() {
             let txtqty = document.getElementById('txtqtyawal').value;
             let txtqtyreject = document.getElementById('txtqtyreject').value;
@@ -985,8 +1240,20 @@
             }
         }
 
+        function editsum() {
+            let txtqty = document.getElementById('edit_qtyawal').value;
+            let txtqtyreject = document.getElementById('edit_qtyreject').value;
+            let txtqtyreplace = document.getElementById('edit_qtyreplace').value;
+            document.getElementById("edit_qtyin").value = +txtqty;
+            let result = parseFloat(txtqty) - parseFloat(txtqtyreject) + parseFloat(txtqtyreplace);
+            let result_fix = Math.ceil(result)
+            if (!isNaN(result_fix)) {
+                document.getElementById("edit_qtyin").value = result_fix;
+            }
+        }
+
         function list() {
-            document.getElementById("judul").textContent = "List Transaksi  In";
+            document.getElementById("judul").textContent = "List Transaksi In";
             document.getElementById("show_datatable_input").style.display = 'block';
             document.getElementById("show_datatable_detail").style.display = 'none';
         }
@@ -1254,5 +1521,18 @@
         $('#size_filter').on("change", function() {
             datatableReload();
         });
+
+        function scanStocker(evt, type) {
+            console.log(evt, type);
+            if (evt.keyCode == 13) {
+                evt.preventDefault();
+
+                if (type == 'edit') {
+                    document.getElementById('editscanqr').click()
+                } else {
+                    document.getElementById('scanqr').click()
+                }
+            }
+        }
     </script>
 @endsection
