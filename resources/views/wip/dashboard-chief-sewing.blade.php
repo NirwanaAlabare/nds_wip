@@ -184,7 +184,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -228,7 +228,7 @@
                         let totalRft = 0;
                         element.reduce(function(res, value) {
                             if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
+                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                     leaderOutput.push(res[param]);
@@ -370,7 +370,7 @@
                 leaderImageSubContainer.appendChild(leaderImageElement)
                 leaderImageContainer.appendChild(leaderImageSubContainer)
                 leaderElement.appendChild(leaderImageContainer);
-                leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
+                leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 10) : leaderName)+"</center></span>";
                 leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                 leadersElement.appendChild(leaderElement);
             });
@@ -704,7 +704,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -744,7 +744,7 @@
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
                             if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
+                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                     leaderOutput.push(res[param]);
@@ -860,7 +860,7 @@
                     leaderImageSubContainer.appendChild(leaderImageElement)
                     leaderImageContainer.appendChild(leaderImageSubContainer)
                     leaderElement.appendChild(leaderImageContainer);
-                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
+                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 10) : leaderName)+"</center></span>";
                     leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                     leadersElement.appendChild(leaderElement);
                 });
