@@ -184,7 +184,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -278,10 +278,10 @@
             let output = [];
             element.reduce((res, value) => {
                 if (value.tanggal === currentDate) {
-                    let id = value[`${role}_id`] ?? value.sewing_line;
+                    let id = value[`${role}_nik`] ?? value.sewing_line;
                     if (!res[id]) {
                         res[id] = {
-                            id: value[`${role}_id`],
+                            id: value[`${role}_nik`],
                             [`${role}_nik`]: value[`${role}_nik`],
                             [`${role}_name`]: value[`${role}_name`],
                             sewing_line: "",
