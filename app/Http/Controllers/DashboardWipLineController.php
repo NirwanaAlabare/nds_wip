@@ -1385,7 +1385,7 @@ END jam) a))) target from (
                         output.tgl_output
                 ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
             group by
-                chief_id
+                chief_nik
             order by
                 rft_efficiency desc
         ");
@@ -1469,7 +1469,7 @@ END jam) a))) target from (
                         output.tgl_output
                 ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
             group by
-                leader_id
+                leader_nik
             order by
                 rft_efficiency desc
         ");
