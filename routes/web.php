@@ -888,6 +888,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('dc-tools');
         Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
+        Route::get('/modify-dc-qty', 'modifyDcQty')->middleware('role:superadmin')->name('modify-dc-qty');
+        Route::get('/get-dc-qty', 'getDcQty')->middleware('role:superadmin')->name('get-dc-qty');
         Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');
     });
 
