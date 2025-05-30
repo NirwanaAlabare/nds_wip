@@ -192,7 +192,7 @@
     <div style="width: 100vw; height: 100vh; background: #fbfbfb; position: relative;">
         <div style="width: 100vw; position: absolute; bottom: 0;" class="d-flex flex-column justify-content-center align-items-center overflow-hidden">
             <h1 class="text-center text-warning crimson-text-bold mt-3 py-1 px-3">CHIEF OF THE MONTH</h1>
-            <h5 class="text-center">{{ strtoupper($monthName)." ".$year }}</h5>
+            <h3 class="text-center">{{ strtoupper($monthName)." ".$year }}</h3>
 
             <div class="profile-frame text-center" style="min-width: 200px !important; width: 200px !important; min-height: 200px !important; height: 200px !important; margin-top: 5vh;">
                 <img src="{{ asset('dist/img/person.png') }}" alt="person" class="img-fluid" id='top-chief-img'>
