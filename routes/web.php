@@ -219,8 +219,8 @@ Route::middleware('auth')->group(function () {
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
-        Route::get('/general-tools', 'generalTools')->name('general-tools');
-        Route::post('/update-general-order', 'updateGeneralOrder')->name('update-general-order');
+        Route::get('/general-tools', 'generalTools')->middleware('superadmin')->name('general-tools');
+        Route::post('/update-general-order', 'updateGeneralOrder')->middleware('superadmin')->name('update-general-order');
     });
 
     // Worksheet
@@ -695,7 +695,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Stocker Tools
-    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
+    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:superadmin')->group(function () {
         // form
         Route::get('/index', 'index')->name('stocker-tools');
 
@@ -856,7 +856,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/filter-summary-loading', 'filterSummary')->name('filter-summary-loading');
 
         Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
-        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
+        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->middleware('role:superadmin')->name('modify-loading-line-update');
     });
 
     // Bon Loading
@@ -885,9 +885,10 @@ Route::middleware('auth')->group(function () {
     });
 
     // DC Tools
-    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:dc')->group(function () {
+    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('dc-tools');
         Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
+        Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');
     });
 
     // Sewing :
@@ -1117,10 +1118,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
     });
 
+    // Undo History
     Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
     });
 
+    // Sewing Tools
     Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
