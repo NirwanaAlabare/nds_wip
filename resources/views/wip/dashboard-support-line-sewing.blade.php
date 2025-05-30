@@ -274,35 +274,6 @@
             updateData();
         }, 60000);
 
-        function groupByRole(element, currentDate, role) {
-            let output = [];
-            element.reduce((res, value) => {
-                if (value.tanggal === currentDate) {
-                    let id = value[`${role}_nik`] ?? value.sewing_line;
-                    if (!res[id]) {
-                        res[id] = {
-                            id: value[`${role}_nik`],
-                            [`${role}_nik`]: value[`${role}_nik`],
-                            [`${role}_name`]: value[`${role}_name`],
-                            sewing_line: "",
-                            mins_avail: 0,
-                            mins_prod: 0,
-                            output: 0,
-                            rft: 0
-                        };
-                        output.push(res[id]);
-                    }
-                    res[id].mins_avail += Number(value.cumulative_mins_avail);
-                    res[id].mins_prod += Number(value.mins_prod);
-                    res[id].output += Number(value.output);
-                    res[id].rft += Number(value.rft);
-                    res[id].sewing_line += value.sewing_line + "<br>";
-                }
-                return res;
-            }, {});
-            return output;
-        }
-
         var currentDayOne = "";
         var currentDayTwo = "";
         var currentDayThree = "";
@@ -860,7 +831,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -910,81 +881,12 @@
                         // Total Data
                         let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };
 
-                        // IE Output
-                        let ieOutput = [];
-                        element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.ie_id ? value.ie_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { id: value.ie_id, ie_nik: value.ie_nik, ie_name: value.ie_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    ieOutput.push(res[param]);
-                                }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
-                            }
+                        var currentTanggal = currentData ? currentData.tanggal : formatDate(new Date());
 
-                            return res;
-                        }, {});
-
-                        // Leader QC Output
-                        let leaderqcOutput = [];
-                        element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leaderqc_id ? value.leaderqc_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { id: value.leaderqc_id, leaderqc_nik: value.leaderqc_nik, leaderqc_name: value.leaderqc_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    leaderqcOutput.push(res[param]);
-                                }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
-                            }
-
-                            return res;
-                        }, {});
-
-                        // Mechanic QC Output
-                        let mechanicOutput = [];
-                        element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.mechanic_id ? value.mechanic_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { id: value.mechanic_id, mechanic_nik: value.mechanic_nik, mechanic_name: value.mechanic_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    mechanicOutput.push(res[param]);
-                                }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
-                            }
-
-                            return res;
-                        }, {});
-
-                        // Technical Output
-                        let technicalOutput = [];
-                        element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.technical_id ? value.technical_id : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { id: value.technical_id, technical_nik: value.technical_nik, technical_name: value.technical_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    technicalOutput.push(res[param]);
-                                }
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
-                            }
-
-                            return res;
-                        }, {});
+                        var ieOutput = groupByRole(element, currentTanggal, "ie");
+                        var leaderqcOutput = groupByRole(element, currentTanggal, "leaderqc");
+                        var mechanicOutput = groupByRole(element, currentTanggal, "mechanic");
+                        var technicalOutput = groupByRole(element, currentTanggal, "technical");
 
                         chiefDailyEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": sortedDateOutput, "ieData": ieOutput, "leaderqcData": leaderqcOutput, "mechanicData": mechanicOutput, "technicalData": technicalOutput, "currentEff": (totalData ? totalData.totalEfficiency : 0), "currentRft": (totalData ? totalData.totalRft : 0)});
                     });
@@ -1342,6 +1244,35 @@
             } else {
                 appendRow(data, index);
             }
+        }
+
+        function groupByRole(element, currentDate, role) {
+            let output = [];
+            element.reduce((res, value) => {
+                if (value.tanggal === currentDate) {
+                    let id = value[`${role}_nik`] ?? value.sewing_line;
+                    if (!res[id]) {
+                        res[id] = {
+                            id: value[`${role}_nik`],
+                            [`${role}_nik`]: value[`${role}_nik`],
+                            [`${role}_name`]: value[`${role}_name`],
+                            sewing_line: "",
+                            mins_avail: 0,
+                            mins_prod: 0,
+                            output: 0,
+                            rft: 0
+                        };
+                        output.push(res[id]);
+                    }
+                    res[id].mins_avail += Number(value.cumulative_mins_avail);
+                    res[id].mins_prod += Number(value.mins_prod);
+                    res[id].output += Number(value.output);
+                    res[id].rft += Number(value.rft);
+                    res[id].sewing_line += value.sewing_line + "<br>";
+                }
+                return res;
+            }, {});
+            return output;
         }
     </script>
 @endsection

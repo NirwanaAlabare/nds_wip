@@ -208,7 +208,7 @@
                     let dateOutput = [];
 
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
