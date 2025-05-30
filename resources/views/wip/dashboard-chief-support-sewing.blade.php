@@ -334,7 +334,7 @@
             console.log("update data");
 
             updateData();
-        }, 10000);
+        }, 60000);
 
         var currentDayOne = "";
         var currentDayTwo = "";

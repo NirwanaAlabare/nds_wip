@@ -214,7 +214,7 @@ class TransferOutput extends Component
                 }
 
                 if ($toSoDet) {
-                    $kodeNumbering = "";
+                    $kodeNumberingNull = "";
                     if ($toSoDet->id != $fromSoDet->id) {
                         $kodeNumberingNull = " and kode_numbering is null";
                     }
