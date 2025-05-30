@@ -257,7 +257,7 @@
                         }, {});
 
                         let totalEfficiency = (total_mins_prod/total_mins_avail*100);
-                        let totalRft = (total_output/total_rft*100);
+                        let totalRft = (total_rft/total_output*100);
 
                         return {
                             "id": element[0].leader_nik,
@@ -449,7 +449,7 @@
                         }, {});
 
                         let totalEfficiency = (total_mins_prod/total_mins_avail*100);
-                        let totalRft = (total_output/total_rft*100);
+                        let totalRft = (total_rft/total_output*100);
 
                         return {
                             "id": element[0].leader_nik,
