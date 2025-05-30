@@ -856,7 +856,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/filter-summary-loading', 'filterSummary')->name('filter-summary-loading');
 
         Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
-        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->middleware('role:superadmin')->name('modify-loading-line-update');
+        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
     });
 
     // Bon Loading

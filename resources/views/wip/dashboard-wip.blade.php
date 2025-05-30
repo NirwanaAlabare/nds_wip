@@ -94,8 +94,10 @@
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
-                        <h5 class="card-title fw-bold">CHIEF LEADER</h5>
-                        <a href="{{ route('dashboard-chief-leader-sewing') }}" target="_blank" class="btn btn-primary btn-sm">Details</a>
+                        <div class="d-flex justify-content-between align-items-center h-100 gap-3">
+                            <h5 class="card-title fw-bold">RANKING CHIEF LEADER</h5>
+                            <a href="{{ route('dashboard-chief-leader-sewing') }}" target="_blank" class="btn btn-primary btn-sm">Details</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -434,7 +436,7 @@
             window.open("{{ route("dashboard-top-chief-sewing") }}/"+$("#topchief-year").val()+"/"+$("#topchief-month").val(), '_blank');
             // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
         }
-        
+
         function visitDashboardTopLeader() {
             window.open("{{ route("dashboard-top-leader-sewing") }}/"+$("#topleader-year").val()+"/"+$("#topleader-month").val(), '_blank');
             // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
