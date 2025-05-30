@@ -195,7 +195,7 @@
             <h1 class="text-center text-warning crimson-text-bold py-1 px-3">LEADER OF THE MONTH</h1>
             <h3 class="text-center">{{ strtoupper($monthName)." ".$year }}</h3>
 
-            <div class="d-flex justify-content-center align-items-end" style="width: 100vw; background: #fbfbfb; margin-top: 75px;">
+            <div class="d-flex justify-content-center align-items-end" style="width: 100vw; background: #fbfbfb; margin-top: 5vh;">
                 {{-- LEADER 2 --}}
                 <div id="top-leader-2" class="d-flex flex-column" style="width: 20%;">
                     <div class="profile-frame text-center" style="min-width: 150px !important; width: 150px !important; min-height: 150px !important; height: 150px !important;">
