@@ -135,11 +135,11 @@
                                         Cutting Plan Date <i class="fas fa-map fa-sm"></i>
                                     </a>
                                 </li>
-                                {{-- <li>
+                                <li>
                                     <a href="{{ route('cut-plan-output') }}" class="dropdown-item {{ $subPage == 'cut-plan-output' ? 'active' : '' }}">
                                         Cutting Plan Output <i class="fa-solid fa-map-location"></i>
                                     </a>
-                                </li> --}}
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -258,6 +258,16 @@
                                 </li>
                             </ul>
                         </li>
+                    @endrole
+
+                    @role('superadmin')
+                        @if (Auth::user()->id == 1 || Auth::user()->id == 2)
+                            <li class="nav-item">
+                                <a href="{{ route('cutting-tools') }}" class="nav-link {{ $routeName == 'stocker-tools' ? 'active' : '' }}" target="_blank">
+                                    Tools
+                                </a>
+                            </li>
+                        @endif
                     @endrole
                 @endif
 

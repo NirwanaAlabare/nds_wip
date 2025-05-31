@@ -43,6 +43,8 @@ use App\Http\Controllers\Cutting\MasterPipingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingLoadingController;
 use App\Http\Controllers\Cutting\PipingStockController;
+// Cutting Tools
+use App\Http\Controllers\Cutting\CuttingToolsController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -610,6 +612,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/export', 'export')->name('export');
         // print
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
+    });
+
+    // Cutting Tools
+    Route::controller(CuttingToolsController::class)->prefix("cutting")->middleware('role:superadmin')->group(function () {
+        // form
+        Route::get('/index', 'index')->name('cutting-tools');
+
+        // fix roll qty
+        Route::get('/get-roll-qty', 'getRollQty')->name('get-roll-qty');
+        Route::post('/fix-roll-qty', 'fixRollQty')->name('fix-roll-qty');
     });
 
     // Stocker :
