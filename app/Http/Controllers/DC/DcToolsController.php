@@ -183,7 +183,7 @@ class DcToolsController extends Controller
 
                 $loadingLine = LoadingLine::where("stocker_id", $stocker->id)->first();
                 if ($loadingLine) {
-                    $loadingLinePlan = LoadingLinePlan::where("line_id", $request->line_id)->where("act_costing_id", $stocker->master_act_costing_id)->where("act_costing_ws", $stocker->master_act_costing_ws)->where("color", $stocker->master_act_costing_color)->where("tanggal", $request->line_tanggal)->first();
+                    $loadingLinePlan = LoadingLinePlan::where("line_id", $request->line_id)->where("act_costing_id", $stocker->master_act_costing_id)->where("color", $stocker->master_act_costing_color)->where("tanggal", $request->line_tanggal)->first();
 
                     if (!$loadingLinePlan) {
                         $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();

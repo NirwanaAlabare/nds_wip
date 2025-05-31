@@ -1089,8 +1089,8 @@ class LoadingLineController extends Controller
                 $line = $lines->where("line_id", $request->lineId)->first();
 
                 $loadingLinePlan = LoadingLinePlan::where("line_id", $request->lineId)->
-                    where("act_costing_id", $loadingLine->stocker->act_costing_id)->
-                    where("color", $loadingLine->stocker->color)->
+                    where("act_costing_id", $loadingLine->stocker->masterSbWs->id_act_cost)->
+                    where("color", $loadingLine->stocker->masterSbWs->color)->
                     where("tanggal", ($request->tanggal_loading ? $request->tanggal_loading : $loadingLine->tanggal_loading))->
                     first();
 
