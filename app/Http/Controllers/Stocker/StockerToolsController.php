@@ -47,8 +47,12 @@ class StockerToolsController extends Controller
 
         if ($validatedRequest) {
             // Delete related stocker input
-            if ($request->group) {
-                $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->where('group_stocker', $request->group)->get();
+            if ($request->form_group) {
+                if ($request->form_stocker && count(explode(",", $request->form_stocker)) > 0) {
+                    $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->where('group_stocker', $request->form_group)->whereIn('id', explode(",", $request->form_stocker))->get();
+                } else {
+                    $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->where('group_stocker', $request->form_group)->get();
+                }
             } else {
                 $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->get();
             }
@@ -68,7 +72,9 @@ class StockerToolsController extends Controller
                 DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
             ]);
 
-            $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
+            if (!($request->form_stocker && count(explode(",", $request->form_stocker)) > 0)) {
+                $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
+            }
             $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();

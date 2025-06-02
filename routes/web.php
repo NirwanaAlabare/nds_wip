@@ -209,6 +209,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
         // get group
         Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
+        // get stocker
+        Route::get('/get-form-stocker', 'getFormStocker')->name('get-form-stocker');
 
         // new general
         // get buyers
