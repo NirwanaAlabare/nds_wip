@@ -1940,7 +1940,7 @@ Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
 
 // Accounting
-    Route::controller(AccountingController::class)->prefix("accounting")->group(function () {
+    Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:admin')->group(function () {
         // get worksheet
         Route::get('/', 'index')->name('accounting');
         Route::get('/update-data-ceisa', 'UpdateData')->name('update-data-ceisa');
