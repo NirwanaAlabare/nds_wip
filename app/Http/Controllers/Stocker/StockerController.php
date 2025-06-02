@@ -2172,11 +2172,11 @@ class StockerController extends Controller
         $formCutId = $request->form_cut_id;
         $noForm = $request->no_form;
 
-        $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-            where("stocker_input.form_cut_id", $formCutId)->
-            count();
+        // $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+        //     where("stocker_input.form_cut_id", $formCutId)->
+        //     count();
 
-        if ($dcInCount < 1) {
+        // if ($dcInCount < 1) {
             $formData = FormCutInput::selectRaw("
                     form_cut_input.id form_id,
                     form_cut_input.no_form,
@@ -2200,23 +2200,31 @@ class StockerController extends Controller
                 $differenceQty = $request->mod_difference_qty[$i];
                 $note = $request->mod_note[$i];
 
-                $createModifySizeQty = ModifySizeQty::updateOrCreate([
-                    "form_cut_id" => $formCutId,
-                    "no_form" => $noForm,
-                    "so_det_id" => $soDetId,
-                ],[
-                    "original_qty" => $originalQty,
-                    "modified_qty" => $modifiedQty,
-                    "difference_qty" => $differenceQty,
-                    "note" => $note,
-                    "created_by" => Auth::user()->id,
-                    "created_by_username" => Auth::user()->username
-                ]);
+                $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    where("stocker_input.form_cut_id", $formCutId)->
+                    where("stocker_input.so_det_id", $soDetId)->
+                    where("stocker_input.ratio", $ratio)->
+                    count();
 
-                if ($createModifySizeQty) {
-                    $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") berhasil di simpan. <br>";
-                } else {
-                    $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") gagal di simpan. <br>";
+                if ($dcInCount < 1) {
+                    $createModifySizeQty = ModifySizeQty::updateOrCreate([
+                        "form_cut_id" => $formCutId,
+                        "no_form" => $noForm,
+                        "so_det_id" => $soDetId,
+                    ],[
+                        "original_qty" => $originalQty,
+                        "modified_qty" => $modifiedQty,
+                        "difference_qty" => $differenceQty,
+                        "note" => $note,
+                        "created_by" => Auth::user()->id,
+                        "created_by_username" => Auth::user()->username
+                    ]);
+
+                    if ($createModifySizeQty) {
+                        $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") berhasil di simpan. <br>";
+                    } else {
+                        $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") gagal di simpan. <br>";
+                    }
                 }
             }
 
@@ -2400,15 +2408,15 @@ class StockerController extends Controller
                     'additional' => [],
                 );
             }
-        } else {
-            return array(
-                'status' => 400,
-                'message' => 'Stocker Form ini sudah di scan di DC',
-                'redirect' => '',
-                'table' => '',
-                'additional' => [],
-            );
-        }
+        // } else {
+        //     return array(
+        //         'status' => 400,
+        //         'message' => 'Stocker Form ini sudah di scan di DC',
+        //         'redirect' => '',
+        //         'table' => '',
+        //         'additional' => [],
+        //     );
+        // }
 
         return array(
             'status' => 400,
