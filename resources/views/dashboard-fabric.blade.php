@@ -36,7 +36,7 @@
                      <h3 class="card-title" style="padding-bottom:8px;"><b><u>Stock, In & Out Roll</u></b></h3>
                     <div class="col-md-10">
                     <div class="table-responsive" style="max-height: 370px;overflow-y: hidden;overflow-x: hidden;">
-                        <table id="datatable" class="table table-bordered table-striped 100" style="width: 100%;">
+                        <table id="datatable" class="table table-bordered table-striped w-100" style="width: 100%;">
                             <thead>
                                 <tr class="bg-dark">
                                     <th class="text-center" style="width: 10%">Kode Rak</th>

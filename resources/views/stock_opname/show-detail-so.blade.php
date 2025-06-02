@@ -133,7 +133,7 @@
         <div class="form-group row">
 
             <div class="table-responsive" >
-                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead>
                         <tr>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi</th>

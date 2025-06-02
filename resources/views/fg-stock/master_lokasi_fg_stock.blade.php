@@ -67,7 +67,7 @@
 
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped 100">
+                <table id="datatable" class="table table-bordered table-striped w-100">
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Kode Lokasi</th>

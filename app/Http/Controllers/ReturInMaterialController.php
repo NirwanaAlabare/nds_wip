@@ -702,7 +702,7 @@ public function showdetailbarcodeout(Request $request)
     }
 
     $html .= '<div class="table-responsive" style="max-height: 300px">
-    <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100 text-nowrap">
+    <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
     <thead>
     <tr>
     <th class="text-center" style="font-size: 0.6rem;">No Barcode</th>

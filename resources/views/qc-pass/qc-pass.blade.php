@@ -62,7 +62,7 @@
         </div>
 
         <div class="table-responsive" style="max-height: 500px">
-            <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No Inspection</th>
