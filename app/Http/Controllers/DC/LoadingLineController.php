@@ -1033,12 +1033,12 @@ class LoadingLineController extends Controller
                     stocker_input.act_costing_ws,
                     stocker_input.color,
                     stocker_input.size,
-                    GROUP_CONCAT(DISTINCT stocker_input.lokasi) as lokasi,
-                    GROUP_CONCAT(DISTINCT trolley.nama_trolley) as trolley,
-                    GROUP_CONCAT(DISTINCT COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod)) qty,
-                    GROUP_CONCAT(DISTINCT (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace)) dc_qty,
-                    GROUP_CONCAT(DISTINCT (secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace)) secondary_in_qty,
-                    GROUP_CONCAT(DISTINCT (secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace)) secondary_inhouse_qty,
+                    GROUP_CONCAT(DISTINCT stocker_input.lokasi SEPARATOR ' || ') as lokasi,
+                    GROUP_CONCAT(DISTINCT trolley.nama_trolley SEPARATOR ' || ') as trolley,
+                    GROUP_CONCAT(COALESCE(COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod), '-') SEPARATOR ' || ') qty,
+                    GROUP_CONCAT(COALESCE((dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace), '-') SEPARATOR ' || ') dc_qty,
+                    GROUP_CONCAT(COALESCE((secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace), '-') SEPARATOR ' || ') secondary_in_qty,
+                    GROUP_CONCAT(COALESCE((secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace), '-') SEPARATOR ' || ') secondary_inhouse_qty,
                     MIN(loading_line.qty) loading_qty,
                     CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range_awal_akhir
                 ")->
@@ -1089,15 +1089,24 @@ class LoadingLineController extends Controller
                 $line = $lines->where("line_id", $request->lineId)->first();
 
                 $loadingLinePlan = LoadingLinePlan::where("line_id", $request->lineId)->
-                    where("act_costing_id", $loadingLine->stocker->act_costing_id)->
-                    where("color", $loadingLine->stocker->color)->
-                    where("tanggal", $loadingLine->tanggal_loading)->
+                    where("act_costing_id", $loadingLine->stocker->masterSbWs->id_act_cost)->
+                    where("color", $loadingLine->stocker->masterSbWs->color)->
+                    where("tanggal", ($request->tanggal_loading ? $request->tanggal_loading : $loadingLine->tanggal_loading))->
                     first();
 
                 if ($loadingLinePlan) {
                     $loadingLine->line_id = $request->lineId;
                     $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId);
                     $loadingLine->loading_plan_id = $loadingLinePlan->id;
+                    if ($request->tanggal_loading) {
+                        $loadingLine->tanggal_loading = $request->tanggal_loading;
+                    }
+                    if ($request->qty_reject > 0) {
+                        $loadingLine->qty = $loadingLine->qty - $request->qty_reject;
+                    }
+                    if ($request->qty_replace > 0) {
+                        $loadingLine->qty = $loadingLine->qty + $request->qty_replace;
+                    }
                     $loadingLine->save();
 
                     array_push($success, $loadingLine->id);
@@ -1116,12 +1125,21 @@ class LoadingLineController extends Controller
                         "color" => $loadingLine->stocker->masterSbWs->color,
                         "target_sewing" => $loadingLine->loadingPlan->target_sewing,
                         "target_loading" => $loadingLine->loadingPlan->target_loading,
-                        "tanggal" => $loadingLine->tanggal_loading,
+                        "tanggal" => ($request->tanggal_loading ? $request->tanggal_loading : $loadingLine->tanggal_loading)
                     ]);
 
                     $loadingLine->line_id = $request->lineId;
                     $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId, 2);
                     $loadingLine->loading_plan_id = $newLoadingPlan->id;
+                    if ($request->tanggal_loading) {
+                        $loadingLine->tanggal_loading = $request->tanggal_loading;
+                    }
+                    if ($request->qty_reject > 0) {
+                        $loadingLine->qty = $loadingLine->qty - $request->qty_reject;
+                    }
+                    if ($request->qty_replace > 0) {
+                        $loadingLine->qty = $loadingLine->qty + $request->qty_replace;
+                    }
                     $loadingLine->save();
 
                     array_push($success, $loadingLine->id);

@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stocker;
+use App\Models\DcIn;
+use App\Models\SecondaryInhouse;
+use App\Models\SecondaryIn;
 use App\Models\LoadingLine;
 use App\Models\LoadingLinePlan;
 use App\Models\YearSequence;
+use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -82,6 +87,158 @@ class DcToolsController extends Controller
         return array(
             'status' => 200,
             'message' => 'Berhasil mengubah '.count($success).' data <br> Gagal mengubah '.count($fails).' data',
+        );
+    }
+
+    public function modifyDcQty(Request $request) {
+        $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
+
+        return view("dc.tools.modify-dc-qty", ['page' => 'dashboard-dc', "lines" => $lines]);
+    }
+
+    public function getDcQty(Request $request) {
+        if ($request->id_qr_stocker) {
+            $stocker = DB::select("
+                select
+                    stocker_input.id,
+                    stocker_input.id_qr_stocker,
+                    master_sb_ws.ws,
+                    master_sb_ws.styleno,
+                    master_sb_ws.color,
+                    master_sb_ws.size,
+                    dc_in_input.qty_awal dc_qty_awal,
+                    dc_in_input.qty_reject dc_qty_reject,
+                    dc_in_input.qty_replace dc_qty_replace,
+                    secondary_inhouse_input.qty_awal inhouse_qty_awal,
+                    secondary_inhouse_input.qty_reject inhouse_qty_reject,
+                    secondary_inhouse_input.qty_replace inhouse_qty_replace,
+                    secondary_inhouse_input.qty_in inhouse_qty_in,
+                    secondary_in_input.qty_awal in_qty_awal,
+                    secondary_in_input.qty_reject in_qty_reject,
+                    secondary_in_input.qty_replace in_qty_replace,
+                    secondary_in_input.qty_in in_qty_in,
+                    loading_line.line_id,
+                    loading_line.nama_line as line_name,
+                    loading_line.tanggal_loading as line_tanggal,
+                    loading_line.qty as line_qty
+                from
+                    stocker_input
+                    left join dc_in_input on dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                    left join secondary_inhouse_input on secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                    left join secondary_in_input on secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                    left join loading_line on loading_line.stocker_id = stocker_input.id
+                    left join master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
+                where
+                    stocker_input.id_qr_stocker = '".$request->id_qr_stocker."'
+            ");
+
+            if ($stocker) {
+                return array(
+                    "status" => 200,
+                    "message" => "Data ditemukan",
+                    "data" => $stocker[0]
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data tidak ditemukan",
+        );
+    }
+
+    public function updateDcQty(Request $request) {
+        if ($request->id_qr_stocker) {
+            $stocker = Stocker::selectRaw("stocker_input.*, master_sb_ws.buyer master_act_costing_buyer, master_sb_ws.id_act_cost master_act_costing_id, master_sb_ws.ws master_act_costing_ws, master_sb_ws.styleno master_act_costing_style, master_sb_ws.color master_act_costing_color")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->where("id_qr_stocker", $request->id_qr_stocker)->first();
+
+            if ($stocker) {
+                // DC in
+                $dc = DcIn::where("id_qr_stocker", $request->id_qr_stocker)->first();
+                if ($dc) {
+                    $dc->qty_awal = $request->dc_qty_awal != null ? $request->dc_qty_awal : $dc->qty_awal;
+                    $dc->qty_reject = $request->dc_qty_reject != null ? $request->dc_qty_reject : $dc->qty_reject;
+                    $dc->qty_replace = $request->dc_qty_replace != null ? $request->dc_qty_replace : $dc->qty_replace;
+                    $dc->save();
+                }
+
+                // Sec inhouse
+                $secondaryInhouse = SecondaryInhouse::where("id_qr_stocker", $request->id_qr_stocker)->first();
+                if ($secondaryInhouse) {
+                    $secondaryInhouse->qty_awal = $request->inhouse_qty_awal != null ? $request->inhouse_qty_awal : $secondaryInhouse->qty_awal;
+                    $secondaryInhouse->qty_reject = $request->inhouse_qty_reject != null ? $request->inhouse_qty_reject : $secondaryInhouse->qty_reject;
+                    $secondaryInhouse->qty_replace = $request->inhouse_qty_replace != null ? $request->inhouse_qty_replace : $secondaryInhouse->qty_replace;
+                    $secondaryInhouse->qty_in = $request->inhouse_qty_in != null ? $request->inhouse_qty_in : $secondaryInhouse->qty_in;
+                    $secondaryInhouse->save();
+                }
+
+                // Sec in
+                $secondaryIn = SecondaryIn::where("id_qr_stocker", $request->id_qr_stocker)->first();
+                if ($secondaryIn) {
+                    $secondaryIn->qty_awal = $request->in_qty_awal != null ? $request->in_qty_awal : $secondaryIn->qty_awal;
+                    $secondaryIn->qty_reject = $request->in_qty_reject != null ? $request->in_qty_reject : $secondaryIn->qty_reject;
+                    $secondaryIn->qty_replace = $request->in_qty_replace != null ? $request->in_qty_replace : $secondaryIn->qty_replace;
+                    $secondaryIn->qty_in = $request->in_qty_in != null ? $request->in_qty_in : $secondaryIn->qty_in;
+                    $secondaryIn->save();
+                }
+
+                $loadingLine = LoadingLine::where("stocker_id", $stocker->id)->first();
+                if ($loadingLine) {
+                    $loadingLinePlan = LoadingLinePlan::where("line_id", $request->line_id)->where("act_costing_id", $stocker->master_act_costing_id)->where("color", $stocker->master_act_costing_color)->where("tanggal", $request->line_tanggal)->first();
+
+                    if (!$loadingLinePlan) {
+                        $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
+                        $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
+                        $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
+
+                        $loadingLinePlan = LoadingLinePlan::create([
+                            "kode" => $kodeLoadingPlan,
+                            "line_id" => $request->line_id,
+                            "buyer" => $stocker->master_act_costing_buyer,
+                            "act_costing_id" => $stocker->master_act_costing_id,
+                            "act_costing_ws" => $stocker->master_act_costing_ws,
+                            "style" => $stocker->master_act_costing_style,
+                            "color" => $stocker->master_act_costing_color,
+                            "tanggal" => $request->line_tanggal
+                        ]);
+                    }
+
+                    if ($loadingLinePlan) {
+                        $similarStocker = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id")->
+                            where(($stocker->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stocker->form_reject_id > 0 ? $stocker->form_reject_id : $stocker->form_cut_id))->
+                            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+                            leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                            leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                            leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                            where("so_det_id", $stocker->so_det_id)->
+                            where("group_stocker", $stocker->group_stocker)->
+                            where("ratio", $stocker->ratio)->
+                            get();
+
+                        $stockerIds = $similarStocker->pluck("id")->toArray();
+
+                        $loadingLinesUpdate = LoadingLine::whereIn("stocker_id", $stockerIds)->update([
+                            "loading_plan_id" => $loadingLinePlan->id,
+                            "line_id" => $request->line_id,
+                            "nama_line" => $request->line_name,
+                            "tanggal_loading" => $request->line_tanggal,
+                            "qty" => $request->line_qty,
+                        ]);
+                    }
+                }
+
+                return array(
+                    "dc" => $dc,
+                    "secondaryInhouse" => $secondaryInhouse,
+                    "secondaryIn" => $secondaryIn,
+                    "loadingLine" => $loadingLine
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data tidak valid"
         );
     }
 }

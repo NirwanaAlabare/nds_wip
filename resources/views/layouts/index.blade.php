@@ -75,6 +75,13 @@
             </div>
         </div>
 
+        <!-- Loading -->
+        <div class="loading-container-fullscreen-background d-none" id="loading-bg">
+            <div class="loading-container">
+                <div class="loading"></div>
+            </div>
+        </div>
+
         <!-- Content Wrapper -->
         <div class="content-wrapper pt-3">
 

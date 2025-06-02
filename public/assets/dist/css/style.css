@@ -209,6 +209,17 @@ table.sticky-table .fixed-column {
     height: 100vh;
 }
 
+.loading-container-fullscreen-background {
+    background-color: #212529;
+    position: fixed;
+    vertical-align: middle;
+    z-index: 999999;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
 @-webkit-keyframes spin {
     0% { -webkit-transform: rotate(0deg); }
     100% { -webkit-transform: rotate(360deg); }

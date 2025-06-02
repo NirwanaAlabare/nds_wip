@@ -74,22 +74,18 @@
         <div class="card-body">
             <div class="d-flex flex-wrap gap-3 mb-3">
                 <div class="mb-3 flex-fill" style="width: 200px;">
-                    <label class="form-label"><small><b>Buyer</b></small></label>
+                    <label class="form-label"><small><b>Style</b></small></label>
                     <div class="input-group">
-                        <select class="form-control select2bs4 form-control-sm rounded" id="buyer_filter"
-                            name="buyer_filter" onchange="get_monitoring_material_style();" style="width: 100%;">
-                            @foreach ($data_buyer as $databuyer)
-                                <option value="{{ $databuyer->isi }}">
-                                    {{ $databuyer->tampil }}
+                        <select class="form-control select2bs4 form-control-sm rounded" id="style_filter"
+                            name="style_filter" style="width: 100%;">
+                            <option value="" disabled selected hidden>-- Select Style --</option> <!-- Placeholder -->
+                            @foreach ($data_style as $datastyle)
+                                <option value="{{ $datastyle->isi }}">
+                                    {{ $datastyle->tampil }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
-                </div>
-                <div class="mb-3 flex-fill" style="width: 100px;">
-                    <label class="form-label"><small><b>Style</b></small></label>
-                    <select class='form-control select2bs4 form-control-sm rounded' style='width: 100%;' name='style_filter'
-                        id='style_filter'></select>
                 </div>
                 <div class="mb-3 flex-fill d-flex align-items-end">
                     <a onclick="dataTableReload()" class="btn btn-outline-primary btn-sm position-relative">
@@ -153,33 +149,13 @@
     </script>
     <script>
         $(document).ready(() => {
-            $('#buyer_filter').val('');
-            $('#buyer_filter').change();
+            $('#style_filter').val('').trigger('change'); // Clear the select2 value
             $("#loadingOverlay").hide();
             // dataTableReload();
         });
 
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
-        }
-
-        function get_monitoring_material_style() {
-            let buyer_filter = $("#buyer_filter").val();
-            $.ajax({
-                type: "GET",
-                url: '{{ route('get_ppic_monitoring_material_sum_style') }}',
-                data: {
-                    buyer: buyer_filter
-                },
-                success: function(html) {
-                    if (html != "") {
-                        $("#style_filter").html(html);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error: ", status, error);
-                }
-            });
         }
 
         function dataTableReload() {
@@ -251,7 +227,6 @@
                 ajax: {
                     url: '{{ route('show_lap_monitoring_material_f_sum') }}',
                     data: function(d) {
-                        d.buyer_filter = $('#buyer_filter').val();
                         d.style_filter = $('#style_filter').val();
                     },
                     beforeSend: function() {
@@ -328,23 +303,21 @@
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Monitoring Material Summary');
 
-            const buyer = $("#buyer_filter").val() || "All Buyers";
             const style = $("#style_filter").val() || "All Styles";
-            const fileBuyer = buyer.replace(/\s+/g, '_');
             const fileStyle = style.replace(/\s+/g, '_');
             const today = new Date().toISOString().split('T')[0];
 
             // === Title Rows ===
-            worksheet.mergeCells('A1:N1');
-            worksheet.getCell('A1').value = `Buyer : ${buyer}`;
-            worksheet.getCell('A1').font = {
-                bold: true,
-                size: 14
-            };
-            worksheet.getCell('A1').alignment = {
-                vertical: 'middle',
-                horizontal: 'left'
-            };
+            // worksheet.mergeCells('A1:N1');
+            // worksheet.getCell('A1').value = `Buyer : ${buyer}`;
+            // worksheet.getCell('A1').font = {
+            //     bold: true,
+            //     size: 14
+            // };
+            // worksheet.getCell('A1').alignment = {
+            //     vertical: 'middle',
+            //     horizontal: 'left'
+            // };
 
             worksheet.mergeCells('A2:N2');
             worksheet.getCell('A2').value = `Style : ${style}`;
@@ -519,7 +492,7 @@
 
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `Monitoring_${fileBuyer}_${fileStyle}_${today}.xlsx`;
+            link.download = `Monitoring_${fileStyle}_${today}.xlsx`;
             link.click();
 
             $("#loadingOverlay").fadeOut();

@@ -43,6 +43,8 @@ use App\Http\Controllers\Cutting\MasterPipingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingLoadingController;
 use App\Http\Controllers\Cutting\PipingStockController;
+// Cutting Tools
+use App\Http\Controllers\Cutting\CuttingToolsController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -220,8 +222,8 @@ Route::middleware('auth')->group(function () {
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
-        Route::get('/general-tools', 'generalTools')->name('general-tools');
-        Route::post('/update-general-order', 'updateGeneralOrder')->name('update-general-order');
+        Route::get('/general-tools', 'generalTools')->middleware('superadmin')->name('general-tools');
+        Route::post('/update-general-order', 'updateGeneralOrder')->middleware('superadmin')->name('update-general-order');
     });
 
     // Worksheet
@@ -613,6 +615,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
     });
 
+    // Cutting Tools
+    Route::controller(CuttingToolsController::class)->prefix("cutting")->middleware('role:superadmin')->group(function () {
+        // form
+        Route::get('/index', 'index')->name('cutting-tools');
+
+        // fix roll qty
+        Route::get('/get-roll-qty', 'getRollQty')->name('get-roll-qty');
+        Route::post('/fix-roll-qty', 'fixRollQty')->name('fix-roll-qty');
+    });
+
     // Stocker :
     Route::controller(StockerController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
         Route::get('/', 'index')->name('stocker');
@@ -696,7 +708,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Stocker Tools
-    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
+    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:superadmin')->group(function () {
         // form
         Route::get('/index', 'index')->name('stocker-tools');
 
@@ -886,9 +898,12 @@ Route::middleware('auth')->group(function () {
     });
 
     // DC Tools
-    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:dc')->group(function () {
+    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('dc-tools');
         Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
+        Route::get('/modify-dc-qty', 'modifyDcQty')->middleware('role:superadmin')->name('modify-dc-qty');
+        Route::get('/get-dc-qty', 'getDcQty')->middleware('role:superadmin')->name('get-dc-qty');
+        Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');
     });
 
     // Sewing :
@@ -1118,10 +1133,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
     });
 
+    // Undo History
     Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
     });
 
+    // Sewing Tools
     Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
@@ -1763,14 +1780,12 @@ Route::middleware('auth')->group(function () {
     // PPIC Monitoring Order
     Route::controller(PPIC_MonitoringMaterialController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_monitoring_material', 'ppic_monitoring_material')->name('ppic_monitoring_material');
-        Route::get('/get_ppic_monitoring_material_style', 'get_ppic_monitoring_material_style')->name('get_ppic_monitoring_material_style');
         Route::get('/show_lap_monitoring_material_f_det', 'show_lap_monitoring_material_f_det')->name('show_lap_monitoring_material_f_det');
     });
 
     // PPIC Monitoring Order Detail
     Route::controller(PPIC_MonitoringMaterialDetController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/ppic_monitoring_material_det', 'ppic_monitoring_material_det')->name('ppic_monitoring_material_det');
-        Route::get('/get_ppic_monitoring_material_det_style', 'get_ppic_monitoring_material_det_style')->name('get_ppic_monitoring_material_det_style');
         Route::get('/show_lap_monitoring_material_f_detail', 'show_lap_monitoring_material_f_detail')->name('show_lap_monitoring_material_f_detail');
     });
 
@@ -1872,8 +1887,8 @@ Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 
 // Chief
 Route::get('/dashboard-wip/chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'chiefSewing'])->name('dashboard-chief-sewing');
 Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::class, 'chiefSewingData'])->name('dashboard-chief-sewing-data');
-Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->middleware('auth')->name('dashboard-chief-sewing-range');
 // Chief Range
+Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->middleware('auth')->name('dashboard-chief-sewing-range');
 Route::get('/dashboard-wip/chief-sewing-range-data', [DashboardWipLineController::class, 'chiefSewingRangeData'])->middleware('auth')->name('dashboard-chief-sewing-range-data');
 Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineController::class, 'chiefSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-sewing-range-data-export');
 // Leader
@@ -1890,6 +1905,12 @@ Route::get('/dashboard-wip/factory-daily-sewing-data', [DashboardWipLineControll
 Route::get('/dashboard-wip/chief-leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefLeaderSewing'])->middleware('auth')->name('dashboard-chief-leader-sewing');
 Route::get('/dashboard-wip/chief-leader-sewing-data', [DashboardWipLineController::class, 'chiefLeaderSewingData'])->middleware('auth')->name('dashboard-chief-leader-sewing-data');
 Route::post('/dashboard-wip/chief-leader-sewing-range-data-export', [DashboardWipLineController::class, 'chiefLeaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-leader-sewing-range-data-export');
+// Chief Top
+Route::get('/dashboard-wip/top-chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topChiefSewing'])->name('dashboard-top-chief-sewing');
+Route::get('/dashboard-wip/top-chief-sewing-data', [DashboardWipLineController::class, 'topChiefSewingData'])->name('dashboard-top-chief-sewing-data');
+// Leader Top
+Route::get('/dashboard-wip/top-leader-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topLeaderSewing'])->name('dashboard-top-leader-sewing');
+Route::get('/dashboard-wip/top-leader-sewing-data', [DashboardWipLineController::class, 'topLeaderSewingData'])->name('dashboard-top-leader-sewing-data');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');

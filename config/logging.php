@@ -106,6 +106,12 @@ return [
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
 
+        'fixRollQty' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/fixRollQty/fixRollQty.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
         'resetStockerForm' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/resetStockerForm/resetStockerForm.log'),
