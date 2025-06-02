@@ -163,6 +163,7 @@ use App\Http\Controllers\GAApprovalBahanBakarController;
 use App\Http\Controllers\StockOpnameController;
 
 use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\AccountingController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -1916,6 +1917,22 @@ Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->
 Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
+
+// Accounting
+    Route::controller(AccountingController::class)->prefix("accounting")->group(function () {
+        // get worksheet
+        Route::get('/', 'index')->name('accounting');
+        Route::get('/update-data-ceisa', 'UpdateData')->name('update-data-ceisa');
+        Route::get('/create', 'create')->name('create-update-ceisa');
+        Route::get('/get-data-ceisa', 'getData')->name('get-data-ceisa');
+        Route::post('/store', 'store')->name('store-update-ceisa');
+        Route::get('/cancel-keterangan-ceisa', 'CancelDataCeisa')->name('cancel-keterangan-ceisa');
+        Route::get('/edit-keterangan-ceisa', 'EditDataCeisa')->name('edit-keterangan-ceisa');
+        Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
+        Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
+        Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
+        Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+    });
 
 // Route::get('/dashboard-chart', function () {
 //    return view('cutting.chart.dashboard-chart');
