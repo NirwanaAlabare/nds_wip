@@ -61,8 +61,8 @@ class TrackCuttingOutput extends Component
 
     public function updatedSelectedOrder()
     {
-        $firstPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderBy("tgl_form_cut", "asc")->first();
-        $lastPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderBy("tgl_form_cut", "desc")->first();
+        $firstPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) asc")->first();
+        $lastPlan = FormCutInput::selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->where("marker_input.act_costing_id", $this->selectedOrder)->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) desc")->first();
 
         if ($firstPlan) {
             $this->dateFromFilter = $firstPlan->tanggal;
@@ -145,10 +145,7 @@ class TrackCuttingOutput extends Component
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                        AND form_cut_input.waktu_mulai is not null
                         AND form_cut_input.id_marker is not null
-                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$dateFilter."
                     GROUP BY
                         form_cut_input.id
@@ -159,7 +156,6 @@ class TrackCuttingOutput extends Component
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                AND form_cut_input.waktu_mulai is not null
                 AND form_cut_input.id_marker is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
             ");
@@ -212,10 +208,7 @@ class TrackCuttingOutput extends Component
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                        AND form_cut_input.waktu_mulai is not null
                         AND form_cut_input.id_marker is not null
-                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$dateFilter."
                     GROUP BY
                         form_cut_input.id
@@ -226,7 +219,6 @@ class TrackCuttingOutput extends Component
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                AND form_cut_input.waktu_mulai is not null
                 AND form_cut_input.id_marker is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
             ");
@@ -297,7 +289,7 @@ class TrackCuttingOutput extends Component
                             marker_input
                             INNER JOIN
                                 marker_input_detail on marker_input_detail.marker_id = marker_input.id
-                            INNER JOIN
+                            LEFT JOIN
                                 master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
                             INNER JOIN
                                 (
@@ -318,9 +310,6 @@ class TrackCuttingOutput extends Component
                                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                     WHERE
                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                                        AND form_cut_input.waktu_mulai is not null
-                                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                         ".$dateFilter."
                                         ".($this->mejaFilter ? "AND form_cut_input.no_meja = '".$this->mejaFilter."'" :  "")."
                                     GROUP BY

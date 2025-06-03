@@ -38,7 +38,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
     public function view(): View
     {
         $this->loadingOrderOutput = false;
-        
+
         $dateFilter = " AND COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) between '".$this->dateFrom."' and '".$this->dateTo."' ";
         $orderFilterQuery = $this->order ? " AND marker_cutting.act_costing_id = '".$this->order."' " : "";
 
@@ -105,10 +105,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                        AND form_cut_input.waktu_mulai is not null
                         AND form_cut_input.id_marker is not null
-                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                         ".$dateFilter."
                     GROUP BY
                         form_cut_input.id
@@ -119,7 +116,6 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
             whereRaw("
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                AND form_cut_input.waktu_mulai is not null
                 AND form_cut_input.id_marker is not null
                 AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
             ");
@@ -196,9 +192,6 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                                     WHERE
                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                                        AND form_cut_input.waktu_mulai is not null
-                                        AND form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                                        AND form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                                         ".$dateFilter."
                                     GROUP BY
                                         form_cut_input.id
