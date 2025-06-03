@@ -291,7 +291,7 @@ onsubmit="submitForm(this, event)">
             </div>
             <div class="table-responsive"style="max-height: 500px">
                 <table id="datatable"
-                class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
+                class="table table-bordered table-head-fixed table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>

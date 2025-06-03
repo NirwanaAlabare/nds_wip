@@ -26,7 +26,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:left; vertical-align:middle'>
                             <th>Jenis Mesin</th>
@@ -38,8 +38,7 @@
                     <tfoot>
                         <tr>
                             <th colspan="2"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_chk'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_chk'> </th>
                             <th>UNIT</th>
                         </tr>
                     </tfoot>

@@ -752,7 +752,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
         $det_data = DB::connection('mysql_sb')->select("select a.id,a.no_insp,tgl_insp,no_form,lenght_fabric,kode_def,COALESCE(upto3,0) upto3, COALESCE(over3,0) over3,COALESCE(over6,0) over6, COALESCE(over9,0) over9,CONCAT(width_det1,'->',width_det2) width_det  from whs_qc_insp a inner join whs_qc_insp_det b on b.no_insp = a.no_insp where a.id = '". $request->id_h . "' ");
 
         $html = '<div class="table-responsive" style="max-height: 200px">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100 text-nowrap">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width:;">Lenght</th>

@@ -126,7 +126,7 @@ SELECT a.dest isi, a.dest tampil
         $datanumber_carton = DB::select("SELECT
         min(no_carton) min ,max(no_carton) max from packing_master_packing_list
         where po = '$request->cbopo' and dest = '$request->cbonotes'");
-        return json_encode($datanumber_carton[0]);
+        return json_encode($datanumber_carton ? $datanumber_carton[0] : '');
     }
 
 
@@ -324,20 +324,20 @@ order by po asc, no_carton asc
         $buyer      = $_POST['cbobuyer'];
 
         $data_buyer = DB::connection('mysql_sb')->select("select * from mastersupplier where supplier = '$buyer' and tipe_sup ='C'");
-        $id_buyer   = $data_buyer[0]->Id_Supplier;
+        $id_buyer   = $data_buyer ? ($data_buyer[0] ? $data_buyer[0]->Id_Supplier : '') : '';
 
         $jns_dok    = $_POST['cbotipe_doc'];
         $inv        = $_POST['txtinv'];
 
         $update_data_bpbno = DB::connection('mysql_sb')->update("update tempbpb set bpbno = bpbno + 1  where mattype = 'O.FG'");
         $data_bppbno = DB::connection('mysql_sb')->select("select * from tempbpb where mattype = 'O.FG'");
-        $bppbno = $data_bppbno[0]->BPBNo;
+        $bppbno = $data_bppbno ? ($data_bppbno[0] ? $data_bppbno[0]->BPBNo : '') : '';
 
         $tahun = date('Y', strtotime($timestamp));
         $kode = 'FG-OUT-' . $tahun;
         $update_data_bppbno_int = DB::connection('mysql_sb')->update("update tempbpb set bpbno = bpbno + 1  where mattype = '$kode'");
         $data_bppbno_int = DB::connection('mysql_sb')->select("select * from tempbpb where mattype = '$kode '");
-        $bppbno_int_no_tr = $data_bppbno_int[0]->BPBNo;
+        $bppbno_int_no_tr = $data_bppbno_int ? ($data_bppbno_int[0] ? $data_bppbno_int[0]->BPBNo : '') : '';
         $bppbno_int_no_tr_fix = sprintf("%05s", $bppbno_int_no_tr);
         $thn_bln_bppbno_int = date('my', strtotime($timestamp));
         $bppbno_int = 'FG/OUT/' . $thn_bln_bppbno_int . '/' . $bppbno_int_no_tr_fix;
@@ -404,10 +404,10 @@ where a.created_by = '$user'");
         $user = Auth::user()->name;
 
         $data_fg_out = DB::select("SELECT * from fg_fg_out where id = '$id'");
-        $buyer      = $data_fg_out[0]->buyer;
-        $dok      = $data_fg_out[0]->jenis_dok;
-        $inv      = $data_fg_out[0]->invno;
-        $no_sb      = $data_fg_out[0]->no_sb;
+        $buyer      = $data_fg_out &&  $data_fg_out[0] ? $data_fg_out[0]->buyer : '';
+        $dok      = $data_fg_out &&  $data_fg_out[0] ? $data_fg_out[0]->jenis_dok : '';
+        $inv      = $data_fg_out &&  $data_fg_out[0] ? $data_fg_out[0]->invno : '';
+        $no_sb      = $data_fg_out &&  $data_fg_out[0] ? $data_fg_out[0]->no_sb : '';
 
         $data_dok = DB::connection('mysql_sb')->select("SELECT nama_pilihan isi,nama_pilihan tampil
         from masterpilihan where
@@ -496,11 +496,11 @@ order by po asc, no_carton asc, color asc, urutan asc
         $bppbno     = $_POST['bppbno'];
 
         $data_sb = DB::connection('mysql_sb')->select("select * from bppb where bppbno_int = '$bppbno'");
-        $id_buyer   = $data_sb[0]->id_supplier;
+        $id_buyer   = $data_sb && $data_sb[0] ? $data_sb[0]->id_supplier : '';
         $jns_dok    = $_POST['cbotipe_doc'];
         $inv        = $_POST['txtinv'];
-        $bppbno_int_fix  = $data_sb[0]->bppbno_int;
-        $bppbno_fix  = $data_sb[0]->bppbno;
+        $bppbno_int_fix  = $data_sb && $data_sb[0] ? $data_sb[0]->bppbno_int : '';
+        $bppbno_fix  = $data_sb && $data_sb[0] ? $data_sb[0]->bppbno : '';
 
         $id_so_detArray         = $_POST['id_so_det'];
         $qtyArray               = $_POST['qty'];

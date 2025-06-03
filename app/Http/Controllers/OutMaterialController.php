@@ -207,7 +207,7 @@ class OutMaterialController extends Controller
         }
 
         $html = '<div class="table-responsive"style="max-height: 200px">
-            <table id="datatable_list" class="table table-head-fixed table-bordered table-striped 100 text-nowrap">
+            <table id="datatable_list" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 5%;">No</th>
@@ -269,7 +269,7 @@ class OutMaterialController extends Controller
         //         select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_aktual,satuan from (select a.id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, a.qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where a.id_jo='" . $request->id_jo . "' and a.id_item='" . $request->id_item . "') a where a.qty_sisa > 0");
 
         $html = '<div class="table-responsive" style="max-height: 300px">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100 text-nowrap">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 3%;">Check</th>
@@ -359,7 +359,7 @@ class OutMaterialController extends Controller
         }
 
         $html .= '<div class="table-responsive" style="max-height: 300px">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100 text-nowrap">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Barcode</th>
