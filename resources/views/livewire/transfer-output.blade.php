@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferDefectDetail, transferRework, transferReworkDetail, transferReject, transferRejectDetail, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput, outputType'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferDefectDetail, transferRework, transferReworkDetail, transferReject, transferRejectDetail, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput, outputType, checkNumbering'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -230,7 +230,46 @@
                     <div>
                         <label class="form-label">Kode Numbering :</label>
                         <textarea class="form-control" name="kode_numbering" id="kode_numbering" wire:model="kodeNumbering" cols="30" rows="10"></textarea>
-                        <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
+                        <div class="d-flex justify-content-between gap-3 my-3">
+                            <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> 2024_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> 2024_1_3</b></div>
+                            <button class="btn btn-sb-secondary" wire:click="checkNumbering()">Check</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>QR</th>
+                                    <th>No. WS</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Size</th>
+                                    <th>Destination</th>
+                                    <th>QC</th>
+                                    <th>Packing</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if ($kodeNumberingList && $kodeNumberingList->count() > 0)
+                                    @foreach ($kodeNumberingList as $data)
+                                        <tr>
+                                            @php
+                                                $thisOutput = $kodeNumberingOutput->where("kode_numbering", $data->id_year_sequence)->first();
+                                                $thisOutputPacking = $kodeNumberingOutputPacking->where("kode_numbering", $data->id_year_sequence)->first();
+                                            @endphp
+                                            <td class="text-nowrap">{{ $data->id_year_sequence }}</td>
+                                            <td class="text-nowrap">{{ $data->ws }}</td>
+                                            <td class="text-nowrap">{{ $data->styleno }}</td>
+                                            <td class="text-nowrap">{{ $data->color }}</td>
+                                            <td class="text-nowrap">{{ $data->size }}</td>
+                                            <td class="text-nowrap">{{ $data->dest }}</td>
+                                            <td class="text-nowrap">{{ $thisOutput ? $thisOutput->sewing_line : "-" }}</td>
+                                            <td class="text-nowrap">{{ $thisOutputPacking ? $thisOutputPacking->sewing_line : "-" }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="modal-footer">

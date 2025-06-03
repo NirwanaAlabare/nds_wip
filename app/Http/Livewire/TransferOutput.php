@@ -14,6 +14,7 @@ use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\MasterPlan;
+use App\Models\YearSequence;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use DB;
@@ -83,11 +84,59 @@ class TransferOutput extends Component
         $this->transferRftSize = null;
 
         $this->kodeNumbering = null;
+        $this->kodeNumberingList = null;
+        $this->kodeNumberingOutput = null;
+        $this->kodeNumberingOutputPacking = null;
 
         $this->loadingMasterPlan = false;
         $this->baseUrl = url('/');
 
         $this->outputType = "";
+    }
+
+    public function checkNumbering()
+    {
+        $kodeNumbering = addQuotesAround($this->kodeNumbering);
+
+        $this->kodeNumberingList = YearSequence::selectRaw("
+            year_sequence.id_year_sequence,
+            master_sb_ws.ws,
+            master_sb_ws.styleno,
+            master_sb_ws.color,
+            master_sb_ws.size,
+            master_sb_ws.dest
+        ")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+        whereRaw("year_sequence.id_year_sequence in (".$kodeNumbering.")")->
+        get();
+
+        if ($kodeNumbering) {
+            $this->kodeNumberingOutput = collect(
+                    DB::connection("mysql_sb")->select("
+                        SELECT output.*, userpassword.username as sewing_line FROM (
+                            select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE kode_numbering in (".$kodeNumbering.")
+                            UNION
+                            select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE kode_numbering in (".$kodeNumbering.")
+                            UNION
+                            select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE kode_numbering in (".$kodeNumbering.")
+                        ) output
+                        left join user_sb_wip on user_sb_wip.id = output.created_by
+                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    ")
+                );
+        } else {
+            $this->kodeNumberingOutput = collect([]);
+        }
+
+        if ($kodeNumbering) {
+            $this->kodeNumberingOutputPacking = collect(
+                DB::connection("mysql_sb")->select("
+                    select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing WHERE kode_numbering in (".$kodeNumbering.")
+                ")
+            );
+        } else {
+            $this->kodeNumberingOutputPacking = collect([]);
+        }
     }
 
     public function transferNumbering()
