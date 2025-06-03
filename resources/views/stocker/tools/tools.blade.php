@@ -57,7 +57,7 @@
                     <div>
                         <label class="form-label">Stocker</label>
                         <select name="form_stocker" id="form_stocker" class="form-control select2bs4form" style="width: 100%;">
-                            <option value="">Pilih Stocker</option>
+                            <option value="">Pilih Form Stocker</option>
                         </select>
                     </div>
                 </div>
@@ -167,7 +167,7 @@
                         $('#form_stocker').empty();
                         $('#form_stocker').append('<option value="">Pilih Form Stocker</option>');
                         $.each(response, function (key, value) {
-                            $('#form_stocker').append('<option value="' + value.stocker_ids + '">' + value.id_qr_stocker + '</option>');
+                            $('#form_stocker').append('<option value="' + value.stocker_ids + '">' + value.id_qr_stocker + ' || Size \'' + value.size + '\' || Ratio ' + value.ratio + '</option>');
                         });
                     }
 

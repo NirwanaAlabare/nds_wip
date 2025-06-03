@@ -72,7 +72,7 @@ class GeneralController extends Controller
 
     public function getFormStocker(Request $request)
     {
-        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, form_cut_input.id form_cut_id, stocker_input.group_stocker, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
+        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, form_cut_input.id form_cut_id, stocker_input.group_stocker, stocker_input.size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
             ->leftJoin('form_cut_input', 'form_cut_input.id',  '=', 'stocker_input.form_cut_id' )
             ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
             ->where('form_cut_input.id', $request->form_cut_id)

@@ -517,7 +517,7 @@ class DashboardController extends Controller
             ->whereRaw("
                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y') AND
                 (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y') AND
-                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_detail.last_update), DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')) )
+                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND (COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' OR DATE(form_detail.last_update) = '".$date."')) )
             ")
             ->when($meja_ids, function ($query) use ($meja_ids) {
                 return $query->whereIn('meja.username', $meja_ids);
@@ -641,7 +641,7 @@ class DashboardController extends Controller
                 ->groupBy('meja.username')  // Grup berdasarkan meja.username untuk menghindari duplikasi
                 ->get();
 
-            return response()->json($query);
+            return response()->json($query);    
         }
 
         public function cuttingQty(Request $request) {
