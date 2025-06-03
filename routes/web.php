@@ -625,6 +625,10 @@ Route::middleware('auth')->group(function () {
         // fix roll qty
         Route::get('/get-roll-qty', 'getRollQty')->name('get-roll-qty');
         Route::post('/fix-roll-qty', 'fixRollQty')->name('fix-roll-qty');
+
+        // fix form ratio
+        Route::get('/get-form-ratio', 'getFormRatio')->name('get-form-ratio');
+        Route::post('/update-form-ratio', 'updateFormRatio')->name('update-form-ratio');
     });
 
     // Stocker :

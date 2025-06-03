@@ -29,6 +29,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormRatio">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Form Ratio</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -93,6 +102,70 @@
                     <h5 class="text-center">OR</h5>
                     <hr class="border-sb">
                     <button type="button" class="btn btn-sb-secondary btn-block" onclick="fixRollQtyUpdate()">Fix All Roll Qty</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modify Form Ratio -->
+    <div class="modal fade" id="modifyFormRatio" tabindex="-1" aria-labelledby="modifyFormRatioLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="modifyFormRatioLabel">Modify Form Ratio</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('update-form-ratio') }}" method="post" onsubmit="submitForm(this, event)">
+                        <div class="mb-3">
+                            <label class="form-label">No. Form</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="modify_ratio_no_form" name="modify_ratio_no_form">
+                                <button type="button" class="btn btn-sb" onclick="getFormCut(document.getElementById('modify_ratio_no_form').value, 'modify_ratio_')">Get</button>
+                            </div>
+                        </div>
+                        <div class="mb-3 d-none">
+                            <label class="form-label">ID</label>
+                            <input type="hidden" class="form-control" id="modify_ratio_form_id" name="modify_ratio_form_id" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kode Marker</label>
+                            <input type="text" class="form-control" id="modify_ratio_kode_marker" name="modify_ratio_kode_marker" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No. WS</label>
+                            <input type="text" class="form-control" id="modify_ratio_no_ws" name="modify_ratio_no_ws" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Style</label>
+                            <input type="text" class="form-control" id="modify_ratio_style" name="modify_ratio_style" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Color</label>
+                            <input type="text" class="form-control" id="modify_ratio_color" name="modify_ratio_color" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Panel</label>
+                            <input type="text" class="form-control" id="modify_ratio_panel" name="modify_ratio_panel" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Qty Ply</label>
+                            <input type="text" class="form-control" id="modify_ratio_qty_ply" name="modify_ratio_qty_ply" readonly>
+                        </div>
+                        <div class="table-responsive mb-3">
+                            <table class="table table-bordered" id="modify_ratio_table">
+                                <thead>
+                                    <th>So Det Id</th>
+                                    <th>Size</th>
+                                    <th>Ratio</th>
+                                    <th>Qty Cut</th>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="submit" class="btn btn-sb btn-block">Simpan</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -267,6 +340,122 @@
                     document.getElementById("loading").classList.add("d-none");
                 }
             });
+        }
+
+        async function getFormCut(noForm, prefix) {
+            console.log(prefix);
+
+            document.getElementById("loading").classList.remove("d-none");
+
+            document.getElementById(prefix+"form_id").value = "";
+            document.getElementById(prefix+"kode_marker").value = "";
+            document.getElementById(prefix+"no_ws").value = "";
+            document.getElementById(prefix+"style").value = "";
+            document.getElementById(prefix+"color").value = "";
+            document.getElementById(prefix+"panel").value = "";
+            document.getElementById(prefix+"qty_ply").value = "";
+            document.getElementById(prefix+"table").innerHTML = "";
+
+            if (isNotNull(noForm)) {
+                return $.ajax({
+                    url: '{{ route('get-form-ratio') }}',
+                    type: 'get',
+                    data: {
+                        no_form: noForm
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        console.log(res)
+                        if (typeof res === 'object' && res !== null) {
+                            document.getElementById(prefix+"form_id").value = res.form_id;
+                            document.getElementById(prefix+"kode_marker").value = res.kode_marker;
+                            document.getElementById(prefix+"no_ws").value = res.no_ws;
+                            document.getElementById(prefix+"style").value = res.style;
+                            document.getElementById(prefix+"color").value = res.color;
+                            document.getElementById(prefix+"panel").value = res.panel;
+                            document.getElementById(prefix+"qty_ply").value = res.qty_ply;
+
+                            if (res.ratio && res.ratio.length > 0) {
+                                let tableTbodyInnerHTML = `
+                                    <tr>
+                                        <th>So Det</th>
+                                        <th>Size</th>
+                                        <th>Ratio</th>
+                                        <th>Qty CUt</th>
+                                    </tr>
+                                `;
+
+                                res.ratio.forEach((item, i) => {
+                                    tableTbodyInnerHTML += `
+                                        <tr>
+                                            <td><input type='text' class='form-control' value='`+item.so_det_id+`' id='`+prefix+`so_det_id_`+i+`' data-index='`+i+`' name='`+prefix+`so_det_id[`+i+`]' readonly /></td>
+                                            <td><input type='text' class='form-control' value='`+item.size+`' id='`+prefix+`size_`+i+`' data-index='`+i+`' name='`+prefix+`size[`+i+`]' readonly /></td>
+                                            <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)'/></td>
+                                            <td><input type='number' class='form-control' value='`+item.cut_qty+`' id='`+prefix+`cut_qty_`+i+`' data-index='`+i+`' name='`+prefix+`cut_qty[`+i+`]' readonly /></td>
+                                        </tr>
+                                    `;
+                                });
+
+                                document.getElementById(prefix+"table").innerHTML = tableTbodyInnerHTML;
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: res ? res : 'Form tidak ditemukan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Form tidak ditemukan.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
+
+            document.getElementById("loading").classList.add("d-none");
+
+            return Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'No. Form tidak ditemukan',
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: 'Oke',
+            });
+        }
+
+        function calculateRatio(el) {
+            let ratio = el.value;
+            let ratioIndex = el.getAttribute("data-index");
+
+            if (document.getElementById("modify_ratio_cut_qty_"+ratioIndex)) {
+                if (ratio && ratio > 0) {
+                    let qtyPly = document.getElementById("modify_ratio_qty_ply").value;
+                    let qtyCut = qtyPly * ratio;
+
+                    if (qtyCut) {
+                        return document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = qtyCut;
+                    } else {
+                        document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = 0;
+                    }
+                } else {
+                    document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = 0;
+                }
+            }
         }
     </script>
 @endsection
