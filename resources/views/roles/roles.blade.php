@@ -201,7 +201,7 @@
                                 <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editRoleModal" onclick='editData(` + JSON.stringify(row) + `, "editRoleModal", [{"function" : "dataTableRoleReload(); dataTableRoleAccessReload();"}]);' `+(disabled ? "disabled" : "")+`>
                                     <i class='fa fa-edit'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user') }}/`+data+`' onclick='deleteData(this)' `+(disabled ? "disabled" : "")+`>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-role') }}/`+data+`' onclick='deleteData(this)' `+(disabled ? "disabled" : "")+`>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>

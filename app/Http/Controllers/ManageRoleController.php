@@ -52,7 +52,36 @@ class ManageRoleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedRequest = $request->validate([
+            "nama_role" => "required",
+        ]);
+
+        if ($validatedRequest) {
+            $storeRole = Role::create([
+                    "nama_role" => $validatedRequest['nama_role'],
+                ]);
+
+            if ($storeRole) {
+                if ($request->roles && count($request->roles) > 0) {
+                    $roleAccessArr = [];
+
+                    for ($i = 0; $i < count($request->roles); $i++) {
+                        array_push($roleAccessArr, [
+                            "role_id" => $storeRole->id,
+                            "access_id" => $request->roles[$i],
+                        ]);
+                    }
+
+                    $insertRoleAccess = RoleAccess::insert($roleAccessArr);
+                }
+            }
+
+            return array(
+                "status" => 300,
+                "message" => "Role berhasil disimpan",
+                'table' => 'manage-role-table',
+            );
+        }
     }
 
     /**
@@ -86,7 +115,42 @@ class ManageRoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
-        //
+        $validatedRequest = $request->validate([
+            "edit_id" => "required",
+            "edit_nama_role" => "required"
+        ]);
+
+        if ($validatedRequest) {
+            $updateRole = Role::where("id", $validatedRequest["edit_id"])->create([
+                    "nama_role" => $validatedRequest['edit_nama_role'],
+                ]);
+
+            if ($updateRole) {
+                if ($request->edit_accesses && count($request->edit_accesses) > 0) {
+                    $roleAccessArr = [];
+
+                    for ($i = 0; $i < count($request->edit_accesses); $i++) {
+                        array_push($roleAccessArr, [
+                            "role_id" => $validatedRequest["edit_id"],
+                            "access_id" => $request->edit_accesses[$i],
+                        ]);
+                    }
+
+                    $insertRoleAccess = RoleAccess::insert($roleAccessArr);
+                }
+
+                return array(
+                    "status" => 300,
+                    "message" => "Role berhasil disimpan",
+                    'table' => 'manage-role-table',
+                );
+            }
+        }
+
+        return array(
+            'status' => '400',
+            'message' => 'Role gagal disimpan',
+        );
     }
 
     /**
@@ -95,9 +159,28 @@ class ManageRoleController extends Controller
      * @param  \App\Models\Role  $role
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Role $role)
+    public function destroy(Role $role, $id)
     {
-        //
+        if ($id) {
+            $destroyRole = Role::where("id", $id)->delete();
+
+            if ($destroyRole) {
+                RoleAccess::where("role_id", $id)->delete();
+
+                return array(
+                    'status' => '200',
+                    'message' => 'Role Deleted',
+                    'table' => 'manage-role-table',
+                    'redirect' => '',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => '400',
+            'message' => 'Delete Role Failed',
+        );
     }
 
     public function getRoleAccess(Request $request) {
