@@ -175,7 +175,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',

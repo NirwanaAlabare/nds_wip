@@ -40,8 +40,8 @@ from packing_packing_out_scan
 where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
 group by tgl_trans, po, barcode, dest, no_carton
 ) o
-inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+left join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
+left join master_sb_ws m on p.id_so_det = m.id_so_det
 order by o.created_at desc
             ");
 
@@ -181,8 +181,8 @@ o.barcode,
 m.color,
 m.size
 from packing_packing_out_scan o
-inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.po = p.po and o.dest = p.dest
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+left join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.po = p.po and o.dest = p.dest
+left join master_sb_ws m on p.id_so_det = m.id_so_det
 left join
 (
 select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '" . $request->cbopo . "'

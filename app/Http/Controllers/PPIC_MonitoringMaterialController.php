@@ -143,311 +143,313 @@ class PPIC_MonitoringMaterialController extends Controller
         $cappedOutputString   = implode(",\n", $dynamicCappedOutput);
 
         $data_monitoring_mat_f_det = DB::connection('mysql_sb')->select("WITH gmt as (
-select sd.id as id_so_det,id_jo,kpno,styleno, sd.* from so_det sd
-inner join so on sd.id_so = so.id
-inner join act_costing ac on so.id_cost = ac.id
-inner join jo_det jd on so.id = jd.id_so
-inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
-where ac.styleno = 'JACKET LORENG DIKMATA' and sd.cancel = 'N' and so.cancel_h = 'N'
-),
-bom_global as (
-select a.id_jo, id_item, a.unit from bom_jo_global_item a
-inner join gmt on a.id_jo = gmt.id_jo
-group by a.id_item, a.id_jo, a.unit
-),
-bom as (
-select a.*, mp.nama_panel, gmt.qty qty_order from bom_jo_item a
-inner join gmt on gmt.id_so_det  = a.id_so_det and gmt.id_jo = a.id_jo
-left join masterpanel mp on a.id_panel = mp.id
-where status = 'M' and a.cancel = 'N'
-),
-bom_det as (
-select a.id_jo,mi.id_item, mi.mattype, itemdesc, a.unit,
-case
-when a.unit = 'YRD' THEN round(sum(cons * qty) * 0.9144,2)
-else round(sum(cons * qty),2)
-end as total_cons,
-case
-when a.unit = 'YRD' THEN 'METER'
-else a.unit
-end as unit_konv
-from bom a
-inner join masteritem mi on a.id_item = mi.id_gen
-inner join so_det sd on a.id_so_det = sd.id
-where status = 'M' and a.cancel = 'N' and sd.cancel = 'N'
-group by id_item
-),
-bpb_f as (
-select
-a.id_item,
-SUM(CASE WHEN d.kategori = 'Pembelian' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_pembelian,
-SUM(CASE WHEN d.kategori = 'Pengembalian dari Subkontraktor' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_retur_subkon,
-SUM(CASE WHEN d.kategori = 'Retur Produksi' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_retur_prod,
-SUM(CASE WHEN d.kategori = 'Adjustment' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_adj,
-    CASE
-        WHEN b.unit = 'YRD' THEN 'METER'
-        ELSE b.unit
-    END AS unit_konv
-from bom_det a
-left join whs_inmaterial_fabric_det b on a.id_item = b.id_item and a.id_jo = b.id_jo
-left join whs_inmaterial_fabric c on b.no_dok = c.no_dok
-left join whs_master_pilihan d on c.type_pch = d.nama_pilihan
-where mattype = 'F'
-group by id_item, unit_konv
-),
-bpb_f_glb as (
-select
-a.id_item,
-SUM(CASE WHEN d.kategori = 'Pembelian' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_pembelian,
-SUM(CASE WHEN d.kategori = 'Pengembalian dari Subkontraktor' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_retur_subkon,
-SUM(CASE WHEN d.kategori = 'Retur Produksi' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_retur_prod,
-SUM(CASE WHEN d.kategori = 'Adjustment' THEN
-        CASE
-            WHEN b.unit = 'YRD' THEN qty_good * 0.9144
-            ELSE qty_good
-        END
-    ELSE 0 END) AS qty_adj,
-    CASE
-        WHEN b.unit = 'YRD' THEN 'METER'
-        ELSE b.unit
-    END AS unit_konv
-from bom_global a
-inner join masteritem mi on a.id_item = mi.id_item
-left join whs_inmaterial_fabric_det b on a.id_item = b.id_item and a.id_jo = b.id_jo
-left join whs_inmaterial_fabric c on b.no_dok = c.no_dok
-left join whs_master_pilihan d on c.type_pch = d.nama_pilihan
-where mattype = 'F'
-group by id_item, unit_konv
-),
-mut_bpb_f as (
-select
-id_item,
-sum(qty_pembelian) qty_pembelian,
-sum(qty_retur_subkon) qty_retur_subkon,
-sum(qty_retur_prod) qty_retur_prod,
-sum(qty_adj) qty_adj,
-unit_konv
-from
-(
-select * from bpb_f group by id_item, unit_konv
-union
-select * from bpb_f_glb group by id_item, unit_konv
-) a
-group by id_item, unit_konv
-),
-bppb_f as (
-select
-a.id_item,
-SUM(CASE WHEN d.kategori = 'Pengeluaran Produksi' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_prod,
-SUM(CASE WHEN d.kategori = 'Pengiriman ke Subkontraktor' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_subkon,
-SUM(CASE WHEN d.kategori = 'Retur Pembelian' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_retur_pembelian,
-SUM(CASE WHEN d.kategori = 'Pengeluaran Sample' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_sample,
-SUM(CASE WHEN d.kategori = 'Lainnya' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_lainnya,
-SUM(CASE WHEN d.kategori = 'Adjustment' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_adj,
-    CASE
-        WHEN b.satuan = 'YRD' THEN 'METER'
-        ELSE b.satuan
-    END AS unit_konv
-from bom_det a
-left join whs_bppb_det b on a.id_item = b.id_item and a.id_jo = b.id_jo
-left join whs_bppb_h c on b.no_bppb = c.no_bppb
-left join mastertransaksi d on c.jenis_pengeluaran = d.nama_trans
-where mattype = 'F'
-group by id_item, unit_konv
-),
-bppb_f_glb as (
-select
-a.id_item,
-SUM(CASE WHEN d.kategori = 'Pengeluaran Produksi' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_prod,
-SUM(CASE WHEN d.kategori = 'Pengiriman ke Subkontraktor' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_subkon,
-SUM(CASE WHEN d.kategori = 'Retur Pembelian' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_retur_pembelian,
-SUM(CASE WHEN d.kategori = 'Pengeluaran Sample' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_sample,
-SUM(CASE WHEN d.kategori = 'Lainnya' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_lainnya,
-SUM(CASE WHEN d.kategori = 'Adjustment' THEN
-        CASE
-            WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ELSE 0 END) AS qty_out_adj,
-    CASE
-        WHEN b.satuan = 'YRD' THEN 'METER'
-        ELSE b.satuan
-    END AS unit_konv
-from bom_global a
-inner join masteritem mi on a.id_item = mi.id_item
-left join whs_bppb_det b on a.id_item = b.id_item  and a.id_jo = b.id_jo
-left join whs_bppb_h c on b.no_bppb = c.no_bppb
-left join mastertransaksi d on c.jenis_pengeluaran = d.nama_trans
-where mattype = 'F'
-group by id_item, unit_konv
-),
-mut_bppb_f as (
-select
-id_item,
-sum(qty_out_prod) qty_out_prod,
-sum(qty_out_subkon) qty_out_subkon,
-sum(qty_retur_pembelian) qty_retur_pembelian,
-sum(qty_out_sample) qty_out_sample,
-sum(qty_out_lainnya) qty_out_lainnya,
-sum(qty_out_adj) qty_out_adj,
-unit_konv
-from
-(
-select * from bppb_f group by id_item, unit_konv
-union
-select * from bppb_f_glb group by id_item, unit_konv
-) a
-group by id_item, unit_konv
-),
-mat_det as (
-SELECT
-mi.id_item,
-mi.itemdesc,
-color,
-mi.mattype,
-a.nama_panel,
-sum(a.qty_order) qty_order,
-case
-when a.unit = 'YRD' THEN round(cons * 0.9144,3)
-else cons
-end as cons_ws_konv,
-case
-when a.unit = 'YRD' THEN cons * 0.9144
-else cons
-end as cons_ws_konv_hit,
-case
-when a.unit = 'YRD' THEN round(sum(a.qty_order) * (cons * 0.9144),2)
-else round(sum(a.qty_order) * cons,2)
-end as need_material,
-case
-when a.unit = 'YRD' THEN 'METER'
-else a.unit
-end as unit_konv
-from bom a
-inner join masteritem mi on a.id_item = mi.id_gen
-where mi.mattype = 'F'
-group by nama_panel, cons, id_item
-),
-output_det as (
-SELECT id_item, sum(qty_po) qty_po,cons_ws_konv, nama_panel, month(tgl_shipment) bln, year(tgl_shipment) thn FROM
-(
-SELECT
-id_so_det,
-mi.id_item,
-case
-when a.unit = 'YRD' THEN round(cons * 0.9144,3)
-else cons
-end as cons_ws_konv,
-nama_panel
-from bom a
-inner join masteritem mi on a.id_item = mi.id_gen
-where mi.mattype = 'F' and nama_panel is not null
-group by id_so_det, case
-when a.unit = 'YRD' THEN round(cons * 0.9144,3)
-else cons
-end, nama_panel,
-            mi.id_item
-)a
-inner join laravel_nds.ppic_master_so p on a.id_so_det = p.id_so_det
-group by id_item, cons_ws_konv, nama_panel, month(tgl_shipment), year(tgl_shipment)
-order by month(tgl_shipment) asc, year(tgl_shipment) asc, nama_panel asc
-),
-col_gmt as (
-select mi.id_item, GROUP_CONCAT(DISTINCT sd.color SEPARATOR ' | ') col_gmt from bom
-inner join masteritem mi on bom.id_item = mi.id_gen
-inner join so_det sd on bom.id_so_det = sd.id
-group by id_item
-)
+            select sd.id as id_so_det,id_jo,kpno,styleno, sd.* from so_det sd
+            inner join so on sd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            inner join jo_det jd on so.id = jd.id_so
+            inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
+            where ac.styleno = '$style' and sd.cancel = 'N' and so.cancel_h = 'N'
+            ),
+            bom_global as (
+            select a.id_jo, id_item, a.unit from bom_jo_global_item a
+            inner join gmt on a.id_jo = gmt.id_jo
+            group by a.id_item, a.id_jo, a.unit
+            ),
+            bom as (
+            select a.*, mp.nama_panel, gmt.qty qty_order from bom_jo_item a
+            inner join gmt on gmt.id_so_det  = a.id_so_det and gmt.id_jo = a.id_jo
+            left join masterpanel mp on a.id_panel = mp.id
+            where status = 'M' and a.cancel = 'N'
+            ),
+            bom_det as (
+            select a.id_jo,mi.id_item, mi.mattype, itemdesc, a.unit,
+            case
+            when a.unit = 'YRD' THEN round(sum(cons * qty) * 0.9144,2)
+            else round(sum(cons * qty),2)
+            end as total_cons,
+            case
+            when a.unit = 'YRD' THEN 'METER'
+            else a.unit
+            end as unit_konv
+            from bom a
+            inner join masteritem mi on a.id_item = mi.id_gen
+            inner join so_det sd on a.id_so_det = sd.id
+            where status = 'M' and a.cancel = 'N' and sd.cancel = 'N'
+            group by id_item
+            ),
+            bpb_f as (
+            select
+            a.id_item,
+            SUM(CASE WHEN d.kategori = 'Pembelian' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_pembelian,
+            SUM(CASE WHEN d.kategori = 'Pengembalian dari Subkontraktor' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_retur_subkon,
+            SUM(CASE WHEN d.kategori = 'Retur Produksi' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_retur_prod,
+            SUM(CASE WHEN d.kategori = 'Adjustment' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_adj,
+                CASE
+                    WHEN b.unit = 'YRD' THEN 'METER'
+                    ELSE b.unit
+                END AS unit_konv
+            from bom_det a
+            left join whs_inmaterial_fabric_det b on a.id_item = b.id_item and a.id_jo = b.id_jo
+            left join whs_inmaterial_fabric c on b.no_dok = c.no_dok
+            left join whs_master_pilihan d on c.type_pch = d.nama_pilihan
+            where mattype = 'F'
+            group by id_item, unit_konv
+            ),
+            bpb_f_glb as (
+            select
+            a.id_item,
+            SUM(CASE WHEN d.kategori = 'Pembelian' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_pembelian,
+            SUM(CASE WHEN d.kategori = 'Pengembalian dari Subkontraktor' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_retur_subkon,
+            SUM(CASE WHEN d.kategori = 'Retur Produksi' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_retur_prod,
+            SUM(CASE WHEN d.kategori = 'Adjustment' THEN
+                    CASE
+                        WHEN b.unit = 'YRD' THEN qty_good * 0.9144
+                        ELSE qty_good
+                    END
+                ELSE 0 END) AS qty_adj,
+                CASE
+                    WHEN b.unit = 'YRD' THEN 'METER'
+                    ELSE b.unit
+                END AS unit_konv
+            from bom_global a
+            inner join masteritem mi on a.id_item = mi.id_item
+            left join whs_inmaterial_fabric_det b on a.id_item = b.id_item and a.id_jo = b.id_jo
+            left join whs_inmaterial_fabric c on b.no_dok = c.no_dok
+            left join whs_master_pilihan d on c.type_pch = d.nama_pilihan
+            where mattype = 'F'
+            group by id_item, unit_konv
+            ),
+            mut_bpb_f as (
+            select
+            id_item,
+            sum(qty_pembelian) qty_pembelian,
+            sum(qty_retur_subkon) qty_retur_subkon,
+            sum(qty_retur_prod) qty_retur_prod,
+            sum(qty_adj) qty_adj,
+            unit_konv
+            from
+            (
+            select * from bpb_f group by id_item, unit_konv
+            union
+            select * from bpb_f_glb group by id_item, unit_konv
+            ) a
+            group by id_item, unit_konv
+            having unit_konv is not null
+            ),
+            bppb_f as (
+            select
+            a.id_item,
+            SUM(CASE WHEN d.kategori = 'Pengeluaran Produksi' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_prod,
+            SUM(CASE WHEN d.kategori = 'Pengiriman ke Subkontraktor' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_subkon,
+            SUM(CASE WHEN d.kategori = 'Retur Pembelian' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_retur_pembelian,
+            SUM(CASE WHEN d.kategori = 'Pengeluaran Sample' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_sample,
+            SUM(CASE WHEN d.kategori = 'Lainnya' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_lainnya,
+            SUM(CASE WHEN d.kategori = 'Adjustment' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_adj,
+                CASE
+                    WHEN b.satuan = 'YRD' THEN 'METER'
+                    ELSE b.satuan
+                END AS unit_konv
+            from bom_det a
+            left join whs_bppb_det b on a.id_item = b.id_item and a.id_jo = b.id_jo
+            left join whs_bppb_h c on b.no_bppb = c.no_bppb
+            left join mastertransaksi d on c.jenis_pengeluaran = d.nama_trans
+            where mattype = 'F'
+            group by id_item, unit_konv
+            ),
+            bppb_f_glb as (
+            select
+            a.id_item,
+            SUM(CASE WHEN d.kategori = 'Pengeluaran Produksi' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_prod,
+            SUM(CASE WHEN d.kategori = 'Pengiriman ke Subkontraktor' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_subkon,
+            SUM(CASE WHEN d.kategori = 'Retur Pembelian' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_retur_pembelian,
+            SUM(CASE WHEN d.kategori = 'Pengeluaran Sample' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_sample,
+            SUM(CASE WHEN d.kategori = 'Lainnya' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_lainnya,
+            SUM(CASE WHEN d.kategori = 'Adjustment' THEN
+                    CASE
+                        WHEN b.satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ELSE 0 END) AS qty_out_adj,
+                CASE
+                    WHEN b.satuan = 'YRD' THEN 'METER'
+                    ELSE b.satuan
+                END AS unit_konv
+            from bom_global a
+            inner join masteritem mi on a.id_item = mi.id_item
+            left join whs_bppb_det b on a.id_item = b.id_item  and a.id_jo = b.id_jo
+            left join whs_bppb_h c on b.no_bppb = c.no_bppb
+            left join mastertransaksi d on c.jenis_pengeluaran = d.nama_trans
+            where mattype = 'F'
+            group by id_item, unit_konv
+            ),
+            mut_bppb_f as (
+            select
+            id_item,
+            sum(qty_out_prod) qty_out_prod,
+            sum(qty_out_subkon) qty_out_subkon,
+            sum(qty_retur_pembelian) qty_retur_pembelian,
+            sum(qty_out_sample) qty_out_sample,
+            sum(qty_out_lainnya) qty_out_lainnya,
+            sum(qty_out_adj) qty_out_adj,
+            unit_konv
+            from
+            (
+            select * from bppb_f group by id_item, unit_konv
+            union
+            select * from bppb_f_glb group by id_item, unit_konv
+            ) a
+            group by id_item, unit_konv
+            having unit_konv is not null
+            ),
+            mat_det as (
+            SELECT
+            mi.id_item,
+            mi.itemdesc,
+            color,
+            mi.mattype,
+            a.nama_panel,
+            sum(a.qty_order) qty_order,
+            case
+            when a.unit = 'YRD' THEN round(cons * 0.9144,3)
+            else cons
+            end as cons_ws_konv,
+            case
+            when a.unit = 'YRD' THEN cons * 0.9144
+            else cons
+            end as cons_ws_konv_hit,
+            case
+            when a.unit = 'YRD' THEN round(sum(a.qty_order) * (cons * 0.9144),2)
+            else round(sum(a.qty_order) * cons,2)
+            end as need_material,
+            case
+            when a.unit = 'YRD' THEN 'METER'
+            else a.unit
+            end as unit_konv
+            from bom a
+            inner join masteritem mi on a.id_item = mi.id_gen
+            where mi.mattype = 'F'
+            group by id_item, color, nama_panel,cons_ws_konv
+            ),
+            output_det as (
+            SELECT id_item, sum(qty_po) qty_po,cons_ws_konv, nama_panel, month(tgl_shipment) bln, year(tgl_shipment) thn FROM
+            (
+            SELECT
+            id_so_det,
+            mi.id_item,
+            case
+            when a.unit = 'YRD' THEN round(cons * 0.9144,3)
+            else cons
+            end as cons_ws_konv,
+            nama_panel
+            from bom a
+            inner join masteritem mi on a.id_item = mi.id_gen
+            where mi.mattype = 'F' and nama_panel is not null
+            group by id_so_det, case
+            when a.unit = 'YRD' THEN round(cons * 0.9144,3)
+            else cons
+            end, nama_panel,
+                        mi.id_item
+            )a
+            inner join laravel_nds.ppic_master_so p on a.id_so_det = p.id_so_det
+            group by id_item, cons_ws_konv, nama_panel, month(tgl_shipment), year(tgl_shipment)
+            order by month(tgl_shipment) asc, year(tgl_shipment) asc, nama_panel asc
+            ),
+            col_gmt as (
+            select mi.id_item, GROUP_CONCAT(DISTINCT sd.color SEPARATOR ' | ') col_gmt from bom
+            inner join masteritem mi on bom.id_item = mi.id_gen
+            inner join so_det sd on bom.id_so_det = sd.id
+            group by id_item
+            )
 
 SELECT *,
     $balanceString,
