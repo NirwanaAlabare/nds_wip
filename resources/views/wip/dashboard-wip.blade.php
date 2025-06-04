@@ -83,14 +83,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-3 mb-4">
+            {{-- <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <h5 class="card-title fw-bold">LINE SUPPORT</h5>
                         <button type="button" data-bs-toggle="modal" data-bs-target="#lineSupportDashboard" class="btn btn-primary btn-sm">Details</button>
                     </div>
                 </div>
-            </div>
+            </div> --}}
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
