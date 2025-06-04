@@ -1282,6 +1282,24 @@
                     </li>
                 @endif
 
+
+                {{-- Marketing --}}
+                @if ($page == 'dashboard-marketing')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('master-costing') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-costing' ? 'active' : '' }}">
+                                    Costing <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+
                 {{-- <li class="dropdown-divider"></li> --}}
                 <!-- Level two dropdown-->
                 {{-- <li class="dropdown-submenu dropdown-hover">

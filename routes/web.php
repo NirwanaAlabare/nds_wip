@@ -159,10 +159,14 @@ use App\Http\Controllers\ReportDocController;
 // GA GAIS
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
-
 use App\Http\Controllers\StockOpnameController;
 
 use App\Http\Controllers\ProcurementController;
+
+// Marketing
+use App\Http\Controllers\MarketingDashboardController;
+use App\Http\Controllers\Marketing_CostingController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -1858,6 +1862,20 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/get-user-line-sub', 'getUserLineSub')->name('get-user-line-sub');
         Route::delete('/destroy-user-line-sub/{id?}', 'destroyUserLineSub')->name('destroy-user-line-sub');
+    });
+
+    // Marketing
+    // Dashboard
+    Route::controller(MarketingDashboardController::class)->middleware('marketing')->group(function () {
+        Route::get('/dashboard_marketing', 'dashboard_marketing')->name('dashboard-marketing');
+        Route::get('/get_data_dash_marketing', 'get_data_dash_marketing')->name('get_data_dash_marketing');
+        Route::get('/get_data_dash_marketing_top_buyer', 'get_data_dash_marketing_top_buyer')->name('get_data_dash_marketing_top_buyer');
+    });
+
+    // Master
+    Route::controller(Marketing_CostingController::class)->prefix("master-costing")->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('master-costing');
+        Route::get('/getprod_item_costing', 'getprod_item_costing')->name('getprod_item_costing');
     });
 });
 
