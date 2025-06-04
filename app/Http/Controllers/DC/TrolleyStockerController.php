@@ -287,7 +287,7 @@ class TrolleyStockerController extends Controller
         if ($incompleteNonSecondary->count() > 0 || $incompleteSecondary->count() > 0) {
             return array(
                 'status' => 400,
-                'message' => 
+                'message' =>
                     "Stocker tidak bisa dialokasikan".
                     ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker Non Secondary belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
                     ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
@@ -590,6 +590,35 @@ class TrolleyStockerController extends Controller
                 $loadingStockArr = [];
 
                 $stockerIds = explode(',', $req['stocker_ids']);
+
+                $stockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id")->
+                    whereIn("stocker_input.id", $stockerIds)->
+                    leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                    leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+                    leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    get();
+
+                $incompleteNonSecondary = $stockerData->where("tujuan", "NON SECONDARY")->
+                    whereNull("dc_id");
+
+                $incompleteSecondary = $stockerData->whereIn("tujuan", ["SECONDARY DALAM", "SECONDARY LUAR"])->
+                    whereNull("secondary_id");
+
+                if ($incompleteNonSecondary->count() > 0 || $incompleteSecondary->count() > 0) {
+                    return array(
+                        'status' => 400,
+                        'message' =>
+                            "Stocker tidak bisa dialokasikan".
+                            ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker Non Secondary belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
+                            ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
+                        'redirect' => '',
+                        'table' => 'trolley-stock-datatable',
+                        'callback' => 'clearAll()',
+                        'additional' => [],
+                    );
+                }
 
                 for ($i = 0; $i < count($stockerIds); $i++) {
                     $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
