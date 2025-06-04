@@ -18,9 +18,9 @@ class ManageRoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $users = Role::with(["accesses"]);
+            $roles = Role::with(["accesses"]);
 
-            return DataTables::eloquent($users)
+            return DataTables::eloquent($roles)
                 ->addColumn('accesses', function ($row) {
                     return $row->accesses->implode("access", ", ");
                 })
@@ -28,10 +28,9 @@ class ManageRoleController extends Controller
                 toJson();
         }
 
-        $roles = Role::all();
         $accesses = Access::all();
 
-        return view("roles.roles", ["roles" => $roles, "accesses" => $accesses, "page" => "dashboard-manage-user", "subPageGroup" => "manage-user", "subPage" => "manage-role"]);
+        return view("roles.roles", ["accesses" => $accesses, "page" => "dashboard-manage-user", "subPageGroup" => "manage-user", "subPage" => "manage-role"]);
     }
 
     /**
@@ -121,7 +120,7 @@ class ManageRoleController extends Controller
         ]);
 
         if ($validatedRequest) {
-            $updateRole = Role::where("id", $validatedRequest["edit_id"])->create([
+            $updateRole = Role::where("id", $validatedRequest["edit_id"])->update([
                     "nama_role" => $validatedRequest['edit_nama_role'],
                 ]);
 

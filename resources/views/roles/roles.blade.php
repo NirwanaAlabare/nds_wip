@@ -191,10 +191,8 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let userId = '{{ Auth::user()->roles->implode("role") }}';
                         let buttonEdit = "<button type='button' class='btn btn-primary btn-sm' ><i class='fa fa-edit'></i></button>";
                         let buttonDelete = "<button type='button' class='btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>";
-                        let disabled = userId == data ? true : false;
 
                         return `
                             <div class='d-flex gap-1 justify-content-center'>

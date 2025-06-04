@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ManageUserController;
 use App\Http\Controllers\ManageRoleController;
+use App\Http\Controllers\ManageAccessController;
 use App\Http\Controllers\ManageUserLineController;
 
 // Dashboard WIP Line
@@ -1871,6 +1872,14 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/get-role-access', 'getRoleAccess')->name('get-role-access');
         Route::delete('/destroy-role-access/{id?}', 'destroyRoleAccess')->name('destroy-role-access');
+    });
+
+    // Manage Access
+    Route::controller(ManageAccessController::class)->prefix("manage-access")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-access');
+        Route::post('/store', 'store')->name('store-access');
+        Route::put('/update', 'update')->name('update-access');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-access');
     });
 
     // Manage

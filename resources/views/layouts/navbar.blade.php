@@ -1283,6 +1283,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('manage-access') }}"
+                                    class="dropdown-item {{ $subPage == 'manage-access' ? 'active' : '' }}">
+                                    Access <i class="fa-solid fa-cogs"></i>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('manage-user-line') }}"
                                     class="dropdown-item {{ $subPage == 'manage-user-line' ? 'active' : '' }}">
                                     Line <i class="fa-solid fa-users-line"></i>
