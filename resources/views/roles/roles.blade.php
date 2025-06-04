@@ -191,17 +191,15 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let userId = '{{ Auth::user()->roles->implode("role") }}';
                         let buttonEdit = "<button type='button' class='btn btn-primary btn-sm' ><i class='fa fa-edit'></i></button>";
                         let buttonDelete = "<button type='button' class='btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>";
-                        let disabled = userId == data ? true : false;
 
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
                                 <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editRoleModal" onclick='editData(` + JSON.stringify(row) + `, "editRoleModal", [{"function" : "dataTableRoleReload(); dataTableRoleAccessReload();"}]);' `+(disabled ? "disabled" : "")+`>
                                     <i class='fa fa-edit'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user') }}/`+data+`' onclick='deleteData(this)' `+(disabled ? "disabled" : "")+`>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-role') }}/`+data+`' onclick='deleteData(this)' `+(disabled ? "disabled" : "")+`>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>

@@ -25,52 +25,68 @@ class PPIC_MasterSOController extends Controller
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
-            $data_input = DB::select("
-            SELECT
-            a.id,
-            a.id_so_det,
-            m.buyer,
-            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
-            ) tgl_shipment_fix,
-            a.barcode,
-            m.reff_no,
-            a.po,
-            a.dest,
-            a.desc,
-            m.ws,
-            m.styleno,
-            m.color,
-            m.size,
-            a.qty_po,
-            coalesce(trf.qty_trf,0) qty_trf,
-            coalesce(pck.qty_packing_in,0) qty_packing_in,
-            coalesce(pck_out.qty_packing_out,0) qty_packing_out,
-            m.ws,
-            a.created_by,
-            a.created_at
-            FROM ppic_master_so a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            left join master_size_new msn on m.size = msn.size
-            left join
-            (
-                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
-            ) trf on trf.id_ppic_master_so = a.id
-            left join
-            (
-                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
-            ) pck on pck.id_ppic_master_so = a.id
-            left join
-            (
-            select p.id, qty_packing_out from
-                (
-                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
-                group by barcode, po, dest
-                ) a
-            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-            group by p.id
-            ) pck_out on pck_out.id = a.id
-            where tgl_shipment >= '" . $tgl_awal . "' and tgl_shipment <= '" . $tgl_akhir . "'
-            order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan asc, dest asc
+            $data_input = DB::select("WITH ppic as (
+                select * from laravel_nds.ppic_master_so p
+                where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
+                ),
+                gmt as (
+                select sd.id as id_so_det,id_jo,kpno,styleno, sd.*, Supplier buyer, product_group from signalbit_erp.so_det sd
+                inner join signalbit_erp.so on sd.id_so = so.id
+                inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                inner join signalbit_erp.jo_det jd on so.id = jd.id_so
+                inner join signalbit_erp.masterproduct mp on ac.id_product = mp.id
+                inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
+                where sd.cancel = 'N' and so.cancel_h = 'N'
+                ),
+                pck_trf_gmt as (
+                select id_ppic_master_so, sum(qty) qty_trf from packing_trf_garment
+                group by id_ppic_master_so
+                ),
+                pck_in as (
+                select id_ppic_master_so, sum(qty) qty_pck_in from packing_packing_in
+                group by id_ppic_master_so
+                ),
+                pck_out as (
+                select barcode,po,dest,count(barcode) qty_pck_out from packing_packing_out_scan
+                group by barcode,po,dest
+                )
+
+                select
+                p.id,
+                p.id_so_det,
+                gmt.buyer,
+                CONCAT(DATE_FORMAT(p.tgl_shipment, '%d'), '-', LEFT(DATE_FORMAT(p.tgl_shipment, '%M'), 3), '-', DATE_FORMAT(p.tgl_shipment, '%Y')) AS tgl_shipment_fix,
+                kpno ws,
+                styleno,
+                p.barcode,
+                reff_no,
+                p.desc,
+                p.po,
+                gmt.dest,
+                product_group,
+                gmt.color,
+                gmt.size,
+                p.qty_po,
+                coalesce(pck_trf_gmt.qty_trf,0) qty_trf,
+                coalesce(pck_in.qty_pck_in,0) qty_packing_in,
+                coalesce(pck_out.qty_pck_out,0) qty_packing_out,
+                p.created_by,
+                p.created_at
+                from ppic p
+                inner join gmt on p.id_so_det = gmt.id_so_det
+                left join pck_trf_gmt on p.id = pck_trf_gmt.id_ppic_master_so
+                left join pck_in on p.id = pck_in.id_ppic_master_so
+                left join pck_out on p.barcode = pck_out.barcode and p.po = pck_out.po and p.dest = pck_out.dest
+                LEFT JOIN signalbit_erp.master_size_new msn ON gmt.size = msn.size
+                ORDER BY
+                p.tgl_shipment DESC,
+                gmt.buyer ASC,
+                kpno ASC,
+                gmt.dest ASC,
+                gmt.color ASC,
+                msn.urutan ASC,
+                gmt.dest ASC;
+
             ");
 
             return DataTables::of($data_input)->toJson();

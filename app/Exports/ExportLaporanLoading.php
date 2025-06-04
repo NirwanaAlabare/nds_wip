@@ -102,7 +102,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
-                        stocker_input.size
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        master_size_new.urutan
                     FROM
                         loading_line
                         LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -111,7 +112,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                         LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                         LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                        LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                         ".$innerDateFilter."
                     GROUP BY
                         stocker_input.form_cut_id,
@@ -132,7 +134,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                 loading_line_plan.line_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.color,
-                loading_stock.so_det_id
+                COALESCE(loading_stock.urutan, loading_stock.so_det_id)
         ");
 
         $this->rowCount = count($data) + 4;

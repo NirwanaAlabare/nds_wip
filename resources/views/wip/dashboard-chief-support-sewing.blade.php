@@ -184,7 +184,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -228,11 +228,12 @@
                         let totalRft = 0;
                         element.reduce(function(res, value) {
                             if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
+                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                     leaderOutput.push(res[param]);
                                 }
+                                res[param].tanggal = value.tanggal;
                                 res[param].mins_avail += Number(value.cumulative_mins_avail);
                                 res[param].mins_prod += Number(value.mins_prod);
                                 res[param].output += Number(value.output);
@@ -253,10 +254,10 @@
 
                         // Sort leader output efficiency
                         let sortedLeaderOutput = leaderOutput.sort(function(a,b){
-                            if ((a.mins_prod/a.mins_avail) < (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) < ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return 1;
                             }
-                            if ((a.mins_prod/a.mins_avail)  > (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) > ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return -1;
                             }
                             return 0;
@@ -380,6 +381,49 @@
             chiefContainer.appendChild(imageContainer);
             chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
 
+            let tglArr = [];
+            let efficiencyArr = [];
+            let targetEfficiencyArr = [];
+            let rftArr = [];
+
+            let dailyData = data.data.filter((item) => item.mins_avail > 0 && item.output > 0);
+
+            dailyData.forEach(item => {
+                tglArr.push(item.tanggal.substr(-2));
+                efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
+                rftArr.push((item.rft / item.output * 100).round(2));
+            });
+
+            // Today Date
+            let todayDate = null;
+            let yesterdayDate = null;
+            let beforeDate = null;
+
+            if (index > 1) {
+                todayDate = currentDayThree;
+                yesterdayDate = currentDayTwo;
+                beforeDate = currentDayOne;
+
+                var todayFilter = dailyData.filter((item) => (todayDate ? item.tanggal == formatDate(todayDate) : item.tanggal <= formatDate(new Date())) );
+                var today = todayFilter[todayFilter.length-1];
+
+                var yesterdayFilter = dailyData.filter((item) => (yesterdayDate ? item.tanggal == formatDate(yesterdayDate) : (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))))) );
+                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
+
+                var beforeFilter = dailyData.filter((item) => (beforeDate ? item.tanggal == formatDate(beforeDate) : (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))))) );
+                var before = beforeFilter[beforeFilter.length-1];
+            } else {
+                var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
+                var today = todayFilter[todayFilter.length-1];
+
+                var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
+                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
+
+                var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
+                var before = beforeFilter[beforeFilter.length-1];
+            }
+
+            // Sub Employee
             let subEmployeeContainer = document.createElement("div");
             subEmployeeContainer.classList.add("col-9");
             subEmployeeContainer.classList.add("d-flex");
@@ -392,33 +436,35 @@
             leadersElement.classList.add("row");
             leadersElement.classList.add("h-100");
             data.leaderData.forEach(element => {
-                let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
-                let leaderElement = document.createElement("div");
-                leaderElement.classList.add("col-2");
-                leaderElement.classList.add("p-1");
-                leaderElement.classList.add("border");
-                leaderElement.classList.add("d-flex");
-                leaderElement.classList.add("flex-column");
-                let leaderImageContainer = document.createElement("div");
-                leaderImageContainer.classList.add("m-auto");
-                let leaderImageSubContainer = document.createElement("div");
-                leaderImageSubContainer.classList.add("profile-frame");
-                leaderImageSubContainer.style.width = "33px";
-                leaderImageSubContainer.style.height = "33px";
-                let leaderImageElement = document.createElement("img");
-                leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
-                leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                leaderImageElement.setAttribute("alt", "person")
-                leaderImageElement.classList.add("img-fluid")
-                // leaderImageElement.style.width = "50px";
-                // leaderImageElement.style.height = "50px";
-                leaderImageSubContainer.appendChild(leaderImageElement)
-                leaderImageContainer.appendChild(leaderImageSubContainer)
-                leaderElement.appendChild(leaderImageContainer);
-                leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+leaderName+"</center></span>";
-                leaderImageContainer.innerHTML += "<span class='text-dark fw-bold' style='font-size: 6.5px;'><center>LEADER</center></span>";
-                leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                leadersElement.appendChild(leaderElement);
+                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
+                    let leaderElement = document.createElement("div");
+                    leaderElement.classList.add("col-2");
+                    leaderElement.classList.add("p-1");
+                    leaderElement.classList.add("border");
+                    leaderElement.classList.add("d-flex");
+                    leaderElement.classList.add("flex-column");
+                    let leaderImageContainer = document.createElement("div");
+                    leaderImageContainer.classList.add("m-auto");
+                    let leaderImageSubContainer = document.createElement("div");
+                    leaderImageSubContainer.classList.add("profile-frame");
+                    leaderImageSubContainer.style.width = "33px";
+                    leaderImageSubContainer.style.height = "33px";
+                    let leaderImageElement = document.createElement("img");
+                    leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
+                    leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                    leaderImageElement.setAttribute("alt", "person")
+                    leaderImageElement.classList.add("img-fluid")
+                    // leaderImageElement.style.width = "50px";
+                    // leaderImageElement.style.height = "50px";
+                    leaderImageSubContainer.appendChild(leaderImageElement)
+                    leaderImageContainer.appendChild(leaderImageSubContainer)
+                    leaderElement.appendChild(leaderImageContainer);
+                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 9) : leaderName)+"</center></span>";
+                    leaderImageContainer.innerHTML += "<span class='text-dark fw-bold' style='font-size: 6.5px;'><center>LEADER</center></span>";
+                    leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                    leadersElement.appendChild(leaderElement);
+                }
             });
             leaderContainer.appendChild(leadersElement);
 
@@ -440,34 +486,36 @@
             iesElement.classList.add("h-100");
             iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
             data.ieData.forEach(element => {
-                if (element.ie_name) {
-                    let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
-                    let ieElement = document.createElement("div");
-                    ieElement.classList.add("w-100");
-                    ieElement.classList.add("p-1");
-                    // ieElement.classList.add("border");
-                    ieElement.classList.add("d-flex");
-                    ieElement.classList.add("flex-column");
-                    let ieImageContainer = document.createElement("div");
-                    ieImageContainer.classList.add("m-auto");
-                    let ieImageSubContainer = document.createElement("div");
-                    ieImageSubContainer.classList.add("profile-frame");
-                    ieImageSubContainer.style.width = "33px";
-                    ieImageSubContainer.style.height = "33px";
-                    let ieImageElement = document.createElement("img");
-                    ieImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
-                    ieImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                    ieImageElement.setAttribute("alt", "person")
-                    ieImageElement.classList.add("img-fluid")
-                    // ieImageElement.style.width = "50px";
-                    // ieImageElement.style.height = "50px";
-                    ieImageSubContainer.appendChild(ieImageElement)
-                    ieImageContainer.appendChild(ieImageSubContainer)
-                    ieElement.appendChild(ieImageContainer);
-                    ieImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+ieName+"</center></span>";
-                    ieImageContainer.innerHTML += "<span class='text-info fw-bold' style='font-size: 6.5px;'><center>IE</center></span>";
-                    // ieImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                    iesElement.appendChild(ieElement);
+                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.ie_name) {
+                        let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
+                        let ieElement = document.createElement("div");
+                        ieElement.classList.add("w-100");
+                        ieElement.classList.add("p-1");
+                        // ieElement.classList.add("border");
+                        ieElement.classList.add("d-flex");
+                        ieElement.classList.add("flex-column");
+                        let ieImageContainer = document.createElement("div");
+                        ieImageContainer.classList.add("m-auto");
+                        let ieImageSubContainer = document.createElement("div");
+                        ieImageSubContainer.classList.add("profile-frame");
+                        ieImageSubContainer.style.width = "33px";
+                        ieImageSubContainer.style.height = "33px";
+                        let ieImageElement = document.createElement("img");
+                        ieImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
+                        ieImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                        ieImageElement.setAttribute("alt", "person")
+                        ieImageElement.classList.add("img-fluid")
+                        // ieImageElement.style.width = "50px";
+                        // ieImageElement.style.height = "50px";
+                        ieImageSubContainer.appendChild(ieImageElement)
+                        ieImageContainer.appendChild(ieImageSubContainer)
+                        ieElement.appendChild(ieImageContainer);
+                        ieImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(ieName.length > 10 ? ieName.slice(0, 9) : ieName)+"</center></span>";
+                        ieImageContainer.innerHTML += "<span class='text-info fw-bold' style='font-size: 6.5px;'><center>IE</center></span>";
+                        // ieImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                        iesElement.appendChild(ieElement);
+                    }
                 }
             });
             ieContainer.appendChild(iesElement);
@@ -485,33 +533,35 @@
             leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
             data.leaderqcData.forEach(element => {
                 if (element.leaderqc_name) {
-                    let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
-                    let leaderqcElement = document.createElement("div");
-                    leaderqcElement.classList.add("w-100");
-                    leaderqcElement.classList.add("p-1");
-                    // leaderqcElement.classList.add("border");
-                    leaderqcElement.classList.add("d-flex");
-                    leaderqcElement.classList.add("flex-column");
-                    let leaderqcImageContainer = document.createElement("div");
-                    leaderqcImageContainer.classList.add("m-auto");
-                    let leaderqcImageSubContainer = document.createElement("div");
-                    leaderqcImageSubContainer.classList.add("profile-frame");
-                    leaderqcImageSubContainer.style.width = "33px";
-                    leaderqcImageSubContainer.style.height = "33px";
-                    let leaderqcImageElement = document.createElement("img");
-                    leaderqcImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
-                    leaderqcImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                    leaderqcImageElement.setAttribute("alt", "person")
-                    leaderqcImageElement.classList.add("img-fluid")
-                    // leaderqcImageElement.style.width = "50px";
-                    // leaderqcImageElement.style.height = "50px";
-                    leaderqcImageSubContainer.appendChild(leaderqcImageElement)
-                    leaderqcImageContainer.appendChild(leaderqcImageSubContainer)
-                    leaderqcElement.appendChild(leaderqcImageContainer);
-                    leaderqcImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+leaderqcName+"</center></span>";
-                    leaderqcImageContainer.innerHTML += "<span class='text-danger fw-bold' style='font-size: 6.5px;'><center>LEADER QC</center></span>";
-                    // leaderqcImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                    leaderqcsElement.appendChild(leaderqcElement);
+                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                        let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
+                        let leaderqcElement = document.createElement("div");
+                        leaderqcElement.classList.add("w-100");
+                        leaderqcElement.classList.add("p-1");
+                        // leaderqcElement.classList.add("border");
+                        leaderqcElement.classList.add("d-flex");
+                        leaderqcElement.classList.add("flex-column");
+                        let leaderqcImageContainer = document.createElement("div");
+                        leaderqcImageContainer.classList.add("m-auto");
+                        let leaderqcImageSubContainer = document.createElement("div");
+                        leaderqcImageSubContainer.classList.add("profile-frame");
+                        leaderqcImageSubContainer.style.width = "33px";
+                        leaderqcImageSubContainer.style.height = "33px";
+                        let leaderqcImageElement = document.createElement("img");
+                        leaderqcImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
+                        leaderqcImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                        leaderqcImageElement.setAttribute("alt", "person")
+                        leaderqcImageElement.classList.add("img-fluid")
+                        // leaderqcImageElement.style.width = "50px";
+                        // leaderqcImageElement.style.height = "50px";
+                        leaderqcImageSubContainer.appendChild(leaderqcImageElement)
+                        leaderqcImageContainer.appendChild(leaderqcImageSubContainer)
+                        leaderqcElement.appendChild(leaderqcImageContainer);
+                        leaderqcImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(leaderqcName.length > 10 ? leaderqcName.slice(0, 9) : leaderqcName)+"</center></span>";
+                        leaderqcImageContainer.innerHTML += "<span class='text-danger fw-bold' style='font-size: 6px;'><center>LEADER QC</center></span>";
+                        // leaderqcImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                        leaderqcsElement.appendChild(leaderqcElement);
+                    }
                 }
             });
             leaderqcContainer.appendChild(leaderqcsElement);
@@ -528,34 +578,36 @@
             mechanicsElement.classList.add("h-100");
             mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
             data.mechanicData.forEach(element => {
-                if (element.mechanic_name) {
-                    let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
-                    let mechanicElement = document.createElement("div");
-                    mechanicElement.classList.add("w-100");
-                    mechanicElement.classList.add("p-1");
-                    // mechanicElement.classList.add("border");
-                    mechanicElement.classList.add("d-flex");
-                    mechanicElement.classList.add("flex-column");
-                    let mechanicImageContainer = document.createElement("div");
-                    mechanicImageContainer.classList.add("m-auto");
-                    let mechanicImageSubContainer = document.createElement("div");
-                    mechanicImageSubContainer.classList.add("profile-frame");
-                    mechanicImageSubContainer.style.width = "33px";
-                    mechanicImageSubContainer.style.height = "33px";
-                    let mechanicImageElement = document.createElement("img");
-                    mechanicImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
-                    mechanicImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                    mechanicImageElement.setAttribute("alt", "person")
-                    mechanicImageElement.classList.add("img-fluid")
-                    // mechanicImageElement.style.width = "50px";
-                    // mechanicImageElement.style.height = "50px";
-                    mechanicImageSubContainer.appendChild(mechanicImageElement)
-                    mechanicImageContainer.appendChild(mechanicImageSubContainer)
-                    mechanicElement.appendChild(mechanicImageContainer);
-                    mechanicImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+mechanicName+"</center></span>";
-                    mechanicImageContainer.innerHTML += "<span class='text-success fw-bold' style='font-size: 6.5px;'><center>MECHANIC</center></span>";
-                    // mechanicImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                    mechanicsElement.appendChild(mechanicElement);
+                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.mechanic_name) {
+                        let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
+                        let mechanicElement = document.createElement("div");
+                        mechanicElement.classList.add("w-100");
+                        mechanicElement.classList.add("p-1");
+                        // mechanicElement.classList.add("border");
+                        mechanicElement.classList.add("d-flex");
+                        mechanicElement.classList.add("flex-column");
+                        let mechanicImageContainer = document.createElement("div");
+                        mechanicImageContainer.classList.add("m-auto");
+                        let mechanicImageSubContainer = document.createElement("div");
+                        mechanicImageSubContainer.classList.add("profile-frame");
+                        mechanicImageSubContainer.style.width = "33px";
+                        mechanicImageSubContainer.style.height = "33px";
+                        let mechanicImageElement = document.createElement("img");
+                        mechanicImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
+                        mechanicImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                        mechanicImageElement.setAttribute("alt", "person")
+                        mechanicImageElement.classList.add("img-fluid")
+                        // mechanicImageElement.style.width = "50px";
+                        // mechanicImageElement.style.height = "50px";
+                        mechanicImageSubContainer.appendChild(mechanicImageElement)
+                        mechanicImageContainer.appendChild(mechanicImageSubContainer)
+                        mechanicElement.appendChild(mechanicImageContainer);
+                        mechanicImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(mechanicName.length > 10 ? mechanicName.slice(0, 9) : mechanicName)+"</center></span>";
+                        mechanicImageContainer.innerHTML += "<span class='text-success fw-bold' style='font-size: 6.5px;'><center>MECHANIC</center></span>";
+                        // mechanicImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                        mechanicsElement.appendChild(mechanicElement);
+                    }
                 }
             });
             mechanicContainer.appendChild(mechanicsElement);
@@ -572,34 +624,36 @@
             technicalsElement.classList.add("h-100");
             technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
             data.technicalData.forEach(element => {
-                if (element.technical_name) {
-                    let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
-                    let technicalElement = document.createElement("div");
-                    technicalElement.classList.add("w-100");
-                    technicalElement.classList.add("p-1");
-                    // technicalElement.classList.add("border");
-                    technicalElement.classList.add("d-flex");
-                    technicalElement.classList.add("flex-column");
-                    let technicalImageContainer = document.createElement("div");
-                    technicalImageContainer.classList.add("m-auto");
-                    let technicalImageSubContainer = document.createElement("div");
-                    technicalImageSubContainer.classList.add("profile-frame");
-                    technicalImageSubContainer.style.width = "33px";
-                    technicalImageSubContainer.style.height = "33px";
-                    let technicalImageElement = document.createElement("img");
-                    technicalImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
-                    technicalImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                    technicalImageElement.setAttribute("alt", "person")
-                    technicalImageElement.classList.add("img-fluid")
-                    // technicalImageElement.style.width = "50px";
-                    // technicalImageElement.style.height = "50px";
-                    technicalImageSubContainer.appendChild(technicalImageElement)
-                    technicalImageContainer.appendChild(technicalImageSubContainer)
-                    technicalElement.appendChild(technicalImageContainer);
-                    technicalImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+technicalName+"</center></span>";
-                    technicalImageContainer.innerHTML += "<span class='text-primary fw-bold' style='font-size: 6.5px;'><center>TECHNICAL</center></span>";
-                    // technicalImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                    technicalsElement.appendChild(technicalElement);
+                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.technical_name) {
+                        let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
+                        let technicalElement = document.createElement("div");
+                        technicalElement.classList.add("w-100");
+                        technicalElement.classList.add("p-1");
+                        // technicalElement.classList.add("border");
+                        technicalElement.classList.add("d-flex");
+                        technicalElement.classList.add("flex-column");
+                        let technicalImageContainer = document.createElement("div");
+                        technicalImageContainer.classList.add("m-auto");
+                        let technicalImageSubContainer = document.createElement("div");
+                        technicalImageSubContainer.classList.add("profile-frame");
+                        technicalImageSubContainer.style.width = "33px";
+                        technicalImageSubContainer.style.height = "33px";
+                        let technicalImageElement = document.createElement("img");
+                        technicalImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
+                        technicalImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                        technicalImageElement.setAttribute("alt", "person")
+                        technicalImageElement.classList.add("img-fluid")
+                        // technicalImageElement.style.width = "50px";
+                        // technicalImageElement.style.height = "50px";
+                        technicalImageSubContainer.appendChild(technicalImageElement)
+                        technicalImageContainer.appendChild(technicalImageSubContainer)
+                        technicalElement.appendChild(technicalImageContainer);
+                        technicalImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(technicalName.length > 10 ? technicalName.slice(0, 9) : technicalName)+"</center></span>";
+                        technicalImageContainer.innerHTML += "<span class='text-primary fw-bold' style='font-size: 6.5px;'><center>TECHNICAL</center></span>";
+                        // technicalImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                        technicalsElement.appendChild(technicalElement);
+                    }
                 }
             });
             technicalContainer.appendChild(technicalsElement);
@@ -630,19 +684,6 @@
             tdChart.appendChild(canvas);
             tdChart.classList.add("align-middle");
             tr.appendChild(tdChart);
-
-            let tglArr = [];
-            let efficiencyArr = [];
-            let targetEfficiencyArr = [];
-            let rftArr = [];
-
-            let dailyData = data.data.filter((item) => item.mins_avail > 0 && item.output > 0);
-
-            dailyData.forEach(item => {
-                tglArr.push(item.tanggal.substr(-2));
-                efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
-                rftArr.push((item.rft / item.output * 100).round(2));
-            });
 
             var options = {
                 series: [
@@ -719,34 +760,6 @@
             };
 
             var chart = new ApexCharts(canvas, options);
-
-            let todayDate = null;
-            let yesterdayDate = null;
-            let beforeDate = null;
-
-            if (index > 1) {
-                todayDate = currentDayThree;
-                yesterdayDate = currentDayTwo;
-                beforeDate = currentDayOne;
-
-                var todayFilter = dailyData.filter((item) => (todayDate ? item.tanggal == formatDate(todayDate) : item.tanggal <= formatDate(new Date())) );
-                var today = todayFilter[todayFilter.length-1];
-
-                var yesterdayFilter = dailyData.filter((item) => (yesterdayDate ? item.tanggal == formatDate(yesterdayDate) : (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1))))) );
-                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
-
-                var beforeFilter = dailyData.filter((item) => (beforeDate ? item.tanggal == formatDate(beforeDate) : (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))))) );
-                var before = beforeFilter[beforeFilter.length-1];
-            } else {
-                var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
-                var today = todayFilter[todayFilter.length-1];
-
-                var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
-                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
-
-                var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
-                var before = beforeFilter[beforeFilter.length-1];
-            }
 
             // Before
             let tdBeforeEff = document.createElement("td");
@@ -941,7 +954,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -981,11 +994,12 @@
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
                             if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
+                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                     leaderOutput.push(res[param]);
                                 }
+                                res[param].tanggal = value.tanggal;
                                 res[param].mins_avail += Number(value.cumulative_mins_avail);
                                 res[param].mins_prod += Number(value.mins_prod);
                                 res[param].output += Number(value.output);
@@ -998,10 +1012,10 @@
 
                         // Sort leader output efficiency
                         let sortedLeaderOutput = leaderOutput.sort(function(a,b){
-                            if ((a.mins_prod/a.mins_avail) < (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) < ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return 1;
                             }
-                            if ((a.mins_prod/a.mins_avail)  > (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) > ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return -1;
                             }
                             return 0;
@@ -1045,15 +1059,15 @@
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "ieData": sortedIeOutput, "leaderqcData": sortedLeaderqcOutput, "mechanicData": sortedMechanicOutput, "technicalData": sortedTechnicalOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "ieData": sortedIeOutput, "leaderqcData": sortedLeaderqcOutput, "mechanicData": sortedMechanicOutput, "technicalData": sortedTechnicalOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0), "currentRft": (currentData ? currentData.rft/currentData.output*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
                     let sortedChiefDailyEfficiency = chiefDailyEfficiency.sort(function(a,b){
-                        if (a.currentEff < b.currentEff) {
+                        if ((a.currentEff+a.currentRft) < (b.currentEff+b.currentRft)) {
                             return 1;
                         }
-                        if (a.currentEff  > b.currentEff) {
+                        if ((a.currentEff+a.currentRft) > (b.currentEff+b.currentRft)) {
                             return -1;
                         }
                         return 0;
@@ -1105,244 +1119,6 @@
                 chiefContainer.appendChild(imageContainer);
                 chiefContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 8.5px;'><center>"+data.name.split(" ")[0]+"</center></span>"
 
-                let subEmployeeContainer = document.createElement("div");
-                subEmployeeContainer.classList.add("col-9");
-                subEmployeeContainer.classList.add("d-flex");
-                subEmployeeContainer.classList.add("flex-wrap");
-
-                // Leader
-                let leaderContainer = document.createElement("div");
-                leaderContainer.classList.add("w-100");
-                let leadersElement = document.createElement("div");
-                leadersElement.classList.add("row");
-                leadersElement.classList.add("h-100");
-                data.leaderData.forEach(element => {
-                    let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
-                    let leaderElement = document.createElement("div");
-                    leaderElement.classList.add("col-2");
-                    leaderElement.classList.add("p-1");
-                    leaderElement.classList.add("border");
-                    leaderElement.classList.add("d-flex");
-                    leaderElement.classList.add("flex-column");
-                    let leaderImageContainer = document.createElement("div");
-                    leaderImageContainer.classList.add("m-auto");
-                    let leaderImageSubContainer = document.createElement("div");
-                    leaderImageSubContainer.classList.add("profile-frame");
-                    leaderImageSubContainer.style.width = "33px";
-                    leaderImageSubContainer.style.height = "33px";
-                    let leaderImageElement = document.createElement("img");
-                    leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
-                    leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                    leaderImageElement.setAttribute("alt", "person")
-                    leaderImageElement.classList.add("img-fluid")
-                    // leaderImageElement.style.width = "50px";
-                    // leaderImageElement.style.height = "50px";
-                    leaderImageSubContainer.appendChild(leaderImageElement)
-                    leaderImageContainer.appendChild(leaderImageSubContainer)
-                    leaderElement.appendChild(leaderImageContainer);
-                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+leaderName+"</center></span>";
-                    leaderImageContainer.innerHTML += "<span class='text-dark fw-bold' style='font-size: 6.5px;'><center>LEADER</center></span>";
-                    leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                    leadersElement.appendChild(leaderElement);
-                });
-                leaderContainer.appendChild(leadersElement);
-
-                let supportEmployeeContainer = document.createElement("div");
-                supportEmployeeContainer.classList.add("w-100");
-                let supportEmployeeElements = document.createElement("div");
-                supportEmployeeElements.classList.add("row");
-                supportEmployeeElements.classList.add("h-100");
-
-                // IE
-                let ieContainer = document.createElement("div");
-                ieContainer.classList.add("col-2");
-                ieContainer.classList.add("p-0");
-                let iesElement = document.createElement("div");
-                iesElement.classList.add("d-flex");
-                iesElement.classList.add("flex-column");
-                iesElement.classList.add("border");
-                // iesElement.classList.add("gap-1");
-                iesElement.classList.add("h-100");
-                iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
-                data.ieData.forEach(element => {
-                    if (element.ie_name) {
-                        let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
-                        let ieElement = document.createElement("div");
-                        ieElement.classList.add("w-100");
-                        ieElement.classList.add("p-1");
-                        // ieElement.classList.add("border");
-                        ieElement.classList.add("d-flex");
-                        ieElement.classList.add("flex-column");
-                        let ieImageContainer = document.createElement("div");
-                        ieImageContainer.classList.add("m-auto");
-                        let ieImageSubContainer = document.createElement("div");
-                        ieImageSubContainer.classList.add("profile-frame");
-                        ieImageSubContainer.style.width = "33px";
-                        ieImageSubContainer.style.height = "33px";
-                        let ieImageElement = document.createElement("img");
-                        ieImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
-                        ieImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        ieImageElement.setAttribute("alt", "person")
-                        ieImageElement.classList.add("img-fluid")
-                        // ieImageElement.style.width = "50px";
-                        // ieImageElement.style.height = "50px";
-                        ieImageSubContainer.appendChild(ieImageElement)
-                        ieImageContainer.appendChild(ieImageSubContainer)
-                        ieElement.appendChild(ieImageContainer);
-                        ieImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+ieName+"</center></span>";
-                        ieImageContainer.innerHTML += "<span class='text-info fw-bold' style='font-size: 6.5px;'><center>IE</center></span>";
-                        // ieImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        iesElement.appendChild(ieElement);
-                    }
-                });
-                ieContainer.appendChild(iesElement);
-
-                // leaderqc
-                let leaderqcContainer = document.createElement("div");
-                leaderqcContainer.classList.add("col-2");
-                leaderqcContainer.classList.add("p-0");
-                let leaderqcsElement = document.createElement("div");
-                leaderqcsElement.classList.add("border");
-                leaderqcsElement.classList.add("d-flex");
-                leaderqcsElement.classList.add("flex-column");
-                // leaderqcsElement.classList.add("gap-1");
-                leaderqcsElement.classList.add("h-100");
-                leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
-                data.leaderqcData.forEach(element => {
-                    if (element.leaderqc_name) {
-                        let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
-                        let leaderqcElement = document.createElement("div");
-                        leaderqcElement.classList.add("w-100");
-                        leaderqcElement.classList.add("p-1");
-                        // leaderqcElement.classList.add("border");
-                        leaderqcElement.classList.add("d-flex");
-                        leaderqcElement.classList.add("flex-column");
-                        let leaderqcImageContainer = document.createElement("div");
-                        leaderqcImageContainer.classList.add("m-auto");
-                        let leaderqcImageSubContainer = document.createElement("div");
-                        leaderqcImageSubContainer.classList.add("profile-frame");
-                        leaderqcImageSubContainer.style.width = "33px";
-                        leaderqcImageSubContainer.style.height = "33px";
-                        let leaderqcImageElement = document.createElement("img");
-                        leaderqcImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
-                        leaderqcImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        leaderqcImageElement.setAttribute("alt", "person")
-                        leaderqcImageElement.classList.add("img-fluid")
-                        // leaderqcImageElement.style.width = "50px";
-                        // leaderqcImageElement.style.height = "50px";
-                        leaderqcImageSubContainer.appendChild(leaderqcImageElement)
-                        leaderqcImageContainer.appendChild(leaderqcImageSubContainer)
-                        leaderqcElement.appendChild(leaderqcImageContainer);
-                        leaderqcImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+leaderqcName+"</center></span>";
-                        leaderqcImageContainer.innerHTML += "<span class='text-danger fw-bold' style='font-size: 6.5px;'><center>LEADER QC</center></span>";
-                        // leaderqcImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        leaderqcsElement.appendChild(leaderqcElement);
-                    }
-                });
-                leaderqcContainer.appendChild(leaderqcsElement);
-
-                // mechanic
-                let mechanicContainer = document.createElement("div");
-                mechanicContainer.classList.add("col-2");
-                mechanicContainer.classList.add("p-0");
-                let mechanicsElement = document.createElement("div");
-                mechanicsElement.classList.add("d-flex");
-                mechanicsElement.classList.add("flex-column");
-                mechanicsElement.classList.add("border");
-                // mechanicsElement.classList.add("gap-1");
-                mechanicsElement.classList.add("h-100");
-                mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
-                data.mechanicData.forEach(element => {
-                    if (element.mechanic_name) {
-                        let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
-                        let mechanicElement = document.createElement("div");
-                        mechanicElement.classList.add("w-100");
-                        mechanicElement.classList.add("p-1");
-                        // mechanicElement.classList.add("border");
-                        mechanicElement.classList.add("d-flex");
-                        mechanicElement.classList.add("flex-column");
-                        let mechanicImageContainer = document.createElement("div");
-                        mechanicImageContainer.classList.add("m-auto");
-                        let mechanicImageSubContainer = document.createElement("div");
-                        mechanicImageSubContainer.classList.add("profile-frame");
-                        mechanicImageSubContainer.style.width = "33px";
-                        mechanicImageSubContainer.style.height = "33px";
-                        let mechanicImageElement = document.createElement("img");
-                        mechanicImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
-                        mechanicImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        mechanicImageElement.setAttribute("alt", "person")
-                        mechanicImageElement.classList.add("img-fluid")
-                        // mechanicImageElement.style.width = "50px";
-                        // mechanicImageElement.style.height = "50px";
-                        mechanicImageSubContainer.appendChild(mechanicImageElement)
-                        mechanicImageContainer.appendChild(mechanicImageSubContainer)
-                        mechanicElement.appendChild(mechanicImageContainer);
-                        mechanicImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+mechanicName+"</center></span>";
-                        mechanicImageContainer.innerHTML += "<span class='text-success fw-bold' style='font-size: 6.5px;'><center>MECHANIC</center></span>";
-                        // mechanicImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        mechanicsElement.appendChild(mechanicElement);
-                    }
-                });
-                mechanicContainer.appendChild(mechanicsElement);
-
-                // technical
-                let technicalContainer = document.createElement("div");
-                technicalContainer.classList.add("col-2");
-                technicalContainer.classList.add("p-0");
-                let technicalsElement = document.createElement("div");
-                technicalsElement.classList.add("d-flex");
-                technicalsElement.classList.add("flex-column");
-                technicalsElement.classList.add("border");
-                // technicalsElement.classList.add("gap-1");
-                technicalsElement.classList.add("h-100");
-                technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
-                data.technicalData.forEach(element => {
-                    if (element.technical_name) {
-                        let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
-                        let technicalElement = document.createElement("div");
-                        technicalElement.classList.add("w-100");
-                        technicalElement.classList.add("p-1");
-                        // technicalElement.classList.add("border");
-                        technicalElement.classList.add("d-flex");
-                        technicalElement.classList.add("flex-column");
-                        let technicalImageContainer = document.createElement("div");
-                        technicalImageContainer.classList.add("m-auto");
-                        let technicalImageSubContainer = document.createElement("div");
-                        technicalImageSubContainer.classList.add("profile-frame");
-                        technicalImageSubContainer.style.width = "33px";
-                        technicalImageSubContainer.style.height = "33px";
-                        let technicalImageElement = document.createElement("img");
-                        technicalImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
-                        technicalImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        technicalImageElement.setAttribute("alt", "person")
-                        technicalImageElement.classList.add("img-fluid")
-                        // technicalImageElement.style.width = "50px";
-                        // technicalImageElement.style.height = "50px";
-                        technicalImageSubContainer.appendChild(technicalImageElement)
-                        technicalImageContainer.appendChild(technicalImageSubContainer)
-                        technicalElement.appendChild(technicalImageContainer);
-                        technicalImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+technicalName+"</center></span>";
-                        technicalImageContainer.innerHTML += "<span class='text-primary fw-bold' style='font-size: 6.5px;'><center>TECHNICAL</center></span>";
-                        // technicalImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        technicalsElement.appendChild(technicalElement);
-                    }
-                });
-                technicalContainer.appendChild(technicalsElement);
-
-                subEmployeeContainer.appendChild(leaderContainer)
-                supportEmployeeElements.appendChild(ieContainer)
-                supportEmployeeElements.appendChild(leaderqcContainer)
-                supportEmployeeElements.appendChild(mechanicContainer)
-                supportEmployeeElements.appendChild(technicalContainer)
-                supportEmployeeContainer.appendChild(supportEmployeeElements)
-                subEmployeeContainer.appendChild(supportEmployeeContainer)
-
-                nameElement.appendChild(chiefContainer)
-                nameElement.appendChild(subEmployeeContainer)
-
-                // Chart
-                let chartElement = document.getElementById("chart-"+index);
-
                 let tglArr = [];
                 let efficiencyArr = [];
                 let targetEfficiencyArr = [];
@@ -1355,27 +1131,6 @@
                     efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
                     rftArr.push((item.rft / item.output * 100).round(2));
                 });
-
-                await ApexCharts.exec('chart-'+index, 'updateSeries', [
-                        {
-                            name: 'Efficiency',
-                            data: efficiencyArr
-                        },
-                        {
-                            name: 'RFT',
-                            data: rftArr
-                        }
-                    ], true);
-
-                await ApexCharts.exec('mychart', 'updateOptions', {
-                        xaxis: {
-                            categories: tglArr,
-                        },
-                        noData: {
-                            text: 'Data Not Found'
-                        }
-                    }, false, true);
-
                 let todayDate = null;
                 let yesterdayDate = null;
                 let beforeDate = null;
@@ -1403,6 +1158,274 @@
                     var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
                     var before = beforeFilter[beforeFilter.length-1];
                 }
+
+                let subEmployeeContainer = document.createElement("div");
+                subEmployeeContainer.classList.add("col-9");
+                subEmployeeContainer.classList.add("d-flex");
+                subEmployeeContainer.classList.add("flex-wrap");
+
+                // Leader
+                let leaderContainer = document.createElement("div");
+                leaderContainer.classList.add("w-100");
+                let leadersElement = document.createElement("div");
+                leadersElement.classList.add("row");
+                leadersElement.classList.add("h-100");
+                data.leaderData.forEach(element => {
+                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                        let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
+                        let leaderElement = document.createElement("div");
+                        leaderElement.classList.add("col-2");
+                        leaderElement.classList.add("p-1");
+                        leaderElement.classList.add("border");
+                        leaderElement.classList.add("d-flex");
+                        leaderElement.classList.add("flex-column");
+                        let leaderImageContainer = document.createElement("div");
+                        leaderImageContainer.classList.add("m-auto");
+                        let leaderImageSubContainer = document.createElement("div");
+                        leaderImageSubContainer.classList.add("profile-frame");
+                        leaderImageSubContainer.style.width = "33px";
+                        leaderImageSubContainer.style.height = "33px";
+                        let leaderImageElement = document.createElement("img");
+                        leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
+                        leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                        leaderImageElement.setAttribute("alt", "person")
+                        leaderImageElement.classList.add("img-fluid")
+                        // leaderImageElement.style.width = "50px";
+                        // leaderImageElement.style.height = "50px";
+                        leaderImageSubContainer.appendChild(leaderImageElement)
+                        leaderImageContainer.appendChild(leaderImageSubContainer)
+                        leaderElement.appendChild(leaderImageContainer);
+                        leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 9) : leaderName)+"</center></span>";
+                        leaderImageContainer.innerHTML += "<span class='text-dark fw-bold' style='font-size: 6.5px;'><center>LEADER</center></span>";
+                        leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                        leadersElement.appendChild(leaderElement);
+                    }
+                });
+                leaderContainer.appendChild(leadersElement);
+
+                let supportEmployeeContainer = document.createElement("div");
+                supportEmployeeContainer.classList.add("w-100");
+                let supportEmployeeElements = document.createElement("div");
+                supportEmployeeElements.classList.add("row");
+                supportEmployeeElements.classList.add("h-100");
+
+                // IE
+                let ieContainer = document.createElement("div");
+                ieContainer.classList.add("col-2");
+                ieContainer.classList.add("p-0");
+                let iesElement = document.createElement("div");
+                iesElement.classList.add("d-flex");
+                iesElement.classList.add("flex-column");
+                iesElement.classList.add("border");
+                // iesElement.classList.add("gap-1");
+                iesElement.classList.add("h-100");
+                iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
+                data.ieData.forEach(element => {
+                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                        if (element.ie_name) {
+                            let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
+                            let ieElement = document.createElement("div");
+                            ieElement.classList.add("w-100");
+                            ieElement.classList.add("p-1");
+                            // ieElement.classList.add("border");
+                            ieElement.classList.add("d-flex");
+                            ieElement.classList.add("flex-column");
+                            let ieImageContainer = document.createElement("div");
+                            ieImageContainer.classList.add("m-auto");
+                            let ieImageSubContainer = document.createElement("div");
+                            ieImageSubContainer.classList.add("profile-frame");
+                            ieImageSubContainer.style.width = "33px";
+                            ieImageSubContainer.style.height = "33px";
+                            let ieImageElement = document.createElement("img");
+                            ieImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
+                            ieImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                            ieImageElement.setAttribute("alt", "person")
+                            ieImageElement.classList.add("img-fluid")
+                            // ieImageElement.style.width = "50px";
+                            // ieImageElement.style.height = "50px";
+                            ieImageSubContainer.appendChild(ieImageElement)
+                            ieImageContainer.appendChild(ieImageSubContainer)
+                            ieElement.appendChild(ieImageContainer);
+                            ieImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(ieName.length > 10 ? ieName.slice(0, 9) : ieName)+"</center></span>";
+                            ieImageContainer.innerHTML += "<span class='text-info fw-bold' style='font-size: 6.5px;'><center>IE</center></span>";
+                            // ieImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                            iesElement.appendChild(ieElement);
+                        }
+                    }
+                });
+                ieContainer.appendChild(iesElement);
+
+                // leaderqc
+                let leaderqcContainer = document.createElement("div");
+                leaderqcContainer.classList.add("col-2");
+                leaderqcContainer.classList.add("p-0");
+                let leaderqcsElement = document.createElement("div");
+                leaderqcsElement.classList.add("border");
+                leaderqcsElement.classList.add("d-flex");
+                leaderqcsElement.classList.add("flex-column");
+                // leaderqcsElement.classList.add("gap-1");
+                leaderqcsElement.classList.add("h-100");
+                leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
+                data.leaderqcData.forEach(element => {
+                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                        if (element.leaderqc_name) {
+                            let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
+                            let leaderqcElement = document.createElement("div");
+                            leaderqcElement.classList.add("w-100");
+                            leaderqcElement.classList.add("p-1");
+                            // leaderqcElement.classList.add("border");
+                            leaderqcElement.classList.add("d-flex");
+                            leaderqcElement.classList.add("flex-column");
+                            let leaderqcImageContainer = document.createElement("div");
+                            leaderqcImageContainer.classList.add("m-auto");
+                            let leaderqcImageSubContainer = document.createElement("div");
+                            leaderqcImageSubContainer.classList.add("profile-frame");
+                            leaderqcImageSubContainer.style.width = "33px";
+                            leaderqcImageSubContainer.style.height = "33px";
+                            let leaderqcImageElement = document.createElement("img");
+                            leaderqcImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
+                            leaderqcImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                            leaderqcImageElement.setAttribute("alt", "person")
+                            leaderqcImageElement.classList.add("img-fluid")
+                            // leaderqcImageElement.style.width = "50px";
+                            // leaderqcImageElement.style.height = "50px";
+                            leaderqcImageSubContainer.appendChild(leaderqcImageElement)
+                            leaderqcImageContainer.appendChild(leaderqcImageSubContainer)
+                            leaderqcElement.appendChild(leaderqcImageContainer);
+                            leaderqcImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(leaderqcName.length > 10 ? leaderqcName.slice(0, 9) : leaderqcName)+"</center></span>";
+                            leaderqcImageContainer.innerHTML += "<span class='text-danger fw-bold' style='font-size: 6px;'><center>LEADER QC</center></span>";
+                            // leaderqcImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                            leaderqcsElement.appendChild(leaderqcElement);
+                        }
+                    }
+                });
+                leaderqcContainer.appendChild(leaderqcsElement);
+
+                // mechanic
+                let mechanicContainer = document.createElement("div");
+                mechanicContainer.classList.add("col-2");
+                mechanicContainer.classList.add("p-0");
+                let mechanicsElement = document.createElement("div");
+                mechanicsElement.classList.add("d-flex");
+                mechanicsElement.classList.add("flex-column");
+                mechanicsElement.classList.add("border");
+                // mechanicsElement.classList.add("gap-1");
+                mechanicsElement.classList.add("h-100");
+                mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
+                data.mechanicData.forEach(element => {
+                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                        if (element.mechanic_name) {
+                            let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
+                            let mechanicElement = document.createElement("div");
+                            mechanicElement.classList.add("w-100");
+                            mechanicElement.classList.add("p-1");
+                            // mechanicElement.classList.add("border");
+                            mechanicElement.classList.add("d-flex");
+                            mechanicElement.classList.add("flex-column");
+                            let mechanicImageContainer = document.createElement("div");
+                            mechanicImageContainer.classList.add("m-auto");
+                            let mechanicImageSubContainer = document.createElement("div");
+                            mechanicImageSubContainer.classList.add("profile-frame");
+                            mechanicImageSubContainer.style.width = "33px";
+                            mechanicImageSubContainer.style.height = "33px";
+                            let mechanicImageElement = document.createElement("img");
+                            mechanicImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
+                            mechanicImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                            mechanicImageElement.setAttribute("alt", "person")
+                            mechanicImageElement.classList.add("img-fluid")
+                            // mechanicImageElement.style.width = "50px";
+                            // mechanicImageElement.style.height = "50px";
+                            mechanicImageSubContainer.appendChild(mechanicImageElement)
+                            mechanicImageContainer.appendChild(mechanicImageSubContainer)
+                            mechanicElement.appendChild(mechanicImageContainer);
+                            mechanicImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(mechanicName.length > 10 ? mechanicName.slice(0, 9) : mechanicName)+"</center></span>";
+                            mechanicImageContainer.innerHTML += "<span class='text-success fw-bold' style='font-size: 6.5px;'><center>MECHANIC</center></span>";
+                            // mechanicImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                            mechanicsElement.appendChild(mechanicElement);
+                        }
+                    }
+                });
+                mechanicContainer.appendChild(mechanicsElement);
+
+                // technical
+                let technicalContainer = document.createElement("div");
+                technicalContainer.classList.add("col-2");
+                technicalContainer.classList.add("p-0");
+                let technicalsElement = document.createElement("div");
+                technicalsElement.classList.add("d-flex");
+                technicalsElement.classList.add("flex-column");
+                technicalsElement.classList.add("border");
+                // technicalsElement.classList.add("gap-1");
+                technicalsElement.classList.add("h-100");
+                technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
+                data.technicalData.forEach(element => {
+                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                        if (element.technical_name) {
+                            let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
+                            let technicalElement = document.createElement("div");
+                            technicalElement.classList.add("w-100");
+                            technicalElement.classList.add("p-1");
+                            // technicalElement.classList.add("border");
+                            technicalElement.classList.add("d-flex");
+                            technicalElement.classList.add("flex-column");
+                            let technicalImageContainer = document.createElement("div");
+                            technicalImageContainer.classList.add("m-auto");
+                            let technicalImageSubContainer = document.createElement("div");
+                            technicalImageSubContainer.classList.add("profile-frame");
+                            technicalImageSubContainer.style.width = "33px";
+                            technicalImageSubContainer.style.height = "33px";
+                            let technicalImageElement = document.createElement("img");
+                            technicalImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
+                            technicalImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                            technicalImageElement.setAttribute("alt", "person")
+                            technicalImageElement.classList.add("img-fluid")
+                            // technicalImageElement.style.width = "50px";
+                            // technicalImageElement.style.height = "50px";
+                            technicalImageSubContainer.appendChild(technicalImageElement)
+                            technicalImageContainer.appendChild(technicalImageSubContainer)
+                            technicalElement.appendChild(technicalImageContainer);
+                            technicalImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(technicalName.length > 10 ? technicalName.slice(0, 9) : technicalName)+"</center></span>";
+                            technicalImageContainer.innerHTML += "<span class='text-primary fw-bold' style='font-size: 6.5px;'><center>TECHNICAL</center></span>";
+                            // technicalImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                            technicalsElement.appendChild(technicalElement);
+                        }
+                    }
+                });
+                technicalContainer.appendChild(technicalsElement);
+
+                subEmployeeContainer.appendChild(leaderContainer)
+                supportEmployeeElements.appendChild(ieContainer)
+                supportEmployeeElements.appendChild(leaderqcContainer)
+                supportEmployeeElements.appendChild(mechanicContainer)
+                supportEmployeeElements.appendChild(technicalContainer)
+                supportEmployeeContainer.appendChild(supportEmployeeElements)
+                subEmployeeContainer.appendChild(supportEmployeeContainer)
+
+                nameElement.appendChild(chiefContainer)
+                nameElement.appendChild(subEmployeeContainer)
+
+                // Chart
+                let chartElement = document.getElementById("chart-"+index);
+
+                await ApexCharts.exec('chart-'+index, 'updateSeries', [
+                        {
+                            name: 'Efficiency',
+                            data: efficiencyArr
+                        },
+                        {
+                            name: 'RFT',
+                            data: rftArr
+                        }
+                    ], true);
+
+                await ApexCharts.exec('mychart', 'updateOptions', {
+                        xaxis: {
+                            categories: tglArr,
+                        },
+                        noData: {
+                            text: 'Data Not Found'
+                        }
+                    }, false, true);
 
                 // Before
                 let beforeEffElement = document.getElementById("before-eff-"+index);
@@ -1465,10 +1488,10 @@
             let output = [];
             element.reduce((res, value) => {
                 if (value.tanggal === currentDate) {
-                    let id = value[`${role}_id`] ?? value.sewing_line;
+                    let id = value[`${role}_nik`] ?? value.sewing_line;
                     if (!res[id]) {
                         res[id] = {
-                            id: value[`${role}_id`],
+                            id: value[`${role}_nik`],
                             [`${role}_nik`]: value[`${role}_nik`],
                             [`${role}_name`]: value[`${role}_name`],
                             sewing_line: "",
@@ -1479,6 +1502,7 @@
                         };
                         output.push(res[id]);
                     }
+                    res[id].tanggal = value.tanggal;
                     res[id].mins_avail += Number(value.cumulative_mins_avail);
                     res[id].mins_prod += Number(value.mins_prod);
                     res[id].output += Number(value.output);

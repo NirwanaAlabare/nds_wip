@@ -694,7 +694,8 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            stocker_input.size
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
+                            master_size_new.urutan
                         FROM
                             loading_line
                             LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -703,7 +704,8 @@ class LoadingLineController extends Controller
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                             ".$innerDateFilter."
                         GROUP BY
                             stocker_input.form_cut_id,
@@ -725,7 +727,7 @@ class LoadingLineController extends Controller
                     loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.color,
-                    loading_stock.so_det_id
+                    COALESCE(loading_stock.urutan, loading_stock.so_det_id)
             ");
 
             return DataTables::of($line)->toJson();
@@ -801,7 +803,8 @@ class LoadingLineController extends Controller
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
-                        stocker_input.size
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        master_size_new.urutan
                     FROM
                         loading_line
                         LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -810,7 +813,8 @@ class LoadingLineController extends Controller
                         LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                         LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                         LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                        LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                         ".$innerDateFilter."
                     GROUP BY
                         stocker_input.form_cut_id,
@@ -831,7 +835,7 @@ class LoadingLineController extends Controller
                 loading_line_plan.line_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.color,
-                loading_stock.so_det_id
+                COALESCE(loading_stock.urutan, loading_stock.so_det_id)
         "));
 
         $lines = $line->groupBy("nama_line")->keys();
@@ -959,7 +963,8 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            stocker_input.size
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
+                            master_size_new.urutan
                         FROM
                             loading_line
                             LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -968,14 +973,15 @@ class LoadingLineController extends Controller
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                             ".$innerDateFilter."
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
-                            stocker_input.range_awal
+                            stocker_input.ratio
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
@@ -991,7 +997,7 @@ class LoadingLineController extends Controller
                     loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.color,
-                    loading_stock.so_det_id
+                    COALESCE(loading_stock.urutan, loading_stock.so_det_id)
             ");
 
         return $line ? array_sum(array_column($line, 'loading_qty')) : 0;
@@ -1033,12 +1039,12 @@ class LoadingLineController extends Controller
                     stocker_input.act_costing_ws,
                     stocker_input.color,
                     stocker_input.size,
-                    GROUP_CONCAT(DISTINCT stocker_input.lokasi) as lokasi,
-                    GROUP_CONCAT(DISTINCT trolley.nama_trolley) as trolley,
-                    GROUP_CONCAT(DISTINCT COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod)) qty,
-                    GROUP_CONCAT(DISTINCT (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace)) dc_qty,
-                    GROUP_CONCAT(DISTINCT (secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace)) secondary_in_qty,
-                    GROUP_CONCAT(DISTINCT (secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace)) secondary_inhouse_qty,
+                    GROUP_CONCAT(DISTINCT stocker_input.lokasi SEPARATOR ' || ') as lokasi,
+                    GROUP_CONCAT(DISTINCT trolley.nama_trolley SEPARATOR ' || ') as trolley,
+                    GROUP_CONCAT(COALESCE(COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod), '-') SEPARATOR ' || ') qty,
+                    GROUP_CONCAT(COALESCE((dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace), '-') SEPARATOR ' || ') dc_qty,
+                    GROUP_CONCAT(COALESCE((secondary_in_input.qty_awal - secondary_in_input.qty_reject + secondary_in_input.qty_replace), '-') SEPARATOR ' || ') secondary_in_qty,
+                    GROUP_CONCAT(COALESCE((secondary_inhouse_input.qty_awal - secondary_inhouse_input.qty_reject + secondary_in_input.qty_replace), '-') SEPARATOR ' || ') secondary_inhouse_qty,
                     MIN(loading_line.qty) loading_qty,
                     CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range_awal_akhir
                 ")->
@@ -1089,15 +1095,24 @@ class LoadingLineController extends Controller
                 $line = $lines->where("line_id", $request->lineId)->first();
 
                 $loadingLinePlan = LoadingLinePlan::where("line_id", $request->lineId)->
-                    where("act_costing_id", $loadingLine->stocker->act_costing_id)->
-                    where("color", $loadingLine->stocker->color)->
-                    where("tanggal", $loadingLine->tanggal_loading)->
+                    where("act_costing_id", $loadingLine->stocker->masterSbWs->id_act_cost)->
+                    where("color", $loadingLine->stocker->masterSbWs->color)->
+                    where("tanggal", ($request->tanggal_loading ? $request->tanggal_loading : $loadingLine->tanggal_loading))->
                     first();
 
                 if ($loadingLinePlan) {
                     $loadingLine->line_id = $request->lineId;
                     $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId);
                     $loadingLine->loading_plan_id = $loadingLinePlan->id;
+                    if ($request->tanggal_loading) {
+                        $loadingLine->tanggal_loading = $request->tanggal_loading;
+                    }
+                    if ($request->qty_reject > 0) {
+                        $loadingLine->qty = $loadingLine->qty - $request->qty_reject;
+                    }
+                    if ($request->qty_replace > 0) {
+                        $loadingLine->qty = $loadingLine->qty + $request->qty_replace;
+                    }
                     $loadingLine->save();
 
                     array_push($success, $loadingLine->id);
@@ -1116,12 +1131,21 @@ class LoadingLineController extends Controller
                         "color" => $loadingLine->stocker->masterSbWs->color,
                         "target_sewing" => $loadingLine->loadingPlan->target_sewing,
                         "target_loading" => $loadingLine->loadingPlan->target_loading,
-                        "tanggal" => $loadingLine->tanggal_loading,
+                        "tanggal" => ($request->tanggal_loading ? $request->tanggal_loading : $loadingLine->tanggal_loading)
                     ]);
 
                     $loadingLine->line_id = $request->lineId;
                     $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId, 2);
                     $loadingLine->loading_plan_id = $newLoadingPlan->id;
+                    if ($request->tanggal_loading) {
+                        $loadingLine->tanggal_loading = $request->tanggal_loading;
+                    }
+                    if ($request->qty_reject > 0) {
+                        $loadingLine->qty = $loadingLine->qty - $request->qty_reject;
+                    }
+                    if ($request->qty_replace > 0) {
+                        $loadingLine->qty = $loadingLine->qty + $request->qty_replace;
+                    }
                     $loadingLine->save();
 
                     array_push($success, $loadingLine->id);

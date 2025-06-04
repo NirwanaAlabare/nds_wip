@@ -44,14 +44,20 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">No. Form</label>
-                        <select name="no_form" id="no_form" class="form-control select2bs4form" style="width: 100%;"  onchange="getFormGroupList()">
+                        <select name="no_form" id="no_form" class="form-control select2bs4form" style="width: 100%;"  onchange="getFormGroupList();getFormStockerList();">
                             <option value="">Pilih Form</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Group</label>
-                        <select name="form_group" id="form_group" class="form-control select2bs4form" style="width: 100%;">
+                        <select name="form_group" id="form_group" class="form-control select2bs4form" style="width: 100%;" onchange="getFormStockerList()">
                             <option value="">Pilih Form Group</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Stocker</label>
+                        <select name="form_stocker" id="form_stocker" class="form-control select2bs4form" style="width: 100%;">
+                            <option value="">Pilih Form Stocker</option>
                         </select>
                     </div>
                 </div>
@@ -91,6 +97,8 @@
         });
 
         function getFormList() {
+            document.getElementById("loading").classList.remove("d-none");
+
             $.ajax({
                 type: "get",
                 url: "{{ route('get-no-form-cut') }}",
@@ -103,14 +111,20 @@
                             $('#no_form').append('<option value="' + value.form_cut_id + '">' + value.no_form + '</option>');
                         });
                     }
+
+                    document.getElementById("loading").classList.add("d-none");
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr);
+
+                    document.getElementById("loading").classList.add("d-none");
                 }
             });
         }
 
         function getFormGroupList() {
+            document.getElementById("loading").classList.remove("d-none");
+
             $.ajax({
                 type: "get",
                 url: "{{ route('get-form-group') }}",
@@ -125,10 +139,44 @@
                         $.each(response, function (key, value) {
                             $('#form_group').append('<option value="' + value.group_stocker + '">' + value.group_stocker + " - " + value.shade + '</option>');
                         });
+
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr);
+
+                    document.getElementById("loading").classList.add("d-none");
+                }
+            });
+        }
+
+        function getFormStockerList() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "get",
+                url: "{{ route('get-form-stocker') }}",
+                data: {
+                    form_cut_id: $('#no_form').val(),
+                    form_group: $('#form_group').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response) {
+                        $('#form_stocker').empty();
+                        $('#form_stocker').append('<option value="">Pilih Form Stocker</option>');
+                        $.each(response, function (key, value) {
+                            $('#form_stocker').append('<option value="' + value.stocker_ids + '">' + value.id_qr_stocker + ' || Size \'' + value.size + '\' || Ratio ' + value.ratio + '</option>');
+                        });
+                    }
+
+                    document.getElementById("loading").classList.add("d-none");
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+
+                    document.getElementById("loading").classList.add("d-none");
                 }
             });
         }
@@ -156,7 +204,8 @@
                 data: {
                     form_cut_id: $('#no_form').val(),
                     no_form: $('#no_form option:selected').text(),
-                    form_group: $('#form_group').val()
+                    form_group: $('#form_group').val(),
+                    form_stocker: $('#form_stocker').val()
                 },
                 dataType: "json",
                 success: function (response) {

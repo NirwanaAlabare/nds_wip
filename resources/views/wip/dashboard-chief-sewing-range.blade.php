@@ -208,7 +208,7 @@
                     let dateOutput = [];
 
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -240,7 +240,7 @@
                             return res;
                         }, {});
 
-                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+                        let dateOutputFilter = dateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0).sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
 
                         let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };

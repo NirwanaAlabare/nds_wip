@@ -52,7 +52,7 @@
                 </div>
                 <label>Preview</label>
                 <div class="table-responsive">
-                    <table id="datatable_preview" class="table table-bordered table-striped 100 text-nowrap">
+                    <table id="datatable_preview" class="table table-bordered table-striped w-100 text-nowrap">
                         <thead>
                             <tr>
                                 <th>Line</th>
@@ -117,7 +117,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>No. Trans</th>

@@ -229,6 +229,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     public function show_datatable_upload_packing_list(Request $request)
     {
         ini_set("memory_limit", '2048M');
+        ini_set("max_execution_time", '3600');
 
         $user = Auth::user()->name;
         $po = $request->po;
@@ -463,6 +464,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     order by a.no_carton_awal asc
     )
     b on a.no_carton >= b.no_carton_awal and a.no_carton <= b.no_carton_akhir
+    -- limit 100
               ");
 
             return DataTables::of($data_upload)->toJson();

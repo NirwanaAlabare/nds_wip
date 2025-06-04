@@ -231,7 +231,7 @@ input[type=file]::file-selector-button:hover {
     <div class="card-body">
     <div class="form-group row">
     <div class="table-responsive" style="max-height: 300px">
-            <table id="datatable" class="table table-bordered table-head-fixed table-striped 100 text-nowrap">
+            <table id="datatable" class="table table-bordered table-head-fixed table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Lot</th>

@@ -1299,6 +1299,36 @@
                     </li>
                 @endif
 
+                @if ($page == 'accounting')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('update-data-ceisa') }}" class="dropdown-item">
+                                    Update Data Ceisa
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('report-rekonsiliasi-ceisa') }}" class="dropdown-item">
+                                    Rekonsiliasi Ceisa
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('report-ceisa-detail') }}" class="dropdown-item">
+                                    Ceisa Detail
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
 
                 {{-- <li class="dropdown-divider"></li> --}}
                 <!-- Level two dropdown-->

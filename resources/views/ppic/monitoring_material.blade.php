@@ -113,7 +113,7 @@
 
 
             <div class="table-responsive mt-4">
-                <table id="datatable_conv" class="table table-bordered table-striped 100 text-nowrap">
+                <table id="datatable_conv" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr id="tableHeadRow" style="text-align: center; vertical-align: middle"></tr>
                     </thead>

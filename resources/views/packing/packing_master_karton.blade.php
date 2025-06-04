@@ -231,7 +231,7 @@
                                 <div class='row'>
                                     <div class="col-md-12 table-responsive">
                                         <table id="datatable_hapus"
-                                            class="table table-bordered table-striped 100 text-nowrap">
+                                            class="table table-bordered table-striped w-100 text-nowrap">
                                             <thead class="table-primary">
                                                 <tr style='text-align:center; vertical-align:middle'>
                                                     <th>
@@ -377,7 +377,7 @@
                                 <div class='row'>
                                     <div class="col-md-12 table-responsive">
                                         <table id="datatable_tambah"
-                                            class="table table-bordered table-striped 100 text-nowrap">
+                                            class="table table-bordered table-striped w-100 text-nowrap">
                                             <thead class="table-primary">
                                                 <tr style='text-align:center; vertical-align:middle'>
                                                     <th>PO</th>

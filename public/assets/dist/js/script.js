@@ -520,6 +520,8 @@ async function editData(e, modal, addons = []) {
 
 // Delete data confirmation
 function deleteData(e) {
+    console.log(e, e.getAttribute('data'));
+
     let data = JSON.parse(e.getAttribute('data'));
 
     if (data.hasOwnProperty('id')) {

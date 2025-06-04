@@ -65,7 +65,7 @@ inner join masteritem b on b.id_item = a.id_item
 left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo where no_bppb = '" . $request->no_bppb . "' GROUP BY no_bppb,a.id_jo,a.id_item");
 
         $html = '<div class="table-responsive">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped 100">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;">No WS</th>

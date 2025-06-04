@@ -276,8 +276,12 @@ class MutLokasiController extends Controller
                 'created_by' => Auth::user()->name,
             ]);
 
+            $kode_gr = DB::connection('mysql_sb')->select("
+            select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
+
             $timestamp = Carbon::now();
-            $nodok = $request['txt_no_mut'];
+            // $nodok = $request['txt_no_mut'];
+            $nodok = $kode_gr[0]->kode ?? '-';
             $tgldok = $request['txt_tgl_mut'];
             $mutasilokasi = [];
             $lokasiMaterial = [];

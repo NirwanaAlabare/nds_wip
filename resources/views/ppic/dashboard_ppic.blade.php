@@ -103,7 +103,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-striped 100 text-nowrap">
+                    <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                         <thead class="table-primary">
                             <tr style='text-align:center; vertical-align:middle'>
                                 <th>Tgl. Shipment</th>

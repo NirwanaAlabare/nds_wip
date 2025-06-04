@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ManageUserController;
 use App\Http\Controllers\ManageRoleController;
+use App\Http\Controllers\ManageAccessController;
 use App\Http\Controllers\ManageUserLineController;
 
 // Dashboard WIP Line
@@ -43,6 +44,8 @@ use App\Http\Controllers\Cutting\MasterPipingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingLoadingController;
 use App\Http\Controllers\Cutting\PipingStockController;
+// Cutting Tools
+use App\Http\Controllers\Cutting\CuttingToolsController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -162,6 +165,7 @@ use App\Http\Controllers\GAApprovalBahanBakarController;
 use App\Http\Controllers\StockOpnameController;
 
 use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\AccountingController;
 
 // Marketing
 use App\Http\Controllers\MarketingDashboardController;
@@ -210,6 +214,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
         // get group
         Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
+        // get stocker
+        Route::get('/get-form-stocker', 'getFormStocker')->name('get-form-stocker');
 
         // new general
         // get buyers
@@ -223,8 +229,8 @@ Route::middleware('auth')->group(function () {
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
-        Route::get('/general-tools', 'generalTools')->name('general-tools');
-        Route::post('/update-general-order', 'updateGeneralOrder')->name('update-general-order');
+        Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
+        Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
     });
 
     // Worksheet
@@ -616,6 +622,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
     });
 
+    // Cutting Tools
+    Route::controller(CuttingToolsController::class)->prefix("cutting")->middleware('role:superadmin')->group(function () {
+        // form
+        Route::get('/index', 'index')->name('cutting-tools');
+
+        // fix roll qty
+        Route::get('/get-roll-qty', 'getRollQty')->name('get-roll-qty');
+        Route::post('/fix-roll-qty', 'fixRollQty')->name('fix-roll-qty');
+
+        // fix form ratio
+        Route::get('/get-form-ratio', 'getFormRatio')->name('get-form-ratio');
+        Route::post('/update-form-ratio', 'updateFormRatio')->name('update-form-ratio');
+    });
+
     // Stocker :
     Route::controller(StockerController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
         Route::get('/', 'index')->name('stocker');
@@ -699,7 +719,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Stocker Tools
-    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
+    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:superadmin')->group(function () {
         // form
         Route::get('/index', 'index')->name('stocker-tools');
 
@@ -889,9 +909,12 @@ Route::middleware('auth')->group(function () {
     });
 
     // DC Tools
-    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:dc')->group(function () {
+    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('dc-tools');
         Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
+        Route::get('/modify-dc-qty', 'modifyDcQty')->middleware('role:superadmin')->name('modify-dc-qty');
+        Route::get('/get-dc-qty', 'getDcQty')->middleware('role:superadmin')->name('get-dc-qty');
+        Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');
     });
 
     // Sewing :
@@ -1121,10 +1144,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
     });
 
+    // Undo History
     Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
         Route::get('/', 'history')->name("undo-output-history");
     });
 
+    // Sewing Tools
     Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
@@ -1853,6 +1878,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy-role-access/{id?}', 'destroyRoleAccess')->name('destroy-role-access');
     });
 
+    // Manage Access
+    Route::controller(ManageAccessController::class)->prefix("manage-access")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-access');
+        Route::post('/store', 'store')->name('store-access');
+        Route::put('/update', 'update')->name('update-access');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-access');
+    });
+
     // Manage
     Route::controller(ManageUserLineController::class)->prefix("manage-user-line")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('manage-user-line');
@@ -1908,6 +1941,9 @@ Route::post('/dashboard-wip/chief-leader-sewing-range-data-export', [DashboardWi
 // Chief Top
 Route::get('/dashboard-wip/top-chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topChiefSewing'])->name('dashboard-top-chief-sewing');
 Route::get('/dashboard-wip/top-chief-sewing-data', [DashboardWipLineController::class, 'topChiefSewingData'])->name('dashboard-top-chief-sewing-data');
+// Leader Top
+Route::get('/dashboard-wip/top-leader-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topLeaderSewing'])->name('dashboard-top-leader-sewing');
+Route::get('/dashboard-wip/top-leader-sewing-data', [DashboardWipLineController::class, 'topLeaderSewingData'])->name('dashboard-top-leader-sewing-data');
 
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
@@ -1935,6 +1971,22 @@ Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->
 Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
+
+// Accounting
+Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:admin')->group(function () {
+    // get worksheet
+    Route::get('/', 'index')->name('accounting');
+    Route::get('/update-data-ceisa', 'UpdateData')->name('update-data-ceisa');
+    Route::get('/create', 'create')->name('create-update-ceisa');
+    Route::get('/get-data-ceisa', 'getData')->name('get-data-ceisa');
+    Route::post('/store', 'store')->name('store-update-ceisa');
+    Route::get('/cancel-keterangan-ceisa', 'CancelDataCeisa')->name('cancel-keterangan-ceisa');
+    Route::get('/edit-keterangan-ceisa', 'EditDataCeisa')->name('edit-keterangan-ceisa');
+    Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
+    Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
+    Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
+    Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+});
 
 // Route::get('/dashboard-chart', function () {
 //    return view('cutting.chart.dashboard-chart');

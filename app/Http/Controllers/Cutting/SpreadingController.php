@@ -87,7 +87,7 @@ class SpreadingController extends Controller
                     b.cons_marker,
                     UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
-                    COALESCE(b.notes, '-') notes,
+                    REPLACE(COALESCE(b.notes, '-'), '\"', '') notes,
                     GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app

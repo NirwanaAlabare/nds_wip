@@ -54,6 +54,24 @@
                 </table>
             </div>
             <div class="mt-3">
+                <div class="border rounded border-danger p-3 mb-3 {{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0 ? "" : "d-none" }}">
+                    <h5 class="text-danger">Critical Update</h5>
+                    <hr class="border-danger">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-danger">Tanggal</label>
+                            <input type="date" class="form-control" name="tanggal_loading" id="tanggal_loading" {{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0 ? "" : "readonly" }}>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-danger">Reject (-)</label>
+                            <input type="number" class="form-control" name="qty_reject" id="qty_reject" {{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0 ? "" : "readonly" }}>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-danger">Replace (+)</label>
+                            <input type="number" class="form-control" name="qty_replace" id="qty_replace" {{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0 ? "" : "readonly" }}>
+                        </div>
+                    </div>
+                </div>
                 <div class="row align-items-end">
                     <div class="col-md-4">
                         <label class="form-label">Line</label>
@@ -182,7 +200,7 @@
         function updateStocker() {
             Swal.fire({
                 title: 'Please Wait...',
-                html: 'Exporting Data...  <br><br> <b>0</b>s elapsed...',
+                html: 'Updating Data...  <br><br> <b>0</b>s elapsed...',
                 didOpen: () => {
                     Swal.showLoading();
 
@@ -202,6 +220,9 @@
                 data: {
                     stockerIds: $("#stocker_ids").val(),
                     lineId : $("#line_id").val(),
+                    tanggal_loading : $("#tanggal_loading").val(),
+                    qty_reject : $("#qty_reject").val(),
+                    qty_replace : $("#qty_replace").val(),
                 },
                 dataType: "json",
                 success: function (response) {

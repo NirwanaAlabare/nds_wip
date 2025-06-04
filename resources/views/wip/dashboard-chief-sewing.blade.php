@@ -184,7 +184,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -228,7 +228,7 @@
                         let totalRft = 0;
                         element.reduce(function(res, value) {
                             if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
+                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                     leaderOutput.push(res[param]);
@@ -253,10 +253,10 @@
 
                         // Sort leader output efficiency
                         let sortedLeaderOutput = leaderOutput.sort(function(a,b){
-                            if ((a.mins_prod/a.mins_avail) < (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) < ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return 1;
                             }
-                            if ((a.mins_prod/a.mins_avail)  > (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) > ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return -1;
                             }
                             return 0;
@@ -270,7 +270,7 @@
                         if (a.currentEff+a.currentRft < b.currentEff+b.currentRft) {
                             return 1;
                         }
-                        if (a.currentEff+a.currentRft  > b.currentEff+b.currentRft) {
+                        if (a.currentEff+a.currentRft > b.currentEff+b.currentRft) {
                             return -1;
                         }
                         return 0;
@@ -370,7 +370,7 @@
                 leaderImageSubContainer.appendChild(leaderImageElement)
                 leaderImageContainer.appendChild(leaderImageSubContainer)
                 leaderElement.appendChild(leaderImageContainer);
-                leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
+                leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 10) : leaderName)+"</center></span>";
                 leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                 leadersElement.appendChild(leaderElement);
             });
@@ -704,7 +704,7 @@
                 dataType: "json",
                 success: async function (response) {
                     // Chief Group By
-                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_id }) => chief_id));
+                    let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -744,7 +744,7 @@
                         let leaderOutput = [];
                         element.reduce(function(res, value) {
                             if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_id ? value.leader_id : value.sewing_line;
+                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
                                 if (!res[param]) {
                                     res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                     leaderOutput.push(res[param]);
@@ -761,24 +761,24 @@
 
                         // Sort leader output efficiency
                         let sortedLeaderOutput = leaderOutput.sort(function(a,b){
-                            if ((a.mins_prod/a.mins_avail) < (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) < ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return 1;
                             }
-                            if ((a.mins_prod/a.mins_avail)  > (b.mins_prod/b.mins_avail)) {
+                            if (((a.mins_prod/a.mins_avail)+(a.rft/a.output)) > ((b.mins_prod/b.mins_avail)+(b.rft/b.output))) {
                                 return -1;
                             }
                             return 0;
                         });
 
-                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100 : 0)});
+                        chiefDailyEfficiency.push({"id": element[element.length-1].chief_id ? element[element.length-1].chief_id : 'KOSONG', "nik": element[element.length-1].chief_nik ? element[element.length-1].chief_nik : 'KOSONG', "name": element[element.length-1].chief_name ? element[element.length-1].chief_name : 'KOSONG', "data": sortedDateOutput, "leaderData": sortedLeaderOutput, "currentEff": (currentData ? currentData.mins_prod/currentData.mins_avail*100), "currentRft": (currentData ? currentData.rft/currentData.output*100 : 0)});
                     });
 
                     // Sort Chief Daily by Efficiency
                     let sortedChiefDailyEfficiency = chiefDailyEfficiency.sort(function(a,b){
-                        if (a.currentEff < b.currentEff) {
+                        if ((a.currentEff+a.currentRft) < (b.currentEff+b.currentRft)) {
                             return 1;
                         }
-                        if (a.currentEff  > b.currentEff) {
+                        if ((a.currentEff+a.currentRft) > (b.currentEff+b.currentRft)) {
                             return -1;
                         }
                         return 0;
@@ -860,7 +860,7 @@
                     leaderImageSubContainer.appendChild(leaderImageElement)
                     leaderImageContainer.appendChild(leaderImageSubContainer)
                     leaderElement.appendChild(leaderImageContainer);
-                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+leaderName+"</center></span>";
+                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 6.5px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 10) : leaderName)+"</center></span>";
                     leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 6.5px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
                     leadersElement.appendChild(leaderElement);
                 });
