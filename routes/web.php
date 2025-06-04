@@ -224,8 +224,8 @@ Route::middleware('auth')->group(function () {
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
-        Route::get('/general-tools', 'generalTools')->middleware('superadmin')->name('general-tools');
-        Route::post('/update-general-order', 'updateGeneralOrder')->middleware('superadmin')->name('update-general-order');
+        Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
+        Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
     });
 
     // Worksheet
