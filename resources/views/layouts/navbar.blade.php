@@ -1267,14 +1267,17 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('manage-role') }}"
-                                    class="dropdown-item {{ $subPage == 'manage-role' ? 'active' : '' }}">
+                                <a href="{{ route('manage-role') }}" class="dropdown-item {{ $subPage == 'manage-role' ? 'active' : '' }}">
                                     Role <i class="fa-solid fa-user-gear"></i>
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('manage-user-line') }}"
-                                    class="dropdown-item {{ $subPage == 'manage-user-line' ? 'active' : '' }}">
+                                <a href="{{ route('manage-access') }}" class="dropdown-item {{ $subPage == 'manage-access' ? 'active' : '' }}">
+                                    Access <i class="fa-solid fa-user-gear"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('manage-user-line') }}" class="dropdown-item {{ $subPage == 'manage-user-line' ? 'active' : '' }}">
                                     Line <i class="fa-solid fa-users-line"></i>
                                 </a>
                             </li>
