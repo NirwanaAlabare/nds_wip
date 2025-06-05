@@ -535,6 +535,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-cutting-reject');
         Route::get('/edit/{id?}', 'edit')->name('edit-cutting-reject');
         Route::put('/update', 'update')->name('update-cutting-reject');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-reject');
+
+        // add-on
         Route::get('/stock', 'stock')->name('stock-cutting-reject');
         Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-reject');
 

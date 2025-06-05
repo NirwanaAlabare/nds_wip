@@ -304,9 +304,51 @@ class CuttingFormRejectController extends Controller
      * @param  \App\Models\FormCutReject  $formCutReject
      * @return \Illuminate\Http\Response
      */
-    public function destroy(FormCutReject $formCutReject)
+    public function destroy(FormCutReject $formCutReject, $id)
     {
-        //
+        $stocker = Stocker::selectRaw("
+                stocker_input.id,
+                stocker_input.form_reject_id,
+                form_cut_reject.tanggal,
+                stocker_input.id_qr_stocker,
+                form_cut_reject.no_form,
+                COALESCE(master_sb_ws.ws, stocker_input.act_costing_ws, form_cut_reject.act_costing_ws) act_costing_ws,
+                COALESCE(master_sb_ws.styleno, form_cut_reject.style) style,
+                COALESCE(master_sb_ws.color, stocker_input.color, form_cut_reject.color) color,
+                COALESCE(master_sb_ws.id_so_det, stocker_input.so_det_id) so_det_id,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                COALESCE(stocker_input.panel, form_cut_reject.panel) panel,
+                COALESCE(stocker_input.shade, form_cut_reject.group) group_reject,
+                master_part.nama_part part,
+                stocker_input.qty_ply qty,
+                stocker_input.notes
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            where("form_cut_reject.id", $id)->
+            first();
+
+        if (!$stocker) {
+            $deleteFormCutReject = FormCutReject::where("id", $id)->delete();
+
+            if ($deleteFormCutReject) {
+                $deleteFormCutRejectDetail = FormCutRejectDetail::where("form_id", $id)->delete();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Form Reject berhasil dihapus.",
+                    "table" => "cutting-reject-table"
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Form Reject sudah memiliki stocker.",
+            "table" => "cutting-reject-table"
+        );
     }
 
     public function stock(Request $request) {
