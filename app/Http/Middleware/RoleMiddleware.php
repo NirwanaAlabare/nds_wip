@@ -28,7 +28,7 @@ class RoleMiddleWare
                 return $next($request);
             }
         } else {
-            if (!in_array("accounting", $roles) && $user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
+            if (!(in_array("accounting", $roles)) && $user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
                 return $next($request);
             }
 
