@@ -387,10 +387,10 @@ class SecondaryInController extends Controller
         dc.tujuan,
         dc.lokasi,
         mp.nama_part,
-        si.qty_awal,
-        si.qty_reject,
-        si.qty_replace,
-        si.qty_in,
+        sii.qty_awal,
+        sii.qty_reject,
+        sii.qty_replace,
+        sii.qty_in,
         s.lokasi lokasi_tujuan,
         s.tempat tempat_tujuan
         from
@@ -409,6 +409,7 @@ class SecondaryInController extends Controller
         left join marker_input mi on a.id_marker = mi.kode
         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
         left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+        left join secondary_in_input sii on s.id_qr_stocker = sii.id_qr_stocker
         where s.id_qr_stocker = '" . $request->txtqrstocker . "'
         ");
         return json_encode($cekdata[0]);
