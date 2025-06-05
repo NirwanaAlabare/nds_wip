@@ -191,6 +191,7 @@
                     chiefEfficiency.forEach(element => {
                         // Date Output
                         let dateOutput = [];
+
                         element.reduce(function(res, value) {
                             if (!res[value.tanggal]) {
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
@@ -206,7 +207,7 @@
                         }, {});
 
                         // Sort date output efficiency
-                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                        let sortedDateOutput = dateOutput.sort(function(a,b) {
                             if (a.tanggal > b.tanggal) {
                                 return 1;
                             }
@@ -227,27 +228,34 @@
                         let totalOutput = 0;
                         let totalRft = 0;
                         element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    leaderOutput.push(res[param]);
-                                }
-                                res[param].tanggal = value.tanggal;
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
-
-                                totalMinsAvail += Number(value.cumulative_mins_avail);
-                                totalMinsProd += Number(value.mins_prod);
-                                totalOutput += Number(value.output);
-                                totalRft += Number(value.rft);
+                            let param = value.leader_nik ? value.leader_nik : value.sewing_line;
+                            if (!res[param]) {
+                                res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                leaderOutput.push(res[param]);
                             }
+
+                            if (!res[param].tanggal || res[param].tanggal <= value.tanggal) {
+                                res[param].tanggal = value.tanggal;
+                            }
+                            res[param].mins_avail += Number(value.cumulative_mins_avail);
+                            res[param].mins_prod += Number(value.mins_prod);
+                            res[param].output += Number(value.output);
+                            res[param].rft += Number(value.rft);
+                            if (!res[param].sewing_line.includes(value.sewing_line)) {
+                                res[param].sewing_line += value.sewing_line + "<br>";
+                            }
+
+                            totalMinsAvail += Number(value.cumulative_mins_avail);
+                            totalMinsProd += Number(value.mins_prod);
+                            totalOutput += Number(value.output);
+                            totalRft += Number(value.rft);
 
                             return res;
                         }, {});
+
+                        if (element[0].chief_name == "SUKAMTONO") {
+                            console.log(leaderOutput);
+                        }
 
                         // Total Data
                         let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };
@@ -333,7 +341,7 @@
         var intervalData = setInterval(() => {
             console.log("update data");
 
-            updateData();
+            // updateData();
         }, 60000);
 
         var currentDayOne = "";
@@ -436,7 +444,7 @@
             leadersElement.classList.add("row");
             leadersElement.classList.add("h-100");
             data.leaderData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                     let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                     let leaderElement = document.createElement("div");
                     leaderElement.classList.add("col-2");
@@ -486,7 +494,7 @@
             iesElement.classList.add("h-100");
             iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
             data.ieData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                     if (element.ie_name) {
                         let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
                         let ieElement = document.createElement("div");
@@ -533,7 +541,7 @@
             leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
             data.leaderqcData.forEach(element => {
                 if (element.leaderqc_name) {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                         let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
                         let leaderqcElement = document.createElement("div");
                         leaderqcElement.classList.add("w-100");
@@ -578,7 +586,7 @@
             mechanicsElement.classList.add("h-100");
             mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
             data.mechanicData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                     if (element.mechanic_name) {
                         let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
                         let mechanicElement = document.createElement("div");
@@ -624,7 +632,7 @@
             technicalsElement.classList.add("h-100");
             technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
             data.technicalData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                     if (element.technical_name) {
                         let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
                         let technicalElement = document.createElement("div");
@@ -1171,7 +1179,7 @@
                 leadersElement.classList.add("row");
                 leadersElement.classList.add("h-100");
                 data.leaderData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                         let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                         let leaderElement = document.createElement("div");
                         leaderElement.classList.add("col-2");
@@ -1221,7 +1229,7 @@
                 iesElement.classList.add("h-100");
                 iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
                 data.ieData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                         if (element.ie_name) {
                             let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
                             let ieElement = document.createElement("div");
@@ -1267,7 +1275,7 @@
                 leaderqcsElement.classList.add("h-100");
                 leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
                 data.leaderqcData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                         if (element.leaderqc_name) {
                             let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
                             let leaderqcElement = document.createElement("div");
@@ -1313,7 +1321,7 @@
                 mechanicsElement.classList.add("h-100");
                 mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
                 data.mechanicData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                         if (element.mechanic_name) {
                             let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
                             let mechanicElement = document.createElement("div");
@@ -1359,7 +1367,7 @@
                 technicalsElement.classList.add("h-100");
                 technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
                 data.technicalData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= (today ? today.tanggal : todayDate)) {
                         if (element.technical_name) {
                             let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
                             let technicalElement = document.createElement("div");
