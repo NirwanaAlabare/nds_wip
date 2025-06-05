@@ -132,48 +132,170 @@
         }
 
         #fireworks-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-        pointer-events: none;
-        z-index: 9999;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 9999;
         }
 
         .firework-rocket {
-        position: absolute;
-        bottom: 0;
-        width: 8px;
-        height: 8px;
-        transform: translateX(0);
-        pointer-events: none;
+            position: absolute;
+            bottom: 0;
+            width: 8px;
+            height: 8px;
+            transform: translateX(0);
+            pointer-events: none;
         }
 
         .firework-rocket-inner {
-        width: 100%;
-        height: 100%;
-        border-radius: 100%;
-        margin-left: 2px;
+            width: 100%;
+            height: 100%;
+            border-radius: 100%;
+            margin-left: 2px;
         }
 
         .firework-spark {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        border-radius: 2px;
-        pointer-events: none;
-        opacity: 0.8;
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 2px;
+            pointer-events: none;
+            opacity: 0.8;
         }
 
         .firework-fragment {
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        border-radius: 3px;
-        opacity: 0.9;
-        pointer-events: none;
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        main {
+            width: 20vw;
+            height: auto;
+            background-color: #fbfbfb;
+            -webkit-box-shadow: 0px 5px 15px 8px #e4e7fb;
+            box-shadow: 0px 5px 15px 8px #e4e7fb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 0.5rem;
+        }
+
+        main #header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 1rem;
+        }
+
+        main #leaderboard {
+            width: 100%;
+            position: relative;
+        }
+
+        main table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            color: var(--sb-secondary-color);
+            cursor: default;
+        }
+
+        main tr {
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.2rem;
+        }
+
+        main tr:not(:first-child):hover {
+            background-color: #fff;
+            transform: scale(1.1);
+            -webkit-box-shadow: 0px 5px 15px 8px #e4e7fb;
+            box-shadow: 0px 5px 15px 8px #e4e7fb;
+        }
+
+        main tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        main tr:nth-child(1) {
+            color: #fff;
+        }
+
+        main td {
+            height: 3rem;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            position: relative;
+        }
+
+        main .number {
+            width: 1rem;
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        main .name {
+            text-align: left;
+            font-size: 1.1rem;
+        }
+
+        main .points {
+            font-weight: bold;
+            font-size: 1.3rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        main .points:first-child {
+            width: 10rem;
+        }
+
+        main .gold-medal {
+            height: 1.5rem;
+            margin-left: 10px;
+        }
+
+        main .ribbon {
+            width: 110%;
+            height: 4rem;
+            top: -0.5rem;
+            background-color: var(--sb-color);
+            position: absolute;
+            left: -1rem;
+        }
+
+        main .ribbon::before {
+            content: "";
+            height: 1.5rem;
+            width: 1.5rem;
+            bottom: -0.8rem;
+            left: 0.35rem;
+            transform: rotate(45deg);
+            background-color: var(--sb-color);
+            position: absolute;
+            z-index: -1;
+        }
+
+        main .ribbon::after {
+            content: "";
+            height: 1.5rem;
+            width: 1.5rem;
+            bottom: -0.8rem;
+            right: 0.35rem;
+            transform: rotate(45deg);
+            background-color: var(--sb-color);
+            position: absolute;
+            z-index: -1;
         }
     </style>
 @endsection
@@ -189,7 +311,7 @@
             </div>
         </swiper-slide>
     </swiper-container> --}}
-    <div style="width: 100vw; height: 100vh; background: #fbfbfb; position: relative;">
+    <div style="width: 100vw; height: 100vh; background: #fbfbfb; position: relative;" class="d-flex justify-content-center">
         <div style="width: 100vw; position: absolute; bottom: 0;" class="d-flex flex-column justify-content-center align-items-center overflow-hidden">
             <h1 class="text-center text-warning crimson-text-bold mt-3 py-1 px-3">CHIEF OF THE MONTH</h1>
             <h3 class="text-center">{{ strtoupper($monthName)." ".$year }}</h3>
@@ -335,6 +457,18 @@
                 &nbsp;
             </div>
         </div>
+        <div style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%);">
+            <main>
+                <div id="header">
+                    <h5 class="text-sb fw-bold">RANKING</h5>
+                </div>
+                <div id="leaderboard">
+                    <div class="ribbon"></div>
+                    <table id="chief-ranking">
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 @endsection
 
@@ -404,7 +538,7 @@
         var currentDayTwo = "";
         var currentDayThree = "";
 
-        async function updateTopChief(data) {
+        async function updateTopChief(data, allData) {
             // Image
             let imageElement = document.getElementById("top-chief-img");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.chief_nik+"%20"+data.chief_name+".png";
@@ -415,6 +549,54 @@
 
             // Name
             document.getElementById("top-chief-name").innerHTML = data.chief_name;
+
+            if (allData.length > 0) {
+
+                // Rank
+                document.getElementById("chief-ranking").innerHTML = "";
+                allData.forEach((item, index) => {
+                    if (index == 0) {
+                        document.getElementById("chief-ranking").innerHTML += `
+                            <tr id="chief-1">
+                                <td class="number">`+(index+1)+`</td>
+                                <td class="name">`+item.chief_name+`</td>
+                                <td class="points">
+                                    <div class="d-flex gap-2">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.efficiency).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">EFF</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.rft).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">RFT</p>
+                                        </div>
+                                    </div>
+                                    <img class="gold-medal" src="{{ asset('dist/img/gold-medal.png') }}" alt="gold medal"/>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        document.getElementById("chief-ranking").innerHTML += `
+                            <tr class="text-sb-secondary">
+                                <td class="number">`+(index+1)+`</td>
+                                <td class="name">`+item.chief_name+`</td>
+                                <td class="points">
+                                    <div class="d-flex gap-2">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.efficiency).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">EFF</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.rft).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">RFT</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+            }
         }
 
         // Colorize Efficiency
@@ -474,7 +656,7 @@
 
                     // Show Chief Daily Data
                     if (sortedChiefDailyEfficiency.length > 0) {
-                        updateTopChief(sortedChiefDailyEfficiency[0]);
+                        updateTopChief(sortedChiefDailyEfficiency[0], sortedChiefDailyEfficiency);
                     }
                 },
                 error: function (jqXHR) {
