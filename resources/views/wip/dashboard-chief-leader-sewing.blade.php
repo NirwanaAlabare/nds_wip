@@ -204,7 +204,7 @@
         var intervalData = setInterval(async function () {
             console.log("data update start");
 
-            // await updateData();
+            await updateData();
 
             console.log("data update finish");
         }, 60000);
@@ -556,7 +556,7 @@
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
                         // get line data
-                        let lineEfficiency = sortedLineEfficiency.filter((item) => item.chief_nik == currentData.chief_nik && item.data.filter((d) => d.tanggal == currentData.tanggal).length > 0);
+                        let lineEfficiency = sortedLineEfficiency.filter((item) => item.chief_nik == currentData.chief_nik);
 
                         // total
                         let total_mins_avail = 0;
