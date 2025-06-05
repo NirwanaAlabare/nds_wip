@@ -258,7 +258,7 @@
                         </div>
                     @endga --}}
 
-                    @wip
+                    {{-- @wip
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-wip') }}" class="home-item">
                                 <div class="card h-100">
@@ -272,8 +272,43 @@
                                 </div>
                             </a>
                         </div>
-                    @endwip
+                    @endwip --}}
 
+                    {{-- Marketing --}}
+                    @role('admin')
+                        <div class="col-lg-2 col-md-3 col-sm-6 d-none">
+                            <a href="{{ route('dashboard-marketing') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/marketing.png') }}" class="img-fluid p-3"
+                                                alt="marketing image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Marketing</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endrole
+
+                    {{-- Accounting --}}
+                    @role('superadmin')
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="{{ route('accounting') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/accounting_img.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Accounting</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endrole
+
+                    {{-- General Menu --}}
                     @role('superadmin')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('manage-user') }}" class="home-item">
@@ -296,36 +331,6 @@
                                             <img src="{{ asset('dist/img/tools.png') }}" class="img-fluid p-3"
                                                 alt="general tools image">
                                             <p class="text-center fw-bold text-uppercase text-dark">GENERAL TOOLS</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    @endrole
-
-                    <div class="col-lg-2 col-md-3 col-sm-6">
-                        <a href="{{ route('dashboard-marketing') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/marketing.png') }}" class="img-fluid p-3"
-                                            alt="marketing image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">Marketing</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    @role('superadmin')
-                        <div class="col-lg-2 col-md-3 col-sm-6">
-                            <a href="{{ route('accounting') }}" class="home-item">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/accounting_img.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Accounting</p>
                                         </div>
                                     </div>
                                 </div>
