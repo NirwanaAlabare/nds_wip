@@ -204,7 +204,7 @@
         var intervalData = setInterval(async function () {
             console.log("data update start");
 
-            await updateData();
+            // await updateData();
 
             console.log("data update finish");
         }, 60000);
@@ -326,7 +326,6 @@
                         }, {});
 
                         // get leader
-                        console.log(sortedLeaderEfficiency);
                         let leaderRank = sortedLeaderEfficiency.map(e => e.id).indexOf(element[element.length-1].leader_nik ? element[element.length-1].leader_nik : null);
 
                         lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "leader_rank": leaderRank+1, "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList, "chief_id": element[element.length-1].chief_id, "chief_nik": element[element.length-1].chief_nik});
@@ -365,7 +364,7 @@
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
                         // get line data
-                        let lineEfficiency = sortedLineEfficiency.filter((item) => item.chief_nik == currentData.chief_nik && item.data.filter((d) => d.tanggal == currentData.tanggal).length > 0);
+                        let lineEfficiency = sortedLineEfficiency.filter((item) => item.chief_nik == currentData.chief_nik);
 
                         // total
                         let total_mins_avail = 0;

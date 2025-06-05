@@ -8,34 +8,6 @@
                 <h3 class="card-title fw-bold text-sb">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
                 <br>
                 <div class="row g-3 mt-3">
-                    @admin
-                        <div class="col-lg-2 col-md-3 col-sm-6">
-                            <a href="{{ route('track-ws') }}" class="home-item">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3"
-                                                alt="track image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Track</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
-                            <a href="{{ route('worksheet') }}" class="home-item">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/worksheet.png') }}" class="img-fluid p-3" alt="worksheet image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Worksheet</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div> --}}
-                    @endadmin
-
                     @role('marker')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-marker') }}" class="home-item">
@@ -132,9 +104,8 @@
                         </div>
                     @endrole
 
-                    @warehouse
+                    @role('warehouse')
                         <div class="col-lg-2 col-md-3 col-sm-6">
-                            {{-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> --}}
                             <a href="#" class="home-item" onclick="getmodalwarehouse()">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -146,11 +117,7 @@
                                     </div>
                                 </div>
                             </a>
-                            {{-- </a> --}}
                         </div>
-                    @endwarehouse
-
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'warehouse')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('stock_opname') }}" class="home-item">
                                 <div class="card h-100">
@@ -164,7 +131,6 @@
                                 </div>
                             </a>
                         </div>
-
                         <div class="col-lg-2 col-md-3 col-sm-6 d-none">
                             <a href="{{ route('procurement') }}" class="home-item">
                                 <div class="card h-100">
@@ -178,7 +144,7 @@
                                 </div>
                             </a>
                         </div>
-                    @endif
+                    @endwarehouse
 
                     @ppic
                         <div class="col-lg-2 col-md-3 col-sm-6">
