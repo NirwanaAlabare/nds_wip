@@ -1472,6 +1472,7 @@
                 <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
                     aria-controls="user-offcanvas">
                     <i class="fas fa-user ps-1"></i>
+                    {{ strlen(Auth::user()->username) > 10 ? substr(Auth::user()->username, 0, 10) . '...' : Auth::user()->username }}
                 </a>
             </li>
         </ul>
