@@ -43,6 +43,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                 *,
                 COALESCE(leader_name, 'KOSONG') as leader_name,
                 SUM(rft) rft,
+                SUM(defect) defect,
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
                 SUM(mins_avail) mins_avail_old,
@@ -53,6 +54,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                     output.sewing_line,
                     output.buyer,
                     SUM(rft) rft,
+                    SUM(defect) defect,
                     SUM(output) output,
                     SUM(mins_prod) mins_prod,
                     SUM(mins_avail) mins_avail,
@@ -67,6 +69,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                             output.sewing_line,
                             output.buyer,
                             SUM(rft) rft,
+                            SUM(defect) defect,
                             SUM(output) output,
                             SUM(output * output.smv) mins_prod,
                             SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
@@ -105,6 +108,33 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                 order by
                                     sewing_line
                             ) output
+                            LEFT JOIN (
+                                SELECT
+                                    DATE( defects.updated_at ) tgl_output,
+                                    COUNT( defects.id ) defect,
+                                    MAX(defects.updated_at) last_update,
+                                    master_plan.id master_plan_id,
+                                    master_plan.tgl_plan,
+                                    master_plan.sewing_line,
+                                    master_plan.man_power,
+                                    master_plan.jam_kerja,
+                                    master_plan.smv,
+                                    mastersupplier.Supplier buyer
+                                FROM
+                                    output_defects defects
+                                    inner join master_plan on master_plan.id = defects.master_plan_id
+                                    inner join act_costing on act_costing.id = master_plan.id_ws
+                                    inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                                where
+                                    defects.updated_at >= '".$this->from." 00:00:00' AND defects.updated_at <= '".$this->to." 23:59:59'
+                                    AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$this->to."'
+                                    AND master_plan.cancel = 'N'
+                                    ".$buyerFilter."
+                                GROUP BY
+                                    master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at)
+                                order by
+                                    sewing_line
+                            ) defect on defect.master_plan_id = output.master_plan_id and output.tgl_plan = defect.tgl_plan and output.tgl_output = defect.tgl_output
                         GROUP BY
                             output.sewing_line,
                             output.tgl_output
@@ -152,10 +182,10 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
 
         $data = [];
         foreach ($leaderGroup as $lg) {
-            array_push($data, ["Tanggal", "Sewing Line", "Buyer", "RFT Rate", "Efficiency Rate", "Leader"]);
+            array_push($data, ["Tanggal", "Sewing Line", "Buyer", "RFT Rate", "Defect Rate", "Efficiency Rate", "Leader"]);
 
             foreach($lg['data'] as $d) {
-                array_push($data, [$d->tanggal, $d->sewing_line, $d->buyer, ($d->output > 0 ? round(($d->rft/$d->output)*100, 2) : '0'), ($d->mins_avail > 0 ? round(($d->mins_prod/$d->mins_avail)*100, 2) : '0'), $d->leader_name]);
+                array_push($data, [$d->tanggal, $d->sewing_line, $d->buyer, ($d->output > 0 ? round(($d->rft/$d->output)*100, 2) : '0'), ($d->output > 0 ? round(($d->defect/$d->output)*100, 2) : '0'), ($d->mins_avail > 0 ? round(($d->mins_prod/$d->mins_avail)*100, 2) : '0'), $d->leader_name]);
             }
 
             for ($i = 0; $i < 15; $i++) {
@@ -171,7 +201,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
 
     public function headings(): array
     {
-        return ['tgl_output', 'sewing_line', 'buyer', 'rft_rate', 'eff_rate'];
+        return ['tgl_output', 'sewing_line', 'buyer', 'rft_rate', 'defect_rate', 'eff_rate'];
     }
 
     public function startCell(): string
