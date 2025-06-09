@@ -60,7 +60,7 @@
             <td>{{ $loadingLine->act_costing_ws }}</td>
             <td>{{ $loadingLine->style }}</td>
             <td>{{ $loadingLine->color }}</td>
-            <td>{{ $loadingLine->no_form." / ".$loadingLine->no_cut }}</td>
+            <td>{{ $loadingLine->no_cut }}</td>
             <td>{{ $loadingLine->no_form }}</td>
             <td>{{ $loadingLine->size }}</td>
             <td>{{ $loadingLine->group_stocker }}</td>
