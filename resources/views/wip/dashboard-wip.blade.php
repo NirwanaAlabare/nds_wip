@@ -68,21 +68,31 @@
                 <hr style="color: #222">
             </div>
             <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between align-items-center h-100 gap-3">
+                            <h5 class="card-title fw-bold">FACTORY PERFORMANCE</h5>
+                            <button type="button" data-bs-toggle="modal" data-bs-target="#factoryPerformanceDashboard" class="btn btn-primary btn-sm">Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{-- <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <h5 class="card-title fw-bold">CHIEF</h5>
                         <button type="button" data-bs-toggle="modal" data-bs-target="#chiefDashboard" class="btn btn-primary btn-sm">Details</button>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 col-lg-3 mb-4 d-none">
+            </div> --}}
+            {{-- <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <h5 class="card-title fw-bold">CHIEF RANGE</h5>
                         <button type="button" data-bs-toggle="modal" data-bs-target="#chiefRangeDashboard" class="btn btn-primary btn-sm">Details</button>
                     </div>
                 </div>
-            </div>
+            </div> --}}
             {{-- <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
@@ -125,7 +135,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-3 mb-4">
+            {{-- <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body text-center">
                         <div class="d-flex justify-content-between align-items-center h-100 gap-3">
@@ -134,8 +144,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-12">
+            </div> --}}
+            {{-- <div class="col-12">
                 <h4 class="text-sb fw-bold mb-3">Employee of the Month Dashboard</h4>
                 <hr style="color: #222">
             </div>
@@ -155,6 +165,39 @@
                         <div class="d-flex justify-content-between align-items-center h-100 gap-3">
                             <h5 class="card-title fw-bold">LEADER OF THE MONTH</h5>
                             <button type="button" data-bs-toggle="modal" data-bs-target="#topLeaderDashboard" class="btn btn-primary btn-sm">Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
+
+            <!-- Modal -->
+            <div class="modal fade" id="factoryPerformanceDashboard" tabindex="-1" aria-labelledby="factoryPerformanceDashboardLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="factoryPerformanceDashboardLabel">Visit Factory Performance Dashboard</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select class="select2bs4factoryperformance" name="factory-performance-year" id="factory-performance-year">
+                                        @foreach ($years as $y)
+                                            <option value="{{ $y }}">{{ $y }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <select class="select2bs4factoryperformance" name="factory-performance-month" id="factory-performance-month">
+                                        @foreach ($months as $m)
+                                            <option value="{{ $m['angka'] }}" {{ $m['angka'] == date("m") ? "selected" : "" }}>{{ $m['nama'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="visitFactoryPerformanceDashboard()">Visit <i class="fa fa-share"></i></button>
                         </div>
                     </div>
                 </div>
@@ -389,6 +432,10 @@
             theme: 'bootstrap4',
             dropdownParent: $('#topLeaderDashboard')
         })
+        $('.select2bs4factoryperformance').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#factoryPerformanceDashboard')
+        })
 
         $(function () {
             $("#datatable").DataTable({
@@ -411,6 +458,11 @@
                 "responsive": true, "autoWidth": false,
             })
         });
+
+        function visitFactoryPerformanceDashboard() {
+            window.open("{{ route("dashboard-factory-performance") }}/"+$("#factory-performance-year").val()+"/"+$("#factory-performance-month").val(), '_blank');
+            // window.open("http://10.10.5.62:8000/nds_wip/public/index.php/dashboard-wip/chief-sewing/"+$("#year").val()+"/"+$("#month").val(), '_blank');
+        }
 
         function visitDashboardChief() {
             window.open("{{ route("dashboard-chief-sewing") }}/"+$("#chief-year").val()+"/"+$("#chief-month").val(), '_blank');
