@@ -18,7 +18,7 @@
                 <i class="fa-solid fa-file-circle-exclamation"></i> Report Defect
             </h5>
         </div>
-        <div class="card-body">
+        <div class="card-body" id="report-defect-card">
             <div class="d-flex justify-content-between align-items-end gap-3">
                 <div class="d-flex align-items-end gap-3">
                     <div>
@@ -35,6 +35,15 @@
                         <select class="form-select" name="department" id="department" onchange="reportDefectDatatableReload(); updateFilterOption();">
                             <option value="" selected>END-LINE</option>
                             <option value="_packing">PACKING-LINE</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">No. WS</label>
+                        <select class="form-select select2bs4base" name="base_ws[]" multiple="multiple" id="base_ws" onchange="reportDefectDatatableReload();">
+                            <option value="">SEMUA</option>
+                            @foreach ($orders as $order)
+                                <option value="{{ $order }}">{{ $order }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <button class="btn btn-primary" onclick="reportDefectDatatableReload(); updateFilterOption();"><i class="fa fa-search"></i></button>
@@ -253,6 +262,12 @@
         });
 
         // Initialize Select2BS4 Elements Filter Modal
+        $('.select2bs4base').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#report-defect-card")
+        });
+
+        // Initialize Select2BS4 Elements Filter Modal
         $('.select2bs4filter').select2({
             theme: 'bootstrap4',
             dropdownParent: $("#filterModal")
@@ -277,6 +292,7 @@
                     d.sewing_line = $('#sewing_line').val();
                     d.buyer = $('#buyer').val();
                     d.ws = $('#ws').val();
+                    d.base_ws = $('#base_ws').val();
                     d.style = $('#style').val();
                     d.color = $('#color').val();
                     d.size = $('#size').val();
@@ -350,6 +366,7 @@
                         sewing_line : $('#sewing_line').val(),
                         buyer : $('#buyer').val(),
                         ws : $('#ws').val(),
+                        base_ws : $('#base_ws').val(),
                         style : $('#style').val(),
                         color : $('#color').val(),
                         size : $('#size').val(),
@@ -416,8 +433,10 @@
                         if (response.orders && response.orders.length > 0) {
                             let orders = response.orders;
                             $('#ws').empty();
+                            $('#base_ws').empty();
                             $.each(orders, function(index, value) {
                                 $('#ws').append('<option value="'+value+'">'+value+'</option>');
+                                $('#base_ws').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
                         // styles option
@@ -506,6 +525,7 @@
                     sewingLine : $("#sewing_line").val(),
                     buyer: $("#buyer").val(),
                     ws: $("#ws").val(),
+                    base_ws: $("#base_ws").val(),
                     style: $("#style").val(),
                     color: $("#color").val(),
                     types: $("#report_type").val(),

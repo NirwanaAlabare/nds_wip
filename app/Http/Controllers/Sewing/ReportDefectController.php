@@ -119,6 +119,10 @@ class ReportDefectController extends Controller
                 $defect->whereIn("act_costing.kpno", $request->ws);
             }
 
+            if ($request->base_ws && count($request->base_ws) > 0) {
+                $defect->whereIn("act_costing.kpno", $request->base_ws);
+            }
+
             if ($request->style && count($request->style) > 0) {
                 $defect->whereIn("act_costing.styleno", $request->style);
             }
@@ -380,6 +384,10 @@ class ReportDefectController extends Controller
             $defect->whereIn("act_costing.kpno", $request->ws);
         }
 
+        if ($request->base_ws && count($request->base_ws) > 0) {
+            $defect->whereIn("act_costing.kpno", $request->base_ws);
+        }
+
         if ($request->style && count($request->style) > 0) {
             $defect->whereIn("act_costing.styleno", $request->style);
         }
@@ -425,6 +433,11 @@ class ReportDefectController extends Controller
         $ws = "";
         if ($request->ws && count($request->ws) > 0) {
             $ws = addQuotesAround(implode("\n", $request->ws));
+        }
+
+        $base_ws = "";
+        if ($request->base_ws && count($request->base_ws) > 0) {
+            $base_ws = addQuotesAround(implode("\n", $request->base_ws));
         }
 
         $style = "";
@@ -676,6 +689,7 @@ class ReportDefectController extends Controller
                                 AND master_plan.cancel = 'N'
                                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
+                                ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
                                 ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
@@ -711,6 +725,7 @@ class ReportDefectController extends Controller
                                 AND master_plan.cancel = 'N'
                                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
+                                ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
                                 ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
@@ -744,6 +759,7 @@ class ReportDefectController extends Controller
                                 AND master_plan.cancel = 'N'
                                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
+                                ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
                                 ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
@@ -795,6 +811,7 @@ class ReportDefectController extends Controller
                     output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
                     ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                     ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
+                    ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                     ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                     ".($color ? "AND so_det.color in (".$color.")" : "")."
                     ".($sewingLine ? "AND userpassword.username in (".$sewingLine.")" : "")."
