@@ -464,11 +464,11 @@
                 </div>
                 <div id="leaderboard">
                     <div class="ribbon"></div>
-                    <table id="chief-ranking">
+                        <table id="chief-ranking">
                     </table>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 @endsection
 
@@ -559,7 +559,7 @@
                         document.getElementById("chief-ranking").innerHTML += `
                             <tr id="chief-1">
                                 <td class="number">`+(index+1)+`</td>
-                                <td class="name">`+item.chief_name+`</td>
+                                <td class="name">`+(item.chief_name ? item.chief_name.split(" ")[0] : "KOSONG")+`</td>
                                 <td class="points">
                                     <div class="d-flex gap-2">
                                         <div class="d-flex flex-column align-items-center justify-content-center">
@@ -579,7 +579,7 @@
                         document.getElementById("chief-ranking").innerHTML += `
                             <tr class="text-sb-secondary">
                                 <td class="number">`+(index+1)+`</td>
-                                <td class="name">`+item.chief_name+`</td>
+                                <td class="name">`+(item.chief_name ? item.chief_name.split(" ")[0] : "KOSONG")+`</td>
                                 <td class="points">
                                     <div class="d-flex gap-2">
                                         <div class="d-flex flex-column align-items-center justify-content-center">
