@@ -228,13 +228,14 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
             }
 
             // Eff
-            $labelsEff = [new DataSeriesValues('String', 'Worksheet!$D$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$E$'.($i+$addRow).'', null, 1)];
+            $labelsEff = [new DataSeriesValues('String', 'Worksheet!$D$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$E$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$F$'.($i+$addRow).'', null, 1)];
 
             $categoriesEff = [new DataSeriesValues('String', 'Worksheet!$A$'.($i+$addRow+1).':$A$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i])];
 
             array_push($valuesEff,
                 new DataSeriesValues('Number', 'Worksheet!$D$'.($i+$addRow+1).':$D$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
                 new DataSeriesValues('Number', 'Worksheet!$E$'.($i+$addRow+1).':$E$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
+                new DataSeriesValues('Number', 'Worksheet!$F$'.($i+$addRow+1).':$F$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
             );
 
             // Eff
