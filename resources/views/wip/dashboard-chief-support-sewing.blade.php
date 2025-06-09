@@ -186,6 +186,10 @@
                     // Chief Group By
                     let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
+                    // Last Three Date
+                    // let lastThreeDate = response.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal)).slice(0, 3);
+                    const lastThreeDates = [...new Set(response.map(item => item.tanggal))].sort((a, b) => new Date(b) - new Date(a)).slice(0, 3);
+
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
                     chiefEfficiency.forEach(element => {
@@ -325,7 +329,7 @@
 
                     // Show Chief Daily Data
                     for (let i = 0; i < sortedChiefDailyEfficiency.length; i++) {
-                        appendRow(sortedChiefDailyEfficiency[i], i+1);
+                        appendRow(sortedChiefDailyEfficiency[i], i+1, lastThreeDates);
                     }
 
                     document.getElementById("loading").classList.add("d-none");
@@ -348,7 +352,7 @@
         var currentDayTwo = "";
         var currentDayThree = "";
 
-        async function appendRow(data, index) {
+        async function appendRow(data, index, lastThreeDates) {
             let tableElement = document.getElementById('chief-daily-efficiency-table');
             let table = document.querySelector('#chief-daily-efficiency-table tbody');
 
@@ -403,14 +407,14 @@
             });
 
             // Today Date
-            let todayDate = null;
-            let yesterdayDate = null;
-            let beforeDate = null;
+            let todayDate = lastThreeDates[0];
+            let yesterdayDate = lastThreeDates[1];
+            let beforeDate = lastThreeDates[2];
 
-            if (index > 1) {
-                todayDate = currentDayThree;
-                yesterdayDate = currentDayTwo;
-                beforeDate = currentDayOne;
+            // if (index > 1) {
+                // todayDate = currentDayThree;
+                // yesterdayDate = currentDayTwo;
+                // beforeDate = currentDayOne;
 
                 var todayFilter = dailyData.filter((item) => (todayDate ? item.tanggal == formatDate(todayDate) : item.tanggal <= formatDate(new Date())) );
                 var today = todayFilter[todayFilter.length-1];
@@ -420,16 +424,16 @@
 
                 var beforeFilter = dailyData.filter((item) => (beforeDate ? item.tanggal == formatDate(beforeDate) : (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))))) );
                 var before = beforeFilter[beforeFilter.length-1];
-            } else {
-                var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
-                var today = todayFilter[todayFilter.length-1];
+            // } else {
+            //     var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
+            //     var today = todayFilter[todayFilter.length-1];
 
-                var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
-                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
+            //     var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
+            //     var yesterday = yesterdayFilter[yesterdayFilter.length-1]
 
-                var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
-                var before = beforeFilter[beforeFilter.length-1];
-            }
+            //     var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
+            //     var before = beforeFilter[beforeFilter.length-1];
+            // }
 
             // Sub Employee
             let subEmployeeContainer = document.createElement("div");
@@ -837,24 +841,20 @@
             tdYesterdayRft.style.padding = "1px !important"
 
             if (index == 1) {
-                currentDayOne = before ? before.tanggal : beforeDate;
-                currentDayTwo = yesterday ? yesterday.tanggal : yesterdayDate;
-                currentDayThree = today ? today.tanggal : todayDate;
-
-                if (formatDate(new Date()) > today ? today.tanggal : todayDate) {
+                if (formatDate(new Date()) > todayDate) {
                     let dayOneElement = document.getElementsByClassName("day-1");
                     for (let i = 0; i < dayOneElement.length; i++) {
-                        dayOneElement[i].innerHTML = formatDateLocal(before ? before.tanggal : beforeDate);
+                        dayOneElement[i].innerHTML = formatDateLocal(beforeDate);
                     }
 
                     let dayTwoElement = document.getElementsByClassName("day-2");
                     for (let i = 0; i < dayTwoElement.length; i++) {
-                        dayTwoElement[i].innerHTML = formatDateLocal(yesterday ? yesterday.tanggal : yesterdayDate);
+                        dayTwoElement[i].innerHTML = formatDateLocal(yesterdayDate);
                     }
 
                     let dayThreeElement = document.getElementsByClassName("day-3");
                     for (let i = 0; i < dayThreeElement.length; i++) {
-                        dayThreeElement[i].innerHTML = formatDateLocal(today ? today.tanggal : todayDate);
+                        dayThreeElement[i].innerHTML = formatDateLocal(todayDate);
                     }
                 }
             }
