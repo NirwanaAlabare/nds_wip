@@ -1086,6 +1086,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
         Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
+        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from");
 
         Route::get('/defect-map', 'defectMap')->name("defect-map");
         Route::get('/defect-map/data', 'defectMapData')->name("defect-map-data");

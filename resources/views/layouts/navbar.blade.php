@@ -17,7 +17,7 @@
 @endif
 
 <!-- Navbar -->
-<nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
+<nav class="main-header navbar navbar-expand-md navbar-light navbar-white sticky-top">
     <div class="container">
         <a href="{{ $page != '' ? route($page) : '#' }}" class="navbar-brand">
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
