@@ -53,7 +53,7 @@ class ReportDefectController extends Controller
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'packing'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects_packing.id");
             })->
-            whereRaw("((output_defects_packing.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects_packing.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
+            whereRaw($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
             orderBy("output_defects_packing.updated_at", "desc");
         } else {
             $defect = Defect::selectRaw("
@@ -89,8 +89,8 @@ class ReportDefectController extends Controller
             leftJoin("output_defect_in_out", function($join) {
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'qc'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects.id");
-            })->
-            whereRaw("((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
+            })-> 
+            whereRaw($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
             orderBy("output_defects.updated_at", "desc");
         }
 
@@ -119,10 +119,6 @@ class ReportDefectController extends Controller
                 $defect->whereIn("act_costing.kpno", $request->ws);
             }
 
-            if ($request->base_ws && count($request->base_ws) > 0) {
-                $defect->whereIn("act_costing.kpno", $request->base_ws);
-            }
-
             if ($request->style && count($request->style) > 0) {
                 $defect->whereIn("act_costing.styleno", $request->style);
             }
@@ -146,8 +142,6 @@ class ReportDefectController extends Controller
             if ($request->external_out && count($request->external_out) > 0) {
                 $defect->whereIn("output_defect_in_out.reworked_at", $request->external_out);
             }
-
-            // dd($defect->toSql(), $request->defect_types, $request->defect_areas);
 
             return DataTables::eloquent($defect)->toJson();
         }
@@ -219,7 +213,7 @@ class ReportDefectController extends Controller
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'packing'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects_packing.id");
             })->
-            whereRaw("((output_defects_packing.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects_packing.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
+            whereRaw($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
             orderBy("output_defects_packing.updated_at", "desc");
         } else {
             $defect = Defect::selectRaw("
@@ -256,7 +250,7 @@ class ReportDefectController extends Controller
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'qc'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects.id");
             })->
-            whereRaw("((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
+            whereRaw($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
             orderBy("output_defects.updated_at", "desc");
         }
 
@@ -319,7 +313,7 @@ class ReportDefectController extends Controller
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'packing'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects_packing.id");
             })->
-            whereRaw("((output_defects_packing.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects_packing.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
+            whereRaw($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
             orderBy("output_defects_packing.updated_at", "desc");
         } else {
             $defect = Defect::selectRaw("
@@ -356,7 +350,7 @@ class ReportDefectController extends Controller
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'qc'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects.id");
             })->
-            whereRaw("((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
+            whereRaw($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
             orderBy("output_defects.updated_at", "desc");
         }
 
@@ -382,10 +376,6 @@ class ReportDefectController extends Controller
 
         if ($request->ws && count($request->ws) > 0) {
             $defect->whereIn("act_costing.kpno", $request->ws);
-        }
-
-        if ($request->base_ws && count($request->base_ws) > 0) {
-            $defect->whereIn("act_costing.kpno", $request->base_ws);
         }
 
         if ($request->style && count($request->style) > 0) {
@@ -433,11 +423,6 @@ class ReportDefectController extends Controller
         $ws = "";
         if ($request->ws && count($request->ws) > 0) {
             $ws = addQuotesAround(implode("\n", $request->ws));
-        }
-
-        $base_ws = "";
-        if ($request->base_ws && count($request->base_ws) > 0) {
-            $base_ws = addQuotesAround(implode("\n", $request->base_ws));
         }
 
         $style = "";
@@ -684,12 +669,10 @@ class ReportDefectController extends Controller
                                 left join act_costing on act_costing.id = so.id_cost
                                 left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
-                                rfts.updated_at >= '".$dateFrom." 00:00:00' AND rfts.updated_at <= '".$dateTo." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
+                                ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((rfts.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (rfts.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'")."
                                 AND master_plan.cancel = 'N'
                                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
-                                ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
                                 ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
@@ -720,12 +703,11 @@ class ReportDefectController extends Controller
                                 left join act_costing on act_costing.id = so.id_cost
                                 left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
-                                defects.updated_at >= '".$dateFrom." 00:00:00' AND defects.updated_at <= '".$dateTo." 23:59:59'
+                                ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'")."
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
                                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
-                                ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
                                 ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
@@ -754,12 +736,11 @@ class ReportDefectController extends Controller
                                 left join act_costing on act_costing.id = so.id_cost
                                 left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
-                                rejects.updated_at >= '".$dateFrom." 00:00:00' AND rejects.updated_at <= '".$dateTo." 23:59:59'
+                                ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((rejects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (rejects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'")."
                                 AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$dateTo."'
                                 AND master_plan.cancel = 'N'
                                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                                 ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
-                                ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                                 ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                                 ".($color ? "AND so_det.color in (".$color.")" : "")."
                                 ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
@@ -808,10 +789,9 @@ class ReportDefectController extends Controller
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                 WHERE
-                    output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                    ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) ")."
                     ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                     ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
-                    ".($base_ws ? "AND act_costing.kpno in (".$base_ws.")" : "")."
                     ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
                     ".($color ? "AND so_det.color in (".$color.")" : "")."
                     ".($sewingLine ? "AND userpassword.username in (".$sewingLine.")" : "")."
@@ -1011,6 +991,94 @@ class ReportDefectController extends Controller
             'style' => $style,
             'color' => $color,
             'sewingLine' => $sewingLine,
+        ]);
+    }
+
+    public function updateDateFrom(Request $request) {
+         if ($request->department == "_packing") {
+            $defect = DefectPacking::selectRaw("
+                output_defects_packing.kode_numbering,
+                mastersupplier.Supplier buyer,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color,
+                so_det.size,
+                so_det.dest,
+                userpassword.username as sewing_line,
+                output_defect_types.defect_type defect_type,
+                output_defect_areas.defect_area defect_area,
+                output_defects_packing.defect_status,
+                output_defect_in_out.status external_status,
+                output_defect_in_out.id external_id,
+                output_defect_in_out.type external_type,
+                output_defect_in_out.created_at external_in,
+                output_defect_in_out.reworked_at external_out,
+                output_reworks.id rework_id,
+                output_defects_packing.created_at,
+                output_defects_packing.updated_at
+            ")->
+            leftJoin("so_det", "so_det.id", "=", "output_defects_packing.so_det_id")->
+            leftJoin("so", "so.id", "=", "so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("userpassword", "userpassword.username", "=", "output_defects_packing.created_by")->
+            leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
+            leftJoin("output_reworks", "output_reworks.defect_id", "=", "output_defects_packing.id")->
+            leftJoin("output_defect_types", "output_defect_types.id", "=", "output_defects_packing.defect_type_id")->
+            leftJoin("output_defect_areas", "output_defect_areas.id", "=", "output_defects_packing.defect_area_id")->
+            leftJoin("output_defect_in_out", function($join) {
+                $join->on("output_defect_in_out.output_type", "=", DB::raw("'packing'"));
+                $join->on("output_defect_in_out.defect_id", "=", "output_defects_packing.id");
+            })->
+            whereRaw("act_costing.kpno = '".$request->base_ws."'")->
+            orderBy("output_defects_packing.updated_at", "desc")->
+            get();
+        } else {
+            $defect = Defect::selectRaw("
+                output_defects.kode_numbering,
+                mastersupplier.Supplier buyer,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color,
+                so_det.size,
+                so_det.dest,
+                userpassword.username as sewing_line,
+                output_defect_types.defect_type defect_type,
+                output_defect_areas.defect_area defect_area,
+                output_defects.defect_status,
+                output_defect_in_out.status external_status,
+                output_defect_in_out.id external_id,
+                output_defect_in_out.type external_type,
+                output_defect_in_out.created_at external_in,
+                output_defect_in_out.reworked_at external_out,
+                output_reworks.id rework_id,
+                output_defects.created_at,
+                output_defects.updated_at
+            ")->
+            leftJoin("so_det", "so_det.id", "=", "output_defects.so_det_id")->
+            leftJoin("so", "so.id", "=", "so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->
+            leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+            leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
+            leftJoin("output_reworks", "output_reworks.defect_id", "=", "output_defects.id")->
+            leftJoin("output_defect_types", "output_defect_types.id", "=", "output_defects.defect_type_id")->
+            leftJoin("output_defect_areas", "output_defect_areas.id", "=", "output_defects.defect_area_id")->
+            leftJoin("output_defect_in_out", function($join) {
+                $join->on("output_defect_in_out.output_type", "=", DB::raw("'qc'"));
+                $join->on("output_defect_in_out.defect_id", "=", "output_defects.id");
+            })-> 
+            whereRaw("act_costing.kpno = '".$request->base_ws."'")->
+            orderBy("output_defects.updated_at", "desc")->
+            get();
+        }
+
+        $dateFrom = ($defect->last() ? $defect->last()->created_at->format('Y-m-d') : date("Y-m-d"));
+        $dateTo = ($defect->first() ? $defect->first()->updated_at->format('Y-m-d') : date("Y-m-d"));
+
+        return response()->json([
+            'ws' => $request->base_ws,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
         ]);
     }
 
