@@ -395,11 +395,21 @@ class SecondaryInController extends Controller
             s.tempat tempat_tujuan
             from
             (
-            select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
-            left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
-            left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
-            where dc.tujuan = 'SECONDARY DALAM' and
-            ifnull(si.id_qr_stocker,'x') != 'x'
+                select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
+                left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                where
+                    (
+                        dc.tujuan = 'SECONDARY DALAM'
+                        or
+                        dc.tujuan = 'SECONDARY LUAR'
+                    )
+                    and
+                    (
+                        ifnull(si.id_qr_stocker,'x') != 'x'
+                        or
+                        ifnull(sii.id_qr_stocker,'x') != 'x'
+                    )
             ) md
             left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -410,7 +420,7 @@ class SecondaryInController extends Controller
             left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
             left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
             left join secondary_in_input sii on s.id_qr_stocker = sii.id_qr_stocker
-            where s.id_qr_stocker = '" . $request->txtqrstocker . "'
+            where s.id_qr_stocker = '" . $request->txtqrstocker . "' and sii.id is not null
         ");
 
         return json_encode($cekdata[0]);
