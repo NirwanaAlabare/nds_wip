@@ -3111,6 +3111,9 @@
                             data: 'line',
                         },
                         {
+                            data: 'tanggal_loading',
+                        },
+                        {
                             data: 'dc_in_qty',
                         },
                         {

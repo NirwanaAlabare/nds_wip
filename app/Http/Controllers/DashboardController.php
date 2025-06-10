@@ -641,7 +641,7 @@ class DashboardController extends Controller
                 ->groupBy('meja.username')  // Grup berdasarkan meja.username untuk menghindari duplikasi
                 ->get();
 
-            return response()->json($query);    
+            return response()->json($query);
         }
 
         public function cuttingQty(Request $request) {
@@ -1815,6 +1815,7 @@ class DashboardController extends Controller
                         COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
                         CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) no_cut,
                         COALESCE(UPPER(loading_line.nama_line), '-') line,
+                        loading_line.tanggal_loading,
                         stocker_input.updated_at latest_update
                     ")->
                     leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
