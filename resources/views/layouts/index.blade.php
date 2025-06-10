@@ -1,4 +1,4 @@
-{{-- Configurations --}}
+{{-- Page Configurations --}}
     @if (!isset($page))
         @php
             $page = '';
@@ -40,7 +40,7 @@
             $footer = true;
         @endphp
     @endif
-{{-- End of Configurations --}}
+{{-- End of Page Configurations --}}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -75,7 +75,7 @@
             </div>
         </div>
 
-        <!-- Loading -->
+        <!-- Loading with Background -->
         <div class="loading-container-fullscreen-background d-none" id="loading-bg">
             <div class="loading-container">
                 <div class="loading"></div>
@@ -84,7 +84,6 @@
 
         <!-- Content Wrapper -->
         <div class="content-wrapper pt-3">
-
             <!-- Header -->
             @if (isset($title))
                 <div class="content-header">

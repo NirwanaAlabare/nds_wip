@@ -30,11 +30,12 @@
             overflow: hidden !important;
         }
 
-        /* SWIPPER */
+        /* SWIPER */
         swiper-container {
             width: 100vw;
             height: 100vh;
             background-color: inherit;
+            position: relative;
         }
 
         swiper-slide {
@@ -51,23 +52,52 @@
             height: 100%;
             object-fit: cover;
         }
+        .custom-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            min-width: 100px;
+            width: 10vw;
+            height: 100%;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .custom-prev {
+            left: 0;
+        }
+
+        .custom-next {
+            right: 0;
+        }
     </style>
 @endsection
 
 @section('content')
-    <swiper-container class="mySwiper" id="iframe-carousel" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30" centered-slides="true">
+    <swiper-container
+        class="mySwiper"
+        direction="horizontal"
+        autoplay-delay="30000"
+        autoplay-disable-on-interaction="false"
+    >
+
         <swiper-slide id="carousel-1">
-            <iframe src="{{ route("dashboard-factory-daily-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+            <iframe src="{{ route("dashboard-factory-daily-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" class="iframe-el" style="width: 100%; height: 100%; border: none;"></iframe>
         </swiper-slide>
         <swiper-slide id="carousel-2">
-            <iframe src="{{ route("dashboard-chief-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+            <iframe src="{{ route("dashboard-chief-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" class="iframe-el" style="width: 100%; height: 100%; border: none;"></iframe>
         </swiper-slide>
         <swiper-slide id="carousel-3">
-            <iframe src="{{ route("dashboard-top-chief-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+            <iframe src="{{ route("dashboard-top-chief-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" class="iframe-el" style="width: 100%; height: 100%; border: none;"></iframe>
         </swiper-slide>
         <swiper-slide id="carousel-4">
-            <iframe src="{{ route("dashboard-top-leader-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+            <iframe src="{{ route("dashboard-top-leader-sewing") }}/{{ $year }}/{{ $month }}" frameborder="0" class="iframe-el" style="width: 100%; height: 100%; border: none;"></iframe>
         </swiper-slide>
+
+        <!-- Custom buttons -->
+        <div class="custom-prev custom-nav" slot="container-start"></div>
+        <div class="custom-next custom-nav" slot="container-start"></div>
     </swiper-container>
 @endsection
 
@@ -89,33 +119,35 @@
     <script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
     <script>
-        // Slide
-        const swiper = new Swiper('.swiper', {
-            direction: 'vertical',
-            loop: true,
-
-            pagination: {
-                el: '.swiper-pagination',
-            },
-
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-
-            scrollbar: {
-                el: '.swiper-scrollbar',
-            },
-        });
-
-        $('.select2').select2()
+        $('.select2').select2();
         $('.select2bs4').select2({
             theme: 'bootstrap4'
-        })
+        });
 
         document.getElementById("loading").classList.remove("d-none");
 
         $('document').ready(async () => {
+            const swiperEl = document.querySelector('.mySwiper');
+            const swiper = swiperEl.swiper;
+
+            document.querySelector('.custom-next').addEventListener('click', () => {
+                console.log("swiper next", swiper.isEnd)
+                if (swiper.isEnd) {
+                    swiper.slideTo(0); // Go to first slide
+                } else {
+                    swiper.slideNext();
+                }
+            });
+
+            document.querySelector('.custom-prev').addEventListener('click', () => {
+                console.log("swiper prev", swiper.isBeginning)
+                if (swiper.isBeginning) {
+                    swiper.slideTo(3); // Go to last slide
+                } else {
+                    swiper.slidePrev();
+                }
+            });
+
             // on ready
             document.getElementById("loading").classList.add("d-none");
 
