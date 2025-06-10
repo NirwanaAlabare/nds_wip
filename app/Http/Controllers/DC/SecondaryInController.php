@@ -420,7 +420,7 @@ class SecondaryInController extends Controller
             left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
             left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
             left join secondary_in_input sii on s.id_qr_stocker = sii.id_qr_stocker
-            where s.id_qr_stocker = '" . $request->txtqrstocker . "' and sii.id is not null
+            where s.id_qr_stocker = '" . $request->txtqrstocker . "'
         ");
 
         return json_encode($cekdata[0]);
@@ -686,7 +686,7 @@ class SecondaryInController extends Controller
             "edit_qtyreject" => "required"
         ]);
 
-        $loadingLine = LoadingLine::leftJoin("stocker_input.id", "=", "loading_line.stocker_id")->where("stocker_input.id_qr_stocker", $request['edit_no_stocker'])->first();
+        $loadingLine = LoadingLine::leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")->where("stocker_input.id_qr_stocker", $request['edit_no_stocker'])->first();
 
         if ($loadingLine) {
             return array(
