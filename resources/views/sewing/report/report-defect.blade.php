@@ -502,7 +502,7 @@
                 }
             } catch (error) {
                 document.getElementById('loading').classList.add('d-none');
-                
+
                 console.error(error);
             }
         }
