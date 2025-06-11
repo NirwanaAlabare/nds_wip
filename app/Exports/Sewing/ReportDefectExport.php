@@ -19,7 +19,7 @@
         protected $sewingLine;
         protected $department;
 
-        public function __construct($defectRateQuery, $topDefectQuery, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine, $department)
+        public function __construct($defectRateQuery, $topDefectQuery, $dateFrom, $dateTo, $base_ws, $ws, $style, $color, $sewingLine, $department)
         {
             ini_set('max_execution_time', 3600); // boost only once here
             ini_set('memory_limit', '1024M'); // adjust as needed
@@ -28,7 +28,7 @@
             $this->topDefectQuery = $topDefectQuery;
             $this->dateFrom = $dateFrom;
             $this->dateTo = $dateTo;
-            $this->ws = $ws ? $ws : "All WS";
+            $this->ws = ($base_ws ? $base_ws : ($ws ? $ws : "All WS"));
             $this->style = $style ? $style : "All Style";
             $this->color = $color ? $color : "All Color";
             $this->sewingLine = $sewingLine ? $sewingLine : "All Sewing Line";

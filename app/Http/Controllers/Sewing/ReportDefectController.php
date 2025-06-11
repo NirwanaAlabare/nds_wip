@@ -822,7 +822,7 @@ class ReportDefectController extends Controller
         }
 
         if ($defectRateQuery || $topDefectQuery) {
-            return Excel::download(new ReportDefectExport($defectRateQuery, $topDefectQuery, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine, $request->department), 'report defect.xlsx');
+            return Excel::download(new ReportDefectExport($defectRateQuery, $topDefectQuery, $dateFrom, $dateTo, $request->base_ws, $ws, $style, $color, $sewingLine, $request->department), 'report defect.xlsx');
         }
 
         return array(
