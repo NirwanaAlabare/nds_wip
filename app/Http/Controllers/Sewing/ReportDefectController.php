@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sewing;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\SignalBit\ActCosting;
 use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\DefectPacking;
 use App\Models\SignalBit\DefectType;
@@ -89,7 +90,7 @@ class ReportDefectController extends Controller
             leftJoin("output_defect_in_out", function($join) {
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'qc'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects.id");
-            })-> 
+            })->
             whereRaw($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'))")->
             orderBy("output_defects.updated_at", "desc");
         }
@@ -150,7 +151,8 @@ class ReportDefectController extends Controller
         $defectAreas = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
 
         $lines = $defect->get()->groupBy('sewing_line')->keys();
-        $orders = $defect->get()->groupBy('ws')->keys();
+        // $orders = $defect->get()->groupBy('ws')->keys();
+        $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
         $styles = $defect->get()->groupBy('style')->keys();
         $suppliers = $defect->get()->groupBy('buyer')->keys();
         $colors = $defect->get()->groupBy('color')->keys();
@@ -255,7 +257,8 @@ class ReportDefectController extends Controller
         }
 
         $lines = $defect->get()->groupBy('sewing_line')->keys();
-        $orders = $defect->get()->groupBy('ws')->keys();
+        // $orders = $defect->get()->groupBy('ws')->keys();
+        $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
         $styles = $defect->get()->groupBy('style')->keys();
         $suppliers = $defect->get()->groupBy('buyer')->keys();
         $colors = $defect->get()->groupBy('color')->keys();
@@ -1066,7 +1069,7 @@ class ReportDefectController extends Controller
             leftJoin("output_defect_in_out", function($join) {
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'qc'"));
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects.id");
-            })-> 
+            })->
             whereRaw("act_costing.kpno = '".$request->base_ws."'")->
             orderBy("output_defects.updated_at", "desc")->
             get();
