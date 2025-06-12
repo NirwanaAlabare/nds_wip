@@ -472,13 +472,13 @@ a.need_material,
 a.unit_konv,
 round(b.tot_mat,2) tot_mat,
 round(a.need_material / b.tot_mat * 100,2) dist_cons_ws,
-round(qty_pembelian,2) qty_pembelian,
-round(qty_retur_prod,2) qty_retur_prod,
-round(qty_out_prod,2) qty_out_prod,
-qty_pembelian + qty_retur_prod - qty_out_prod blc_mat,
-FLOOR((qty_pembelian * (a.need_material / b.tot_mat)) / a.cons_ws_konv_hit) output_pcs_cons_ws,
-SUM(FLOOR((qty_pembelian * (a.need_material / b.tot_mat)) / a.cons_ws_konv_hit)) OVER (PARTITION BY a.nama_panel, a.id_item) AS total_output_pcs_cons_ws,
-FLOOR((qty_pembelian * (a.need_material / b.tot_mat)) / a.cons_ws_konv_hit) - a.qty_order as blc_order
+round(coalesce(qty_pembelian,0),2) qty_pembelian,
+round(coalesce(qty_retur_prod,0),2) qty_retur_prod,
+round(coalesce(qty_out_prod,0),2) qty_out_prod,
+ROUND(COALESCE(qty_pembelian, 0) + COALESCE(qty_retur_prod, 0) - COALESCE(qty_out_prod, 0),2) AS blc_mat,
+FLOOR(COALESCE(qty_pembelian, 0) * (COALESCE(a.need_material, 0) / NULLIF(COALESCE(b.tot_mat, 0), 0)) / NULLIF(COALESCE(a.cons_ws_konv_hit, 0), 0)) AS output_pcs_cons_ws,
+SUM(FLOOR(COALESCE(qty_pembelian, 0) * (COALESCE(a.need_material, 0) / NULLIF(COALESCE(b.tot_mat, 0), 0)) / NULLIF(COALESCE(a.cons_ws_konv_hit, 0), 0))) OVER (PARTITION BY a.nama_panel, a.id_item) AS total_output_pcs_cons_ws,
+FLOOR(COALESCE(qty_pembelian, 0) * (COALESCE(a.need_material, 0) / NULLIF(COALESCE(b.tot_mat, 0), 0)) / NULLIF(COALESCE(a.cons_ws_konv_hit, 0), 0)) - COALESCE(a.qty_order, 0) AS blc_order
 from mat_det a
 left join (select id_item, sum(need_material) tot_mat from mat_det group by id_item) b on a.id_item = b.id_item
 left join mut_bpb_f on a.id_item = mut_bpb_f.id_item

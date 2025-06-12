@@ -168,8 +168,7 @@
                 <div class="modal-body">
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
-                            <table id="datatable_tracking"
-                                class="table table-bordered table-striped w-100 nowrap">
+                            <table id="datatable_tracking" class="table table-bordered table-striped w-100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>Tgl. Transaksi</th>
@@ -460,7 +459,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable_preview" class="table table-bordered 100 text-nowrap">
+                <table id="datatable_preview" class="table table-bordered text-nowrap" style="width: 100%;">
                     <thead class="table-info">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>ID SO Det</th>
@@ -746,11 +745,9 @@
         });
 
         let datatable_preview = $("#datatable_preview").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
 
-                // converting to interger to find total
                 var intVal = function(i) {
                     return typeof i === 'string' ?
                         i.replace(/[\$,]/g, '') * 1 :
@@ -758,7 +755,6 @@
                         i : 0;
                 };
 
-                // computing column Total of the complete result
                 var sumTotal = api
                     .column(9)
                     .data()
@@ -773,9 +769,6 @@
                         return value === 'Check' ? count + 1 : count;
                     }, 0);
 
-
-
-                // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
                 $(api.column(9).footer()).html(sumTotal);
                 $('input[name="data_cek_avail"]').val(countCheck);
@@ -796,7 +789,6 @@
             },
             columns: [{
                     data: 'id_so_det'
-
                 },
                 {
                     data: 'ws'
@@ -836,38 +828,54 @@
                 },
                 {
                     data: 'id_tmp'
-                },
+                }
             ],
             columnDefs: [{
-                    "className": "align-left",
-                    "targets": "_all"
+                    className: "align-left",
+                    targets: "_all"
                 },
                 {
                     targets: [13],
                     render: (data, type, row, meta) => {
                         return `
-                    <div
-                    class='d-flex gap-1 justify-content-center'>
-                    <a  class='btn btn-sm' data-bs-toggle='tooltip' onclick="hapus('` + row.id_tmp + `');"><i class='fas fa-minus fa-lg' style='color: #ff0000;'></i></a>
+                    <div class='d-flex gap-1 justify-content-center'>
+                        <a class='btn btn-sm' data-bs-toggle='tooltip' onclick="hapus('${row.id_tmp}');">
+                            <i class='fas fa-minus fa-lg' style='color: #ff0000;'></i>
+                        </a>
                     </div>
-                        `;
+                `;
                     }
                 },
                 {
                     targets: '_all',
                     className: 'text-nowrap',
                     render: (data, type, row, meta) => {
-                        if (row.status == 'Ok') {
-                            color = '#087521';
-                        } else {
-                            color = 'red';
-                        }
-                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
+                        const color = row.status === 'Ok' ? '#087521' : 'red';
+                        return `<span style="font-weight: 600; color: ${color}">${data}</span>`;
                     }
-                },
-
+                }
             ]
         });
+
+        // 👇 Highlight duplicate rows based on PO + Barcode + ID_SO_DET
+        datatable_preview.on('draw', function() {
+            let seen = {};
+            let rows = datatable_preview.rows();
+
+            rows.every(function() {
+                let data = this.data();
+                let node = this.node();
+                let key = `${data.po}|${data.barcode}|${data.id_so_det}`;
+
+                if (seen[key]) {
+                    $(node).css('background-color', '#ffdddd'); // Highlight duplicate
+                } else {
+                    seen[key] = true;
+                    $(node).css('background-color', ''); // Clear if previously highlighted
+                }
+            });
+        });
+
 
         function undo() {
             let user = $('#user').val();

@@ -168,4 +168,46 @@ class MutasiMesinMasterController extends Controller
     {
         return Excel::download(new ExportLaporanMutasiMesinMaster(), 'Laporan_Mutasi_Master_Mesin.xlsx');
     }
+
+
+
+    public function master_mesin_lokasi(Request $request)
+    {
+        $tgl_skrg = date('Y-m-d');
+
+        $timestamp = Carbon::now();
+
+        if ($request->ajax()) {
+
+            $data_lokasi = DB::select("
+select * from master_mesin_lokasi order by lokasi asc
+            ");
+
+
+            return DataTables::of($data_lokasi)->toJson();
+        }
+        return view('mut-mesin.master_lokasi_mesin', ['page' => 'dashboard-mut-mesin', 'subPageGroup' => 'master-mut-mesin', 'subPage' => 'master_mesin_lokasi'], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+
+    public function store_master_lokasi_mesin(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+        $txtlok = $request->txtlok;
+
+        DB::insert(
+            "INSERT into master_mesin_lokasi
+            (lokasi,created_by,created_at,updated_at)
+            VALUES ('" . $txtlok . "','$user','$timestamp','$timestamp')"
+        );
+
+        return array(
+            'status' => 300,
+            'message' => 'Data ' . $txtlok . ' Sudah Berhasil Ditambahkan',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
 }

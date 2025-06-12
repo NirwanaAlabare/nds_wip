@@ -20,7 +20,7 @@
             <div class="mb-3">
                 <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal_new_costing">
                     <i class="fas fa-plus"></i>
-                    Baru
+                    Costing Production
                 </a>
             </div>
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -51,6 +51,7 @@
                 <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead class="bg-sb">
                         <tr style="text-align:center; vertical-align:middle">
+                            <th scope="col">Action</th>
                             <th scope="col">Costing</th>
                             <th scope="col">Tgl. Costing</th>
                             <th scope="col">Buyer</th>
@@ -73,14 +74,14 @@
 
     <!-- Modal -->
     <div class="modal fade" id="modal_new_costing" tabindex="-1" aria-labelledby="modalCostingLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <form action="{{ route('upload-packing-list') }}" enctype="multipart/form-data" method="post"
+                <form action="{{ route('store_master_costing_production') }}" enctype="multipart/form-data" method="post"
                     onsubmit="submitForm(this, event)" name='form_new_costing' id='form_new_costing'>
                     @csrf
                     @method('POST')
                     <div class="modal-header bg-sb text-white">
-                        <h5 class="modal-title" id="modalCostingLabel"><i class="fas fa-plus"></i> New Costing</h5>
+                        <h5 class="modal-title" id="modalCostingLabel"><i class="fas fa-plus"></i> Costing Production</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     </div>
@@ -91,7 +92,8 @@
                                     <label><small><b>Buyer :</b></small></label>
                                     <select class="form-control form-control-sm select2bs4" id="cbobuyer" name="cbobuyer"
                                         style="width: 100%; font-size: 0.875rem;" required>
-                                        <option selected="selected" value="" disabled="true"><small>Pilih Buyer
+                                        <option selected="selected" value="" disabled="true"><small>Pilih
+                                                Buyer</small>
                                         </option>
                                         @foreach ($data_buyer as $databuyer)
                                             <option value="{{ $databuyer->isi }}">
@@ -176,17 +178,12 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label"><small><b>Status</b></small></label>
-                                <select class="form-control form-control-sm select2bs4" id="cbo_stat" name="cbo_stat"
-                                    style="width: 100%; font-size: 0.875rem;" required>
-                                    <option selected="selected" value="" disabled="true">Pilih Status
-                                    </option>
-                                    @foreach ($data_status as $datastatus)
-                                        <option value="{{ $datastatus->isi }}">
-                                            {{ $datastatus->tampil }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="form-group">
+                                    <label><small><b>Main Destination :</b></small></label>
+                                    <input type="text" name="txtdest" id="txtdest" class="form-control"
+                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+                                        placeholder="Masukan Main Destination" required>
+                                </div>
                             </div>
                         </div>
                         <div class='row g-3'>
@@ -207,12 +204,12 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label><small><b>Main Destination :</b></small></label>
-                                    <input type="text" name="txtdest" id="txtdest" class="form-control"
-                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                        placeholder="Masukan Main Destination" required>
-                                </div>
+                                <label class="form-label"><small><b>Tipe WS</b></small></label>
+                                <select class="form-control form-control-sm select2bs4" id="cbo_tipe" name="cbo_tipe"
+                                    style="width: 100%; font-size: 0.875rem;" required>
+                                    <option value="standard">Standard</option>
+                                    <option value="global">Global</option>
+                                </select>
                             </div>
                         </div>
                         <div class='row g-3'>
@@ -227,28 +224,36 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label><small><b>VAT (%):</b></small></label>
-                                    <input type="text" name="txtvat" id="txtvat" class="form-control"
-                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                        placeholder="Masukan VAT" required>
+                                    <select class="form-control form-control-sm select2bs4" id="cbo_vat" name="cbo_vat"
+                                        style="width: 100%; font-size: 0.875rem;" required>
+                                        <option selected="selected" value="" disabled="true">Pilih Vat
+                                        </option>
+                                        @foreach ($data_vat as $datavat)
+                                            <option value="{{ $datavat->isi }}">
+                                                {{ $datavat->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label"><small><b>Tipe WS</b></small></label>
-                                <select class="form-control form-control-sm select2bs4" id="cbo_tipe" name="cbo_tipe"
-                                    style="width: 100%; font-size: 0.875rem;" required>
-                                    <option value="standard">Standard</option>
-                                    <option value="global">Global</option>
-                                </select>
+                                <div class="form-group">
+                                    <label><small><b>Rate :</b></small></label>
+                                    <input type="text" name="txtrate_jual" id="txtrate_jual" class="form-control"
+                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+                                        placeholder="Isi Kalau Currency Selain IDR">
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-danger btn-sm" data-bs-dismiss="modal"><i
                                 class="fas fa-times-circle"></i> Tutup</button>
-                        <a class="btn btn-outline-success btn-sm" onclick="simpan()">
+                        <button type="submit" class="btn btn-outline-success btn-sm">
                             <i class="fas fa-check"></i>
                             Simpan
-                        </a>
+                        </button>
+
                     </div>
                 </form>
             </div>
@@ -315,6 +320,29 @@
                 },
             },
             columns: [{
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return `
+                    <a class="btn btn-outline-info position-relative btn-sm" href="{{ route('edit_costing') }}/` +
+                            data.id +
+                            `" title="Edit Costing" target="_blank">
+                        Costing
+                    </a>
+                    <a class="btn btn-outline-primary position-relative btn-sm" href="{{ route('lokasi-inmaterial') }}/` +
+                            data.id +
+                            `" title="Edit SO" target="_blank">
+                        SO
+                    </a>
+                    <a class="btn btn-outline-success position-relative btn-sm" href="{{ route('lokasi-inmaterial') }}/` +
+                            data.id + `" title="Edit BOM" target="_blank">
+                        BOM
+                    </a>
+                `;
+                    }
+                },
+                {
                     data: 'cost_no'
 
                 },
@@ -351,7 +379,7 @@
                 },
                 {
                     data: 'status_order'
-                },
+                }
             ],
         });
 
@@ -368,7 +396,7 @@
             $('#cbop_item').html('<option value="">Pilih Product Item</option>'); // reset item list
             $('#cbo_ship').val('').trigger('change'); // reset select2 field
             $('#cbo_stat').val('').trigger('change'); // reset select2 field
-            $('#cbo_tipe').val('').trigger('change'); // reset select2 field
+            $('#cbo_tipe').val('standard').trigger('change'); // reset select2 field
 
         });
 
@@ -392,6 +420,61 @@
                     console.error('Error:', xhr.responseText);
                 }
             });
+        }
+
+        function submitForm(form, event) {
+            event.preventDefault(); // Prevent normal form submission
+
+            const formData = new FormData(form);
+            const actionUrl = form.action;
+
+            fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw response;
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        html: `
+        <p><strong>Cost No :</strong> ${data.data.cost_no}</p>
+        <p><strong>Buyer :</strong> ${data.data.buyer}</p>
+        <p><strong>WS :</strong> ${data.data.ws}</p>
+        <p><strong>Style :</strong> ${data.data.style}</p>
+                        `,
+                        confirmButtonText: 'OK',
+                        allowOutsideClick: false, // ❌ disables click outside
+                        allowEscapeKey: false, // ❌ disables ESC key
+                        allowEnterKey: true // ✅ allow Enter key if needed
+                    }).then(() => {
+                        $('#modal_new_costing').modal('hide');
+                        form.reset();
+                        dataTableReload();
+                    });
+                })
+                .catch(async error => {
+                    let errorMessage = 'Failed to save costing.';
+
+                    // Handle Laravel validation errors
+                    if (error.status === 422) {
+                        const err = await error.json();
+                        const messages = Object.values(err.errors).flat().join('\n');
+                        errorMessage = messages;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage,
+                    });
+                });
         }
     </script>
 @endsection
