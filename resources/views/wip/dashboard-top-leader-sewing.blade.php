@@ -175,6 +175,130 @@
         opacity: 0.9;
         pointer-events: none;
         }
+
+        main {
+            width: 20vw;
+            height: auto;
+            background-color: #fbfbfb;
+            -webkit-box-shadow: 0px 5px 15px 8px #e4e7fb;
+            box-shadow: 0px 5px 15px 8px #e4e7fb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 0.5rem;
+        }
+
+        main #header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 1rem;
+        }
+
+        main #leaderboard {
+            width: 100%;
+            position: relative;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        main table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            color: var(--sb-secondary-color);
+            cursor: default;
+        }
+
+        main tr {
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.2rem;
+        }
+
+        main tr:not(:first-child):hover {
+            background-color: #fff;
+            transform: scale(1.1);
+            -webkit-box-shadow: 0px 5px 15px 8px #e4e7fb;
+            box-shadow: 0px 5px 15px 8px #e4e7fb;
+        }
+
+        main tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        /* main tr:nth-child(1) {
+            color: #fff;
+        } */
+
+        main td {
+            height: 3rem;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            position: relative;
+        }
+
+        main .number {
+            width: 1rem;
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        main .name {
+            text-align: left;
+            font-size: 1.1rem;
+        }
+
+        main .points {
+            font-weight: bold;
+            font-size: 1.3rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        main .points:first-child {
+            width: 10rem;
+        }
+
+        main .gold-medal {
+            height: 1.5rem;
+            margin-left: 10px;
+        }
+
+        /* main .ribbon {
+            width: 100%;
+            height: 4rem;
+            top: -0.5rem;
+            background-color: var(--sb-color);
+            position: absolute;
+            left: -1rem;
+        }
+
+        main .ribbon::before {
+            content: "";
+            height: 1.5rem;
+            width: 1.5rem;
+            bottom: -0.8rem;
+            left: 0.35rem;
+            transform: rotate(45deg);
+            background-color: var(--sb-color);
+            position: absolute;
+            z-index: -1;
+        }
+
+        main .ribbon::after {
+            content: "";
+            height: 1.5rem;
+            width: 1.5rem;
+            bottom: -0.8rem;
+            right: 0.35rem;
+            transform: rotate(45deg);
+            background-color: var(--sb-color);
+            position: absolute;
+            z-index: -1;
+        } */
     </style>
 @endsection
 
@@ -191,11 +315,11 @@
     </swiper-container> --}}
     <div style="width: 100vw; height: 100vh; background: #fbfbfb; position: relative;" class="d-flex flex-column justify-content-center align-items-center overflow-hidden">
 
-        <div style="position: absolute; bottom: 0;">
+        <div style="position: absolute; bottom: 0; left: 0;">
             <h1 class="text-center text-warning crimson-text-bold py-1 px-3">LEADER OF THE MONTH</h1>
             <h3 class="text-center">{{ strtoupper($monthName)." ".$year }}</h3>
 
-            <div class="d-flex justify-content-center align-items-end" style="width: 100vw; background: #fbfbfb; margin-top: 5vh;">
+            <div class="d-flex justify-content-center align-items-end" style="width: 85vw; background: #fbfbfb; margin-top: 5vh;">
                 {{-- LEADER 2 --}}
                 <div id="top-leader-2" class="d-flex flex-column" style="width: 20%;">
                     <div class="profile-frame text-center" style="min-width: 150px !important; width: 150px !important; min-height: 150px !important; height: 150px !important;">
@@ -641,6 +765,17 @@
                 </div>
             </div>
         </div>
+        <div style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%);">
+            <main>
+                <div id="header">
+                    <h5 class="text-sb fw-bold">RANKING</h5>
+                </div>
+                <div id="leaderboard">
+                    {{-- <div class="ribbon"></div> --}}
+                    <table id="leader-ranking"></table>
+                </div>
+            </main>
+        </div>
     </div>
 @endsection
 
@@ -712,7 +847,7 @@
         var currentDayTwo = "";
         var currentDayThree = "";
 
-        async function updateTopLeader(data, dataTwo, dataThree) {
+        async function updateTopLeader(data, dataTwo, dataThree, allData) {
             // Image
             let imageElement = document.getElementById("top-leader-img-1");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.leader_nik+"%20"+data.leader_name+".png";
@@ -721,7 +856,7 @@
             imageElement.classList.add("img-fluid")
             imageElement.style.marginRight = "auto";
             // Name
-            document.getElementById("top-leader-name-1").innerHTML = data.leader_name;
+            document.getElementById("top-leader-name-1").innerHTML = data.leader_name ? data.leader_name.split(" ")[0] : "KOSONG";
 
             // Image
             let imageElement2 = document.getElementById("top-leader-img-2");
@@ -731,7 +866,7 @@
             imageElement2.classList.add("img-fluid")
             imageElement2.style.marginRight = "auto";
             // Name
-            document.getElementById("top-leader-name-2").innerHTML = dataTwo.leader_name;
+            document.getElementById("top-leader-name-2").innerHTML = dataTwo.leader_name ? dataTwo.leader_name.split(" ")[0] : "KOSONG";
 
             // Image
             let imageElement3 = document.getElementById("top-leader-img-3");
@@ -741,7 +876,95 @@
             imageElement3.classList.add("img-fluid")
             imageElement3.style.marginRight = "auto";
             // Name
-            document.getElementById("top-leader-name-3").innerHTML = dataThree.leader_name;
+            document.getElementById("top-leader-name-3").innerHTML = dataThree.leader_name ? dataThree.leader_name.split(" ")[0] : "KOSONG";
+
+            if (allData.length > 0) {
+
+                // Rank
+                document.getElementById("leader-ranking").innerHTML = "";
+                allData.forEach((item, index) => {
+                    if (index == 0) {
+                        document.getElementById("leader-ranking").innerHTML += `
+                            <tr id="leader-1" class="fw-bold text-light  bg-sb">
+                                <td class="number">`+(index+1)+`</td>
+                                <td class="name">`+(item.leader_name ? item.leader_name.split(" ")[0] : "KOSONG")+`</td>
+                                <td class="points">
+                                    <div class="d-flex gap-2">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.efficiency).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">EFF</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.rft).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">RFT</p>
+                                        </div>
+                                    </div>
+                                    <img class="gold-medal d-none" src="{{ asset('dist/img/gold-medal.png') }}" alt="gold medal"/>
+                                </td>
+                            </tr>
+                        `;
+                    } else if (index == 1) {
+                        document.getElementById("leader-ranking").innerHTML += `
+                            <tr id="leader-2" class="fw-bold text-light bg-sb-secondary">
+                                <td class="number">`+(index+1)+`</td>
+                                <td class="name">`+(item.leader_name ? item.leader_name.split(" ")[0] : "KOSONG")+`</td>
+                                <td class="points">
+                                    <div class="d-flex gap-2">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.efficiency).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">EFF</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.rft).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">RFT</p>
+                                        </div>
+                                    </div>
+                                    <img class="gold-medal d-none" src="{{ asset('dist/img/gold-medal.png') }}" alt="gold medal"/>
+                                </td>
+                            </tr>
+                        `;
+                    } else if (index == 2) {
+                        document.getElementById("leader-ranking").innerHTML += `
+                            <tr id="leader-3" class="fw-bold text-light" style="background: #CD7F32;">
+                                <td class="number">`+(index+1)+`</td>
+                                <td class="name">`+(item.leader_name ? item.leader_name.split(" ")[0] : "KOSONG")+`</td>
+                                <td class="points">
+                                    <div class="d-flex gap-2">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.efficiency).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">EFF</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.rft).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">RFT</p>
+                                        </div>
+                                    </div>
+                                    <img class="gold-medal d-none" src="{{ asset('dist/img/gold-medal.png') }}" alt="gold medal"/>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        document.getElementById("leader-ranking").innerHTML += `
+                            <tr class="text-dark">
+                                <td class="number">`+(index+1)+`</td>
+                                <td class="name">`+(item.leader_name ? item.leader_name.split(" ")[0] : "KOSONG")+`</td>
+                                <td class="points">
+                                    <div class="d-flex gap-2">
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.efficiency).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">EFF</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-center justify-content-center">
+                                            <p class="mb-0">`+(Number(item.rft).round(2))+`</p>
+                                            <p style="font-size:10px;" class="mb-0">RFT</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+            }
         }
 
         // Colorize Efficiency
@@ -802,7 +1025,7 @@
                     // Show Chief Daily Data
                     if (sortedLeaderDailyEfficiency.length >= 3) {
                         console.log(sortedLeaderDailyEfficiency, sortedLeaderDailyEfficiency[0], sortedLeaderDailyEfficiency[1], sortedLeaderDailyEfficiency[2]);
-                        updateTopLeader(sortedLeaderDailyEfficiency[0], sortedLeaderDailyEfficiency[1], sortedLeaderDailyEfficiency[2]);
+                        updateTopLeader(sortedLeaderDailyEfficiency[0], sortedLeaderDailyEfficiency[1], sortedLeaderDailyEfficiency[2], sortedLeaderDailyEfficiency);
                     }
                 },
                 error: function (jqXHR) {

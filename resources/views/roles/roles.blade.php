@@ -49,7 +49,7 @@
 
     {{-- Create Role --}}
     <div class="modal fade" id="createRoleModal" tabindex="-1" aria-labelledby="createRoleLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="createRoleLabel"><i class="fa fa-plus"></i> Tambah Role</h1>
@@ -196,10 +196,10 @@
 
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editRoleModal" onclick='editData(` + JSON.stringify(row) + `, "editRoleModal", [{"function" : "dataTableRoleReload(); dataTableRoleAccessReload();"}]);' `+(disabled ? "disabled" : "")+`>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editRoleModal" onclick='editData(` + JSON.stringify(row) + `, "editRoleModal", [{"function" : "dataTableRoleReload(); dataTableRoleAccessReload();"}]);'>
                                     <i class='fa fa-edit'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-role') }}/`+data+`' onclick='deleteData(this)' `+(disabled ? "disabled" : "")+`>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-role') }}/`+data+`' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>

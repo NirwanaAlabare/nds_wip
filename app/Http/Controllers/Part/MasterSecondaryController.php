@@ -29,11 +29,11 @@ class MasterSecondaryController extends Controller
             })->filterColumn('bag', function ($query, $keyword) {
                 $query->whereRaw("LOWER(proses) LIKE LOWER('%" . $keyword . "%')");
             })->order(function ($query) {
-                $query->orderBy('tujuan', 'asc');
+                $query->orderBy('tujuan', 'asc')->orderBy('updated_at', 'asc');
             })->toJson();
         }
 
-        $data_tujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
+        $data_tujuan = DB::select("select id isi, tujuan tampil from master_tujuan");
 
         return view("marker.master-secondary.master-secondary", ["page" => "dashboard-marker",  "subPageGroup" => "master-marker", "subPage" => "master-secondary", 'data_tujuan' => $data_tujuan]);
     }
@@ -59,6 +59,7 @@ class MasterSecondaryController extends Controller
         $timestamp = Carbon::now();
         $validatedRequest = $request->validate([
             "cbotuj" => "required",
+            "cbojns" => "required",
             "proses" => "required",
         ]);
 
@@ -68,9 +69,11 @@ class MasterSecondaryController extends Controller
 
         $masterSecondaryStore = MasterSecondary::create([
             "kode" => $masterSecondaryCode,
-            "tujuan" => $validatedRequest["cbotuj"],
+            "id_tujuan" => $validatedRequest["cbotuj"],
+            "tujuan" => $validatedRequest["cbojns"],
             "proses" =>  strtoupper($validatedRequest["proses"]),
             "cancel" =>  'N',
+            'created_by_id' => Auth::user()->id,
             'created_by' => Auth::user()->name,
         ]);
 
@@ -98,15 +101,14 @@ class MasterSecondaryController extends Controller
 
     public function show_master_secondary(Request $request)
     {
-        $data_master_secondary = DB::select("
-        SELECT * FROM master_secondary
-         where id = '$request->id_c'");
+        $data_master_secondary = DB::select("SELECT * FROM master_secondary where id = '$request->id_c'");
         return json_encode($data_master_secondary[0]);
     }
 
     public function update_master_secondary(Request $request)
     {
         $validatedRequest = $request->validate([
+            "txttuj" => "required",
             "txtjns" => "required",
             "txtproses" => "required",
         ]);
@@ -114,6 +116,7 @@ class MasterSecondaryController extends Controller
         $update_master_secondary = DB::update("
             update master_secondary
             set
+            id_tujuan = '" . $validatedRequest['txttuj'] . "',
             tujuan = '" . $validatedRequest['txtjns'] . "',
             proses = '" . $validatedRequest['txtproses'] . "',
             cancel = 'N'
@@ -128,6 +131,7 @@ class MasterSecondaryController extends Controller
                 'additional' => [],
             );
         }
+
         return array(
             'status' => 400,
             'message' => 'Data produksi gagal diubah',

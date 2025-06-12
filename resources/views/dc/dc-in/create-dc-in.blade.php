@@ -973,33 +973,35 @@
                     confirmButtonColor: 'red',
                     showCancelButton: true
                 }).then(async (result) => {
-                    if (document.getElementById("loading")) {
-                        document.getElementById("loading").classList.remove("d-none");
-                    }
-
-                    await $.ajax({
-                        url: '{{ route('delete_mass_tmp_dc_in') }}',
-                        type: "delete",
-                        data: {
-                            ids: checkedTmpDcStock.toString()
-                        },
-                        dataType: "json",
-                        success: function (res) {
-                            Swal.fire({
-                                icon: (res.status == 200 ? 'success' : 'error'),
-                                title: (res.status == 200 ? 'Berhasil' : 'Gagal'),
-                                html: res.message,
-                            }).then((result) => {
-                                getdatatmp();
-                            });
-                        },
-                        error: function (jqXHR) {
-                            console.error(jqXHR);
+                    if (result.isConfirmed) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.remove("d-none");
                         }
-                    });
 
-                    if (document.getElementById("loading")) {
-                        document.getElementById("loading").classList.add("d-none");
+                        await $.ajax({
+                            url: '{{ route('delete_mass_tmp_dc_in') }}',
+                            type: "delete",
+                            data: {
+                                ids: checkedTmpDcStock.toString()
+                            },
+                            dataType: "json",
+                            success: function (res) {
+                                Swal.fire({
+                                    icon: (res.status == 200 ? 'success' : 'error'),
+                                    title: (res.status == 200 ? 'Berhasil' : 'Gagal'),
+                                    html: res.message,
+                                }).then((result) => {
+                                    getdatatmp();
+                                });
+                            },
+                            error: function (jqXHR) {
+                                console.error(jqXHR);
+                            }
+                        });
+
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
                     }
                 })
             } else {

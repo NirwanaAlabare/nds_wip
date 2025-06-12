@@ -13,8 +13,7 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa-regular fa-square-plus"></i> Master Secondary</h5>
         </div>
         <div class="card-body">
-            <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal"
-                data-bs-target="#createMasterSecondaryModal">
+            <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createMasterSecondaryModal">
                 <i class="fas fa-plus"></i>
                 Baru
             </button>
@@ -33,11 +32,10 @@
         </div>
     </div>
 
-    <div class="modal fade" id="createMasterSecondaryModal" tabindex="-1" aria-labelledby="createMasterSecondaryLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="createMasterSecondaryModal" tabindex="-1" aria-labelledby="createMasterSecondaryLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="{{ route('store-master-secondary') }}" method="post" onsubmit="submitMasterSecondaryForm(this, event)">
+                <form action="{{ route('store-master-secondary') }}" method="post" onsubmit="submitMasterSecondaryForm(this, event)" id="storemastersecondaryform">
                     <div class="modal-header bg-sb text-light">
                         <h1 class="modal-title fs-5" id="createMasterPartLabel"><i class="fa fa-plus-square"></i> Tambah Data Master Tujuan</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -45,7 +43,7 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Tujuan</label>
-                            <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;">
+                            <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;" onchange="updateCboJns()">
                                 <option selected="selected" value="">Pilih Tujuan</option>
                                 @foreach ($data_tujuan as $datatujuan)
                                     <option value="{{ $datatujuan->isi }}">
@@ -53,11 +51,11 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <input type="hidden" class="form-control" name="cbojns" id="cbojns" value="">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Proses</label>
-                            <input type="text" class="form-control" name="proses" id="proses" autocomplete="off"
-                                value="">
+                            <input type="text" class="form-control" name="proses" id="proses" autocomplete="off" value="">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -81,7 +79,7 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Jenis Secondary</label>
-                            <select class="form-control select2bs4" id="txtjns" name="txtjns" style="width: 100%;">
+                            <select class="form-control select2bs4" id="txttuj" name="txttuj" style="width: 100%;" onchange="updateTxtJns()">
                                 <option selected="selected" value="">Pilih Tujuan</option>
                                 @foreach ($data_tujuan as $datatujuan)
                                     <option value="{{ $datatujuan->isi }}">
@@ -89,7 +87,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                            {{-- <input type="text" class="form-control" name="txtjns" id="txtjns" value=""> --}}
+                            <input type="hidden" class="form-control" name="txtjns" id="txtjns" value="">
                             <input type="hidden" class="form-control" name="id_c" id="id_c" value="">
                         </div>
                         <div class="mb-3">
@@ -115,6 +113,12 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
+        const modalElement = document.getElementById('createMasterSecondaryModal');
+
+        modalElement.addEventListener('show.bs.modal', function (event) {
+            document.getElementById("storemastersecondaryform").reset(); // Reset the form when the modal is opened
+        });
+
         let datatableMasterPart = $("#datatable-master-secondary").DataTable({
             ordering: false,
             processing: true,
@@ -171,6 +175,7 @@
                 },
                 dataType: 'json',
                 success: async function(response) {
+                    $('#txttuj').val(response.id_tujuan).trigger('change'); // Trigger change to update txtjns
                     document.getElementById('txtjns').value = response.tujuan;
                     document.getElementById('txtproses').value = response.proses;
                     document.getElementById('id_c').value = id_c;
@@ -181,6 +186,27 @@
             });
         };
 
+        function updateCboJns() {
+            let cbotuj = document.getElementById('cbotuj');
+            let cbojns = document.getElementById('cbojns');
+
+            if (cbotuj.value != '') {
+                cbojns.value = cbotuj.options[cbotuj.selectedIndex].text;
+            } else {
+                cbojns.value = '';
+            }
+        }
+
+        function updateTxtJns() {
+            let txttuj = document.getElementById('txttuj');
+            let txtjns = document.getElementById('txtjns');
+
+            if (txttuj.value != '') {
+                txtjns.value = txttuj.options[txttuj.selectedIndex].text;
+            } else {
+                txtjns.value = '';
+            }
+        }
 
         // Submit Marker Form
         function submitMasterSecondaryForm(e, evt) {

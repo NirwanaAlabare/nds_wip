@@ -34,6 +34,7 @@
                 <div class="d-flex gap-1">
                     <button class="btn btn-sb fw-bold" onclick="updateImage()"><i class="fa-solid fa-images"></i> UPDATE</a>
                     <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#storeMasterLineModal"><i class="fa fa-plus"></i> NEW</a>
+                    <button class="btn btn-rft fw-bold" onclick="exportExcel()"><i class="fa fa-file-excel"></i></a>
                 </div>
             </div>
             <table id="datatable" class="table table-bordered w-100">
@@ -480,6 +481,47 @@
                     });
                 }
             });
+        }
+
+        async function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            await $.ajax({
+                url: "{{ route("export-master-line") }}",
+                type: "post",
+                data: {
+                    from : $("#from").val(),
+                    to : $("#to").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Production Team List "+$("#from").val()+" - "+$("#to").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+
+            Swal.close();
         }
     </script>
 @endsection

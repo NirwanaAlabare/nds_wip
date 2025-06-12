@@ -550,7 +550,7 @@
                         }
                     },
                     error: function(request, status, error) {
-                        alert('cek');
+                        // alert('cek');
                     },
                 })
 
@@ -981,7 +981,7 @@
                     getdatatmp();
                 },
                 error: function(request, status, error) {
-                    alert('cek');
+                    // alert('cek');
                 },
             });
         };

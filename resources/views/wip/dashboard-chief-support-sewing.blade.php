@@ -186,11 +186,16 @@
                     // Chief Group By
                     let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
 
+                    // Last Three Date
+                    // let lastThreeDate = response.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal)).slice(0, 3);
+                    const lastThreeDates = [...new Set(response.map(item => item.tanggal))].sort((a, b) => new Date(b) - new Date(a)).slice(0, 3);
+
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
                     chiefEfficiency.forEach(element => {
                         // Date Output
                         let dateOutput = [];
+
                         element.reduce(function(res, value) {
                             if (!res[value.tanggal]) {
                                 res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
@@ -206,7 +211,7 @@
                         }, {});
 
                         // Sort date output efficiency
-                        let sortedDateOutput = dateOutput.sort(function(a,b){
+                        let sortedDateOutput = dateOutput.sort(function(a,b) {
                             if (a.tanggal > b.tanggal) {
                                 return 1;
                             }
@@ -227,27 +232,34 @@
                         let totalOutput = 0;
                         let totalRft = 0;
                         element.reduce(function(res, value) {
-                            if (value.tanggal == (currentData ? currentData.tanggal : formatDate(new Date()))) {
-                                let param = value.leader_nik ? value.leader_nik : value.sewing_line;
-                                if (!res[param]) {
-                                    res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                    leaderOutput.push(res[param]);
-                                }
-                                res[param].tanggal = value.tanggal;
-                                res[param].mins_avail += Number(value.cumulative_mins_avail);
-                                res[param].mins_prod += Number(value.mins_prod);
-                                res[param].output += Number(value.output);
-                                res[param].rft += Number(value.rft);
-                                res[param].sewing_line += value.sewing_line+"<br>";
-
-                                totalMinsAvail += Number(value.cumulative_mins_avail);
-                                totalMinsProd += Number(value.mins_prod);
-                                totalOutput += Number(value.output);
-                                totalRft += Number(value.rft);
+                            let param = value.leader_nik ? value.leader_nik : value.sewing_line;
+                            if (!res[param]) {
+                                res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                                leaderOutput.push(res[param]);
                             }
+
+                            if (!res[param].tanggal || res[param].tanggal <= value.tanggal) {
+                                res[param].tanggal = value.tanggal;
+                            }
+                            res[param].mins_avail += Number(value.cumulative_mins_avail);
+                            res[param].mins_prod += Number(value.mins_prod);
+                            res[param].output += Number(value.output);
+                            res[param].rft += Number(value.rft);
+                            if (!res[param].sewing_line.includes(value.sewing_line)) {
+                                res[param].sewing_line += value.sewing_line + "<br>";
+                            }
+
+                            totalMinsAvail += Number(value.cumulative_mins_avail);
+                            totalMinsProd += Number(value.mins_prod);
+                            totalOutput += Number(value.output);
+                            totalRft += Number(value.rft);
 
                             return res;
                         }, {});
+
+                        if (element[0].chief_name == "SUKAMTONO") {
+                            console.log(leaderOutput);
+                        }
 
                         // Total Data
                         let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };
@@ -317,7 +329,7 @@
 
                     // Show Chief Daily Data
                     for (let i = 0; i < sortedChiefDailyEfficiency.length; i++) {
-                        appendRow(sortedChiefDailyEfficiency[i], i+1);
+                        appendRow(sortedChiefDailyEfficiency[i], i+1, lastThreeDates);
                     }
 
                     document.getElementById("loading").classList.add("d-none");
@@ -333,14 +345,14 @@
         var intervalData = setInterval(() => {
             console.log("update data");
 
-            updateData();
+            // updateData();
         }, 60000);
 
         var currentDayOne = "";
         var currentDayTwo = "";
         var currentDayThree = "";
 
-        async function appendRow(data, index) {
+        async function appendRow(data, index, lastThreeDates) {
             let tableElement = document.getElementById('chief-daily-efficiency-table');
             let table = document.querySelector('#chief-daily-efficiency-table tbody');
 
@@ -395,14 +407,14 @@
             });
 
             // Today Date
-            let todayDate = null;
-            let yesterdayDate = null;
-            let beforeDate = null;
+            let todayDate = lastThreeDates[0];
+            let yesterdayDate = lastThreeDates[1];
+            let beforeDate = lastThreeDates[2];
 
-            if (index > 1) {
-                todayDate = currentDayThree;
-                yesterdayDate = currentDayTwo;
-                beforeDate = currentDayOne;
+            // if (index > 1) {
+                // todayDate = currentDayThree;
+                // yesterdayDate = currentDayTwo;
+                // beforeDate = currentDayOne;
 
                 var todayFilter = dailyData.filter((item) => (todayDate ? item.tanggal == formatDate(todayDate) : item.tanggal <= formatDate(new Date())) );
                 var today = todayFilter[todayFilter.length-1];
@@ -412,16 +424,16 @@
 
                 var beforeFilter = dailyData.filter((item) => (beforeDate ? item.tanggal == formatDate(beforeDate) : (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))))) );
                 var before = beforeFilter[beforeFilter.length-1];
-            } else {
-                var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
-                var today = todayFilter[todayFilter.length-1];
+            // } else {
+            //     var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
+            //     var today = todayFilter[todayFilter.length-1];
 
-                var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
-                var yesterday = yesterdayFilter[yesterdayFilter.length-1]
+            //     var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
+            //     var yesterday = yesterdayFilter[yesterdayFilter.length-1]
 
-                var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
-                var before = beforeFilter[beforeFilter.length-1];
-            }
+            //     var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
+            //     var before = beforeFilter[beforeFilter.length-1];
+            // }
 
             // Sub Employee
             let subEmployeeContainer = document.createElement("div");
@@ -436,7 +448,7 @@
             leadersElement.classList.add("row");
             leadersElement.classList.add("h-100");
             data.leaderData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                     let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                     let leaderElement = document.createElement("div");
                     leaderElement.classList.add("col-2");
@@ -486,7 +498,7 @@
             iesElement.classList.add("h-100");
             iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
             data.ieData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                     if (element.ie_name) {
                         let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
                         let ieElement = document.createElement("div");
@@ -533,7 +545,7 @@
             leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
             data.leaderqcData.forEach(element => {
                 if (element.leaderqc_name) {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                         let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
                         let leaderqcElement = document.createElement("div");
                         leaderqcElement.classList.add("w-100");
@@ -578,7 +590,7 @@
             mechanicsElement.classList.add("h-100");
             mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
             data.mechanicData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                     if (element.mechanic_name) {
                         let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
                         let mechanicElement = document.createElement("div");
@@ -624,7 +636,7 @@
             technicalsElement.classList.add("h-100");
             technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
             data.technicalData.forEach(element => {
-                if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                     if (element.technical_name) {
                         let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
                         let technicalElement = document.createElement("div");
@@ -829,24 +841,20 @@
             tdYesterdayRft.style.padding = "1px !important"
 
             if (index == 1) {
-                currentDayOne = before ? before.tanggal : beforeDate;
-                currentDayTwo = yesterday ? yesterday.tanggal : yesterdayDate;
-                currentDayThree = today ? today.tanggal : todayDate;
-
-                if (formatDate(new Date()) > today ? today.tanggal : todayDate) {
+                if (formatDate(new Date()) > todayDate) {
                     let dayOneElement = document.getElementsByClassName("day-1");
                     for (let i = 0; i < dayOneElement.length; i++) {
-                        dayOneElement[i].innerHTML = formatDateLocal(before ? before.tanggal : beforeDate);
+                        dayOneElement[i].innerHTML = formatDateLocal(beforeDate);
                     }
 
                     let dayTwoElement = document.getElementsByClassName("day-2");
                     for (let i = 0; i < dayTwoElement.length; i++) {
-                        dayTwoElement[i].innerHTML = formatDateLocal(yesterday ? yesterday.tanggal : yesterdayDate);
+                        dayTwoElement[i].innerHTML = formatDateLocal(yesterdayDate);
                     }
 
                     let dayThreeElement = document.getElementsByClassName("day-3");
                     for (let i = 0; i < dayThreeElement.length; i++) {
-                        dayThreeElement[i].innerHTML = formatDateLocal(today ? today.tanggal : todayDate);
+                        dayThreeElement[i].innerHTML = formatDateLocal(todayDate);
                     }
                 }
             }
@@ -955,6 +963,10 @@
                 success: async function (response) {
                     // Chief Group By
                     let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
+
+                    // Last Three Date
+                    // let lastThreeDate = response.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal)).slice(0, 3);
+                    const lastThreeDates = [...new Set(response.map(item => item.tanggal))].sort((a, b) => new Date(b) - new Date(a)).slice(0, 3);
 
                     // Chief Daily Summary
                     let chiefDailyEfficiency = [];
@@ -1075,7 +1087,7 @@
 
                     // Show Chief Daily Data
                     for (let i = 0; i < sortedChiefDailyEfficiency.length; i++) {
-                        updateRow(sortedChiefDailyEfficiency[i], i+1);
+                        updateRow(sortedChiefDailyEfficiency[i], i+1, lastThreeDates);
                     }
 
                     document.getElementById("loading").classList.add("d-none");
@@ -1088,7 +1100,7 @@
             });
         }
 
-        async function updateRow(data, index) {
+        async function updateRow(data, index, lastThreeDates) {
             if (document.getElementById("employee-"+index)) {
                 // Name
                 let nameElement = document.getElementById("employee-"+index);
@@ -1131,14 +1143,16 @@
                     efficiencyArr.push((item.mins_prod / item.mins_avail * 100).round(2));
                     rftArr.push((item.rft / item.output * 100).round(2));
                 });
-                let todayDate = null;
-                let yesterdayDate = null;
-                let beforeDate = null;
 
-                if (index > 1) {
-                    todayDate = currentDayThree;
-                    yesterdayDate = currentDayTwo;
-                    beforeDate = currentDayOne;
+                // Today Date
+                let todayDate = lastThreeDates[0];
+                let yesterdayDate = lastThreeDates[1];
+                let beforeDate = lastThreeDates[2];
+
+                // if (index > 1) {
+                    // todayDate = currentDayThree;
+                    // yesterdayDate = currentDayTwo;
+                    // beforeDate = currentDayOne;
 
                     var todayFilter = dailyData.filter((item) => (todayDate ? item.tanggal == formatDate(todayDate) : item.tanggal <= formatDate(new Date())) );
                     var today = todayFilter[todayFilter.length-1];
@@ -1148,16 +1162,16 @@
 
                     var beforeFilter = dailyData.filter((item) => (beforeDate ? item.tanggal == formatDate(beforeDate) : (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2))))) );
                     var before = beforeFilter[beforeFilter.length-1];
-                } else {
-                    var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
-                    var today = todayFilter[todayFilter.length-1];
+                // } else {
+                //     var todayFilter = dailyData.filter((item) => item.tanggal <= formatDate(new Date()));
+                //     var today = todayFilter[todayFilter.length-1];
 
-                    var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
-                    var yesterday = yesterdayFilter[yesterdayFilter.length-1]
+                //     var yesterdayFilter = todayFilter.filter((item) => (item.tanggal < formatDate(today ? today.tanggal : new Date(new Date().setDate(new Date().getDate() - 1)))));
+                //     var yesterday = yesterdayFilter[yesterdayFilter.length-1]
 
-                    var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
-                    var before = beforeFilter[beforeFilter.length-1];
-                }
+                //     var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
+                //     var before = beforeFilter[beforeFilter.length-1];
+                // }
 
                 let subEmployeeContainer = document.createElement("div");
                 subEmployeeContainer.classList.add("col-9");
@@ -1171,7 +1185,7 @@
                 leadersElement.classList.add("row");
                 leadersElement.classList.add("h-100");
                 data.leaderData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                         let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
                         let leaderElement = document.createElement("div");
                         leaderElement.classList.add("col-2");
@@ -1221,7 +1235,7 @@
                 iesElement.classList.add("h-100");
                 iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
                 data.ieData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                         if (element.ie_name) {
                             let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
                             let ieElement = document.createElement("div");
@@ -1267,7 +1281,7 @@
                 leaderqcsElement.classList.add("h-100");
                 leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
                 data.leaderqcData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                         if (element.leaderqc_name) {
                             let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
                             let leaderqcElement = document.createElement("div");
@@ -1313,7 +1327,7 @@
                 mechanicsElement.classList.add("h-100");
                 mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
                 data.mechanicData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                         if (element.mechanic_name) {
                             let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
                             let mechanicElement = document.createElement("div");
@@ -1359,7 +1373,7 @@
                 technicalsElement.classList.add("h-100");
                 technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
                 data.technicalData.forEach(element => {
-                    if (element.tanggal == (today ? today.tanggal : todayDate)) {
+                    if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
                         if (element.technical_name) {
                             let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
                             let technicalElement = document.createElement("div");

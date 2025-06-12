@@ -7,13 +7,15 @@ use App\Models\Hris\MasterEmployee;
 use App\Models\SignalBit\EmployeeLine;
 use App\Models\SignalBit\EmployeeProduction;
 use App\Models\SignalBit\UserLine;
+use App\Exports\Sewing\MasterLineExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Intervention\Image\Facades\Image;
+use Yajra\DataTables\Facades\DataTables;
 use DB;
+use Excel;
 
 class MasterLineController extends Controller
 {
@@ -507,5 +509,12 @@ class MasterLineController extends Controller
             "message" => "Terjadi Kesalahan.",
             "additional" => []
         );
+    }
+
+    public function exportExcel(Request $request) {
+        $from = $request->from;
+        $to = $request->to;
+
+        return Excel::download(new MasterLineExport($from, $to), 'master-line.xlsx');
     }
 }

@@ -144,7 +144,7 @@
 
         // Set Custom Dashboard View
         document.body.style.maxHeight = "100vh";
-        // document.body.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
 
         document.querySelector(".content-wrapper").classList.remove("pt-3");
         document.querySelector(".content-wrapper").classList.add("pt-1");

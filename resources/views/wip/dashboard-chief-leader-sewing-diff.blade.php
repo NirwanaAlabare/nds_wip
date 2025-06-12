@@ -246,12 +246,16 @@
                         let total_mins_prod = 0;
                         let total_output = 0;
                         let total_rft = 0;
+                        let total_efficiency_rate = 0;
+                        let total_rft_rate = 0;
 
                         element.reduce(function(res, value) {
                             total_mins_avail += Number(value.cumulative_mins_avail);
                             total_mins_prod += Number(value.mins_prod);
                             total_output += Number(value.output);
                             total_rft += Number(value.rft);
+                            total_efficiency_rate += value.cumulative_mins_avail > 0 ? Number(value.mins_prod/value.cumulative_mins_avail * 100) : 0;
+                            total_rft_rate += value.rft > 0 ? Number(value.rft/value.output * 100) : 0;
 
                             return res;
                         }, {});
@@ -261,7 +265,7 @@
 
                         return {
                             "id": element[0].leader_nik,
-                            "totalValue": totalEfficiency+totalRft,
+                            "totalValue": total_efficiency_rate+total_rft_rate,
                         }
                     });
 
@@ -371,11 +375,15 @@
                         let total_mins_prod = 0;
                         let total_output = 0;
                         let total_rft = 0;
+                        let total_efficiency_rate = 0;
+                        let total_rft_rate = 0;
                         element.reduce(function(res, value) {
                             total_mins_avail += Number(value.cumulative_mins_avail);
                             total_mins_prod += Number(value.mins_prod);
                             total_output += Number(value.output);
                             total_rft += Number(value.rft);
+                            total_efficiency_rate += value.cumulative_mins_avail > 0 ? Number(value.mins_prod/value.cumulative_mins_avail * 100) : 0;
+                            total_rft_rate += value.output > 0 ? Number(value.rft/value.output * 100) : 0;
 
                             return res;
                         }, {});
@@ -383,7 +391,7 @@
                         let totalEfficiency = total_mins_prod/total_mins_avail * 100;
                         let totalRft = total_rft/total_output * 100;
 
-                        chiefLineEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": lineEfficiency, "totalValue": totalEfficiency+totalRft});
+                        chiefLineEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": lineEfficiency, "totalValue": total_efficiency_rate+total_rft_rate});
                     });
 
                     let sortedChiefLineEfficiency = chiefLineEfficiency.sort(function(a,b){
@@ -437,12 +445,16 @@
                         let total_mins_prod = 0;
                         let total_output = 0;
                         let total_rft = 0;
+                        let total_efficiency_rate = 0;
+                        let total_rft_rate = 0;
 
                         element.reduce(function(res, value) {
                             total_mins_avail += Number(value.cumulative_mins_avail);
                             total_mins_prod += Number(value.mins_prod);
                             total_output += Number(value.output);
                             total_rft += Number(value.rft);
+                            total_efficiency_rate = Number(value.cumulative_mins_avail) > 0 ? Number(value.mins_prod)/Number(value.cumulative_mins_avail) * 100 : 0;
+                            total_rft_rate = Number(value.output) > 0 ? Number(value.rft)/Number(value.output) * 100 : 0;
 
                             return res;
                         }, {});
@@ -452,7 +464,7 @@
 
                         return {
                             "id": element[0].leader_nik,
-                            "totalValue": totalEfficiency+totalRft,
+                            "totalValue": total_efficiency_rate+total_rft_rate,
                         }
                     });
 
@@ -563,11 +575,15 @@
                         let total_mins_prod = 0;
                         let total_output = 0;
                         let total_rft = 0;
+                        let total_efficiency_rate = 0;
+                        let total_rft_rate = 0;
                         element.reduce(function(res, value) {
                             total_mins_avail += Number(value.cumulative_mins_avail);
                             total_mins_prod += Number(value.mins_prod);
                             total_output += Number(value.output);
                             total_rft += Number(value.rft);
+                            total_efficiency_rate += value.cumulative_mins_avail > 0 ? Number(value.mins_prod/value.cumulative_mins_avail * 100) : 0;
+                            total_rft_rate += value.output > 0 ? Number(value.rft/value.output * 100) : 0;
 
                             return res;
                         }, {});
@@ -575,7 +591,7 @@
                         let totalEfficiency = total_mins_prod/total_mins_avail * 100;
                         let totalRft = total_rft/total_output * 100;
 
-                        chiefLineEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": lineEfficiency, "totalValue": totalEfficiency+totalRft});
+                        chiefLineEfficiency.push({"id": element[0].chief_id ? element[0].chief_id : 'KOSONG', "nik": element[0].chief_nik ? element[0].chief_nik : 'KOSONG', "name": element[0].chief_name ? element[0].chief_name : 'KOSONG', "data": lineEfficiency, "totalValue": total_efficiency_rate+total_rft_rate});
                     });
 
                     let sortedChiefLineEfficiency = chiefLineEfficiency.sort(function(a,b){

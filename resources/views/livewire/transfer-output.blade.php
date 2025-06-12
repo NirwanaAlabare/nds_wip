@@ -235,7 +235,7 @@
                             <button class="btn btn-sb-secondary" wire:click="checkNumbering()">Check</button>
                         </div>
                     </div>
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
@@ -264,7 +264,7 @@
                                             <td class="text-nowrap">{{ $data->size }}</td>
                                             <td class="text-nowrap">{{ $data->dest }}</td>
                                             <td class="text-nowrap">{{ $thisOutput ? $thisOutput->sewing_line : "-" }}</td>
-                                            <td class="text-nowrap">{{ $thisOutputPacking ? $thisOutputPacking->sewing_line : "-" }}</td>
+                                            <td class="text-nowrap">{{ (!empty($thisOutputPacking) && !empty($thisOutputPacking->sewing_line)) ? $thisOutputPacking->sewing_line : '-' }}</td>
                                         </tr>
                                     @endforeach
                                 @endif

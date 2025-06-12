@@ -1214,6 +1214,7 @@
                     document.getElementById('edit_alokasi').value = response.lokasi;
                     document.getElementById('edit_qtyawal').value = response.qty_awal;
 
+                    console.log(response);
                     $("#edit_qtyreject").val(response.qty_reject);
                     $("#edit_qtyreplace").val(response.qty_replace);
                     $("#edit_qtyin").val(response.qty_in);

@@ -6,7 +6,7 @@
         <td style="text-align: start; font-weight: 800;" colspan="3">WS : {{ $ws }}</td>
     </tr>
     <tr>
-        <td style="text-align: start; font-weight: 800;" colspan="3">Style : {{ $style }}</td>
+        <td style="text-align: start; font-weight: 800;" colspan="3">Style : {{ $ws && $ws != "All WS" ? $topDefect->groupBy("style")->keys()->implode(", ") : $style }}</td>
     </tr>
     <tr>
         <td style="text-align: start; font-weight: 800;" colspan="3">Color : {{ $color }}</td>

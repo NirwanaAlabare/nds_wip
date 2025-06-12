@@ -765,6 +765,16 @@ END jam) a))) target from (
         return view('wip.pre-dashboard-chief-sewing', ['page' => 'dashboard-wip', "years" => $years, "months" => $months]);
     }
 
+    function factoryPerformance($year = 0, $month = 0) {
+        $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+
+        $yearVar = $year ? $year : date("Y");
+        $monthVar = $month ? $month : date("m");
+
+        // return view('wip.dashboard-chief-sewing', ['page' => 'dashboard-wip', "year" => $yearVar, "month" => $monthVar, "monthName" => $months[num($monthVar)-1]["nama"], "months" => $months]);
+        return view('wip.dashboard-factory-performance-sewing', ['page' => 'dashboard-wip', "year" => $yearVar, "month" => $monthVar, "monthName" => $months[num($monthVar)-1]["nama"], "months" => $months]);
+    }
+  
     function chiefSewing($year = 0, $month = 0) {
         $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
 

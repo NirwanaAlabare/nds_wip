@@ -104,6 +104,7 @@
                         <th>Rak</th>
                         <th>Trolley</th>
                         <th>Sewing Line</th>
+                        <th>Tanggal Loading</th>
                         <th>Qty</th>
                         <th>Updated At</th>
                     </tr>

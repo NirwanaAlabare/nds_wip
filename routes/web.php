@@ -536,6 +536,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-cutting-reject');
         Route::get('/edit/{id?}', 'edit')->name('edit-cutting-reject');
         Route::put('/update', 'update')->name('update-cutting-reject');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-reject');
+
+        // add-on
         Route::get('/stock', 'stock')->name('stock-cutting-reject');
         Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-reject');
 
@@ -927,6 +930,7 @@ Route::middleware('auth')->group(function () {
         Route::post('store', 'store')->name('store-master-line');
         Route::put('update', 'update')->name('update-master-line');
         Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-line');
+        Route::post('export', 'exportExcel')->name('export-master-line');
 
         Route::post('update-image', 'updateImage')->name('update-master-line-image');
     });
@@ -1084,6 +1088,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
         Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
+        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from");
 
         Route::get('/defect-map', 'defectMap')->name("defect-map");
         Route::get('/defect-map/data', 'defectMapData')->name("defect-map-data");
@@ -1935,6 +1940,8 @@ Route::get('/dashboard-track', [DashboardController::class, 'track'])->middlewar
 Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
 Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware('auth')->name('dashboard-wip');
 Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
+// Factory
+Route::get('/dashboard-wip/factory-performance/{year?}/{month?}', [DashboardWipLineController::class, 'factoryPerformance'])->name('dashboard-factory-performance');
 // Chief
 Route::get('/dashboard-wip/chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'chiefSewing'])->name('dashboard-chief-sewing');
 Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::class, 'chiefSewingData'])->name('dashboard-chief-sewing-data');
@@ -1991,7 +1998,7 @@ Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
 
 // Accounting
-Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:admin')->group(function () {
+Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
     // get worksheet
     Route::get('/', 'index')->name('accounting');
     Route::get('/update-data-ceisa', 'UpdateData')->name('update-data-ceisa');
