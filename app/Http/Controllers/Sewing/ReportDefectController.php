@@ -602,7 +602,7 @@ class ReportDefectController extends Controller
             //     ";
             // }
 
-        $defectRateQuery = "";
+        $defectReportQuery = "";
         if (in_array('defect_rate', $types)) {
             $defectRateQuery = "
                 SELECT
@@ -620,151 +620,178 @@ class ReportDefectController extends Controller
                     output.mins_prod,
                     output.mins_avail,
                     output.cumulative_mins_avail,
-                    coalesce(output.rft/coalesce(coalesce(output.output, 0)+coalesce(output.defect, 0)+coalesce(output.reject, 0),1)*100, 0) rft_rate,
-                    coalesce(output.all_defect/coalesce(coalesce(output.output, 0)+coalesce(output.defect, 0)+coalesce(output.reject, 0),1)*100, 0) defect_rate,
-                    coalesce(output.reject/coalesce(coalesce(output.output, 0)+coalesce(output.all_defect, 0)+coalesce(output.reject, 0),1)*100, 0) reject_rate,
-                    output.mins_prod/output.mins_avail*100 eff,
-                    output.mins_prod/output.cumulative_mins_avail*100 cumulative_eff
+
+                    -- Quality Rates
+                    ROUND(COALESCE(output.rft / NULLIF(output.total_units, 0), 0) * 100, 2) AS rft_rate,
+                    ROUND(COALESCE(output.all_defect / NULLIF(output.total_units, 0), 0) * 100, 2) AS defect_rate,
+                    ROUND(COALESCE(output.reject / NULLIF(output.reject_denominator, 0), 0) * 100, 2) AS reject_rate,
+
+                    -- Efficiency Metrics
+                    ROUND(COALESCE(output.mins_prod / NULLIF(output.mins_avail, 0), 0) * 100, 2) AS eff,
+                    ROUND(COALESCE(output.mins_prod / NULLIF(output.cumulative_mins_avail, 0), 0) * 100, 2) AS cumulative_eff
+
                 FROM (
+                    -- Aggregated data source
                     SELECT
-                        output.tgl_output,
-                        output.tgl_plan,
-                        group_concat(distinct output.sewing_line) sewing_line,
-                        group_concat(distinct output.ws) ws,
-                        group_concat(distinct output.style) style,
-                        group_concat(distinct output.buyer) buyer,
-                        group_concat(distinct output.color) color,
-                        SUM(COALESCE(rft, 0)) rft,
-                        SUM(COALESCE(all_defect, 0)) all_defect,
-                        SUM(COALESCE(defect, 0)) defect,
-                        SUM(COALESCE(rework, 0)) rework,
-                        SUM(COALESCE(reject, 0)) reject,
-                        SUM(COALESCE(output, 0)) output,
-                        SUM(COALESCE(output * output.smv, 0)) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
-                    FROM
+                        DATE(a.tgl_output) AS tgl_output,
+                        GROUP_CONCAT(DISTINCT a.sewing_line) AS sewing_line,
+                        GROUP_CONCAT(DISTINCT a.ws) AS ws,
+                        GROUP_CONCAT(DISTINCT a.style) AS style,
+                        GROUP_CONCAT(DISTINCT a.buyer) AS buyer,
+                        GROUP_CONCAT(DISTINCT a.color) AS color,
+
+                        SUM(a.output) AS output,
+                        SUM(a.rft) AS rft,
+                        SUM(a.defect) AS defect,
+                        SUM(a.rework) AS rework,
+                        SUM(a.reject) AS reject,
+                        SUM(a.all_defect) AS all_defect,
+
+                        SUM(a.output * a.smv) AS mins_prod,
+
+                        -- Available time in minutes for the day
+                        SUM(CASE WHEN a.tgl_output = a.tgl_plan THEN a.man_power * a.jam_kerja * 60 ELSE 0 END) AS mins_avail,
+
+                        -- Time elapsed since start of the shift (07:00) for cumulative time
+                        MAX(CASE WHEN a.tgl_output = a.tgl_plan THEN a.man_power ELSE 0 END) *
                         (
+                            CASE
+                                WHEN CAST(MAX(a.last_update) AS TIME) <= '13:00:00' THEN
+                                    TIME_TO_SEC(TIMEDIFF(CAST(MAX(a.last_update) AS TIME), '07:00:00')) / 60
+                                ELSE
+                                    (TIME_TO_SEC(TIMEDIFF(CAST(MAX(a.last_update) AS TIME), '07:00:00')) / 60) - 60
+                            END
+                        ) AS cumulative_mins_avail,
+
+                        -- Denominators for safe division
+                        SUM(a.output + a.defect + a.reject) AS total_units,
+                        SUM(a.output + a.all_defect + a.reject) AS reject_denominator
+
+                    FROM (
+                        -- Source unioned data (output, defect, reject)
+                        SELECT
+                            tgl_output,
+                            tgl_plan,
+                            sewing_line,
+                            smv,
+                            man_power,
+                            jam_kerja,
+                            ws,
+                            style,
+                            buyer,
+                            color,
+                            SUM(output) AS output,
+                            SUM(rft) AS rft,
+                            SUM(defect) AS defect,
+                            SUM(rework) AS rework,
+                            SUM(reject) AS reject,
+                            SUM(all_defect) AS all_defect,
+                            MAX(last_update) AS last_update
+                        FROM (
+                            -- OUTPUT
                             SELECT
-                                DATE( rfts.updated_at ) tgl_output,
-                                COUNT( rfts.id ) output,
-                                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
-                                MAX(rfts.updated_at) last_update,
-                                master_plan.id master_plan_id,
-                                master_plan.tgl_plan,
-                                master_plan.sewing_line,
-                                master_plan.man_power,
-                                master_plan.jam_kerja,
-                                master_plan.smv,
-                                mastersupplier.Supplier buyer,
-                                act_costing.kpno ws,
-                                act_costing.styleno style,
-                                so_det.color
-                            FROM
-                                output_rfts".$request->department." rfts
-                                inner join master_plan on master_plan.id = rfts.master_plan_id
-                                left join so_det on so_det.id = rfts.so_det_id
-                                left join so on so.id = so_det.id_so
-                                left join act_costing on act_costing.id = so.id_cost
-                                left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
-                            where
-                                ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((rfts.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (rfts.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'")."
-                                AND master_plan.cancel = 'N'
-                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
-                                ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
-                                ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
-                                ".($color ? "AND so_det.color in (".$color.")" : "")."
-                                ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
-                            GROUP BY
-                                master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at), so_det.color
-                            order by
-                                tgl_output,
-                                sewing_line
-                        ) output
-                        left join
-                        (
+                                DATE(r.updated_at) AS tgl_output,
+                                mp.tgl_plan,
+                                mp.sewing_line, mp.smv, mp.man_power, mp.jam_kerja,
+                                ac.kpno AS ws,
+                                ac.styleno AS style,
+                                ms.Supplier AS buyer,
+                                sd.color,
+                                COUNT(r.id) AS output,
+                                SUM(CASE WHEN r.status = 'NORMAL' THEN 1 ELSE 0 END) AS rft,
+                                0 AS defect,
+                                0 AS rework,
+                                0 AS reject,
+                                0 AS all_defect,
+                                MAX(r.updated_at) AS last_update
+                            FROM output_rfts".$request->department." r
+                            JOIN master_plan mp ON mp.id = r.master_plan_id
+                            LEFT JOIN so_det sd ON sd.id = r.so_det_id
+                            LEFT JOIN so s ON s.id = sd.id_so
+                            LEFT JOIN act_costing ac ON ac.id = s.id_cost
+                            LEFT JOIN mastersupplier ms ON ms.Id_Supplier = ac.id_buyer
+                            WHERE
+                                ".($request->base_ws ? "ac.kpno = '".$request->base_ws."'" : "((r.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (r.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND mp.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND mp.tgl_plan <= '".$dateTo."'")."
+                                AND mp.cancel = 'N'
+                                ".($buyer ? "AND ms.Supplier in (".$buyer.")" : "")."
+                                ".($ws ? "AND ac.kpno in (".$ws.")" : "")."
+                                ".($style ? "AND ac.styleno in (".$style.")" : "")."
+                                ".($color ? "AND sd.color in (".$color.")" : "")."
+                                ".($sewingLine ? "AND mp.sewing_line in (".$sewingLine.")" : "")."
+                            GROUP BY mp.id, mp.tgl_plan, DATE(r.updated_at), sd.color
+
+                            UNION ALL
+
+                            -- DEFECT
                             SELECT
-                                DATE( defects.updated_at ) tgl_defect,
-                                SUM( CASE WHEN defects.defect_status = 'defect' THEN 1 ELSE 0 END ) defect,
-                                SUM( CASE WHEN defects.defect_status = 'reworked' THEN 1 ELSE 0 END ) rework,
-                                COUNT( defects.id ) all_defect,
-                                MAX(defects.updated_at) last_defect,
-                                sewing_line sewing_line_defect,
-                                master_plan.id master_plan_id_defect,
-                                master_plan.tgl_plan tgl_plan_defect,
-                                DATE(defects.updated_at) tgl_output_defect,
-                                so_det.color
-                            FROM
-                                output_defects".$request->department." defects
-                                inner join master_plan on master_plan.id = defects.master_plan_id
-                                left join so_det on so_det.id = defects.so_det_id
-                                left join so on so.id = so_det.id_so
-                                left join act_costing on act_costing.id = so.id_cost
-                                left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
-                            where
-                                ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'")."
-                                AND master_plan.cancel = 'N'
-                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
-                                ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
-                                ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
-                                ".($color ? "AND so_det.color in (".$color.")" : "")."
-                                ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
-                            GROUP BY
-                                master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at), so_det.color
-                            order by
-                                tgl_defect,
-                                sewing_line
-                        ) defect on defect.master_plan_id_defect = output.master_plan_id and defect.tgl_plan_defect = output.tgl_plan and defect.tgl_defect = output.tgl_output and defect.color = output.color
-                        left join
-                        (
+                                DATE(d.updated_at) AS tgl_output,
+                                mp.tgl_plan,
+                                mp.sewing_line, mp.smv, mp.man_power, mp.jam_kerja,
+                                ac.kpno AS ws,
+                                ac.styleno AS style,
+                                ms.Supplier AS buyer,
+                                sd.color,
+                                0 AS output,
+                                0 AS rft,
+                                SUM(CASE WHEN d.defect_status = 'defect' THEN 1 ELSE 0 END) AS defect,
+                                SUM(CASE WHEN d.defect_status = 'reworked' THEN 1 ELSE 0 END) AS rework,
+                                0 AS reject,
+                                COUNT(d.id) AS all_defect,
+                                MAX(d.updated_at) AS last_update
+                            FROM output_defects".$request->department." d
+                            JOIN master_plan mp ON mp.id = d.master_plan_id
+                            LEFT JOIN so_det sd ON sd.id = d.so_det_id
+                            LEFT JOIN so s ON s.id = sd.id_so
+                            LEFT JOIN act_costing ac ON ac.id = s.id_cost
+                            LEFT JOIN mastersupplier ms ON ms.Id_Supplier = ac.id_buyer
+                            WHERE
+                                ".($request->base_ws ? "ac.kpno = '".$request->base_ws."'" : "((d.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (d.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND mp.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND mp.tgl_plan <= '".$dateTo."'")."
+                                AND mp.cancel = 'N'
+                                ".($buyer ? "AND ms.Supplier in (".$buyer.")" : "")."
+                                ".($ws ? "AND ac.kpno in (".$ws.")" : "")."
+                                ".($style ? "AND ac.styleno in (".$style.")" : "")."
+                                ".($color ? "AND sd.color in (".$color.")" : "")."
+                                ".($sewingLine ? "AND mp.sewing_line in (".$sewingLine.")" : "")."
+                            GROUP BY mp.id, mp.tgl_plan, DATE(d.updated_at), sd.color
+
+                            UNION ALL
+
+                            -- REJECT
                             SELECT
-                                DATE( rejects.updated_at ) tgl_reject,
-                                COUNT( rejects.id ) reject,
-                                MAX(rejects.updated_at) last_reject,
-                                sewing_line sewing_line_reject,
-                                master_plan.id master_plan_id_reject,
-                                master_plan.tgl_plan tgl_plan_reject,
-                                DATE(rejects.updated_at) tgl_output_reject,
-                                so_det.color
-                            FROM
-                                output_rejects".$request->department." rejects
-                                inner join master_plan on master_plan.id = rejects.master_plan_id
-                                left join so_det on so_det.id = rejects.so_det_id
-                                left join so on so.id = so_det.id_so
-                                left join act_costing on act_costing.id = so.id_cost
-                                left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
-                            where
-                                ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((rejects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (rejects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND master_plan.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND master_plan.tgl_plan <= '".$dateTo."'")."
-                                AND master_plan.cancel = 'N'
-                                ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
-                                ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
-                                ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
-                                ".($color ? "AND so_det.color in (".$color.")" : "")."
-                                ".($sewingLine ? "AND master_plan.sewing_line in (".$sewingLine.")" : "")."
-                            GROUP BY
-                                master_plan.id, master_plan.tgl_plan, DATE(rejects.updated_at), so_det.color
-                            order by
-                                tgl_reject,
-                                sewing_line
-                        ) reject on reject.master_plan_id_reject = output.master_plan_id and reject.tgl_plan_reject = output.tgl_plan and reject.tgl_reject = output.tgl_output and reject.color = output.color
-                    GROUP BY
-                        output.tgl_output,
-                        output.style,
-                        output.ws,
-                        output.color,
-                        output.sewing_line
-                ) output
-                order by
-                    output.tgl_output,
-                    output.style,
-                    output.ws,
-                    output.color,
-                    output.sewing_line
+                                DATE(rj.updated_at) AS tgl_output,
+                                mp.tgl_plan,
+                                mp.sewing_line, mp.smv, mp.man_power, mp.jam_kerja,
+                                ac.kpno AS ws,
+                                ac.styleno AS style,
+                                ms.Supplier AS buyer,
+                                sd.color,
+                                0 AS output,
+                                0 AS rft,
+                                0 AS defect,
+                                0 AS rework,
+                                COUNT(rj.id) AS reject,
+                                0 AS all_defect,
+                                MAX(rj.updated_at) AS last_update
+                            FROM output_rejects".$request->department." rj
+                            JOIN master_plan mp ON mp.id = rj.master_plan_id
+                            LEFT JOIN so_det sd ON sd.id = rj.so_det_id
+                            LEFT JOIN so s ON s.id = sd.id_so
+                            LEFT JOIN act_costing ac ON ac.id = s.id_cost
+                            LEFT JOIN mastersupplier ms ON ms.Id_Supplier = ac.id_buyer
+                            WHERE
+                                ".($request->base_ws ? "ac.kpno = '".$request->base_ws."'" : "((rj.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (rj.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) AND mp.tgl_plan >= DATE_SUB('".$dateFrom."', INTERVAL 30 DAY) AND mp.tgl_plan <= '".$dateTo."'")."
+                                AND mp.cancel = 'N'
+                                ".($buyer ? "AND ms.Supplier in (".$buyer.")" : "")."
+                                ".($ws ? "AND ac.kpno in (".$ws.")" : "")."
+                                ".($style ? "AND ac.styleno in (".$style.")" : "")."
+                                ".($color ? "AND sd.color in (".$color.")" : "")."
+                                ".($sewingLine ? "AND mp.sewing_line in (".$sewingLine.")" : "")."
+                            GROUP BY mp.id, mp.tgl_plan, DATE(rj.updated_at), sd.color
+                        ) AS all_data
+                        GROUP BY tgl_output, tgl_plan, sewing_line, ws, style, buyer, color
+                    ) AS a
+                    GROUP BY a.tgl_output, a.style, a.ws, a.color, a.sewing_line
+                ) AS output
             ";
         }
 

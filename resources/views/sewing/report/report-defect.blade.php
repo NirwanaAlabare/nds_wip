@@ -497,6 +497,9 @@
 
                 document.getElementById('loading').classList.add('d-none');
 
+                if (response && response.dateTo && response.dateTo !== $("#dateTo").val()) {
+                    $("#dateTo").val(response.dateTo).trigger('change');
+                }
                 if (response && response.dateFrom && response.dateFrom !== $("#dateFrom").val()) {
                     $("#dateFrom").val(response.dateFrom).trigger('change');
                 }
