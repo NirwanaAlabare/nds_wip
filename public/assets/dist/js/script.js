@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Datepicker JQuery UI
     $('input[type="date"]').each(function () {
         const original = $(this);
+
+        if (original.hasClass('skip-datepicker') || original.is('[wire\\:model], [wire\\:model\\.defer], [wire\\:model\\.lazy]')) {
+            return;
+        }
+
         const id = original.attr('id');
         const value = original.val();
 
@@ -53,9 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const date = visible.datepicker('getDate');
             if (date instanceof Date && !isNaN(date)) {
                 const formatted = $.datepicker.formatDate('yy-mm-dd', date);
-                original.val(formatted).trigger('change');
+                original.val(formatted).trigger('input').trigger('change');
             } else {
-                original.val('');
+                original.val('').trigger('input').trigger('change');
             }
 
             visible.blur();
