@@ -23,6 +23,7 @@ use App\Models\ModifySizeQty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -210,7 +211,7 @@ class PartController extends Controller
 
         $masterSecondaryOptions = "<option value=''>Pilih Proses</option>";
         foreach ($masterSecondary as $secondary) {
-            $masterSecondaryOptions .= "<option value='".$secondary->id."' data-tujuan='".$secondary->id_tujuan."'>".$secondary->proses."</option>";
+            $masterSecondaryOptions .= "<option value='".$secondary->id."' data-tujuan='".$secondary->id_tujuan."'>".$secondary->proses." / ".$secondary->tujuan."</option>";
         }
 
         return $masterSecondaryOptions;

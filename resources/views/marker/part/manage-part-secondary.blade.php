@@ -201,8 +201,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Proses</label>
-                            <select class="form-select select2bs4" name="edit_proses" id="edit_proses">
-                            </select>
+                            <select class="form-select select2bs4" name="edit_proses" id="edit_proses"></select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -246,7 +245,7 @@
             $("#txtcons").val('').trigger('change');
         }
 
-        function getproses(element, basedOn) {
+        async function getproses(element, basedOn) {
             let cbotuj = basedOn ? basedOn.value : document.form.cbotuj.value;
             let html = $.ajax({
                 type: "GET",
@@ -256,8 +255,6 @@
                 },
                 async: false
             }).responseText;
-
-            console.log(html != "");
 
             if (html != "") {
                 if (element) {

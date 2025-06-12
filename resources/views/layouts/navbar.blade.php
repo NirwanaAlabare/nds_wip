@@ -67,7 +67,7 @@
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ preg_match('/part|marker/', $routeName) > 0 ? 'active' : '' }}">Process</a>
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ preg_match('/^(part|marker)$/', $routeName) > 0 ? 'active' : '' }}">Process</a>
                             <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('part') }}" class="dropdown-item {{ $routeName == 'part' ? 'active' : '' }}">

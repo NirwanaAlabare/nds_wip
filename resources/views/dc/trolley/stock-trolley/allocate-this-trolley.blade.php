@@ -102,7 +102,7 @@
             </div>
         </div>
         <div class="card-body table-responsive" style="display: block">
-            <table class="table table-bordered table" id="datatable-trolley-stock">
+            <table class="table table-bordered table" id="trolley-stock-datatable">
                 <thead>
                     <tr>
                         <th>Act</th>
@@ -172,7 +172,7 @@
 
         var trolleyId = document.getElementById('trolley_id').value;
 
-        let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable({
+        let trolleyStockDatatable = $("#trolley-stock-datatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
@@ -244,19 +244,19 @@
             ]
         });
 
-        function datatableTrolleyStockReload() {
-            datatableTrolleyStock.ajax.reload();
+        function trolleyStockDatatableReload() {
+            trolleyStockDatatable.ajax.reload();
         }
 
-        $('#datatable-trolley-stock thead tr').clone(true).appendTo('#datatable-trolley-stock thead');
-        $('#datatable-trolley-stock thead tr:eq(1) th').each(function(i) {
+        $('#trolley-stock-datatable thead tr').clone(true).appendTo('#trolley-stock-datatable thead');
+        $('#trolley-stock-datatable thead tr:eq(1) th').each(function(i) {
             if (i != 0) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
                 $('input', this).on('keyup change', function() {
-                    if (datatableTrolleyStock.column(i).search() !== this.value) {
-                        datatableTrolleyStock
+                    if (trolleyStockDatatable.column(i).search() !== this.value) {
+                        trolleyStockDatatable
                             .column(i)
                             .search(this.value)
                             .draw();

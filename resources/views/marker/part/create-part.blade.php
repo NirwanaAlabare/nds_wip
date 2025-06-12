@@ -115,7 +115,7 @@
                                 <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0" data-index="0" onchange="changeTujuan(this)">
                                     <option value="">Pilih Proses</option>
                                     @foreach ($masterSecondary as $secondary)
-                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses }}</option>
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
                                     @endforeach
                                 </select>
                             </div>
