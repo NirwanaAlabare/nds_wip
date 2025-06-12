@@ -34,7 +34,7 @@
                 <div class="d-flex gap-1">
                     <button class="btn btn-sb fw-bold" onclick="updateImage()"><i class="fa-solid fa-images"></i> UPDATE</a>
                     <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#storeMasterLineModal"><i class="fa fa-plus"></i> NEW</a>
-                    <button class="btn btn-success fw-bold" onclick="exportExcel()"><i class="fa fa-file-excel"></i></a>
+                    <button class="btn btn-rft fw-bold" onclick="exportExcel()"><i class="fa fa-file-excel"></i></a>
                 </div>
             </div>
             <table id="datatable" class="table table-bordered w-100">

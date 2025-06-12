@@ -6,7 +6,7 @@
         <th style="font-weight: 800;">Worksheet : {{ $ws }}</th>
     </tr>
     <tr>
-        <th style="font-weight: 800;">Style : {{ $ws ? $defectRates->groupBy('style')->keys()->implode(', ') : $style }}
+        <th style="font-weight: 800;">Style : {{ $ws && $ws != "All WS" ? $defectRates->groupBy('style')->keys()->implode(', ') : $style }}
     </tr>
     <tr>
         <th style="font-weight: 800;">Color : {{ $color }}</th>
