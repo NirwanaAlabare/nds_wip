@@ -95,7 +95,6 @@
                 </div>
                 <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 <button class="btn btn-primary" onclick="showDefectMap()"><i class="fa fa-search"></i></button>
-                <button class="btn btn-danger" onclick="exportToPDF()"><i class="fa fa-file-pdf"></i></button>
                 {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button> --}}
             </div>
             <div class="d-flex justify-content-center align-items-center gap-3 my-3">
@@ -105,6 +104,7 @@
                         <option value="_packing">PACKING-LINE</option>
                     </select>
                 </div>
+                <button class="btn btn-danger" onclick="exportToPDF()"><i class="fa fa-file-pdf"></i></button>
             </div>
             <div class="row g-3 mt-3" id="defect-map-images">
                 <div class="col-md-8">
