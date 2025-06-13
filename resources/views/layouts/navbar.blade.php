@@ -1017,6 +1017,12 @@
                                     <i class="fas fa-tools fa-sm"></i> Mutasi Mesin
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('so_mesin') }}"
+                                    class="dropdown-item {{ $subPage == 'create_so_mesin' ? 'active' : '' }}">
+                                    <i class="fas fa-list fa-sm"></i> SO Mesin
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -1025,6 +1031,12 @@
                             <li>
                                 <a href="{{ route('master-mut-mesin') }}" class="dropdown-item {{ $subPage == 'master-mut-mesin' ? 'active' : '' }}">
                                     <i class="fas fa-cogs fa-sm"></i> Master Mesin
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('master_mesin_lokasi') }}"
+                                    class="dropdown-item {{ $subPage == 'master_mesin_lokasi' ? 'active' : '' }}">
+                                    <i class="fas fa-location-arrow fa-sm"></i> Master Lokasi Mesin
                                 </a>
                             </li>
                         </ul>

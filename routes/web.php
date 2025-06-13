@@ -106,6 +106,7 @@ use App\Http\Controllers\MutLokasiController;
 use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\MutasiMesinController;
+use App\Http\Controllers\MutasiMesinStockOpnameController;
 use App\Http\Controllers\MutasiMesinMasterController;
 use App\Http\Controllers\MutasiMesinLaporanController;
 use App\Http\Controllers\ReqMaterialController;
@@ -1175,6 +1176,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
         Route::post('/webcam_capture', 'webcam_capture')->name('webcam_capture');
     });
+    Route::controller(MutasiMesinStockOpnameController::class)->prefix("mut-mesin")->middleware("role:machine")->group(function () {
+        Route::get('/so_mesin', 'so_mesin')->name('so_mesin');
+        Route::get('/export_excel_so_mesin', 'export_excel_so_mesin')->name('export_excel_so_mesin');
+        Route::get('/so_mesin_detail_modal', 'so_mesin_detail_modal')->name('so_mesin_detail_modal');
+        Route::get('/create_so_mesin', 'create_so_mesin')->name('create_so_mesin');
+        Route::get('/getdata_so_mesin', 'getdata_so_mesin')->name('getdata_so_mesin');
+        Route::post('/store_so_mesin', 'store_so_mesin')->name('store_so_mesin');
+        Route::post('/update_ket_so_mesin', 'update_ket_so_mesin')->name('update_ket_so_mesin');
+        Route::post('/so_mesin_delete', 'so_mesin_delete')->name('so_mesin_delete');
+    });
+
     // Mutasi Mesin Master
     Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->middleware("role:machine")->group(function () {
         Route::get('/', 'index')->name('master-mut-mesin');
@@ -1183,7 +1195,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/hapus_data_mesin', 'hapus_data_mesin')->name('hapus-data-mesin');
         Route::get('/getdata_mesin', 'getdata_mesin')->name('getdata_mesin');
         Route::post('/edit_master_mut_mesin', 'edit_master_mut_mesin')->name('edit-master-mut-mesin');
+        Route::get('/master_mesin_lokasi', 'master_mesin_lokasi')->name('master_mesin_lokasi');
+        Route::post('/store_master_lokasi_mesin', 'store_master_lokasi_mesin')->name('store_master_lokasi_mesin');
     });
+
     // Laporan Mesin
     Route::controller(MutasiMesinLaporanController::class)->prefix("master-mut-mesin")->middleware("role:machine")->group(function () {
         Route::get('/lap_stok_mesin', 'lap_stok_mesin')->name('lap_stok_mesin');
@@ -1922,6 +1937,9 @@ Route::middleware('auth')->group(function () {
     Route::controller(Marketing_CostingController::class)->prefix("master-costing")->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('master-costing');
         Route::get('/getprod_item_costing', 'getprod_item_costing')->name('getprod_item_costing');
+        Route::post('/store_master_costing_production', 'store_master_costing_production')->name('store_master_costing_production');
+        Route::get('/edit_costing/{id?}', 'edit_costing')->name('edit_costing');
+        Route::post('/update_header_master_costing', 'update_header_master_costing')->name('update_header_master_costing');
     });
 });
 
