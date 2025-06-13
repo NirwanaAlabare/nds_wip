@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PPICMasterSo;
 use App\Models\SignalBit\ActCosting;
+use App\Models\SignalBit\SoDet;
 use PDF;
 
 class BarcodePackingController extends Controller
@@ -25,7 +26,7 @@ class BarcodePackingController extends Controller
     }
 
     public function getBarcode(Request $request) {
-        $barcode = PPICMasterSo::where("id_so_det", $request->so_det_id)->first();
+        $barcode = SoDet::where("id", $request->so_det_id)->first();
 
         return $barcode;
     }
@@ -33,7 +34,7 @@ class BarcodePackingController extends Controller
     public function generateBarcode($barcode)
     {
         if ($barcode) {
-            $masterSo = PPICMasterSo::select("ppic_master_so.barcode", "master_sb_ws.ws", "master_sb_ws.styleno", "master_sb_ws.color", "master_sb_ws.size", "master_sb_ws.dest")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "ppic_master_so.id_so_det")->where("ppic_master_so.barcode", $barcode)->first();
+            $masterSo = SoDet::select("so_det.id", "act_costing.kpno", "act_costing.styleno", "so_det.color", "so_det.size", "so_det.dest")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("so_det.id", $barcode)->first();
 
             $pdf = PDF::loadView('ppic.barcode-packing.export.barcode-packing-pdf', ['masterSo' => $masterSo])->setPaper('A7', 'landscape');
 
@@ -48,7 +49,7 @@ class BarcodePackingController extends Controller
         $barcode = $request->barcode;
 
         if ($barcode) {
-            $masterSo = PPICMasterSo::select("ppic_master_so.barcode", "master_sb_ws.ws", "master_sb_ws.styleno", "master_sb_ws.color", "master_sb_ws.size", "master_sb_ws.dest")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "ppic_master_so.id_so_det")->where("ppic_master_so.barcode", $barcode)->first();
+            $masterSo = SoDet::select("so_det.id", "act_costing.kpno", "act_costing.styleno", "so_det.color", "so_det.size", "so_det.dest")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("so_det.id", $barcode)->first();
 
             $pdf = PDF::loadView('ppic.barcode-packing.export.barcode-packing-pdf', ['masterSo' => $masterSo])->setPaper('A7', 'landscape');
 

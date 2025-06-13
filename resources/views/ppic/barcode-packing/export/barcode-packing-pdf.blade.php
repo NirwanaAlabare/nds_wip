@@ -41,7 +41,7 @@
         .label-info {
             text-align: center;
             line-height: 1.5;
-            padding: 20px;
+            padding: 10px;
         }
 
         .label-info table {
@@ -62,15 +62,15 @@
 <body>
     <div class="label-container">
         <div class="barcode">
-            <img src="data:image/png;base64,{{ DNS1D::getBarcodePNG($masterSo->barcode, 'C128') }}" alt="Barcode">
+            <img src="data:image/png;base64,{{ DNS1D::getBarcodePNG($masterSo->id, 'C128') }}" alt="Barcode">
         </div>
-        <div class="barcode-number">{{ $masterSo->barcode }}</div>
+        <div class="barcode-number">{{ $masterSo->id }}</div>
         <div class="label-info">
             <table>
                 <tr>
                     <td>WS</td>
                     <td><b>:</b></td>
-                    <td>{{ $masterSo->ws }}</td>
+                    <td>{{ $masterSo->kpno }}</td>
                 </tr>
                 <tr>
                     <td>STYLE</td>

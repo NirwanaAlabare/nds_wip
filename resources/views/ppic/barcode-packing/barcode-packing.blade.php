@@ -221,7 +221,7 @@
                         document.getElementById("loading").classList.add("d-none");
 
                         if (response) {
-                            $('#barcode').val(response.barcode);
+                            $('#barcode').val(response.id);
                         } else {
                             $('#barcode').val('');
 
