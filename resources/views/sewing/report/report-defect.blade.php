@@ -218,6 +218,7 @@
                     <select class="select2bs4report" name="report_type[]" id="report_type" multiple="multiple">
                         <option value="defect_rate">Defect Rate</option>
                         <option value="top_defect">Top Defect</option>
+                        <option value="top_reject">Top Reject</option>
                     </select>
                 </div>
                 <div class="modal-footer">
@@ -536,6 +537,10 @@
                         divider = 230;
                     } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
                         divider = 130;
+                    }
+
+                    if ($("#report_type").val().includes("top_reject")) {
+                        divider -= 75;
                     }
 
                     let times = Number(document.getElementById("total_data").innerText)/divider;
