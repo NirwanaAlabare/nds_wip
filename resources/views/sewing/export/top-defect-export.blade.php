@@ -23,6 +23,7 @@
                 'sewing_line' => $group->first()->sewing_line,
                 'style' => $group->first()->style,
                 'color' => $group->first()->color,
+                'size' => $group->first()->size,
                 'defect_type' => $group->first()->defect_type,
                 'total_defect' => $group->sum('total_defect')
             ];
@@ -40,6 +41,7 @@
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Line</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Style</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Color</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Size</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Defect Type</th>
         <?php
             if ( $topDefect && $topDefect->count() > 0 ) {
@@ -58,6 +60,7 @@
                             <td style="border: 1px solid #000;">{{ $lineStyle['sewing_line'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['style'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['color'] }}</td>
+                            <td style="border: 1px solid #000;">{{ $lineStyle['size'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['defect_type'] }}</td>
                             @foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                                 @php
@@ -82,7 +85,7 @@
             }
         ?>
     <tr>
-        <th style="font-weight: 800;text-align: center;border: 1px solid #000;" colspan="4">TOTAL</th>
+        <th style="font-weight: 800;text-align: center;border: 1px solid #000;" colspan="5">TOTAL</th>
         @foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
             @php
                 $thisDefect = $topDefect->where('tanggal', $dailyDate->first()->tanggal)->sum("total_defect");
@@ -98,7 +101,7 @@
 
     <tr></tr>
 
-    @php
+    {{-- @php
         $lineGroups = $topDefect->groupBy("line_grouping");
 
         $lineGroup = $lineGroups->map(function ($group) {
@@ -113,9 +116,9 @@
         $sortedLineGroup = $lineGroup->sortBy([
             ['total_defect', 'desc'],
         ])->values();
-    @endphp
+    @endphp --}}
     {{-- Line --}}
-    <tr>
+    {{-- <tr>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Line</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Defect Type</th>
         <?php
@@ -159,9 +162,9 @@
             }
         ?>
     <tr>
-    </tr>
+    </tr> --}}
 
-    @php
+    {{-- @php
         $styleGroup = $topDefect->groupBy("style_grouping");
 
         $styleGroup = $styleGroup->map(function ($group) {
@@ -176,9 +179,9 @@
         $sortedStyleGroup = $styleGroup->sortBy([
             ['total_defect', 'desc'],
         ])->values();
-    @endphp
+    @endphp --}}
     {{-- Style --}}
-    <tr>
+    {{-- <tr>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Style</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Defect Type</th>
         <?php
@@ -222,5 +225,5 @@
             }
         ?>
     <tr>
-    </tr>
+    </tr> --}}
 </table>
