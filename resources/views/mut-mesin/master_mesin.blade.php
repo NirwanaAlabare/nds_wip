@@ -180,6 +180,7 @@
                 <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead>
                         <tr style='text-align:left; vertical-align:middle'>
+                            <th>ID</th>
                             <th>Kode QR</th>
                             <th>Jenis</th>
                             <th>Brand</th>
@@ -273,6 +274,9 @@
                 },
             },
             columns: [{
+                    data: 'id'
+
+                }, {
                     data: 'id_qr'
 
                 }, {
@@ -295,7 +299,7 @@
                 },
             ],
             columnDefs: [{
-                    targets: [7],
+                    targets: [8],
                     render: (data, type, row, meta) => {
                         if (row.jml == '0') {
                             return `
@@ -304,7 +308,7 @@
                 <a class='btn btn-warning btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalEdit"
                 onclick="show_data_edit_h('` + row.id_qr + `');"><i class='fas fa-edit'></i></a>
-                    <a class='btn btn-danger btn-sm' data-bs-toggle='tooltip' onclick="hapus('` + row.id_qr + `')"><i class='fas fa-trash'></i></a>
+                    <a class='btn btn-danger btn-sm' data-bs-toggle='tooltip' onclick="hapus('` + row.id + `')"><i class='fas fa-trash'></i></a>
                     </div>
                         `;
                         } else {
@@ -366,23 +370,43 @@
             });
         }
 
-        function hapus(id_qr) {
-            $.ajax({
-                type: "post",
-                url: '{{ route('hapus-data-mesin') }}',
-                data: {
-                    id_qr: id_qr
-                },
-                success: async function(res) {
-                    iziToast.success({
-                        message: 'Data Berhasil Dihapus',
-                        position: 'topCenter'
+        function hapus(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "post",
+                        url: '{{ route('hapus-data-mesin') }}',
+                        data: {
+                            id: id,
+                            _token: '{{ csrf_token() }}' // Add this if you're using Laravel and CSRF protection
+                        },
+                        success: function(res) {
+                            iziToast.success({
+                                message: 'Data Berhasil Dihapus',
+                                position: 'topCenter'
+                            });
+                            $('#datatable').DataTable().ajax.reload();
+                        },
+                        error: function(xhr) {
+                            iziToast.error({
+                                message: 'Gagal menghapus data.',
+                                position: 'topCenter'
+                            });
+                        }
                     });
-                    $('#datatable').DataTable().ajax.reload();
                 }
             });
-
         }
+
 
         function show_data_edit_h(id_qr) {
             $("#uploadphoto").val('');

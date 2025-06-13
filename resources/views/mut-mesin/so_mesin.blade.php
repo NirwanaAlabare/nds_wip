@@ -69,13 +69,11 @@
             <div class="modal-content">
                 <div class="modal-header bg-sb">
                     <h5 class="modal-title fw-bold" id="modalTitle">Detail Stock Opname</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
-                        <table id="datatable-detail-so" class="table table-bordered table-hover w-100 text-nowrap">
+                        <table id="datatable-detail-so" class="table table-bordered table-hover w-100">
                             <thead>
                                 <tr class="text-center">
                                     <th>No</th>
@@ -365,7 +363,7 @@
                 datatableDetail = $("#datatable-detail-so").DataTable({
                     processing: true,
                     serverSide: true,
-                    searching: false,
+                    searching: true,
                     paging: false,
                     ordering: false,
                     ajax: {

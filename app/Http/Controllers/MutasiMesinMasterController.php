@@ -66,10 +66,10 @@ class MutasiMesinMasterController extends Controller
 
     public function hapus_data_mesin(Request $request)
     {
-        $id_qr = $request->id_qr;
+        $id = $request->id;
 
         $del =  DB::delete("
-        delete from master_mesin where id_qr = '$id_qr'");
+        delete from master_mesin where id = '$id'");
     }
 
 
