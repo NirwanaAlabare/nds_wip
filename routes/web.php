@@ -137,6 +137,7 @@ use App\Http\Controllers\PPIC_MonitoringMaterialController;
 use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
 use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\ReportHourlyController;
+use App\Http\Controllers\BarcodePackingController;
 // PACKING
 use App\Http\Controllers\PackingDashboardController;
 use App\Http\Controllers\PackingTransferGarmentController;
@@ -146,7 +147,6 @@ use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 use App\Http\Controllers\PackingPackingListController;
 use App\Http\Controllers\PackingReportController;
-
 
 // FINISH GOOD
 use App\Http\Controllers\FinishGoodDashboardController;
@@ -1810,6 +1810,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/ppic_monitoring_material_sum', 'ppic_monitoring_material_sum')->name('ppic_monitoring_material_sum');
         Route::get('/get_ppic_monitoring_material_sum_style', 'get_ppic_monitoring_material_sum_style')->name('get_ppic_monitoring_material_sum_style');
         Route::get('/show_lap_monitoring_material_f_sum', 'show_lap_monitoring_material_f_sum')->name('show_lap_monitoring_material_f_sum');
+    });
+
+    // Barcode Packing Controller
+    Route::controller(BarcodePackingController::class)->prefix("barcode-packing")->middleware('role:ppic,packing')->group(function () {
+        Route::get('/index', 'index')->name('barcode-packing');
+        Route::get('/get-barcode', 'getBarcode')->name('get-barcode-packing');
+        Route::get('/generate-barcode/{barcode?}', 'generateBarcode')->name('generate-barcode-packing');
+        Route::post('/download-barcode', 'downloadBarcode')->name('download-barcode-packing');
     });
 
     // Report Hourly Output

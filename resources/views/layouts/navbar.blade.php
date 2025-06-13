@@ -1000,6 +1000,11 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('barcode-packing') }}" class="nav-link {{ $routeName == 'generate-barcode-packing' ? 'active' : '' }}" target="_blank">
+                            Barcode Packing
+                        </a>
+                    </li>
                 @endif
 
                 {{-- Machine --}}
