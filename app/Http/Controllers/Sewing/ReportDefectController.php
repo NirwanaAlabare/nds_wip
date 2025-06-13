@@ -265,8 +265,6 @@ class ReportDefectController extends Controller
         $sizes = $defect->get()->groupBy('size')->keys();
         $externalTypes = $defect->get()->groupBy('external_type')->keys();
 
-        // dd($lines, $orders, $styles, $suppliers, $colors, $sizes, $externalTypes);
-
         return array(
             'lines' => $lines,
             'orders' => $orders,
@@ -409,6 +407,8 @@ class ReportDefectController extends Controller
     }
 
     public function reportDefectExport(Request $request) {
+        ini_set("max_execution_time", 3600);
+
         $types = $request->types ? $request->types : ['defect_rate'];
         $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
         $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
@@ -602,7 +602,7 @@ class ReportDefectController extends Controller
             //     ";
             // }
 
-        $defectReportQuery = "";
+        $defectRateQuery = "";
         if (in_array('defect_rate', $types)) {
             $defectRateQuery = "
                 SELECT
@@ -827,7 +827,8 @@ class ReportDefectController extends Controller
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                 WHERE
-                    ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) ")."
+                    (output_defects.defect_status = 'defect' OR output_defects.defect_status = 'reworked')
+                    ".($request->base_ws ? " and act_costing.kpno = '".$request->base_ws."'" : " and ((output_defects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_defects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) ")."
                     ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
                     ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
                     ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
@@ -848,8 +849,61 @@ class ReportDefectController extends Controller
             ";
         }
 
-        if ($defectRateQuery || $topDefectQuery) {
-            return Excel::download(new ReportDefectExport($defectRateQuery, $topDefectQuery, $dateFrom, $dateTo, $request->base_ws, $ws, $style, $color, $sewingLine, $request->department), 'report defect.xlsx');
+        $topRejectQuery = "";
+        if (in_array('top_reject', $types)) {
+            $topRejectQuery = "
+                SELECT
+                    CONCAT(userpassword.username, act_costing.styleno, so_det.color, output_defect_types.id) as grouping,
+                    CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
+                    CONCAT(act_costing.styleno, output_defect_types.id) as style_grouping,
+                    userpassword.username sewing_line,
+                    act_costing.styleno style,
+                    so_det.color,
+                    DATE( output_rejects.updated_at ) tanggal,
+                    output_defect_types.defect_type as reject_type,
+                    COUNT( output_rejects.id ) total_reject
+                FROM
+                    output_rejects".$request->department." as output_rejects
+                    LEFT JOIN output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                    ".(
+                        $request->department == "_packing" ?
+                        "
+                            LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
+                        "
+                        :
+                        "
+                            LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+                            LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                        "
+                    )."
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                WHERE
+                    ".($request->base_ws ? "act_costing.kpno = '".$request->base_ws."'" : "((output_rejects.created_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59') or (output_rejects.updated_at BETWEEN '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59')) ")."
+                    ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."
+                    ".($ws ? "AND act_costing.kpno in (".$ws.")" : "")."
+                    ".($style ? "AND act_costing.styleno in (".$style.")" : "")."
+                    ".($color ? "AND so_det.color in (".$color.")" : "")."
+                    ".($sewingLine ? "AND userpassword.username in (".$sewingLine.")" : "")."
+                GROUP BY
+                    userpassword.username,
+                    act_costing.styleno,
+                    so_det.color,
+                    output_defect_types.id,
+                    DATE(output_rejects.updated_at)
+                ORDER BY
+                    userpassword.username,
+                    act_costing.styleno,
+                    so_det.color,
+                    DATE(output_rejects.updated_at),
+                    COUNT(output_rejects.id) desc
+            ";
+        }
+
+        if ($defectRateQuery || $topDefectQuery || $topRejectQuery) {
+            return Excel::download(new ReportDefectExport($defectRateQuery, $topDefectQuery, $topRejectQuery, $dateFrom, $dateTo, $request->base_ws, $ws, $style, $color, $sewingLine, $request->department), 'report defect.xlsx');
         }
 
         return array(
