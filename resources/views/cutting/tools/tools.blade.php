@@ -38,6 +38,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormMarker">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Form Marker</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -109,7 +118,7 @@
 
     <!-- Modify Form Ratio -->
     <div class="modal fade" id="modifyFormRatio" tabindex="-1" aria-labelledby="modifyFormRatioLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-sb">
                     <h1 class="modal-title fs-5" id="modifyFormRatioLabel">Modify Form Ratio</h1>
@@ -170,6 +179,66 @@
             </div>
         </div>
     </div>
+
+    {{-- Modify Form Marker --}}
+    <div class="modal fade" id="modifyFormMarker" tabindex="-1" aria-labelledby="modifyFormMarkerLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="modifyFormMarkerLabel">Modify Form Marker</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('update-form-marker') }}" method="post" onsubmit="submitForm(this, event)" id="modify-form-marker">
+                        <div class="mb-3">
+                            <label class="form-label">No. Form</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="modify_marker_no_form" name="modify_marker_no_form">
+                                <button type="button" class="btn btn-sb" onclick="getFormMarker(document.getElementById('modify_marker_no_form').value, 'modify_marker_')">Get</button>
+                            </div>
+                        </div>
+                        <div class="mb-3 d-none">
+                            <label class="form-label">ID</label>
+                            <input type="hidden" class="form-control" id="modify_marker_form_id" name="modify_marker_form_id" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kode Marker</label>
+                            <input type="text" class="form-control" id="modify_marker_kode_marker" name="modify_marker_kode_marker" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No. WS</label>
+                            <select class="form-control select2bs4formmarker" id="modify_marker_no_ws" name="modify_marker_no_ws" onchange="getColors(this, 'modify_marker_')">
+                                <option value=""></option>
+                                @foreach ($orders as $order)
+                                    <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" class="form-control" id="modify_marker_no_ws_input" name="modify_marker_no_ws_input">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Style</label>
+                            <input type="text" class="form-control" id="modify_marker_style" name="modify_marker_style" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Color</label>
+                            <select class="form-control select2bs4formmarker" id="modify_marker_color" name="modify_marker_color" onchange="getPanels('modify_marker_')">
+                                <option value=""></option>
+                            </select>
+                            <input type="hidden" class="form-control" id="modify_marker_color_input" name="modify_marker_color_input">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Panel</label>
+                            <select class="form-control select2bs4formmarker" id="modify_marker_panel" name="modify_marker_panel">
+                                <option value=""></option>
+                            </select>
+                            <input type="hidden" class="form-control" id="modify_marker_panel_input" name="modify_marker_panel_input">
+                        </div>
+                        <button type="submit" class="btn btn-sb btn-block mt-3">Simpan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -193,9 +262,13 @@
             theme: 'bootstrap4',
             dropdownParent: $('#fixRollQty')
         });
+        $('.select2bs4formmarker').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#modifyFormMarker')
+        });
 
         $(document).ready(function () {
-
+            document.getElementById("modify-form-marker").reset();
         });
 
         document.getElementById("fix_roll_id").addEventListener("onkeydown", (event) => {
@@ -343,8 +416,6 @@
         }
 
         async function getFormCut(noForm, prefix) {
-            console.log(prefix);
-
             document.getElementById("loading").classList.remove("d-none");
 
             document.getElementById(prefix+"form_id").value = "";
@@ -365,7 +436,6 @@
                     },
                     dataType: 'json',
                     success: function(res) {
-                        console.log(res)
                         if (typeof res === 'object' && res !== null) {
                             document.getElementById(prefix+"form_id").value = res.form_id;
                             document.getElementById(prefix+"kode_marker").value = res.kode_marker;
@@ -436,6 +506,138 @@
                 showConfirmButton: true,
                 confirmButtonText: 'Oke',
             });
+        }
+
+        async function getFormMarker(noForm, prefix) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            $("#"+prefix+"form_id").val("");
+            $("#"+prefix+"kode_marker").val("");
+            $("#"+prefix+"no_ws").val("");
+            $("#"+prefix+"style").val("");
+            $("#"+prefix+"color").val("");
+            $("#"+prefix+"panel").val("");
+
+            if (isNotNull(noForm)) {
+                return $.ajax({
+                    url: '{{ route('get-form-marker') }}',
+                    type: 'get',
+                    data: {
+                        no_form: noForm
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (typeof res === 'object' && res !== null) {
+                            $("#"+prefix+"form_id").val(res.form_id).trigger("change");
+                            $("#"+prefix+"kode_marker").val(res.kode_marker).trigger("change");
+                            $("#"+prefix+"no_ws").val(res.no_ws).trigger("change");
+                            $("#"+prefix+"no_ws_input").val(res.no_ws_input).trigger("change");
+                            $("#"+prefix+"style").val(res.style).trigger("change");
+                            $("#"+prefix+"style_input").val(res.style).trigger("change");
+                            $("#"+prefix+"color_input").val(res.color).trigger("change");
+                            $("#"+prefix+"panel_input").val(res.panel).trigger("change");
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: res ? res : 'Form tidak ditemukan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Form tidak ditemukan.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
+
+            document.getElementById("loading").classList.add("d-none");
+
+            return Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'No. Form tidak ditemukan',
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: 'Oke',
+            });
+        }
+
+        function getColors(element, prefix) {
+            let order = element.value;
+
+            // if (order) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    url: "{{ route('get-colors') }}",
+                    type: "GET",
+                    data: { act_costing_id: order },
+                    success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (response) {
+                            $('#'+prefix+'color').empty().append('<option value="">Pilih Color</option>');
+                            response.forEach(function (color) {
+                                $('#'+prefix+'color').append(`<option value="${color.color}">${color.color}</option>`);
+                            });
+                            $('#'+prefix+'color').val($('#'+prefix+'color_input').val()).trigger('change');
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+                    }
+                });
+            // }
+        }
+
+        function getPanels(prefix) {
+            let order = $("#"+prefix+"no_ws").val();
+            let color = $("#"+prefix+"color").val();
+
+            // if (order && color) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    url: "{{ route('get-panels') }}",
+                    type: "GET",
+                    data: {
+                        act_costing_id: order,
+                        color: color,
+                    },
+                    success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (response) {
+                            $('#'+prefix+'panel').empty().append('<option value="">Pilih Size</option>');
+                            response.forEach(function (panel) {
+                                $('#'+prefix+'panel').append(`<option value="${panel.panel}">${panel.panel}</option>`);
+                            });
+                            $('#'+prefix+'panel').val($('#'+prefix+'panel_input').val()).trigger('change');
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+                    }
+                });
+            // }
         }
 
         function calculateRatio(el) {

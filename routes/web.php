@@ -638,6 +638,10 @@ Route::middleware('auth')->group(function () {
         // fix form ratio
         Route::get('/get-form-ratio', 'getFormRatio')->name('get-form-ratio');
         Route::post('/update-form-ratio', 'updateFormRatio')->name('update-form-ratio');
+
+        // fix form marker
+        Route::get('/get-form-marker', 'getFormMarker')->name('get-form-marker');
+        Route::post('/update-form-marker', 'updateFormMarker')->name('update-form-marker');
     });
 
     // Stocker :

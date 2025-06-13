@@ -7,6 +7,7 @@ use App\Models\ScannedItem;
 use App\Models\FormCutInput;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
+use App\Models\SignalBit\ActCosting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -16,8 +17,11 @@ use DB;
 class CuttingToolsController extends Controller
 {
     public function index() {
+        $orders = ActCosting::select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->get();
+
         return view('cutting.tools.tools', [
-            "page" => "dashboard-cutting"
+            "page" => "dashboard-cutting",
+            "orders" => $orders
         ]);
     }
 
@@ -269,6 +273,110 @@ class CuttingToolsController extends Controller
                 "message" => "Total Cut Qty Kosong",
                 "additional" => [],
             );
+        }
+    }
+
+    public function getFormMarker(Request $request) {
+        $noForm = $request->no_form;
+
+        if ($noForm) {
+            $form = FormCutInput::where("no_form", $noForm)->orderBy("id", "desc")->first();
+
+            if ($form && $form->marker && $form->marker->markerDetails) {
+                return array(
+                    "form_id" => $form->id,
+                    "kode_marker" => $form->marker->kode,
+                    "no_ws" => $form->marker->act_costing_id,
+                    "no_ws_input" => $form->marker->act_costing_ws,
+                    "style" => $form->marker->style,
+                    "color" => $form->marker->color,
+                    "panel" => $form->marker->panel,
+                );
+            }
+
+            return null;
+        }
+
+        return null;
+    }
+
+    public function updateFormMarker(Request $request) {
+        $validatedRequest = $request->validate([
+            "modify_ratio_form_id" => "required",
+            "modify_ratio_kode_marker" => "required",
+            "modify_ratio_no_ws" => "required",
+            "modify_ratio_style" => "required",
+            "modify_ratio_color" => "required",
+            "modify_ratio_panel" => "required",
+        ]);
+
+        if ($validatedRequest) {
+            $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
+
+            $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
+            $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
+            $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
+
+            $actCostingData = ActCosting::where("id", $validatedRequest["modify_ratio_no_ws"])->first();
+
+            $markerStore = Marker::create([
+                'tgl_cutting' => $oldMarker->tgl_cutting,
+                'kode' => $markerCode,
+                'act_costing_id' => $validatedRequest["modify_ratio_no_ws"],
+                'act_costing_ws' => $oldMarker->act_costing_ws,
+                'buyer' => $oldMarker->buyer,
+                'style' => $oldMarker->style,
+                'cons_ws' => $oldMarker->cons_ws,
+                'color' => $oldMarker->color,
+                'panel' => $oldMarker->panel,
+                'panjang_marker' => $oldMarker->panjang_marker,
+                'unit_panjang_marker' => $oldMarker->unit_panjang_marker,
+                'comma_marker' => $oldMarker->comma_marker,
+                'unit_comma_marker' => $oldMarker->unit_comma_marker,
+                'lebar_marker' => $oldMarker->lebar_marker,
+                'unit_lebar_marker' => $oldMarker->unit_lebar_marker,
+                'gelar_qty' => $oldMarker->gelar_qty,
+                'gelar_qty_balance' => $oldMarker->gelar_qty_balance,
+                'po_marker' => $oldMarker->po_marker,
+                'urutan_marker' => $oldMarker->urutan_marker,
+                'cons_marker' => $oldMarker->cons_marker,
+                'gramasi' => $oldMarker->gramasi,
+                'tipe_marker' => $oldMarker->tipe_marker,
+                'notes' => $oldMarker->notes,
+                'cons_piping' => $oldMarker->cons_piping,
+                'cancel' => 'N',
+            ]);
+
+            $timestamp = Carbon::now();
+            $markerId = $markerStore->id;
+            $markerDetailData = [];
+            for ($i = 0; $i < count($request["modify_ratio_so_det_id"]); $i++) {
+                array_push($markerDetailData, [
+                    "marker_id" => $markerId,
+                    "so_det_id" => $request["modify_ratio_so_det_id"][$i],
+                    "size" => $request["modify_ratio_size"][$i],
+                    "ratio" => $request["modify_ratio_ratio"][$i],
+                    "cut_qty" => $request["modify_ratio_cut_qty"][$i],
+                    "cancel" => 'N',
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ]);
+            }
+
+            $markerDetailStore = MarkerDetail::insert($markerDetailData);
+
+            if ($markerStore && $markerDetailStore) {
+                $updateFormCut = FormCutInput::where("id", $validatedRequest["modify_ratio_form_id"])->update([
+                    "marker_id" => $markerId,
+                    "id_marker" => $markerCode
+                ]);
+
+                return array(
+                    "status" => 200,
+                    "message" => "Ratio Form berhasil diubah.",
+                    "additional" => [],
+                );
+            }
         }
     }
 }
