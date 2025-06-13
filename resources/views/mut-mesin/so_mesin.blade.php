@@ -69,7 +69,9 @@
             <div class="modal-content">
                 <div class="modal-header bg-sb">
                     <h5 class="modal-title fw-bold" id="modalTitle">Detail Stock Opname</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        style="filter: invert(1);"></button>
+
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
