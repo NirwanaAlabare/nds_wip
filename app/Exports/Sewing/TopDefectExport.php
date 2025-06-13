@@ -107,90 +107,94 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
     public function charts()
     {
-        // Defect
-        $labelsDefect = [];
-        $categoriesDefect = [];
-        $valuesDefect = [];
+        if ($this->rowCount > 0) {
+            // Defect
+            $labelsDefect = [];
+            $categoriesDefect = [];
+            $valuesDefect = [];
 
-        for ($i = 0; $i < $this->rowCount; $i++) {
-            array_push($labelsDefect,
-                new DataSeriesValues('String', 'TopDefect!$A$'.($i+7).':$D$'.($i+7).'', null, 5)
-            );
+            for ($i = 0; $i < $this->rowCount; $i++) {
+                array_push($labelsDefect,
+                    new DataSeriesValues('String', 'TopDefect!$A$'.($i+7).':$D$'.($i+7).'', null, 5)
+                );
 
-            array_push($categoriesDefect,
-                new DataSeriesValues('String', 'TopDefect!$E$6:$'.$this->colAlphabet.'$6', null, 5)
-            );
+                array_push($categoriesDefect,
+                    new DataSeriesValues('String', 'TopDefect!$E$6:$'.$this->colAlphabet.'$6', null, 5)
+                );
 
-            array_push($valuesDefect,
-                new DataSeriesValues('Number', 'TopDefect!$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
-            );
+                array_push($valuesDefect,
+                    new DataSeriesValues('Number', 'TopDefect!$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
+                );
+            }
+
+            $seriesDefect = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefect) - 1), $labelsDefect, $categoriesDefect, $valuesDefect);
+            $plotDefect   = new PlotArea(null, [$seriesDefect]);
+
+            $legendDefect = new Legend();
+            $chartDefect  = new Chart('Line Style Defect Chart', new Title('Defect Chart'), $legendDefect, $plotDefect);
+
+            $chartDefect->setTopLeftPosition($this->colAlphabetChartStart.'6');
+            $chartDefect->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : ($this->rowCount < 5 ? 5+6 : $this->rowCount+6)));
+
+            // Defect Line
+            $labelsDefectLine = [];
+            $categoriesDefectLine = [];
+            $valuesDefectLine = [];
+
+            for ($i = 0; $i < $this->rowCountLine; $i++) {
+                array_push($labelsDefectLine,
+                    new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
+                );
+
+                array_push($categoriesDefectLine,
+                    new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
+                );
+
+                array_push($valuesDefectLine,
+                    new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
+                );
+            }
+
+            $seriesDefectLine = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefectLine) - 1), $labelsDefectLine, $categoriesDefectLine, $valuesDefectLine);
+            $plotDefectLine   = new PlotArea(null, [$seriesDefectLine]);
+
+            $legendDefectLine = new Legend();
+            $chartDefectLine  = new Chart('Line Defect Chart', new Title('Line Defect Chart'), $legendDefectLine, $plotDefectLine);
+
+            $chartDefectLine->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+9));
+            $chartDefectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : ($this->rowCountLine < 5 ? 5 : $this->rowCountLine))));
+
+            // Defect Style
+            $labelsDefectStyle = [];
+            $categoriesDefectStyle = [];
+            $valuesDefectStyle = [];
+
+            for ($i = 0; $i < $this->rowCountStyle; $i++) {
+                array_push($labelsDefectStyle,
+                    new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+                );
+
+                array_push($categoriesDefectStyle,
+                    new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
+                );
+
+                array_push($valuesDefectStyle,
+                    new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+                );
+            }
+
+            $seriesDefectStyle = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefectStyle) - 1), $labelsDefectStyle, $categoriesDefectStyle, $valuesDefectStyle);
+            $plotDefectStyle   = new PlotArea(null, [$seriesDefectStyle]);
+
+            $legendDefectStyle = new Legend();
+            $chartDefectStyle  = new Chart('Style Defect Chart', new Title('Style Defect Chart'), $legendDefectStyle, $plotDefectStyle);
+
+            $chartDefectStyle->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+$this->rowCountLine+11));
+            $chartDefectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : ($this->rowCountStyle < 5 ? 5 : $this->rowCountStyle))));
+
+            return [$chartDefect, $chartDefectLine, $chartDefectStyle];
         }
 
-        $seriesDefect = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefect) - 1), $labelsDefect, $categoriesDefect, $valuesDefect);
-        $plotDefect   = new PlotArea(null, [$seriesDefect]);
-
-        $legendDefect = new Legend();
-        $chartDefect  = new Chart('Line Style Defect Chart', new Title('Defect Chart'), $legendDefect, $plotDefect);
-
-        $chartDefect->setTopLeftPosition($this->colAlphabetChartStart.'6');
-        $chartDefect->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : ($this->rowCount < 5 ? 5+6 : $this->rowCount+6)));
-
-        // Defect Line
-        $labelsDefectLine = [];
-        $categoriesDefectLine = [];
-        $valuesDefectLine = [];
-
-        for ($i = 0; $i < $this->rowCountLine; $i++) {
-            array_push($labelsDefectLine,
-                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
-            );
-
-            array_push($categoriesDefectLine,
-                new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
-            );
-
-            array_push($valuesDefectLine,
-                new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
-            );
-        }
-
-        $seriesDefectLine = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefectLine) - 1), $labelsDefectLine, $categoriesDefectLine, $valuesDefectLine);
-        $plotDefectLine   = new PlotArea(null, [$seriesDefectLine]);
-
-        $legendDefectLine = new Legend();
-        $chartDefectLine  = new Chart('Line Defect Chart', new Title('Line Defect Chart'), $legendDefectLine, $plotDefectLine);
-
-        $chartDefectLine->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+9));
-        $chartDefectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : ($this->rowCountLine < 5 ? 5 : $this->rowCountLine))));
-
-        // Defect Style
-        $labelsDefectStyle = [];
-        $categoriesDefectStyle = [];
-        $valuesDefectStyle = [];
-
-        for ($i = 0; $i < $this->rowCountStyle; $i++) {
-            array_push($labelsDefectStyle,
-                new DataSeriesValues('String', 'TopDefect!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
-            );
-
-            array_push($categoriesDefectStyle,
-                new DataSeriesValues('String', 'TopDefect!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
-            );
-
-            array_push($valuesDefectStyle,
-                new DataSeriesValues('Number', 'TopDefect!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
-            );
-        }
-
-        $seriesDefectStyle = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefectStyle) - 1), $labelsDefectStyle, $categoriesDefectStyle, $valuesDefectStyle);
-        $plotDefectStyle   = new PlotArea(null, [$seriesDefectStyle]);
-
-        $legendDefectStyle = new Legend();
-        $chartDefectStyle  = new Chart('Style Defect Chart', new Title('Style Defect Chart'), $legendDefectStyle, $plotDefectStyle);
-
-        $chartDefectStyle->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+$this->rowCountLine+11));
-        $chartDefectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : ($this->rowCountStyle < 5 ? 5 : $this->rowCountStyle))));
-
-        return [$chartDefect, $chartDefectLine, $chartDefectStyle];
+        return [];
     }
 }
