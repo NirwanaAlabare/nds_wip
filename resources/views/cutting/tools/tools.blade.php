@@ -210,7 +210,7 @@
                             <select class="form-control select2bs4formmarker" id="modify_marker_no_ws" name="modify_marker_no_ws" onchange="getColors(this, 'modify_marker_')">
                                 <option value=""></option>
                                 @foreach ($orders as $order)
-                                    <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                    <option value="{{ $order->id }}" >{{ $order->kpno }}</option>
                                 @endforeach
                             </select>
                             <input type="hidden" class="form-control" id="modify_marker_no_ws_input" name="modify_marker_no_ws_input">
@@ -624,7 +624,7 @@
                         document.getElementById("loading").classList.add("d-none");
 
                         if (response) {
-                            $('#'+prefix+'panel').empty().append('<option value="">Pilih Size</option>');
+                            $('#'+prefix+'panel').empty().append('<option value="">Pilih Panel</option>');
                             response.forEach(function (panel) {
                                 $('#'+prefix+'panel').append(`<option value="${panel.panel}">${panel.panel}</option>`);
                             });
