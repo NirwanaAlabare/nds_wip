@@ -292,13 +292,10 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
-                                            onkeydown="scanStocker(event, 'create')"
-                                            autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr"
-                                            onclick="scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
                                     </div>
                                 </div>
                             </div>
@@ -474,7 +471,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input" name="editqrstocker" id="editqrstocker" autocomplete="off" enterkeyhint="go" onkeydown="scanStocker(event, 'edit')" autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input" name="editqrstocker" id="editqrstocker" autocomplete="off" enterkeyhint="go" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
                                         <button class="btn btn-sm btn-primary" type="button" id="editscanqr" onclick="edit_scan_qr()">Scan</button>
@@ -1037,7 +1034,6 @@
 
                     document.getElementById('editqrstocker').value = decodedText;
 
-
                     scan_qr();
 
                     edithtml5QrcodeScanner.clear();
@@ -1121,6 +1117,14 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    if (response[0].status && response[0].status == 400) {
+                        return Swal.fire({
+                            icon: "error",
+                            title: "Gagal",
+                            html: response[0].message
+                        });
+                    }
+
                     document.getElementById('txtno_stocker').value = response.id_qr_stocker;
                     document.getElementById('txtws').value = response.act_costing_ws;
                     document.getElementById('txtbuyer').value = response.buyer;
@@ -1131,7 +1135,7 @@
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
-                    document.getElementById('txtqtyawal').value = response.qty_awal;
+                    document.getElementById('txtqtyawal').value =  response.qty_awal;
 
                     console.log(response.tempat_tujuan);
 
@@ -1522,18 +1526,5 @@
         $('#size_filter').on("change", function() {
             datatableReload();
         });
-
-        function scanStocker(evt, type) {
-            console.log(evt, type);
-            if (evt.keyCode == 13) {
-                evt.preventDefault();
-
-                if (type == 'edit') {
-                    document.getElementById('editscanqr').click()
-                } else {
-                    document.getElementById('scanqr').click()
-                }
-            }
-        }
     </script>
 @endsection
