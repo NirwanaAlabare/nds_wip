@@ -7,6 +7,10 @@ use App\Models\ScannedItem;
 use App\Models\FormCutInput;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
+use App\Models\Part;
+use App\Models\PartForm;
+use App\Models\SignalBit\ActCosting;
+use App\Services\StockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -16,8 +20,11 @@ use DB;
 class CuttingToolsController extends Controller
 {
     public function index() {
+        $orders = ActCosting::select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->get();
+
         return view('cutting.tools.tools', [
-            "page" => "dashboard-cutting"
+            "page" => "dashboard-cutting",
+            "orders" => $orders
         ]);
     }
 
@@ -270,5 +277,213 @@ class CuttingToolsController extends Controller
                 "additional" => [],
             );
         }
+    }
+
+    public function getFormMarker(Request $request) {
+        $noForm = $request->no_form;
+
+        if ($noForm) {
+            $form = FormCutInput::where("no_form", $noForm)->orderBy("id", "desc")->first();
+
+            if ($form && $form->marker && $form->marker->markerDetails) {
+                return array(
+                    "form_id" => $form->id,
+                    "kode_marker" => $form->marker->kode,
+                    "no_ws" => $form->marker->act_costing_id,
+                    "no_ws_input" => $form->marker->act_costing_ws,
+                    "style" => $form->marker->style,
+                    "color" => $form->marker->color,
+                    "panel" => $form->marker->panel,
+                );
+            }
+
+            return null;
+        }
+
+        return null;
+    }
+
+    public function updateFormMarker(Request $request, StockerService $stockerService) {
+        $validatedRequest = $request->validate([
+            "modify_marker_form_id" => "required",
+            "modify_marker_kode_marker" => "required",
+            "modify_marker_no_ws" => "required",
+            "modify_marker_color" => "required",
+            "modify_marker_panel" => "required",
+        ]);
+
+        if ($validatedRequest) {
+            $oldMarker = Marker::where("kode", $validatedRequest['modify_marker_kode_marker'])->first();
+
+            // if (
+            //     $oldMarker->act_costing_id != $validatedRequest["modify_marker_no_ws"] ||
+            //     $oldMarker->color != $validatedRequest["modify_marker_color"] ||
+            //     $oldMarker->panel != $validatedRequest["modify_marker_panel"]
+            // ) {
+                $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
+                $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
+                $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
+
+                $data = collect(DB::connection('mysql_sb')->select("
+                    select
+                        ac.id,
+                        ac.id_buyer,
+                        ac.kpno,
+                        ac.styleno,
+                        sd.color,
+                        ac.qty order_qty,
+                        ms.supplier buyer,
+                        k.cons cons_ws,
+                        mp.nama_panel panel,
+                        sd.id as so_det_id,
+                        sd.size,
+                        sd.dest,
+                        sum(sd.qty) order_qty
+                    from
+                        bom_jo_item k
+                        inner join so_det sd on k.id_so_det = sd.id
+                        inner join so on sd.id_so = so.id
+                        inner join act_costing ac on so.id_cost = ac.id
+                        inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                        inner join masteritem mi on k.id_item = mi.id_gen
+                        inner join masterpanel mp on k.id_panel = mp.id
+                    where
+                        ac.id = '" . $validatedRequest["modify_marker_no_ws"] . "' and sd.color = '" . $validatedRequest["modify_marker_color"] . "' and mp.nama_panel ='" . $validatedRequest["modify_marker_panel"] . "' and k.status = 'M' and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                    group by
+                        sd.id, k.id_item, k.unit
+                "));
+
+                $currentData = $data->first();
+
+                $markerStore = Marker::create([
+                    'tgl_cutting' => $oldMarker->tgl_cutting,
+                    'kode' => $markerCode,
+                    'act_costing_id' => $currentData->id,
+                    'act_costing_ws' => $currentData->kpno,
+                    'buyer' => $currentData->buyer,
+                    'style' => $currentData->styleno,
+                    'cons_ws' => $currentData->cons_ws,
+                    'color' => $currentData->color,
+                    'panel' => $currentData->panel,
+                    'panjang_marker' => $oldMarker->panjang_marker,
+                    'unit_panjang_marker' => $oldMarker->unit_panjang_marker,
+                    'comma_marker' => $oldMarker->comma_marker,
+                    'unit_comma_marker' => $oldMarker->unit_comma_marker,
+                    'lebar_marker' => $oldMarker->lebar_marker,
+                    'unit_lebar_marker' => $oldMarker->unit_lebar_marker,
+                    'gelar_qty' => $oldMarker->gelar_qty,
+                    'gelar_qty_balance' => $oldMarker->gelar_qty_balance,
+                    'po_marker' => $oldMarker->po_marker,
+                    'urutan_marker' => $oldMarker->urutan_marker,
+                    'cons_marker' => $oldMarker->cons_marker,
+                    'gramasi' => $oldMarker->gramasi,
+                    'tipe_marker' => $oldMarker->tipe_marker,
+                    'notes' => $oldMarker->notes,
+                    'cons_piping' => $oldMarker->cons_piping,
+                    'cancel' => 'N',
+                ]);
+
+                $timestamp = Carbon::now();
+                $markerId = $markerStore->id;
+                $markerDetailData = [];
+                if ($oldMarker && $oldMarker->markerDetails) {
+                    foreach ($oldMarker->markerDetails as $markerDetail) {
+                        if ($markerDetail->masterSbWs) {
+                            $currentSoDet = $data->where("size", $markerDetail->masterSbWs->size)->where("dest", $markerDetail->masterSbWs->dest)->first();
+                            if (!$currentSoDet) {
+                                $currentSoDet = $data->where("size", $markerDetail->masterSbWs->size)->first();
+                            }
+
+                            if ($currentSoDet) {
+                                $filtered = array_filter($markerDetailData, function($value) use ($currentSoDet, $markerDetail) {
+                                    return $value["so_det_id"] == $currentSoDet->so_det_id && $value["ratio"] > $markerDetail->ratio;
+                                });
+
+                                if (count($filtered) < 1) {
+                                    array_push($markerDetailData, [
+                                        "marker_id" => $markerId,
+                                        "so_det_id" => $currentSoDet->so_det_id,
+                                        "size" => $currentSoDet->size.($currentSoDet->dest && $currentSoDet->dest != "-" ? " - ".$currentSoDet->dest : ""),
+                                        "ratio" => $markerDetail->ratio,
+                                        "cut_qty" => ($markerDetail->cut_qty > 0 ? $markerDetail->cut_qty : $markerDetail->ratio * $markerStore->gelar_qty),
+                                        "cancel" => 'N',
+                                        "created_at" => $timestamp,
+                                        "updated_at" => $timestamp,
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $markerDetailStore = null;
+                if (count($markerDetailData) > 0) {
+                    $markerDetailStore = MarkerDetail::upsert(
+                            $markerDetailData, // array of rows
+                            ['marker_id', 'so_det_id'], // unique constraint columns
+                            ['ratio', 'cut_qty', 'cancel', 'updated_at'] // columns to update if a match is found
+                        );
+                }
+
+                if ($markerStore && $markerDetailStore) {
+                    $updateFormCut = FormCutInput::where("id", $validatedRequest["modify_marker_form_id"])->update([
+                        "marker_id" => $markerId,
+                        "id_marker" => $markerCode
+                    ]);
+
+                    $partForm = PartForm::where("form_id", $validatedRequest["modify_marker_form_id"])->first();
+                    if ($partForm) {
+                        // Part
+                        $part = Part::where("act_costing_id", $currentData->id)->where("panel", $currentData->id)->first();
+                        if (!$part) {
+                            $partCount = Part::selectRaw("MAX(kode) latest_kode")->first();
+                            $latestPartNumber = intval(substr($partCount->latest_kode, -5)) + 1;
+                            $partNumber = 'PRT' . str_pad($latestPartNumber, 5, '0', STR_PAD_LEFT);
+
+                            $part = Part::create([
+                                "kode" => $partNumber,
+                                "act_costing_id" => $currentData->id,
+                                "act_costing_ws" => $currentData->kpno,
+                                "buyer" => $currentData->buyer,
+                                "style" => $currentData->styleno,
+                                "color" => $data->implode("color", ", "),
+                                "panel" => $data->implode("color", ", "),
+                            ]);
+                        }
+
+                        $partId = $part->id;
+
+                        // Part Form
+                        $partFormCount = PartForm::selectRaw("MAX(kode) latest_kode")->first();
+                        $latestPartFormNumber = intval(substr($partFormCount->latest_kode, -5)) + 1;
+                        $partFormNumber = 'PFM' . str_pad($latestPartFormNumber, 5, '0', STR_PAD_LEFT);
+
+                        $partFormCut = PartForm::where("form_id", $validatedRequest["modify_marker_form_id"])->update([
+                            "part_id" => $partId,
+                        ]);
+
+                        $stockerService->reorderStockerNumbering($partId);
+                    }
+
+                    return array(
+                        "status" => 300,
+                        "message" => "Marker Form berhasil diubah.",
+                        "additional" => [],
+                    );
+                }
+            // } else {
+            //     return array(
+            //         "status" => 400,
+            //         "message" => "Tidak ada perubahan.",
+            //         "additional" => [],
+            //     );
+            // }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi Kesalahan.",
+            "additional" => [],
+        );
     }
 }
