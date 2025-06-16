@@ -1952,7 +1952,7 @@ class StockerController extends Controller
             ]);
 
             // Adjust form cut detail data
-            $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $request->form_id)->where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
+            $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
 
             $currentGroup = "";
             $currentGroupNumber = 0;

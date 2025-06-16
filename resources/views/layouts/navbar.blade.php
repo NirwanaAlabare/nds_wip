@@ -109,7 +109,7 @@
 
                         <li class="nav-item dropdown">
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'cuttingplan-cutting' ? 'active' : '' }}">
-                                Cutting Plan
+                                Plan
                             </a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
@@ -221,6 +221,13 @@
                                     </a>
                                 </li>
                             </ul>
+                        </li>
+                    @endrole
+                    @role('superadmin')
+                        <li class="nav-item">
+                            <a href="{{ route('cutting-tools') }}" class="nav-link {{ $routeName == 'cutting-tools' ? 'active' : '' }}" target="_blank">
+                                Tools
+                            </a>
                         </li>
                     @endrole
                 @endif
@@ -563,8 +570,7 @@
                     @endrole
                     @role('superadmin')
                         <li class="nav-item">
-                            <a href="{{ route('sewing-tools') }}"
-                                class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
+                            <a href="{{ route('sewing-tools') }}" class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
                                 Tools
                             </a>
                         </li>
