@@ -120,6 +120,7 @@
                 </button>
             </div>
             <div class="d-flex align-items-end gap-3">
+                <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#leaderSewingFilterModal"><i class="fa fa-filter"></i></button>
                 <div>
                     <label class="form-label">Buyer</label>
                     <select name="buyer_id" id="buyer_id" class="form-select select2bs4" onchange="updateTanggal()">
@@ -149,105 +150,52 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Defect Types</label>
-                        <select class="select2bs4filter" name="defect_types[]" multiple="multiple" id="defect_types">
-                            @foreach ($defectTypes as $defectType)
-                                <option value="{{ $defectType->id }}">{{ $defectType->defect_type }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Defect Areas</label>
-                        <select class="select2bs4filter" name="defect_areas[]" multiple="multiple" id="defect_areas">
-                            @foreach ($defectAreas as $defectArea)
-                                <option value="{{ $defectArea->id }}">{{ $defectArea->defect_area }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Defect Status</label>
-                        <select class="select2bs4filter" name="defect_status[]" multiple="multiple" id="defect_status">
-                            <option value="">SEMUA</option>
-                            <option value="defect">DEFECT</option>
-                            <option value="reworked">REWORKED</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Sewing Line</label>
-                        <select class="select2bs4filter" name="sewing_line[]" multiple="multiple" id="sewing_line">
+                        <select class="select2bs4filter" name="sewing_line_filter[]" multiple="multiple" id="sewing_line_filter">
                             <option value="">SEMUA</option>
-                            @foreach ($lines as $line)
-                                <option value="{{ $line }}">{{ strtoupper(str_replace("_", " ", $line)) }}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Buyer</label>
-                        <select class="select2bs4filter" name="buyer[]" multiple="multiple" id="buyer">
+                        <select class="select2bs4filter" name="buyer_filter[]" multiple="multiple" id="buyer_filter">
                             <option value="">Buyer</option>
-                            @foreach ($suppliers as $supplier)
-                                <option value="{{ $supplier }}">{{ $supplier }}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">No. WS</label>
-                        <select class="select2bs4filter" name="ws[]" multiple="multiple" id="ws">
+                        <select class="select2bs4filter" name="ws_filter[]" multiple="multiple" id="ws_filter">
                             <option value="">SEMUA</option>
-                            @foreach ($orders as $order)
-                                <option value="{{ $order }}">{{ $order }}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Style</label>
-                        <select class="select2bs4filter" name="style[]" multiple="multiple" id="style">
+                        <select class="select2bs4filter" name="style_filter[]" multiple="multiple" id="style_filter">
                             <option value="">SEMUA</option>
-                            @foreach ($styles as $style)
-                                <option value="{{ $style }}">{{ $style }}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Color</label>
-                        <select class="select2bs4filter" name="color[]" multiple="multiple" id="color">
+                        <select class="select2bs4filter" name="color_filter[]" multiple="multiple" id="color_filter">
                             <option value="">SEMUA</option>
-                            @foreach ($colors as $color)
-                                <option value="{{ $color }}">{{ $color }}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Size</label>
-                        <select class="select2bs4filter" name="size[]" multiple="multiple" id="size">
+                        <select class="select2bs4filter" name="size_filter[]" multiple="multiple" id="size_filter">
                             <option value="">SEMUA</option>
-                            @foreach ($sizes as $size)
-                                <option value="{{ $size }}">{{ $size }}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">External Type</label>
-                        <select class="select2bs4filter" name="external_type[]" multiple="multiple" id="external_type">
+                        <label class="form-label">Leader</label>
+                        <select class="select2bs4filter" name="line_leader_filter[]" multiple="multiple" id="line_leader_filter">
                             <option value="">SEMUA</option>
-                            @foreach ($externalTypes as $externalType)
-                                <option value="{{ $externalType }}">{{ ($externalType ? strtoupper($externalType) : "SEWING") }}</option>
-                            @endforeach
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">External IN</label>
-                        <input type="date" class="form-control" name="external_in">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">External OUT</label>
-                        <input type="date" class="form-control" name="external_out">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i class="fa-solid fa-broom"></i></button>
-                    <button type="button" class="btn btn-success" onclick="reportDefectDatatableReload()">Simpan <i class="fa-solid fa-check"></i></button>
+                    <button type="button" class="btn btn-success" onclick="updateFilter()">Simpan <i class="fa-solid fa-check"></i></button>
                 </div>
             </div>
         </div>
@@ -310,7 +258,13 @@
             theme: 'bootstrap4'
         })
 
+        $('.select2bs4filter').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#leaderSewingFilterModal")
+        })
+
         $('document').ready(async () => {
+            updateFilterOption();
             getData();
         });
 
@@ -323,11 +277,22 @@
             console.log("data update finish");
         }, 60000);
 
+        // Filter Update
+        async function updateFilter() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            await getData();
+
+            document.getElementById("loading").classList.add("d-none");
+        }
+
         // Date Update
         async function updateTanggal() {
             document.getElementById("loading").classList.remove("d-none");
 
+            await updateFilterOption();
             await getData();
+            $("#leaderSewingFilterModal").modal("hide");
 
             document.getElementById("loading").classList.add("d-none");
         }
@@ -346,6 +311,12 @@
                     from: $("#from").val(),
                     to: $("#to").val(),
                     buyer_id: $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 dataType: "json",
                 success: async function (response) {
@@ -435,6 +406,12 @@
                     from: $("#from").val(),
                     to: $("#to").val(),
                     buyer_id: $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 dataType: "json",
                 success: async function (response) {
@@ -739,13 +716,13 @@
             document.getElementById('loading').classList.remove('d-none');
 
             await $.ajax({
-                url: '{{ route('filter-leader-sewing') }}',
+                url: '{{ route('dashboard-leader-sewing-filter') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {
-                    dateFrom : $('#dateFrom').val(),
-                    dateTo : $('#dateTo').val(),
-                    department : $('#department').val()
+                    from : $('#from').val(),
+                    to : $('#to').val(),
+                    buyer_id : $('#buyer_id').val()
                 },
                 success: async function(response) {
                     document.getElementById('loading').classList.add('d-none');
@@ -797,6 +774,14 @@
                             $('#size_filter').empty();
                             $.each(sizes, function(index, value) {
                                 $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // leaders option
+                        if (response.sizes && response.sizes.length > 0) {
+                            let lineLeaders = response.lineLeaders;
+                            $('#line_leader_filter').empty();
+                            $.each(lineLeaders, function(index, value) {
+                                $('#line_leader_filter').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
                     }

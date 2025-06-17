@@ -970,22 +970,22 @@ END jam) a))) target from (
         $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
-        $ws = $request->ws ? $request->ws : null;
-        $style = $request->style ? $request->style : null;
-        $styleProd = $request->style_prod ? $request->style_prod : null;
-        $color = $request->color ? $request->color : null;
-        $size = $request->size ? $request->size : null;
-        $line = $request->line ? $request->line : null;
-        $lineLeader = $request->line_leader ? $request->line_leader : null;
+        $ws = $request->ws_filter ? addQuotesAround(implode("\r\n", $request->ws_filter)) : null;
+        $style = $request->style_filter ? addQuotesAround(implode("\r\n", $request->style_filter)) : null;
+        $styleProd = $request->style_prod_filter ? addQuotesAround(implode("\r\n", $request->style_prod_filter)) : null;
+        $color = $request->color_filter ? addQuotesAround(implode("\r\n", $request->color_filter)) : null;
+        $size = $request->size_filter ? addQuotesAround(implode("\r\n", $request->size_filter)) : null;
+        $sewingLine = $request->sewing_line_filter ? addQuotesAround(implode("\r\n", $request->sewing_line_filter)) : null;
+        $lineLeader = $request->line_leader_filter ? addQuotesAround(implode("\r\n", $request->line_leader_filter)) : null;
 
-        $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier = '".$buyerId."'" : "";
-        $wsFilter = $ws ? "AND act_costing.id = '".$ws."'" : "";
-        $style = $style ? "AND act_costing.styleno = '".$style."'" : "";
-        $styleProd = $styleProd ? "AND act_costing.styleno = '".$styleProd."'" : "";
-        $color = $color ? "AND so_det.color = '".$color."'" : "";
-        $sizeFilter = $size ? "AND so_det.size = '".$size."'" : "";
-        $lineFilter = $line ? "AND output.sewing_line = '".$line."'" : "";
-        $lineLeaderFilter = $line ? "AND output_employee_line.leader_nik = '".$line."'" : "";
+        $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier in (".$buyerId.")" : "";
+        $wsFilter = $ws ? "AND act_costing.id in (".$ws.")" : "";
+        $styleFilter = $style ? "AND act_costing.styleno in (".$style.")" : "";
+        $styleProdFilter = $styleProd ? "AND act_costing.styleno in (".$styleProd.")" : "";
+        $colorFilter = $color ? "AND so_det.color in (".$color.")" : "";
+        $sizeFilter = $size ? "AND so_det.size in (".$size.")" : "";
+        $sewingLineFilter = $sewingLine ? "AND output.sewing_line in (".$sewingLine.")" : "";
+        $lineLeaderFilter = $lineLeader ? "AND output_employee_line.leader_name in (".$lineLeader.")" : "";
 
         $efficiencyLine = DB::connection("mysql_sb")->select("
             select
@@ -1037,6 +1037,10 @@ END jam) a))) target from (
                                 AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
                                 AND master_plan.cancel = 'N'
                                 ".$buyerFilter."
+                                ".$wsFilter."
+                                ".$styleFilter."
+                                ".$colorFilter."
+                                ".$sizeFilter."
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
                             order by
@@ -1046,6 +1050,10 @@ END jam) a))) target from (
                         output.sewing_line,
                         output.tgl_output
                 ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            WHERE
+                output.sewing_line is not null
+                ".$sewingLineFilter."
+                ".$lineLeaderFilter."
             group by
                 line_id,
                 tanggal
@@ -1064,7 +1072,7 @@ END jam) a))) target from (
 
         $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier = '".$buyerId."'" : "";
 
-        $efficiencyLine = DB::connection("mysql_sb")->select("
+        $efficiencyLine = collect(DB::connection("mysql_sb")->select("
             select
                 output_employee_line.*,
                 output.sewing_line,
@@ -1129,16 +1137,16 @@ END jam) a))) target from (
             order by
                 line_id asc,
                 tanggal asc
-        ");
+        "));
 
-        $lines = $defect->get()->groupBy('sewing_line')->keys();
-        $orders = $defect->get()->groupBy('ws')->keys();
+        $lines = $efficiencyLine->groupBy('sewing_line')->keys();
+        $orders = $efficiencyLine->groupBy('ws')->keys();
         // $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
-        $styles = $defect->get()->groupBy('style')->keys();
-        $suppliers = $defect->get()->groupBy('buyer')->keys();
-        $colors = $defect->get()->groupBy('color')->keys();
-        $sizes = $defect->get()->groupBy('size')->keys();
-        $externalTypes = $defect->get()->groupBy('external_type')->keys();
+        $styles = $efficiencyLine->groupBy('style')->keys();
+        $suppliers = $efficiencyLine->groupBy('buyer')->keys();
+        $colors = $efficiencyLine->groupBy('color')->keys();
+        $sizes = $efficiencyLine->groupBy('size')->keys();
+        $lineLeaders = $efficiencyLine->groupBy('leader_name')->keys();
 
         return array(
             'lines' => $lines,
@@ -1147,7 +1155,7 @@ END jam) a))) target from (
             'suppliers' => $suppliers,
             'colors' => $colors,
             'sizes' => $sizes,
-            'externalTypes' => $externalTypes
+            'lineLeaders' => $lineLeaders,
         );
     }
 
