@@ -120,6 +120,7 @@
                 </button>
             </div>
             <div class="d-flex align-items-end gap-3">
+                <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#leaderSewingFilterModal"><i class="fa fa-filter"></i></button>
                 <div>
                     <label class="form-label">Buyer</label>
                     <select name="buyer_id" id="buyer_id" class="form-select select2bs4" onchange="updateTanggal()">
@@ -136,6 +137,67 @@
             <b><span id="from-label">{{ localeDateFormat($from, false) }}</span> <span>s/d</span> <span id="to-label">{{ localeDateFormat($to, false) }}</span></b>
         </div>
         <div class="row g-3" id="leader-line-charts">
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="leaderSewingFilterModal" tabindex="-1" aria-labelledby="leaderSewingFilterModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="leaderSewingFilterModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Sewing Line</label>
+                        <select class="select2bs4filter" name="sewing_line_filter[]" multiple="multiple" id="sewing_line_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Buyer</label>
+                        <select class="select2bs4filter" name="buyer_filter[]" multiple="multiple" id="buyer_filter">
+                            <option value="">Buyer</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">No. WS</label>
+                        <select class="select2bs4filter" name="ws_filter[]" multiple="multiple" id="ws_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Style</label>
+                        <select class="select2bs4filter" name="style_filter[]" multiple="multiple" id="style_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <select class="select2bs4filter" name="color_filter[]" multiple="multiple" id="color_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Size</label>
+                        <select class="select2bs4filter" name="size_filter[]" multiple="multiple" id="size_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Leader</label>
+                        <select class="select2bs4filter" name="line_leader_filter[]" multiple="multiple" id="line_leader_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i class="fa-solid fa-broom"></i></button>
+                    <button type="button" class="btn btn-success" onclick="updateFilter()">Simpan <i class="fa-solid fa-check"></i></button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -196,7 +258,13 @@
             theme: 'bootstrap4'
         })
 
+        $('.select2bs4filter').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#leaderSewingFilterModal")
+        })
+
         $('document').ready(async () => {
+            updateFilterOption();
             getData();
         });
 
@@ -209,11 +277,22 @@
             console.log("data update finish");
         }, 60000);
 
+        // Filter Update
+        async function updateFilter() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            await getData();
+
+            document.getElementById("loading").classList.add("d-none");
+        }
+
         // Date Update
         async function updateTanggal() {
             document.getElementById("loading").classList.remove("d-none");
 
+            await updateFilterOption();
             await getData();
+            $("#leaderSewingFilterModal").modal("hide");
 
             document.getElementById("loading").classList.add("d-none");
         }
@@ -232,6 +311,12 @@
                     from: $("#from").val(),
                     to: $("#to").val(),
                     buyer_id: $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 dataType: "json",
                 success: async function (response) {
@@ -321,6 +406,12 @@
                     from: $("#from").val(),
                     to: $("#to").val(),
                     buyer_id: $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 dataType: "json",
                 success: async function (response) {
@@ -619,6 +710,88 @@
             } else {
                 appendRow(data, index);
             }
+        }
+
+        async function updateFilterOption() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            await $.ajax({
+                url: '{{ route('dashboard-leader-sewing-filter') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    from : $('#from').val(),
+                    to : $('#to').val(),
+                    buyer_id : $('#buyer_id').val()
+                },
+                success: async function(response) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    if (response) {
+                        // lines options
+                        if (response.lines && response.lines.length > 0) {
+                            let lines = response.lines;
+                            $('#sewing_line_filter').empty();
+                            $.each(lines, function(index, value) {
+                                $('#sewing_line_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // suppliers option
+                        if (response.suppliers && response.suppliers.length > 0) {
+                            let suppliers = response.suppliers;
+                            $('#buyer_filter').empty();
+                            $.each(suppliers, function(index, value) {
+                                $('#buyer_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // orders option
+                        if (response.orders && response.orders.length > 0) {
+                            let orders = response.orders;
+                            $('#ws_filter').empty();
+                            $.each(orders, function(index, value) {
+                                $('#ws_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // styles option
+                        if (response.styles && response.styles.length > 0) {
+                            let styles = response.styles;
+                            $('#style_filter').empty();
+                            $.each(styles, function(index, value) {
+                                $('#style_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // colors option
+                        if (response.colors && response.colors.length > 0) {
+                            let colors = response.colors;
+                            $('#color_filter').empty();
+                            $.each(colors, function(index, value) {
+                                $('#color_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // sizes option
+                        if (response.sizes && response.sizes.length > 0) {
+                            let sizes = response.sizes;
+                            $('#size_filter').empty();
+                            $.each(sizes, function(index, value) {
+                                $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // leaders option
+                        if (response.sizes && response.sizes.length > 0) {
+                            let lineLeaders = response.lineLeaders;
+                            $('#line_leader_filter').empty();
+                            $.each(lineLeaders, function(index, value) {
+                                $('#line_leader_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
         }
 
         function exportExcel(elm) {
