@@ -774,7 +774,7 @@ END jam) a))) target from (
         // return view('wip.dashboard-chief-sewing', ['page' => 'dashboard-wip', "year" => $yearVar, "month" => $monthVar, "monthName" => $months[num($monthVar)-1]["nama"], "months" => $months]);
         return view('wip.dashboard-factory-performance-sewing', ['page' => 'dashboard-wip', "year" => $yearVar, "month" => $monthVar, "monthName" => $months[num($monthVar)-1]["nama"], "months" => $months]);
     }
-  
+
     function chiefSewing($year = 0, $month = 0) {
         $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
 
@@ -970,6 +970,97 @@ END jam) a))) target from (
         $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
+        $ws = $request->ws ? $request->ws : null;
+        $style = $request->style ? $request->style : null;
+        $styleProd = $request->style_prod ? $request->style_prod : null;
+        $color = $request->color ? $request->color : null;
+        $size = $request->size ? $request->size : null;
+        $line = $request->line ? $request->line : null;
+        $lineLeader = $request->line_leader ? $request->line_leader : null;
+
+        $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier = '".$buyerId."'" : "";
+        $wsFilter = $ws ? "AND act_costing.id = '".$ws."'" : "";
+        $style = $style ? "AND act_costing.styleno = '".$style."'" : "";
+        $styleProd = $styleProd ? "AND act_costing.styleno = '".$styleProd."'" : "";
+        $color = $color ? "AND so_det.color = '".$color."'" : "";
+        $sizeFilter = $size ? "AND so_det.size = '".$size."'" : "";
+        $lineFilter = $line ? "AND output.sewing_line = '".$line."'" : "";
+        $lineLeaderFilter = $line ? "AND output_employee_line.leader_nik = '".$line."'" : "";
+
+        $efficiencyLine = DB::connection("mysql_sb")->select("
+            select
+                output_employee_line.*,
+                output.sewing_line,
+                SUM(rft) rft,
+                SUM(output) output,
+                SUM(mins_prod) mins_prod,
+                SUM(mins_avail) mins_avail,
+                SUM(cumulative_mins_avail) cumulative_mins_avail
+            from
+                output_employee_line
+                left join userpassword on userpassword.line_id = output_employee_line.line_id
+                inner join (
+                    SELECT
+                        output.tgl_output,
+                        output.tgl_plan,
+                        output.sewing_line,
+                        SUM(rft) rft,
+                        SUM(output) output,
+                        SUM(output * output.smv) mins_prod,
+                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
+                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
+                        MAX(output.last_update) last_update,
+                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
+                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
+                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
+                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                    FROM
+                        (
+                            SELECT
+                                DATE( rfts.updated_at ) tgl_output,
+                                COUNT( rfts.id ) output,
+                                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+                                MAX(rfts.updated_at) last_update,
+                                master_plan.id master_plan_id,
+                                master_plan.tgl_plan,
+                                master_plan.sewing_line,
+                                master_plan.man_power,
+                                master_plan.jam_kerja,
+                                master_plan.smv
+                            FROM
+                                output_rfts rfts
+                                inner join master_plan on master_plan.id = rfts.master_plan_id
+                                inner join act_costing on act_costing.id = master_plan.id_ws
+                                inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                            where
+                                rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                                AND master_plan.cancel = 'N'
+                                ".$buyerFilter."
+                            GROUP BY
+                                master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
+                            order by
+                                sewing_line
+                        ) output
+                    GROUP BY
+                        output.sewing_line,
+                        output.tgl_output
+                ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            group by
+                line_id,
+                tanggal
+            order by
+                line_id asc,
+                tanggal asc
+        ");
+
+        return $efficiencyLine;
+    }
+
+    function leaderSewingFilter(Request $request) {
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $to = $request->to ? $request->to : date("Y-m-d");
+        $buyerId = $request->buyer_id ? $request->buyer_id : null;
 
         $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier = '".$buyerId."'" : "";
 
@@ -1040,7 +1131,24 @@ END jam) a))) target from (
                 tanggal asc
         ");
 
-        return $efficiencyLine;
+        $lines = $defect->get()->groupBy('sewing_line')->keys();
+        $orders = $defect->get()->groupBy('ws')->keys();
+        // $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
+        $styles = $defect->get()->groupBy('style')->keys();
+        $suppliers = $defect->get()->groupBy('buyer')->keys();
+        $colors = $defect->get()->groupBy('color')->keys();
+        $sizes = $defect->get()->groupBy('size')->keys();
+        $externalTypes = $defect->get()->groupBy('external_type')->keys();
+
+        return array(
+            'lines' => $lines,
+            'orders' => $orders,
+            'styles' => $styles,
+            'suppliers' => $suppliers,
+            'colors' => $colors,
+            'sizes' => $sizes,
+            'externalTypes' => $externalTypes
+        );
     }
 
     function leaderSewingRangeDataExport(Request $request) {

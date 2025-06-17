@@ -138,6 +138,120 @@
         <div class="row g-3" id="leader-line-charts">
         </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="leaderSewingFilterModal" tabindex="-1" aria-labelledby="leaderSewingFilterModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="leaderSewingFilterModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Defect Types</label>
+                        <select class="select2bs4filter" name="defect_types[]" multiple="multiple" id="defect_types">
+                            @foreach ($defectTypes as $defectType)
+                                <option value="{{ $defectType->id }}">{{ $defectType->defect_type }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Defect Areas</label>
+                        <select class="select2bs4filter" name="defect_areas[]" multiple="multiple" id="defect_areas">
+                            @foreach ($defectAreas as $defectArea)
+                                <option value="{{ $defectArea->id }}">{{ $defectArea->defect_area }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Defect Status</label>
+                        <select class="select2bs4filter" name="defect_status[]" multiple="multiple" id="defect_status">
+                            <option value="">SEMUA</option>
+                            <option value="defect">DEFECT</option>
+                            <option value="reworked">REWORKED</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sewing Line</label>
+                        <select class="select2bs4filter" name="sewing_line[]" multiple="multiple" id="sewing_line">
+                            <option value="">SEMUA</option>
+                            @foreach ($lines as $line)
+                                <option value="{{ $line }}">{{ strtoupper(str_replace("_", " ", $line)) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Buyer</label>
+                        <select class="select2bs4filter" name="buyer[]" multiple="multiple" id="buyer">
+                            <option value="">Buyer</option>
+                            @foreach ($suppliers as $supplier)
+                                <option value="{{ $supplier }}">{{ $supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">No. WS</label>
+                        <select class="select2bs4filter" name="ws[]" multiple="multiple" id="ws">
+                            <option value="">SEMUA</option>
+                            @foreach ($orders as $order)
+                                <option value="{{ $order }}">{{ $order }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Style</label>
+                        <select class="select2bs4filter" name="style[]" multiple="multiple" id="style">
+                            <option value="">SEMUA</option>
+                            @foreach ($styles as $style)
+                                <option value="{{ $style }}">{{ $style }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <select class="select2bs4filter" name="color[]" multiple="multiple" id="color">
+                            <option value="">SEMUA</option>
+                            @foreach ($colors as $color)
+                                <option value="{{ $color }}">{{ $color }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Size</label>
+                        <select class="select2bs4filter" name="size[]" multiple="multiple" id="size">
+                            <option value="">SEMUA</option>
+                            @foreach ($sizes as $size)
+                                <option value="{{ $size }}">{{ $size }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">External Type</label>
+                        <select class="select2bs4filter" name="external_type[]" multiple="multiple" id="external_type">
+                            <option value="">SEMUA</option>
+                            @foreach ($externalTypes as $externalType)
+                                <option value="{{ $externalType }}">{{ ($externalType ? strtoupper($externalType) : "SEWING") }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">External IN</label>
+                        <input type="date" class="form-control" name="external_in">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">External OUT</label>
+                        <input type="date" class="form-control" name="external_out">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i class="fa-solid fa-broom"></i></button>
+                    <button type="button" class="btn btn-success" onclick="reportDefectDatatableReload()">Simpan <i class="fa-solid fa-check"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -619,6 +733,80 @@
             } else {
                 appendRow(data, index);
             }
+        }
+
+        async function updateFilterOption() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            await $.ajax({
+                url: '{{ route('filter-leader-sewing') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    dateFrom : $('#dateFrom').val(),
+                    dateTo : $('#dateTo').val(),
+                    department : $('#department').val()
+                },
+                success: async function(response) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    if (response) {
+                        // lines options
+                        if (response.lines && response.lines.length > 0) {
+                            let lines = response.lines;
+                            $('#sewing_line_filter').empty();
+                            $.each(lines, function(index, value) {
+                                $('#sewing_line_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // suppliers option
+                        if (response.suppliers && response.suppliers.length > 0) {
+                            let suppliers = response.suppliers;
+                            $('#buyer_filter').empty();
+                            $.each(suppliers, function(index, value) {
+                                $('#buyer_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // orders option
+                        if (response.orders && response.orders.length > 0) {
+                            let orders = response.orders;
+                            $('#ws_filter').empty();
+                            $.each(orders, function(index, value) {
+                                $('#ws_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // styles option
+                        if (response.styles && response.styles.length > 0) {
+                            let styles = response.styles;
+                            $('#style_filter').empty();
+                            $.each(styles, function(index, value) {
+                                $('#style_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // colors option
+                        if (response.colors && response.colors.length > 0) {
+                            let colors = response.colors;
+                            $('#color_filter').empty();
+                            $.each(colors, function(index, value) {
+                                $('#color_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // sizes option
+                        if (response.sizes && response.sizes.length > 0) {
+                            let sizes = response.sizes;
+                            $('#size_filter').empty();
+                            $.each(sizes, function(index, value) {
+                                $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
         }
 
         function exportExcel(elm) {
