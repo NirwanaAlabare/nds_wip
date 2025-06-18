@@ -1117,7 +1117,7 @@
                 },
                 dataType: 'json',
                 success: function(response) {
-                    if (response[0].status && response[0].status == 400) {
+                    if (response[0] && response[0].status && response[0].status == 400) {
                         return Swal.fire({
                             icon: "error",
                             title: "Gagal",

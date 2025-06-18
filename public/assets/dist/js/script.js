@@ -16,56 +16,56 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     // Datepicker JQuery UI
-    $('input[type="date"]').each(function () {
-        const original = $(this);
+    // $('input[type="date"]').each(function () {
+    //     const original = $(this);
 
-        if (original.hasClass('skip-datepicker') || original.is('[wire\\:model], [wire\\:model\\.defer], [wire\\:model\\.lazy]')) {
-            return;
-        }
+    //     if (original.hasClass('skip-datepicker') || original.is('[wire\\:model], [wire\\:model\\.defer], [wire\\:model\\.lazy]')) {
+    //         return;
+    //     }
 
-        const id = original.attr('id');
-        const value = original.val();
+    //     const id = original.attr('id');
+    //     const value = original.val();
 
-        // Hide original input
-        original.hide();
+    //     // Hide original input
+    //     original.hide();
 
-        // Create visible input
-        const visible = $('<input type="text" class="form-control form-control-sm datepicker" autocomplete="off">')
-            .attr('id', id + '_display')
-            .insertAfter(original);
+    //     // Create visible input
+    //     const visible = $('<input type="text" class="form-control form-control-sm datepicker" autocomplete="off">')
+    //         .attr('id', id + '_display')
+    //         .insertAfter(original);
 
-        // Init datepicker
-        visible.datepicker({
-            dateFormat: 'dd-mm-yy',
-        });
+    //     // Init datepicker
+    //     visible.datepicker({
+    //         dateFormat: 'dd-mm-yy',
+    //     });
 
-        // Set initial value
-        if (value) {
-            let parts = value.split('-'); // ["2025", "06", "11"]
-            let date = new Date(parts[0], parts[1] - 1, parts[2]);
-            visible.datepicker('setDate', date);
-        }
+    //     // Set initial value
+    //     if (value) {
+    //         let parts = value.split('-'); // ["2025", "06", "11"]
+    //         let date = new Date(parts[0], parts[1] - 1, parts[2]);
+    //         visible.datepicker('setDate', date);
+    //     }
 
-        // When hidden input changes (e.g. via JS), update visible input
-        original.on('change', function () {
-            let parts = original.val().split('-'); // ["2025", "06", "11"]
-            let date = new Date(parts[0], parts[1] - 1, parts[2]);
-            visible.datepicker('setDate', date);
-        });
+    //     // When hidden input changes (e.g. via JS), update visible input
+    //     original.on('change', function () {
+    //         let parts = original.val().split('-'); // ["2025", "06", "11"]
+    //         let date = new Date(parts[0], parts[1] - 1, parts[2]);
+    //         visible.datepicker('setDate', date);
+    //     });
 
-        // When visible input changes manually, update hidden input
-        visible.on('change', function () {
-            const date = visible.datepicker('getDate');
-            if (date instanceof Date && !isNaN(date)) {
-                const formatted = $.datepicker.formatDate('yy-mm-dd', date);
-                original.val(formatted).trigger('input').trigger('change');
-            } else {
-                original.val('').trigger('input').trigger('change');
-            }
+    //     // When visible input changes manually, update hidden input
+    //     visible.on('change', function () {
+    //         const date = visible.datepicker('getDate');
+    //         if (date instanceof Date && !isNaN(date)) {
+    //             const formatted = $.datepicker.formatDate('yy-mm-dd', date);
+    //             original.val(formatted).trigger('input').trigger('change');
+    //         } else {
+    //             original.val('').trigger('input').trigger('change');
+    //         }
 
-            visible.blur();
-        });
-    });
+    //         visible.blur();
+    //     });
+    // });
 });
 
 function unique(value, index, array) {
