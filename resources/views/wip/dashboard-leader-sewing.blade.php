@@ -149,6 +149,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="loading-container-fixed d-none" id="loading-filter">
+                        <div class="loading"></div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Sewing Line</label>
                         <select class="select2bs4filter" name="sewing_line_filter[]" multiple="multiple" id="sewing_line_filter">
@@ -290,9 +293,6 @@
         async function updateFilter() {
             document.getElementById("loading").classList.remove("d-none");
 
-            if (document.getElementById("ws_filter").value || document.getElementById("style_filter").value || document.getElementById("style_prod_filter").value) {
-                await updateFilterOption();
-            }
             await getData();
             $("#leaderSewingFilterModal").modal("hide");
 
@@ -303,7 +303,6 @@
         async function updateTanggal() {
             document.getElementById("loading").classList.remove("d-none");
 
-            await updateFilterOption();
             await getData();
 
             document.getElementById("loading").classList.add("d-none");
@@ -311,6 +310,8 @@
 
         // Get Data
         async function getData() {
+            document.getElementById('loading').classList.remove('d-none');
+
             document.getElementById("from-label").innerHTML = $("#from").val()+" ";
             document.getElementById("to-label").innerHTML = " "+$("#to").val();
 
@@ -342,6 +343,8 @@
 
                         $("#from").val(minTanggal);
                         $("#to").val(maxTanggal);
+
+                        updateFilterOption();
                     }
 
                     document.getElementById("from-label").innerHTML = $("#from").val()+" ";
@@ -410,9 +413,13 @@
                         document.getElementById('leader-line-charts').style.justifyContent = "center";
                         document.getElementById('leader-line-charts').style.paddingTop = "15px";
                     }
+
+                    document.getElementById('loading').classList.add('d-none');
                 },
                 error: function (jqXHR) {
                     console.error(jqXHR);
+
+                    document.getElementById('loading').classList.add('d-none');
                 }
             });
         }
@@ -737,8 +744,7 @@
         }
 
         async function updateFilterOption() {
-            document.getElementById('loading').classList.remove('d-none');
-
+            document.getElementById('loading-filter').classList.remove('d-none');
             await $.ajax({
                 url: '{{ route('dashboard-leader-sewing-filter') }}',
                 dataType: 'json',
@@ -749,8 +755,6 @@
                     buyer_id : $('#buyer_id').val()
                 },
                 success: async function(response) {
-                    document.getElementById('loading').classList.add('d-none');
-
                     if (response) {
                         // lines options
                         if (response.lines && response.lines.length > 0) {
@@ -785,9 +789,11 @@
                             });
                         }
                     }
+
+                    document.getElementById('loading-filter').classList.add('d-none');
                 },
                 error: function(jqXHR) {
-                    document.getElementById('loading').classList.add('d-none');
+                    document.getElementById('loading-filter').classList.add('d-none');
 
                     console.error(jqXHR);
                 },

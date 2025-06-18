@@ -1154,8 +1154,15 @@ END jam) a))) target from (
         $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyer = $request->buyer ? $request->buyer : "";
+        $ws = $request->ws_filter;
+        $style = $request->style_filter;
+        $styleProd = $request->style_prod_filter;
+        $color = $request->color_filter;
+        $size = $request->size_filter;
+        $sewingLine = $request->sewing_line_filter;
+        $lineLeader = $request->line_leader_filter;
 
-        return Excel::download(new LeaderSewingRangeExport($from, $to, $buyer), 'chief_sewing_range.xlsx');
+        return Excel::download(new LeaderSewingRangeExport($from, $to, $buyer, $ws ,$style ,$styleProd ,$color ,$size ,$sewingLine ,$lineLeader), 'chief_sewing_range.xlsx');
     }
 
     function supportLineSewing($year = 0, $month = 0) {
@@ -1175,11 +1182,11 @@ END jam) a))) target from (
             select
                 output_employee_line.*,
                 output.sewing_line,
-                SUM(rft) rft,
-                SUM(output) output,
-                SUM(mins_prod) mins_prod,
-                SUM(mins_avail) mins_avail,
-                SUM(cumulative_mins_avail) cumulative_mins_avail
+                SUM(coalesce(rft, 0)) rft,
+                SUM(coalesce(output, 0)) output,
+                SUM(coalesce(mins_prod, 0)) mins_prod,
+                SUM(coalesce(mins_avail, 0)) mins_avail,
+                SUM(coalesce(cumulative_mins_avail, 0)) cumulative_mins_avail
             from
                 output_employee_line
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
