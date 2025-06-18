@@ -814,6 +814,13 @@
                     from : $("#from").val(),
                     to : $("#to").val(),
                     buyer_id : $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    style_prod_filter: $('#style_prod_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
