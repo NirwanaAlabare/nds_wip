@@ -156,21 +156,30 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Buyer</label>
-                        <select class="select2bs4filter" name="buyer_filter[]" multiple="multiple" id="buyer_filter">
-                            <option value="">Buyer</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">No. WS</label>
                         <select class="select2bs4filter" name="ws_filter[]" multiple="multiple" id="ws_filter">
                             <option value="">SEMUA</option>
+                            @foreach ($orders as $order)
+                                <option value="{{ $order }}">{{ $order }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Style</label>
                         <select class="select2bs4filter" name="style_filter[]" multiple="multiple" id="style_filter">
                             <option value="">SEMUA</option>
+                            @foreach ($styles as $style)
+                                <option value="{{ $style }}">{{ $style }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Style Prod</label>
+                        <select class="select2bs4filter" name="style_prod_filter[]" multiple="multiple" id="style_prod_filter">
+                            <option value="">SEMUA</option>
+                            @foreach ($styleProds as $styleProd)
+                                <option value="{{ $styleProd }}">{{ $styleProd }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
@@ -281,6 +290,9 @@
         async function updateFilter() {
             document.getElementById("loading").classList.remove("d-none");
 
+            if (document.getElementById("ws_filter").value || document.getElementById("style_filter").value || document.getElementById("style_prod_filter").value) {
+                await updateFilterOption();
+            }
             await getData();
             $("#leaderSewingFilterModal").modal("hide");
 
@@ -312,13 +324,28 @@
                     sewing_line_filter: $('#sewing_line_filter').val(),
                     ws_filter: $('#ws_filter').val(),
                     style_filter: $('#style_filter').val(),
+                    style_prod_filter: $('#style_prod_filter').val(),
                     color_filter: $('#color_filter').val(),
                     size_filter: $('#size_filter').val(),
                     line_leader_filter: $('#line_leader_filter').val(),
                 },
                 dataType: "json",
                 success: async function (response) {
-                    console.log(response);
+                    if (response && response.length > 0) {
+                        const minTanggal = response.reduce((min, obj) => {
+                            return new Date(obj.tanggal) < new Date(min.tanggal) ? obj : min;
+                        }).tanggal;
+
+                        const maxTanggal = response.reduce((max, obj) => {
+                                return new Date(obj.tanggal) > new Date(max.tanggal) ? obj : max;
+                            }).tanggal;
+
+                        $("#from").val(minTanggal);
+                        $("#to").val(maxTanggal);
+                    }
+
+                    document.getElementById("from-label").innerHTML = $("#from").val()+" ";
+                    document.getElementById("to-label").innerHTML = " "+$("#to").val();
 
                     document.getElementById('leader-line-charts').innerHTML = "";
 
@@ -405,6 +432,7 @@
                     sewing_line_filter: $('#sewing_line_filter').val(),
                     ws_filter: $('#ws_filter').val(),
                     style_filter: $('#style_filter').val(),
+                    style_prod_filter: $('#style_prod_filter').val(),
                     color_filter: $('#color_filter').val(),
                     size_filter: $('#size_filter').val(),
                     line_leader_filter: $('#line_leader_filter').val(),
@@ -730,30 +758,6 @@
                             $('#sewing_line_filter').empty();
                             $.each(lines, function(index, value) {
                                 $('#sewing_line_filter').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // suppliers option
-                        if (response.suppliers && response.suppliers.length > 0) {
-                            let suppliers = response.suppliers;
-                            $('#buyer_filter').empty();
-                            $.each(suppliers, function(index, value) {
-                                $('#buyer_filter').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // orders option
-                        if (response.orders && response.orders.length > 0) {
-                            let orders = response.orders;
-                            $('#ws_filter').empty();
-                            $.each(orders, function(index, value) {
-                                $('#ws_filter').append('<option value="'+value+'">'+value+'</option>');
-                            });
-                        }
-                        // styles option
-                        if (response.styles && response.styles.length > 0) {
-                            let styles = response.styles;
-                            $('#style_filter').empty();
-                            $.each(styles, function(index, value) {
-                                $('#style_filter').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
                         // colors option

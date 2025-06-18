@@ -10,6 +10,8 @@ use App\Models\Marker;
 use App\Models\DCIn;
 use App\Models\FormCutInput;
 use App\Models\SignalBit\UserLine;
+use App\Models\SignalBit\ActCosting;
+use App\Models\SignalBit\SoDet;
 use App\Exports\Sewing\ChiefSewingRangeExport;
 use App\Exports\Sewing\LeaderSewingRangeExport;
 use Yajra\DataTables\Facades\DataTables;
@@ -952,6 +954,10 @@ END jam) a))) target from (
         $to = $to ? $to : date("Y-m-d");
         $buyerId = $request->buyer_id;
 
+        $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
+        $styles = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('cost_date', 'desc')->orderBy('styleno', 'asc')->groupBy('styleno')->pluck('styleno');
+        $styleProds = SoDet::leftJoin('so', 'so.id', '=', 'so_det.id_so')->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')->where('act_costing.cost_date', '>=', '2023-01-01')->orderBy('styleno_prod', 'desc')->orderBy('styleno_prod', 'asc')->groupBy('styleno_prod')->pluck('styleno_prod');
+
         $buyers = DB::connection('mysql_sb')->table('mastersupplier')->
             selectRaw('Id_Supplier as id, Supplier as name')->
             leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
@@ -963,10 +969,11 @@ END jam) a))) target from (
             groupBy('Id_Supplier', 'Supplier')->
             get();
 
-        return view('wip.dashboard-leader-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'leader-sewing', "from" => $from, "to" => $to, "buyers" => $buyers]);
+        return view('wip.dashboard-leader-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'leader-sewing', "from" => $from, "to" => $to, "buyers" => $buyers, "orders" => $orders, "styles" => $styles, "styleProds" => $styleProds]);
     }
 
     function leaderSewingData(Request $request) {
+        ini_set("max_execution_time", 3600);
         $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
@@ -981,7 +988,7 @@ END jam) a))) target from (
         $buyerFilter = $buyerId ? "AND mastersupplier.Supplier in (".$buyerId.")" : "";
         $wsFilter = $ws ? "AND act_costing.kpno in (".$ws.")" : "";
         $styleFilter = $style ? "AND act_costing.styleno in (".$style.")" : "";
-        $styleProdFilter = $styleProd ? "AND act_costing.styleno in (".$styleProd.")" : "";
+        $styleProdFilter = $styleProd ? "AND so_det.styleno_prod in (".$styleProd.")" : "";
         $colorFilter = $color ? "AND so_det.color in (".$color.")" : "";
         $sizeFilter = $size ? "AND so_det.size in (".$size.")" : "";
         $sewingLineFilter = $sewingLine ? "AND output.sewing_line in (".$sewingLine.")" : "";
@@ -1034,12 +1041,16 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                                 inner join so_det on so_det.id = rfts.so_det_id
                             where
-                                rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                                ".(
+                                    $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
+                                    "rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                                )."
                                 AND master_plan.cancel = 'N'
                                 ".$buyerFilter."
                                 ".$wsFilter."
                                 ".$styleFilter."
+                                ".$styleProdFilter."
                                 ".$colorFilter."
                                 ".$sizeFilter."
                             GROUP BY
@@ -1067,6 +1078,7 @@ END jam) a))) target from (
     }
 
     function leaderSewingFilter(Request $request) {
+        ini_set("max_execution_time", 3600);
         $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
@@ -1106,6 +1118,7 @@ END jam) a))) target from (
                 act_costing.styleno style,
                 so_det.color,
                 so_det.size,
+                so_det.styleno_prod style_prod,
                 mastersupplier.Supplier buyer
             FROM
                 output_rfts rfts
@@ -1123,9 +1136,6 @@ END jam) a))) target from (
         "));
 
         $lines = $efficiencyLine->groupBy('sewing_line')->keys();
-        $orders = $detail->groupBy('ws')->keys();
-        // $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
-        $styles = $detail->groupBy('style')->keys();
         $suppliers = $detail->groupBy('buyer')->keys();
         $colors = $detail->groupBy('color')->keys();
         $sizes = $detail->groupBy('size')->keys();
@@ -1133,8 +1143,6 @@ END jam) a))) target from (
 
         return array(
             'lines' => $lines,
-            'orders' => $orders,
-            'styles' => $styles,
             'suppliers' => $suppliers,
             'colors' => $colors,
             'sizes' => $sizes,
