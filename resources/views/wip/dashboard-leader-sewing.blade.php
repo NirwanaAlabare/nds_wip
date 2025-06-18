@@ -282,6 +282,7 @@
             document.getElementById("loading").classList.remove("d-none");
 
             await getData();
+            $("#leaderSewingFilterModal").modal("hide");
 
             document.getElementById("loading").classList.add("d-none");
         }
@@ -292,15 +293,12 @@
 
             await updateFilterOption();
             await getData();
-            $("#leaderSewingFilterModal").modal("hide");
 
             document.getElementById("loading").classList.add("d-none");
         }
 
         // Get Data
         async function getData() {
-            document.getElementById("loading").classList.remove("d-none");
-
             document.getElementById("from-label").innerHTML = $("#from").val()+" ";
             document.getElementById("to-label").innerHTML = " "+$("#to").val();
 
@@ -390,8 +388,6 @@
                     console.error(jqXHR);
                 }
             });
-
-            document.getElementById("loading").classList.add("d-none");
         }
 
         // Update Data
