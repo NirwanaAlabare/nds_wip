@@ -189,11 +189,13 @@
                         document.getElementById("loading").classList.add("d-none");
 
                         if (response) {
-                            $('#size').empty().append('<option value="">Pilih Size</option>');
+                            $('#size').empty().append('<option value="">All Size</option>');
                             response.forEach(function (size) {
                                 $('#size').append(`<option value="${size.so_det_id}">${size.size}${(size.dest && size.dest != "-" ? " / "+size.dest : "")}</option>`);
                             });
                             $('#size').val('').trigger('change');
+
+                            getBarcode();
                         }
                     },
                     error: function (jqXHR) {
@@ -206,22 +208,30 @@
         }
 
         function getBarcode() {
+            let order = $("#order").val();
+            let color = $("#color").val();
             let size = $("#size").val();
 
-            if (size) {
+            if (order && color) {
                 document.getElementById("loading").classList.remove("d-none");
 
                 $.ajax({
                     url: "{{ route('get-barcode-packing') }}",
                     type: "GET",
                     data: {
+                        act_costing_id: order,
+                        color: color,
                         so_det_id: size,
                     },
                     success: function (response) {
+                        console.log(response);
+
                         document.getElementById("loading").classList.add("d-none");
 
                         if (response) {
-                            $('#barcode').val(response.id);
+                            let barcode = response.map(data => data.id).join(", ");
+
+                            $('#barcode').val(barcode);
                         } else {
                             $('#barcode').val('');
 

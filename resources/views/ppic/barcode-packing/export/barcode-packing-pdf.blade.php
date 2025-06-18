@@ -60,35 +60,37 @@
     </style>
 </head>
 <body>
-    <div class="label-container">
-        <div class="barcode">
-            <img src="data:image/png;base64,{{ DNS1D::getBarcodePNG($masterSo->id, 'C128') }}" alt="Barcode">
+    @foreach ($masterSo as $ms)
+        <div class="label-container">
+            <div class="barcode">
+                <img src="data:image/png;base64,{{ DNS1D::getBarcodePNG($ms->id, 'C128') }}" alt="Barcode">
+            </div>
+            <div class="barcode-number">{{ $ms->id }}</div>
+            <div class="label-info">
+                <table>
+                    <tr>
+                        <td>WS</td>
+                        <td><b>:</b></td>
+                        <td>{{ $ms->kpno }}</td>
+                    </tr>
+                    <tr>
+                        <td>STYLE</td>
+                        <td><b>:</b></td>
+                        <td>{{ $ms->styleno }}</td>
+                    </tr>
+                    <tr>
+                        <td>COLOR</td>
+                        <td><b>:</b></td>
+                        <td>{{ $ms->color }}</td>
+                    </tr>
+                    <tr>
+                        <td>SIZE</td>
+                        <td><b>:</b></td>
+                        <td>{{ $ms->size.($ms->dest && $ms->dest != "-" ? $ms->dest : "") }}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
-        <div class="barcode-number">{{ $masterSo->id }}</div>
-        <div class="label-info">
-            <table>
-                <tr>
-                    <td>WS</td>
-                    <td><b>:</b></td>
-                    <td>{{ $masterSo->kpno }}</td>
-                </tr>
-                <tr>
-                    <td>STYLE</td>
-                    <td><b>:</b></td>
-                    <td>{{ $masterSo->styleno }}</td>
-                </tr>
-                <tr>
-                    <td>COLOR</td>
-                    <td><b>:</b></td>
-                    <td>{{ $masterSo->color }}</td>
-                </tr>
-                <tr>
-                    <td>SIZE</td>
-                    <td><b>:</b></td>
-                    <td>{{ $masterSo->size.($masterSo->dest && $masterSo->dest != "-" ? $masterSo->dest : "") }}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
+    @endforeach
 </body>
 </html>
