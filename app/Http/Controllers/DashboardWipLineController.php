@@ -978,8 +978,8 @@ END jam) a))) target from (
         $sewingLine = $request->sewing_line_filter ? addQuotesAround(implode("\r\n", $request->sewing_line_filter)) : null;
         $lineLeader = $request->line_leader_filter ? addQuotesAround(implode("\r\n", $request->line_leader_filter)) : null;
 
-        $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier in (".$buyerId.")" : "";
-        $wsFilter = $ws ? "AND act_costing.id in (".$ws.")" : "";
+        $buyerFilter = $buyerId ? "AND mastersupplier.Supplier in (".$buyerId.")" : "";
+        $wsFilter = $ws ? "AND act_costing.kpno in (".$ws.")" : "";
         $styleFilter = $style ? "AND act_costing.styleno in (".$style.")" : "";
         $styleProdFilter = $styleProd ? "AND act_costing.styleno in (".$styleProd.")" : "";
         $colorFilter = $color ? "AND so_det.color in (".$color.")" : "";
@@ -1032,6 +1032,7 @@ END jam) a))) target from (
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                                 inner join act_costing on act_costing.id = master_plan.id_ws
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                                inner join so_det on so_det.id = rfts.so_det_id
                             where
                                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
                                 AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
@@ -1075,62 +1076,12 @@ END jam) a))) target from (
         $efficiencyLine = collect(DB::connection("mysql_sb")->select("
             select
                 output_employee_line.*,
-                output.sewing_line,
-                SUM(rft) rft,
-                SUM(output) output,
-                SUM(mins_prod) mins_prod,
-                SUM(mins_avail) mins_avail,
-                SUM(cumulative_mins_avail) cumulative_mins_avail
+                userpassword.username as sewing_line
             from
                 output_employee_line
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
-                inner join (
-                    SELECT
-                        output.tgl_output,
-                        output.tgl_plan,
-                        output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
-                    FROM
-                        (
-                            SELECT
-                                DATE( rfts.updated_at ) tgl_output,
-                                COUNT( rfts.id ) output,
-                                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
-                                MAX(rfts.updated_at) last_update,
-                                master_plan.id master_plan_id,
-                                master_plan.tgl_plan,
-                                master_plan.sewing_line,
-                                master_plan.man_power,
-                                master_plan.jam_kerja,
-                                master_plan.smv
-                            FROM
-                                output_rfts rfts
-                                inner join master_plan on master_plan.id = rfts.master_plan_id
-                                inner join act_costing on act_costing.id = master_plan.id_ws
-                                inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
-                            where
-                                rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
-                                AND master_plan.cancel = 'N'
-                                ".$buyerFilter."
-                            GROUP BY
-                                master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
-                            order by
-                                sewing_line
-                        ) output
-                    GROUP BY
-                        output.sewing_line,
-                        output.tgl_output
-                ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            where
+                output_employee_line.tanggal between '".$from."' and '".$to."'
             group by
                 line_id,
                 tanggal
@@ -1139,13 +1090,45 @@ END jam) a))) target from (
                 tanggal asc
         "));
 
+        $detail = collect(DB::connection("mysql_sb")->select("
+            SELECT
+                DATE( rfts.updated_at ) tgl_output,
+                COUNT( rfts.id ) output,
+                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+                MAX(rfts.updated_at) last_update,
+                master_plan.id master_plan_id,
+                master_plan.tgl_plan,
+                master_plan.sewing_line,
+                master_plan.man_power,
+                master_plan.jam_kerja,
+                master_plan.smv,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color,
+                so_det.size,
+                mastersupplier.Supplier buyer
+            FROM
+                output_rfts rfts
+                inner join master_plan on master_plan.id = rfts.master_plan_id
+                inner join so_det on so_det.id = rfts.so_det_id
+                inner join act_costing on act_costing.id = master_plan.id_ws
+                inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+            where
+                rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
+                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                AND master_plan.cancel = 'N'
+                ".$buyerFilter."
+            GROUP BY
+                act_costing.kpno, act_costing.styleno, so_det.color, so_det.size
+        "));
+
         $lines = $efficiencyLine->groupBy('sewing_line')->keys();
-        $orders = $efficiencyLine->groupBy('ws')->keys();
+        $orders = $detail->groupBy('ws')->keys();
         // $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
-        $styles = $efficiencyLine->groupBy('style')->keys();
-        $suppliers = $efficiencyLine->groupBy('buyer')->keys();
-        $colors = $efficiencyLine->groupBy('color')->keys();
-        $sizes = $efficiencyLine->groupBy('size')->keys();
+        $styles = $detail->groupBy('style')->keys();
+        $suppliers = $detail->groupBy('buyer')->keys();
+        $colors = $detail->groupBy('color')->keys();
+        $sizes = $detail->groupBy('size')->keys();
         $lineLeaders = $efficiencyLine->groupBy('leader_name')->keys();
 
         return array(
