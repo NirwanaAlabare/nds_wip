@@ -1007,7 +1007,7 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('barcode-packing') }}" class="nav-link {{ $routeName == 'generate-barcode-packing' ? 'active' : '' }}" target="_blank">
+                        <a href="{{ route('barcode-packing') }}" class="nav-link {{ $routeName == 'barcode-packing' ? 'active' : '' }}" target="_blank">
                             Barcode Packing
                         </a>
                     </li>
