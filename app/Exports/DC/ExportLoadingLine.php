@@ -211,8 +211,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
         $detailDateFilter = "";
         if ($this->from || $this->to) {
             $detailDateFilter = "AND ";
-            $dateFromFilter = " COALESCE( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) >= '".$this->from."' ";
-            $dateToFilter = " COALESCE( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) <= '".$this->to."' ";
+            $dateFromFilter = " COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) >= '".$this->from."' ";
+            $dateToFilter = " COALESCE(  loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) <= '".$this->to."' ";
 
             if ($this->from && $this->to) {
                 $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
@@ -230,7 +230,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
         $dataLoadingLines = collect(
             DB::select("
                 SELECT
-                    COALESCE( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) tanggal_loading,
+                    COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) tanggal_loading,
                     loading_line.loading_plan_id,
                     loading_line.nama_line,
                     (
