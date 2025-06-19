@@ -102,11 +102,11 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                             output.tgl_output,
                             output.tgl_plan,
                             output.sewing_line,
-                            output.buyer,
-                            output.ws,
-                            output.style,
-                            output.style_prod,
-                            output.color,
+                            GROUP_CONCAT(DISTINCT output.buyer) as buyer,
+                            GROUP_CONCAT(DISTINCT output.ws) as ws,
+                            GROUP_CONCAT(DISTINCT output.style) as style,
+                            GROUP_CONCAT(DISTINCT output.style_prod) as style_prod,
+                            GROUP_CONCAT(DISTINCT output.color) as color,
                             output.size,
                             SUM(rft) rft,
                             SUM(defect) defect,
@@ -147,8 +147,8 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                 where
                                     ".(
                                         $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
-                                        "rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                    AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                                        "rfts.updated_at >= '".$this->from." 00:00:00' AND rfts.updated_at <= '".$this->to." 23:59:59'
+                                    AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$this->to."'"
                                     )."
                                     AND master_plan.cancel = 'N'
                                     ".$buyerFilter."
@@ -188,8 +188,8 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                 where
                                     ".(
                                         $wsFilter || $styleFilter || $styleProdFilter ? "defects.id is not null" :
-                                        "defects.updated_at >= '".$from." 00:00:00' AND defects.updated_at <= '".$to." 23:59:59'
-                                    AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                                        "defects.updated_at >= '".$this->from." 00:00:00' AND defects.updated_at <= '".$this->to." 23:59:59'
+                                    AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$this->to."'"
                                     )."
                                     AND master_plan.cancel = 'N'
                                     ".$buyerFilter."
@@ -269,7 +269,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
 
     public function headings(): array
     {
-        return ['tgl_output', 'sewing_line', 'buyer', 'rft_rate', 'defect_rate', 'eff_rate'];
+        return ['tgl_output', 'sewing_line', 'buyer', 'style_prod', 'rft_rate', 'defect_rate', 'eff_rate'];
     }
 
     public function startCell(): string

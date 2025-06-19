@@ -11,6 +11,7 @@
     <tr>
         <th>Tanggal Req</th>
         <th>No. Req</th>
+        <th>No. Trans</th>
         <th>No. WS</th>
         <th>No. WS Aktual</th>
         <th>Style</th>
@@ -31,6 +32,7 @@
         <tr>
             <td>{{ $roll->tanggal_req }}</td>
             <td>{{ $roll->no_req }}</td>
+            <td>{{ $roll->no_out }}</td>
             <td>{{ $roll->no_ws }}</td>
             <td>{{ $roll->no_ws_aktual }}</td>
             <td>{{ $roll->styleno }}</td>

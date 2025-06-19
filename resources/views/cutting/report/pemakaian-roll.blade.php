@@ -38,6 +38,7 @@
                             <th>Action</th>
                             <th>No. Request</th>
                             <th>Tanggal Request</th>
+                            <th>No. Trans</th>
                             <th>Tujuan</th>
                             <th>No. WS</th>
                             <th>Style</th>
@@ -62,6 +63,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -261,7 +263,7 @@
             datatableReload();
         });
 
-        var pemakaianKainFilter = ['bppbno', 'bppbdate', 'tujuan', 'no_ws', 'styleno', 'buyer', 'id_item', 'itemdesc'];
+        var pemakaianKainFilter = ['bppbno', 'no_out', 'bppbdate', 'tujuan', 'no_ws', 'styleno', 'buyer', 'id_item', 'itemdesc'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -307,6 +309,9 @@
                 },
                 {
                     data: 'bppbdate'
+                },
+                {
+                    data: 'no_out'
                 },
                 {
                     data: 'tujuan'
@@ -373,15 +378,15 @@
                     }
                 },
                 {
-                    targets: [11, 18],
+                    targets: [12, 19],
                     className: "d-none",
                 },
                 {
-                    targets: [9, 10, 12, 13, 14, 16, 19, 20],
+                    targets: [10, 11, 13, 14, 15, 17, 20, 21],
                     className: "fw-bold",
                 },
                 {
-                    targets: [15, 17],
+                    targets: [16, 18],
                     className: "fw-bold",
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -417,63 +422,63 @@
 
                 // computing column Total of the complete result
                 var sumTotalQty = api
-                    .column(9, { search:'applied' })
+                    .column(10, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
                 var sumRollIn = api
-                    .column(12, { search:'applied' })
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumQtyIn = api
                     .column(13, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumRollCutting = api
+                var sumQtyIn = api
                     .column(14, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumQtyCutting = api
+                var sumRollCutting = api
                     .column(15, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumRollBalance = api
+                var sumQtyCutting = api
                     .column(16, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumQtyBalance = api
+                var sumRollBalance = api
                     .column(17, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var sumQtyBalance = api
+                    .column(18, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
                 var sumRollReturn = api
-                    .column(19, { search:'applied' })
+                    .column(20, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
                 var sumQtyReturn = api
-                    .column(20, { search:'applied' })
+                    .column(21, { search:'applied' })
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -481,15 +486,15 @@
 
                 // Update footer by showing the total with the reference of the column index
                 // $(api.column(0).footer()).html('Total');
-                $(api.column(9).footer()).html(sumTotalQty.round(2));
-                $(api.column(12).footer()).html(sumRollIn.round(2));
-                $(api.column(13).footer()).html(sumQtyIn.round(2));
-                $(api.column(14).footer()).html(sumRollCutting.round(2));
-                $(api.column(15).footer()).html(sumQtyCutting.round(2));
-                $(api.column(16).footer()).html(sumRollBalance.round(2));
-                $(api.column(17).footer()).html(sumQtyBalance.round(2));
-                $(api.column(19).footer()).html(sumRollReturn ? sumRollReturn.round(2) : 0);
-                $(api.column(20).footer()).html(sumQtyReturn ? sumQtyReturn.round(2) : 0);
+                $(api.column(10).footer()).html(sumTotalQty.round(2));
+                $(api.column(13).footer()).html(sumRollIn.round(2));
+                $(api.column(14).footer()).html(sumQtyIn.round(2));
+                $(api.column(15).footer()).html(sumRollCutting.round(2));
+                $(api.column(16).footer()).html(sumQtyCutting.round(2));
+                $(api.column(17).footer()).html(sumRollBalance.round(2));
+                $(api.column(18).footer()).html(sumQtyBalance.round(2));
+                $(api.column(20).footer()).html(sumRollReturn ? sumRollReturn.round(2) : 0);
+                $(api.column(21).footer()).html(sumQtyReturn ? sumQtyReturn.round(2) : 0);
             }
         });
 
@@ -507,6 +512,7 @@
                     dateFrom : $("#dateFrom").val(),
                     dateTo : $("#dateTo").val(),
                     bppbno : $("#bppbno").val(),
+                    no_out : $("#no_out").val(),
                     bppbdate : $("#bppbdate").val(),
                     tujuan : $("#tujuan").val(),
                     no_ws : $("#no_ws").val(),

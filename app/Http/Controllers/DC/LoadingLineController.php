@@ -1092,17 +1092,17 @@ class LoadingLineController extends Controller
         $fails = [];
         foreach ($loadingLines as $loadingLine) {
             if ($loadingLine->loadingPlan) {
-                $line = $lines->where("line_id", $request->lineId)->first();
+                $line = $lines->where("line_id", ($request->lineId ? $request->lineId : $loadingLine->line_id))->first();
 
-                $loadingLinePlan = LoadingLinePlan::where("line_id", $request->lineId)->
+                $loadingLinePlan = LoadingLinePlan::where("line_id", ($request->lineId ? $request->lineId : $loadingLine->line_id))->
                     where("act_costing_id", $loadingLine->stocker->masterSbWs->id_act_cost)->
                     where("color", $loadingLine->stocker->masterSbWs->color)->
                     where("tanggal", ($request->tanggal_loading ? $request->tanggal_loading : $loadingLine->tanggal_loading))->
                     first();
 
                 if ($loadingLinePlan) {
-                    $loadingLine->line_id = $request->lineId;
-                    $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId);
+                    $loadingLine->line_id = $request->lineId ? $request->lineId : $loadingLine->line_id;
+                    $loadingLine->nama_line = $line ? $line->username : 'line_'.((($request->lineId ? $request->lineId : $loadingLine->line_id) < 1) ? '0' : '').number_format(($request->lineId ? $request->lineId : $loadingLine->line_id));
                     $loadingLine->loading_plan_id = $loadingLinePlan->id;
                     if ($request->tanggal_loading) {
                         $loadingLine->tanggal_loading = $request->tanggal_loading;
@@ -1122,7 +1122,7 @@ class LoadingLineController extends Controller
                     $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
 
                     $newLoadingPlan = LoadingLinePlan::create([
-                        "line_id" => $request->lineId,
+                        "line_id" => ($request->lineId ? $request->lineId : $loadingLine->line_id),
                         "kode" => $kodeLoadingPlan,
                         "act_costing_id" => $loadingLine->stocker->masterSbWs->id_act_cost,
                         "act_costing_ws" => $loadingLine->stocker->act_costing_ws,
@@ -1134,8 +1134,8 @@ class LoadingLineController extends Controller
                         "tanggal" => ($request->tanggal_loading ? $request->tanggal_loading : $loadingLine->tanggal_loading)
                     ]);
 
-                    $loadingLine->line_id = $request->lineId;
-                    $loadingLine->nama_line = $line ? $line->username : 'line_'.(($request->lineId < 1) ? '0' : '').number_format($request->lineId, 2);
+                    $loadingLine->line_id = $request->lineId ? $request->lineId : $loadingLine->line_id;
+                    $loadingLine->nama_line = $line ? $line->username : 'line_'.((($request->lineId ? $request->lineId : $loadingLine->line_id) < 1) ? '0' : '').number_format(($request->lineId ? $request->lineId : $loadingLine->line_id), 2);
                     $loadingLine->loading_plan_id = $newLoadingPlan->id;
                     if ($request->tanggal_loading) {
                         $loadingLine->tanggal_loading = $request->tanggal_loading;
