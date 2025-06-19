@@ -148,7 +148,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                     ".(
                                         $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
                                         "rfts.updated_at >= '".$this->from." 00:00:00' AND rfts.updated_at <= '".$this->to." 23:59:59'
-                                    AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$this->to."'"
+                                    AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$this->to."'"
                                     )."
                                     AND master_plan.cancel = 'N'
                                     ".$buyerFilter."

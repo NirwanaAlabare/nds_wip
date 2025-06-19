@@ -836,7 +836,7 @@ END jam) a))) target from (
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -918,7 +918,7 @@ END jam) a))) target from (
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
                                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1044,7 +1044,7 @@ END jam) a))) target from (
                                 ".(
                                     $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
                                     "rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
                                 )."
                                 AND master_plan.cancel = 'N'
                                 ".$buyerFilter."
@@ -1128,7 +1128,7 @@ END jam) a))) target from (
                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
             where
                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'
                 AND master_plan.cancel = 'N'
                 ".$buyerFilter."
             GROUP BY
@@ -1223,7 +1223,7 @@ END jam) a))) target from (
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1307,7 +1307,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1400,7 +1400,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'
                                 AND master_plan.cancel = 'N'
                                 ".$buyerFilter."
                             GROUP BY
@@ -1497,7 +1497,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1581,7 +1581,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
