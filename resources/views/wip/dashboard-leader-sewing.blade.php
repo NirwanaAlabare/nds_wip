@@ -287,7 +287,7 @@
             await updateData();
 
             console.log("data update finish");
-        }, 60000);
+        }, 600000);
 
         // Filter Update
         async function updateFilter() {
