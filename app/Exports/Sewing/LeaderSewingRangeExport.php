@@ -2,6 +2,7 @@
 
 namespace App\Exports\Sewing;
 
+use App\Models\SignalBit\Rft;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -62,6 +63,39 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
         $sewingLineFilter = $sewingLine ? "AND output.sewing_line in (".$sewingLine.")" : "";
         $lineLeaderFilter = $lineLeader ? "AND output_employee_line.leader_name in (".$lineLeader.")" : "";
 
+        $tanggalQuery = "";
+        $lineQuery = "";
+        $tanggal = Rft::selectRaw("DATE(output_rfts.updated_at) as tgl_plan")->leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+        $line = Rft::selectRaw("output_rfts.created_by")->leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+        if ($wsFilter || $styleFilter || $styleProdFilter) {
+            $tanggal->whereRaw("".
+                (
+                    $wsFilter || $styleFilter || $styleProdFilter ? "output_rfts.id is not null" :
+                    "output_rfts.updated_at >= '".$from." 00:00:00' AND output_rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                ).
+                "
+                ".$wsFilter."
+                ".$styleFilter."
+                ".$styleProdFilter."
+            ");
+
+            $line->whereRaw("".
+                (
+                    $wsFilter || $styleFilter || $styleProdFilter ? "output_rfts.id is not null" :
+                    "output_rfts.updated_at >= '".$from." 00:00:00' AND output_rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                ).
+                "
+                ".$wsFilter."
+                ".$styleFilter."
+                ".$styleProdFilter."
+            ");
+
+            $tanggalData = $tanggal->orderByRaw("DATE(output_rfts.updated_at) asc")->groupByRaw("DATE(output_rfts.updated_at)")->get();
+            $lineData = $line->orderByRaw("output_rfts.created_by asc")->groupByRaw("output_rfts.created_by")->get();
+
+            $tanggalQuery = addQuotesAround($tanggalData->pluck("tgl_plan")->implode("\r\n"));
+            $lineQuery = addQuotesAround($lineData->pluck("created_by")->implode("\r\n"));
+        }
 
         $leaderPerformance = collect(DB::connection("mysql_sb")->select("
             select
@@ -115,10 +149,11 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                             SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
                             MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
                             MAX(output.last_update) last_update,
-                            (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                            (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                            MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                            FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                            MAX(alloutput.last_update) last_update1,
+                            ((SUM(output)/total_output) * IF(cast(MAX(alloutput.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60)-60)))/60 jam_kerja,
+                            ((SUM(output)/total_output) * IF(cast(MAX(alloutput.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60)-60))) mins_kerja,
+                            MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(SUM(output)/total_output)*(IF(cast(MAX(alloutput.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60)-60))) cumulative_mins_avail,
+                            FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(SUM(output)/total_output)*(IF(cast(MAX(alloutput.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(alloutput.last_update) as time), output.jam_kerja_awal))/60)-60)/AVG(output.smv) ))) cumulative_target
                         FROM
                             (
                                 SELECT
@@ -131,6 +166,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                     master_plan.sewing_line,
                                     master_plan.man_power,
                                     master_plan.jam_kerja,
+                                    master_plan.jam_kerja_awal,
                                     master_plan.smv,
                                     mastersupplier.Supplier buyer,
                                     act_costing.kpno ws,
@@ -203,6 +239,24 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                 order by
                                     sewing_line
                             ) defect on defect.master_plan_id = output.master_plan_id and output.tgl_plan = defect.tgl_plan and output.tgl_output = defect.tgl_output
+                            LEFT JOIN (
+                                SELECT
+                                    DATE( updated_at ) tgl_output,
+                                    created_by AS sewing_line_id,
+                                    master_plan.sewing_line,
+                                    max(TIME ( updated_at )) last_update,
+                                    count( so_det_id ) total_output
+                                FROM
+                                    output_rfts
+                                    LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+                                WHERE
+                                    output_rfts.id is not null
+                                    ".($tanggalQuery ? "AND DATE ( output_rfts.updated_at ) IN ( ".$tanggalQuery." )" : "")."
+                                    ".($lineQuery ? "AND output_rfts.created_by IN ( ".$lineQuery." )" : "")."
+                                GROUP BY
+                                    created_by,
+                                    DATE ( updated_at )
+                            ) alloutput ON alloutput.tgl_output = output.tgl_output AND alloutput.sewing_line = output.sewing_line
                         GROUP BY
                             output.sewing_line,
                             output.tgl_output
