@@ -865,14 +865,14 @@ END jam) a))) target from (
     }
 
     function chiefSewingRange($from = 0, $to = 0) {
-        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $to ? $to : date("Y-m-d");
 
         return view('wip.dashboard-chief-sewing-range', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'chief-sewing-range', "from" => $from, "to" => $to]);
     }
 
     function chiefSewingRangeData(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
 
         $efficiencyLine = DB::connection("mysql_sb")->select("
@@ -945,14 +945,14 @@ END jam) a))) target from (
     }
 
     function chiefSewingRangeDataExport(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
 
         return Excel::download(new ChiefSewingRangeExport($from, $to), 'chief_sewing_range.xlsx');
     }
 
     function leaderSewing(Request $request, $from = 0, $to = 0) {
-        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $to ? $to : date("Y-m-d");
         $buyerId = $request->buyer_id;
 
@@ -1053,11 +1053,11 @@ END jam) a))) target from (
                     SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
                     MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
                     MAX( output.last_update ) last_update,
-                    MAX( alloutput.last_update ) last_update1,
-                    ((SUM(output)/total_output) * IF ( cast( MAX( alloutput.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )))/ 60 jam_kerja,
-                    ((SUM(output)/total_output) * IF ( cast( MAX( alloutput.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) mins_kerja,
-                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*(SUM(output)/total_output)*( IF ( cast( MAX( alloutput.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) cumulative_mins_avail,
-                    FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*(SUM(output)/total_output)*( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( alloutput.last_update ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target,
+                    MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update1,
+                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )))/ 60 jam_kerja,
+                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) mins_kerja,
+                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) cumulative_mins_avail,
+                    FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target,
                     SUM(output)
                 FROM
                     (
@@ -1098,24 +1098,33 @@ END jam) a))) target from (
                         ORDER BY
                             sewing_line
                     ) output
-                    LEFT JOIN (
-                        SELECT
-                            DATE( updated_at ) tgl_output,
-                            created_by AS sewing_line_id,
-                            master_plan.sewing_line,
-                            max(TIME ( updated_at )) last_update,
-                            count( so_det_id ) total_output
-                        FROM
-                            output_rfts
-                            LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
-                        WHERE
-                            output_rfts.id is not null
-                            ".($tanggalQuery ? "AND DATE ( output_rfts.updated_at ) IN ( ".$tanggalQuery." )" : "")."
-                            ".($lineQuery ? "AND output_rfts.created_by IN ( ".$lineQuery." )" : "")."
-                        GROUP BY
-                            created_by,
-                            DATE ( updated_at )
-                    ) alloutput ON alloutput.tgl_output = output.tgl_output AND alloutput.sewing_line = output.sewing_line
+                    ".
+                        (
+                            ($wsFilter || $styleFilter || $styleProdFilter) ?
+                            "
+                                LEFT JOIN (
+                                    SELECT
+                                        DATE( updated_at ) tgl_output,
+                                        created_by AS sewing_line_id,
+                                        master_plan.sewing_line,
+                                        max(TIME ( updated_at )) last_update,
+                                        count( so_det_id ) total_output
+                                    FROM
+                                        output_rfts
+                                        LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+                                    WHERE
+                                        output_rfts.id is not null
+                                        ".($tanggalQuery ? "AND DATE ( output_rfts.updated_at ) IN ( ".$tanggalQuery." )" : "")."
+                                        ".($lineQuery ? "AND output_rfts.created_by IN ( ".$lineQuery." )" : "")."
+                                    GROUP BY
+                                        created_by,
+                                        DATE ( updated_at )
+                                ) alloutput ON alloutput.tgl_output = output.tgl_output AND alloutput.sewing_line = output.sewing_line
+                            "
+                            :
+                            ""
+                        )
+                    ."
                 GROUP BY
                     output.sewing_line,
                     output.tgl_output
@@ -1406,7 +1415,7 @@ END jam) a))) target from (
     }
 
     function chiefLeaderSewingData(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
 
@@ -1485,7 +1494,7 @@ END jam) a))) target from (
     }
 
     function chiefLeaderSewingRangeDataExport(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyer = $request->buyer ? $request->buyer : "";
 
