@@ -249,6 +249,7 @@ class StockerController extends Controller
                 MAX(stocker_input.shade) shade,
                 MAX(stocker_input.group_stocker) group_stocker,
                 MAX(stocker_input.qty_ply) qty_ply,
+                MIN(CAST(stocker_input.range_awal as UNSIGNED)) range_awal,
                 MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
                 modify_size_qty.modified_qty,
                 modify_size_qty.difference_qty
@@ -1902,7 +1903,10 @@ class StockerController extends Controller
                 marker_input.color,
                 form_cut_input.id as id_form,
                 form_cut_input.no_cut,
-                form_cut_input.no_form as no_form
+                form_cut_input.no_form as no_form,
+                marker_input.act_costing_ws,
+                marker_input.color,
+                marker_input.panel
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
@@ -1919,6 +1923,10 @@ class StockerController extends Controller
             orderBy("form_cut_input.waktu_selesai", "asc")->
             orderBy("form_cut_input.no_cut", "asc")->
             get();
+
+        if ($formCutInputs->where("act_costing_ws", "FBL/0325/003")->count() > 0) {
+            return null;
+        }
 
         $rangeAwal = 0;
         $sizeRangeAkhir = collect();

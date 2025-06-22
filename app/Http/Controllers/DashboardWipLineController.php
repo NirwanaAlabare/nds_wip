@@ -10,6 +10,10 @@ use App\Models\Marker;
 use App\Models\DCIn;
 use App\Models\FormCutInput;
 use App\Models\SignalBit\UserLine;
+use App\Models\SignalBit\MasterPlan;
+use App\Models\SignalBit\ActCosting;
+use App\Models\SignalBit\SoDet;
+use App\Models\SignalBit\Rft;
 use App\Exports\Sewing\ChiefSewingRangeExport;
 use App\Exports\Sewing\LeaderSewingRangeExport;
 use Yajra\DataTables\Facades\DataTables;
@@ -774,7 +778,7 @@ END jam) a))) target from (
         // return view('wip.dashboard-chief-sewing', ['page' => 'dashboard-wip', "year" => $yearVar, "month" => $monthVar, "monthName" => $months[num($monthVar)-1]["nama"], "months" => $months]);
         return view('wip.dashboard-factory-performance-sewing', ['page' => 'dashboard-wip', "year" => $yearVar, "month" => $monthVar, "monthName" => $months[num($monthVar)-1]["nama"], "months" => $months]);
     }
-  
+
     function chiefSewing($year = 0, $month = 0) {
         $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
 
@@ -834,7 +838,7 @@ END jam) a))) target from (
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -861,14 +865,14 @@ END jam) a))) target from (
     }
 
     function chiefSewingRange($from = 0, $to = 0) {
-        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $to ? $to : date("Y-m-d");
 
         return view('wip.dashboard-chief-sewing-range', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'chief-sewing-range', "from" => $from, "to" => $to]);
     }
 
     function chiefSewingRangeData(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
 
         $efficiencyLine = DB::connection("mysql_sb")->select("
@@ -916,7 +920,7 @@ END jam) a))) target from (
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
                                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -941,16 +945,20 @@ END jam) a))) target from (
     }
 
     function chiefSewingRangeDataExport(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
 
         return Excel::download(new ChiefSewingRangeExport($from, $to), 'chief_sewing_range.xlsx');
     }
 
     function leaderSewing(Request $request, $from = 0, $to = 0) {
-        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $to ? $to : date("Y-m-d");
         $buyerId = $request->buyer_id;
+
+        $orders = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->pluck('kpno');
+        $styles = ActCosting::where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('cost_date', 'desc')->orderBy('styleno', 'asc')->groupBy('styleno')->pluck('styleno');
+        $styleProds = SoDet::leftJoin('so', 'so.id', '=', 'so_det.id_so')->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')->where('act_costing.cost_date', '>=', '2023-01-01')->orderBy('styleno_prod', 'desc')->orderBy('styleno_prod', 'asc')->groupBy('styleno_prod')->pluck('styleno_prod');
 
         $buyers = DB::connection('mysql_sb')->table('mastersupplier')->
             selectRaw('Id_Supplier as id, Supplier as name')->
@@ -963,92 +971,266 @@ END jam) a))) target from (
             groupBy('Id_Supplier', 'Supplier')->
             get();
 
-        return view('wip.dashboard-leader-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'leader-sewing', "from" => $from, "to" => $to, "buyers" => $buyers]);
+        return view('wip.dashboard-leader-sewing', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'leader-sewing', "from" => $from, "to" => $to, "buyers" => $buyers, "orders" => $orders, "styles" => $styles, "styleProds" => $styleProds]);
     }
 
     function leaderSewingData(Request $request) {
+        ini_set("max_execution_time", 3600);
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $to = $request->to ? $request->to : date("Y-m-d");
+        $buyerId = $request->buyer_id ? $request->buyer_id : null;
+        $ws = $request->ws_filter ? addQuotesAround(implode("\r\n", $request->ws_filter)) : null;
+        $style = $request->style_filter ? addQuotesAround(implode("\r\n", $request->style_filter)) : null;
+        $styleProd = $request->style_prod_filter ? addQuotesAround(implode("\r\n", $request->style_prod_filter)) : null;
+        $color = $request->color_filter ? addQuotesAround(implode("\r\n", $request->color_filter)) : null;
+        $size = $request->size_filter ? addQuotesAround(implode("\r\n", $request->size_filter)) : null;
+        $sewingLine = $request->sewing_line_filter ? addQuotesAround(implode("\r\n", $request->sewing_line_filter)) : null;
+        $lineLeader = $request->line_leader_filter ? addQuotesAround(implode("\r\n", $request->line_leader_filter)) : null;
+
+        $buyerFilter = $buyerId ? "AND mastersupplier.Supplier in (".$buyerId.")" : "";
+        $wsFilter = $ws ? "AND act_costing.kpno in (".$ws.")" : "";
+        $styleFilter = $style ? "AND act_costing.styleno in (".$style.")" : "";
+        $styleProdFilter = $styleProd ? "AND so_det.styleno_prod in (".$styleProd.")" : "";
+        $colorFilter = $color ? "AND so_det.color in (".$color.")" : "";
+        $sizeFilter = $size ? "AND so_det.size in (".$size.")" : "";
+        $sewingLineFilter = $sewingLine ? "AND output.sewing_line in (".$sewingLine.")" : "";
+        $lineLeaderFilter = $lineLeader ? "AND output_employee_line.leader_name in (".$lineLeader.")" : "";
+
+        $tanggalQuery = "";
+        $lineQuery = "";
+        $tanggal = Rft::selectRaw("DATE(output_rfts.updated_at) as tgl_plan")->leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+        $line = Rft::selectRaw("output_rfts.created_by")->leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+        if ($wsFilter || $styleFilter || $styleProdFilter) {
+            $tanggal->whereRaw("".
+                (
+                    $wsFilter || $styleFilter || $styleProdFilter ? "output_rfts.id is not null" :
+                    "output_rfts.updated_at >= '".$from." 00:00:00' AND output_rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                ).
+                "
+                ".$wsFilter."
+                ".$styleFilter."
+                ".$styleProdFilter."
+            ");
+
+            $line->whereRaw("".
+                (
+                    $wsFilter || $styleFilter || $styleProdFilter ? "output_rfts.id is not null" :
+                    "output_rfts.updated_at >= '".$from." 00:00:00' AND output_rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                ).
+                "
+                ".$wsFilter."
+                ".$styleFilter."
+                ".$styleProdFilter."
+            ");
+
+            $tanggalData = $tanggal->orderByRaw("DATE(output_rfts.updated_at) asc")->groupByRaw("DATE(output_rfts.updated_at)")->get();
+            $lineData = $line->orderByRaw("output_rfts.created_by asc")->groupByRaw("output_rfts.created_by")->get();
+
+            $tanggalQuery = addQuotesAround($tanggalData->pluck("tgl_plan")->implode("\r\n"));
+            $lineQuery = addQuotesAround($lineData->pluck("created_by")->implode("\r\n"));
+        }
+
+        $efficiencyLine = DB::connection("mysql_sb")->select("
+            SELECT
+                output_employee_line.*,
+                output.sewing_line,
+                SUM( rft ) rft,
+                SUM( output ) output,
+                SUM( mins_prod ) mins_prod,
+                SUM( mins_avail ) mins_avail,
+                SUM( cumulative_mins_avail ) cumulative_mins_avail
+            FROM
+                output_employee_line
+                LEFT JOIN userpassword ON userpassword.line_id = output_employee_line.line_id
+                INNER JOIN (
+                SELECT
+                    output.tgl_output,
+                    output.tgl_plan,
+                    output.sewing_line,
+                    SUM( rft ) rft,
+                    SUM( output ) output,
+                    SUM( output * output.smv ) mins_prod,
+                    SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+                    MAX( output.last_update ) last_update,
+                    MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update1,
+                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )))/ 60 jam_kerja,
+                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) mins_kerja,
+                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) cumulative_mins_avail,
+                    FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target,
+                    SUM(output)
+                FROM
+                    (
+                        SELECT
+                            DATE( rfts.updated_at ) tgl_output,
+                            COUNT( rfts.id ) output,
+                            SUM( CASE WHEN rfts.STATUS = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+                            MIN( rfts.created_at ) first_update,
+                            MAX( rfts.updated_at ) last_update,
+                            master_plan.id master_plan_id,
+                            master_plan.tgl_plan,
+                            master_plan.sewing_line,
+                            master_plan.man_power,
+                            master_plan.jam_kerja,
+                            master_plan.jam_kerja_awal,
+                            master_plan.smv,
+                            rfts.created_by as sewing_line_id
+                        FROM
+                            output_rfts rfts
+                            INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id
+                            INNER JOIN act_costing ON act_costing.id = master_plan.id_ws
+                            INNER JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                            INNER JOIN so_det ON so_det.id = rfts.so_det_id
+                        WHERE
+                        ".(
+                                $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
+                                "rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                            )."
+                            AND master_plan.cancel = 'N'
+                            ".$buyerFilter."
+                            ".$wsFilter."
+                            ".$styleFilter."
+                            ".$styleProdFilter."
+                            ".$colorFilter."
+                        GROUP BY
+                            rfts.created_by,
+                            DATE ( rfts.updated_at )
+                        ORDER BY
+                            sewing_line
+                    ) output
+                    ".
+                        (
+                            ($wsFilter || $styleFilter || $styleProdFilter) ?
+                            "
+                                LEFT JOIN (
+                                    SELECT
+                                        DATE( updated_at ) tgl_output,
+                                        created_by AS sewing_line_id,
+                                        master_plan.sewing_line,
+                                        max(TIME ( updated_at )) last_update,
+                                        count( so_det_id ) total_output
+                                    FROM
+                                        output_rfts
+                                        LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+                                    WHERE
+                                        output_rfts.id is not null
+                                        ".($tanggalQuery ? "AND DATE ( output_rfts.updated_at ) IN ( ".$tanggalQuery." )" : "")."
+                                        ".($lineQuery ? "AND output_rfts.created_by IN ( ".$lineQuery." )" : "")."
+                                    GROUP BY
+                                        created_by,
+                                        DATE ( updated_at )
+                                ) alloutput ON alloutput.tgl_output = output.tgl_output AND alloutput.sewing_line = output.sewing_line
+                            "
+                            :
+                            ""
+                        )
+                    ."
+                GROUP BY
+                    output.sewing_line,
+                    output.tgl_output
+                ) output ON output.sewing_line = userpassword.username
+                AND output.tgl_output = output_employee_line.tanggal
+            WHERE
+                output.sewing_line is not null
+                ".$sewingLineFilter."
+                ".$lineLeaderFilter."
+            GROUP BY
+                line_id,
+                tanggal
+            ORDER BY
+                line_id ASC,
+                tanggal ASC
+        ");
+
+        return $efficiencyLine;
+    }
+
+    function leaderSewingFilter(Request $request) {
+        ini_set("max_execution_time", 3600);
         $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
 
         $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier = '".$buyerId."'" : "";
 
-        $efficiencyLine = DB::connection("mysql_sb")->select("
+        $efficiencyLine = collect(DB::connection("mysql_sb")->select("
             select
                 output_employee_line.*,
-                output.sewing_line,
-                SUM(rft) rft,
-                SUM(output) output,
-                SUM(mins_prod) mins_prod,
-                SUM(mins_avail) mins_avail,
-                SUM(cumulative_mins_avail) cumulative_mins_avail
+                userpassword.username as sewing_line
             from
                 output_employee_line
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
-                inner join (
-                    SELECT
-                        output.tgl_output,
-                        output.tgl_plan,
-                        output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
-                    FROM
-                        (
-                            SELECT
-                                DATE( rfts.updated_at ) tgl_output,
-                                COUNT( rfts.id ) output,
-                                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
-                                MAX(rfts.updated_at) last_update,
-                                master_plan.id master_plan_id,
-                                master_plan.tgl_plan,
-                                master_plan.sewing_line,
-                                master_plan.man_power,
-                                master_plan.jam_kerja,
-                                master_plan.smv
-                            FROM
-                                output_rfts rfts
-                                inner join master_plan on master_plan.id = rfts.master_plan_id
-                                inner join act_costing on act_costing.id = master_plan.id_ws
-                                inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
-                            where
-                                rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
-                                AND master_plan.cancel = 'N'
-                                ".$buyerFilter."
-                            GROUP BY
-                                master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
-                            order by
-                                sewing_line
-                        ) output
-                    GROUP BY
-                        output.sewing_line,
-                        output.tgl_output
-                ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            where
+                output_employee_line.tanggal between '".$from."' and '".$to."'
             group by
                 line_id,
                 tanggal
             order by
                 line_id asc,
                 tanggal asc
-        ");
+        "));
 
-        return $efficiencyLine;
+        $detail = collect(DB::connection("mysql_sb")->select("
+            SELECT
+                DATE( rfts.updated_at ) tgl_output,
+                COUNT( rfts.id ) output,
+                SUM( CASE WHEN rfts.status = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+                MAX(rfts.updated_at) last_update,
+                master_plan.id master_plan_id,
+                master_plan.tgl_plan,
+                master_plan.sewing_line,
+                master_plan.man_power,
+                master_plan.jam_kerja,
+                master_plan.smv,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color,
+                so_det.size,
+                so_det.styleno_prod style_prod,
+                mastersupplier.Supplier buyer
+            FROM
+                output_rfts rfts
+                inner join master_plan on master_plan.id = rfts.master_plan_id
+                inner join so_det on so_det.id = rfts.so_det_id
+                inner join act_costing on act_costing.id = master_plan.id_ws
+                inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+            where
+                rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
+                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'
+                AND master_plan.cancel = 'N'
+                ".$buyerFilter."
+            GROUP BY
+                act_costing.kpno, act_costing.styleno, so_det.color, so_det.size
+        "));
+
+        $lines = $efficiencyLine->groupBy('sewing_line')->keys();
+        $suppliers = $detail->groupBy('buyer')->keys();
+        $colors = $detail->groupBy('color')->keys();
+        $sizes = $detail->groupBy('size')->keys();
+        $lineLeaders = $efficiencyLine->groupBy('leader_name')->keys();
+
+        return array(
+            'lines' => $lines,
+            'suppliers' => $suppliers,
+            'colors' => $colors,
+            'sizes' => $sizes,
+            'lineLeaders' => $lineLeaders,
+        );
     }
 
     function leaderSewingRangeDataExport(Request $request) {
         $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyer = $request->buyer ? $request->buyer : "";
+        $ws = $request->ws_filter;
+        $style = $request->style_filter;
+        $styleProd = $request->style_prod_filter;
+        $color = $request->color_filter;
+        $size = $request->size_filter;
+        $sewingLine = $request->sewing_line_filter;
+        $lineLeader = $request->line_leader_filter;
 
-        return Excel::download(new LeaderSewingRangeExport($from, $to, $buyer), 'chief_sewing_range.xlsx');
+        return Excel::download(new LeaderSewingRangeExport($from, $to, $buyer, $ws ,$style ,$styleProd ,$color ,$size ,$sewingLine ,$lineLeader), 'chief_sewing_range.xlsx');
     }
 
     function supportLineSewing($year = 0, $month = 0) {
@@ -1068,11 +1250,11 @@ END jam) a))) target from (
             select
                 output_employee_line.*,
                 output.sewing_line,
-                SUM(rft) rft,
-                SUM(output) output,
-                SUM(mins_prod) mins_prod,
-                SUM(mins_avail) mins_avail,
-                SUM(cumulative_mins_avail) cumulative_mins_avail
+                SUM(coalesce(rft, 0)) rft,
+                SUM(coalesce(output, 0)) output,
+                SUM(coalesce(mins_prod, 0)) mins_prod,
+                SUM(coalesce(mins_avail, 0)) mins_avail,
+                SUM(coalesce(cumulative_mins_avail, 0)) cumulative_mins_avail
             from
                 output_employee_line
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
@@ -1109,7 +1291,7 @@ END jam) a))) target from (
                                 inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1193,7 +1375,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1233,7 +1415,7 @@ END jam) a))) target from (
     }
 
     function chiefLeaderSewingData(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
 
@@ -1286,7 +1468,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$to."'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'
                                 AND master_plan.cancel = 'N'
                                 ".$buyerFilter."
                             GROUP BY
@@ -1312,7 +1494,7 @@ END jam) a))) target from (
     }
 
     function chiefLeaderSewingRangeDataExport(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyer = $request->buyer ? $request->buyer : "";
 
@@ -1383,7 +1565,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
@@ -1467,7 +1649,7 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$year."-".$month."-01 00:00:00' AND rfts.updated_at <= '".$year."-".$month."-31 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
+                                AND master_plan.tgl_plan >= DATE_SUB('".$year."-".$month."-01', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$year."-".$month."-31'
                                 AND master_plan.cancel = 'N'
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)

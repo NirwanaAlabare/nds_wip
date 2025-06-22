@@ -1976,6 +1976,7 @@ Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineCo
 // Leader
 Route::get('/dashboard-wip/leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'leaderSewing'])->middleware('auth')->name('dashboard-leader-sewing');
 Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::class, 'leaderSewingData'])->middleware('auth')->name('dashboard-leader-sewing-data');
+Route::get('/dashboard-wip/leader-sewing-filter', [DashboardWipLineController::class, 'leaderSewingFilter'])->middleware('auth')->name('dashboard-leader-sewing-filter');
 Route::post('/dashboard-wip/leader-sewing-range-data-export', [DashboardWipLineController::class, 'leaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-leader-sewing-range-data-export');
 // Line Support
 Route::get('/dashboard-wip/support-line-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'supportLineSewing'])->name('dashboard-support-line-sewing');

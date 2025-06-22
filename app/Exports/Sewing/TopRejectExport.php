@@ -44,7 +44,7 @@ class TopRejectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
     public function title(): string
     {
-        return 'TopReject';
+        return 'reject';
     }
 
     public function view(): View
@@ -115,15 +115,15 @@ class TopRejectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
             for ($i = 0; $i < $this->rowCount; $i++) {
                 array_push($labelsReject,
-                    new DataSeriesValues('String', 'TopReject!$A$'.($i+7).':$E$'.($i+7).'', null, 5)
+                    new DataSeriesValues('String', 'reject!$A$'.($i+7).':$E$'.($i+7).'', null, 5)
                 );
 
                 array_push($categoriesReject,
-                    new DataSeriesValues('String', 'TopReject!$F$6:$'.$this->colAlphabet.'$6', null, 5)
+                    new DataSeriesValues('String', 'reject!$F$6:$'.$this->colAlphabet.'$6', null, 5)
                 );
 
                 array_push($valuesReject,
-                    new DataSeriesValues('Number', 'TopReject!$F$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
+                    new DataSeriesValues('Number', 'reject!$F$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
                 );
             }
 
@@ -143,15 +143,15 @@ class TopRejectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
             // for ($i = 0; $i < $this->rowCountLine; $i++) {
             //     array_push($labelsRejectLine,
-            //         new DataSeriesValues('String', 'TopReject!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
+            //         new DataSeriesValues('String', 'reject!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
             //     );
 
             //     array_push($categoriesRejectLine,
-            //         new DataSeriesValues('String', 'TopReject!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
+            //         new DataSeriesValues('String', 'reject!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
             //     );
 
             //     array_push($valuesRejectLine,
-            //         new DataSeriesValues('Number', 'TopReject!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
+            //         new DataSeriesValues('Number', 'reject!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
             //     );
             // }
 
@@ -171,15 +171,15 @@ class TopRejectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
             // for ($i = 0; $i < $this->rowCountStyle; $i++) {
             //     array_push($labelsRejectStyle,
-            //         new DataSeriesValues('String', 'TopReject!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+            //         new DataSeriesValues('String', 'reject!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
             //     );
 
             //     array_push($categoriesRejectStyle,
-            //         new DataSeriesValues('String', 'TopReject!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
+            //         new DataSeriesValues('String', 'reject!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
             //     );
 
             //     array_push($valuesRejectStyle,
-            //         new DataSeriesValues('Number', 'TopReject!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+            //         new DataSeriesValues('Number', 'reject!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
             //     );
             // }
 

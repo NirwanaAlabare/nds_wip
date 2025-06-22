@@ -107,7 +107,7 @@
         <div class="d-flex justify-content-between align-items-end mb-1 gap-3">
             <div class="d-flex align-items-end gap-3 w-auto">
                 <div>
-                    <input type="date" class="form-control" id="from" value="{{ $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days")) }}">
+                    <input type="date" class="form-control" id="from" value="{{ $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days")) }}">
                 </div>
                 <div class="mb-2">
                     <span> - </span>
@@ -120,6 +120,7 @@
                 </button>
             </div>
             <div class="d-flex align-items-end gap-3">
+                <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#leaderSewingFilterModal"><i class="fa fa-filter"></i></button>
                 <div>
                     <label class="form-label">Buyer</label>
                     <select name="buyer_id" id="buyer_id" class="form-select select2bs4" onchange="updateTanggal()">
@@ -136,6 +137,79 @@
             <b><span id="from-label">{{ localeDateFormat($from, false) }}</span> <span>s/d</span> <span id="to-label">{{ localeDateFormat($to, false) }}</span></b>
         </div>
         <div class="row g-3" id="leader-line-charts">
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="leaderSewingFilterModal" tabindex="-1" aria-labelledby="leaderSewingFilterModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="leaderSewingFilterModalLabel"><i class="fa fa-filter"></i> Filter</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="loading-container-fixed d-none" id="loading-filter">
+                        <div class="loading"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sewing Line</label>
+                        <select class="select2bs4filter" name="sewing_line_filter[]" multiple="multiple" id="sewing_line_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">No. WS</label>
+                        <select class="select2bs4filter" name="ws_filter[]" multiple="multiple" id="ws_filter">
+                            <option value="">SEMUA</option>
+                            @foreach ($orders as $order)
+                                <option value="{{ $order }}">{{ $order }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Style</label>
+                        <select class="select2bs4filter" name="style_filter[]" multiple="multiple" id="style_filter">
+                            <option value="">SEMUA</option>
+                            @foreach ($styles as $style)
+                                <option value="{{ $style }}">{{ $style }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Style Prod</label>
+                        <select class="select2bs4filter" name="style_prod_filter[]" multiple="multiple" id="style_prod_filter">
+                            <option value="">SEMUA</option>
+                            @foreach ($styleProds as $styleProd)
+                                <option value="{{ $styleProd }}">{{ $styleProd }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <select class="select2bs4filter" name="color_filter[]" multiple="multiple" id="color_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Size</label>
+                        <select class="select2bs4filter" name="size_filter[]" multiple="multiple" id="size_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Leader</label>
+                        <select class="select2bs4filter" name="line_leader_filter[]" multiple="multiple" id="line_leader_filter">
+                            <option value="">SEMUA</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i class="fa-solid fa-broom"></i></button>
+                    <button type="button" class="btn btn-success" onclick="updateFilter()">Simpan <i class="fa-solid fa-check"></i></button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -196,7 +270,13 @@
             theme: 'bootstrap4'
         })
 
+        $('.select2bs4filter').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#leaderSewingFilterModal")
+        })
+
         $('document').ready(async () => {
+            updateFilterOption();
             getData();
         });
 
@@ -207,7 +287,17 @@
             await updateData();
 
             console.log("data update finish");
-        }, 60000);
+        }, 600000);
+
+        // Filter Update
+        async function updateFilter() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            await getData();
+            $("#leaderSewingFilterModal").modal("hide");
+
+            document.getElementById("loading").classList.add("d-none");
+        }
 
         // Date Update
         async function updateTanggal() {
@@ -220,7 +310,7 @@
 
         // Get Data
         async function getData() {
-            document.getElementById("loading").classList.remove("d-none");
+            document.getElementById('loading').classList.remove('d-none');
 
             document.getElementById("from-label").innerHTML = $("#from").val()+" ";
             document.getElementById("to-label").innerHTML = " "+$("#to").val();
@@ -232,10 +322,33 @@
                     from: $("#from").val(),
                     to: $("#to").val(),
                     buyer_id: $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    style_prod_filter: $('#style_prod_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 dataType: "json",
                 success: async function (response) {
-                    console.log(response);
+                    if (response && response.length > 0) {
+                        const minTanggal = response.reduce((min, obj) => {
+                            return new Date(obj.tanggal) < new Date(min.tanggal) ? obj : min;
+                        }).tanggal;
+
+                        const maxTanggal = response.reduce((max, obj) => {
+                                return new Date(obj.tanggal) > new Date(max.tanggal) ? obj : max;
+                            }).tanggal;
+
+                        $("#from").val(minTanggal);
+                        $("#to").val(maxTanggal);
+
+                        updateFilterOption();
+                    }
+
+                    document.getElementById("from-label").innerHTML = $("#from").val()+" ";
+                    document.getElementById("to-label").innerHTML = " "+$("#to").val();
 
                     document.getElementById('leader-line-charts').innerHTML = "";
 
@@ -300,13 +413,15 @@
                         document.getElementById('leader-line-charts').style.justifyContent = "center";
                         document.getElementById('leader-line-charts').style.paddingTop = "15px";
                     }
+
+                    document.getElementById('loading').classList.add('d-none');
                 },
                 error: function (jqXHR) {
                     console.error(jqXHR);
+
+                    document.getElementById('loading').classList.add('d-none');
                 }
             });
-
-            document.getElementById("loading").classList.add("d-none");
         }
 
         // Update Data
@@ -321,6 +436,13 @@
                     from: $("#from").val(),
                     to: $("#to").val(),
                     buyer_id: $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    style_prod_filter: $('#style_prod_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 dataType: "json",
                 success: async function (response) {
@@ -621,6 +743,63 @@
             }
         }
 
+        async function updateFilterOption() {
+            document.getElementById('loading-filter').classList.remove('d-none');
+            await $.ajax({
+                url: '{{ route('dashboard-leader-sewing-filter') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    from : $('#from').val(),
+                    to : $('#to').val(),
+                    buyer_id : $('#buyer_id').val()
+                },
+                success: async function(response) {
+                    if (response) {
+                        // lines options
+                        if (response.lines && response.lines.length > 0) {
+                            let lines = response.lines;
+                            $('#sewing_line_filter').empty();
+                            $.each(lines, function(index, value) {
+                                $('#sewing_line_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // colors option
+                        if (response.colors && response.colors.length > 0) {
+                            let colors = response.colors;
+                            $('#color_filter').empty();
+                            $.each(colors, function(index, value) {
+                                $('#color_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // sizes option
+                        if (response.sizes && response.sizes.length > 0) {
+                            let sizes = response.sizes;
+                            $('#size_filter').empty();
+                            $.each(sizes, function(index, value) {
+                                $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                        // leaders option
+                        if (response.sizes && response.sizes.length > 0) {
+                            let lineLeaders = response.lineLeaders;
+                            $('#line_leader_filter').empty();
+                            $.each(lineLeaders, function(index, value) {
+                                $('#line_leader_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+                    }
+
+                    document.getElementById('loading-filter').classList.add('d-none');
+                },
+                error: function(jqXHR) {
+                    document.getElementById('loading-filter').classList.add('d-none');
+
+                    console.error(jqXHR);
+                },
+            })
+        }
+
         function exportExcel(elm) {
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
@@ -641,6 +820,13 @@
                     from : $("#from").val(),
                     to : $("#to").val(),
                     buyer_id : $("#buyer_id").val(),
+                    sewing_line_filter: $('#sewing_line_filter').val(),
+                    ws_filter: $('#ws_filter').val(),
+                    style_filter: $('#style_filter').val(),
+                    style_prod_filter: $('#style_prod_filter').val(),
+                    color_filter: $('#color_filter').val(),
+                    size_filter: $('#size_filter').val(),
+                    line_leader_filter: $('#line_leader_filter').val(),
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {

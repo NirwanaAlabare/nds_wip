@@ -2,6 +2,7 @@
 
 namespace App\Exports\Sewing;
 
+use App\Models\SignalBit\Rft;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -24,10 +25,18 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
     protected $colAlphabet;
     protected $lineCount;
 
-    function __construct($from, $to, $buyer) {
+    function __construct($from, $to, $buyer, $ws ,$style ,$styleProd ,$color ,$size ,$sewingLine ,$lineLeader) {
         $this->from = $from;
         $this->to = $to;
         $this->buyer = $buyer;
+        $this->ws = $ws;
+        $this->style = $style;
+        $this->style_prod = $styleProd;
+        $this->color = $color;
+        $this->size = $size;
+        $this->sewing_line = $sewingLine;
+        $this->line_leader = $lineLeader;
+
         $this->lines = [];
         $this->lineCount = [];
     }
@@ -38,10 +47,65 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
 
         $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier = '".$buyerId."'" : "";
 
+        $ws = $this->ws ? addQuotesAround(implode("\r\n", $this->ws)) : null;
+        $style = $this->style ? addQuotesAround(implode("\r\n", $this->style)) : null;
+        $styleProd = $this->style_prod ? addQuotesAround(implode("\r\n", $this->style_prod)) : null;
+        $color = $this->color ? addQuotesAround(implode("\r\n", $this->color)) : null;
+        $size = $this->size ? addQuotesAround(implode("\r\n", $this->size)) : null;
+        $sewingLine = $this->sewing_line ? addQuotesAround(implode("\r\n", $this->sewing_line)) : null;
+        $lineLeader = $this->line_leader ? addQuotesAround(implode("\r\n", $this->line_leader)) : null;
+
+        $wsFilter = $ws ? "AND act_costing.kpno in (".$ws.")" : "";
+        $styleFilter = $style ? "AND act_costing.styleno in (".$style.")" : "";
+        $styleProdFilter = $styleProd ? "AND so_det.styleno_prod in (".$styleProd.")" : "";
+        $colorFilter = $color ? "AND so_det.color in (".$color.")" : "";
+        $sizeFilter = $size ? "AND so_det.size in (".$size.")" : "";
+        $sewingLineFilter = $sewingLine ? "AND output.sewing_line in (".$sewingLine.")" : "";
+        $lineLeaderFilter = $lineLeader ? "AND output_employee_line.leader_name in (".$lineLeader.")" : "";
+
+        $tanggalQuery = "";
+        $lineQuery = "";
+        $tanggal = Rft::selectRaw("DATE(output_rfts.updated_at) as tgl_plan")->leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+        $line = Rft::selectRaw("output_rfts.created_by")->leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+        if ($wsFilter || $styleFilter || $styleProdFilter) {
+            $tanggal->whereRaw("".
+                (
+                    $wsFilter || $styleFilter || $styleProdFilter ? "output_rfts.id is not null" :
+                    "output_rfts.updated_at >= '".$from." 00:00:00' AND output_rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                ).
+                "
+                ".$wsFilter."
+                ".$styleFilter."
+                ".$styleProdFilter."
+            ");
+
+            $line->whereRaw("".
+                (
+                    $wsFilter || $styleFilter || $styleProdFilter ? "output_rfts.id is not null" :
+                    "output_rfts.updated_at >= '".$from." 00:00:00' AND output_rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+                ).
+                "
+                ".$wsFilter."
+                ".$styleFilter."
+                ".$styleProdFilter."
+            ");
+
+            $tanggalData = $tanggal->orderByRaw("DATE(output_rfts.updated_at) asc")->groupByRaw("DATE(output_rfts.updated_at)")->get();
+            $lineData = $line->orderByRaw("output_rfts.created_by asc")->groupByRaw("output_rfts.created_by")->get();
+
+            $tanggalQuery = addQuotesAround($tanggalData->pluck("tgl_plan")->implode("\r\n"));
+            $lineQuery = addQuotesAround($lineData->pluck("created_by")->implode("\r\n"));
+        }
+
         $leaderPerformance = collect(DB::connection("mysql_sb")->select("
             select
                 *,
                 COALESCE(leader_name, 'KOSONG') as leader_name,
+                ws,
+                style,
+                style_prod,
+                color,
+                size,
                 SUM(rft) rft,
                 SUM(defect) defect,
                 SUM(output) output,
@@ -53,6 +117,11 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                     output_employee_line.*,
                     output.sewing_line,
                     output.buyer,
+                    output.ws,
+                    output.style,
+                    output.style_prod,
+                    output.color,
+                    output.size,
                     SUM(rft) rft,
                     SUM(defect) defect,
                     SUM(output) output,
@@ -67,7 +136,12 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                             output.tgl_output,
                             output.tgl_plan,
                             output.sewing_line,
-                            output.buyer,
+                            GROUP_CONCAT(DISTINCT output.buyer) as buyer,
+                            GROUP_CONCAT(DISTINCT output.ws) as ws,
+                            GROUP_CONCAT(DISTINCT output.style) as style,
+                            GROUP_CONCAT(DISTINCT output.style_prod) as style_prod,
+                            GROUP_CONCAT(DISTINCT output.color) as color,
+                            output.size,
                             SUM(rft) rft,
                             SUM(defect) defect,
                             SUM(output) output,
@@ -75,10 +149,11 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                             SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
                             MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
                             MAX(output.last_update) last_update,
-                            (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                            (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                            MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                            FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                            MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update1,
+                            (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )))/ 60 jam_kerja,
+                            (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) mins_kerja,
+                            MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) cumulative_mins_avail,
+                            FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target
                         FROM
                             (
                                 SELECT
@@ -91,18 +166,32 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                     master_plan.sewing_line,
                                     master_plan.man_power,
                                     master_plan.jam_kerja,
+                                    master_plan.jam_kerja_awal,
                                     master_plan.smv,
-                                    mastersupplier.Supplier buyer
+                                    mastersupplier.Supplier buyer,
+                                    act_costing.kpno ws,
+                                    act_costing.styleno style,
+                                    so_det.styleno_prod style_prod,
+                                    so_det.color,
+                                    so_det.size
                                 FROM
                                     output_rfts rfts
                                     inner join master_plan on master_plan.id = rfts.master_plan_id
                                     inner join act_costing on act_costing.id = master_plan.id_ws
                                     inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                                    inner join so_det on so_det.id = rfts.so_det_id
                                 where
-                                    rfts.updated_at >= '".$this->from." 00:00:00' AND rfts.updated_at <= '".$this->to." 23:59:59'
-                                    AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$this->to."'
+                                    ".(
+                                        $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
+                                        "rfts.updated_at >= '".$this->from." 00:00:00' AND rfts.updated_at <= '".$this->to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$this->to."'"
+                                    )."
                                     AND master_plan.cancel = 'N'
                                     ".$buyerFilter."
+                                    ".$wsFilter."
+                                    ".$styleFilter."
+                                    ".$styleProdFilter."
+                                    ".$colorFilter."
+                                    ".$sizeFilter."
                                 GROUP BY
                                     master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
                                 order by
@@ -119,22 +208,63 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
                                     master_plan.man_power,
                                     master_plan.jam_kerja,
                                     master_plan.smv,
-                                    mastersupplier.Supplier buyer
+                                    mastersupplier.Supplier buyer,
+                                    act_costing.kpno ws,
+                                    act_costing.styleno style,
+                                    so_det.styleno_prod style_prod,
+                                    so_det.color,
+                                    so_det.size
                                 FROM
                                     output_defects defects
                                     inner join master_plan on master_plan.id = defects.master_plan_id
                                     inner join act_costing on act_costing.id = master_plan.id_ws
                                     inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+                                    inner join so_det on so_det.id = defects.so_det_id
                                 where
-                                    defects.updated_at >= '".$this->from." 00:00:00' AND defects.updated_at <= '".$this->to." 23:59:59'
-                                    AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 7 DAY) AND master_plan.tgl_plan <= '".$this->to."'
+                                    ".(
+                                        $wsFilter || $styleFilter || $styleProdFilter ? "defects.id is not null" :
+                                        "defects.updated_at >= '".$this->from." 00:00:00' AND defects.updated_at <= '".$this->to." 23:59:59'
+                                        AND master_plan.tgl_plan >= DATE_SUB('".$this->from."', INTERVAL 14 DAY) AND master_plan.tgl_plan <= '".$this->to."'"
+                                    )."
                                     AND master_plan.cancel = 'N'
                                     ".$buyerFilter."
+                                    ".$wsFilter."
+                                    ".$styleFilter."
+                                    ".$styleProdFilter."
+                                    ".$colorFilter."
+                                    ".$sizeFilter."
                                 GROUP BY
                                     master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at)
                                 order by
                                     sewing_line
                             ) defect on defect.master_plan_id = output.master_plan_id and output.tgl_plan = defect.tgl_plan and output.tgl_output = defect.tgl_output
+                            ".
+                                (
+                                    ($wsFilter || $styleFilter || $styleProdFilter) ?
+                                    "
+                                        LEFT JOIN (
+                                            SELECT
+                                                DATE( updated_at ) tgl_output,
+                                                created_by AS sewing_line_id,
+                                                master_plan.sewing_line,
+                                                max(TIME ( updated_at )) last_update,
+                                                count( so_det_id ) total_output
+                                            FROM
+                                                output_rfts
+                                                LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+                                            WHERE
+                                                output_rfts.id is not null
+                                                ".($tanggalQuery ? "AND DATE ( output_rfts.updated_at ) IN ( ".$tanggalQuery." )" : "")."
+                                                ".($lineQuery ? "AND output_rfts.created_by IN ( ".$lineQuery." )" : "")."
+                                            GROUP BY
+                                                created_by,
+                                                DATE ( updated_at )
+                                        ) alloutput ON alloutput.tgl_output = output.tgl_output AND alloutput.sewing_line = output.sewing_line
+                                    "
+                                    :
+                                    ""
+                                )
+                            ."
                         GROUP BY
                             output.sewing_line,
                             output.tgl_output
@@ -182,10 +312,10 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
 
         $data = [];
         foreach ($leaderGroup as $lg) {
-            array_push($data, ["Tanggal", "Sewing Line", "Buyer", "RFT Rate", "Defect Rate", "Efficiency Rate", "Leader"]);
+            array_push($data, ["Tanggal", "Sewing Line", "Buyer", "Style Prod", "RFT Rate", "Defect Rate", "Efficiency Rate", "Leader"]);
 
             foreach($lg['data'] as $d) {
-                array_push($data, [$d->tanggal, $d->sewing_line, $d->buyer, ($d->output > 0 ? round(($d->rft/$d->output)*100, 2) : '0'), ($d->output > 0 ? round(($d->defect/$d->output)*100, 2) : '0'), ($d->mins_avail > 0 ? round(($d->mins_prod/$d->mins_avail)*100, 2) : '0'), $d->leader_name]);
+                array_push($data, [$d->tanggal, $d->sewing_line, $d->buyer, $d->style_prod, ($d->output > 0 ? round(($d->rft/$d->output)*100, 2) : '0'), ($d->output > 0 ? round(($d->defect/$d->output)*100, 2) : '0'), ($d->mins_avail > 0 ? round(($d->mins_prod/$d->mins_avail)*100, 2) : '0'), $d->leader_name]);
             }
 
             for ($i = 0; $i < 15; $i++) {
@@ -201,7 +331,7 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
 
     public function headings(): array
     {
-        return ['tgl_output', 'sewing_line', 'buyer', 'rft_rate', 'defect_rate', 'eff_rate'];
+        return ['tgl_output', 'sewing_line', 'buyer', 'style_prod', 'rft_rate', 'defect_rate', 'eff_rate'];
     }
 
     public function startCell(): string
@@ -228,14 +358,14 @@ class LeaderSewingRangeExport implements FromArray, ShouldAutoSize, WithCustomSt
             }
 
             // Eff
-            $labelsEff = [new DataSeriesValues('String', 'Worksheet!$D$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$E$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$F$'.($i+$addRow).'', null, 1)];
+            $labelsEff = [new DataSeriesValues('String', 'Worksheet!$E$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$F$'.($i+$addRow).'', null, 1), new DataSeriesValues('String', 'Worksheet!$G$'.($i+$addRow).'', null, 1)];
 
             $categoriesEff = [new DataSeriesValues('String', 'Worksheet!$A$'.($i+$addRow+1).':$A$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i])];
 
             array_push($valuesEff,
-                new DataSeriesValues('Number', 'Worksheet!$D$'.($i+$addRow+1).':$D$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
                 new DataSeriesValues('Number', 'Worksheet!$E$'.($i+$addRow+1).':$E$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
                 new DataSeriesValues('Number', 'Worksheet!$F$'.($i+$addRow+1).':$F$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
+                new DataSeriesValues('Number', 'Worksheet!$G$'.($i+$addRow+1).':$G$'.($i+$addRow+($this->lineCount[$i])).'', null, $this->lineCount[$i]),
             );
 
             // Eff
