@@ -976,7 +976,7 @@ END jam) a))) target from (
 
     function leaderSewingData(Request $request) {
         ini_set("max_execution_time", 3600);
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
         $ws = $request->ws_filter ? addQuotesAround(implode("\r\n", $request->ws_filter)) : null;
@@ -1147,7 +1147,7 @@ END jam) a))) target from (
 
     function leaderSewingFilter(Request $request) {
         ini_set("max_execution_time", 3600);
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyerId = $request->buyer_id ? $request->buyer_id : null;
 
@@ -1219,7 +1219,7 @@ END jam) a))) target from (
     }
 
     function leaderSewingRangeDataExport(Request $request) {
-        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $request->from ? $request->from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $request->to ? $request->to : date("Y-m-d");
         $buyer = $request->buyer ? $request->buyer : "";
         $ws = $request->ws_filter;
@@ -1396,7 +1396,7 @@ END jam) a))) target from (
     }
 
     function chiefLeaderSewing(Request $request, $from = 0, $to = 0) {
-        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -14 days"));
+        $from = $from ? $from : date("Y-m-d", strtotime(date("Y-m-d")." -7 days"));
         $to = $to ? $to : date("Y-m-d");
         $buyerId = $request->buyer_id;
 

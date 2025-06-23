@@ -702,13 +702,20 @@
 
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
-                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Transfer BPB</a>
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Manage BPB</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('transfer-bpb') }}" class="dropdown-item">
                                     Transfer BPB
                                 </a>
                             </li>
+
+                            <li>
+                                <a href="{{ route('maintain-bpb') }}" class="dropdown-item">
+                                    Maintain BPB
+                                </a>
+                            </li>
+
                         </ul>
                     </li>
                 @endif
