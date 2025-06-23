@@ -172,6 +172,8 @@ use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\MarketingDashboardController;
 use App\Http\Controllers\Marketing_CostingController;
 
+//maintain-bpb
+use App\Http\Controllers\MaintainBpbController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -1490,6 +1492,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-transfer-bpb');
         Route::post('/store', 'store')->name('save-transferbpb');
         Route::get('/cancel-transfer', 'canceltransfer')->name('cancel-transfer');
+    });
+
+    //maintain bpb
+    Route::controller(MaintainBpbController::class)->prefix("maintain-bpb")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('maintain-bpb');
+        Route::get('/create', 'create')->name('create-maintain-bpb');
+        Route::post('/store', 'store')->name('save-maintainbpb');
+        Route::get('/detail', 'detailmodal')->name('maintain-bpb-detail');
+        Route::get('/cancel-maintain', 'cancelmaintain')->name('cancel-maintain');
+
     });
 
 
