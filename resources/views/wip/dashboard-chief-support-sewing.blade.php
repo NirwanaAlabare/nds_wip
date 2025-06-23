@@ -232,7 +232,7 @@
                         let totalOutput = 0;
                         let totalRft = 0;
                         element.reduce(function(res, value) {
-                            let param = value.leader_nik ? value.leader_nik : value.sewing_line;
+                            let param = value.leader_nik;
                             if (!res[param]) {
                                 res[param] = { leader_id: value.leader_id, leader_nik: value.leader_nik, leader_name: value.leader_name, sewing_line: "", mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
                                 leaderOutput.push(res[param]);
@@ -240,14 +240,15 @@
 
                             if (!res[param].tanggal || res[param].tanggal <= value.tanggal) {
                                 res[param].tanggal = value.tanggal;
+
+                                if (!res[param].sewing_line.includes(value.sewing_line)) {
+                                    res[param].sewing_line += value.sewing_line + "<br>";
+                                }
                             }
                             res[param].mins_avail += Number(value.cumulative_mins_avail);
                             res[param].mins_prod += Number(value.mins_prod);
                             res[param].output += Number(value.output);
                             res[param].rft += Number(value.rft);
-                            if (!res[param].sewing_line.includes(value.sewing_line)) {
-                                res[param].sewing_line += value.sewing_line + "<br>";
-                            }
 
                             totalMinsAvail += Number(value.cumulative_mins_avail);
                             totalMinsProd += Number(value.mins_prod);
@@ -257,7 +258,7 @@
                             return res;
                         }, {});
 
-                        if (element[0].chief_name == "SUKAMTONO") {
+                        if (element[0].chief_name.includes("SUKAM")) {
                             console.log(leaderOutput);
                         }
 
