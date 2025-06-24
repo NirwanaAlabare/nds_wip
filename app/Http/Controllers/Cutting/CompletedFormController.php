@@ -343,7 +343,7 @@ class CompletedFormController extends Controller
     }
 
     public function updateFinish(Request $request, $id) {
-        $formCutInputData = FormCutInput::selectRaw("form_cut_input.*, marker_input.color")->
+        $formCutInputData = FormCutInput::selectRaw("form_cut_input.*, marker_input.act_costing_ws, marker_input.color, marker_input.panel")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where("form_cut_input.id", $id)->
             first();
