@@ -2165,3 +2165,5 @@ Route::get('/validation-form', function () {
 Route::get('/bon-mutasi', function () {
     return view('bon-mutasi');
 })->middleware('auth');
+
+require __DIR__.'/qc_inspect.php';
