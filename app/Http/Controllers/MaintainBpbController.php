@@ -55,7 +55,7 @@ class MaintainBpbController extends Controller
 
         $nama_supp = DB::connection('mysql_sb')->select("select DISTINCT id_supplier, supplier from mastersupplier where tipe_sup = 'S' order by Supplier ASC");
 
-        $kode_gr = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MTN/BPB' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_maintain) is null,'00001',LPAD(SUBSTR(max(SUBSTR(no_maintain,15)),1,5)+1,5,0)) nomor from maintain_bpb_h) a");
+        $kode_gr = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'RVS/BPB' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_maintain) is null,'00001',LPAD(SUBSTR(max(SUBSTR(no_maintain,15)),1,5)+1,5,0)) nomor from maintain_bpb_h) a");
 
         if ($request->ajax()) {
 
@@ -134,7 +134,7 @@ class MaintainBpbController extends Controller
             SELECT CONCAT(kode,'/',bulan,tahun,'/',nomor) kode 
             FROM (
                 SELECT 
-                'MTN/BPB' kode,
+                'RVS/BPB' kode,
                 DATE_FORMAT(CURRENT_DATE(), '%m') bulan,
                 DATE_FORMAT(CURRENT_DATE(), '%y') tahun,
                 IF(MAX(no_maintain) IS NULL, '00001', LPAD(SUBSTR(MAX(SUBSTR(no_maintain,15)),1,5)+1,5,0)) nomor 

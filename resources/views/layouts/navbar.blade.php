@@ -586,6 +586,11 @@
                                     Master Lokasi
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-satuan') }}" class="dropdown-item">
+                                    Master Satuan
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

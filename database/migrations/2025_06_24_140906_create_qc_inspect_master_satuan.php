@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTableMarkerInputDetail extends Migration
+class CreateQcInspectMasterSatuan extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,9 @@ class CreateTableMarkerInputDetail extends Migration
      */
     public function up()
     {
-        Schema::create('marker_input_detail', function (Blueprint $table) {
+        Schema::create('qc_inspect_master_satuan', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('marker_id');
-            $table->bigInteger('so_det_id');
-            $table->double('ratio');
-            $table->double('cut_qty');
-            $table->char('cancel');
+            $table->string('satuan', 250);
             $table->timestamps();
         });
     }
@@ -31,6 +27,6 @@ class CreateTableMarkerInputDetail extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('marker_input_detail');
+        Schema::dropIfExists('qc_inspect_master_satuan');
     }
 }
