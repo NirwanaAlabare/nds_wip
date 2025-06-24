@@ -26,7 +26,7 @@
     @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">List Maintain BPB</h5>
+            <h5 class="card-title fw-bold mb-0">List REVERSE BPB</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -93,8 +93,8 @@
                 <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                     <thead>
                         <tr>
-                            <th class="text-center">No Maintain</th>
-                            <th class="text-center">Tgl Maintain</th>
+                            <th class="text-center">No Reverse</th>
+                            <th class="text-center">Tgl Reverse</th>
                             <th class="text-center">User Create</th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Action</th>

@@ -38,7 +38,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
-                FORM MAINTAIN BPB
+                FORM REVERSE BPB
             </h5>
             <div class="card-tools">
               <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
@@ -50,7 +50,7 @@
                 <div class="col-3 col-md-3">
                     <div class="mb-1">
                         <div class="form-group">
-                            <label><small>No Maintain</small></label>
+                            <label><small>No Reverse</small></label>
                             @foreach ($kode_gr as $kodegr)
                             <input type="text" class="form-control " id="txt_no_trf" name="txt_no_trf" value="{{ $kodegr->kode }}" readonly>
                             @endforeach
@@ -61,7 +61,7 @@
                 <div class="col-2 col-md-2">
                     <div class="mb-1">
                         <div class="form-group">
-                            <label><small>Tgl Maintain</small></label>
+                            <label><small>Tgl Reverse</small></label>
                             <input type="date" class="form-control form-control" id="txt_tgl_trf" name="txt_tgl_trf"
                             value="{{ date('Y-m-d') }}">
                         </div>
