@@ -8,12 +8,6 @@ use Yajra\DataTables\Facades\DataTables;
 
 class Satuan extends Component
 {
-    public $satuan, $satuanId;
-
-    protected $rules = [
-        'satuan' => 'required|string|max:255',
-    ];
-
     public function render()
     {
         return view('livewire.qc.master.satuan');
@@ -23,20 +17,7 @@ class Satuan extends Component
     {
         return DataTables::of(MasterSatuan::query())
             ->addColumn('action', function($row) {
-                return '
-                    <div class="d-flex gap-1 justify-content-center">
-                        <button class="btn btn-warning btn-sm" 
-                                wire:click="edit('.$row->id.')"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#modal-edit-satuan">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm" 
-                                wire:click="delete('.$row->id.')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                ';
+                return '';
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -44,40 +25,47 @@ class Satuan extends Component
 
     public function create()
     {
-        $this->validate();
-        MasterSatuan::create(['satuan' => $this->satuan]);
-        $this->resetInput();
-        session()->flash('success', 'Satuan berhasil ditambahkan!');
-        $this->emit('refreshDatatable');
+        request()->validate([
+            'satuan' => 'required|unique:qc_inspect_master_satuan,satuan|max:50'
+        ]);
+        
+        try {
+            $satuan = new MasterSatuan();
+            $satuan->satuan = request('satuan');
+            $satuan->save();
+            
+            return redirect()->route('qc-inspect-master-satuan')->with('message', 'Satuan berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menambahkan satuan: '.$e->getMessage());
+        }
     }
 
-    public function edit($id)
+    public function update($id)
     {
-        $satuan = MasterSatuan::findOrFail($id);
-        $this->satuanId = $id;
-        $this->satuan = $satuan->satuan;
-    }
-
-    public function update()
-    {
-        $this->validate();
-        $satuan = MasterSatuan::find($this->satuanId);
-        $satuan->update(['satuan' => $this->satuan]);
-        $this->resetInput();
-        session()->flash('success', 'Satuan berhasil diperbarui!');
-        $this->emit('refreshDatatable');
+        request()->validate([
+            'satuan' => 'required|unique:qc_inspect_master_satuan,satuan,'.$id.'|max:50'
+        ]);
+        
+        try {
+            $satuan = MasterSatuan::findOrFail($id);
+            $satuan->satuan = request('satuan');
+            $satuan->save();
+            
+            return redirect()->route('qc-inspect-master-satuan')->with('message', 'Satuan berhasil diperbarui!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memperbarui satuan: '.$e->getMessage());
+        }
     }
 
     public function delete($id)
     {
-        MasterSatuan::destroy($id);
-        session()->flash('success', 'Satuan berhasil dihapus!');
-        $this->emit('refreshDatatable');
-    }
-
-    private function resetInput()
-    {
-        $this->satuan = '';
-        $this->satuanId = null;
+        try {
+            $satuan = MasterSatuan::findOrFail($id);
+            $satuan->delete();
+            
+            return redirect()->route('qc-inspect-master-satuan')->with('message', 'Satuan berhasil dihapus!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menghapus satuan: '.$e->getMessage());
+        }
     }
 }
