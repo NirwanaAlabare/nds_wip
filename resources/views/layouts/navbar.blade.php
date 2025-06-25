@@ -596,6 +596,11 @@
                                     Master Group Inspect
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-lenght') }}" class="dropdown-item">
+                                    Master Lenght
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

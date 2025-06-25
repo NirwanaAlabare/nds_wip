@@ -3,6 +3,7 @@
 use App\Http\Livewire\Qc\Master\Satuan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\QC\Master\GroupInspect;
+use App\Http\Livewire\QC\Master\Lenght;
 
 Route::middleware('auth')->group(function () {
     // Main page route
@@ -37,5 +38,21 @@ Route::middleware('auth')->group(function () {
         // Delete Route
         Route::delete('/delete/{id}', [GroupInspect::class, 'delete'])
             ->name('qc-inspect-group-inspect.delete');
+    });
+
+        // Master Length Routes
+    Route::prefix('qc-inspect-master-lenght')->group(function () {
+        Route::get('/', [Lenght::class, 'render'])->name('qc-inspect-master-lenght');
+        Route::post('/create', [Lenght::class, 'create'])
+            ->name('qc-inspect-lenght.create');
+        
+        Route::post('/update', [Lenght::class, 'update'])
+            ->name('qc-inspect-lenght.update');
+        
+        Route::delete('/delete/{id}', [Lenght::class, 'delete'])
+            ->name('qc-inspect-lenght.delete');
+        
+        Route::get('/data', [Lenght::class, 'getDatatables'])
+            ->name('qc-inspect-lenght.data');
     });
 });
