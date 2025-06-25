@@ -591,6 +591,11 @@
                                     Master Satuan
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-group-inspect') }}" class="dropdown-item">
+                                    Master Group Inspect
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

@@ -10,7 +10,7 @@ class Satuan extends Component
 {
     public function render()
     {
-        return view('livewire.qc.master.satuan');
+        return view('livewire.qc.master.satuan', ["page" => "dashboard-warehouse"]);
     }
 
     public function getDatatables()

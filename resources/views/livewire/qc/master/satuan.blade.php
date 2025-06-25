@@ -1,5 +1,5 @@
 @extends('layouts.index')
-@livewireScripts
+
 @section('custom-link')
     <!-- DataTables -->
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
@@ -18,7 +18,6 @@
     <div class="card-body">
         <div class="d-flex align-items-end gap-3 mb-3">
             <div class="col-md-6">
-                <input type="text" wire:model="search" class="form-control" placeholder="Search Satuan...">
             </div>
             <div class="col-md-6 text-end">
 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-tambah-satuan" style="background-color: var(--sb-color) !important;">Tambah Satuan</button>            </div>
