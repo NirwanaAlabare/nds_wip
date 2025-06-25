@@ -13,14 +13,17 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0">Data Master Satuan</h5>
+        <h5 class="card-title fw-bold mb-0">Data Master Result</h5>
     </div>
     <div class="card-body">
         <div class="d-flex align-items-end gap-3 mb-3">
             <div class="col-md-6">
             </div>
             <div class="col-md-6 text-end">
-<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-tambah-satuan" style="background-color: var(--sb-color) !important;">Tambah Satuan</button>            </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-tambah-result" style="background-color: var(--sb-color) !important;">
+                    Tambah Result
+                </button>
+            </div>
         </div>
 
         @if (session()->has('message'))
@@ -33,7 +36,7 @@
             <table id="datatable" class="table table-bordered table-striped w-100">
                 <thead>
                     <tr>
-                        <th class="text-center">Satuan</th>
+                        <th class="text-center">Result</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -45,21 +48,21 @@
     </div>
 </div>
 
-<!-- Modal Tambah Satuan -->
-<div class="modal fade" id="modal-tambah-satuan" tabindex="-1" aria-labelledby="modal-tambah-satuanLabel" aria-hidden="true">
+<!-- Modal Tambah Result -->
+<div class="modal fade" id="modal-tambah-result" tabindex="-1" aria-labelledby="modal-tambah-resultLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <form action="{{ route('qc-inspect-satuan.create') }}" method="POST">
+        <form action="{{ route('qc-inspect-result.create') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-tambah-satuanLabel">Tambah Satuan</h5>
+                    <h5 class="modal-title" id="modal-tambah-resultLabel">Tambah Result</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="satuan" class="form-label">Satuan</label>
-                        <input type="text" name="satuan" class="form-control" id="satuan" required>
-                        @error('satuan') <span class="text-danger">{{ $message }}</span> @enderror
+                        <label for="result" class="form-label">Result</label>
+                        <input type="text" name="result" class="form-control" id="result" maxlength="250" required>
+                        @error('result') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -71,22 +74,22 @@
     </div>
 </div>
 
-<!-- Modal Edit Satuan -->
-<div class="modal fade" id="modal-edit-satuan" tabindex="-1" aria-labelledby="modal-edit-satuanLabel" aria-hidden="true">
+<!-- Modal Edit Result -->
+<div class="modal fade" id="modal-edit-result" tabindex="-1" aria-labelledby="modal-edit-resultLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="edit-form" method="POST">
+        <form id="edit-form" action="{{ route('qc-inspect-result.update') }}" method="POST">
             @csrf
-            @method('PUT')
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-edit-satuanLabel">Edit Satuan</h5>
+                    <h5 class="modal-title" id="modal-edit-resultLabel">Edit Result</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <input type="hidden" name="id" id="edit-id">
                     <div class="mb-3">
-                        <label for="edit-satuan" class="form-label">Satuan</label>
-                        <input type="text" name="satuan" class="form-control" id="edit-satuan" required>
-                        @error('satuan') <span class="text-danger">{{ $message }}</span> @enderror
+                        <label for="edit-result" class="form-label">Result</label>
+                        <input type="text" name="result" class="form-control" id="edit-result" maxlength="250" required>
+                        @error('result') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -109,24 +112,29 @@
             $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('qc-inspect-satuan.data') }}',
+                ajax: '{{ route('qc-inspect-result.data') }}',
                 columns: [
-                    { data: 'satuan', name: 'satuan' },
+                    { 
+                        data: 'result', 
+                        name: 'result',
+                        className: 'text-center'
+                    },
                     { 
                         data: 'action', 
                         name: 'action', 
                         orderable: false, 
                         searchable: false,
+                        className: 'text-center',
                         render: function(data, type, row) {
                             return `
                                 <div class="d-flex gap-1 justify-content-center">
                                     <button class="btn btn-warning btn-sm edit-btn" 
                                             data-id="${row.id}"
-                                            data-satuan="${row.satuan}"
+                                            data-result="${row.result}"
                                             style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
                                         <i class="fas fa-edit fa-sm"></i>
                                     </button>
-                                    <form action="{{ route('qc-inspect-satuan.delete', '') }}/${row.id}" method="POST" class="delete-form d-inline">
+                                    <form action="{{ route('qc-inspect-result.delete', '') }}/${row.id}" method="POST" class="delete-form d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm" 
@@ -144,17 +152,18 @@
             // Handle edit button click
             $(document).on('click', '.edit-btn', function() {
                 var id = $(this).data('id');
-                var satuan = $(this).data('satuan');
+                var result = $(this).data('result');
                 
-                $('#edit-satuan').val(satuan);
-                $('#edit-form').attr('action', '{{ route("qc-inspect-satuan.update", ":id") }}'.replace(':id', id));                
-                $('#modal-edit-satuan').modal('show');
+                $('#edit-id').val(id);
+                $('#edit-result').val(result);
+                
+                $('#modal-edit-result').modal('show');
             });
 
             // Handle delete form submission
             $(document).on('submit', '.delete-form', function(e) {
                 e.preventDefault();
-                if (confirm('Are you sure you want to delete this item?')) {
+                if (confirm('Are you sure you want to delete this result?')) {
                     this.submit();
                 }
             });

@@ -587,8 +587,29 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('qc-inspect-master-group-inspect') }}" class="dropdown-item">
+                                    Master Group Inspect
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('qc-inspect-master-satuan') }}" class="dropdown-item">
                                     Master Satuan
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('qc-inspect-master-lenght') }}" class="dropdown-item">
+                                    Master Lenght
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-defect') }}" class="dropdown-item">
+                                    Master Defect
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-result') }}" class="dropdown-item">
+                                    Master Result
                                 </a>
                             </li>
                         </ul>

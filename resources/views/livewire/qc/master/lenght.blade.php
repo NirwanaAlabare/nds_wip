@@ -13,14 +13,17 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0">Data Master Satuan</h5>
+        <h5 class="card-title fw-bold mb-0">Data Master Length Range</h5>
     </div>
     <div class="card-body">
         <div class="d-flex align-items-end gap-3 mb-3">
             <div class="col-md-6">
             </div>
             <div class="col-md-6 text-end">
-<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-tambah-satuan" style="background-color: var(--sb-color) !important;">Tambah Satuan</button>            </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-tambah-lenght" style="background-color: var(--sb-color) !important;">
+                    Tambah Length Range
+                </button>
+            </div>
         </div>
 
         @if (session()->has('message'))
@@ -33,7 +36,8 @@
             <table id="datatable" class="table table-bordered table-striped w-100">
                 <thead>
                     <tr>
-                        <th class="text-center">Satuan</th>
+                        <th class="text-center">From</th>
+                        <th class="text-center">To</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -45,21 +49,26 @@
     </div>
 </div>
 
-<!-- Modal Tambah Satuan -->
-<div class="modal fade" id="modal-tambah-satuan" tabindex="-1" aria-labelledby="modal-tambah-satuanLabel" aria-hidden="true">
+<!-- Modal Tambah Length Range -->
+<div class="modal fade" id="modal-tambah-lenght" tabindex="-1" aria-labelledby="modal-tambah-lenghtLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <form action="{{ route('qc-inspect-satuan.create') }}" method="POST">
+        <form action="{{ route('qc-inspect-lenght.create') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-tambah-satuanLabel">Tambah Satuan</h5>
+                    <h5 class="modal-title" id="modal-tambah-lenghtLabel">Tambah Length Range</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="satuan" class="form-label">Satuan</label>
-                        <input type="text" name="satuan" class="form-control" id="satuan" required>
-                        @error('satuan') <span class="text-danger">{{ $message }}</span> @enderror
+                        <label for="from" class="form-label">From</label>
+                        <input type="number" name="from" class="form-control" id="from" step="0.01" required>
+                        @error('from') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label for="to" class="form-label">To</label>
+                        <input type="number" name="to" class="form-control" id="to" step="0.01" required>
+                        @error('to') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -71,22 +80,27 @@
     </div>
 </div>
 
-<!-- Modal Edit Satuan -->
-<div class="modal fade" id="modal-edit-satuan" tabindex="-1" aria-labelledby="modal-edit-satuanLabel" aria-hidden="true">
+<!-- Modal Edit Length Range -->
+<div class="modal fade" id="modal-edit-lenght" tabindex="-1" aria-labelledby="modal-edit-lenghtLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="edit-form" method="POST">
+        <form id="edit-form" action="{{ route('qc-inspect-lenght.update') }}" method="POST">
             @csrf
-            @method('PUT')
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-edit-satuanLabel">Edit Satuan</h5>
+                    <h5 class="modal-title" id="modal-edit-lenghtLabel">Edit Length Range</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <input type="hidden" name="id" id="edit-id">
                     <div class="mb-3">
-                        <label for="edit-satuan" class="form-label">Satuan</label>
-                        <input type="text" name="satuan" class="form-control" id="edit-satuan" required>
-                        @error('satuan') <span class="text-danger">{{ $message }}</span> @enderror
+                        <label for="edit-from" class="form-label">From</label>
+                        <input type="number" name="from" class="form-control" id="edit-from" step="0.01" required>
+                        @error('from') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-to" class="form-label">To</label>
+                        <input type="number" name="to" class="form-control" id="edit-to" step="0.01" required>
+                        @error('to') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -109,24 +123,35 @@
             $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('qc-inspect-satuan.data') }}',
+                ajax: '{{ route('qc-inspect-lenght.data') }}',
                 columns: [
-                    { data: 'satuan', name: 'satuan' },
+                    { 
+                        data: 'from', 
+                        name: 'from',
+                        className: 'text-center'
+                    },
+                    { 
+                        data: 'to', 
+                        name: 'to',
+                        className: 'text-center'
+                    },
                     { 
                         data: 'action', 
                         name: 'action', 
                         orderable: false, 
                         searchable: false,
+                        className: 'text-center',
                         render: function(data, type, row) {
                             return `
                                 <div class="d-flex gap-1 justify-content-center">
                                     <button class="btn btn-warning btn-sm edit-btn" 
                                             data-id="${row.id}"
-                                            data-satuan="${row.satuan}"
+                                            data-from="${row.from}"
+                                            data-to="${row.to}"
                                             style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
                                         <i class="fas fa-edit fa-sm"></i>
                                     </button>
-                                    <form action="{{ route('qc-inspect-satuan.delete', '') }}/${row.id}" method="POST" class="delete-form d-inline">
+                                    <form action="{{ route('qc-inspect-lenght.delete', '') }}/${row.id}" method="POST" class="delete-form d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm" 
@@ -144,17 +169,20 @@
             // Handle edit button click
             $(document).on('click', '.edit-btn', function() {
                 var id = $(this).data('id');
-                var satuan = $(this).data('satuan');
+                var from = $(this).data('from');
+                var to = $(this).data('to');
                 
-                $('#edit-satuan').val(satuan);
-                $('#edit-form').attr('action', '{{ route("qc-inspect-satuan.update", ":id") }}'.replace(':id', id));                
-                $('#modal-edit-satuan').modal('show');
+                $('#edit-id').val(id);
+                $('#edit-from').val(from);
+                $('#edit-to').val(to);
+                
+                $('#modal-edit-lenght').modal('show');
             });
 
             // Handle delete form submission
             $(document).on('submit', '.delete-form', function(e) {
                 e.preventDefault();
-                if (confirm('Are you sure you want to delete this item?')) {
+                if (confirm('Are you sure you want to delete this length range?')) {
                     this.submit();
                 }
             });
