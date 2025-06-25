@@ -601,6 +601,16 @@
                                     Master Lenght
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-defect') }}" class="dropdown-item">
+                                    Master Defect
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-result') }}" class="dropdown-item">
+                                    Master Result
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

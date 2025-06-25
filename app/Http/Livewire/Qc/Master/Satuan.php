@@ -42,9 +42,6 @@ class Satuan extends Component
 
     public function update($id)
     {
-        request()->validate([
-            'satuan' => 'required|unique:qc_inspect_master_satuan,satuan,'.$id.'|max:50'
-        ]);
         
         try {
             $satuan = MasterSatuan::findOrFail($id);
