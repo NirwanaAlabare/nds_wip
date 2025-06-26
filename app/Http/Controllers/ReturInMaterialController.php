@@ -681,25 +681,117 @@ public function getListbarcodeout(Request $request)
     return $html;
 }
 
+// public function showdetailbarcodeout(Request $request)
+// {
+//         // dd(str_replace(",","','",$request->id_barcode));
+//         // dd($request->id_barcode);
+//     $det_item = DB::connection('mysql_sb')->select("select a.id_roll,a.id_item,a.id_jo,a.no_roll roll_no, a.no_lot lot_no, goods_code, itemdesc, qty_out sisa, satuan unit,no_rak kode_rak, '' kpno  from whs_bppb_det a INNER JOIN masteritem b on b.id_item = a.id_item where a.no_bppb = '" . $request->no_bppb . "' and a.id_roll in (" . $request->id_barcode . ") GROUP BY id_roll ");
+
+
+//     $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select a.id_roll,a.id_item,a.id_jo,a.no_roll roll_no, a.no_lot lot_no, goods_code, itemdesc, qty_out sisa, satuan unit,no_rak kode_lok, '' kpno  from whs_bppb_det a INNER JOIN masteritem b on b.id_item = a.id_item where a.no_bppb = '" . $request->no_bppb . "' and a.id_roll in (" . $request->id_barcode . ") GROUP BY id_roll) a");
+
+//     $pilih_lokasi = '';
+//     $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
+//     foreach ($lokasi as $lok) {
+//         $pilih_lokasi .= " <option value='" . $lok->kode_lok . "'>" . $lok->kode_lok . "</option> ";
+//     }
+
+
+//     foreach ($sum_item as $sumitem) {
+//         $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
+//     }
+
+//     $html .= '<div class="table-responsive" style="max-height: 300px">
+//     <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
+//     <thead>
+//     <tr>
+//     <th class="text-center" style="font-size: 0.6rem;">No Barcode</th>
+//     <th class="text-center" style="font-size: 0.6rem;">No Roll</th>
+//     <th class="text-center" style="font-size: 0.6rem;">No Lot</th>
+//     <th class="text-center" style="font-size: 0.6rem;">ID Item</th>
+//     <th class="text-center" style="font-size: 0.6rem;">Nama Barang</th>
+//     <th class="text-center" style="font-size: 0.6rem;">Qty Out</th>
+//     <th class="text-center" style="font-size: 0.6rem;">Satuan</th>
+//     <th class="text-center">Qty RI</th>
+//     <th class="text-center" style="font-size: 0.6rem;">Lokasi</th>
+//     <th hidden>Qty Sisa</th>
+//     <th hidden></th>
+//     <th hidden></th>
+//     <th hidden></th>
+//     </tr>
+//     </thead>
+//     <tbody>';
+//     $jml_qty_sj = 0;
+//     $jml_qty_ak = 0;
+//     $x = 1;
+//     foreach ($det_item as $detitem) {
+        // $html .= ' <tr>
+        // <td> '.$detitem->id_roll.' </td>
+        // <td> '.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
+        // <td> '.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
+        // <td> '.$detitem->id_item.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+        // <td> '.$detitem->itemdesc.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
+        // <td> '.$detitem->sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
+        // <td> '.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
+        // <td ><input style="width:100px;text-align:right;" class="form-control" type="text" id="qty_out'.$x.'" name="qty_out['.$x.']" value="'.$detitem->sisa.'" onkeyup="sum_qty_barcode(this.value)" /></td>
+        // <td hidden><input style="width:100px;text-align:right;" class="form-control" type="hidden" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="0" /></td>
+        // <td><select class="form-control select2lok" id="selectlok'.$x.'" name="selectlok['.$x.']" style="width: 200px;">
+        // '.$pilih_lokasi.'
+        // </select></td>
+        // <td style="display:none"><input style="width:100%;align:center;" class="form-control" type="text" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
+        // <td hidden> <input type="hidden" id="id_roll'.$x.'" name="id_roll['.$x.']" value="'.$detitem->id_roll.'" / readonly></td>
+        // <td hidden> <input type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+        // <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
+        // </tr>';
+        // $x++;
+//     }
+
+//     $html .= '</tbody>
+//     </table>
+//     </div>';
+
+//     return $html;
+// }
+
+
 public function showdetailbarcodeout(Request $request)
 {
-        // dd(str_replace(",","','",$request->id_barcode));
-        // dd($request->id_barcode);
-    $det_item = DB::connection('mysql_sb')->select("select a.id_roll,a.id_item,a.id_jo,a.no_roll roll_no, a.no_lot lot_no, goods_code, itemdesc, qty_out sisa, satuan unit,no_rak kode_rak, '' kpno  from whs_bppb_det a INNER JOIN masteritem b on b.id_item = a.id_item where a.no_bppb = '" . $request->no_bppb . "' and a.id_roll in (" . $request->id_barcode . ") GROUP BY id_roll ");
+    $id_barcode_array = $request->input('id_barcode');
+    $no_bppb = $request->input('no_bppb');
 
 
-    $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select a.id_roll,a.id_item,a.id_jo,a.no_roll roll_no, a.no_lot lot_no, goods_code, itemdesc, qty_out sisa, satuan unit,no_rak kode_lok, '' kpno  from whs_bppb_det a INNER JOIN masteritem b on b.id_item = a.id_item where a.no_bppb = '" . $request->no_bppb . "' and a.id_roll in (" . $request->id_barcode . ") GROUP BY id_roll) a");
+    // Ambil data item berdasarkan barcode yang dipilih
+    $det_item = DB::connection('mysql_sb')
+        ->table('whs_bppb_det as a')
+        ->join('masteritem as b', 'b.id_item', '=', 'a.id_item')
+        ->select(
+            'a.id_roll', 'a.id_item', 'a.id_jo', 'a.no_roll as roll_no', 'a.no_lot as lot_no',
+            'b.goods_code', 'b.itemdesc', 'a.qty_out as sisa', 'a.satuan as unit', 'a.no_rak as kode_rak',
+            DB::raw("'' as kpno")
+        )
+        ->where('a.no_bppb', $no_bppb)
+        ->whereIn('a.id_roll', $id_barcode_array)
+        ->groupBy('a.id_roll')
+        ->get();
+
+    // Hitung jumlah roll
+    $ttl_roll = count($det_item);
+    // dd($ttl_roll);
+
+    // Ambil data lokasi
+    $lokasi = DB::connection('mysql_sb')
+        ->table('whs_master_lokasi')
+        ->select('id', 'kode_lok')
+        ->where('status', '=', 'active')
+        ->get();
 
     $pilih_lokasi = '';
-    $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
     foreach ($lokasi as $lok) {
-        $pilih_lokasi .= " <option value='" . $lok->kode_lok . "'>" . $lok->kode_lok . "</option> ";
+        $pilih_lokasi .= "<option value='" . $lok->kode_lok . "'>" . $lok->kode_lok . "</option> ";
     }
 
-
-    foreach ($sum_item as $sumitem) {
-        $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
-    }
+    // Buat HTML output
+    $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="' . $ttl_roll . '" readonly>';
 
     $html .= '<div class="table-responsive" style="max-height: 300px">
     <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
@@ -721,8 +813,7 @@ public function showdetailbarcodeout(Request $request)
     </tr>
     </thead>
     <tbody>';
-    $jml_qty_sj = 0;
-    $jml_qty_ak = 0;
+
     $x = 1;
     foreach ($det_item as $detitem) {
         $html .= ' <tr>
@@ -746,9 +837,7 @@ public function showdetailbarcodeout(Request $request)
         $x++;
     }
 
-    $html .= '</tbody>
-    </table>
-    </div>';
+    $html .= '</tbody></table></div>';
 
     return $html;
 }
