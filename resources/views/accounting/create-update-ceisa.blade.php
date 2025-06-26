@@ -97,12 +97,12 @@
 
                 <div class="col-12 col-md-12">
                     <div class="form-group row">
-                        <!-- <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-between">
                             <div class="ml-auto">
                                 <span class="input-group-text"><i class="fas fa-search"></i></span>
                             </div>
-                            <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
-                        </div> -->
+                            <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search No Aju..." onkeyup="cariitem()">
+                        </div>
                         <div class="table-responsive"style="max-height: 300px">
                             <table id="datatable" class="table table-bordered table-head-fixed table-striped w-100 text-nowrap" width="100%">
                                 <thead>
@@ -224,7 +224,7 @@
             // Pastikan hanya inisialisasi DataTable jika belum ada
             if (!$.fn.DataTable.isDataTable('#datatable')) {
                 $('#datatable').DataTable({
-                    searching: true,
+                    searching: false,
                     paging: false,
                     ordering: true,
                     autoWidth: false
@@ -305,7 +305,7 @@ function cariitem() {
 
         // Loop through all table rows, and hide those who don't match the search query
         for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[12]; //kolom ke berapa
+            td = tr[i].getElementsByTagName("td")[2]; //kolom ke berapa
             if (td) {
                 txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {

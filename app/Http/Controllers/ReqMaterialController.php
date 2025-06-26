@@ -194,7 +194,7 @@ class ReqMaterialController extends Controller
             round( COALESCE ( br.qty_br, 0 ) - COALESCE ( br.qty_br_out, 0 ), 2 ) sisa_req,  a.unit from
             (select id_item,goods_code,id_jo,mattype, matclass, itemdesc,round(sum(qty_bpb),2) qty_bpb, round(sum(qty_bppb),2) qty_bppb,unit from (select 'SA' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,round(sum(qty_good),2) qty_bpb, '0' qty_bppb,unit from whs_inmaterial_fabric_det a inner join masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and status = 'Y' GROUP BY a.id_item,id_jo,unit
 UNION
-select 'TR' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,round(sum(qty),2) qty_bpb, '0' qty_bppb,unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and qty > 0 and qty_mut is null GROUP BY a.id_item,id_jo,unit
+select 'TR' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,round(sum(qty),2) qty_bpb, '0' qty_bppb,unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and qty > 0 GROUP BY a.id_item,id_jo,unit
 UNION
 select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc,'0' qty_bpb, round(sum(qty_out),2) qty_bppb,satuan from whs_bppb_det a inner join  masteritem b on b.id_item = a.id_item where id_jo = '" . $request->id_jo . "' and a.status = 'Y' GROUP BY a.id_item,id_jo,satuan) a GROUP BY a.id_item,id_jo,unit) a
             inner join jo_det jd on a.id_jo = jd.id_jo
