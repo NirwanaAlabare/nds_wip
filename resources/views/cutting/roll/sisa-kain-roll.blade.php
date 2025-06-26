@@ -98,7 +98,7 @@
     <div class="card">
         <div class="card-header bg-sb">
             <h5 class="card-title">
-                Mass Export
+                Mass Print Sticker
             </h5>
         </div>
         <div class="card-body">
@@ -106,7 +106,10 @@
                 <label class="form-label fw-bold"><b>ID Rolls</b></label>
                 <textarea name="id_rolls" id="id_rolls" cols="30" rows="10" class="form-control"></textarea>
             </div>
-            <button class="btn btn-primary mt-3" onclick="massPrintSisaKain()"><i class="fa fa-print"></i> Print</button>
+            <div class="d-flex justify-content-between gap-3 mt-3">
+                <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> F11123</b><br>&nbsp;&nbsp;&nbsp;<b> F11124</b><br>&nbsp;&nbsp;&nbsp;<b> F11125</b></div>
+                <button class="btn btn-primary" onclick="massPrintSisaKain()"><i class="fa fa-print"></i> Print</button>
+            </div>
         </div>
     </div>
 @endsection
