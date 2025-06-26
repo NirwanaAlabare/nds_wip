@@ -157,15 +157,17 @@ class MutLokasiController extends Controller
         //     group by br.id
         //     order by br.id");
 
-        $det_item = DB::connection('mysql_sb')->select("select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, qty_sisa roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
-            UNION
-            select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
-            UNION
-            select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' UNION select 'SA' fil, no_barcode, a.id_jo,a.id,b.itemdesc itemdesc,a.id_item,b.goods_code,'' supplier,a.no_bpb bpbno_int,a.no_po pono,a.no_sj invno,a.no_ws kpno,a.no_roll roll_no,'' no_roll_buyer,a.qty roll_qty,a.no_lot lot_no,a.unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',goods_code,'-',itemdesc,'-',a.no_ws,'-',a.no_bpb,'-',a.unit) filter,COALESCE(c.qty_out,0) qty_out,(a.qty - COALESCE(c.qty_out,0)) qty_sisa from whs_sa_fabric a left join masteritem b on b.id_item = a.id_item left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
-            UNION
-            select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
-            UNION
-            select no_barcode,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and a.qty > 0) a where a.qty_sisa > 0");
+        $det_item = DB::connection('mysql_sb')->select("select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, qty_sisa roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from ( select * from whs_lokasi_inmaterial where kode_lok = '" . $request->rak . "' and no_ws = '" . $request->no_ws . "') a left join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,sum(qty_out) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det where no_rak = '" . $request->rak . "' GROUP BY id_roll
+        UNION ALL
+        select no_barcode id_roll,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
+        UNION ALL
+        select no_barcode id_roll,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode
+                     UNION
+                     select 'SA' fil, no_barcode, a.id_jo,a.id,b.itemdesc itemdesc,a.id_item,b.goods_code,'' supplier,a.no_bpb bpbno_int,a.no_po pono,a.no_sj invno,a.no_ws kpno,a.no_roll roll_no,'' no_roll_buyer,a.qty roll_qty,a.no_lot lot_no,a.unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',goods_code,'-',itemdesc,'-',a.no_ws,'-',a.no_bpb,'-',a.unit) filter,COALESCE(c.qty_out,0) qty_out,(a.qty - COALESCE(c.qty_out,0)) qty_sisa from ( select * from whs_sa_fabric where kode_lok = '" . $request->rak . "' and no_ws = '" . $request->no_ws . "')  a left join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det where no_rak = '" . $request->rak . "' GROUP BY id_roll
+        UNION ALL
+        select no_barcode id_roll,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
+        UNION ALL
+        select no_barcode id_roll,sum(qty_mut) qty_out from whs_sa_fabric where qty_mut > 0 GROUP BY no_barcode) a GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty > 0) a where a.qty_sisa > 0");
 
         $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
 
@@ -238,13 +240,33 @@ class MutLokasiController extends Controller
     public function approvemutlok(Request $request)
     {
         $timestamp = Carbon::now();
-        $updateLokasi = MutLokasiHeader::where('no_mut', $request['txt_nodok'])->update([
-            'status' => 'Approved',
-            'approved_by' => Auth::user()->name,
-            'approved_date' => $timestamp,
+        $no_mut = $request['txt_nodok'];
+        $updateLokasi_h = MutLokasiHeader::where('no_mut', $request['txt_nodok'])->update([
+            'status' => 'Cancel',
+            'cancel_by' => Auth::user()->name,
+            'cancel_date' => $timestamp,
         ]);
 
-        $massage = 'Approved Data Successfully';
+        $updateLokasi = DB::connection('mysql_sb')->table('whs_mut_lokasi')->where('no_mut', $request['txt_nodok'])->update([
+            'status' => 'N',
+            'qty_mutasi' => 0,
+        ]);
+
+        DB::connection('mysql_sb')->statement("
+            UPDATE whs_lokasi_inmaterial a
+            INNER JOIN whs_mut_lokasi b ON b.idbpb_det = a.no_barcode
+            SET a.qty_mutasi = NULL
+            WHERE b.no_mut = ?
+        ", [$no_mut]);
+
+        DB::connection('mysql_sb')->statement("
+            UPDATE whs_lokasi_inmaterial a
+            INNER JOIN whs_mut_lokasi b ON b.idbpb_det = a.no_barcode_old
+            SET a.qty_sj = 0, a.qty_aktual = 0, a.status = 'N'
+            WHERE b.no_mut = ?
+        ", [$no_mut]);
+
+        $massage = 'Cancel Data Successfully';
 
         return array(
             "status" => 200,
@@ -265,6 +287,9 @@ class MutLokasiController extends Controller
     public function store(Request $request)
     {
 
+        $kode_gr = DB::connection('mysql_sb')->select("
+        select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
+
         if (intval($request['txt_sum_roll']) > 0) {
             $mutlokasiheader = MutLokasiHeader::create([
                 'no_mut' => $request['txt_no_mut'],
@@ -275,9 +300,6 @@ class MutLokasiController extends Controller
                 'status' => 'Pending',
                 'created_by' => Auth::user()->name,
             ]);
-
-            $kode_gr = DB::connection('mysql_sb')->select("
-            select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
 
             $timestamp = Carbon::now();
             // $nodok = $request['txt_no_mut'];
