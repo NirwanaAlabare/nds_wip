@@ -626,6 +626,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/export', 'export')->name('export');
         // print
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
+        Route::post('/mass_sisa_kain/print', 'massPrintSisaKain')->name('mass_print_sisa_kain');
     });
 
     // Cutting Tools

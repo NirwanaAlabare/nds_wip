@@ -94,6 +94,21 @@
             </div>
         </div>
     </div>
+
+    <div class="card">
+        <div class="card-header bg-sb">
+            <h5 class="card-title">
+                Mass Export
+            </h5>
+        </div>
+        <div class="card-body">
+            <div>
+                <label class="form-label fw-bold"><b>ID Rolls</b></label>
+                <textarea name="id_rolls" id="id_rolls" cols="30" rows="10" class="form-control"></textarea>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="massPrintSisaKain()"><i class="fa fa-print"></i> Print</button>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -368,6 +383,47 @@
                             var link = document.createElement('a');
                             link.href = window.URL.createObjectURL(blob);
                             link.download = "Sisa Kain "+($("#id_roll").val())+".pdf";
+                            link.click();
+                        }
+                    },
+                    error: function (jqXHR) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Roll belum dapat di print.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.log(jqXHR);
+                    }
+                });
+            }
+
+            async function massPrintSisaKain() {
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    url: '{{ route('mass_print_sisa_kain') }}',
+                    method: 'post',
+                    data: {
+                        ids: $("#id_rolls").val()
+                    },
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function (res) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (res) {
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Mass Sisa Kain "+($("#id_roll").val())+".pdf";
                             link.click();
                         }
                     },
