@@ -295,7 +295,7 @@ class TrolleyStockerController extends Controller
             );
         }
 
-        $incompleteNonSecondary = $similarStockerData->where("tujuan", "NON SECONDARY")->
+        $incompleteNonSecondary = $similarStockerData->whereIn("tujuan", ["NON SECONDARY", "SECONDARY DALAM", "SECONDARY LUAR"])->
             whereNull("dc_id");
 
         $incompleteSecondary = $similarStockerData->whereIn("tujuan", ["SECONDARY DALAM", "SECONDARY LUAR"])->
@@ -306,7 +306,7 @@ class TrolleyStockerController extends Controller
                 'status' => 400,
                 'message' =>
                     "Stocker tidak bisa dialokasikan".
-                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker Non Secondary belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
+                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
                     ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
@@ -414,7 +414,7 @@ class TrolleyStockerController extends Controller
             );
         }
 
-        $incompleteNonSecondary = $similarStockerData->where("tujuan", "NON SECONDARY")->
+        $incompleteNonSecondary = $similarStockerData->whereIn("tujuan", ["NON SECONDARY", "SECONDARY DALAM", "SECONDARY LUAR"])->
             whereNull("dc_id");
 
         $incompleteSecondary = $similarStockerData->whereIn("tujuan", ["SECONDARY DALAM", "SECONDARY LUAR"])->
@@ -425,7 +425,7 @@ class TrolleyStockerController extends Controller
                 'status' => 400,
                 'message' =>
                     "Stocker tidak bisa dialokasikan".
-                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker Non Secondary belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
+                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
                     ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',

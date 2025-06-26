@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='selectedSupplier, selectedOrder, groupBy, colorFilter, mejaFilter, sizeFilter, clearFilter'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='selectedSupplier, selectedOrder, groupBy, colorFilter, panelFilter, mejaFilter, sizeFilter, clearFilter'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -177,6 +177,17 @@
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label>Panel</label>
+                                <select class="form-select form-select-sm" name="panel" id="panel" wire:model="panelFilter">
+                                    <option value="">Pilih Panel</option>
+                                    @if ($orderFilter)
+                                        @foreach ($orderFilter->groupBy('panel') as $panel)
+                                            <option value="{{ $panel->first()->panel }}">{{ $panel->first()->panel }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label>Meja</label>
                                 <select class="form-select form-select-sm" name="meja" id="meja" wire:model="mejaFilter">
                                     <option value="">Pilih Meja</option>
@@ -318,6 +329,14 @@
             });
 
             $('#color').on('change', async function (e) {
+                await clearFixedColumn();
+
+                @this.set('loadingOrderOutput', true);
+
+                Livewire.emit('loadingStart');
+            });
+
+            $('#panel').on('change', async function (e) {
                 await clearFixedColumn();
 
                 @this.set('loadingOrderOutput', true);

@@ -1924,9 +1924,9 @@ class StockerController extends Controller
             orderBy("form_cut_input.no_cut", "asc")->
             get();
 
-        if ($formCutInputs->where("act_costing_ws", "FBL/0325/003")->count() > 0) {
-            return null;
-        }
+        // if ($formCutInputs->where("act_costing_ws", "FBL/0325/003")->count() > 0) {
+        //     return null;
+        // }
 
         $rangeAwal = 0;
         $sizeRangeAkhir = collect();
@@ -1975,7 +1975,7 @@ class StockerController extends Controller
             }
 
             // Adjust stocker data
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->where("notes", "!=", "ADDITIONAL")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->whereRaw("(`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%')")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
             $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             $currentStockerSize = "";

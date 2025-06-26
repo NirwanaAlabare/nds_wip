@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFormCuttingsTable extends Migration
+class CreateQcInspectMasterSatuan extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,9 @@ class CreateFormCuttingsTable extends Migration
      */
     public function up()
     {
-        Schema::create('form_cuttings', function (Blueprint $table) {
+        Schema::create('qc_inspect_master_satuan', function (Blueprint $table) {
             $table->id();
+            $table->string('satuan', 250);
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ class CreateFormCuttingsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('form_cuttings');
+        Schema::dropIfExists('qc_inspect_master_satuan');
     }
 }
