@@ -1052,12 +1052,11 @@ END jam) a))) target from (
                     SUM( output * output.smv ) mins_prod,
                     SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
                     MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
-                    MAX( output.last_update ) last_update,
-                    MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update1,
-                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )))/ 60 jam_kerja,
-                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) mins_kerja,
-                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 ))) cumulative_mins_avail,
-                    FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), output.jam_kerja_awal ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target,
+                    MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update,
+                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 )))/ 60 jam_kerja,
+                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 ))) mins_kerja,
+                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 ))) cumulative_mins_avail,
+                    FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target,
                     SUM(output)
                 FROM
                     (
@@ -1082,7 +1081,7 @@ END jam) a))) target from (
                             INNER JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                             INNER JOIN so_det ON so_det.id = rfts.so_det_id
                         WHERE
-                        ".(
+                            ".(
                                 $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
                                 "rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
                             )."
@@ -1093,8 +1092,7 @@ END jam) a))) target from (
                             ".$styleProdFilter."
                             ".$colorFilter."
                         GROUP BY
-                            rfts.created_by,
-                            DATE ( rfts.updated_at )
+                            master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
                         ORDER BY
                             sewing_line
                     ) output
@@ -1141,6 +1139,117 @@ END jam) a))) target from (
                 line_id ASC,
                 tanggal ASC
         ");
+
+        // dd("
+        //                     SELECT
+        //         output_employee_line.*,
+        //         output.sewing_line,
+        //         SUM( rft ) rft,
+        //         SUM( output ) output,
+        //         SUM( mins_prod ) mins_prod,
+        //         SUM( mins_avail ) mins_avail,
+        //         SUM( cumulative_mins_avail ) cumulative_mins_avail
+        //     FROM
+        //         output_employee_line
+        //         LEFT JOIN userpassword ON userpassword.line_id = output_employee_line.line_id
+        //         INNER JOIN (
+        //         SELECT
+        //             output.tgl_output,
+        //             output.tgl_plan,
+        //             output.sewing_line,
+        //             SUM( rft ) rft,
+        //             SUM( output ) output,
+        //             SUM( output * output.smv ) mins_prod,
+        //             SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+        //             MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+        //             MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update,
+        //             (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 )))/ 60 jam_kerja,
+        //             (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 ))) mins_kerja,
+        //             MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 ))) cumulative_mins_avail,
+        //             FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target,
+        //             SUM(output)
+        //         FROM
+        //             (
+        //                 SELECT
+        //                     DATE( rfts.updated_at ) tgl_output,
+        //                     COUNT( rfts.id ) output,
+        //                     SUM( CASE WHEN rfts.STATUS = 'NORMAL' THEN 1 ELSE 0 END ) rft,
+        //                     MIN( rfts.created_at ) first_update,
+        //                     MAX( rfts.updated_at ) last_update,
+        //                     master_plan.id master_plan_id,
+        //                     master_plan.tgl_plan,
+        //                     master_plan.sewing_line,
+        //                     master_plan.man_power,
+        //                     master_plan.jam_kerja,
+        //                     master_plan.jam_kerja_awal,
+        //                     master_plan.smv,
+        //                     rfts.created_by as sewing_line_id
+        //                 FROM
+        //                     output_rfts rfts
+        //                     INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id
+        //                     INNER JOIN act_costing ON act_costing.id = master_plan.id_ws
+        //                     INNER JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+        //                     INNER JOIN so_det ON so_det.id = rfts.so_det_id
+        //                 WHERE
+        //                     ".(
+        //                         $wsFilter || $styleFilter || $styleProdFilter ? "rfts.id is not null" :
+        //                         "rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59' AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'"
+        //                     )."
+        //                     AND master_plan.cancel = 'N'
+        //                     ".$buyerFilter."
+        //                     ".$wsFilter."
+        //                     ".$styleFilter."
+        //                     ".$styleProdFilter."
+        //                     ".$colorFilter."
+        //                 GROUP BY
+        //                     rfts.created_by,
+        //                     DATE ( rfts.updated_at )
+        //                 ORDER BY
+        //                     sewing_line
+        //             ) output
+        //             ".
+        //                 (
+        //                     ($wsFilter || $styleFilter || $styleProdFilter) ?
+        //                     "
+        //                         LEFT JOIN (
+        //                             SELECT
+        //                                 DATE( updated_at ) tgl_output,
+        //                                 created_by AS sewing_line_id,
+        //                                 master_plan.sewing_line,
+        //                                 max(TIME ( updated_at )) last_update,
+        //                                 count( so_det_id ) total_output
+        //                             FROM
+        //                                 output_rfts
+        //                                 LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+        //                             WHERE
+        //                                 output_rfts.id is not null
+        //                                 ".($tanggalQuery ? "AND DATE ( output_rfts.updated_at ) IN ( ".$tanggalQuery." )" : "")."
+        //                                 ".($lineQuery ? "AND output_rfts.created_by IN ( ".$lineQuery." )" : "")."
+        //                             GROUP BY
+        //                                 created_by,
+        //                                 DATE ( updated_at )
+        //                         ) alloutput ON alloutput.tgl_output = output.tgl_output AND alloutput.sewing_line = output.sewing_line
+        //                     "
+        //                     :
+        //                     ""
+        //                 )
+        //             ."
+        //         GROUP BY
+        //             output.sewing_line,
+        //             output.tgl_output
+        //         ) output ON output.sewing_line = userpassword.username
+        //         AND output.tgl_output = output_employee_line.tanggal
+        //     WHERE
+        //         output.sewing_line is not null
+        //         ".$sewingLineFilter."
+        //         ".$lineLeaderFilter."
+        //     GROUP BY
+        //         line_id,
+        //         tanggal
+        //     ORDER BY
+        //         line_id ASC,
+        //         tanggal ASC
+        // ");
 
         return $efficiencyLine;
     }
@@ -1468,7 +1577,6 @@ END jam) a))) target from (
                                 inner join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                             where
                                 rfts.updated_at >= '".$from." 00:00:00' AND rfts.updated_at <= '".$to." 23:59:59'
-                                AND master_plan.tgl_plan >= DATE_SUB('".$from."', INTERVAL 20 DAY) AND master_plan.tgl_plan <= '".$to."'
                                 AND master_plan.cancel = 'N'
                                 ".$buyerFilter."
                             GROUP BY

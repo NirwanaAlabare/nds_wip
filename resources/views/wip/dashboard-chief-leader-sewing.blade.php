@@ -256,8 +256,8 @@
                             return res;
                         }, {});
 
-                        let totalEfficiency = (total_mins_prod/total_mins_avail*100);
-                        let totalRft = (total_rft/total_output*100);
+                        let totalEfficiency = total_mins_avail >= 1 ? (total_mins_prod/total_mins_avail*100) : 0;
+                        let totalRft = total_output >= 1 ? (total_rft/total_output*100) : 0;
 
                         return {
                             "id": element[0].leader_nik,
