@@ -17,7 +17,7 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-paperclip"></i> Piping</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-piping') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> Tambah Piping</a>
+            <a href="{{ route('create-piping') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>

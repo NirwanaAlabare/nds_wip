@@ -606,8 +606,8 @@
                                         <div class="d-flex mb-3">
                                             <div style="width: 60%">
                                                 <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly
-                                                onchange="setRollQtyConversion(this.value); calculateEstAmpar();"
-                                                onkeyup="setRollQtyConversion(this.value); calculateEstAmpar();">
+                                                onchange="setRollQtyConversion(this.value);"
+                                                onkeyup="setRollQtyConversion(this.value);">
                                             </div>
                                             <div style="width: 40%">
                                                 <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
@@ -2483,6 +2483,7 @@
                 }
 
                 calculateEstAmpar();
+                calculateShortRoll();
             }
 
             function conversion(qty, unit, unitBefore) {

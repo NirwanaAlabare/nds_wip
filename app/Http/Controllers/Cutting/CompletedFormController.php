@@ -19,6 +19,7 @@ use App\Models\Stocker;
 use App\Models\StockerDetail;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
+use App\Services\StockerService;
 use DB;
 
 class CompletedFormController extends Controller
@@ -217,13 +218,15 @@ class CompletedFormController extends Controller
         //
     }
 
-    public function updateCutting(Request $request) {
+    public function updateCutting(Request $request, StockerService $stockerService) {
         $validatedRequest = $request->validate([
             "id" => "required",
             "current_id" => "required",
             "current_id_roll" => "nullable",
             "no_form_cut_input" => "required",
             "no_meja" => "required",
+            "start" => "required",
+            "finish" => "required",
             "current_id_item" => "required",
             "current_group" => "required",
             "current_group_stocker" => "nullable",

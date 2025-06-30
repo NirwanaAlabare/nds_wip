@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -108,10 +109,16 @@ class MarkerController extends Controller
                 ")->
                 leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
                 where('marker_input.cancel', 'N')->
-                groupBy("marker_input_detail.so_det_id", "marker_input.panel")->
-                get();
+                where('marker_input.act_costing_id', $request->act_costing_id)->
+                where('marker_input.color', $request->color);
 
-            return $markerDetail;
+                if ($request->panel) {
+                    $markerDetail->where('marker_input.panel', $request->panel);
+                }
+
+            $markerDetailData = $markerDetail->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+
+            return $markerDetailData;
         }
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
@@ -185,7 +192,7 @@ class MarkerController extends Controller
     public function getPanelList(Request $request)
     {
         $panels = DB::connection('mysql_sb')->select("
-                select nama_panel panel from
+                select mp.id as id_panel, nama_panel panel from
                     (select id_panel from bom_jo_item k
                         inner join so_det sd on k.id_so_det = sd.id
                         inner join so on sd.id_so = so.id
@@ -201,7 +208,7 @@ class MarkerController extends Controller
         $html = "<option value=''>Pilih Panel</option>";
 
         foreach ($panels as $panel) {
-            $html .= " <option value='" . $panel->panel . "'>" . $panel->panel . "</option> ";
+            $html .= " <option value='" . $panel->id_panel . "'>" . $panel->panel . "</option> ";
         }
 
         return $html;
@@ -253,6 +260,7 @@ class MarkerController extends Controller
             "style" => "required",
             "cons_ws" => "required|numeric|min:0",
             "color" => "required",
+            "panel_id" => "required",
             "panel" => "required",
             "p_marker" => "required|numeric|min:0",
             "p_unit" => "required",
@@ -283,6 +291,7 @@ class MarkerController extends Controller
                 'style' => $validatedRequest['style'],
                 'cons_ws' => $validatedRequest['cons_ws'],
                 'color' => $validatedRequest['color'],
+                'panel_id' => $validatedRequest['panel_id'],
                 'panel' => $validatedRequest['panel'],
                 'panjang_marker' => $validatedRequest['p_marker'],
                 'unit_panjang_marker' => $validatedRequest['p_unit'],
@@ -300,6 +309,8 @@ class MarkerController extends Controller
                 'notes' => $request['notes'],
                 'cons_piping' => $validatedRequest['cons_piping'],
                 'cancel' => 'N',
+                'created_by' => Auth::user()->id,
+                'created_by_username' => Auth::user()->username
             ]);
 
             $timestamp = Carbon::now();
@@ -546,7 +557,7 @@ class MarkerController extends Controller
                 <div class='row'>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Buyer
+                            <label class='form-label'>Buyer</label>
                             <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
                         </div>
                     </div>
@@ -741,6 +752,7 @@ class MarkerController extends Controller
             "style" => "required",
             "cons_ws" => "required|numeric|min:0",
             "color" => "required",
+            "panel_id" => "required",
             "panel" => "required",
             "p_marker" => "required|numeric|min:0",
             "p_unit" => "required",
@@ -782,6 +794,7 @@ class MarkerController extends Controller
                     'style' => $validatedRequest['style'],
                     'cons_ws' => $validatedRequest['cons_ws'],
                     'color' => $validatedRequest['color'],
+                    'panel_id' => $validatedRequest['panel_id'],
                     'panel' => $validatedRequest['panel'],
                     'panjang_marker' => $validatedRequest['p_marker'],
                     'unit_panjang_marker' => $validatedRequest['p_unit'],
