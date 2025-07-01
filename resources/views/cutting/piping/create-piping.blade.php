@@ -507,7 +507,7 @@
         function updatePanelList() {
             document.getElementById('panel').value = null;
             return $.ajax({
-                url: '{{ route("get-marker-panels") }}',
+                url: '{{ route("get-general-panels") }}',
                 type: 'get',
                 data: {
                     act_costing_id: $('#ws_id').val(),

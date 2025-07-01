@@ -381,7 +381,7 @@ Route::middleware('auth')->group(function () {
         // get colors
         Route::get('/get-colors', 'getColorList')->name('form-cut-get-marker-colors');
         // get panels
-        Route::get('/get-panels', 'getPanelList')->name('form-cut-get-marker-panels');
+        Route::get('/get-panels', 'getPanelList')->name('form-cut-get-general-panels');
         // get sizes
         Route::get('/get-sizes', 'getSizeList')->name('form-cut-get-marker-sizes');
         // get count
