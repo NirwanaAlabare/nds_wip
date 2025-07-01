@@ -37,7 +37,7 @@
                 <table id="datatable" class="table table-bordered table-hover table w-100">
                     <thead>
                         <tr>
-                            <th>Action</th>
+                            <th class="d-none">Action</th>
                             <th>Tanggal</th>
                             <th>No. WS</th>
                             <th>Style</th>
@@ -189,6 +189,7 @@
             columnDefs: [
                 {
                     targets: [0],
+                    className: "d-none",
                     render: (data, type, row, meta) => {
                         let btnEdit = "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"consPipingModal\");' disabled><i class='fa fa-edit'></i></button>";
 
