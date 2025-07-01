@@ -789,7 +789,7 @@
                                             <option selected="selected" value="">Pilih Panel</option>
                                             {{-- select 2 option --}}
                                         </select>
-                                        <input type="text" class="form-control" id="add_panel" name="add_panel">
+                                        <input type="hidden" class="form-control readonly d-none" id="add_panel" name="add_panel">
                                     </div>
                                 </div>
                             </div>
