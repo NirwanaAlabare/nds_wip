@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateStockersTable extends Migration
+class CreateQcInspectMasterGroupInspect extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,12 @@ class CreateStockersTable extends Migration
      */
     public function up()
     {
-        Schema::create('stockers', function (Blueprint $table) {
+        Schema::create('qc_inspect_master_group_inspect', function (Blueprint $table) {
             $table->id();
+            $table->integer('group_inspect');
+            $table->string('name_fabric_group', 250);
+            $table->integer('individu');
+            $table->integer('shipment');
             $table->timestamps();
         });
     }
@@ -26,6 +30,6 @@ class CreateStockersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('stockers');
+        Schema::dropIfExists('qc_inspect_master_group_inspect');
     }
 }

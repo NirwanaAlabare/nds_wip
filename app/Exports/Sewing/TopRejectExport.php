@@ -44,7 +44,7 @@ class TopRejectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
     public function title(): string
     {
-        return 'TopReject';
+        return 'reject';
     }
 
     public function view(): View
@@ -56,7 +56,7 @@ class TopRejectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $this->rowCountStyle = $topReject->groupBy("style_grouping")->count();
 
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $topReject->groupBy("tanggal")->count()+3;
+        $colCount = $topReject->groupBy("tanggal")->count()+4;
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);
@@ -107,90 +107,95 @@ class TopRejectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
     public function charts()
     {
-        // Reject
-        $labelsReject = [];
-        $categoriesReject = [];
-        $valuesReject = [];
+        if ($this->rowCount > 0) {
+            // Reject
+            $labelsReject = [];
+            $categoriesReject = [];
+            $valuesReject = [];
 
-        for ($i = 0; $i < $this->rowCount; $i++) {
-            array_push($labelsReject,
-                new DataSeriesValues('String', 'TopReject!$A$'.($i+7).':$D$'.($i+7).'', null, 5)
-            );
+            for ($i = 0; $i < $this->rowCount; $i++) {
+                array_push($labelsReject,
+                    new DataSeriesValues('String', 'reject!$A$'.($i+7).':$E$'.($i+7).'', null, 5)
+                );
 
-            array_push($categoriesReject,
-                new DataSeriesValues('String', 'TopReject!$E$6:$'.$this->colAlphabet.'$6', null, 5)
-            );
+                array_push($categoriesReject,
+                    new DataSeriesValues('String', 'reject!$F$6:$'.$this->colAlphabet.'$6', null, 5)
+                );
 
-            array_push($valuesReject,
-                new DataSeriesValues('Number', 'TopReject!$E$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
-            );
+                array_push($valuesReject,
+                    new DataSeriesValues('Number', 'reject!$F$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
+                );
+            }
+
+            $seriesReject = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesReject) - 1), $labelsReject, $categoriesReject, $valuesReject);
+            $plotReject   = new PlotArea(null, [$seriesReject]);
+
+            $legendReject = new Legend();
+            $chartReject  = new Chart('Line Style Reject Chart', new Title('Reject Chart'), $legendReject, $plotReject);
+
+            $chartReject->setTopLeftPosition($this->colAlphabetChartStart.'6');
+            $chartReject->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : ($this->rowCount < 5 ? 5+6 : $this->rowCount+6)));
+
+            // // Reject Line
+            // $labelsRejectLine = [];
+            // $categoriesRejectLine = [];
+            // $valuesRejectLine = [];
+
+            // for ($i = 0; $i < $this->rowCountLine; $i++) {
+            //     array_push($labelsRejectLine,
+            //         new DataSeriesValues('String', 'reject!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
+            //     );
+
+            //     array_push($categoriesRejectLine,
+            //         new DataSeriesValues('String', 'reject!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
+            //     );
+
+            //     array_push($valuesRejectLine,
+            //         new DataSeriesValues('Number', 'reject!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
+            //     );
+            // }
+
+            // $seriesRejectLine = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRejectLine) - 1), $labelsRejectLine, $categoriesRejectLine, $valuesRejectLine);
+            // $plotRejectLine   = new PlotArea(null, [$seriesRejectLine]);
+
+            // $legendRejectLine = new Legend();
+            // $chartRejectLine  = new Chart('Line Reject Chart', new Title('Line Reject Chart'), $legendRejectLine, $plotRejectLine);
+
+            // $chartRejectLine->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+9));
+            // $chartRejectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : ($this->rowCountLine < 5 ? 5 : $this->rowCountLine))));
+
+            // // Reject Style
+            // $labelsRejectStyle = [];
+            // $categoriesRejectStyle = [];
+            // $valuesRejectStyle = [];
+
+            // for ($i = 0; $i < $this->rowCountStyle; $i++) {
+            //     array_push($labelsRejectStyle,
+            //         new DataSeriesValues('String', 'reject!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+            //     );
+
+            //     array_push($categoriesRejectStyle,
+            //         new DataSeriesValues('String', 'reject!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
+            //     );
+
+            //     array_push($valuesRejectStyle,
+            //         new DataSeriesValues('Number', 'reject!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
+            //     );
+            // }
+
+            // $seriesRejectStyle = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRejectStyle) - 1), $labelsRejectStyle, $categoriesRejectStyle, $valuesRejectStyle);
+            // $plotRejectStyle   = new PlotArea(null, [$seriesRejectStyle]);
+
+            // $legendRejectStyle = new Legend();
+            // $chartRejectStyle  = new Chart('Style Reject Chart', new Title('Style Reject Chart'), $legendRejectStyle, $plotRejectStyle);
+
+            // $chartRejectStyle->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+$this->rowCountLine+11));
+            // $chartRejectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : ($this->rowCountStyle < 5 ? 5 : $this->rowCountStyle))));
+
+            // return [$chartReject, $chartRejectLine, $chartRejectStyle];
+            return [$chartReject];
         }
 
-        $seriesReject = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesReject) - 1), $labelsReject, $categoriesReject, $valuesReject);
-        $plotReject   = new PlotArea(null, [$seriesReject]);
-
-        $legendReject = new Legend();
-        $chartReject  = new Chart('Line Style Reject Chart', new Title('Reject Chart'), $legendReject, $plotReject);
-
-        $chartReject->setTopLeftPosition($this->colAlphabetChartStart.'6');
-        $chartReject->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount > 36 ? 36 : ($this->rowCount < 5 ? 5+6 : $this->rowCount+6)));
-
-        // Reject Line
-        $labelsRejectLine = [];
-        $categoriesRejectLine = [];
-        $valuesRejectLine = [];
-
-        for ($i = 0; $i < $this->rowCountLine; $i++) {
-            array_push($labelsRejectLine,
-                new DataSeriesValues('String', 'TopReject!$A$'.($i+$this->rowCount+10).':$B$'.($i+$this->rowCount+10).'', null, 5)
-            );
-
-            array_push($categoriesRejectLine,
-                new DataSeriesValues('String', 'TopReject!$C$'.($this->rowCount+9).':$'.$this->colAlphabetSub.'$'.($this->rowCount+9), null, 5)
-            );
-
-            array_push($valuesRejectLine,
-                new DataSeriesValues('Number', 'TopReject!$C$'.($i+$this->rowCount+10).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+10).'', null, 5)
-            );
-        }
-
-        $seriesRejectLine = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRejectLine) - 1), $labelsRejectLine, $categoriesRejectLine, $valuesRejectLine);
-        $plotRejectLine   = new PlotArea(null, [$seriesRejectLine]);
-
-        $legendRejectLine = new Legend();
-        $chartRejectLine  = new Chart('Line Reject Chart', new Title('Line Reject Chart'), $legendRejectLine, $plotRejectLine);
-
-        $chartRejectLine->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+9));
-        $chartRejectLine->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+9+($this->rowCountLine > 36 ? 36 : ($this->rowCountLine < 5 ? 5 : $this->rowCountLine))));
-
-        // Reject Style
-        $labelsRejectStyle = [];
-        $categoriesRejectStyle = [];
-        $valuesRejectStyle = [];
-
-        for ($i = 0; $i < $this->rowCountStyle; $i++) {
-            array_push($labelsRejectStyle,
-                new DataSeriesValues('String', 'TopReject!$A$'.($i+$this->rowCount+$this->rowCountLine+12).':$B$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
-            );
-
-            array_push($categoriesRejectStyle,
-                new DataSeriesValues('String', 'TopReject!$C$'.($this->rowCount+$this->rowCountLine+11).':$'.$this->colAlphabetSub.'$'.($this->rowCount+$this->rowCountLine+11), null, 5)
-            );
-
-            array_push($valuesRejectStyle,
-                new DataSeriesValues('Number', 'TopReject!$C$'.($i+$this->rowCount+$this->rowCountLine+12).':$'.$this->colAlphabetSub.'$'.($i+$this->rowCount+$this->rowCountLine+12).'', null, 5)
-            );
-        }
-
-        $seriesRejectStyle = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRejectStyle) - 1), $labelsRejectStyle, $categoriesRejectStyle, $valuesRejectStyle);
-        $plotRejectStyle   = new PlotArea(null, [$seriesRejectStyle]);
-
-        $legendRejectStyle = new Legend();
-        $chartRejectStyle  = new Chart('Style Reject Chart', new Title('Style Reject Chart'), $legendRejectStyle, $plotRejectStyle);
-
-        $chartRejectStyle->setTopLeftPosition($this->colAlphabetChartStart.($this->rowCount+$this->rowCountLine+11));
-        $chartRejectStyle->setBottomRightPosition($this->colAlphabetChartEnd.($this->rowCount+$this->rowCountLine+11+($this->rowCountStyle > 36 ? 36 : ($this->rowCountStyle < 5 ? 5 : $this->rowCountStyle))));
-
-        return [$chartReject, $chartRejectLine, $chartRejectStyle];
+        return [];
     }
 }

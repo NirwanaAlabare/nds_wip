@@ -61,10 +61,11 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Panel</small></label>
-                                <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;" >
+                                <select class="form-control select2bs4" id="panel_id" name="panel_id" style="width: 100%;" >
                                     <option selected="selected" value="">Pilih Panel</option>
                                     {{-- select 2 option --}}
                                 </select>
+                                <input type="hidden" class="form-control d-none" id="panel" name="panel" readonly>
                             </div>
                         </div>
                     </div>
@@ -235,6 +236,8 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <!-- Page specific script -->
     <script>
+        document.getElementById("loading").classList.remove("d-none");
+
         // Global Variable
         var sumCutQty = null;
         var totalRatio = null;
@@ -242,7 +245,7 @@
         // Initial Window On Load Event
         $(document).ready(async function () {
             // Call Get Total Cut Qty ( set sum cut qty variable )
-            getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
+            await getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
 
             // Marker Type Default Value
             $("#tipe_marker").val("regular marker");
@@ -256,7 +259,9 @@
 
             // Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )
             $("#color").prop("disabled", true);
-            $("#panel").prop("disabled", true);
+            $("#panel_id").prop("disabled", true);
+
+            document.getElementById("loading").classList.add("d-none");
         });
 
         // Select2 Autofocus
@@ -274,6 +279,8 @@
 
         // Get & Set Total Cut Qty Based on Order WS and Order Color ( to know remaining cut qty )
         async function getTotalCutQty(wsId, color, panel) {
+            document.getElementById("loading").classList.remove("d-none");
+
             sumCutQty = await $.ajax({
                 url: '{{ route("create-marker") }}',
                 type: 'get',
@@ -284,6 +291,8 @@
                 },
                 dataType: 'json',
             });
+
+            document.getElementById("loading").classList.add("d-none");
         }
 
         // Step One (WS) on change event
@@ -303,6 +312,10 @@
         });
 
         // Step Three (Panel) on change event
+        $('#panel_id').on('change', function(e) {
+            $('#panel').val($('#panel_id option:selected').html()).trigger("change");
+        });
+
         $('#panel').on('change', function(e) {
             if (this.value) {
                 getMarkerCount();
@@ -354,7 +367,7 @@
                         $("#color").prop("disabled", false);
 
                         // Close next step
-                        $("#panel").prop("disabled", true);
+                        $("#panel_id").prop("disabled", true);
 
                         // Reset order information
                         document.getElementById('no_urut_marker').value = null;
@@ -378,10 +391,10 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('panel').innerHTML = res;
+                        document.getElementById('panel_id').innerHTML = res;
 
                         // Open this step
-                        $("#panel").prop("disabled", false);
+                        $("#panel_id").prop("disabled", false);
 
                         // Reset order information
                         document.getElementById('no_urut_marker').value = null;
@@ -565,6 +578,8 @@
 
         // Update Order Qty Datatable
         async function updateSizeList() {
+            await getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
+
             await orderQtyDatatable.ajax.reload(() => {
                 // Get Sizes Count ( for looping over sizes input )
                 document.getElementById('jumlah_so_det').value = orderQtyDatatable.data().count();
@@ -719,7 +734,7 @@
                         })
 
                         // Call Get Total Cut Qty ( update sum cut qty variable )
-                        getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
+                        await getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
 
                         // Reset Step ( back to step one )
                         resetStep();
@@ -792,7 +807,7 @@
             await $("#color").val(null).trigger("change");
             await $("#panel").val(null).trigger("change");
             await $("#color").prop("disabled", true);
-            await $("#panel").prop("disabled", true);
+            await $("#panel_id").prop("disabled", true);
         }
     </script>
 @endsection

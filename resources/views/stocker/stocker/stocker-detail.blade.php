@@ -785,10 +785,11 @@
                                 <div class="mb-1">
                                     <div class="form-group">
                                         <label><small>Panel</small></label>
-                                        <select class="form-control select2bs4" id="add_panel" name="add_panel" style="width: 100%;" >
+                                        <select class="form-control select2bs4" id="add_panel_id" name="add_panel_id" style="width: 100%;" >
                                             <option selected="selected" value="">Pilih Panel</option>
                                             {{-- select 2 option --}}
                                         </select>
+                                        <input type="hidden" class="form-control readonly d-none" id="add_panel" name="add_panel">
                                     </div>
                                 </div>
                             </div>
@@ -885,7 +886,7 @@
 
             $("#add_ws").val(null).trigger("change");
             $("#add_color").prop("disabled", true);
-            $("#add_panel").prop("disabled", true);
+            $("#add_panel_id").prop("disabled", true);
 
             // window.onfocus = function() {
             //     console.log(generating);
@@ -917,10 +918,14 @@
         });
 
         // Step Three (Panel) on change event
-        $('#add_panel').on('change', function(e) {
+        $('#add_panel_id').on('change', function(e) {
             if (this.value) {
-                updateSizeList();
+                $('#add_panel').val($('#add_panel_id option:selected').html());
             }
+        });
+
+        $('#add_panel').on('change', function(e) {
+            updateSizeList();
         });
 
         function updateOrderInfo() {
@@ -958,14 +963,14 @@
                         document.getElementById('add_color').innerHTML = res;
 
                         // Reset next step
-                        document.getElementById('add_panel').innerHTML = null;
-                        document.getElementById('add_panel').value = null;
+                        document.getElementById('add_panel_id').innerHTML = null;
+                        document.getElementById('add_panel_id').value = null;
 
                         // Open this step
                         $("#add_color").prop("disabled", false);
 
                         // Close next step
-                        $("#add_panel").prop("disabled", true);
+                        $("#add_panel_id").prop("disabled", true);
                     }
                 },
             });
@@ -973,7 +978,7 @@
 
         // Update Panel Select Option Based on Order WS and Color WS
         function updatePanelList() {
-            document.getElementById('add_panel').value = null;
+            document.getElementById('add_panel_id').value = null;
             return $.ajax({
                 url: '{{ route("get-marker-panels") }}',
                 type: 'get',
@@ -984,10 +989,10 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('add_panel').innerHTML = res;
+                        document.getElementById('add_panel_id').innerHTML = res;
 
                         // Open this step
-                        $("#add_panel").prop("disabled", false);
+                        $("#add_panel_id").prop("disabled", false);
                     }
                 },
             });
@@ -1240,9 +1245,9 @@
         async function resetStep() {
             await $("#add_ws").val(null).trigger("change");
             await $("#add_color").val(null).trigger("change");
-            await $("#add_panel").val(null).trigger("change");
+            await $("#add_panel_id").val(null).trigger("change");
             await $("#add_color").prop("disabled", true);
-            await $("#add_panel").prop("disabled", true);
+            await $("#add_panel_id").prop("disabled", true);
         }
 
         function printStocker(index) {

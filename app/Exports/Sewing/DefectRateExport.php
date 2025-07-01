@@ -64,54 +64,58 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
 
     public function charts()
     {
-        // RFT Rate
-        $labelsRftRate = [];
-        $categoriesRftRate = [];
-        $valuesRftRate = [];
+        if ($this->rowCount > 0) {
+            // RFT Rate
+            $labelsRftRate = [];
+            $categoriesRftRate = [];
+            $valuesRftRate = [];
 
-        $labelsRftRate = [new DataSeriesValues('String', 'DefectRate!$L$6', null, 1)];
+            $labelsRftRate = [new DataSeriesValues('String', 'DefectRate!$L$6', null, 1)];
 
 
-        $categoriesRftRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$F$'.($this->rowCount+6), null, $this->rowCount)];
+            $categoriesRftRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$F$'.($this->rowCount+6), null, $this->rowCount)];
 
-        array_push($valuesRftRate,
-            new DataSeriesValues('Number', 'DefectRate!$L$7:$L$'.($this->rowCount+6), null, $this->rowCount),
-        );
+            array_push($valuesRftRate,
+                new DataSeriesValues('Number', 'DefectRate!$L$7:$L$'.($this->rowCount+6), null, $this->rowCount),
+            );
 
-        // Build RFT Rate Chart
-        $seriesRftRate = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRftRate) - 1), $labelsRftRate, $categoriesRftRate, $valuesRftRate);
-        $plotRftRate   = new PlotArea(null, [$seriesRftRate]);
+            // Build RFT Rate Chart
+            $seriesRftRate = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesRftRate) - 1), $labelsRftRate, $categoriesRftRate, $valuesRftRate);
+            $plotRftRate   = new PlotArea(null, [$seriesRftRate]);
 
-        $legendRftRate = new Legend();
-        $chartRftRate  = new Chart('RFT Rate', new Title('RFT Rate'), $legendRftRate, $plotRftRate);
+            $legendRftRate = new Legend();
+            $chartRftRate  = new Chart('RFT Rate', new Title('RFT Rate'), $legendRftRate, $plotRftRate);
 
-        $chartRftRate->setTopLeftPosition('P5');
-        $chartRftRate->setBottomRightPosition('AO30');
+            $chartRftRate->setTopLeftPosition('P5');
+            $chartRftRate->setBottomRightPosition('AO30');
 
-        // Defect/Reject Rate
-        $labelsDefectRate = [];
-        $categoriesDefectRate = [];
-        $valuesDefectRate = [];
+            // Defect/Reject Rate
+            $labelsDefectRate = [];
+            $categoriesDefectRate = [];
+            $valuesDefectRate = [];
 
-        $labelsDefectRate = [new DataSeriesValues('String', 'DefectRate!$M$6', null, 1), new DataSeriesValues('String', '$N$6', null, 1)];
+            $labelsDefectRate = [new DataSeriesValues('String', 'DefectRate!$M$6', null, 1), new DataSeriesValues('String', '$N$6', null, 1)];
 
-        $categoriesDefectRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$F$'.($this->rowCount+6), null, $this->rowCount)];
+            $categoriesDefectRate = [new DataSeriesValues('String', 'DefectRate!$A$7:$F$'.($this->rowCount+6), null, $this->rowCount)];
 
-        array_push($valuesDefectRate,
-            new DataSeriesValues('Number', 'DefectRate!$M$7:$M$'.($this->rowCount+6), null, $this->rowCount),
-            new DataSeriesValues('Number', 'DefectRate!$N$7:$N$'.($this->rowCount+6), null, $this->rowCount),
-        );
+            array_push($valuesDefectRate,
+                new DataSeriesValues('Number', 'DefectRate!$M$7:$M$'.($this->rowCount+6), null, $this->rowCount),
+                new DataSeriesValues('Number', 'DefectRate!$N$7:$N$'.($this->rowCount+6), null, $this->rowCount),
+            );
 
-        // Build Defect/Reject DefectRate Chart
-        $seriesDefectRate = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefectRate) - 1), $labelsDefectRate, $categoriesDefectRate, $valuesDefectRate);
-        $plotDefectRate   = new PlotArea(null, [$seriesDefectRate]);
+            // Build Defect/Reject DefectRate Chart
+            $seriesDefectRate = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, range(0, count($valuesDefectRate) - 1), $labelsDefectRate, $categoriesDefectRate, $valuesDefectRate);
+            $plotDefectRate   = new PlotArea(null, [$seriesDefectRate]);
 
-        $legendDefectRate = new Legend();
-        $chartDefectRate  = new Chart('Defect/Reject Rate', new Title('Defect/Reject Rate'), $legendDefectRate, $plotDefectRate);
+            $legendDefectRate = new Legend();
+            $chartDefectRate  = new Chart('Defect/Reject Rate', new Title('Defect/Reject Rate'), $legendDefectRate, $plotDefectRate);
 
-        $chartDefectRate->setTopLeftPosition('P31');
-        $chartDefectRate->setBottomRightPosition('AO55');
+            $chartDefectRate->setTopLeftPosition('P31');
+            $chartDefectRate->setBottomRightPosition('AO55');
 
-        return [$chartRftRate, $chartDefectRate];
+            return [$chartRftRate, $chartDefectRate];
+        }
+
+        return [];
     }
 }

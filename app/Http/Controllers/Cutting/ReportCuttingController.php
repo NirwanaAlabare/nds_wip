@@ -490,7 +490,10 @@ class ReportCuttingController extends Controller
 
         $filterQuery = "";
         if ($request->bppbno) {
-            $filterQuery = " and b.no_bppb LIKE '%".$request->bppbno."%'";
+            $filterQuery = " and bppbno LIKE '%".$request->bppbno."%'";
+        }
+        if ($request->no_out) {
+            $filterQuery = " and b.no_bppb LIKE '%".$request->no_out."%'";
         }
         if ($request->bppbdate) {
             $filterQuery = " and b.bppbdate LIKE '%".$request->bppbdate."%'";

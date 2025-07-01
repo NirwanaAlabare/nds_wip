@@ -131,6 +131,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                 $rolls->map(function ($roll) use ($req) {
                     $roll->tanggal_req = $req->bppbdate;
                     $roll->no_req = $req->bppbno;
+                    $roll->no_out = $req->no_out;
                     $roll->no_ws = $req->no_ws;
                     $roll->no_ws_aktual = $req->no_ws_aktual;
                 });

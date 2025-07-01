@@ -60,11 +60,13 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Panel</small></label>
-                                <input type="hidden" class="form-control" id="panel_default" name="panel_default" value="{{ $marker->panel }}">
-                                <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;">
+                                <input type="hidden" class="form-control" id="panel_id_default" name="panel_id_default" value="{{ $marker->panel_id }}">
+                                <select class="form-control select2bs4" id="panel_id" name="panel_id" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Panel</option>
                                     {{-- select 2 option --}}
                                 </select>
+                                <input type="hidden" class="form-control d-none" id="panel_default" name="panel_default" value="{{ $marker->panel }}" readonly>
+                                <input type="hidden" class="form-control d-none" id="panel" name="panel" readonly>
                             </div>
                         </div>
                     </div>
@@ -255,6 +257,7 @@
             await $('#color_select2').val($('#color').val()).trigger('change');
 
             await updatePanelList();
+            await $('#panel_id').val($('#panel_id_default').val()).trigger('change');
             await $('#panel').val($('#panel_default').val()).trigger('change');
 
             await updateSizeList();
@@ -285,6 +288,10 @@
         });
 
         // Step Three (Panel) on change event
+        $('#panel_id').on('change', function(e) {
+            $('#panel').val($('#panel_id option:selected').html()).trigger("change");
+        });
+
         $('#panel').on('change', function(e) {
             if (this.value) {
                 updateSizeList();
@@ -315,7 +322,7 @@
                         $("#color_select2").prop("disabled", false);
 
                         // Close next step
-                        $("#panel").prop("disabled", true);
+                        $("#panel_id").prop("disabled", true);
                     }
                 },
             });
@@ -334,10 +341,10 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('panel').innerHTML = res;
+                        document.getElementById('panel_id').innerHTML = res;
 
                         // Open this step
-                        $("#panel").prop("disabled", false);
+                        $("#panel_id").prop("disabled", false);
 
                         // Close step before
                         $("#color_select2").prop("disabled", true);
@@ -530,6 +537,8 @@
 
         // Update Order Qty Datatable
         async function updateSizeList() {
+            await getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
+
             await orderQtyDatatable.ajax.reload(() => {
                 // Get Sizes Count ( for looping over sizes input )
                 document.getElementById('jumlah_so_det').value = orderQtyDatatable.data().count();

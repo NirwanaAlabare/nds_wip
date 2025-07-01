@@ -173,6 +173,8 @@ use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\MarketingDashboardController;
 use App\Http\Controllers\Marketing_CostingController;
 
+//maintain-bpb
+use App\Http\Controllers\MaintainBpbController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -380,7 +382,7 @@ Route::middleware('auth')->group(function () {
         // get colors
         Route::get('/get-colors', 'getColorList')->name('form-cut-get-marker-colors');
         // get panels
-        Route::get('/get-panels', 'getPanelList')->name('form-cut-get-marker-panels');
+        Route::get('/get-panels', 'getPanelList')->name('form-cut-get-general-panels');
         // get sizes
         Route::get('/get-sizes', 'getSizeList')->name('form-cut-get-marker-sizes');
         // get count
@@ -625,6 +627,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/export', 'export')->name('export');
         // print
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
+        Route::post('/mass_sisa_kain/print', 'massPrintSisaKain')->name('mass_print_sisa_kain');
     });
 
     // Cutting Tools
@@ -639,6 +642,10 @@ Route::middleware('auth')->group(function () {
         // fix form ratio
         Route::get('/get-form-ratio', 'getFormRatio')->name('get-form-ratio');
         Route::post('/update-form-ratio', 'updateFormRatio')->name('update-form-ratio');
+
+        // fix form marker
+        Route::get('/get-form-marker', 'getFormMarker')->name('get-form-marker');
+        Route::post('/update-form-marker', 'updateFormMarker')->name('update-form-marker');
     });
 
     // Stocker :
@@ -1489,6 +1496,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/cancel-transfer', 'canceltransfer')->name('cancel-transfer');
     });
 
+    //maintain bpb
+    Route::controller(MaintainBpbController::class)->prefix("maintain-bpb")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('maintain-bpb');
+        Route::get('/create', 'create')->name('create-maintain-bpb');
+        Route::post('/store', 'store')->name('save-maintainbpb');
+        Route::get('/detail', 'detailmodal')->name('maintain-bpb-detail');
+        Route::get('/cancel-maintain', 'cancelmaintain')->name('cancel-maintain');
+
+    });
+
 
     //FG Stock
     // Master Lokasi FG Stock
@@ -1977,6 +1994,7 @@ Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineCo
 // Leader
 Route::get('/dashboard-wip/leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'leaderSewing'])->middleware('auth')->name('dashboard-leader-sewing');
 Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::class, 'leaderSewingData'])->middleware('auth')->name('dashboard-leader-sewing-data');
+Route::get('/dashboard-wip/leader-sewing-filter', [DashboardWipLineController::class, 'leaderSewingFilter'])->middleware('auth')->name('dashboard-leader-sewing-filter');
 Route::post('/dashboard-wip/leader-sewing-range-data-export', [DashboardWipLineController::class, 'leaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-leader-sewing-range-data-export');
 // Line Support
 Route::get('/dashboard-wip/support-line-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'supportLineSewing'])->name('dashboard-support-line-sewing');
@@ -2165,3 +2183,5 @@ Route::get('/validation-form', function () {
 Route::get('/bon-mutasi', function () {
     return view('bon-mutasi');
 })->middleware('auth');
+
+require __DIR__.'/qc_inspect.php';

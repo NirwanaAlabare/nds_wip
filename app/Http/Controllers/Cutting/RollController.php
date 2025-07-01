@@ -705,6 +705,108 @@ class RollController extends Controller
         return response()->download($generatedFilePath);
     }
 
+    public function massPrintSisaKain(Request $request)
+    {
+        $idsStr = addQuotesAround($request->ids);
+
+        $sbItems = DB::connection("mysql_sb")->select("
+            SELECT
+                masteritem.itemdesc detail_item,
+                masteritem.goods_code,
+                masteritem.id_item,
+                CONCAT(whs_bppb_h.no_bppb, ' | ', whs_bppb_h.tgl_bppb) bppb,
+                whs_bppb_h.no_req,
+                whs_bppb_h.no_ws_aktual no_ws,
+                act_costing.styleno style,
+                masteritem.color,
+                whs_bppb_det.id_roll,
+                whs_bppb_det.id_item,
+                whs_bppb_det.no_lot lot,
+                whs_bppb_det.no_roll,
+                COALESCE(whs_lokasi_inmaterial.no_roll_buyer, '-') no_roll_buyer,
+                whs_lokasi_inmaterial.kode_lok lokasi,
+                whs_bppb_det.satuan unit,
+                whs_bppb_det.qty_stok,
+                SUM(whs_bppb_det.qty_out) qty
+            FROM
+                whs_bppb_det
+                LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN so ON so.id = jodet.id_so
+                LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
+                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+            WHERE
+                whs_bppb_det.id_roll in (".$idsStr.")
+                AND whs_bppb_h.tujuan = 'Production - Cutting'
+                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+            GROUP BY
+                whs_bppb_det.id_roll
+        ");
+
+        if (!$sbItems) {
+            $sbItems = DB::connection("mysql_sb")->select("
+                SELECT
+                    mi.itemdesc detail_item,
+                    mi.goods_code,
+                    mi.id_item,
+                    CONCAT(bpb.bpbno_int, ' | ', bpb.bpbdate) bppb,
+                    '-' no_req,
+                    ac.kpno no_ws,
+                    ac.styleno style,
+                    mi.color,
+                    br.id id_roll,
+                    brh.id_item,
+                    br.lot_no lot,
+                    br.roll_no no_roll,
+                    '-' no_roll_buyer,
+                    '-' lokasi,
+                    br.unit,
+                    br.roll_qty qty
+                FROM
+                    bpb_roll br
+                    INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
+                    INNER JOIN masteritem mi ON brh.id_item = mi.id_item
+                    INNER JOIN bpb ON brh.bpbno = bpb.bpbno
+                    AND brh.id_jo = bpb.id_jo
+                    AND brh.id_item = bpb.id_item
+                    INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                    INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
+                    INNER JOIN so ON jd.id_so = so.id
+                    INNER JOIN act_costing ac ON so.id_cost = ac.id
+                    INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
+                WHERE
+                    br.id in (".$idsStr.")
+                    AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
+            ");
+        }
+
+        $ndsItems = ScannedItem::selectRaw("
+                scanned_item.id_roll,
+                GROUP_CONCAT(DISTINCT form_cut_input_detail.group_roll) group_roll,
+                COALESCE(scanned_item.qty, MIN(form_cut_input_detail.sisa_kain)) sisa_kain,
+                scanned_item.unit,
+                GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-')) SEPARATOR '^') AS no_form
+            ")->
+            leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
+            whereRaw("scanned_item.id_roll in (".$idsStr.")")->
+            orderBy("scanned_item.id", "desc")->
+            groupBy("scanned_item.id_roll")->
+            get();
+
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('cutting.roll.pdf.mass-sisa-kain-roll', ["sbItems" => ($sbItems ? $sbItems : null), "ndsItems" => $ndsItems])->setPaper('a7', 'landscape');
+
+        $path = public_path('pdf/');
+        $fileName = 'Mass_Sisa_Kain.pdf';
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+        return response()->download($generatedFilePath);
+    }
+
     public function create()
     {
         //

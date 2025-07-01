@@ -210,6 +210,8 @@ class SpreadingController extends Controller
             "txt_cons_ws" => "required",
             "txt_cons_marker" => "required",
             "txtid_marker" => "required",
+            "txtid_marker" => "required",
+            "cbomarker" => "required",
         ]);
 
         $qtyPlyMarkerModulus = intval($request['hitungmarker']) % intval($request['txtqty_ply_cut']);
@@ -260,25 +262,28 @@ class SpreadingController extends Controller
             }
 
             array_push($formcutDetailData, [
+                "marker_id" => $request["cbomarker"],
                 "id_marker" => $request["txtid_marker"],
                 "tipe_form_cut" => $request["tipe_form"],
                 "no_form" => $no_form,
                 "tgl_form_cut" => $txttglcut,
                 "status" => "SPREADING",
-                "user" => "user",
+                "user" => Auth::user()->username,
                 "cancel" => "N",
                 "qty_ply" => $qtyPly,
                 "tgl_input" => $timestamp,
                 "notes" => $keterangan,
                 "created_at" => $timestamp,
                 "updated_at" => $timestamp,
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username,
             ]);
 
             $totalQtyPly += $qtyPly;
             $message .= "$no_form <br>";
         }
 
-        $markerDetailStore = FormCutInput::insert($formcutDetailData);
+        $formCutInputStore = FormCutInput::insert($formcutDetailData);
 
         if ($totalQtyPly > 0) {
             $updateMarker = Marker::where("kode", $request["txtid_marker"])->

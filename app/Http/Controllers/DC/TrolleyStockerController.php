@@ -267,7 +267,7 @@ class TrolleyStockerController extends Controller
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
-        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, trolley_stocker.id, trolley_stocker.nama_trolley")->
+        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, trolley_stocker.id, trolley.nama_trolley, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
             where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
@@ -276,12 +276,26 @@ class TrolleyStockerController extends Controller
             leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("trolley_stocker", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
             leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
             where("so_det_id", $stockerData->so_det_id)->
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
             get();
 
-        $incompleteNonSecondary = $similarStockerData->where("tujuan", "NON SECONDARY")->
+        $incompleteLoading = $similarStockerData->whereNull("loading_line_id");
+
+        if ($incompleteLoading->count() < 1) {
+            return array(
+                'status' => 400,
+                'message' => "Stocker sudah di loading ke line",
+                'redirect' => '',
+                'table' => 'trolley-stock-datatable',
+                'callback' => 'clearAll()',
+                'additional' => [],
+            );
+        }
+
+        $incompleteNonSecondary = $similarStockerData->whereIn("tujuan", ["NON SECONDARY", "SECONDARY DALAM", "SECONDARY LUAR"])->
             whereNull("dc_id");
 
         $incompleteSecondary = $similarStockerData->whereIn("tujuan", ["SECONDARY DALAM", "SECONDARY LUAR"])->
@@ -292,7 +306,7 @@ class TrolleyStockerController extends Controller
                 'status' => 400,
                 'message' =>
                     "Stocker tidak bisa dialokasikan".
-                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker Non Secondary belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
+                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
                     ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
@@ -374,19 +388,33 @@ class TrolleyStockerController extends Controller
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
-        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id")->
+        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
             where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
             leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
             where("so_det_id", $stockerData->so_det_id)->
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
             get();
 
-        $incompleteNonSecondary = $similarStockerData->where("tujuan", "NON SECONDARY")->
+        $incompleteLoading = $similarStockerData->whereNull("loading_line_id");
+
+        if ($incompleteLoading->count() < 1) {
+            return array(
+                'status' => 400,
+                'message' => "Stocker sudah di loading ke line",
+                'redirect' => '',
+                'table' => 'trolley-stock-datatable',
+                'callback' => 'clearAll()',
+                'additional' => [],
+            );
+        }
+
+        $incompleteNonSecondary = $similarStockerData->whereIn("tujuan", ["NON SECONDARY", "SECONDARY DALAM", "SECONDARY LUAR"])->
             whereNull("dc_id");
 
         $incompleteSecondary = $similarStockerData->whereIn("tujuan", ["SECONDARY DALAM", "SECONDARY LUAR"])->
@@ -397,7 +425,7 @@ class TrolleyStockerController extends Controller
                 'status' => 400,
                 'message' =>
                     "Stocker tidak bisa dialokasikan".
-                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker Non Secondary belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
+                    ($incompleteNonSecondary->count() > 0 ? "<br><br> Stocker belum masuk DC In : <br> <b>".$incompleteNonSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("create-dc-in")."' class='text-sb' target='_blank'>Ke DC In</a></u>" : "").
                     ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
@@ -410,19 +438,15 @@ class TrolleyStockerController extends Controller
 
         $i = 0;
         foreach ($similarStockerData as $stocker) {
-
-            $trolleyStockCheck = TrolleyStocker::where("stocker_id", $stocker['id'])->where("status", "active")->first();
-            if (!$trolleyStockCheck) {
-                array_push($trolleyStockArr, [
-                    "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                    "trolley_id" => $validatedRequest['trolley_id'],
-                    "stocker_id" => $stocker['id'],
-                    "status" => "active",
-                    "tanggal_alokasi" => date('Y-m-d'),
-                    "created_by" => Auth::user()->id,
-                    "created_by_username" => Auth::user()->username
-                ]);
-            }
+            array_push($trolleyStockArr, [
+                "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                "trolley_id" => $validatedRequest['trolley_id'],
+                "stocker_id" => $stocker['id'],
+                "status" => "active",
+                "tanggal_alokasi" => date('Y-m-d'),
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username
+            ]);
 
             $i++;
         }

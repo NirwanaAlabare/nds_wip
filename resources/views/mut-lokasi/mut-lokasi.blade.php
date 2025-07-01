@@ -114,7 +114,7 @@
                 <div class="modal-body">
                     <!--  -->
                     <div class="form-group row">
-                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Approve Mutasi Location Number :</label>
+                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Cancel Mutasi Location Number :</label>
                         <br>
                         <div class="col-sm-3">
                         </div>
@@ -126,8 +126,8 @@
                     <!--  -->
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                    <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approve</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                    <button type="submit" class="btn btn-danger toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Cancel</button>
                 </div>
             </div>
         </div>
@@ -234,7 +234,7 @@ $('.select2type').select2({
                     if (row.status == 'Pending') {
                         return `<div class='d-flex gap-1 justify-content-center'>
                    <a href="{{ route('edit-mutlok') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_mut + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_mut + `")'><i class="fa-solid fa-trash"></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_mut.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else{

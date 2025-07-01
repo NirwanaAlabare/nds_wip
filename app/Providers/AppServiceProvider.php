@@ -86,5 +86,9 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('wip', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "wip");
         });
+
+        Blade::if('strictmeja', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->roles->where("nama_role", "meja")->count() < 1);
+        });
     }
 }

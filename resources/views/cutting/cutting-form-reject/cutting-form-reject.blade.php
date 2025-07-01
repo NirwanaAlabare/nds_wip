@@ -17,6 +17,7 @@
             <h5 class="card-title fw-bold"><i class="fa-solid fa-file-circle-exclamation"></i> Form Ganti Reject</h5>
         </div>
         <div class="card-body">
+            <a href="{{ route('create-cutting-reject') }}" class="btn btn-success btn mb-3"><i class="fa fa-plus"></i> Baru</a>
             <div class="d-flex justify-content-between align-items-end mb-3">
                 <div class="d-flex justify-content-start align-items-end gap-3">
                     <div>
@@ -32,7 +33,6 @@
                     </div>
                 </div>
                 <div class="d-flex gap-1">
-                    <a href="{{ route('create-cutting-reject') }}" class="btn btn-sb"><i class="fa fa-plus"></i> Baru</a>
                     {{-- <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button> --}}
                 </div>
             </div>

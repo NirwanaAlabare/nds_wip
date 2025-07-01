@@ -217,8 +217,8 @@
                     <label class="form-label">Report Type</label>
                     <select class="select2bs4report" name="report_type[]" id="report_type" multiple="multiple">
                         <option value="defect_rate">Defect Rate</option>
-                        <option value="top_defect">Top Defect</option>
-                        <option value="top_reject">Top Reject</option>
+                        <option value="top_defect">Defect</option>
+                        <option value="top_reject">Reject</option>
                     </select>
                 </div>
                 <div class="modal-footer">

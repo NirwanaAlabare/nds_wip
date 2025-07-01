@@ -121,96 +121,98 @@
                             </ul>
                         </li>
 
-                        <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cuttingplan-cutting' ? 'active' : '' }}">
-                                Cutting Plan
-                            </a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('cut-plan') }}"
-                                        class="dropdown-item {{ $routeName == 'cut-plan' ? 'active' : '' }}">
-                                        Cutting Plan Date <i class="fas fa-map fa-sm"></i>
-                                    </a>
-                                </li>
-                                {{-- Deprecated --}}
-                                {{--
+                        @strictmeja
+                            <li class="nav-item dropdown">
+                                <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    class="nav-link dropdown-toggle {{ $subPageGroup == 'cuttingplan-cutting' ? 'active' : '' }}">
+                                    Plan
+                                </a>
+                                <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                     <li>
-                                        <a href="{{ route('cut-plan-output') }}" class="dropdown-item {{ $subPage == 'cut-plan-output' ? 'active' : '' }}">
-                                            Cutting Plan Output <i class="fa-solid fa-map-location"></i>
+                                        <a href="{{ route('cut-plan') }}"
+                                            class="dropdown-item {{ $routeName == 'cut-plan' ? 'active' : '' }}">
+                                            Cutting Plan Date <i class="fas fa-map fa-sm"></i>
                                         </a>
                                     </li>
-                                --}}
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed
-                                Form</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('manage-cutting') }}"
-                                        class="dropdown-item {{ $routeName == 'manage-cutting' ? 'active' : '' }}">
-                                        Completed Form <i class="fa-solid fa-check-to-slot"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('lap_pemakaian') }}"
-                                        class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
-                                        Manajemen Roll <i class="fa-solid fa-toilet-paper fa-sm"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('sisa_kain_roll') }}"
-                                        class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">
-                                        Sisa Kain Roll <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-report' ? 'active' : '' }}">Report</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('report-cutting') }}"
-                                        class="dropdown-item {{ $subPage == 'cutting' ? 'active' : '' }}">
-                                        Output Cutting <i class="fa fa-file"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('report-cutting-daily') }}"
-                                        class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
-                                        Output Cutting Daily <i class="fa fa-file"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('track-cutting-output') }}"
-                                        class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
-                                        Track Cutting Output <i class="fa fa-file"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('pemakaian-roll') }}"
-                                        class="dropdown-item {{ $routeName == 'pemakaian-roll' ? 'active' : '' }}">
-                                        Pemakaian Kain <i class="fa fa-file"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('cutting-dashboard-list') }}"
-                                        class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}"
-                                        target="_blank">
-                                        Dashboard <i class="fa-solid fa-pager"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+                                    {{-- Deprecated --}}
+                                    {{--
+                                        <li>
+                                            <a href="{{ route('cut-plan-output') }}" class="dropdown-item {{ $subPage == 'cut-plan-output' ? 'active' : '' }}">
+                                                Cutting Plan Output <i class="fa-solid fa-map-location"></i>
+                                            </a>
+                                        </li>
+                                    --}}
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed
+                                    Form</a>
+                                <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                    <li>
+                                        <a href="{{ route('manage-cutting') }}"
+                                            class="dropdown-item {{ $routeName == 'manage-cutting' ? 'active' : '' }}">
+                                            Completed Form <i class="fa-solid fa-check-to-slot"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
+                                <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                    <li>
+                                        <a href="{{ route('lap_pemakaian') }}"
+                                            class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
+                                            Manajemen Roll <i class="fa-solid fa-toilet-paper fa-sm"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('sisa_kain_roll') }}"
+                                            class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">
+                                            Sisa Kain Roll <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-report' ? 'active' : '' }}">Report</a>
+                                <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                    <li>
+                                        <a href="{{ route('report-cutting') }}"
+                                            class="dropdown-item {{ $subPage == 'cutting' ? 'active' : '' }}">
+                                            Output Cutting <i class="fa fa-file"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report-cutting-daily') }}"
+                                            class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
+                                            Output Cutting Daily <i class="fa fa-file"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('track-cutting-output') }}"
+                                            class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
+                                            Track Cutting Output <i class="fa fa-file"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('pemakaian-roll') }}"
+                                            class="dropdown-item {{ $routeName == 'pemakaian-roll' ? 'active' : '' }}">
+                                            Pemakaian Kain <i class="fa fa-file"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('cutting-dashboard-list') }}"
+                                            class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}"
+                                            target="_blank">
+                                            Dashboard <i class="fa-solid fa-pager"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endstrictmeja
                         <li class="nav-item dropdown">
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-piping' ? 'active' : '' }}">Piping</a>
@@ -258,6 +260,14 @@
                                     </a>
                                 </li>
                             </ul>
+                        </li>
+                    @endrole
+                    @role('superadmin')
+                        <li class="nav-item">
+                            <a href="{{ route('cutting-tools') }}"
+                                class="nav-link {{ $routeName == 'cutting-tools' ? 'active' : '' }}" target="_blank">
+                                Tools
+                            </a>
                         </li>
                     @endrole
                 @endif
@@ -673,6 +683,32 @@
                                     Master Lokasi
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-group-inspect') }}" class="dropdown-item">
+                                    Master Group Inspect
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-satuan') }}" class="dropdown-item">
+                                    Master Satuan
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('qc-inspect-master-lenght') }}" class="dropdown-item">
+                                    Master Lenght
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-defect') }}" class="dropdown-item">
+                                    Master Defect
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc-inspect-master-result') }}" class="dropdown-item">
+                                    Master Result
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
@@ -795,13 +831,20 @@
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                            class="nav-link dropdown-toggle">Transfer BPB</a>
+                            class="nav-link dropdown-toggle">Manage BPB</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('transfer-bpb') }}" class="dropdown-item">
                                     Transfer BPB
                                 </a>
                             </li>
+
+                            <li>
+                                <a href="{{ route('maintain-bpb') }}" class="dropdown-item">
+                                    Maintain BPB
+                                </a>
+                            </li>
+
                         </ul>
                     </li>
                 @endif
@@ -1149,8 +1192,7 @@
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('barcode-packing') }}"
-                            class="nav-link {{ $routeName == 'generate-barcode-packing' ? 'active' : '' }}"
-                            target="_blank">
+                            class="nav-link {{ $routeName == 'barcode-packing' ? 'active' : '' }}" target="_blank">
                             Barcode Packing
                         </a>
                     </li>

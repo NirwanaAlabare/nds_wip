@@ -83,7 +83,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                 marker_input.style,
                 marker_input.color,
                 marker_input.panel
-                ".($this->groupBy == 'size' ? ', marker_input_detail.so_det_id, marker_input_detail.size' : '')."
+                ".($this->groupBy == 'size' ? ", marker_input_detail.so_det_id, CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size" : '')."
             ")->
             leftJoin(
             DB::raw("
@@ -114,6 +114,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             leftJoin("users as meja", "meja.id", "=", "form_cut_input.no_meja")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
+            leftJoin("master_sb_ws", "marker_input_detail.so_det_id", "=", "master_sb_ws.id_so_det")->
             whereRaw("
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                 AND form_cut_input.id_marker is not null
@@ -147,7 +148,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         (
                             SELECT
                                 marker_input.kode,
-                                GROUP_CONCAT(form_cut.no_form, form_cut.meja) no_form_meja,
+                                form_cut.no_form,
                                 form_cut.id_meja,
                                 form_cut.meja,
                                 form_cut.tgl_form_cut,
@@ -160,7 +161,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                 marker_input.cons_ws,
                                 marker_input.unit_panjang_marker unit,
                                 marker_input_detail.so_det_id,
-                                master_sb_ws.size,
+                                CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
                                 marker_input_detail.ratio,
                                 COALESCE(marker_input.notes, form_cut.notes) notes,
                                 marker_input.gelar_qty marker_gelar,
@@ -168,39 +169,41 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                 SUM(COALESCE(form_cut.detail, form_cut.total_lembar)) form_gelar,
                                 SUM(modify_size_qty.difference_qty) diff
                             FROM
-                            marker_input
-                            INNER JOIN
-                                marker_input_detail on marker_input_detail.marker_id = marker_input.id
-                            INNER JOIN
-                                master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
-                            INNER JOIN
-                                (
-                                    SELECT
-                                        meja.id id_meja,
-                                        meja.`name` meja,
-                                        COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
-                                        form_cut_input.id_marker,
-                                        form_cut_input.id,
-                                        form_cut_input.no_form,
-                                        form_cut_input.qty_ply,
-                                        form_cut_input.total_lembar,
-                                        form_cut_input.notes,
-                                        SUM(form_cut_input_detail.lembar_gelaran) detail
-                                    FROM
-                                        form_cut_input
-                                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                                        INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-                                    WHERE
-                                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                                        ".$dateFilter."
-                                    GROUP BY
-                                        form_cut_input.id
-                                ) form_cut on form_cut.id_marker = marker_input.kode
-                            LEFT JOIN
-                                modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                                marker_input
+                                INNER JOIN
+                                    marker_input_detail on marker_input_detail.marker_id = marker_input.id
+                                INNER JOIN
+                                    master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                                INNER JOIN
+                                    (
+                                        SELECT
+                                            form_cut_input.no_meja id_meja,
+                                            meja.`name` meja,
+                                            COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
+                                            form_cut_input.id_marker,
+                                            form_cut_input.id,
+                                            form_cut_input.no_form,
+                                            form_cut_input.qty_ply,
+                                            form_cut_input.total_lembar,
+                                            form_cut_input.notes,
+                                            SUM(form_cut_input_detail.lembar_gelaran) detail
+                                        FROM
+                                            form_cut_input
+                                            LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                            INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                                        WHERE
+                                            form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                            AND form_cut_input.waktu_mulai is not null
+                                            ".$dateFilter."
+                                        GROUP BY
+                                            form_cut_input.id
+                                    ) form_cut on form_cut.id_marker = marker_input.kode
+                                LEFT JOIN
+                                    modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                             where
                                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                                 AND marker_input_detail.ratio > 0
+                                ".($this->order ? "AND marker_input.act_costing_id = '".$this->order."'" : "")."
                             group by
                                 marker_input.id,
                                 marker_input_detail.so_det_id,

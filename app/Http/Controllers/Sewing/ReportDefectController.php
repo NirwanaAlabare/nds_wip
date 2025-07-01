@@ -799,12 +799,13 @@ class ReportDefectController extends Controller
         if (in_array('top_defect', $types)) {
             $topDefectQuery = "
                 SELECT
-                    CONCAT(userpassword.username, act_costing.styleno, so_det.color, output_defect_types.id) as grouping,
+                    CONCAT(userpassword.username, act_costing.styleno, so_det.color, so_det.size, output_defect_types.id) as grouping,
                     CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
                     CONCAT(act_costing.styleno, output_defect_types.id) as style_grouping,
                     userpassword.username sewing_line,
                     act_costing.styleno style,
                     so_det.color,
+                    so_det.size,
                     DATE( output_defects.updated_at ) tanggal,
                     output_defect_types.defect_type,
                     COUNT( output_defects.id ) total_defect
@@ -859,6 +860,7 @@ class ReportDefectController extends Controller
                     userpassword.username sewing_line,
                     act_costing.styleno style,
                     so_det.color,
+                    so_det.size,
                     DATE( output_rejects.updated_at ) tanggal,
                     output_defect_types.defect_type as reject_type,
                     COUNT( output_rejects.id ) total_reject

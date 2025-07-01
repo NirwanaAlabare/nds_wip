@@ -658,28 +658,42 @@ function submitFormScan(e, evt) {
         }
 
         // enableinput
-        function enableinput(){
-            var table = document.getElementById("tableshow");
-            var t_roll = 0;
-            for (let i = 1; i < (table.rows.length); i++) {
-                var cek =  document.getElementById("pil_item"+i);
-                var qtyroll =  document.getElementById("qty_stok"+i).value;
+        function enableinput() {
+    var table = document.getElementById("tableshow");
+    var t_roll = 0;
 
-                if (cek.checked == true){
-                t_roll += parseFloat(cek.value);
-                $("#qty_out"+i).prop("disabled", false);
-                $("#qty_out"+i).val(qtyroll);
-                $("#qty_sisa"+i).val(0);
-                sum_qty_item('1');
-                }else if(cek.checked == false){
-                $("#qty_out"+i).val('');
-                $("#qty_sisa"+i).val('');
-                $("#qty_out"+i).prop("disabled", true);
-                sum_qty_item('1');
-                }
-            }
-            $('#t_roll').val(t_roll);
+    for (let i = 1; i < table.rows.length; i++) {
+        var cek = document.getElementById("pil_item" + i);
+        var qtyStokInput = document.getElementById("qty_stok" + i);
+        var qtyOutInput = document.getElementById("qty_out" + i);
+        var qtySisaInput = document.getElementById("qty_sisa" + i);
+
+        // Cek jika elemen checkbox dan qty stok ada
+        if (!cek || !qtyStokInput || !qtyOutInput || !qtySisaInput) {
+            continue;
         }
+
+        var qtyroll = parseFloat(qtyStokInput.value) || 0;
+
+        if (cek.checked === true) {
+            t_roll += qtyroll;
+
+            qtyOutInput.disabled = false;
+            qtyOutInput.value = qtyroll;
+            qtySisaInput.value = 0;
+        } else {
+            qtyOutInput.value = '';
+            qtySisaInput.value = '';
+            qtyOutInput.disabled = true;
+        }
+    }
+
+    document.getElementById('t_roll').value = t_roll;
+
+    // Hanya panggil sekali setelah selesai loop
+    sum_qty_item('1');
+}
+
 
         function sum_qty_item(val){
             var table = document.getElementById("tableshow");
@@ -773,7 +787,7 @@ function submitFormScan(e, evt) {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route("get-marker-panels") }}',
+                url: '{{ route("get-general-panels") }}',
                 type: 'get',
                 data: {
                     act_costing_id: $('#ws_id').val(),

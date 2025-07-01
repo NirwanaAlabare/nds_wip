@@ -1605,7 +1605,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route("get-marker-panels") }}',
+                url: '{{ route("get-general-panels") }}',
                 type: 'get',
                 data: {
                     act_costing_id: $('#ws_id').val(),
@@ -1698,7 +1698,7 @@
                 },
                 success: function (res) {
                     if (res) {
-                        console.log(res);
+                        console.log("getavgpoin", res);
                         document.getElementById('avg_poin').innerHTML = res;
                         document.getElementById('avgpoin').val = res[0].poin;
                     }
@@ -1718,7 +1718,7 @@
                 },
                 success: function (res) {
                     if (res) {
-                        console.log(res[0].poin);
+                        console.log('getpoin', res);
                          $('#avgpoin').val(res[0].poin);
                     }
                 },

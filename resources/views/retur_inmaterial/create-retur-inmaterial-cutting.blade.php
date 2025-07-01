@@ -274,63 +274,69 @@
 
 <div class="modal fade modal-out-barcode" id="modal-out-barcode">
     <form action="{{ route('save-barcode-ri-scan') }}" method="post" onsubmit="submitFormScan(this, event)">
-         @method('POST')
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">List Item</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+     @method('POST')
+     <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-sb text-light">
+                <h4 class="modal-title">List Item</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             <div class="modal-body">
                 <div class="form-group row">
                     <div class="row">
                         <div class="col-4 col-md-4">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Qty RI</small></label>
-                                <input type="text" class="form-control " id="m_qty_out2" name="m_qty_out2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_out_h2" name="m_qty_out_h2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_req2" name="m_qty_req2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_req_h2" name="m_qty_req_h2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_bal2" name="m_qty_bal2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_bal_h2" name="m_qty_bal_h2" value="" readonly>
+                            <div class="mb-1">
+                                <div class="form-group">
+                                    <label><small>Qty RI</small></label>
+                                    <input type="text" class="form-control " id="m_qty_out2" name="m_qty_out2" value="" readonly>
+                                    <input type="hidden" class="form-control " id="m_qty_out_h2" name="m_qty_out_h2" value="" readonly>
+                                    <input type="hidden" class="form-control " id="m_qty_req2" name="m_qty_req2" value="" readonly>
+                                    <input type="hidden" class="form-control " id="m_qty_req_h2" name="m_qty_req_h2" value="" readonly>
+                                    <input type="hidden" class="form-control " id="m_qty_bal2" name="m_qty_bal2" value="" readonly>
+                                    <input type="hidden" class="form-control " id="m_qty_bal_h2" name="m_qty_bal_h2" value="" readonly>
+                                </div>
+                            </div>
                         </div>
+                        <div class="col-10 col-md-10">
+                            <textarea id="bulk_barcode_input" class="form-control" rows="4" placeholder="Tempel barcode di sini, pisahkan dengan spasi atau enter..."></textarea>
                         </div>
+                        <div class="col-2 col-md-2">
+                            <button type="button" class="btn btn-info mt-2" onclick="convertToSelect()"><i class="fa fa-paper-plane" aria-hidden="true"></i> Send</button>
                         </div>
                         <div class="col-md-12">
                             <input type="hidden" class="form-control " id="m_no_bppb2" name="m_no_bppb2" value="" readonly>
                             <input type="hidden" class="form-control " id="m_tgl_bppb2" name="m_tgl_bppb2" value="" readonly>
-                        <input type="hidden" class="form-control " id="t_roll2" name="t_roll2" value="" readonly>
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Scan Barcode</small></label>
-                            <select class='form-control select2barcode' multiple='multiple' style='width: 100%;height: 20px;' name='txt_barcode' id='txt_barcode' onchange='getdatabarcode(this.value)' >
-                            </select>
-                        </div>
-                        </div>
+                            <input type="hidden" class="form-control " id="t_roll2" name="t_roll2" value="" readonly>
+                            <div class="mb-1">
+                                <div class="form-group">
+                                    <label><small>Scan Barcode</small></label>
+                                    <select class='form-control select2barcode' multiple='multiple' style='width: 100%;height: 20px;' name='txt_barcode' id='txt_barcode' onchange='getdatabarcode()' >
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="col-md-12">
-                    <div class="row">
-                        <div class="col-md-12" id="detail_showbarcode">
+                        <div class="row">
+                            <div class="col-md-12" id="detail_showbarcode">
+                            </div>
                         </div>
-                    </div>
                     </div>
 
                 </div>
             </div>
 
             <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
-                    <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
-                </div>
-
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
+                <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
             </div>
+
         </div>
-    </form>
+    </div>
+</form>
 </div>
 @endsection
 
@@ -399,64 +405,97 @@
             await updateSizeList();
         });
 
+        function convertToSelect() {
+          let input = $('#bulk_barcode_input').val();
+    if (!input) return;
+
+    let barcodes = input.split('\n').map(b => b.trim()).filter(b => b !== '');
+
+    let $select = $('#txt_barcode');
+
+    let validBarcodes = [];
+
+    barcodes.forEach(code => {
+        // Hanya pilih jika barcode SUDAH ADA di dalam <select>
+        if ($select.find("option[value='" + code + "']").length > 0) {
+            validBarcodes.push(code);
+            // Tandai sebagai selected
+            $select.find("option[value='" + code + "']").prop('selected', true);
+        }
+    });
+
+    // Update Select2 dengan pilihan yang valid saja
+    $select.trigger('change');
+
+    // Kosongkan textarea input
+    $('#bulk_barcode_input').val('');
+
+    // Opsional: alert jika ada barcode tidak ditemukan
+    let invalidCount = barcodes.length - validBarcodes.length;
+    if (invalidCount > 0) {
+        alert(`${invalidCount} barcode tidak ditemukan di pilihan dan telah diabaikan.`);
+    }
+}
 
 
-        function get_nobppb(val) {
-           return $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: '{{ route("get-no-bppb-cutting") }}',
-            type: 'get',
-            data: {
-                tgl_ri: $('#txt_tgl_sj').val(),
-            },
-            success: function (res) {
-                if (res) {
-                    document.getElementById('txt_sj_asal').innerHTML = res;
-                }
-            },
-        });
-       }
 
 
-       function get_tujuan(val) {
-           return $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: '{{ route("get-tujuan-pemasukan") }}',
-            type: 'get',
-            data: {
-                type_bc: $('#txt_type_bc').val(),
-            },
-            success: function (res) {
-                if (res) {
-                    document.getElementById('txt_tujuan').innerHTML = res;
-                }
-            },
-        });
-       }
+function get_nobppb(val) {
+   return $.ajax({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    url: '{{ route("get-no-bppb-cutting") }}',
+    type: 'get',
+    data: {
+        tgl_ri: $('#txt_tgl_sj').val(),
+    },
+    success: function (res) {
+        if (res) {
+            document.getElementById('txt_sj_asal').innerHTML = res;
+        }
+    },
+});
+}
 
-       function get_supplier() {
-           return $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: '{{ route("get-supplier-ri") }}',
-            type: 'get',
-            data: {
-                no_bppb: $('#txt_sj_asal').val(),
-            },
-            success: function (res) {
-                if (res) {
+
+function get_tujuan(val) {
+   return $.ajax({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    url: '{{ route("get-tujuan-pemasukan") }}',
+    type: 'get',
+    data: {
+        type_bc: $('#txt_type_bc').val(),
+    },
+    success: function (res) {
+        if (res) {
+            document.getElementById('txt_tujuan').innerHTML = res;
+        }
+    },
+});
+}
+
+function get_supplier() {
+   return $.ajax({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    url: '{{ route("get-supplier-ri") }}',
+    type: 'get',
+    data: {
+        no_bppb: $('#txt_sj_asal').val(),
+    },
+    success: function (res) {
+        if (res) {
                         // console.log(res[0].jml)
                         $('#txt_supp').val(res[0].supplier);
                         $('#txt_idsupp').val(res[0].id_supplier);
                     }
                 },
             });
-       }
+}
 
 
         // function getlistdata(val){
@@ -587,24 +626,24 @@
         });
 
 function delete_scan($id_item,$id_jo){
-        let id_item = $id_item;
-        let id_jo = $id_jo;
-        return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("delete-scanri-temp") }}',
-                type: 'get',
-                data: {
-                    id_item: id_item,
-                    id_jo: id_jo,
-                },
-                success: function (res) {
-                    getlistdata();
-                }
-            });
+    let id_item = $id_item;
+    let id_jo = $id_jo;
+    return $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        url: '{{ route("delete-scanri-temp") }}',
+        type: 'get',
+        data: {
+            id_item: id_item,
+            id_jo: id_jo,
+        },
+        success: function (res) {
+            getlistdata();
+        }
+    });
 
-    }
+}
 
 function tambahqty($val){
     var table = document.getElementById("datatable");
@@ -647,115 +686,110 @@ function ri_scan($id_item,$id_jo,$bppbno_int){
         let idjo = $id_jo;
         let bppbno_int = $bppbno_int;
         return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-list-barcode-out") }}',
-                type: 'get',
-                data: {
-                    id_item: iditem,
-                    id_jo: idjo,
-                    bppbno_int: bppbno_int,
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('txt_barcode').innerHTML = res;
-                        $("#txt_barcode").focus();
-                    }
-                }
-            });
-    }
-
-    function getdatabarcode(val){
-        let id_barcode = $('#txt_barcode').val();
-        let no_bppb = $('#m_no_bppb2').val();
-        let text1 = "'";
-        let kodenya = text1.concat(id_barcode, "'");
-        let kodebarcode = kodenya.toString();
-        let barcode = kodebarcode.replace(/,/g,"','");
-        return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-data-barcode-out") }}',
-                type: 'get',
-                data: {
-                    id_barcode: barcode,
-                    no_bppb: no_bppb,
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('detail_showbarcode').innerHTML = res;
-                        $('.select2lok').select2({
-                            theme: 'bootstrap4',
-                            dropdownParent: $('.modal-out-barcode')
-                        });
-                        sum_qty_barcode('1');
-                    }
-                }
-            });
-
-    }
-
-    function sum_qty_barcode(val){
-            var table = document.getElementById("tableshow");
-            var qty_stok = 0;
-            var satuan = '';
-            var qty_out = 0;
-            var qty = 0;
-            var sisa_qty = 0;
-            var nol = 0;
-            var qty_req = $('#m_qty_req_h2').val();
-            var h_qty_out = '';
-            var h_sum_bal = '';
-            var sum_bal = 0;
-            var sum_out = 0;
-
-            for (let i = 1; i < (table.rows.length); i++) {
-                satuan = document.getElementById("tableshow").rows[i].cells[6].children[0].value;
-                qty_stok = document.getElementById("qty_stok"+i).value || 0;
-                qty_out = document.getElementById("qty_out"+i).value || 0;
-                sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
-                // alert(sisa_qty);
-
-                if ( qty_out > 0) {
-                    if (parseFloat(qty_out) > parseFloat(qty_stok)) {
-                        $('#qty_out'+i).val(qty_stok);
-                        $('#qty_sisa'+i).val(nol);
-                    }else{
-                        $('#qty_out'+i).val(qty_out);
-                        $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
-                    }
-                    sum_out += parseFloat(qty_out);
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("get-list-barcode-out") }}',
+            type: 'get',
+            data: {
+                id_item: iditem,
+                id_jo: idjo,
+                bppbno_int: bppbno_int,
+            },
+            success: function (res) {
+                if (res) {
+                    document.getElementById('txt_barcode').innerHTML = res;
+                    $("#txt_barcode").focus();
                 }
             }
+        });
+    }
 
-                h_qty_out = sum_out.round(2) + ' ' + satuan;
-                sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
-                h_sum_bal = sum_bal.round(2) + ' ' + satuan;
-                $('#m_qty_out2').val(h_qty_out);
-                $('#m_qty_out_h2').val(sum_out.round(2));
-                $('#m_qty_bal2').val(h_sum_bal);
-                $('#m_qty_bal_h2').val(sum_bal.round(2));
+    function getdatabarcode() {
+    let id_barcode = $('#txt_barcode').val(); // ini array otomatis dari select2
+    let no_bppb = $('#m_no_bppb2').val();
 
+    // Jika tidak ada barcode, jangan lanjut
+    if (!id_barcode || id_barcode.length === 0) return;
+
+    return $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        url: '{{ route("get-data-barcode-out") }}',
+        type: 'get',
+        data: {
+            id_barcode: id_barcode, // kirim langsung array
+            no_bppb: no_bppb,
+        },
+        success: function (res) {
+            if (res) {
+                $('#detail_showbarcode').html(res);
+                $('.select2lok').select2({
+                    theme: 'bootstrap4',
+                    dropdownParent: $('.modal-out-barcode')
+                });
+                sum_qty_barcode('1');
+            }
         }
+    });
+}
 
-    function submitLokasiForm(e, evt) {
-        evt.preventDefault();
 
-        clearModified();
+    function sum_qty_barcode(val) {
+    let table = document.getElementById("tableshow");
+    let sum_out = 0;
+    let qty_req = parseFloat($('#m_qty_req_h2').val()) || 0;
+    let satuan = '';
 
-        $.ajax({
-            url: e.getAttribute('action'),
-            type: e.getAttribute('method'),
-            data: new FormData(e),
-            processData: false,
-            contentType: false,
-            success: async function(res) {
-                if (res.status == 200) {
-                    console.log(res);
+    for (let i = 1; i < table.rows.length; i++) {
+        let qty_stok = parseFloat($('#qty_stok' + i).val()) || 0;
+        let qty_out = parseFloat($('#qty_out' + i).val()) || 0;
 
-                    e.reset();
+        satuan = table.rows[i].cells[6].children[0].value;
+
+        let sisa_qty = qty_stok - qty_out;
+
+        if (qty_out > 0) {
+            if (qty_out > qty_stok) {
+                qty_out = qty_stok;
+                $('#qty_out' + i).val(qty_stok.round(2));
+                $('#qty_sisa' + i).val((0).round(2));
+            } else {
+                $('#qty_out' + i).val(qty_out.round(2));
+                $('#qty_sisa' + i).val(sisa_qty.round(2));
+            }
+            sum_out += qty_out;
+        } else {
+            $('#qty_sisa' + i).val(qty_stok.round(2));
+        }
+    }
+
+    let sum_bal = qty_req - sum_out;
+
+    $('#m_qty_out2').val(sum_out.round(2) + ' ' + satuan);
+    $('#m_qty_out_h2').val(sum_out.round(2));
+    $('#m_qty_bal2').val(sum_bal.round(2) + ' ' + satuan);
+    $('#m_qty_bal_h2').val(sum_bal.round(2));
+}
+
+
+        function submitLokasiForm(e, evt) {
+            evt.preventDefault();
+
+            clearModified();
+
+            $.ajax({
+                url: e.getAttribute('action'),
+                type: e.getAttribute('method'),
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    if (res.status == 200) {
+                        console.log(res);
+
+                        e.reset();
 
                         // $('#cbows').val("").trigger("change");
                         // $("#cbomarker").prop("disabled", true);
@@ -776,9 +810,9 @@ function ri_scan($id_item,$id_jo,$bppbno_int){
                 },
 
             });
-    }
+        }
 
-    function cariitem() {
+        function cariitem() {
         // Declare variables
         var input, filter, table, tr, td, i, txtValue;
         input = document.getElementById("cari_item");
@@ -801,132 +835,132 @@ function ri_scan($id_item,$id_jo,$bppbno_int){
     }
 
     function submitFormScan(e, evt) {
-    $("input[type=submit][clicked=true]").attr('disabled', true);
+        $("input[type=submit][clicked=true]").attr('disabled', true);
 
-    evt.preventDefault();
+        evt.preventDefault();
 
-    clearModified();
+        clearModified();
 
-    $.ajax({
-        url: e.getAttribute('action'),
-        type: e.getAttribute('method'),
-        data: new FormData(e),
-        processData: false,
-        contentType: false,
-        success: function(res) {
-            $("input[type=submit][clicked=true]").removeAttr('disabled');
+        $.ajax({
+            url: e.getAttribute('action'),
+            type: e.getAttribute('method'),
+            data: new FormData(e),
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                $("input[type=submit][clicked=true]").removeAttr('disabled');
 
-            if (res.status == 200) {
-                $('.modal').modal('hide');
+                if (res.status == 200) {
+                    $('.modal').modal('hide');
 
-                Swal.fire({
-                    icon: 'success',
-                    title: res.message,
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                    timer: 5000,
-                    timerProgressBar: true
-                }).then(() => {
-                    if (res.redirect != '') {
-                        if (res.redirect != 'reload') {
-                            location.href = res.redirect;
-                        } else {
-                            location.reload();
+                    Swal.fire({
+                        icon: 'success',
+                        title: res.message,
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        if (res.redirect != '') {
+                            if (res.redirect != 'reload') {
+                                location.href = res.redirect;
+                            } else {
+                                location.reload();
+                            }
+                        }
+                        getlistdata();
+                    });
+
+                    e.reset();
+
+                    if (res.callback != '') {
+                        eval(res.callback);
+                    }
+
+                    if (document.getElementsByClassName('select2')) {
+                        $(".select2").val('').trigger('change');
+                    }
+                }
+                else if (res.status == 300) {
+                    $('.modal').modal('hide');
+
+                    iziToast.success({
+                        title: 'success',
+                        message: res.message,
+                        position: 'topCenter'
+                    });
+
+                    e.reset();
+
+                    if (document.getElementsByClassName('select2')) {
+                        $(".select2").val('').trigger('change');
+                    }
+                } else {
+                    for(let i = 0;i < res.errors; i++) {
+                        document.getElementById(res.errors[i]).classList.add('is-invalid');
+                        modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
+                    }
+
+                    iziToast.error({
+                        title: 'Error',
+                        message: res.message,
+                        position: 'topCenter'
+                    });
+                }
+
+                if (res.table != '') {
+                    $('#'+res.table).DataTable().ajax.reload();
+                }
+
+                if (Object.keys(res.additional).length > 0 ) {
+                    for (let key in res.additional) {
+                        if (document.getElementById(key)) {
+                            document.getElementById(key).classList.add('is-invalid');
+
+                            if (res.additional[key].hasOwnProperty('message')) {
+                                document.getElementById(key+'_error').classList.remove('d-none');
+                                document.getElementById(key+'_error').innerHTML = res.additional[key]['message'];
+                            }
+
+                            if (res.additional[key].hasOwnProperty('value')) {
+                                document.getElementById(key).value = res.additional[key]['value'];
+                            }
+
+                            modified.push(
+                                [key, '.classList', '.remove(', "'is-invalid')"],
+                                [key+'_error', '.classList', '.add(', "'d-none')"],
+                                [key+'_error', '.innerHTML = ', "''"],
+                                )
                         }
                     }
-                    getlistdata();
-                });
-
-                e.reset();
-
-                if (res.callback != '') {
-                    eval(res.callback);
                 }
+            }, error: function (jqXHR) {
+                $("input[type=submit][clicked=true]").removeAttr('disabled');
 
-                if (document.getElementsByClassName('select2')) {
-                    $(".select2").val('').trigger('change');
-                }
-            }
-          else if (res.status == 300) {
-            $('.modal').modal('hide');
+                let res = jqXHR.responseJSON;
+                let message = '';
 
-            iziToast.success({
-                title: 'success',
-                message: res.message,
-                position: 'topCenter'
-            });
+                for (let key in res.errors) {
+                    message = res.errors[key];
+                    document.getElementById(key).classList.add('is-invalid');
+                    document.getElementById(key+'_error').classList.remove('d-none');
+                    document.getElementById(key+'_error').innerHTML = res.errors[key];
 
-            e.reset();
-
-            if (document.getElementsByClassName('select2')) {
-                $(".select2").val('').trigger('change');
-            }
-        } else {
-                for(let i = 0;i < res.errors; i++) {
-                    document.getElementById(res.errors[i]).classList.add('is-invalid');
-                    modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
-                }
+                    modified.push(
+                        [key, '.classList', '.remove(', "'is-invalid')"],
+                        [key+'_error', '.classList', '.add(', "'d-none')"],
+                        [key+'_error', '.innerHTML = ', "''"],
+                        )
+                };
 
                 iziToast.error({
                     title: 'Error',
-                    message: res.message,
+                    message: 'Terjadi kesalahan.',
                     position: 'topCenter'
                 });
             }
-
-            if (res.table != '') {
-                $('#'+res.table).DataTable().ajax.reload();
-            }
-
-            if (Object.keys(res.additional).length > 0 ) {
-                for (let key in res.additional) {
-                    if (document.getElementById(key)) {
-                        document.getElementById(key).classList.add('is-invalid');
-
-                        if (res.additional[key].hasOwnProperty('message')) {
-                            document.getElementById(key+'_error').classList.remove('d-none');
-                            document.getElementById(key+'_error').innerHTML = res.additional[key]['message'];
-                        }
-
-                        if (res.additional[key].hasOwnProperty('value')) {
-                            document.getElementById(key).value = res.additional[key]['value'];
-                        }
-
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                            [key+'_error', '.classList', '.add(', "'d-none')"],
-                            [key+'_error', '.innerHTML = ', "''"],
-                        )
-                    }
-                }
-            }
-        }, error: function (jqXHR) {
-            $("input[type=submit][clicked=true]").removeAttr('disabled');
-
-            let res = jqXHR.responseJSON;
-            let message = '';
-
-            for (let key in res.errors) {
-                message = res.errors[key];
-                document.getElementById(key).classList.add('is-invalid');
-                document.getElementById(key+'_error').classList.remove('d-none');
-                document.getElementById(key+'_error').innerHTML = res.errors[key];
-
-                modified.push(
-                    [key, '.classList', '.remove(', "'is-invalid')"],
-                    [key+'_error', '.classList', '.add(', "'d-none')"],
-                    [key+'_error', '.innerHTML = ', "''"],
-                )
-            };
-
-            iziToast.error({
-                title: 'Error',
-                message: 'Terjadi kesalahan.',
-                position: 'topCenter'
-            });
-        }
-    });
+        });
 }
 </script>
 @endsection

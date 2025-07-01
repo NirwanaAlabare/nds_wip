@@ -29,7 +29,6 @@
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                         <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
                         <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
-                        <!-- <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly> -->
                         <div class="col-12 col-md-12">
                             <div class="mb-3">
                             <label class="form-label"><small><b>Meja</b></small></label>
@@ -1992,6 +1991,8 @@
                 "unit_p_act": $("#unit_p_act").val(),
                 "comma_act": $("#comma_act").val(),
                 "no_form_cut_input": $("#no_form").val(),
+                "start": $("#start-time").val(),
+                "finish": $("#finish-time").val(),
                 "no_meja": $("#no_meja").val(),
                 "color_act": $("#color_act").val(),
                 "detail_item": $("#detail_item").val(),

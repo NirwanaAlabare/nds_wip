@@ -72,6 +72,7 @@ class StockDcCompleteController extends Controller
                             stocker_input.size,
                             stocker_input.group_stocker
                         HAVING
+                            part_form.part_id IS NOT NULL AND
                             stocker_input.id IS NOT NULL
                     ) stk
                     LEFT JOIN master_size_new ON master_size_new.size = stk.size

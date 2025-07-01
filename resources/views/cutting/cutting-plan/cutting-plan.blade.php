@@ -138,7 +138,7 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-map fa-sm"></i> Cutting Plan</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-calendar-days"></i> Cutting Plan Daily</h5>
         </div>
         <div class="card-body">
             <a href="{{ route('create-cut-plan') }}" class="btn btn-success btn-sm mb-3">

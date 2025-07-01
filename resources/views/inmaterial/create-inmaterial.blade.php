@@ -461,7 +461,7 @@ onsubmit="submitForm(this, event)">
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('get-marker-panels') }}',
+                url: '{{ route('get-general-panels') }}',
                 type: 'get',
                 data: {
                     act_costing_id: $('#ws_id').val(),

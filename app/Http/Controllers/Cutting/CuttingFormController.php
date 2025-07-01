@@ -362,7 +362,7 @@ class CuttingFormController extends Controller
                     $scannedItemUpdate->save();
 
                     if ($scannedItemUpdate->qty > 0) {
-                        return json_encode($scannedItem);
+                        return json_encode($scannedItemUpdate);
                     }
                 }
 
@@ -434,8 +434,22 @@ class CuttingFormController extends Controller
             $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $item[0]->id_item)->first();
 
             if ($scannedItem) {
-                if (floatval($scannedItem->qty) > 0) {
-                    return json_encode($scannedItem);
+
+                $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
+
+                $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+                $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
+
+                if ($scannedItemUpdate) {
+                    $scannedItemUpdate->qty_stok = $itemQtyStok;
+                    $scannedItemUpdate->qty_in = $itemQty;
+                    $scannedItemUpdate->qty = floatval(($itemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->save();
+
+                    if ($scannedItemUpdate->qty > 0) {
+                        return json_encode($scannedItemUpdate);
+                    }
                 }
 
                 $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
@@ -444,10 +458,11 @@ class CuttingFormController extends Controller
                     return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
                 }
             } else {
-                $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? $item[0]->qty * 0.9144 : $item[0]->qty;
+                $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
                 $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? 'METER' : $item[0]->unit;
 
-                ScannedItem::create(
+                $itemData = ScannedItem::create(
                     [
                         "id_roll" => $id,
                         "id_item" => $item[0]->id_item,
@@ -455,8 +470,10 @@ class CuttingFormController extends Controller
                         "detail_item" => $item[0]->detail_item,
                         "lot" => $item[0]->lot,
                         "roll" => $item[0]->roll,
-                        "roll_buyer" => "-",
-                        "qty" => $itemQty > 0 ? $itemQty : 0,
+                        "roll_buyer" => $item[0]->roll_buyer,
+                        "qty" => $itemQty,
+                        "qty_stok" => $itemQtyStok,
+                        "qty_in" => $itemQty,
                         "qty_pakai" => 0,
                         "unit" => $itemUnit
                     ]
@@ -485,9 +502,13 @@ class CuttingFormController extends Controller
 
     public function startProcess($id = 0, Request $request)
     {
+        $startTime = $request->startTime;
+
+        $waktuMulai = (empty($startTime) ||!strtotime($startTime)) ? Carbon::now() : Carbon::parse($startTime);
+
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "PENGERJAAN FORM CUTTING",
-            "waktu_mulai" => (($request->startTime == null || $request->startTime == "" || !preg_match("/^([01]?[0-9]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])$/", $request->startTime)) ? Carbon::now() : $request->startTime)
+            "waktu_mulai" => $waktuMulai,
         ]);
 
         if ($updateFormCutInput) {
@@ -581,7 +602,7 @@ class CuttingFormController extends Controller
 
     public function getTimeRecord($id = 0, $noForm = 0)
     {
-        $timeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where("form_cut_input_detail.form_cut_id", $id)->where("form_cut_input_detail.no_form_cut_input", $noForm)->where('form_cut_input_detail.status', '!=', 'not complete')->where('form_cut_input_detail.status', '!=', 'extension')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderByRaw('CAST(form_cut_input_detail.id as UNSIGNED) asc')->get();
+        $timeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where("form_cut_input_detail.form_cut_id", $id)->where("form_cut_input_detail.no_form_cut_input", $noForm)->where('form_cut_input_detail.status', '!=', 'not complete')->where('form_cut_input_detail.status', '!=', 'extension')->groupBy('form_cut_input_detail.id')->orderByRaw('CAST(form_cut_input_detail.id as UNSIGNED) asc')->get();
 
         return json_encode($timeRecordSummary);
     }
@@ -629,10 +650,14 @@ class CuttingFormController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::
-            updateOrCreate(
-                ["form_cut_id" => $validatedRequest['id'], "no_form_cut_input" => $validatedRequest['no_form_cut_input'], 'form_cut_input_detail.status' => 'not complete'],
-                [
+        $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $request->id)->where("status", "not complete")->first();
+
+        $storeTimeRecordSummary = null;
+        if ($checkTimeRecord) {
+            $storeTimeRecordSummary = $checkTimeRecord;
+            $updateTimeRecordSummary = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where('form_cut_input_detail.status', 'not complete')->
+                update([
+                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                     "id_roll" => $validatedRequest['current_id_roll'],
                     "id_item" => $validatedRequest['current_id_item'],
                     "color_act" => $validatedRequest['color_act'],
@@ -661,8 +686,41 @@ class CuttingFormController extends Controller
                     "metode" => $request->metode ? $request->metode : "scan",
                     "group_stocker" => $groupStocker,
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
-                ]
-            );
+                ]);
+        } else {
+            $storeTimeRecordSummary = FormCutInputDetail::create([
+                    "form_cut_id" => $validatedRequest['id'],
+                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                    "id_roll" => $validatedRequest['current_id_roll'],
+                    "id_item" => $validatedRequest['current_id_item'],
+                    "color_act" => $validatedRequest['color_act'],
+                    "detail_item" => $validatedRequest['detail_item'],
+                    "group_roll" => $validatedRequest['current_group'],
+                    "lot" => $request["current_lot"],
+                    "roll" => $validatedRequest['current_roll'],
+                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                    "qty" => $itemQty,
+                    "unit" => $itemUnit,
+                    "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                    "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
+                    "sambungan" => $validatedRequest['current_sambungan'],
+                    "est_amparan" => $validatedRequest['current_est_amparan'],
+                    "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                    "average_time" => $validatedRequest['current_average_time'],
+                    "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                    "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                    "reject" => $validatedRequest['current_reject'],
+                    "sisa_kain" => $validatedRequest['current_sisa_kain'],
+                    "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
+                    "short_roll" => $validatedRequest['current_short_roll'],
+                    "piping" => $validatedRequest['current_piping'],
+                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                    "status" => $status,
+                    "metode" => $request->metode ? $request->metode : "scan",
+                    "group_stocker" => $groupStocker,
+                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                ]);
+        }
 
         if ($storeTimeRecordSummary) {
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
@@ -763,41 +821,80 @@ class CuttingFormController extends Controller
         $itemQty = ($request["current_unit"] != "KGM" ? floatval($request['current_qty']) : floatval($request['current_qty_real']));
         $itemUnit = ($request["current_unit"] != "KGM" ? "METER" : $request['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::
-            updateOrCreate(
-                ["form_cut_id" => $request->id, "no_form_cut_input" => $request->no_form_cut_input, 'form_cut_input_detail.status' => 'not complete'],
-                [
-                    "id_roll" => $request->current_id_roll,
-                    "id_item" => $request->current_id_item,
-                    "color_act" => $request->color_act,
-                    "detail_item" => $request->detail_item,
-                    "group_roll" => $request->current_group,
-                    "lot" => $request->current_lot,
-                    "roll" => $request->current_roll,
-                    "roll_buyer" => $request->current_roll_buyer,
-                    "qty" => $itemQty,
-                    "unit" => $itemUnit,
-                    "sisa_gelaran" => $request->current_sisa_gelaran,
-                    "sambungan" => $request->current_sambungan,
-                    "est_amparan" => $request->current_est_amparan,
-                    "lembar_gelaran" => $request->current_lembar_gelaran,
-                    "average_time" => $request->current_average_time,
-                    "kepala_kain" => $request->current_kepala_kain,
-                    "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
-                    "reject" => $request->current_reject,
-                    "sisa_kain" => $request->current_sisa_kain,
-                    "pemakaian_lembar" => $request->current_pemakaian_lembar,
-                    "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
-                    "short_roll" => $request->current_short_roll,
-                    "piping" => $request->current_piping,
-                    "status" => "not complete",
-                    "metode" => $request->metode ? $request->metode : "scan",
-                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
-                ]
-            );
-        if ($storeTimeRecordSummary) {
-            $now = Carbon::now();
+        $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $request->id)->where("status", "not complete")->first();
 
+        $storeTimeRecordSummary = null;
+        if ($checkTimeRecord) {
+            $storeTimeRecordSummary = $checkTimeRecord;
+            $updateTimeRecordSummary = FormCutInputDetail::where("form_cut_id", $request->id)->where("status", "not complete")->
+                update(
+                    [
+                        "no_form_cut_input" => $request->no_form_cut_input,
+                        "id_roll" => $request->current_id_roll,
+                        "id_item" => $request->current_id_item,
+                        "color_act" => $request->color_act,
+                        "detail_item" => $request->detail_item,
+                        "group_roll" => $request->current_group,
+                        "lot" => $request->current_lot,
+                        "roll" => $request->current_roll,
+                        "roll_buyer" => $request->current_roll_buyer,
+                        "qty" => $itemQty,
+                        "unit" => $itemUnit,
+                        "sisa_gelaran" => $request->current_sisa_gelaran,
+                        "sambungan" => $request->current_sambungan,
+                        "est_amparan" => $request->current_est_amparan,
+                        "lembar_gelaran" => $request->current_lembar_gelaran,
+                        "average_time" => $request->current_average_time,
+                        "kepala_kain" => $request->current_kepala_kain,
+                        "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
+                        "reject" => $request->current_reject,
+                        "sisa_kain" => $request->current_sisa_kain,
+                        "pemakaian_lembar" => $request->current_pemakaian_lembar,
+                        "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
+                        "short_roll" => $request->current_short_roll,
+                        "piping" => $request->current_piping,
+                        "status" => "not complete",
+                        "metode" => $request->metode ? $request->metode : "scan",
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                    ]
+                );
+        } else {
+            $storeTimeRecordSummary = FormCutInputDetail::
+                create(
+                    [
+                        "form_cut_id" => $request->id,
+                        'status' => 'not complete',
+                        "id_roll" => $request->current_id_roll,
+                        "id_item" => $request->current_id_item,
+                        "color_act" => $request->color_act,
+                        "detail_item" => $request->detail_item,
+                        "group_roll" => $request->current_group,
+                        "lot" => $request->current_lot,
+                        "roll" => $request->current_roll,
+                        "roll_buyer" => $request->current_roll_buyer,
+                        "qty" => $itemQty,
+                        "unit" => $itemUnit,
+                        "sisa_gelaran" => $request->current_sisa_gelaran,
+                        "sambungan" => $request->current_sambungan,
+                        "est_amparan" => $request->current_est_amparan,
+                        "lembar_gelaran" => $request->current_lembar_gelaran,
+                        "average_time" => $request->current_average_time,
+                        "kepala_kain" => $request->current_kepala_kain,
+                        "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
+                        "reject" => $request->current_reject,
+                        "sisa_kain" => $request->current_sisa_kain,
+                        "pemakaian_lembar" => $request->current_pemakaian_lembar,
+                        "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
+                        "short_roll" => $request->current_short_roll,
+                        "piping" => $request->current_piping,
+                        "status" => "not complete",
+                        "metode" => $request->metode ? $request->metode : "scan",
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                    ]
+                );
+        }
+
+        if ($storeTimeRecordSummary) {
             if ($lap > 0) {
                 $storeTimeRecordLap = FormCutInputDetailLap::updateOrCreate(
                     ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
@@ -874,40 +971,83 @@ class CuttingFormController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::
-            updateOrCreate(
-                ['form_cut_input_detail.form_cut_id' => $validatedRequest['id'], 'form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input'], 'form_cut_input_detail.status' => 'extension'],
-                [
-                    "id_roll" => $validatedRequest['current_id_roll'],
-                    "id_item" => $validatedRequest['current_id_item'],
-                    "color_act" => $validatedRequest['color_act'],
-                    "detail_item" => $validatedRequest['detail_item'],
-                    "group_roll" => $validatedRequest['current_group'],
-                    "lot" => $request['current_lot'],
-                    "roll" => $validatedRequest['current_roll'],
-                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                    "qty" => $itemQty,
-                    "unit" => $itemUnit,
-                    "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
-                    "sambungan" => $validatedRequest['current_sambungan'],
-                    "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
-                    "est_amparan" => $validatedRequest['current_est_amparan'],
-                    "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
-                    "average_time" => $validatedRequest['current_average_time'],
-                    "kepala_kain" => $validatedRequest['current_kepala_kain'],
-                    "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
-                    "reject" => $validatedRequest['current_reject'],
-                    "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
-                    "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
-                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
-                    "short_roll" => $validatedRequest['current_short_roll'],
-                    "piping" => $validatedRequest['current_piping'],
-                    "status" => "extension complete",
-                    "metode" => $request->metode ? $request->metode : "scan",
-                    "group_stocker" => $groupStocker,
-                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
-                ]
-            );
+        $checkTimeRecord  = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("status", "extension")->first();
+
+        $storeTimeRecordSummary = null;
+        if ($checkTimeRecord) {
+            $storeTimeRecordSummary = $checkTimeRecord;
+            $updateTimeRecordSummary = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("status", "extension")->
+                update(
+                    [
+                        "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                        "id_roll" => $validatedRequest['current_id_roll'],
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color_act" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "group_roll" => $validatedRequest['current_group'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                        "qty" => $itemQty,
+                        "unit" => $itemUnit,
+                        "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                        "sambungan" => $validatedRequest['current_sambungan'],
+                        "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
+                        "est_amparan" => $validatedRequest['current_est_amparan'],
+                        "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                        "average_time" => $validatedRequest['current_average_time'],
+                        "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                        "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                        "reject" => $validatedRequest['current_reject'],
+                        "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
+                        "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
+                        "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                        "short_roll" => $validatedRequest['current_short_roll'],
+                        "piping" => $validatedRequest['current_piping'],
+                        "status" => "extension complete",
+                        "metode" => $request->metode ? $request->metode : "scan",
+                        "group_stocker" => $groupStocker,
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                    ]
+                );
+        } else {
+            $storeTimeRecordSummary = FormCutInputDetail::
+                create(
+                    [
+                        "form_cut_id" => $validatedRequest['id'],
+                        "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                        "status" => "extension",
+                        "id_roll" => $validatedRequest['current_id_roll'],
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color_act" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "group_roll" => $validatedRequest['current_group'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                        "qty" => $itemQty,
+                        "unit" => $itemUnit,
+                        "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                        "sambungan" => $validatedRequest['current_sambungan'],
+                        "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
+                        "est_amparan" => $validatedRequest['current_est_amparan'],
+                        "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                        "average_time" => $validatedRequest['current_average_time'],
+                        "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                        "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                        "reject" => $validatedRequest['current_reject'],
+                        "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
+                        "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
+                        "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                        "short_roll" => $validatedRequest['current_short_roll'],
+                        "piping" => $validatedRequest['current_piping'],
+                        "status" => "extension complete",
+                        "metode" => $request->metode ? $request->metode : "scan",
+                        "group_stocker" => $groupStocker,
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                    ]
+                );
+        }
 
         if ($storeTimeRecordSummary) {
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
@@ -1229,13 +1369,10 @@ class CuttingFormController extends Controller
             "id" => "required",
         ]);
 
-        $formCut = FormCutInput::where("id", $validatedRequest['id'])->first();
-
-        if ($formCut) {
-            $formCut->locked = 1;
-            $formCut->unlocked_by = null;
-            $formCut->save();
-        }
+        $formCut = FormCutInput::where("id", $validatedRequest['id'])->update([
+            "locked" => 1,
+            "unlocked_by" => null,
+        ]);
 
         return $formCut;
     }
@@ -1247,23 +1384,24 @@ class CuttingFormController extends Controller
             "password" => "required",
         ]);
 
-        $formCut = FormCutInput::where("id", $validatedRequest['id'])->first();
+        if (Auth::validate(['username' => $validatedRequest['username'], 'password' => $validatedRequest['password']])) {
+            $unlocker = User::where("username", $validatedRequest['username'])->where('type', 'admin')->orWhere('type', 'superadmin')->first();
 
-        if ($formCut) {
-            if (Auth::validate(['username' => $validatedRequest['username'], 'password' => $validatedRequest['password']])) {
-                $unlocker = User::where("username", $validatedRequest['username'])->where('type', 'admin')->orWhere('type', 'superadmin')->first();
+            if ($unlocker) {
+                FormCutInput::where("id", $validatedRequest['id'])->update([
+                    "locked" => 0,
+                    "unlocked_by" => $unlocker->id,
+                ]);
 
-                if ($unlocker) {
-                    $formCut->locked = 0;
-                    $formCut->unlocked_by = $unlocker->id;
-                    $formCut->save();
+                $formCut = FormCutInput::where("id", $validatedRequest['id'])->first();
 
-                    // $unlocker->unlock_token = ($unlocker->unlock_token ? $unlocker->id."".Carbon::now()->format('ymd')."".substr($unlocker->unlock_token, -1)+1 : $unlocker->id."".Carbon::now()->format('Ymd')."1");
-                    // $unlocker->save();
+                if ($formCut) {
+                    return $formCut;
                 }
+
+                // $unlocker->unlock_token = ($unlocker->unlock_token ? $unlocker->id."".Carbon::now()->format('ymd')."".substr($unlocker->unlock_token, -1)+1 : $unlocker->id."".Carbon::now()->format('Ymd')."1");
+                // $unlocker->save();
             }
         }
-
-        return $formCut;
     }
 }
