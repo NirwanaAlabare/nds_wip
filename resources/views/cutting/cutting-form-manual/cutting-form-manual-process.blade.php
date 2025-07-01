@@ -130,10 +130,12 @@
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Panel</b></small></label>
                                     <input type="hidden" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
+
                                     @if ($formCutInputData->panel)
-                                        <input type="text" class="form-control form-control-sm" name="panel-select" id="panel-select" value="{{ $formCutInputData->panel }}" readonly>
+                                        <input type="text" class="form-control form-control-sm" name="panel-show" id="panel-show" value="{{ $formCutInputData->panel }}" readonly>
+                                        <input type="hidden" class="form-control form-control-sm" name="panel_select" id="panel-select" value="{{ $formCutInputData->panel_id }}" readonly>
                                     @else
-                                        <select class="form-control select2bs4" id="panel-select" name="panel-select" style="width: 100%;">
+                                        <select class="form-control select2bs4" name="panel_select" id="panel-select" style="width: 100%;">
                                             <option selected="selected" value="">Pilih Panel</option>
                                             {{-- select 2 option --}}
                                         </select>
@@ -1211,7 +1213,7 @@
 
         // Step Three (Panel) on change event
         $('#panel-select').on('change', function(e) {
-            $('#panel').val(this.value).trigger('change');
+            $('#panel').val($('#panel-select option:selected').html()).trigger('change');
 
             if (this.value) {
                 getNumber();
@@ -1466,8 +1468,6 @@
             document.getElementById('total_qty_cut_ply').value = totalQtyCut;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(4)").innerText = totalRatio;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(5)").innerText = totalQtyCut;
-
-            calculateTotalRatio();
         }
 
         // Calculate All Cut Qty at Once Based on Spread Qty
@@ -1745,6 +1745,8 @@
 
             // -Start Process Transaction-
             function updateToStartProcess() {
+                document.getElementById("loading").classList.remove("d-none");
+
                 let dataObj = {
                     startTime: startTime.value
                 }
@@ -1779,6 +1781,8 @@
 
                             status = "PENGERJAAN MARKER";
                         }
+
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 });
             }
