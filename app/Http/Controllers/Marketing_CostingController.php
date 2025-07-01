@@ -73,7 +73,11 @@ order by ac.cost_date desc, ac.dateinput desc
 
         $data_ship = DB::connection('mysql_sb')->select("SELECT id isi,shipmode tampil from mastershipmode");
 
-        $data_vat = DB::connection('mysql_sb')->select("select percentage isi, percentage tampil from mtax where category_tax = 'PPN' and cancel = 'N'");
+        $data_vat = DB::connection('mysql_sb')->select("SELECT percentage isi, percentage tampil
+        from mtax where category_tax = 'PPN'  and cancel = 'N'
+        GROUP BY idtax
+        UNION
+        select 0 isi, 0 tampil");
 
         // $data_status = DB::connection('mysql_sb')->select("select nama_pilihan isi,nama_pilihan tampil from
         // 							masterpilihan where kode_pilihan='ST_CST'");
@@ -90,6 +94,7 @@ order by ac.cost_date desc, ac.dateinput desc
                 'data_ship' => $data_ship,
                 'data_vat' => $data_vat,
                 'tgl_skrg_min_sebulan' => $tgl_skrg_min_sebulan,
+                'tgl_skrg' => $tgl_skrg,
                 "containerFluid" => true,
                 "user" => $user
             ]
@@ -112,22 +117,26 @@ order by ac.cost_date desc, ac.dateinput desc
     {
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
-        $prod_group = $request->prod_group;
 
         $cbobuyer = $request->cbobuyer;
-        $cbocur = $request->cbocur;
-        $txtnotes = $request->txtnotes;
-        $cbop_group = $request->cbop_group;
-        $txtcfm_price = $request->txtcfm_price;
+        $cbo_tipe = $request->cbo_tipe;
         $txtdel_date = $request->txtdel_date;
+        $cbop_group = $request->cbop_group;
         $cbop_item = $request->cbop_item;
+        $txtbrand = $request->txtbrand;
         $cbo_ship = $request->cbo_ship;
         $txtdest = $request->txtdest;
         $txtstyle = $request->txtstyle;
         $txtqty = $request->txtqty;
-        $cbo_tipe = $request->cbo_tipe;
-        $txtbrand = $request->txtbrand;
-        $txtvat = $request->txtvat;
+        $txtsmv = $request->txtsmv;
+        $txtmin_prod = $request->txtmin_prod;
+        $cbocurr = $request->cbocurr;
+        $txtrate_jual = $request->txtrate_jual;
+        $txtcfm_price = $request->txtcfm_price;
+        $cbo_vat = $request->cbo_vat;
+        $txtfinal_cfm_price = $request->txtfinal_cfm_price;
+        $txtnotes = $request->txtnotes;
+
 
         $today = Carbon::now();
         $datePart = $today->format('my'); // e.g. 0625
@@ -181,10 +190,10 @@ order by ac.cost_date desc, ac.dateinput desc
         DB::connection('mysql_sb')->insert("INSERT
         into act_costing (id_pre_cost,cost_no,cost_date,kpno,id_smode,smv_min,smv_sec,book_min,book_sec,notes,deldate,
 		attach_file,id_buyer,id_product,styleno,qty,status,status_order,username,curr,
-        vat,deal_allow,ga_cost,unit,cfm_price,comm_cost,dateinput,type_ws,app1,app1_by,app1_date,brand,main_dest,aktif)
-		values ('0','$cost_no','$timestamp','$ws','$cbo_ship','0','0','0','0','$txtnotes','$txtdel_date',
-		'','$cbobuyer','$cbop_item','$txtstyle','$txtqty','CONFIRM','','$user','$cbocur',
-        '$txtvat','0','0','PCS','$txtcfm_price','0','$today','STD','W','','','$txtbrand','$txtdest','Y')");
+        vat,deal_allow,ga_cost,unit,cfm_price,comm_cost,dateinput,type_ws,app1,app1_by,app1_date,brand,main_dest,aktif,rate)
+		values ('0','$cost_no','$timestamp','$ws','$cbo_ship','$txtsmv','0','$txtmin_prod','0','$txtnotes','$txtdel_date',
+		'','$cbobuyer','$cbop_item','$txtstyle','$txtqty','CONFIRM','','$user','$cbocurr',
+        '$cbo_vat','0','0','PCS','$txtcfm_price','0','$today','STD','W','','','$txtbrand','$txtdest','Y',$txtrate_jual)");
 
 
         return response()->json([
@@ -229,6 +238,7 @@ ac.qty qty_order,
 ac.type_ws,
 ac.main_dest,
 ac.brand,
+ac.rate,
 ac.username,
 ac.dateinput
 from act_costing ac
@@ -254,6 +264,9 @@ where ac.id = ?", [$id]);
         $product_group = $get_data_cost[0]->product_group;
         $product_item = $get_data_cost[0]->product_item;
         $id_product = $get_data_cost[0]->id_product;
+        $txtsmv = $get_data_cost[0]->smv_min;
+        $txtmin_prod = $get_data_cost[0]->book_min;
+        $txtrate = $get_data_cost[0]->rate;
 
 
         $data_pgroup = DB::connection('mysql_sb')->select("SELECT product_group isi,product_group tampil from
@@ -266,6 +279,17 @@ where ac.id = ?", [$id]);
 		masterpilihan where kode_pilihan='Curr'");
 
         $data_ship = DB::connection('mysql_sb')->select("SELECT id isi,shipmode tampil from mastershipmode");
+
+        $data_vat = DB::connection('mysql_sb')->select("SELECT percentage isi, percentage tampil
+        from mtax where category_tax = 'PPN'  and cancel = 'N'
+        GROUP BY idtax
+        UNION
+        select 0 isi, 0 tampil");
+
+        $data_jns_cat = DB::connection('mysql_sb')->select("SELECT kode_group isi,kode_group tampil from mastergroup");
+
+        $data_unit = DB::connection('mysql_sb')->select("SELECT nama_pilihan isi,nama_pilihan tampil from
+							masterpilihan where kode_pilihan='Satuan'");
 
         return view(
             'marketing.edit_costing',
@@ -294,9 +318,15 @@ where ac.id = ?", [$id]);
                 "data_pitem" => $data_pitem,
                 "data_curr" => $data_curr,
                 "data_ship" => $data_ship,
+                "data_vat" => $data_vat,
+                "data_unit" => $data_unit,
                 "id_product" => $id_product,
+                "txtsmv" => $txtsmv,
+                "txtmin_prod" => $txtmin_prod,
+                "txtrate" => $txtrate,
                 "id" => $id,
-                "user" => $user
+                "user" => $user,
+                "data_jns_cat" => $data_jns_cat
             ]
         );
     }
@@ -316,8 +346,11 @@ where ac.id = ?", [$id]);
         $txtstyle = $request->txtstyle;
         $txtqty_order = $request->txtqty_order;
         $txtbrand = $request->txtbrand;
-        $txtvat = $request->txtvat;
-
+        $cbo_vat = $request->cbo_vat;
+        $txtrate = $request->txtrate;
+        $txtfinal_cfm_price = $request->txtfinal_cfm_price;
+        $txtsmv = $request->txtsmv;
+        $txtmin_prod = $request->txtmin_prod;
         $today = Carbon::now();
 
 
@@ -325,14 +358,16 @@ where ac.id = ?", [$id]);
         set styleno = '$txtstyle',
         id_product = '$cbop_item',
         curr = '$cbocurr',
-        cfm_price = '$txtcfm_price',
         deldate = '$txtdel_date',
         id_smode = '$cbo_ship',
         main_dest = '$txtmain_dest',
         brand = '$txtbrand',
         qty = '$txtqty_order',
-        vat = '$txtvat'
-
+        vat = '$cbo_vat',
+        rate = '$txtrate',
+        cfm_price = '$txtfinal_cfm_price',
+        smv_min = '$txtsmv',
+        book_min = '$txtmin_prod'
         where id = '$id_cost' ");
 
 
@@ -343,5 +378,60 @@ where ac.id = ?", [$id]);
                 'style' => $txtstyle
             ]
         ]);
+    }
+    public function get_jns_costing_material(Request $request)
+    {
+        $data_jns = DB::connection('mysql_sb')->select(
+            "SELECT kode_group isi,nama_group tampil from mastergroup"
+        );
+
+        return response()->json($data_jns);
+    }
+
+    public function get_material_costing(Request $request)
+    {
+        $cbo_cat = $request->cbo_cat;
+        $cbo_jns = $request->cbo_jns;
+
+        if ($cbo_cat === 'material') {
+            // Assuming cbo_jns = kode_group
+            $data_mat = DB::connection('mysql_sb')->select(
+                "SELECT
+                e.id AS isi,
+                CONCAT(e.id, ' ', nama_group, ' ', nama_sub_group, ' ', nama_type, ' ', nama_contents) AS tampil
+            FROM mastergroup a
+            INNER JOIN mastersubgroup s ON a.id = s.id_group
+            INNER JOIN mastertype2 d ON s.id = d.id_sub_group
+            INNER JOIN mastercontents e ON d.id = e.id_type
+            WHERE
+                a.kode_group = ? AND
+                a.aktif = 'Y' AND
+                s.aktif = 'Y' AND
+                d.aktif = 'Y' AND
+                e.is_active = 'Y' AND
+                e.aktif = 'Y'
+            ORDER BY nama_contents ASC",
+                [$cbo_jns]
+            );
+        } elseif ($cbo_cat === 'manufacturing') {
+            $data_mat = DB::connection('mysql_sb')->select(
+                "SELECT id AS isi,
+                    CONCAT(cfcode, ' ', cfdesc) AS tampil
+             FROM mastercf
+             ORDER BY id DESC"
+            );
+        } elseif ($cbo_cat === 'other') {
+            $data_mat = DB::connection('mysql_sb')->select(
+                "SELECT id isi,
+              concat(otherscode,' ',othersdesc) tampil
+              FROM masterothers
+              ORDER BY id DESC"
+            );
+        } else {
+            // Default: return empty if category is not handled
+            $data_mat = [];
+        }
+
+        return response()->json($data_mat);
     }
 }

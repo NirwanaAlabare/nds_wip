@@ -104,25 +104,18 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label><small><b>Curr :</b></small></label>
-                                    <select class="form-control select2bs4" id="cbocurr" name="cbocurr"
-                                        style="width: 100%; font-size: 0.875rem;" required>
-                                        <option selected="selected" value="" disabled="true">Pilih Currency
-                                        </option>
-                                        @foreach ($data_curr as $datacurr)
-                                            <option value="{{ $datacurr->isi }}">
-                                                {{ $datacurr->tampil }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                <label class="form-label"><small><b>Tipe WS</b></small></label>
+                                <select class="form-control form-control-sm select2bs4" id="cbo_tipe" name="cbo_tipe"
+                                    style="width: 100%; font-size: 0.875rem;" required>
+                                    <option value="standard">Standard</option>
+                                    <option value="global">Global</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
-                                <label><small><b>Notes :</b></small></label>
-                                <input type="text" name="txtnotes" id="txtnotes" class="form-control"
+                                <label class="form-label"><small><b>Delivery Date</b></small></label>
+                                <input type="date" class="form-control"
                                     style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                    placeholder="Masukan Notes" required>
+                                    id="txtdel_date" name="txtdel_date" value="{{ date('Y-m-d') }}">
                             </div>
                         </div>
                         <div class='row g-3'>
@@ -143,20 +136,6 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label><small><b>Confirm Price :</b></small></label>
-                                <input type="text" name="txtcfm_price" id="txtcfm_price" class="form-control"
-                                    style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                    placeholder="Masukan Confirm Price" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label"><small><b>Delivery Date</b></small></label>
-                                <input type="date" class="form-control"
-                                    style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                    id="txtdel_date" name="txtdel_date" value="{{ date('Y-m-d') }}">
-                            </div>
-                        </div>
-                        <div class='row g-3'>
-                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label><small><b>Product Item :</b></small></label>
                                     <select class='form-control select2bs4 form-control-sm'
@@ -164,6 +143,16 @@
                                         id='cbop_item'></select>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label><small><b>Brand :</b></small></label>
+                                    <input type="text" name="txtbrand" id="txtbrand" class="form-control"
+                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+                                        placeholder="Masukan Brand" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row g-3'>
                             <div class="col-md-4">
                                 <label><small><b>Ship Mode :</b></small></label>
                                 <select class="form-control form-control-sm select2bs4" id="cbo_ship" name="cbo_ship"
@@ -185,8 +174,6 @@
                                         placeholder="Masukan Main Destination" required>
                                 </div>
                             </div>
-                        </div>
-                        <div class='row g-3'>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label><small><b>Style :</b></small></label>
@@ -195,37 +182,70 @@
                                         placeholder="Masukan Style" required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label><small><b>Qty :</b></small></label>
-                                    <input type="text" name="txtqty" id="txtqty" class="form-control"
-                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                        placeholder="Masukan Qty" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label"><small><b>Tipe WS</b></small></label>
-                                <select class="form-control form-control-sm select2bs4" id="cbo_tipe" name="cbo_tipe"
-                                    style="width: 100%; font-size: 0.875rem;" required>
-                                    <option value="standard">Standard</option>
-                                    <option value="global">Global</option>
-                                </select>
-                            </div>
                         </div>
                         <div class='row g-3'>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label><small><b>Brand :</b></small></label>
-                                    <input type="text" name="txtbrand" id="txtbrand" class="form-control"
+                                    <label><small><b>Qty (PCS) :</b></small></label>
+                                    <input type="text" name="txtqty" id="txtqty" class="form-control"
                                         style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                        placeholder="Masukan Brand" required>
+                                        oninput="calculateMinutes()" placeholder="Masukan Qty" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
+                                    <label><small><b>SMV :</b></small></label>
+                                    <input type="text" name="txtsmv" id="txtsmv" class="form-control"
+                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+                                        oninput="calculateMinutes()" placeholder="Masukkan SMV">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label><small><b>Total Minute Production :</b></small></label>
+                                    <input type="text" name="txtmin_prod" id="txtmin_prod" class="form-control"
+                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+                                        readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row g-3'>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label><small><b>Currency :</b></small></label>
+                                    <select class="form-control select2bs4" id="cbocurr" name="cbocurr"
+                                        style="width: 100%; font-size: 0.875rem;" onchange="handleCurrencyChange(this)"
+                                        required>
+                                        <option selected="selected" value="" disabled="true">Pilih Currency
+                                        </option>
+                                        @foreach ($data_curr as $datacurr)
+                                            <option value="{{ $datacurr->isi }}">
+                                                {{ $datacurr->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label><small><b>Rate :</b></small></label>
+                                    <input type="text" name="txtrate_jual" id="txtrate_jual" class="form-control"
+                                        style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+                                        placeholder="Isi Untuk Currency Selain IDR">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label><small><b>Confirm Price :</b></small></label>
+                                <input type="text" name="txtcfm_price" id="txtcfm_price" class="form-control"
+                                    style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+                                    oninput="calculateFinalPrice()" placeholder="Masukan Confirm Price" required>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
                                     <label><small><b>VAT (%):</b></small></label>
                                     <select class="form-control form-control-sm select2bs4" id="cbo_vat" name="cbo_vat"
-                                        style="width: 100%; font-size: 0.875rem;" required>
+                                        style="width: 100%; font-size: 0.875rem;" onchange="calculateFinalPrice()"
+                                        required>
                                         <option selected="selected" value="" disabled="true">Pilih Vat
                                         </option>
                                         @foreach ($data_vat as $datavat)
@@ -236,14 +256,23 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-2">
                                 <div class="form-group">
-                                    <label><small><b>Rate :</b></small></label>
-                                    <input type="text" name="txtrate_jual" id="txtrate_jual" class="form-control"
+                                    <label><small><b>Final Confirm Price :</b></small></label>
+                                    <input type="text" name="txtfinal_cfm_price" id="txtfinal_cfm_price"
+                                        class="form-control"
                                         style="height: calc(2.15rem + 2px); padding: 0.375rem 0.75rem; font-size: 0.875rem;"
-                                        placeholder="Isi Kalau Currency Selain IDR">
+                                        readonly>
                                 </div>
                             </div>
+                        </div>
+                        <div class='row g-3'>
+                            <div class="col-md-12">
+                                <label><small><b>Notes :</b></small></label>
+                                <textarea name="txtnotes" id="txtnotes" class="form-control"
+                                    style="height: 100px; padding: 0.375rem 0.75rem; font-size: 0.875rem;" placeholder="Masukan Notes" required></textarea>
+                            </div>
+
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -391,12 +420,15 @@
 
             $('#form_new_costing')[0].reset(); // reset all fields
             $('#cbobuyer').val('').trigger('change'); // reset select2 field
-            $('#cbocurr').val('').trigger('change'); // reset select2 field
+            $('#cbocurr').val('IDR').trigger('change'); // reset select2 field
             $('#cbop_group').val('').trigger('change'); // reset select2 field
             $('#cbop_item').html('<option value="">Pilih Product Item</option>'); // reset item list
             $('#cbo_ship').val('').trigger('change'); // reset select2 field
             $('#cbo_stat').val('').trigger('change'); // reset select2 field
             $('#cbo_tipe').val('standard').trigger('change'); // reset select2 field
+            $('#txtcfm_price').val('0').trigger('change'); // reset select2 field
+            $('#cbo_vat').val('').trigger('change'); // reset select2 field
+            $('#txtnotes').val('').trigger('change'); // reset select2 field
 
         });
 
@@ -422,6 +454,43 @@
             });
         }
 
+        function handleCurrencyChange(selectElement) {
+            var selectedCurrency = selectElement.value;
+            var rateInput = document.getElementById('txtrate_jual');
+
+            if (selectedCurrency === 'IDR') {
+                rateInput.readOnly = true;
+                rateInput.value = '0';
+                rateInput.required = false;
+            } else {
+                rateInput.readOnly = false;
+                rateInput.value = '';
+                rateInput.required = true;
+            }
+        }
+
+        function calculateFinalPrice() {
+            var price = parseFloat(document.getElementById('txtcfm_price').value) || 0;
+            var vat = parseFloat(document.getElementById('cbo_vat').value) || 0;
+
+            var finalPrice = price / (1 + (vat / 100));
+            document.getElementById('txtfinal_cfm_price').value = finalPrice.toFixed(2);
+        }
+
+        function calculateMinutes() {
+            var qty = parseFloat(document.getElementById('txtqty').value) || 0;
+            var smv = parseFloat(document.getElementById('txtsmv').value) || 0;
+
+            var totalMinutes = qty * smv;
+            document.getElementById('txtmin_prod').value = totalMinutes.toFixed(2);
+        }
+
+        // Optional: trigger on page load in case a value is preselected
+        document.addEventListener('DOMContentLoaded', function() {
+            var select = document.getElementById('cbocurr');
+            handleCurrencyChange(select);
+        });
+
         function submitForm(form, event) {
             event.preventDefault(); // Prevent normal form submission
 
@@ -444,11 +513,11 @@
                         icon: 'success',
                         title: 'Success',
                         html: `
-        <p><strong>Cost No :</strong> ${data.data.cost_no}</p>
-        <p><strong>Buyer :</strong> ${data.data.buyer}</p>
-        <p><strong>WS :</strong> ${data.data.ws}</p>
-        <p><strong>Style :</strong> ${data.data.style}</p>
-                        `,
+    <p><strong>Cost No :</strong> ${data.data.cost_no}</p>
+    <p><strong>Buyer :</strong> ${data.data.buyer}</p>
+    <p><strong>WS :</strong> ${data.data.ws}</p>
+    <p><strong>Style :</strong> ${data.data.style}</p>
+    `,
                         confirmButtonText: 'OK',
                         allowOutsideClick: false, // ❌ disables click outside
                         allowEscapeKey: false, // ❌ disables ESC key

@@ -130,10 +130,12 @@
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Panel</b></small></label>
                                     <input type="hidden" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
+
                                     @if ($formCutInputData->panel)
-                                        <input type="text" class="form-control form-control-sm" name="panel-select" id="panel-select" value="{{ $formCutInputData->panel }}" readonly>
+                                        <input type="text" class="form-control form-control-sm" name="panel-show" id="panel-show" value="{{ $formCutInputData->panel }}" readonly>
+                                        <input type="hidden" class="form-control form-control-sm" name="panel_select" id="panel-select" value="{{ $formCutInputData->panel_id }}" readonly>
                                     @else
-                                        <select class="form-control select2bs4" id="panel-select" name="panel-select" style="width: 100%;">
+                                        <select class="form-control select2bs4" name="panel_select" id="panel-select" style="width: 100%;">
                                             <option selected="selected" value="">Pilih Panel</option>
                                             {{-- select 2 option --}}
                                         </select>
@@ -1211,7 +1213,7 @@
 
         // Step Three (Panel) on change event
         $('#panel-select').on('change', function(e) {
-            $('#panel').val(this.value).trigger('change');
+            $('#panel').val($('#panel-select option:selected').html()).trigger('change');
 
             if (this.value) {
                 getNumber();
@@ -1263,7 +1265,10 @@
                         $("#color-select").prop("disabled", false);
 
                         // Close next step
-                        $("#panel-select").prop("disabled", true);
+                        let el = document.getElementById('panel-select');
+                        if (el && el.tagName === 'SELECT') {
+                            $("#panel-select").prop("disabled", true);
+                        }
 
                         // Reset order information
                         document.getElementById('cons_ws_marker').value = null;
@@ -1284,15 +1289,19 @@
                 },
                 success: function (res) {
                     if (res) {
-                        // Update this step
-                        document.getElementById('panel-select').innerHTML = res;
-                        document.getElementById('cons_ws').innerHTML = res;
+                        let el = document.getElementById('panel-select');
 
-                        // Open this step
-                        $("#panel-select").prop("disabled", false);
+                        if (el && el.tagName === 'SELECT') {
+                            // Update this step
+                            document.getElementById('panel-select').innerHTML = res;
+                            document.getElementById('cons_ws').innerHTML = res;
 
-                        // Reset order information
-                        document.getElementById('cons_ws_marker').value = null;
+                            // Open this step
+                            $("#panel-select").prop("disabled", false);
+
+                            // Reset order information
+                            document.getElementById('cons_ws_marker').value = null;
+                        }
                     }
                 },
             });
@@ -1466,8 +1475,6 @@
             document.getElementById('total_qty_cut_ply').value = totalQtyCut;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(4)").innerText = totalRatio;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(5)").innerText = totalQtyCut;
-
-            calculateTotalRatio();
         }
 
         // Calculate All Cut Qty at Once Based on Spread Qty
@@ -1573,17 +1580,28 @@
 
         // Reset Step
         async function resetStep() {
+            let el = document.getElementById('panel-select');
+
             await $("#act_costing_id").val(null).trigger("change");
             await $("#color-select").val(null).trigger("change");
-            await $("#panel-select").val(null).trigger("change");
+            if (el && el.tagName === 'SELECT') {
+                await $("#panel-select").val(null).trigger("change");
+            }
+
             await $("#color-select").prop("disabled", true);
-            await $("#panel-select").prop("disabled", true);
+            if (el && el.tagName === 'SELECT') {
+                await $("#panel-select").prop("disabled", true);
+            }
         }
 
         function disableMarkerForm() {
+            let el = document.getElementById('panel-select');
+
             $("#act_costing_id").prop("disabled", true);
             $("#color-select").prop("disabled", true);
-            $("#panel-select").prop("disabled", true);
+            if (el && el.tagName === 'SELECT') {
+                $("#panel-select").prop("disabled", true);
+            }
             $("#tipe_marker").prop("readonly", true);
             $("#po").prop("readonly", true);
             $("#gelar_qty").prop("readonly", true);
@@ -1643,6 +1661,8 @@
         // Function List :
             // -On Load-
             $(document).ready(async () => {
+                let el = document.getElementById('panel-select');
+
                 document.getElementById("loading").classList.remove("d-none");
 
                 await clearGeneralForm();
@@ -1683,7 +1703,9 @@
 
                 // -Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )-
                 $("#color-select").prop("disabled", true);
-                $("#panel-select").prop("disabled", true);
+                if (el && el.tagName === 'SELECT') {
+                    $("#panel-select").prop("disabled", true);
+                }
 
                 // -Default Method-
                 $('#switch-method').prop('checked', true);
@@ -1745,6 +1767,8 @@
 
             // -Start Process Transaction-
             function updateToStartProcess() {
+                document.getElementById("loading").classList.remove("d-none");
+
                 let dataObj = {
                     startTime: startTime.value
                 }
@@ -1779,6 +1803,8 @@
 
                             status = "PENGERJAAN MARKER";
                         }
+
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 });
             }

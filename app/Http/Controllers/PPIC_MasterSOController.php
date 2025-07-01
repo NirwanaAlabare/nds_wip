@@ -22,12 +22,41 @@ class PPIC_MasterSOController extends Controller
         $tgl_akhir = $request->dateTo;
         $tgl_skrg = date('Y-m-d');
         $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        $ws = $request->ws;
+        $style = $request->style;
         $user = Auth::user()->name;
+        $filter = $request->filter;
+
+        if ($filter == 'all') {
+            $condition_tgl = " where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'";
+            $condition = "";
+            if (empty($ws) && empty($style)) {
+                $condition = "";
+            } else if (!empty($ws) && empty($style)) {
+                $condition = "where kpno = '$ws'";
+            } else if (empty($ws) && !empty($style)) {
+                $condition = "where styleno = '$style'";
+            } else if (!empty($ws) && !empty($style)) {
+                $condition = "where kpno = '$ws' and styleno = '$style'";
+            }
+        } else if ($filter == 'date') {
+            $condition_tgl = " where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'";
+            $condition = "";
+        } else if ($filter == 'ws-style') {
+            $condition_tgl = "";
+            if (!empty($ws) && empty($style)) {
+                $condition = "where kpno = '$ws'";
+            } else if (empty($ws) && !empty($style)) {
+                $condition = "where styleno = '$style'";
+            } else if (!empty($ws) && !empty($style)) {
+                $condition = "where kpno = '$ws' and styleno = '$style'";
+            }
+        }
 
         if ($request->ajax()) {
             $data_input = DB::select("WITH ppic as (
                 select * from laravel_nds.ppic_master_so p
-                where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
+                $condition_tgl
                 ),
                 gmt as (
                 select sd.id as id_so_det,id_jo,kpno,styleno, sd.*, Supplier buyer, product_group from signalbit_erp.so_det sd
@@ -78,6 +107,7 @@ class PPIC_MasterSOController extends Controller
                 left join pck_in on p.id = pck_in.id_ppic_master_so
                 left join pck_out on p.barcode = pck_out.barcode and p.po = pck_out.po and p.dest = pck_out.dest
                 LEFT JOIN signalbit_erp.master_size_new msn ON gmt.size = msn.size
+                $condition
                 ORDER BY
                 p.tgl_shipment DESC,
                 gmt.buyer ASC,
@@ -779,8 +809,141 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
     }
 
 
+    public function get_ws_header_ppic(Request $request)
+    {
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+        $filter = $request->filter;
+        $style = $request->style;
+
+        $conditions = [];
+
+        if ($filter === 'all' || $filter === 'date') {
+            // If filtering by date or all, restrict WS by shipment date range
+            $conditions[] = "tgl_shipment >= '$tgl_awal' AND tgl_shipment <= '$tgl_akhir'";
+        }
+
+        if ($filter === 'ws-style' && !empty($style)) {
+            // If filtering by style, get WS only for that style (ignore date here or combine)
+            $conditions[] = "styleno = '$style'";
+        }
+
+        $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
+        // Get WS based on constructed where clause
+        $all_ws = DB::select(
+            "SELECT DISTINCT kpno isi, kpno tampil
+        FROM laravel_nds.ppic_master_so p
+        INNER JOIN signalbit_erp.so_det sd ON p.id_so_det = sd.id
+        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+        $whereClause
+        ORDER BY kpno ASC"
+        );
+
+        // Selected WS is all for this filter
+        $selected_ws = array_map(fn($item) => $item->isi, $all_ws);
+
+        return response()->json([
+            'all_ws' => $all_ws,
+            'selected_ws' => $selected_ws
+        ]);
+    }
+
+
+
+    public function get_style_header_ppic(Request $request)
+    {
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+        $filter = $request->filter;
+        $ws = $request->ws;
+
+        $conditions = [];
+
+        if ($filter === 'all') {
+            $conditions[] = "tgl_shipment >= '$tgl_awal' AND tgl_shipment <= '$tgl_akhir'";
+        }
+
+        $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
+        // All styles
+        $all_styles = DB::select(
+            "SELECT DISTINCT styleno isi, styleno tampil
+        FROM laravel_nds.ppic_master_so p
+        INNER JOIN signalbit_erp.so_det sd ON p.id_so_det = sd.id
+        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+        $whereClause
+        ORDER BY styleno ASC"
+        );
+
+        // Related style(s) based on selected WS
+        $related_styles = [];
+        if (!empty($ws)) {
+            $related_styles = DB::select(
+                "SELECT DISTINCT styleno
+            FROM laravel_nds.ppic_master_so p
+            INNER JOIN signalbit_erp.so_det sd ON p.id_so_det = sd.id
+            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+            WHERE kpno = '$ws'"
+            );
+        }
+
+        return response()->json([
+            'all_styles' => $all_styles,
+            'selected_styles' => array_map(fn($item) => $item->styleno, $related_styles)
+        ]);
+    }
+
+    public function get_ws_style_ppic(Request $request)
+    {
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+        $filter = $request->filter;
+
+        if ($filter == 'all') {
+            $condition = "where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'";
+        } else if ($filter == 'ws-style') {
+            $condition = "";
+        } else if ($filter == 'date') {
+            $condition = "";
+        }
+
+
+        $data_ws = DB::select(
+            "SELECT DISTINCT ac.id isi, kpno tampil
+        FROM laravel_nds.ppic_master_so p
+        INNER JOIN signalbit_erp.so_det sd ON p.id_so_det = sd.id
+        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+        $condition
+        ORDER BY kpno ASC"
+        );
+
+        $data_style = DB::select(
+            "SELECT DISTINCT ac.id isi, styleno tampil
+        FROM laravel_nds.ppic_master_so p
+        INNER JOIN signalbit_erp.so_det sd ON p.id_so_det = sd.id
+        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+        $condition
+        ORDER BY styleno ASC"
+        );
+
+
+
+        return response()->json([
+            'data_ws' => $data_ws,
+            'data_style' => $data_style
+        ]);
+    }
+
+
+
     public function export_excel_master_so_ppic(Request $request)
     {
-        return Excel::download(new exportPPIC_Master_so_ppic($request->from, $request->to), 'Laporan_Master_SB_SO.xlsx');
+        return Excel::download(new exportPPIC_Master_so_ppic($request->from, $request->to, $request->ws, $request->style, $request->filter), 'Laporan_Master_SB_SO.xlsx');
     }
 }

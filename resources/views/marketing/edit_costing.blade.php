@@ -18,6 +18,12 @@
         .rotate-icon.rotated {
             transform: rotate(180deg);
         }
+
+        .select2-selection__rendered {
+            overflow: auto !important;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     </style>
 @endsection
 
@@ -45,14 +51,14 @@
                                 value="{{ $id }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group">
                             <label><small><b>Buyer :</b></small></label>
                             <input type="text" class="form-control form-control-sm" id="buyer" name="buyer"
                                 value="{{ $buyer }}"readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group">
                             <label><small><b>Style :</b></small></label>
                             <input type="text" class="form-control form-control-sm" id="txtstyle" name="txtstyle"
@@ -71,6 +77,13 @@
                             <label><small><b>Worksheet :</b></small></label>
                             <input type="text" class="form-control form-control-sm" id="txtws" name="txtws"
                                 value="{{ $ws }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label><small><b>Tipe WS :</b></small></label>
+                            <input type="text" class="form-control form-control-sm" id="txttipe_ws" name="txttipe_ws"
+                                value="{{ $type_ws }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -96,14 +109,16 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <div class="form-group">
-                                <label><small><b>Curr :</b></small></label>
-                                <select class="select2bs4" id="cbocurr" name="cbocurr" style="width: 100%;"required>
-                                    <option selected="selected" value="" disabled="true"></option>
-                                    @foreach ($data_curr as $dc)
-                                        <option value="{{ $dc->isi }}" {{ $dc->isi == $curr ? 'selected' : '' }}>
-                                            {{ $dc->tampil }}
+                                <label><small><b>Product Item :</b></small></label>
+                                <select class="select2bs4" id="cbop_item" name="cbop_item" style="width: 100%;"required>
+                                    <option selected="selected" value="" disabled="true">Pilih Product Group
+                                    </option>
+                                    @foreach ($data_pitem as $pi)
+                                        <option value="{{ $pi->isi }}"
+                                            {{ $pi->isi == $id_product ? 'selected' : '' }}>
+                                            {{ $pi->tampil }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -111,16 +126,9 @@
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <label><small><b>Confirm Price :</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txtcfm_price"
-                                    name="txtcfm_price" value="{{ $cfm_price }}">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label><small><b>Delivery Date :</b></small></label>
-                                <input type="date" class="form-control form-control-sm" id="txtdel_date"
-                                    name="txtdel_date" value="{{ $deldate }}">
+                                <label><small><b>Brand :</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id="txtbrand" name="txtbrand"
+                                    value="{{ $brand }}">
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -139,77 +147,89 @@
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <label><small><b>Tipe WS :</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txttipe_ws"
-                                    name="txttipe_ws" value="{{ $type_ws }}" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label><small><b>Product Item :</b></small></label>
-                                <select class="select2bs4" id="cbop_item" name="cbop_item" style="width: 100%;"required>
-                                    <option selected="selected" value="" disabled="true">Pilih Product Group
-                                    </option>
-                                    @foreach ($data_pitem as $pi)
-                                        <option value="{{ $pi->isi }}"
-                                            {{ $pi->isi == $id_product ? 'selected' : '' }}>
-                                            {{ $pi->tampil }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
                                 <label><small><b>Main Destination :</b></small></label>
                                 <input type="text" class="form-control form-control-sm" id="txtmain_dest"
                                     name="txtmain_dest" value="{{ $main_dest }}">
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label><small><b>Brand :</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txtbrand"
-                                    name="txtbrand" value="{{ $brand }}">
-                            </div>
-                        </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <label><small><b>Qty Order :</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txtqty_order"
-                                    name="txtqty_order" value="{{ $qty_order }}">
-                            </div>
-                        </div>
-                        <div class="col-md-1">
-                            <div class="form-group">
-                                <label><small><b>VAT :</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txtvat" name="txtvat"
-                                    value="{{ $vat }}">
-                            </div>
-                        </div>
-                        <div class="col-md-1">
-                            <div class="form-group">
-                                <label><small><b>Rate :</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txtvat" name="txtvat"
-                                    value="{{ $vat }}">
+                                <label><small><b>Delivery Date :</b></small></label>
+                                <input type="date" class="form-control form-control-sm" id="txtdel_date"
+                                    name="txtdel_date" value="{{ $deldate }}">
                             </div>
                         </div>
                     </div>
                     <div class="row mb-1">
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <div class="form-group">
-                                <label><small><b>SMV (Mins):</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txtmain_dest"
-                                    name="txtmain_dest" value="{{ $main_dest }}">
+                                <label><small><b>Curr :</b></small></label>
+                                <select class="select2bs4" id="cbocurr" name="cbocurr" style="width: 100%;"required>
+                                    <option selected="selected" value="" disabled="true"></option>
+                                    @foreach ($data_curr as $dc)
+                                        <option value="{{ $dc->isi }}" {{ $dc->isi == $curr ? 'selected' : '' }}>
+                                            {{ $dc->tampil }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <div class="form-group">
-                                <label><small><b>Book (Mins) :</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id="txtbrand"
-                                    name="txtbrand" value="{{ $brand }}">
+                                <label><small><b>Rate :</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id="txtrate" name="txtrate"
+                                    value="{{ $txtrate }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label><small><b>Confirm Price :</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id="txtcfm_price"
+                                    oninput="calculateFinalPrice()" name="txtcfm_price" value="{{ $cfm_price }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label><small><b>VAT (%) :</b></small></label>
+                                <select class="select2bs4" id="cbo_vat" name="cbo_vat" style="width: 100%;"required
+                                    onchange="calculateFinalPrice()">
+                                    <option selected="selected" value="" disabled="true"></option>
+                                    @foreach ($data_vat as $dv)
+                                        <option value="{{ $dv->isi }}" {{ $dv->isi == $vat ? 'selected' : '' }}>
+                                            {{ $dv->tampil }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label><small><b>Final Confirm Price :</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id="txtfinal_cfm_price"
+                                    name="txtfinal_cfm_price" value="{{ $cfm_price }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-1">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label><small><b>Qty Order (PCS) :</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id="txtqty_order"
+                                    name="txtqty_order" oninput="calculateMinutes()" value="{{ $qty_order }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label><small><b>SMV :</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id="txtsmv" name="txtsmv"
+                                    oninput="calculateMinutes()" value="{{ $txtsmv }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label><small><b>Total Minute Production :</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id="txtmin_prod"
+                                    name="txtmin_prod" value="{{ $txtmin_prod }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -232,6 +252,110 @@
                 <small class="text-primary fw-semibold">See More</small>
                 <i class="fas fa-chevron-down transition rotate-icon" id="collapseIcon"></i>
             </div>
+        </div>
+    </div>
+
+
+    <div class="card card-sb">
+        <div class="card-header">
+            <h5 class="card-title fw-bold mb-0">
+                <i class="fas fa-list"></i> List Item Costing
+            </h5>
+        </div>
+
+        <div class="card-body pb-0">
+            <div class="row mb-3">
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label><small><b>Category :</b></small></label>
+                        <select class="form-control select2bs4" id="cbo_cat" name="cbo_cat"
+                            onchange="show_jns();show_item();">
+                            <option value="all">All</option>
+                            <option value="material">Material</option>
+                            <option value="manufacturing">Manufacturing - Complexity</option>
+                            <option value="other">Other Cost</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2" id="jns_wrapper" style="display:none;">
+                    <div class="form-group">
+                        <label><small><b>Jenis :</b></small></label>
+                        <select class="form-control select2bs4" id="cbo_jns" name="cbo_jns" onchange="show_item();">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label><small><b>Pilih Item :</b></small></label>
+                        <select class="form-control select2bs4" id="cbo_item" name="cbo_item">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group">
+                        <label><small><b>Price :</b></small></label>
+                        <input type="text" class="form-control form-control-sm" id="txtprice" name="txtprice">
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group">
+                        <label><small><b>Cons :</b></small></label>
+                        <input type="text" class="form-control form-control-sm" id="txtcons" name="txtcons">
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group">
+                        <label><small><b>UOM :</b></small></label>
+                        <select class="form-control form-control-sm select2bs4" id="cbounit" name="cbounit"
+                            style="width: 100%; font-size: 0.875rem;" required>
+                            <option selected="selected" value="" disabled="true"><small>Pilih
+                                    Unit</small>
+                            </option>
+                            @foreach ($data_unit as $du)
+                                <option value="{{ $du->isi }}">
+                                    {{ $du->tampil }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group">
+                        <label><small><b>Allow (%) :</b></small></label>
+                        <input type="text" class="form-control form-control-sm" id="txtallow" name="txtallow">
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group">
+                        <label>&nbsp;</label> <!-- Keeps vertical alignment -->
+                        <button type="button" class="btn btn-sm btn-success btn-block"
+                            onclick="addSomething()">Add</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
+                <thead class="bg-sb">
+                    <tr style="text-align:center; vertical-align:middle">
+                        <th scope="col">ID Contents</th>
+                        <th scope="col">Kode Barang</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Price (USD)</th>
+                        <th scope="col">Price (IDR)</th>
+                        <th scope="col">Cons</th>
+                        <th scope="col">UOM</th>
+                        <th scope="col">Allow (%)</th>
+                        <th scope="col">Value (USD)</th>
+                        <th scope="col">Value (IDR)</th>
+                        <th scope="col">Percent</th>
+                        <th scope="col">Material Source</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </div>
 @endsection
@@ -298,6 +422,8 @@
             main_dest: @json($main_dest),
             qty_order: @json($qty_order),
             vat: @json($vat),
+            txtrate: @json($txtrate),
+            txtsmv: @json($txtsmv),
             // Add more fields as needed
         };
 
@@ -310,7 +436,9 @@
             $('#cbo_ship').val(defaultData.id_smode).trigger('change');
             $('#txtmain_dest').val(defaultData.main_dest);
             $('#txtqty_order').val(defaultData.qty_order);
-            $('#txtvat').val(defaultData.vat);
+            $('#cbo_vat').val(defaultData.vat).trigger('change');
+            $('#txtrate').val(defaultData.txtrate);
+            $('#txtsmv').val(defaultData.txtsmv);
             // $('#cbop_group').val(defaultData.product_group);
             // getprod_item(function() {
             //     $('#cbop_item').val(defaultData.product_item).trigger('change');
@@ -342,6 +470,31 @@
                 }
             });
         }
+
+        function calculateFinalPrice() {
+            var price = parseFloat(document.getElementById('txtcfm_price').value) || 0;
+            var vat = parseFloat(document.getElementById('cbo_vat').value) || 0;
+
+            var finalPrice = price / (1 + (vat / 100));
+            document.getElementById('txtfinal_cfm_price').value = finalPrice.toFixed(2);
+        }
+
+
+        function calculateFinalPrice() {
+            var price = parseFloat(document.getElementById('txtcfm_price').value) || 0;
+            var vat = parseFloat(document.getElementById('cbo_vat').value) || 0;
+
+            var finalPrice = price / (1 + (vat / 100));
+            document.getElementById('txtfinal_cfm_price').value = finalPrice.toFixed(2);
+        }
+
+        function calculateMinutes() {
+            var qty = parseFloat(document.getElementById('txtqty_order').value) || 0;
+            var smv = parseFloat(document.getElementById('txtsmv').value) || 0;
+
+            var totalMinutes = qty * smv;
+            document.getElementById('txtmin_prod').value = totalMinutes.toFixed(2);
+        }
     </script>
 
     <script>
@@ -363,8 +516,8 @@
                     if (data.status === 'success') {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Success',
-                            text: data.message,
+                            title: 'Updated successfully!',
+                            text: `Style : ${data.data.style} `, // ✅ Custom success message
                             confirmButtonColor: '#28a745'
                         });
                     } else {
@@ -383,6 +536,74 @@
                         text: 'Server error occurred'
                     });
                 });
+        });
+
+
+        function show_item() {
+            let cbo_cat = $('#cbo_cat').val();
+            let cbo_jns = cbo_cat === 'material' ? $('#cbo_jns').val() : null;
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('get_material_costing') }}',
+                data: {
+                    cbo_cat: cbo_cat,
+                    cbo_jns: cbo_jns // Pass null if not required
+                },
+                success: function(data) {
+                    let html = '<option value="">Pilih Product Item</option>';
+                    data.forEach(function(item) {
+                        html +=
+                            `<option value="${item.isi}" title="${item.tampil}">${item.tampil}</option>`;
+                    });
+                    $("#cbo_item").html(html);
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        }
+
+
+        function show_jns() {
+            const catValue = document.getElementById("cbo_cat").value;
+            const jnsWrapper = document.getElementById("jns_wrapper");
+
+            if (catValue === "material") {
+                jnsWrapper.style.display = "block";
+
+                // Load Jenis options
+                $.ajax({
+                    type: "GET",
+                    url: '{{ route('get_jns_costing_material') }}',
+                    success: function(data) {
+                        let html = '<option value="">Pilih Jenis</option>';
+                        data.forEach(function(item) {
+                            html += `<option value="${item.isi}">${item.tampil}</option>`;
+                        });
+                        $("#cbo_jns").html(html);
+                    },
+                    error: function(xhr) {
+                        console.error('Error:', xhr.responseText);
+                    }
+                });
+
+            } else {
+                jnsWrapper.style.display = "none";
+                $("#cbo_jns").html(""); // Clear Jenis dropdown
+
+                // 🔽 Clear and reset cbo_item to default
+                $("#cbo_item").html('<option value="">Pilih Product Item</option>');
+
+                // Load item list for non-costing categories (if needed)
+                show_item();
+            }
+        }
+
+
+        // Run it once on page load in case default value is "material"
+        document.addEventListener("DOMContentLoaded", function() {
+            show_jns();
         });
     </script>
 @endsection
