@@ -24,7 +24,8 @@
                     <a href="{{ route('sewing-transfer-output') }}" type="button" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"> <i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Output</h5>
+                                <h5 class="text-sb mb-0"> <i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Output
+                                </h5>
                             </div>
                         </div>
                     </a>
@@ -51,7 +52,8 @@
                     <a type="button" class="home-item" onclick="missRework()">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-circle-exclamation"></i> Fix Defect-Rework-RFT</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-circle-exclamation"></i> Fix
+                                    Defect-Rework-RFT</h5>
                             </div>
                         </div>
                     </a>
@@ -114,7 +116,7 @@
                         type: "post",
                         url: "{{ route('sewing-miss-user') }}",
                         dataType: "json",
-                        success: function (response) {
+                        success: function(response) {
                             if (response.status == 200) {
                                 Swal.fire({
                                     icon: 'success',
@@ -129,7 +131,8 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
-                                    html: response && response.message ? response.message : "Terjadi Kesalahan",
+                                    html: response && response.message ? response.message :
+                                        "Terjadi Kesalahan",
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',
@@ -183,7 +186,7 @@
                         type: "post",
                         url: "{{ route('sewing-miss-masterplan') }}",
                         dataType: "json",
-                        success: function (response) {
+                        success: function(response) {
                             if (response.status == 200) {
                                 Swal.fire({
                                     icon: 'success',
@@ -198,7 +201,8 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
-                                    html: response && response.message ? response.message : "Terjadi Kesalahan",
+                                    html: response && response.message ? response.message :
+                                        "Terjadi Kesalahan",
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',
@@ -252,7 +256,7 @@
                         type: "post",
                         url: "{{ route('sewing-miss-rework') }}",
                         dataType: "json",
-                        success: function (response) {
+                        success: function(response) {
                             if (response.status == 200) {
                                 Swal.fire({
                                     icon: 'success',
@@ -267,7 +271,8 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
-                                    html: response && response.message ? response.message : "Terjadi Kesalahan",
+                                    html: response && response.message ? response.message :
+                                        "Terjadi Kesalahan",
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',

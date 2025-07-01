@@ -75,17 +75,17 @@
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="11" style="background-color: lightgreen; text-align:center;">Sewing</th>
-                            <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Steam</th>
-                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Sewing</th>
-                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
+                            <th colspan="12" style="background-color: lightgreen; text-align:center;">Sewing</th>
+                            <th colspan="5" style="background-color: lightsteelblue; text-align:center;">Steam</th>
+                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Sewing</th>
+                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
                             </th>
-                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Mending</th>
+                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Mending</th>
                             </th>
-                            <th colspan="4" style="background-color:#FFE5B4; text-align:center;">Defect Packing</th>
-                            <th colspan="4" style="background-color:#FFE5B4; text-align:center;">Defect Packing
+                            <th colspan="5" style="background-color:#FFE5B4; text-align:center;">Defect Packing</th>
+                            <th colspan="5" style="background-color:#FFE5B4; text-align:center;">Defect Packing
                                 Spotcleaning</th>
-                            <th colspan="4" style="background-color:#FFE5B4; text-align:center;">Defect Packing Mending
+                            <th colspan="5" style="background-color:#FFE5B4; text-align:center;">Defect Packing Mending
                             </th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
@@ -104,40 +104,56 @@
                             <th style="background-color: lightgreen;">Output Mending</th>
                             <th style="background-color: lightgreen;">Reject</th>
                             <th style="background-color: lightgreen;">Output</th>
+                            <th style="background-color: lightgreen;">Adj</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
                             <th style="background-color: lightsteelblue;">Saldo Awal</th>
                             <th style="background-color: lightsteelblue;">Terima</th>
                             <th style="background-color: lightsteelblue;">Keluar</th>
+                            <th style="background-color: lightsteelblue;">Adj</th>
                             <th style="background-color: lightsteelblue;">Saldo Akhir</th>
                             <th style="background-color: Lavender;">Saldo Awal</th>
                             <th style="background-color: Lavender;">Terima</th>
                             <th style="background-color: Lavender;">Keluar</th>
+                            <th style="background-color: Lavender;">Adj</th>
                             <th style="background-color: Lavender;">Saldo Akhir</th>
                             <th style="background-color: Lavender;">Saldo Awal</th>
                             <th style="background-color: Lavender;">Terima</th>
                             <th style="background-color: Lavender;">Keluar</th>
+                            <th style="background-color: Lavender;">Adj</th>
                             <th style="background-color: Lavender;">Saldo Akhir</th>
                             <th style="background-color: Lavender;">Saldo Awal</th>
                             <th style="background-color: Lavender;">Terima</th>
                             <th style="background-color: Lavender;">Keluar</th>
+                            <th style="background-color: Lavender;">Adj</th>
                             <th style="background-color: Lavender;">Saldo Akhir</th>
                             <th style="background-color: #FFE5B4;">Saldo Awal</th>
                             <th style="background-color: #FFE5B4;">Terima</th>
                             <th style="background-color: #FFE5B4;">Keluar</th>
+                            <th style="background-color: #FFE5B4;">Adj</th>
                             <th style="background-color: #FFE5B4;">Saldo Akhir</th>
                             <th style="background-color: #FFE5B4;">Saldo Awal</th>
                             <th style="background-color: #FFE5B4;">Terima</th>
                             <th style="background-color: #FFE5B4;">Keluar</th>
+                            <th style="background-color: #FFE5B4;">Adj</th>
                             <th style="background-color: #FFE5B4;">Saldo Akhir</th>
                             <th style="background-color: #FFE5B4;">Saldo Awal</th>
                             <th style="background-color: #FFE5B4;">Terima</th>
                             <th style="background-color: #FFE5B4;">Keluar</th>
+                            <th style="background-color: #FFE5B4;">Adj</th>
                             <th style="background-color: #FFE5B4;">Saldo Akhir</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5">Total </th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -245,7 +261,7 @@
             console.log(dateFrom, dateTo);
             datatable = $("#datatable").DataTable({
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 scrollY: "450px",
                 scrollX: true,
                 scrollCollapse: true,
@@ -310,6 +326,9 @@
                         data: 'output_rfts'
                     },
                     {
+                        data: 'saldo_akhir_adj'
+                    },
+                    {
                         data: 'saldo_akhir'
                     },
                     {
@@ -320,6 +339,9 @@
                     },
                     {
                         data: 'output_steam'
+                    },
+                    {
+                        data: 'sa_steam_adj_akhir'
                     },
                     {
                         data: 'saldo_akhir_steam'
@@ -334,6 +356,9 @@
                         data: 'defect_trans_rew_sewing'
                     },
                     {
+                        data: 'sa_def_sewing_adj_akhir'
+                    },
+                    {
                         data: 'saldo_akhir_def_sewing'
                     },
                     {
@@ -344,6 +369,9 @@
                     },
                     {
                         data: 'defect_trans_rew_spotcleaning'
+                    },
+                    {
+                        data: 'sa_def_spotcleaning_adj_akhir'
                     },
                     {
                         data: 'saldo_akhir_def_spotcleaning'
@@ -358,6 +386,9 @@
                         data: 'defect_trans_rew_mending'
                     },
                     {
+                        data: 'sa_def_mending_adj_akhir'
+                    },
+                    {
                         data: 'saldo_akhir_def_mending'
                     },
                     {
@@ -368,6 +399,9 @@
                     },
                     {
                         data: 'defect_trans_rew_sewing_pck'
+                    },
+                    {
+                        data: 'sa_def_pck_sewing_adj_akhir'
                     },
                     {
                         data: 'saldo_akhir_def_sewing_pck'
@@ -382,6 +416,9 @@
                         data: 'defect_trans_rew_spotcleaning_pck'
                     },
                     {
+                        data: 'sa_def_pck_spotcleaning_adj_akhir'
+                    },
+                    {
                         data: 'saldo_akhir_def_spotcleaning_pck'
                     },
                     {
@@ -392,6 +429,9 @@
                     },
                     {
                         data: 'defect_trans_rew_mending_pck'
+                    },
+                    {
+                        data: 'sa_def_pck_mending_adj_akhir'
                     },
                     {
                         data: 'saldo_akhir_def_mending_pck'
@@ -488,26 +528,26 @@
                     worksheet.addRow([]);
                     const headerRow = worksheet.addRow([
                         "Jenis Produk", "", "", "", "",
-                        "Sewing", "", "", "", "", "", "", "", "", "", "",
-                        "Steam", "", "", "",
-                        "Defect Sewing", "", "", "",
-                        "Defect Spotcleaning", "", "", "",
-                        "Defect Mending", "", "", "",
-                        "Defect Packing Sewing", "", "", "",
-                        "Defect Packing Spotcleaning", "", "", "",
-                        "Defect Packing Mending", "", "", "",
+                        "Sewing", "", "", "", "", "", "", "", "", "", "", "",
+                        "Steam", "", "", "", "",
+                        "Defect Sewing", "", "", "", "",
+                        "Defect Spotcleaning", "", "", "", "",
+                        "Defect Mending", "", "", "", "",
+                        "Defect Packing Sewing", "", "", "", "",
+                        "Defect Packing Spotcleaning", "", "", "", "",
+                        "Defect Packing Mending", "", "", "", "",
                     ]);
 
                     // Merge cells for the first header row
                     worksheet.mergeCells(`A${headerRow.number}:E${headerRow.number}`); // Merge "Jenis Produk"
-                    worksheet.mergeCells(`F${headerRow.number}:P${headerRow.number}`); // Merge "Packing Line"
-                    worksheet.mergeCells(`Q${headerRow.number}:T${headerRow.number}`);
-                    worksheet.mergeCells(`U${headerRow.number}:X${headerRow.number}`);
-                    worksheet.mergeCells(`Y${headerRow.number}:AB${headerRow.number}`);
-                    worksheet.mergeCells(`AC${headerRow.number}:AF${headerRow.number}`);
-                    worksheet.mergeCells(`AG${headerRow.number}:AJ${headerRow.number}`);
-                    worksheet.mergeCells(`AK${headerRow.number}:AN${headerRow.number}`);
-                    worksheet.mergeCells(`AO${headerRow.number}:AR${headerRow.number}`);
+                    worksheet.mergeCells(`F${headerRow.number}:Q${headerRow.number}`); // Merge "Packing Line"
+                    worksheet.mergeCells(`R${headerRow.number}:V${headerRow.number}`); //steam
+                    worksheet.mergeCells(`W${headerRow.number}:AA${headerRow.number}`); //def sewing
+                    worksheet.mergeCells(`AB${headerRow.number}:AF${headerRow.number}`); //def spotcleaning
+                    worksheet.mergeCells(`AG${headerRow.number}:AK${headerRow.number}`); //def mending
+                    worksheet.mergeCells(`AL${headerRow.number}:AP${headerRow.number}`); //def pck sewing
+                    worksheet.mergeCells(`AQ${headerRow.number}:AU${headerRow.number}`); //def pck spotcleaning
+                    worksheet.mergeCells(`AV${headerRow.number}:AZ${headerRow.number}`); //def pck mending
 
                     // Define the second header row
                     // Center align the merged cells
@@ -543,7 +583,11 @@
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    worksheet.getCell(`AO${headerRow.number}`).alignment = {
+                    worksheet.getCell(`AQ${headerRow.number}`).alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    worksheet.getCell(`AZ${headerRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
@@ -551,14 +595,15 @@
                         "WS", "Buyer", "Style", "Color", "Size",
                         "Saldo Awal", "Terima Dari Loading", "Rework Sewing",
                         "Rework Spot Cleaning", "Rework Mending", "Defect Sewing",
-                        "Defect Spot Cleaning", "Defect Mending", "Reject", "Output", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Saldo Akhir",
+                        "Defect Spot Cleaning", "Defect Mending", "Reject", "Output", "Saldo Akhir Adj",
+                        "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir", //steam
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir", //def sewing
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
                     ];
                     worksheet.addRow(headers);
 
@@ -580,34 +625,42 @@
                             row.defect_mending,
                             row.output_rejects,
                             row.output_rfts,
+                            row.saldo_akhir_adj,
                             row.saldo_akhir,
                             row.saldo_awal_steam,
                             row.input_steam,
                             row.output_steam,
+                            row.sa_steam_adj_akhir,
                             row.saldo_akhir_steam,
                             row.saldo_awal_def_sew,
                             row.defect_trans_sewing,
                             row.defect_trans_rew_sewing,
+                            row.sa_def_sewing_adj_akhir,
                             row.saldo_akhir_def_sewing,
                             row.saldo_awal_def_spotcleaning,
                             row.defect_trans_spotcleaning,
                             row.defect_trans_rew_spotcleaning,
+                            row.sa_def_spotcleaning_adj_akhir,
                             row.saldo_akhir_def_spotcleaning,
                             row.saldo_awal_def_mending,
                             row.defect_trans_mending,
                             row.defect_trans_rew_mending,
+                            row.sa_def_mending_adj_akhir,
                             row.saldo_akhir_def_mending,
                             row.saldo_awal_def_sew_pck,
                             row.defect_trans_sewing_pck,
                             row.defect_trans_rew_sewing_pck,
+                            row.sa_def_pck_sewing_adj_akhir,
                             row.saldo_akhir_def_sewing_pck,
                             row.saldo_awal_def_spotcleaning_pck,
                             row.defect_trans_spotcleaning_pck,
                             row.defect_trans_rew_spotcleaning_pck,
+                            row.sa_def_pck_spotcleaning_adj_akhir,
                             row.saldo_akhir_def_spotcleaning_pck,
                             row.saldo_awal_def_mending_pck,
                             row.defect_trans_mending_pck,
                             row.defect_trans_rew_mending_pck,
+                            row.sa_def_pck_mending_adj_akhir,
                             row.saldo_akhir_def_mending_pck
                         ]);
                     });

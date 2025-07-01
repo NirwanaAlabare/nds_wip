@@ -16,56 +16,56 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
     // Datepicker JQuery UI
-    $('input[type="date"]').each(function () {
-        const original = $(this);
+    // $('input[type="date"]').each(function () {
+    //     const original = $(this);
 
-        if (original.hasClass('skip-datepicker') || original.is('[wire\\:model], [wire\\:model\\.defer], [wire\\:model\\.lazy]')) {
-            return;
-        }
+    //     if (original.hasClass('skip-datepicker') || original.is('[wire\\:model], [wire\\:model\\.defer], [wire\\:model\\.lazy]')) {
+    //         return;
+    //     }
 
-        const id = original.attr('id');
-        const value = original.val();
+    //     const id = original.attr('id');
+    //     const value = original.val();
 
-        // Hide original input
-        original.hide();
+    //     // Hide original input
+    //     original.hide();
 
-        // Create visible input
-        const visible = $('<input type="text" class="form-control form-control-sm datepicker" autocomplete="off">')
-            .attr('id', id + '_display')
-            .insertAfter(original);
+    //     // Create visible input
+    //     const visible = $('<input type="text" class="form-control form-control-sm datepicker" autocomplete="off">')
+    //         .attr('id', id + '_display')
+    //         .insertAfter(original);
 
-        // Init datepicker
-        visible.datepicker({
-            dateFormat: 'dd-mm-yy',
-        });
+    //     // Init datepicker
+    //     visible.datepicker({
+    //         dateFormat: 'dd-mm-yy',
+    //     });
 
-        // Set initial value
-        if (value) {
-            let parts = value.split('-'); // ["2025", "06", "11"]
-            let date = new Date(parts[0], parts[1] - 1, parts[2]);
-            visible.datepicker('setDate', date);
-        }
+    //     // Set initial value
+    //     if (value) {
+    //         let parts = value.split('-'); // ["2025", "06", "11"]
+    //         let date = new Date(parts[0], parts[1] - 1, parts[2]);
+    //         visible.datepicker('setDate', date);
+    //     }
 
-        // When hidden input changes (e.g. via JS), update visible input
-        original.on('change', function () {
-            let parts = original.val().split('-'); // ["2025", "06", "11"]
-            let date = new Date(parts[0], parts[1] - 1, parts[2]);
-            visible.datepicker('setDate', date);
-        });
+    //     // When hidden input changes (e.g. via JS), update visible input
+    //     original.on('change', function () {
+    //         let parts = original.val().split('-'); // ["2025", "06", "11"]
+    //         let date = new Date(parts[0], parts[1] - 1, parts[2]);
+    //         visible.datepicker('setDate', date);
+    //     });
 
-        // When visible input changes manually, update hidden input
-        visible.on('change', function () {
-            const date = visible.datepicker('getDate');
-            if (date instanceof Date && !isNaN(date)) {
-                const formatted = $.datepicker.formatDate('yy-mm-dd', date);
-                original.val(formatted).trigger('input').trigger('change');
-            } else {
-                original.val('').trigger('input').trigger('change');
-            }
+    //     // When visible input changes manually, update hidden input
+    //     visible.on('change', function () {
+    //         const date = visible.datepicker('getDate');
+    //         if (date instanceof Date && !isNaN(date)) {
+    //             const formatted = $.datepicker.formatDate('yy-mm-dd', date);
+    //             original.val(formatted).trigger('input').trigger('change');
+    //         } else {
+    //             original.val('').trigger('input').trigger('change');
+    //         }
 
-            visible.blur();
-        });
-    });
+    //         visible.blur();
+    //     });
+    // });
 });
 
 function unique(value, index, array) {
@@ -81,7 +81,7 @@ function disableFormSubmit(formId) {
     const form = document.querySelector(formId);
 
     // Add an event listener for the 'keypress' event
-    form.addEventListener('keypress', function(event) {
+    form.addEventListener('keypress', function (event) {
         // Check if the pressed key is 'Enter' (key code 13)
         if (event.key === 'Enter') {
             // Prevent the form from submitting
@@ -96,18 +96,18 @@ function isImage(i) {
 
 function isElement(obj) {
     try {
-      //Using W3 DOM2 (works for FF, Opera and Chrome)
-      return obj instanceof HTMLElement;
+        //Using W3 DOM2 (works for FF, Opera and Chrome)
+        return obj instanceof HTMLElement;
     }
-    catch(e){
-      //Browsers not supporting W3 DOM2 don't have HTMLElement and
-      //an exception is thrown and we end up here. Testing some
-      //properties that all elements have (works on IE7)
-      return (typeof obj==="object") &&
-        (obj.nodeType===1) && (typeof obj.style === "object") &&
-        (typeof obj.ownerDocument ==="object");
+    catch (e) {
+        //Browsers not supporting W3 DOM2 don't have HTMLElement and
+        //an exception is thrown and we end up here. Testing some
+        //properties that all elements have (works on IE7)
+        return (typeof obj === "object") &&
+            (obj.nodeType === 1) && (typeof obj.style === "object") &&
+            (typeof obj.ownerDocument === "object");
     }
-  }
+}
 
 // Capitalize
 function capitalizeFirstLetter(string) {
@@ -169,7 +169,7 @@ function formatNumber(val) {
         for (let i = len - 1; i >= 0; i--) {
             result = num.toString()[i] + result;
             if (count % 3 === 0 && count !== 0 && i !== 0) {
-            result = '.' + result;
+                result = '.' + result;
             }
             count++;
         }
@@ -198,7 +198,7 @@ function formatDate(date) {
 }
 
 function formatDateLocal(date) {
-    let months = [{'angka' : 1, 'nama' : 'Januari'}, {'angka' : 2, 'nama' : 'Februari'}, {'angka' : 3, 'nama' : 'Maret'}, {'angka' : 4, 'nama' : 'April'}, {'angka' : 5, 'nama' : 'Mei'}, {'angka' : 6, 'nama' : 'Juni'}, {'angka' : 7, 'nama' : 'Juli'}, {'angka' : 8, 'nama' : 'Agustus'}, {'angka' : 9, 'nama' : 'September'}, {'angka' : 10, 'nama' : 'Oktober'}, {'angka' : 11, 'nama' : 'November'}, {'angka' : 12, 'nama' : 'Desember'}];
+    let months = [{ 'angka': 1, 'nama': 'Januari' }, { 'angka': 2, 'nama': 'Februari' }, { 'angka': 3, 'nama': 'Maret' }, { 'angka': 4, 'nama': 'April' }, { 'angka': 5, 'nama': 'Mei' }, { 'angka': 6, 'nama': 'Juni' }, { 'angka': 7, 'nama': 'Juli' }, { 'angka': 8, 'nama': 'Agustus' }, { 'angka': 9, 'nama': 'September' }, { 'angka': 10, 'nama': 'Oktober' }, { 'angka': 11, 'nama': 'November' }, { 'angka': 12, 'nama': 'Desember' }];
 
     var dateObj = new Date(date);
 
@@ -213,10 +213,10 @@ function formatDateTime(date) {
     var dateObj = new Date(date);
 
     var date = "0" + dateObj.getDate();
-    var month = "0" + (dateObj.getMonth()+1);
+    var month = "0" + (dateObj.getMonth() + 1);
     var year = dateObj.getFullYear();
 
-    var dateMonthYear = year+"-"+month.substr(-2)+"-"+date.substr(-2);
+    var dateMonthYear = year + "-" + month.substr(-2) + "-" + date.substr(-2);
 
     // Hours part from the timestamp
     var hours = "0" + dateObj.getHours();
@@ -420,12 +420,12 @@ function submitForm(e, evt) {
                 let successMessage = "";
                 res.additional.success.forEach((item) => {
                     console.log("item", item);
-                    successMessage += '<span class="text-success fw-bold">'+(item)+' Berhasil</span><br>';
+                    successMessage += '<span class="text-success fw-bold">' + (item) + ' Berhasil</span><br>';
                 });
 
                 let failMessage = "";
                 res.additional.fail.forEach((item) => {
-                    failMessage += '<span class="text-danger fw-bold">'+(item)+' Tidak Valid</span><br>';
+                    failMessage += '<span class="text-danger fw-bold">' + (item) + ' Tidak Valid</span><br>';
                 });
 
                 Swal.fire({
@@ -666,28 +666,28 @@ function generateToken(id, route) {
 // popup notification
 function showNotification(type, message) {
     switch (type) {
-        case 'info' :
+        case 'info':
             iziToast.info({
                 title: 'Information',
                 message: message,
                 position: 'topCenter'
             });
             break;
-        case 'success' :
+        case 'success':
             iziToast.success({
                 title: 'Success',
                 message: message,
                 position: 'topCenter'
             });
             break;
-        case 'warning' :
+        case 'warning':
             iziToast.warning({
                 title: 'Warning',
                 message: message,
                 position: 'topCenter'
             });
             break;
-        case 'error' :
+        case 'error':
             iziToast.error({
                 title: 'Error',
                 message: message,
@@ -698,35 +698,35 @@ function showNotification(type, message) {
 }
 
 //Returns true if it is a Node
-function isNode(o){
+function isNode(o) {
     return (
-      typeof Node === "object" ? o instanceof Node :
-      o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+        typeof Node === "object" ? o instanceof Node :
+            o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName === "string"
     );
 }
 
 //Returns true if it is a DOM element
-function isElement(o){
+function isElement(o) {
     return (
         typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
-        o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
+            o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
     );
 }
 
 function objectGroupBy(array, keyFn) {
     return array.reduce((acc, item) => {
-      const key = keyFn(item);
-      (acc[key] ||= []).push(item);
-      return acc;
+        const key = keyFn(item);
+        (acc[key] ||= []).push(item);
+        return acc;
     }, {});
 }
 
 function objectValues(obj) {
-  var values = [];
-  for (var key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      values.push(obj[key]);
+    var values = [];
+    for (var key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            values.push(obj[key]);
+        }
     }
-  }
-  return values;
+    return values;
 }

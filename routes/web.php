@@ -139,6 +139,7 @@ use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
 use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\ReportHourlyController;
 use App\Http\Controllers\BarcodePackingController;
+use App\Http\Controllers\PPIC_tools_adjustmentController;
 // PACKING
 use App\Http\Controllers\PackingDashboardController;
 use App\Http\Controllers\PackingTransferGarmentController;
@@ -1792,6 +1793,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/update_tgl_ppic_master_so', 'update_tgl_ppic_master_so')->name('update_tgl_ppic_master_so');
         Route::get('/getpo_ppic_hapus', 'getpo_ppic_hapus')->name('getpo_ppic_hapus');
         Route::post('/hapus_multiple_ppic_master_so', 'hapus_multiple_ppic_master_so')->name('hapus_multiple_ppic_master_so');
+        Route::get('/get_ws_header_ppic', 'get_ws_header_ppic')->name('get_ws_header_ppic');
+        Route::get('/get_style_header_ppic', 'get_style_header_ppic')->name('get_style_header_ppic');
+        Route::get('/get_ws_style_ppic', 'get_ws_style_ppic')->name('get_ws_style_ppic');
     });
 
     // PPIC Laporan Tracking
@@ -1833,6 +1837,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-barcode', 'getBarcode')->name('get-barcode-packing');
         Route::get('/generate-barcode/{barcode?}', 'generateBarcode')->name('generate-barcode-packing');
         Route::post('/download-barcode', 'downloadBarcode')->name('download-barcode-packing');
+    });
+
+    // Tools Adjustment PPIC
+    Route::controller(PPIC_tools_adjustmentController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
+        Route::get('/ppic_tools_adj_mut_output', 'ppic_tools_adj_mut_output')->name('ppic_tools_adj_mut_output');
+        Route::get('/contoh_upload_adj_mut_output', 'contoh_upload_adj_mut_output')->name('contoh_upload_adj_mut_output');
+        Route::post('/upload_adj_mut_output', 'upload_adj_mut_output')->name('upload_adj_mut_output');
+        Route::get('/show_datatable_upload_adj_mut_output', 'show_datatable_upload_adj_mut_output')->name('show_datatable_upload_adj_mut_output');
+        Route::post('/undo_upload_adj_mut_output', 'undo_upload_adj_mut_output')->name('undo_upload_adj_mut_output');
+        Route::post('/store_upload_adj_mut_output', 'store_upload_adj_mut_output')->name('store_upload_adj_mut_output');
+        Route::post('/delete_upload_adj_mut_output', 'delete_upload_adj_mut_output')->name('delete_upload_adj_mut_output');
     });
 
     // Report Hourly Output
@@ -1940,6 +1955,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/store_master_costing_production', 'store_master_costing_production')->name('store_master_costing_production');
         Route::get('/edit_costing/{id?}', 'edit_costing')->name('edit_costing');
         Route::post('/update_header_master_costing', 'update_header_master_costing')->name('update_header_master_costing');
+        Route::get('/get_jns_costing_material', 'get_jns_costing_material')->name('get_jns_costing_material');
+        Route::get('/get_material_costing', 'get_material_costing')->name('get_material_costing');
     });
 });
 

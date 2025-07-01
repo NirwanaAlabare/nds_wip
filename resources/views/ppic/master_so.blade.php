@@ -514,52 +514,80 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Master</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <select class="form-select form-select-sm mb-3 select2bs4" id="filter-mode"
+                    onchange="toggleFilterMode();get_cbo_ws_style();">
+                    <option value="all">Filter by All</option>
+                    <option value="date">Filter by Date</option>
+                    <option value="ws-style">Filter by WS / Style</option>
+                </select>
+            </div>
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <div class="mb-3 flex-fill" id="col_tgl_awal" style="width: 200px;">
                     <label class="form-label"><small><b>Tgl Shipment Awal</b></small></label>
-                    <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <div class="input-group">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                            value="{{ date('Y-m-d') }}" onchange="get_cbo_ws_style();">
+                    </div>
                 </div>
-                <div class="mb-3">
+                <div class="mb-3 flex-fill" id="col_tgl_akhir" style="width: 200px;">
                     <label class="form-label"><small><b>Tgl Shipment Akhir</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <div class="input-group">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                            value="{{ date('Y-m-d') }}" onchange="get_cbo_ws_style();">
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
+                <div class="mb-3 flex-fill" id="col_ws" style="width: 200px;">
+                    <label class="form-label"><small><b>WS</b></small></label>
+                    <div class="input-group">
+                        <select class="form-control form-control-sm select2bs4" id="cbows_header" name="cbows_header"
+                            style="width: 100%; font-size: 0.875rem;">
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3 flex-fill" id="col_style" style="width: 200px;">
+                    <label class="form-label"><small><b>Style</b></small></label>
+                    <div class="input-group">
+                        <select class="form-control form-control-sm select2bs4" id="cbostyle_header"
+                            name="cbostyle_header" style="width: 100%; font-size: 0.875rem;">
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3 flex-fill d-flex align-items-end">
+                    <a onclick="dataTableReload()" class="btn btn-outline-primary btn-sm ms-2">
                         <i class="fas fa-search"></i>
-                        Cari
                     </a>
-                </div>
-                <div class="mb-3">
-                    <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-success position-relative btn-sm">
-                        <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
+                    <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-success btn-sm ms-2">
+                        <i class="fas fa-file"></i>
                     </a>
-                </div>
-                <div class="mb-3">
-                    <a class="btn btn-outline-info position-relative btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#exampleModal" onclick="dataTableTrackingReload()">
+                    <a onclick="dataTableTrackingReload()" class="btn btn-outline-info btn-sm ms-2"
+                        data-bs-toggle="modal" data-bs-target="#exampleModal">
                         <i class="fas fa-chart-line fa-sm"></i>
-                        Tracking Output Packing
                     </a>
-                </div>
-                <div class="mb-3">
-                    <a class="btn btn-outline-warning position-relative btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#exampleModalEditMultiple">
+                    <a onclick="dataTableTrackingReload()" class="btn btn-outline-warning btn-sm ms-2"
+                        data-bs-toggle="modal" data-bs-target="#exampleModalEditMultiple">
                         <i class="far fa-edit fa-sm"></i>
-                        Edit Multiple
                     </a>
-                </div>
 
-                {{-- <div class="mb-3">
-                    <a class="btn btn-outline-danger position-relative btn-sm" data-bs-toggle="modal"
+                </div>
+                {{-- <div class="mb-3 flex-fill d-flex align-items-end">
+                    <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
+                        <i class="fas fa-search"></i> Cari
+                    </a>
+                    <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i> Export Excel
+                    </a>
+                    <a class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                        onclick="dataTableTrackingReload()">
+                        <i class="fas fa-chart-line fa-sm"></i> Tracking Output Packing
+                    </a>
+                    <a class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
                         data-bs-target="#exampleModalEditMultiple">
-                        <i class="far fa-window-close fa-sm"></i>
-                        Delete Multiple
+                        <i class="far fa-edit fa-sm"></i> Edit Multiple
                     </a>
                 </div> --}}
             </div>
+
 
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
@@ -650,6 +678,29 @@
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
+
+        function toggleFilterMode() {
+            const mode = document.getElementById('filter-mode').value;
+
+            const col_tgl_awal = document.getElementById('col_tgl_awal');
+            const col_tgl_akhir = document.getElementById('col_tgl_akhir');
+            if (mode === 'date') {
+                col_tgl_awal.style.display = 'block';
+                col_tgl_akhir.style.display = 'block';
+                col_ws.style.display = 'none';
+                col_style.style.display = 'none';
+            } else if (mode === 'ws-style') {
+                col_tgl_awal.style.display = 'none';
+                col_tgl_akhir.style.display = 'none';
+                col_style.style.display = 'block';
+                col_ws.style.display = 'block';
+            } else {
+                col_tgl_awal.style.display = 'block';
+                col_tgl_akhir.style.display = 'block';
+                col_style.style.display = 'block';
+                col_ws.style.display = 'block';
+            }
+        }
     </script>
     <script type="text/javascript">
         function submitUploadForm(e, evt) {
@@ -726,6 +777,10 @@
                 dataTablePreviewReload();
             });
             data_cek_double_tmp();
+            get_ws_header();
+            get_style_header();
+            get_cbo_ws_style();
+
         })
 
 
@@ -1099,6 +1154,9 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.ws = $('#cbows_header option:selected').text(); // This gives you "tampil"
+                    d.style = $('#cbostyle_header option:selected').text(); // This gives you "tampil"
+                    d.filter = $('#filter-mode').val();
                 },
             },
             columns: [{
@@ -1206,6 +1264,9 @@
         function export_excel_master_so_ppic() {
             let from = document.getElementById("tgl-awal").value;
             let to = document.getElementById("tgl-akhir").value;
+            let ws = $('#cbows_header option:selected').text();
+            let style = $('#cbostyle_header option:selected').text();
+            let filter = $('#filter-mode').val();
 
             Swal.fire({
                 title: 'Please Wait...',
@@ -1221,7 +1282,10 @@
                 url: '{{ route('export_excel_master_so_ppic') }}',
                 data: {
                     from: from,
-                    to: to
+                    to: to,
+                    ws: ws,
+                    style: style,
+                    filter: filter
                 },
                 xhrFields: {
                     responseType: 'blob'
@@ -1746,6 +1810,142 @@
                 error: function(request, status, error) {
                     alert(request.responseText);
                 },
+            });
+        }
+
+        function get_ws_header() {
+            let dateFrom = $('#tgl-awal').val();
+            let dateTo = $('#tgl-akhir').val();
+            let filter = $('#filter-mode').val();
+            let style = $('#cbostyle_header').val();
+
+            // Only call if filter is all, date, or ws-style with style selected
+            if (filter === 'ws-style' && !style) {
+                $("#cbows_header").html('<option value="">Pilih WS</option>').trigger('change');
+                return;
+            }
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('get_ws_header_ppic') }}',
+                data: {
+                    dateFrom: dateFrom,
+                    dateTo: dateTo,
+                    filter: filter,
+                    style: style
+                },
+                success: function(response) {
+                    let allWS = response.all_ws;
+                    let selectedWS = response.selected_ws;
+
+                    let html = '<option value="">Pilih WS</option>';
+                    allWS.forEach(function(item) {
+                        let selected = selectedWS.includes(item.isi) ? 'selected' : '';
+                        html += `<option value="${item.isi}" ${selected}>${item.tampil}</option>`;
+                    });
+
+                    $("#cbows_header").html(html).trigger('change');
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        }
+
+
+
+        function get_style_header() {
+            let dateFrom = $('#tgl-awal').val();
+            let dateTo = $('#tgl-akhir').val();
+            let ws = $('#cbows_header').val();
+            let filter = $('#filter-mode').val();
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('get_style_header_ppic') }}',
+                data: {
+                    dateFrom: dateFrom,
+                    dateTo: dateTo,
+                    ws: ws,
+                    filter: filter
+                },
+                success: function(response) {
+                    let styles = response.all_styles;
+                    let selectedStyles = response.selected_styles;
+
+                    let html = '<option value="">Pilih Style</option>';
+                    styles.forEach(function(item) {
+                        let selected = selectedStyles.includes(item.isi) ? 'selected' : '';
+                        html += `<option value="${item.isi}" ${selected}>${item.tampil}</option>`;
+                    });
+
+                    $("#cbostyle_header").html(html).trigger('change');
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        }
+
+        function get_cbo_ws_style() {
+            let dateFrom = $('#tgl-awal').val();
+            let dateTo = $('#tgl-akhir').val();
+            let filter = $('#filter-mode').val();
+
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('get_ws_style_ppic') }}',
+                data: {
+                    dateFrom: dateFrom,
+                    dateTo: dateTo,
+                    filter: filter
+                },
+                success: function(response) {
+                    // Build WS options with an empty option for placeholder
+                    let wsOptions = '<option value="">Pilih WS</option>'; // empty option for placeholder
+                    response.data_ws.forEach(function(ws) {
+                        wsOptions += `<option value="${ws.isi}">${ws.tampil}</option>`;
+                    });
+                    $('#cbows_header').html(wsOptions);
+
+                    // Build Style options with an empty option for placeholder
+                    let styleOptions = '<option value="">Pilih Style</option>'; // empty option for placeholder
+                    response.data_style.forEach(function(style) {
+                        styleOptions += `<option value="${style.isi}">${style.tampil}</option>`;
+                    });
+                    $('#cbostyle_header').html(styleOptions);
+
+                    // Refresh Select2 if used
+                    $('#cbows_header').trigger('change.select2');
+                    $('#cbostyle_header').trigger('change.select2');
+
+                    // Unbind previous events to avoid duplicates
+                    $('#cbows_header').off('change.sync');
+                    $('#cbostyle_header').off('change.sync');
+
+                    // When WS changes, sync Style
+                    $('#cbows_header').on('change.sync', function() {
+                        const selectedId = $(this).val();
+                        if (selectedId) {
+                            $('#cbostyle_header').val(selectedId).trigger('change.select2');
+                        } else {
+                            $('#cbostyle_header').val(null).trigger('change.select2');
+                        }
+                    });
+
+                    // When Style changes, sync WS
+                    $('#cbostyle_header').on('change.sync', function() {
+                        const selectedId = $(this).val();
+                        if (selectedId) {
+                            $('#cbows_header').val(selectedId).trigger('change.select2');
+                        } else {
+                            $('#cbows_header').val(null).trigger('change.select2');
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    console.error('Failed to fetch WS/Style data:', xhr.responseText);
+                }
             });
         }
     </script>

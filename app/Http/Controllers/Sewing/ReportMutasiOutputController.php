@@ -47,7 +47,7 @@ class ReportMutasiOutputController extends Controller
         if ($request->ajax()) {
             $data_mut = DB::connection('mysql_sb')->select("WITH d_rep AS (
             SELECT
-                        d_rep.so_det_id,
+            d_rep.so_det_id,
             sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) saldo_awal_sewing,
             sum(qty_loading) qty_loading,
             sum(input_rework_sewing) input_rework_sewing,
@@ -59,10 +59,26 @@ class ReportMutasiOutputController extends Controller
             sum(output_rejects) output_rejects,
             sum(output_rfts) output_rfts,
             sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) + sum(qty_loading) + sum(input_rework_sewing) + sum(input_rework_spotcleaning) + sum(input_rework_mending) - sum(defect_sewing) - sum(defect_spotcleaning) - sum(defect_mending) - sum(output_rejects) - sum(output_rfts) saldo_akhir,
+						SUM(sa_sewing_adj_awal) sa_sewing_adj_awal,
+						SUM(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
             sum(sa_out_sew) + sum(sa_steam) saldo_awal_steam,
+						SUM(sa_steam_adj_awal) sa_steam_adj_awal,
+						SUM(sa_steam_adj_akhir) sa_steam_adj_akhir,
             sum(input_steam) input_steam,
             sum(output_steam) output_steam,
-            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam
+            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam,
+						SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
+						sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
+						SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
+						sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
+						SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
+						sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
+						SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
+						sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
+						SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
+						sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
+						SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
+						sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
             FROM
             (
             SELECT
@@ -84,7 +100,23 @@ class ReportMutasiOutputController extends Controller
                         sum(out_sew) sa_out_sew,
                         sum(steam) sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                             laravel_nds.sa_report_output where tgl_saldo = '2025-01-01'
             GROUP BY
@@ -109,7 +141,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -145,7 +193,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -184,7 +248,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -210,7 +290,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rejects a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -236,7 +332,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_defects a
             INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
@@ -264,7 +376,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_defects a
             INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
@@ -292,7 +420,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -328,7 +472,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -367,7 +527,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_defects a
             INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
@@ -395,7 +571,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rejects a
             WHERE
                 a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
@@ -421,7 +613,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
@@ -447,7 +655,23 @@ class ReportMutasiOutputController extends Controller
                         count(so_det_id) sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -473,7 +697,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         count(so_det_id) sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts_packing a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -499,7 +739,23 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         count(so_det_id) input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
@@ -525,14 +781,128 @@ class ReportMutasiOutputController extends Controller
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        count(so_det_id) output_steam
+                        count(so_det_id) output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts_packing a
             WHERE
                 updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
             GROUP BY
                 so_det_id
+								UNION ALL
+						SELECT
+												id_so_det so_det_id,
+                        '0' sa_loading,
+                        '0' sa_rft,
+                        '0' sa_reject,
+                        '0' sa_defect,
+                        '0' sa_rework,
+                        '0' qty_loading,
+                        '0' input_rework_sewing,
+                        '0' input_rework_spotcleaning,
+                        '0' input_rework_mending,
+                        '0' defect_sewing,
+                        '0' defect_spotcleaning,
+                        '0' defect_mending,
+                        '0' output_rejects,
+                        '0' output_rfts,
+                        '0' sa_out_sew,
+                        '0' sa_steam,
+                        '0' input_steam,
+                        '0' output_steam,
+												sum(sa_sewing_adj_awal) sa_sewing_adj_awal,
+												sum(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
+												sum(sa_steam_adj_awal) sa_steam_adj_awal,
+												sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
+												SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
+												sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
+												SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
+												sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
+												SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
+												sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
+												SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
+												sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
+												SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
+												sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
+												SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
+												sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
+
+from
+(
+SELECT
+    id_so_det,
+    SUM(sa_sewing) AS sa_sewing_adj_awal,
+    '0' AS sa_sewing_adj_akhir,
+    SUM(sa_steam) AS sa_steam_adj_awal,
+    '0' AS sa_steam_adj_akhir,
+
+    SUM(sa_def_sewing) AS sa_def_sewing_adj_awal,
+    '0' AS sa_def_sewing_adj_akhir,
+    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_awal,
+    '0' AS sa_def_spotcleaning_adj_akhir,
+    SUM(sa_def_mending) AS sa_def_mending_adj_awal,
+    '0' AS sa_def_mending_adj_akhir,
+    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_awal,
+    '0' AS sa_def_pck_sewing_adj_akhir,
+    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_awal,
+    '0' AS sa_def_pck_spotcleaning_adj_akhir,
+    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_awal,
+    '0' AS sa_def_pck_mending_adj_akhir
+FROM
+    laravel_nds.report_output_adj
+WHERE
+    tgl_adj < '$tgl_awal'
+GROUP BY
+    id_so_det
+
+UNION ALL
+
+SELECT
+    id_so_det,
+    '0' AS sa_sewing_adj_awal,
+    SUM(sa_sewing) AS sa_sewing_adj_akhir,
+    '0' AS sa_steam_adj_awal,
+    SUM(sa_steam) AS sa_steam_adj_akhir,
+
+    '0' AS sa_def_sewing_adj_awal,
+    SUM(sa_def_sewing) AS sa_def_sewing_adj_akhir,
+    '0' AS sa_def_spotcleaning_adj_awal,
+    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_akhir,
+    '0' AS sa_def_mending_adj_awal,
+    SUM(sa_def_mending) AS sa_def_mending_adj_akhir,
+    '0' AS sa_def_pck_sewing_adj_awal,
+    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_akhir,
+    '0' AS sa_def_pck_spotcleaning_adj_awal,
+    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_akhir,
+    '0' AS sa_def_pck_mending_adj_awal,
+    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_akhir
+FROM
+    laravel_nds.report_output_adj
+WHERE
+    tgl_adj >= '$tgl_awal' AND tgl_adj <= '$tgl_akhir'
+GROUP BY
+    id_so_det
+) a
+GROUP BY id_so_det
+
                     ) d_rep
             GROUP BY so_det_id
+
+
 ),
 mut_def AS (
             SELECT
@@ -660,7 +1030,6 @@ mut_pck AS (
                     ) mut_pck
             GROUP BY so_det_id
 )
-
         SELECT
         ac.kpno,
         ms.supplier buyer,
@@ -668,7 +1037,9 @@ mut_pck AS (
         sd.color,
         sd.size,
         d_rep.so_det_id,
-        sum(saldo_awal_sewing) saldo_awal_sewing,
+
+
+        sum(saldo_awal_sewing) + sum(sa_sewing_adj_awal) saldo_awal_sewing,
         sum(qty_loading) qty_loading,
         sum(input_rework_sewing) input_rework_sewing,
         sum(input_rework_spotcleaning) input_rework_spotcleaning,
@@ -678,35 +1049,53 @@ mut_pck AS (
         sum(defect_mending) defect_mending,
         sum(output_rejects) output_rejects,
         sum(output_rfts) output_rfts,
-        sum(saldo_akhir) saldo_akhir,
-        sum(saldo_awal_steam) saldo_awal_steam,
+				sum(sa_sewing_adj_akhir) saldo_akhir_adj,
+        sum(saldo_akhir)  + sum(sa_sewing_adj_awal) + sum(sa_sewing_adj_akhir) saldo_akhir,
+
+        sum(saldo_awal_steam) + sum(sa_steam_adj_awal) saldo_awal_steam,
         sum(input_steam) input_steam,
         sum(output_steam) output_steam,
-        sum(saldo_akhir_steam) saldo_akhir_steam,
-        coalesce(sum(saldo_awal_def_sew),0) saldo_awal_def_sew,
+				sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
+        sum(saldo_akhir_steam) + sum(sa_steam_adj_awal) + sum(sa_steam_adj_akhir) saldo_akhir_steam,
+
+
+        coalesce(sum(saldo_awal_def_sew),0) + coalesce(sum(sa_def_sewing_adj_awal),0)  saldo_awal_def_sew,
         coalesce(sum(defect_trans_sewing),0) defect_trans_sewing,
         coalesce(sum(defect_trans_rew_sewing),0) defect_trans_rew_sewing,
-        coalesce(sum(saldo_akhir_def_sewing),0) saldo_akhir_def_sewing,
-        coalesce(sum(saldo_awal_def_spotcleaning),0) saldo_awal_def_spotcleaning,
+				sum(sa_def_sewing_adj_akhir) sa_def_sewing_adj_akhir,
+        coalesce(sum(saldo_akhir_def_sewing),0) + coalesce(sum(sa_def_sewing_adj_akhir),0) saldo_akhir_def_sewing,
+
+        coalesce(sum(saldo_awal_def_spotcleaning),0) + coalesce(sum((sa_def_spotcleaning_adj_awal) ),0)  saldo_awal_def_spotcleaning,
         coalesce(sum(defect_trans_spotcleaning),0) defect_trans_spotcleaning,
         coalesce(sum(defect_trans_rew_spotcleaning),0) defect_trans_rew_spotcleaning,
-        coalesce(sum(saldo_akhir_def_spotcleaning),0) saldo_akhir_def_spotcleaning,
-        coalesce(sum(saldo_awal_def_mending),0) saldo_awal_def_mending,
+				coalesce(sum((sa_def_spotcleaning_adj_akhir) ),0) sa_def_spotcleaning_adj_akhir,
+        coalesce(sum(saldo_akhir_def_spotcleaning),0) + coalesce(sum(sa_def_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning,
+
+        coalesce(sum(saldo_awal_def_mending),0) + coalesce(sum((sa_def_mending_adj_awal) ),0) saldo_awal_def_mending,
         coalesce(sum(defect_trans_mending),0) defect_trans_mending,
         coalesce(sum(defect_trans_rew_mending),0) defect_trans_rew_mending,
-        coalesce(sum(saldo_akhir_def_mending),0) saldo_akhir_def_mending,
-        coalesce(sum(saldo_awal_def_sew_pck),0) saldo_awal_def_sew_pck,
+				coalesce(sum(sa_def_mending_adj_akhir),0) sa_def_mending_adj_akhir,
+        coalesce(sum(saldo_akhir_def_mending),0) + coalesce(sum(sa_def_mending_adj_akhir),0) saldo_akhir_def_mending,
+
+
+        coalesce(sum(saldo_awal_def_sew_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_awal),0) saldo_awal_def_sew_pck,
         coalesce(sum(defect_trans_sewing_pck),0) defect_trans_sewing_pck,
         coalesce(sum(defect_trans_rew_sewing_pck),0) defect_trans_rew_sewing_pck,
-        coalesce(sum(saldo_akhir_def_sewing_pck),0) saldo_akhir_def_sewing_pck,
-        coalesce(sum(saldo_awal_def_spotcleaning_pck),0) saldo_awal_def_spotcleaning_pck,
+				coalesce(sum(sa_def_pck_sewing_adj_akhir),0) sa_def_pck_sewing_adj_akhir,
+        coalesce(sum(saldo_akhir_def_sewing_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_akhir),0) saldo_akhir_def_sewing_pck,
+
+        coalesce(sum(saldo_awal_def_spotcleaning_pck),0) +  coalesce(sum(sa_def_pck_spotcleaning_adj_awal),0) saldo_awal_def_spotcleaning_pck,
         coalesce(sum(defect_trans_spotcleaning_pck),0) defect_trans_spotcleaning_pck,
         coalesce(sum(defect_trans_rew_spotcleaning_pck),0) defect_trans_rew_spotcleaning_pck,
-        coalesce(sum(saldo_akhir_def_spotcleaning_pck),0) saldo_akhir_def_spotcleaning_pck,
-        coalesce(sum(saldo_awal_def_mending_pck),0) saldo_awal_def_mending_pck,
+				coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) sa_def_pck_spotcleaning_adj_akhir,
+        coalesce(sum(saldo_akhir_def_spotcleaning_pck),0) + coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning_pck,
+
+        coalesce(sum(saldo_awal_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_awal),0) saldo_awal_def_mending_pck,
         coalesce(sum(defect_trans_mending_pck),0) defect_trans_mending_pck,
         coalesce(sum(defect_trans_rew_mending_pck),0) defect_trans_rew_mending_pck,
-        coalesce(sum(saldo_akhir_def_mending_pck),0) saldo_akhir_def_mending_pck
+				coalesce(sum(sa_def_pck_mending_adj_akhir),0) sa_def_pck_mending_adj_akhir,
+        coalesce(sum(saldo_akhir_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_akhir),0)  saldo_akhir_def_mending_pck
+
         FROM d_rep
         left join mut_def on d_rep.so_det_id = mut_def.so_det_id
         left join mut_pck on d_rep.so_det_id = mut_pck.so_det_id
@@ -738,7 +1127,7 @@ mut_pck AS (
 
         $data = DB::connection('mysql_sb')->select("WITH d_rep AS (
             SELECT
-                        d_rep.so_det_id,
+            d_rep.so_det_id,
             sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) saldo_awal_sewing,
             sum(qty_loading) qty_loading,
             sum(input_rework_sewing) input_rework_sewing,
@@ -750,10 +1139,26 @@ mut_pck AS (
             sum(output_rejects) output_rejects,
             sum(output_rfts) output_rfts,
             sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) + sum(qty_loading) + sum(input_rework_sewing) + sum(input_rework_spotcleaning) + sum(input_rework_mending) - sum(defect_sewing) - sum(defect_spotcleaning) - sum(defect_mending) - sum(output_rejects) - sum(output_rfts) saldo_akhir,
+						SUM(sa_sewing_adj_awal) sa_sewing_adj_awal,
+						SUM(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
             sum(sa_out_sew) + sum(sa_steam) saldo_awal_steam,
+						SUM(sa_steam_adj_awal) sa_steam_adj_awal,
+						SUM(sa_steam_adj_akhir) sa_steam_adj_akhir,
             sum(input_steam) input_steam,
             sum(output_steam) output_steam,
-            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam
+            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam,
+						SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
+						sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
+						SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
+						sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
+						SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
+						sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
+						SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
+						sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
+						SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
+						sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
+						SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
+						sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
             FROM
             (
             SELECT
@@ -775,7 +1180,23 @@ mut_pck AS (
                         sum(out_sew) sa_out_sew,
                         sum(steam) sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                             laravel_nds.sa_report_output where tgl_saldo = '2025-01-01'
             GROUP BY
@@ -800,7 +1221,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -836,7 +1273,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -875,7 +1328,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -901,7 +1370,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rejects a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -927,7 +1412,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_defects a
             INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
@@ -955,7 +1456,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_defects a
             INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
@@ -983,7 +1500,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -1019,7 +1552,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM
                     (
             SELECT
@@ -1058,7 +1607,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_defects a
             INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
@@ -1086,7 +1651,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rejects a
             WHERE
                 a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
@@ -1112,7 +1693,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
@@ -1138,7 +1735,23 @@ mut_pck AS (
                         count(so_det_id) sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -1164,7 +1777,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         count(so_det_id) sa_steam,
                         '0' input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts_packing a
             WHERE
                 a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
@@ -1190,7 +1819,23 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         count(so_det_id) input_steam,
-                        '0' output_steam
+                        '0' output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts a
             WHERE
                 updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
@@ -1216,14 +1861,128 @@ mut_pck AS (
                         '0' sa_out_sew,
                         '0' sa_steam,
                         '0' input_steam,
-                        count(so_det_id) output_steam
+                        count(so_det_id) output_steam,
+												'0' sa_sewing_adj_awal,
+												'0' sa_sewing_adj_akhir,
+												'0' sa_steam_adj_awal,
+												'0' sa_steam_adj_akhir,
+												'0' sa_def_sewing_adj_awal,
+												'0' sa_def_sewing_adj_akhir,
+												'0' sa_def_spotcleaning_adj_awal,
+												'0' sa_def_spotcleaning_adj_akhir,
+												'0' sa_def_mending_adj_awal,
+												'0' sa_def_mending_adj_akhir,
+												'0' sa_def_pck_sewing_adj_awal,
+												'0' sa_def_pck_sewing_adj_akhir ,
+												'0' sa_def_pck_spotcleaning_adj_awal,
+												'0' sa_def_pck_spotcleaning_adj_akhir,
+												'0' sa_def_pck_mending_adj_awal,
+												'0' sa_def_pck_mending_adj_akhir
             FROM signalbit_erp.output_rfts_packing a
             WHERE
                 updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
             GROUP BY
                 so_det_id
+								UNION ALL
+						SELECT
+												id_so_det so_det_id,
+                        '0' sa_loading,
+                        '0' sa_rft,
+                        '0' sa_reject,
+                        '0' sa_defect,
+                        '0' sa_rework,
+                        '0' qty_loading,
+                        '0' input_rework_sewing,
+                        '0' input_rework_spotcleaning,
+                        '0' input_rework_mending,
+                        '0' defect_sewing,
+                        '0' defect_spotcleaning,
+                        '0' defect_mending,
+                        '0' output_rejects,
+                        '0' output_rfts,
+                        '0' sa_out_sew,
+                        '0' sa_steam,
+                        '0' input_steam,
+                        '0' output_steam,
+												sum(sa_sewing_adj_awal) sa_sewing_adj_awal,
+												sum(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
+												sum(sa_steam_adj_awal) sa_steam_adj_awal,
+												sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
+												SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
+												sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
+												SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
+												sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
+												SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
+												sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
+												SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
+												sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
+												SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
+												sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
+												SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
+												sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
+
+from
+(
+SELECT
+    id_so_det,
+    SUM(sa_sewing) AS sa_sewing_adj_awal,
+    '0' AS sa_sewing_adj_akhir,
+    SUM(sa_steam) AS sa_steam_adj_awal,
+    '0' AS sa_steam_adj_akhir,
+
+    SUM(sa_def_sewing) AS sa_def_sewing_adj_awal,
+    '0' AS sa_def_sewing_adj_akhir,
+    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_awal,
+    '0' AS sa_def_spotcleaning_adj_akhir,
+    SUM(sa_def_mending) AS sa_def_mending_adj_awal,
+    '0' AS sa_def_mending_adj_akhir,
+    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_awal,
+    '0' AS sa_def_pck_sewing_adj_akhir,
+    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_awal,
+    '0' AS sa_def_pck_spotcleaning_adj_akhir,
+    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_awal,
+    '0' AS sa_def_pck_mending_adj_akhir
+FROM
+    laravel_nds.report_output_adj
+WHERE
+    tgl_adj < '$tgl_awal'
+GROUP BY
+    id_so_det
+
+UNION ALL
+
+SELECT
+    id_so_det,
+    '0' AS sa_sewing_adj_awal,
+    SUM(sa_sewing) AS sa_sewing_adj_akhir,
+    '0' AS sa_steam_adj_awal,
+    SUM(sa_steam) AS sa_steam_adj_akhir,
+
+    '0' AS sa_def_sewing_adj_awal,
+    SUM(sa_def_sewing) AS sa_def_sewing_adj_akhir,
+    '0' AS sa_def_spotcleaning_adj_awal,
+    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_akhir,
+    '0' AS sa_def_mending_adj_awal,
+    SUM(sa_def_mending) AS sa_def_mending_adj_akhir,
+    '0' AS sa_def_pck_sewing_adj_awal,
+    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_akhir,
+    '0' AS sa_def_pck_spotcleaning_adj_awal,
+    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_akhir,
+    '0' AS sa_def_pck_mending_adj_awal,
+    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_akhir
+FROM
+    laravel_nds.report_output_adj
+WHERE
+    tgl_adj >= '$tgl_awal' AND tgl_adj <= '$tgl_akhir'
+GROUP BY
+    id_so_det
+) a
+GROUP BY id_so_det
+
                     ) d_rep
             GROUP BY so_det_id
+
+
 ),
 mut_def AS (
             SELECT
@@ -1351,7 +2110,6 @@ mut_pck AS (
                     ) mut_pck
             GROUP BY so_det_id
 )
-
         SELECT
         ac.kpno,
         ms.supplier buyer,
@@ -1359,7 +2117,9 @@ mut_pck AS (
         sd.color,
         sd.size,
         d_rep.so_det_id,
-        sum(saldo_awal_sewing) saldo_awal_sewing,
+
+
+        sum(saldo_awal_sewing) + sum(sa_sewing_adj_awal) saldo_awal_sewing,
         sum(qty_loading) qty_loading,
         sum(input_rework_sewing) input_rework_sewing,
         sum(input_rework_spotcleaning) input_rework_spotcleaning,
@@ -1369,35 +2129,53 @@ mut_pck AS (
         sum(defect_mending) defect_mending,
         sum(output_rejects) output_rejects,
         sum(output_rfts) output_rfts,
-        sum(saldo_akhir) saldo_akhir,
-        sum(saldo_awal_steam) saldo_awal_steam,
+				sum(sa_sewing_adj_akhir) saldo_akhir_adj,
+        sum(saldo_akhir)  + sum(sa_sewing_adj_awal) + sum(sa_sewing_adj_akhir) saldo_akhir,
+
+        sum(saldo_awal_steam) + sum(sa_steam_adj_awal) saldo_awal_steam,
         sum(input_steam) input_steam,
         sum(output_steam) output_steam,
-        sum(saldo_akhir_steam) saldo_akhir_steam,
-        coalesce(sum(saldo_awal_def_sew),0) saldo_awal_def_sew,
+		sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
+        sum(saldo_akhir_steam) + sum(sa_steam_adj_awal) + sum(sa_steam_adj_akhir) saldo_akhir_steam,
+
+
+        coalesce(sum(saldo_awal_def_sew),0) + coalesce(sum(sa_def_sewing_adj_awal),0)  saldo_awal_def_sew,
         coalesce(sum(defect_trans_sewing),0) defect_trans_sewing,
         coalesce(sum(defect_trans_rew_sewing),0) defect_trans_rew_sewing,
-        coalesce(sum(saldo_akhir_def_sewing),0) saldo_akhir_def_sewing,
-        coalesce(sum(saldo_awal_def_spotcleaning),0) saldo_awal_def_spotcleaning,
+				sum(sa_def_sewing_adj_akhir) sa_def_sewing_adj_akhir,
+        coalesce(sum(saldo_akhir_def_sewing),0) + coalesce(sum(sa_def_sewing_adj_akhir),0) saldo_akhir_def_sewing,
+
+        coalesce(sum(saldo_awal_def_spotcleaning),0) + coalesce(sum((sa_def_spotcleaning_adj_awal) ),0)  saldo_awal_def_spotcleaning,
         coalesce(sum(defect_trans_spotcleaning),0) defect_trans_spotcleaning,
         coalesce(sum(defect_trans_rew_spotcleaning),0) defect_trans_rew_spotcleaning,
-        coalesce(sum(saldo_akhir_def_spotcleaning),0) saldo_akhir_def_spotcleaning,
-        coalesce(sum(saldo_awal_def_mending),0) saldo_awal_def_mending,
+				coalesce(sum((sa_def_spotcleaning_adj_akhir) ),0) sa_def_spotcleaning_adj_akhir,
+        coalesce(sum(saldo_akhir_def_spotcleaning),0) + coalesce(sum(sa_def_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning,
+
+        coalesce(sum(saldo_awal_def_mending),0) + coalesce(sum((sa_def_mending_adj_awal) ),0) saldo_awal_def_mending,
         coalesce(sum(defect_trans_mending),0) defect_trans_mending,
         coalesce(sum(defect_trans_rew_mending),0) defect_trans_rew_mending,
-        coalesce(sum(saldo_akhir_def_mending),0) saldo_akhir_def_mending,
-        coalesce(sum(saldo_awal_def_sew_pck),0) saldo_awal_def_sew_pck,
+				coalesce(sum(sa_def_mending_adj_akhir),0) sa_def_mending_adj_akhir,
+        coalesce(sum(saldo_akhir_def_mending),0) + coalesce(sum(sa_def_mending_adj_akhir),0) saldo_akhir_def_mending,
+
+
+        coalesce(sum(saldo_awal_def_sew_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_awal),0) saldo_awal_def_sew_pck,
         coalesce(sum(defect_trans_sewing_pck),0) defect_trans_sewing_pck,
         coalesce(sum(defect_trans_rew_sewing_pck),0) defect_trans_rew_sewing_pck,
-        coalesce(sum(saldo_akhir_def_sewing_pck),0) saldo_akhir_def_sewing_pck,
-        coalesce(sum(saldo_awal_def_spotcleaning_pck),0) saldo_awal_def_spotcleaning_pck,
+				coalesce(sum(sa_def_pck_sewing_adj_akhir),0) sa_def_pck_sewing_adj_akhir,
+        coalesce(sum(saldo_akhir_def_sewing_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_akhir),0) saldo_akhir_def_sewing_pck,
+
+        coalesce(sum(saldo_awal_def_spotcleaning_pck),0) +  coalesce(sum(sa_def_pck_spotcleaning_adj_awal),0) saldo_awal_def_spotcleaning_pck,
         coalesce(sum(defect_trans_spotcleaning_pck),0) defect_trans_spotcleaning_pck,
         coalesce(sum(defect_trans_rew_spotcleaning_pck),0) defect_trans_rew_spotcleaning_pck,
-        coalesce(sum(saldo_akhir_def_spotcleaning_pck),0) saldo_akhir_def_spotcleaning_pck,
-        coalesce(sum(saldo_awal_def_mending_pck),0) saldo_awal_def_mending_pck,
+				coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) sa_def_pck_spotcleaning_adj_akhir,
+        coalesce(sum(saldo_akhir_def_spotcleaning_pck),0) + coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning_pck,
+
+        coalesce(sum(saldo_awal_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_awal),0) saldo_awal_def_mending_pck,
         coalesce(sum(defect_trans_mending_pck),0) defect_trans_mending_pck,
         coalesce(sum(defect_trans_rew_mending_pck),0) defect_trans_rew_mending_pck,
-        coalesce(sum(saldo_akhir_def_mending_pck),0) saldo_akhir_def_mending_pck
+				coalesce(sum(sa_def_pck_mending_adj_akhir),0) sa_def_pck_mending_adj_akhir,
+        coalesce(sum(saldo_akhir_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_akhir),0)  saldo_akhir_def_mending_pck
+
         FROM d_rep
         left join mut_def on d_rep.so_det_id = mut_def.so_det_id
         left join mut_pck on d_rep.so_det_id = mut_pck.so_det_id
