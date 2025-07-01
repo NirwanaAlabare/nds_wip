@@ -116,7 +116,8 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Panel</b></small></label>
-                                    <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;">
+                                    <input type="hidden" class="form-control" id="panel" name="panel">
+                                    <select class="form-control select2bs4" id="panel-select" name="panel_select" style="width: 100%;">
                                         <option selected="selected" value="">Pilih Panel</option>
                                         {{-- select 2 option --}}
                                     </select>
@@ -193,8 +194,8 @@
                         </div>
 
                         {{-- Marker Number Information --}}
-                        <input type="hidden" name="cons_ws_marker" id="cons_ws_marker" value=": '' }}">
-                        <input type="hidden" name="urutan_marker" id="urutan_marker" value=": '' }}">
+                        <input type="hidden" name="cons_ws_marker" id="cons_ws_marker" value="">
+                        <input type="hidden" name="urutan_marker" id="urutan_marker" value="">
 
                         {{-- Marker Summary Information --}}
                         <input type="hidden" name="total_size" id="total_size" value="">
@@ -1140,13 +1141,17 @@
         });
 
         // Step Three (Panel) on change event
+        $('#panel-select').on('change', function(e) {
+            $('#panel').val($('#panel-select option:selected').html()).trigger("change");
+        });
+
         $('#panel').on('change', function(e) {
             if (this.value) {
                 getNumber();
                 updateSizeList();
                 getMarkerCount();
             }
-        });
+        })
 
         // Update Order Information Based on Order WS and Order Color
         function updateOrderInfo() {
@@ -1186,14 +1191,14 @@
                         document.getElementById('color').innerHTML = res;
 
                         // Reset next step
-                        document.getElementById('panel').innerHTML = null;
-                        document.getElementById('panel').value = null;
+                        document.getElementById('panel-select').innerHTML = null;
+                        document.getElementById('panel-select').value = null;
 
                         // Open this step
                         $("#color").prop("disabled", false);
 
                         // Close next step
-                        $("#panel").prop("disabled", true);
+                        $("#panel-select").prop("disabled", true);
 
                         // Reset order information
                         document.getElementById('cons_ws_marker').value = null;
@@ -1204,7 +1209,7 @@
 
         // Update Panel Select Option Based on Order WS and Color WS
         function updatePanelList() {
-            document.getElementById('panel').value = null;
+            document.getElementById('panel-select').value = null;
             return $.ajax({
                 url: '{{ route("manual-form-cut-get-panels") }}',
                 type: 'get',
@@ -1215,11 +1220,11 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('panel').innerHTML = res;
+                        document.getElementById('panel-select').innerHTML = res;
                         document.getElementById('cons_ws').innerHTML = res;
 
                         // Open this step
-                        $("#panel").prop("disabled", false);
+                        $("#panel-select").prop("disabled", false);
 
                         // Reset order information
                         document.getElementById('cons_ws_marker').value = null;
@@ -1507,15 +1512,15 @@
         async function resetStep() {
             await $("#act_costing_id").val(null).trigger("change");
             await $("#color").val(null).trigger("change");
-            await $("#panel").val(null).trigger("change");
+            await $("#panel-select").val(null).trigger("change");
             await $("#color").prop("disabled", true);
-            await $("#panel").prop("disabled", true);
+            await $("#panel-select").prop("disabled", true);
         }
 
         function disableMarkerForm() {
             $("#act_costing_id").prop("disabled", true);
             $("#color").prop("disabled", true);
-            $("#panel").prop("disabled", true);
+            $("#panel-select").prop("disabled", true);
             $("#tipe_marker").prop("readonly", true);
             $("#po").prop("readonly", true);
             $("#gelar_qty").prop("readonly", true);
@@ -1611,7 +1616,7 @@
 
                 // -Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )-
                 $("#color").prop("disabled", true);
-                $("#panel").prop("disabled", true);
+                $("#panel-select").prop("disabled", true);
 
                 // -Default Method-
                 $('#switch-method').prop('checked', true);
@@ -1673,6 +1678,8 @@
 
             // -Start Process Transaction-
             function updateToStartProcess() {
+                document.getElementById("loading").classList.remove("d-none");
+
                 let dataObj = {
                     startTime: startTime.value
                 }
@@ -1708,6 +1715,8 @@
 
                             status = "PENGERJAAN MARKER";
                         }
+
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 });
             }
@@ -1973,6 +1982,8 @@
 
                                 resetTimeRecord();
                                 resetSambungan();
+
+                                updatePlyProgress();
                             }
                         },
                         error: function(jqXHR) {
@@ -2035,6 +2046,8 @@
 
                                 resetTimeRecord();
                                 resetSambungan();
+
+                                updatePlyProgress();
                             }
                         },
                         error: function(jqXHR) {
