@@ -771,6 +771,9 @@
                                 <a href="{{ route('qc-pass') }}" class="dropdown-item">
                                     QC Inspect
                                 </a>
+                                <a href="{{ route('qc-inspect-inmaterial') }}" class="dropdown-item">
+                                    QC Inspect 2
+                                </a>
                             </li>
                         </ul>
                     </li>

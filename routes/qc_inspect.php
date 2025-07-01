@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\QC\Master\GroupInspect;
 use App\Http\Livewire\QC\Master\Lenght;
 use App\Http\Livewire\QC\Master\Result;
+use App\Http\Livewire\QC\Inspect\QCInmaterialFabricController;
 
 Route::middleware('auth')->group(function () {
     // Main page route
@@ -81,4 +82,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/data', [Result::class, 'getDatatables'])
             ->name('qc-inspect-result.data');
     });
+
+    Route::prefix('qc-inspect-inmaterial')->group(function() {
+        Route::get('/', [QCInmaterialFabricController::class, 'index'])->name('qc-inspect-inmaterial');
+        Route::post('qc-inspect-inmaterial/data', [App\Http\Livewire\QC\Inspect\QCInmaterialFabricController::class, 'getDatatables'])->name('qc-inspect-inmaterial.data');    });
 });
