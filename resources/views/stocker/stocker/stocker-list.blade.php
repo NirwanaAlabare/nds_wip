@@ -494,7 +494,7 @@
             },
         });
 
-        function dataTableReload() {
+        async function dataTableReload() {
             await limitDateRange();
 
             $('#datatable').DataTable().ajax.reload(function () {
@@ -523,8 +523,6 @@
             // Create a new date that's 2 months after fromDate
             const maxToDate = new Date(fromDate);
             maxToDate.setMonth(maxToDate.getMonth() + 2);
-
-            console.log(toDate, maxToDate);
 
             if (toDate > maxToDate) {
                 Swal.fire({

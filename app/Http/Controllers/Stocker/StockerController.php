@@ -3497,7 +3497,7 @@ class StockerController extends Controller
                             MAX( number ) range_numbering_akhir,
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
-                            COALESCE ( updated_at, created_at ) updated_at,
+                            updated_at,
                             (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
                         FROM
                             year_sequence
@@ -3508,9 +3508,8 @@ class StockerController extends Controller
                         GROUP BY
                             form_cut_id,
                             form_reject_id,
-                            (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END),
                             so_det_id,
-                            COALESCE ( updated_at, created_at )
+                            updated_at
                     ) year_sequence_num
                     INNER JOIN (
                         SELECT
@@ -3549,7 +3548,6 @@ class StockerController extends Controller
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
-                            (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END),
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
@@ -3600,6 +3598,7 @@ class StockerController extends Controller
                     ".$stocker_range_filter."
                 ORDER BY
                     year_sequence_num.updated_at DESC
+                LIMIT 100
             ");
         } else {
             $stockerList = DB::select("
@@ -3705,6 +3704,7 @@ class StockerController extends Controller
                     ".$tipe_filter."
                 ORDER BY
                     year_sequence_num.updated_at DESC
+                LIMIT 100
             ");
         }
 
