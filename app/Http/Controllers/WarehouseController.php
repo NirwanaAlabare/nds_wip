@@ -258,12 +258,9 @@ class WarehouseController extends Controller
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
             $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataSpreading" => $dataSpreading, "qrCode" => $qrCodeDecode])->setPaper('a7', 'landscape');
 
-            $path = public_path('pdf/');
             $fileName = 'stocker-' . $storeItem->id . '.pdf';
-            $pdf->save($path . '/' . $fileName);
-            $generatedFilePath = public_path('pdf/' . $fileName);
 
-            return response()->download($generatedFilePath);
+            return $pdf->download(str_replace("/", "_", $fileName));
         }
     }
 
@@ -358,11 +355,8 @@ class WarehouseController extends Controller
         $customPaper = array(0, 0, 56.70, 28.38);
         $pdf = PDF::loadView('stocker.pdf.print-numbering', ["kode" => $kodeStocker, "ws" => $wsStocker, "color" => $colorStocker, "dataNumbering" => $storeDetailItemArr, "qrCode" => $qrCodeDetailItemArr])->setPaper($customPaper);
 
-        $path = public_path('pdf/');
         $fileName = 'stocker-' . $idStocker . '.pdf';
-        $pdf->save($path . '/' . $fileName);
-        $generatedFilePath = public_path('pdf/' . $fileName);
 
-        return response()->download($generatedFilePath);
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 }

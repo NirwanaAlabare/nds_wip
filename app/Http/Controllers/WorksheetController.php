@@ -180,12 +180,9 @@ class WorksheetController extends Controller
                 $customPaper = array(0, 0, 56.70, 33.39);
                 $pdf = PDF::loadView('worksheet.pdf.print-qr', ["data" => $printData])->setPaper($customPaper);
 
-                $path = public_path('pdf/');
                 $fileName = str_replace("/", "-", ($soDet->first()->ws. '-' . $soDet->first()->style . ' - Number.pdf'));
-                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-                return response()->download($generatedFilePath);
+                return $pdf->download(str_replace("/", "_", $fileName));
             }
         }
 

@@ -178,25 +178,22 @@ order by bpbdate asc limit 1
     }
 
     public function exportdata($id){
-         // return Excel::download(new ExportLaporanQcpass($id), 'Laporan_qcpass.xlsx');
-       $kode_insp = DB::connection('mysql_sb')->select("select no_insp from whs_qc_insp where id = '".$id."'");
+        // return Excel::download(new ExportLaporanQcpass($id), 'Laporan_qcpass.xlsx');
+        $kode_insp = DB::connection('mysql_sb')->select("select no_insp from whs_qc_insp where id = '".$id."'");
         $data_header = DB::connection('mysql_sb')->select("select *,UPPER(fabric_name) fabricname from whs_qc_insp where id = '".$id."'");
         $data_detail = DB::connection('mysql_sb')->select("select b.id,b.no_lot,a.no_form,a.tgl_form,a.weight_fabric,width_fabric,gramage,a.no_roll,fabric_supp,a.inspektor,no_mesin,c.lenght_barcode, lenght_actual, catatan from whs_qc_insp_det a inner join whs_qc_insp b on b.no_insp = a.no_insp inner join whs_qc_insp_sum c on c.no_form = a.no_form where b.id = '".$id."' GROUP BY a.no_roll,a.no_form order by a.no_form asc");
         $data_temuan = DB::connection('mysql_sb')->select("select * from (select id,no_form,lenght_fabric,GROUP_CONCAT(kode_def) kode_def,GROUP_CONCAT(nama_defect) nama_defect,GROUP_CONCAT(ROUND(upto3,0)) upto3,GROUP_CONCAT(ROUND(over3,0)) over3,GROUP_CONCAT(ROUND(over6,0)) over6,GROUP_CONCAT(ROUND(over9,0)) over9,GROUP_CONCAT(width_det) width_det from (select DISTINCT a.id,b.no_form,lenght_fabric,kode_def,CONCAT('(',UPPER(c.nama_defect),')') nama_defect,upto3, over3, over6, over9,CONCAT(width_det1,'->',width_det2) width_det  from whs_qc_insp a inner join whs_qc_insp_det b on b.no_insp = a.no_insp left join whs_qc_insp_def c on c.kode = b.kode_def and c.no_form = b.no_form and c.lenght = b.lenght_fabric where a.id = '".$id."') a GROUP BY lenght_fabric,no_form order by no_form asc, lenght_fabric asc) a left join (select id id_pil,nama_pilihan from whs_master_pilihan where type_pilihan = 'Lenght_qc_pass' and status = 'Active') b on b.nama_pilihan = a.lenght_fabric order by no_form asc,id_pil asc");
         $data_sum = DB::connection('mysql_sb')->select("select no_form,upto3, over3,over6,over9,width_fabric,l_actual,ttl_poin,round((x/(width_fabric * l_actual)),2) akt_poin from (select a.*,b.*,c.*, (upto3 + over3 + over6 + over9) ttl_poin, ((upto3 + over3 + over6 + over9) * 36 * 100) x , b.lenght_actual l_actual,d.id id_h from (select no_insp, (COALESCE(SUM(upto3),0) * 1) upto3, (COALESCE(SUM(over3),0) * 2 ) over3, (COALESCE(SUM(over6),0) * 3) over6, (COALESCE(SUM(over9),0) * 4) over9,no_form from whs_qc_insp_det GROUP BY no_form) a inner join (select no_form noform,lenght_actual from whs_qc_insp_sum) b on b.noform = a.no_form inner join (select no_form form_no,ROUND(sum(width_det2)/COUNT(width_det2),2) width_fabric from (select no_form,width_det2 from whs_qc_insp_det where width_det2 is not null) a GROUP BY no_form) c on c.form_no = a.no_form inner join whs_qc_insp d on d.no_insp = a.no_insp) a where id_h = '".$id."'");
         $avg_poin = DB::connection('mysql_sb')->select("select ROUND(((ttl_poin * 36 * 100)/ ((akt_width/ttl_width) * akt_lenght)),2) avg_poin,IF(ROUND(((ttl_poin * 36 * 100)/ ((akt_width/ttl_width) * akt_lenght)),2) > 15,'-','PASS') status from (select sum(ttl_poin) ttl_poin, COUNT(width_fabric)ttl_width, SUM(width_fabric) akt_width, SUM(l_actual) akt_lenght from (select upto3, over3,over6,over9,width_fabric,l_actual,ttl_poin,round((x/(width_fabric * l_actual)),2) akt_poin from (select a.*, b.*, c.*, (upto3 + over3 + over6 + over9) ttl_poin, ((upto3 + over3 + over6 + over9) * 36 * 100) x , b.lenght_actual l_actual,d.id id_h from (select no_insp, (COALESCE(SUM(upto3),0) * 1) upto3, (COALESCE(SUM(over3),0) * 2 ) over3, (COALESCE(SUM(over6),0) * 3) over6, (COALESCE(SUM(over9),0) * 4) over9,no_form from whs_qc_insp_det GROUP BY no_form) a inner join (select no_form noform,lenght_actual from whs_qc_insp_sum) b on b.noform = a.no_form inner join (select no_form form_no,ROUND(sum(width_det2)/COUNT(width_det2),2) width_fabric from (select no_form,width_det2 from whs_qc_insp_det where width_det2 is not null) a GROUP BY no_form) c on c.form_no = a.no_form inner join whs_qc_insp d on d.no_insp = a.no_insp) a where id_h = '".$id."') a) a");
 
-                // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-                $pdf = PDF::loadView('qc-pass.pdf.pdf-qcpass', ['kode_insp' => $kode_insp,'data_header' => $data_header,'data_detail' => $data_detail,'data_temuan' => $data_temuan,'data_sum' => $data_sum,'avg_poin' => $avg_poin])->setPaper('a4', 'potrait');
+        // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('qc-pass.pdf.pdf-qcpass', ['kode_insp' => $kode_insp,'data_header' => $data_header,'data_detail' => $data_detail,'data_temuan' => $data_temuan,'data_sum' => $data_sum,'avg_poin' => $avg_poin])->setPaper('a4', 'potrait');
 
-                // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
+        // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
 
-                $path = public_path('pdf/');
-                $fileName = 'pdf.pdf';
-                $pdf->save($path . '/' . $fileName);
-                $generatedFilePath = public_path('pdf/'.$fileName);
+        $fileName = 'pdf.pdf';
 
-                return response()->download($generatedFilePath);
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
 
@@ -675,28 +672,22 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
 
     public function printlokasi(Request $request, $id)
     {
+        $dataLokasi = MasterLokasi::selectRaw("
+                CONCAT(inisial_lok,baris_lok,level_lok,no_lok) kode_lok,
+                kode_lok kode,
+                id
+            ")->
+            where("id", $id)->
+            first();
 
+        // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi])->setPaper('a7', 'landscape');
 
-            $dataLokasi = MasterLokasi::selectRaw("
-                    CONCAT(inisial_lok,baris_lok,level_lok,no_lok) kode_lok,
-                    kode_lok kode,
-                    id
-                ")->
-                where("id", $id)->
-                first();
+        // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
 
-                // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-                $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi])->setPaper('a7', 'landscape');
+        $fileName = 'Lokasi-'.$dataLokasi->kode_lok.'.pdf';
 
-                // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
-
-                $path = public_path('pdf/');
-                $fileName = 'Lokasi-'.$dataLokasi->kode_lok.'.pdf';
-                $pdf->save($path . '/' . $fileName);
-                $generatedFilePath = public_path('pdf/'.$fileName);
-
-                return response()->download($generatedFilePath);
-
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
 

@@ -211,12 +211,9 @@ class TrolleyController extends Controller
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
             $pdf = PDF::loadView('dc.trolley.master-trolley.pdf.print-trolley', ["dataTrolley" => $dataTrolley])->setPaper('a4', 'landscape');
 
-            $path = public_path('pdf/');
             $fileName = 'trolley-'.$dataTrolley->nama_trolley.'.pdf';
-            $pdf->save($path . '/' . $fileName);
-            $generatedFilePath = public_path('pdf/'.$fileName);
 
-            return response()->download($generatedFilePath);
+            return $pdf->download(str_replace("/", "_", $fileName));
         }
     }
 }

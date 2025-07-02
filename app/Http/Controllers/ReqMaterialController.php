@@ -576,12 +576,9 @@ select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $pdf = PDF::loadView('reqmaterial.pdf.print-pdf', ["dataHeader" => $dataHeader,"dataDetail" => $dataDetail,"dataSum" => $dataSum,"dataUser" => $dataUser])->setPaper('a4', 'potrait');
 
-        $path = public_path('pdf/');
         $fileName = 'pdf-material.pdf';
-        $pdf->save($path . '/' . $fileName);
-        $generatedFilePath = public_path('pdf/'.$fileName);
 
-        return response()->download($generatedFilePath);
+        return $pdf->download(str_replace("/", "_", $fileName));
 
     }
 
