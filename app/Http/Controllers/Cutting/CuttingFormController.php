@@ -650,7 +650,7 @@ class CuttingFormController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $request->id)->where("status", "not complete")->first();
+        $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("status", "not complete")->first();
 
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
@@ -762,8 +762,8 @@ class CuttingFormController extends Controller
 
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
                     "form_cut_id" => $validatedRequest['id'],
-                    "group_roll" => $validatedRequest['current_group'],
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                    "group_roll" => $validatedRequest['current_group'],
                     "id_sambungan" => $storeTimeRecordSummary->id,
                     "status" => "extension",
                     "group_stocker" => $groupStocker
@@ -1298,10 +1298,12 @@ class CuttingFormController extends Controller
                     "deleted_at" => Carbon::now(),
                 ]);
 
+                // delete incomplete lap
                 FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompletedDetail->id)->delete();
             }
         }
 
+        // delete incomplete detail
         FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->delete();
 
         // store to part form
@@ -1326,7 +1328,7 @@ class CuttingFormController extends Controller
         }
 
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputData->alokasiMeja->username);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
 
         return $updateFormCutInput;
     }
