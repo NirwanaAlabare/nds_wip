@@ -1137,8 +1137,8 @@ class CuttingFormPilotController extends Controller
 
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
                     "form_cut_id" => $validatedRequest["id"],
-                    "group_roll" => $validatedRequest['current_group'],
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                    "group_roll" => $validatedRequest['current_group'],
                     "id_sambungan" => $storeTimeRecordSummary->id,
                     "status" => "extension",
                     "group_stocker" => $groupStocker,
@@ -1639,7 +1639,7 @@ class CuttingFormPilotController extends Controller
         }
 
         app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputData->alokasiMeja->username);
+        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
 
         return $updateFormCutInput;
     }
