@@ -1,0 +1,166 @@
+@extends('layouts.index')
+
+@section('custom-link')
+<!-- DataTables -->
+<link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+
+<!-- Select2 -->
+<link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@endsection
+
+@section('content')
+<div class="card card-sb">
+    <div class="card-header">
+        <h5 class="card-title fw-bold mb-0">Data QC Inspection Fabric</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-flex align-items-end gap-3 mb-3">
+            <div class="col-md-12">
+                <div class="form-group row">
+                    <div class="col-md-2">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label class="form-label">From</label>
+                                <input type="date" class="form-control" id="tgl_awal" name="tgl_awal" value="{{ now()->subDays(30)->format('Y-m-d') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label class="form-label">To</label>
+                                <input type="date" class="form-control" id="tgl_akhir" name="tgl_akhir" value="{{ now()->format('Y-m-d') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6" style="padding-top: 0.5rem;">
+                        <div class="mt-4">
+                            <button class="btn btn-primary" onclick="dataTableReload()"><i class="fas fa-search"></i> Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- <div class="d-flex justify-content-end mb-3">
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="cari_grdok" name="cari_grdok" class="form-control" autocomplete="off" placeholder="Search No Document...">
+            </div>
+        </div> -->
+
+        <div class="table-responsive" style="max-height: 500px">
+            <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
+                <thead>
+                    <tr>
+                        <!-- Removed No Penerimaan column -->
+                        <th class="text-center">Date</th>
+                        <th class="text-center">No PL</th>
+                        <th class="text-center">Supplier</th>
+                        <th class="text-center">Buyer</th>
+                        <th class="text-center">Style</th>
+                        <th class="text-center">Color</th>
+                        <th class="text-center">No Lot</th>
+                        <th class="text-center">Qty Lot</th>
+                        <th class="text-center">Qty Roll</th>
+                        <th class="text-center">Notes</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('custom-script')
+<!-- DataTables & Plugins -->
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+
+<!-- Select2 -->
+<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap4'
+    });
+
+    // DataTable initialization
+    let datatable = $("#datatable").DataTable({
+        ordering: false,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("qc-inspect-inmaterial.data") }}',
+            type: 'POST', // Ensure POST method for CSRF
+            data: function(d) {
+                d.tgl_awal = $('#tgl_awal').val();
+                d.tgl_akhir = $('#tgl_akhir').val();
+                d.cari_grdok = $('#cari_grdok').val();
+            },
+        },
+        columns: [
+            // Removed { data: 'no_dok', searchable: true },
+            { data: 'tgl_dok', searchable: false },
+            { data: 'no_pl', searchable: false },
+            { data: 'supplier', searchable: false },
+            { data: 'buyer', searchable: false },
+            { data: 'style', searchable: false },
+            { data: 'color', searchable: false },
+            { data: 'no_lot', searchable: false },
+            { data: 'jumlah_no_lot', searchable: false },
+            { data: 'jumlah_roll', searchable: false },
+            { data: 'catatan', searchable: false },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `
+                        <div class='d-flex gap-1 justify-content-center'>
+                            <button type='button' class='btn btn-sm btn-info' onclick='viewDetails("${row.no_dok}")'>
+                                <i class='fa fa-eye'></i> View
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        ],
+        columnDefs: [
+            {
+                targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                className: 'text-center'
+            }
+        ]
+    });
+
+    // Reload DataTable on search
+    window.dataTableReload = function() {
+        datatable.ajax.reload();
+    };
+
+    // Search by No Document
+    $('#cari_grdok').on('keyup', function() {
+        datatable.ajax.reload();
+    });
+
+    // Optional: Function to handle view details (implement as needed)
+    window.viewDetails = function(no_dok) {
+        // Add logic to show details modal or redirect
+        console.log('View details for:', no_dok);
+    };
+});
+</script>
+@endsection

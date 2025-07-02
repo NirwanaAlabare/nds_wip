@@ -758,7 +758,7 @@ class CuttingFormManualController extends Controller
             "style" => "required",
             "cons_ws_marker" => "nullable",
             "color" => "required",
-            "panel_select" => "required",
+            "panel_select" => "nullable",
             "panel" => "required",
             "gelar_qty" => "required|numeric|gt:0",
             "urutan_marker" => "required|numeric|gt:0",
