@@ -11,8 +11,7 @@
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
 <!-- SweetAlert2 -->
-<link rel="stylesheet" href="{{ asset('plugins/sweetalert2/sweetalert2.min.css') }}"> <!-- Tambahkan ini -->
-
+<link rel="stylesheet" href="{{ asset('plugins/sweetalert2/sweetalert2.min.css') }}">
 @endsection
 
 @section('content')
@@ -51,18 +50,11 @@
             </div>
         </div>
 
-        <!-- <div class="d-flex justify-content-end mb-3">
-            <div class="input-group" style="max-width: 300px;">
-                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" id="cari_grdok" name="cari_grdok" class="form-control" autocomplete="off" placeholder="Search No Document...">
-            </div>
-        </div> -->
 
         <div class="table-responsive" style="max-height: 500px">
             <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                 <thead>
                     <tr>
-                        <!-- Removed No Penerimaan column -->
                         <th class="text-center">Date</th>
                         <th class="text-center">No PL</th>
                         <th class="text-center">No Lot</th>
@@ -92,10 +84,8 @@
 <!-- Select2 -->
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
-
 <!-- SweetAlert2 -->
-<script src="{{ asset('plugins/sweetalert2/sweetalert2.min.js') }}"></script> <!-- Tambahkan ini -->
-
+<script src="{{ asset('plugins/sweetalert2/sweetalert2.min.js') }}"></script>
 
 <script>
 $(document).ready(function() {
@@ -114,37 +104,51 @@ $(document).ready(function() {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             url: '{{ route("qc-inspect-inmaterial.data") }}',
-            type: 'POST', // Ensure POST method for CSRF
+            type: 'POST',
             data: function(d) {
                 d.tgl_awal = $('#tgl_awal').val();
                 d.tgl_akhir = $('#tgl_akhir').val();
-                d.cari_grdok = $('#cari_grdok').val();
+                d.cari_grdok = $('#cari_grdok').val(); // Include search input
             },
         },
-        columns: [
-            // Removed { data: 'no_dok', searchable: true },
-            { data: 'tgl_dok', searchable: false },
-            { data: 'no_pl', searchable: false },
-            { data: 'no_lot', searchable: false },
-            { data: 'color', searchable: false },
-            { data: 'supplier', searchable: false },
-            { data: 'buyer', searchable: false },
-            { data: 'style', searchable: false },
-            { data: 'jumlah_roll', searchable: false },
-            { data: 'catatan', searchable: false },
+      columns: [
+            { data: 'tgl_dok', searchable: true },
+            { data: 'no_pl', searchable: true },
+            { data: 'no_lot', searchable: true },
+            { data: 'color', searchable: true },
+            { data: 'supplier', searchable: true },
+            { data: 'buyer', searchable: true },
+            { data: 'style', searchable: true },
+            { data: 'jumlah_roll', searchable: true },
+            { data: 'catatan', searchable: true },
             {
                 data: null,
                 render: function(data, type, row) {                    
-                    return `
-                        <div class='d-flex gap-1 justify-content-center'>
-                              <button type='button' class='btn btn-sm btn-info' onclick='buatInspect(${JSON.stringify(row).replace(/"/g, '&quot;')})'>
-                                <i class='fa fa-plus'></i> Inspection
-                            </button>
-                        </div>
-                    `;
+                    if (row.already_inspected) {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <button type='button' class='btn btn-sm btn-info' disabled>
+                                    <i class='fa fa-check'></i> Sudah Diinspect
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <button type='button' class='btn btn-sm btn-info' onclick='buatInspect(${JSON.stringify(row).replace(/"/g, '&quot;')})'>
+                                    <i class='fa fa-plus'></i> Inspection
+                                </button>
+                            </div>
+                        `;
+                    }
                 }
             }
         ],
+        createdRow: function(row, data, dataIndex) {
+            if (data.already_inspected) {
+                $(row).addClass('bg-success text-white');
+            }
+        },
         columnDefs: [
             {
                 targets: [0, 1, 2, 3, 4, 5, 6, 7, 8],
@@ -164,9 +168,9 @@ $(document).ready(function() {
     });
 
     // Optional: Function to handle view details (implement as needed)
-        window.buatInspect = function(row) {
-            console.log('row', row.no_pl);
-            
+    window.buatInspect = function(row) {
+        console.log('row', row.no_pl);
+        
         Swal.fire({
             title: 'Buat Inspection?',
             html: `
@@ -213,19 +217,17 @@ $(document).ready(function() {
                         buyer: row.buyer,
                         style: row.style,
                         qty_roll: row.jumlah_roll,
-                        notes: row.catatan
+                        notes: row.catatan,
+                        no_dok: row.no_dok,
                     },
                     success: function(response) {
-
-                    var redirectUrl = "{{ route('qc-inspect-inmaterial-header') }}";
+                        var redirectUrl = "{{ route('qc-inspect-inmaterial-header') }}";
                         Swal.fire(
                             'Berhasil!',
                             'Inspection berhasil dibuat.',
                             'success'
                         ).then(() => {
-                            // Reload tabel setelah berhasil
-                            // $('#datatable').DataTable().ajax.reload();
-                            window.location.href = redirectUrl; // Menggunakan URL dari route name
+                            window.location.href = redirectUrl;
                         });
                     },
                     error: function(xhr) {
@@ -239,7 +241,6 @@ $(document).ready(function() {
             }
         });
     };
-
 });
 </script>
 @endsection
