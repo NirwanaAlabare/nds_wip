@@ -50,6 +50,7 @@ class QcInspectHeaderController extends Controller
                 'id_whs_lokasi_inmaterial' => 'required|integer',
                 'id_item' => 'required|integer',
                 'tgl_pl' => 'required|date',
+                'no_dok' => 'required|string',
                 'no_pl' => 'required|string',
                 'no_lot' => 'required|string',
                 'color' => 'required|string',
