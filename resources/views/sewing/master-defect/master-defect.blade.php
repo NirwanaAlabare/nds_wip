@@ -27,10 +27,12 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-12 col-lg-6">
-                    <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createDefectTypeModal">
-                        <i class="fas fa-plus"></i>
-                        Defect Type Baru
-                    </button>
+                    @role('superadmin')
+                        <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createDefectTypeModal">
+                            <i class="fas fa-plus"></i>
+                            Defect Type Baru
+                        </button>
+                    @endrole
                     <div class="table-responsive">
                         <table id="datatable-defect-type" class="table table-bordered table w-100">
                             <thead>
@@ -47,10 +49,12 @@
                     </div>
                 </div>
                 <div class="col-12 col-lg-6">
-                    <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createDefectAreaModal">
-                        <i class="fas fa-plus"></i>
-                        Defect Area Baru
-                    </button>
+                    @role('superadmin')
+                        <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createDefectAreaModal">
+                            <i class="fas fa-plus"></i>
+                            Defect Area Baru
+                        </button>
+                    @endrole
                     <div class="table-responsive">
                         <table id="datatable-defect-area" class="table table-bordered table w-100">
                             <thead>
