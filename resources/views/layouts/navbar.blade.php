@@ -772,7 +772,7 @@
                                     QC Inspect
                                 </a>
                                 <a href="{{ route('qc-inspect-inmaterial') }}" class="dropdown-item">
-                                    QC Inspect 2
+                                    Data Penerimaan
                                 </a>
                             </li>
                         </ul>

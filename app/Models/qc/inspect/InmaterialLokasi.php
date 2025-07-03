@@ -1,16 +1,13 @@
 <?php
 
-namespace App\Models\qc;
+namespace App\Models\qc\inspect;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MasterResult extends Model
+class InmaterialLokasi extends Model
 {
     use HasFactory;
     protected $connection = 'mysql_sb';
-    protected $table = 'qc_inspect_master_result';
-    protected $fillable = [
-        'result'
-    ];
+    protected $table = 'whs_lokasi_inmaterial';
 }
