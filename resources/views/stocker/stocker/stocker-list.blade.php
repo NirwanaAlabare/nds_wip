@@ -520,14 +520,14 @@
             const fromDate = new Date(from);
             const toDate = new Date(to);
 
-            // Create a new date that's 2 months after fromDate
+            // Create a new date that's 1 months after fromDate
             const maxToDate = new Date(fromDate);
-            maxToDate.setMonth(maxToDate.getMonth() + 2);
+            maxToDate.setMonth(maxToDate.getMonth() + 1);
 
             if (toDate > maxToDate) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Max 2 Bulan',
+                    title: 'Maks. 1 Bulan',
                     // html: 'Harap isi tanggal awal dan tanggal akhir.',
                     allowOutsideClick: false,
                 });
