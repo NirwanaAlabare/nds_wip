@@ -655,7 +655,7 @@ class CuttingFormController extends Controller
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
             $storeTimeRecordSummary = $checkTimeRecord;
-            $updateTimeRecordSummary = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where('form_cut_input_detail.status', 'not complete')->
+            $updateTimeRecordSummary = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where('status', 'not complete')->
                 update([
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                     "id_roll" => $validatedRequest['current_id_roll'],
