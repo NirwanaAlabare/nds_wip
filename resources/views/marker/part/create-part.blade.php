@@ -57,10 +57,11 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Panel</small></label>
-                                <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;" >
+                                <select class="form-control select2bs4" id="panel_id" name="panel_id" style="width: 100%;" >
                                     <option selected="selected" value="">Pilih Panel</option>
                                     {{-- select 2 option --}}
                                 </select>
+                                <input type="text" class="form-control" id="panel" name="panel" readonly>
                             </div>
                         </div>
                     </div>
@@ -188,7 +189,7 @@
             }
 
             // Select2 Prevent Step-Jump Input ( Step = WS -> Panel )
-            $("#panel").prop("disabled", true);
+            $("#panel_id").prop("disabled", true);
 
             document.getElementById('loading').classList.add("d-none");
         });
@@ -218,6 +219,11 @@
             document.getElementById("loading").classList.add("d-none");
         });
 
+        // Step Two (Panel) on change event
+        $('#panel_id').on('change', async function(e) {
+            document.getElementById("panel").value = $('#panel_id option:selected').text();
+        });
+
         // Update Order Information Based on Order WS and Order Color
         function updateOrderInfo() {
             return $.ajax({
@@ -240,7 +246,7 @@
 
         // Update Panel Select Option Based on Order WS and Color WS
         function updatePanelList() {
-            document.getElementById('panel').value = null;
+            document.getElementById('panel_id').value = null;
             return $.ajax({
                 url: '{{ route("get-part-panels") }}',
                 type: 'get',
@@ -251,10 +257,10 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('panel').innerHTML = res;
+                        document.getElementById('panel_id').innerHTML = res;
 
                         // Open this step
-                        $("#panel").prop("disabled", false);
+                        $("#panel_id").prop("disabled", false);
                     }
                 },
             });
@@ -539,8 +545,8 @@
         async function resetStep() {
             $('#part_details').val(null).trigger('change');
             await $("#ws_id").val(null).trigger("change");
-            await $("#panel").val(null).trigger("change");
-            await $("#panel").prop("disabled", true);
+            await $("#panel_id").val(null).trigger("change");
+            await $("#panel_id").prop("disabled", true);
         }
     </script>
 @endsection
