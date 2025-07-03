@@ -1213,7 +1213,7 @@
 
         // Step Three (Panel) on change event
         $('#panel-select').on('change', function(e) {
-            $('#panel').val($('#panel-select option:selected').html()).trigger('change');
+            $('#panel').val($('#panel-select option:selected').text()).trigger('change');
 
             if (this.value) {
                 getNumber();
