@@ -86,8 +86,15 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('qc-inspect-inmaterial')->group(function() {
         Route::get('/', [QCInmaterialFabricController::class, 'index'])->name('qc-inspect-inmaterial');
-        Route::post('qc-inspect-inmaterial/data', [App\Http\Livewire\QC\Inspect\QCInmaterialFabricController::class, 'getDatatables'])->name('qc-inspect-inmaterial.data');    });
+        Route::post('qc-inspect-inmaterial/data', [QCInmaterialFabricController::class, 'getDatatables'])->name('qc-inspect-inmaterial.data');    });
 
-    Route::post('/qc-inspect-inmaterial-header/store', [QcInspectHeaderController::class, 'store'])->name('qc-inspect-inmaterial-header.store');    
+
+
+    Route::prefix('qc-inspect-inmaterial-header')->group(function() {
+        Route::post('/store', [QcInspectHeaderController::class, 'store'])->name('qc-inspect-inmaterial-header.store');    
+        Route::get('/', [QcInspectHeaderController::class, 'index'])->name('qc-inspect-inmaterial-header');
+    });
+
+    Route::post('qc-inspect-inmaterial-header_data', [QcInspectHeaderController::class, 'getDatatables'])->name('qc-inspect-inmaterial-header.data');
 
     });
