@@ -21,6 +21,7 @@ class QcInspectHeader extends Model
         'style',
         'qty_roll',
         'notes',
+        'id_item'
     ];
 
     public function imaterialBarcode()
