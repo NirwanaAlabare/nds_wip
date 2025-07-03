@@ -33,6 +33,8 @@ class QCInmaterialFabricController extends Controller
                     ms.Supplier AS buyer, 
                     ac.styleno AS style, 
                     d.color,
+                    d.id_item,
+                    c.id as id_whs_lokasi_inmaterial,
                     c.no_lot,
                     COUNT(DISTINCT c.no_lot) AS jumlah_no_lot,
                     COUNT(DISTINCT c.id) AS jumlah_roll,

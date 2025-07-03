@@ -9,12 +9,16 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="{{ asset('plugins/sweetalert2/sweetalert2.min.css') }}"> <!-- Tambahkan ini -->
+
 @endsection
 
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0">Data QC Inspection Fabric</h5>
+        <h5 class="card-title fw-bold mb-0">Data Penerimaan </h5>
     </div>
     <div class="card-body">
         <div class="d-flex align-items-end gap-3 mb-3">
@@ -61,12 +65,11 @@
                         <!-- Removed No Penerimaan column -->
                         <th class="text-center">Date</th>
                         <th class="text-center">No PL</th>
+                        <th class="text-center">No Lot</th>
+                        <th class="text-center">Color</th>
                         <th class="text-center">Supplier</th>
                         <th class="text-center">Buyer</th>
                         <th class="text-center">Style</th>
-                        <th class="text-center">Color</th>
-                        <th class="text-center">No Lot</th>
-                        <th class="text-center">Qty Lot</th>
                         <th class="text-center">Qty Roll</th>
                         <th class="text-center">Notes</th>
                         <th class="text-center">Action</th>
@@ -88,6 +91,11 @@
 
 <!-- Select2 -->
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+
+<!-- SweetAlert2 -->
+<script src="{{ asset('plugins/sweetalert2/sweetalert2.min.js') }}"></script> <!-- Tambahkan ini -->
+
 
 <script>
 $(document).ready(function() {
@@ -117,21 +125,20 @@ $(document).ready(function() {
             // Removed { data: 'no_dok', searchable: true },
             { data: 'tgl_dok', searchable: false },
             { data: 'no_pl', searchable: false },
+            { data: 'no_lot', searchable: false },
+            { data: 'color', searchable: false },
             { data: 'supplier', searchable: false },
             { data: 'buyer', searchable: false },
             { data: 'style', searchable: false },
-            { data: 'color', searchable: false },
-            { data: 'no_lot', searchable: false },
-            { data: 'jumlah_no_lot', searchable: false },
             { data: 'jumlah_roll', searchable: false },
             { data: 'catatan', searchable: false },
             {
                 data: null,
-                render: function(data, type, row) {
+                render: function(data, type, row) {                    
                     return `
                         <div class='d-flex gap-1 justify-content-center'>
-                            <button type='button' class='btn btn-sm btn-info' onclick='viewDetails("${row.no_dok}")'>
-                                <i class='fa fa-eye'></i> View
+                              <button type='button' class='btn btn-sm btn-info' onclick='buatInspect(${JSON.stringify(row).replace(/"/g, '&quot;')})'>
+                                <i class='fa fa-plus'></i> Inspection
                             </button>
                         </div>
                     `;
@@ -140,7 +147,7 @@ $(document).ready(function() {
         ],
         columnDefs: [
             {
-                targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                targets: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                 className: 'text-center'
             }
         ]
@@ -157,10 +164,82 @@ $(document).ready(function() {
     });
 
     // Optional: Function to handle view details (implement as needed)
-    window.viewDetails = function(no_dok) {
-        // Add logic to show details modal or redirect
-        console.log('View details for:', no_dok);
+        window.buatInspect = function(row) {
+            console.log('row', row.no_pl);
+            
+        Swal.fire({
+            title: 'Buat Inspection?',
+            html: `
+                <div class="text-left">
+                    <p>Anda akan membuat inspection untuk:</p>
+                    <ul>
+                        <li><strong>No PL:</strong> ${row.no_pl}</li>
+                        <li><strong>No Lot:</strong> ${row.no_lot}</li>
+                        <li><strong>Color:</strong> ${row.color}</li>
+                    </ul>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Buat Inspection',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Tampilkan loading
+                Swal.fire({
+                    title: 'Memproses',
+                    html: 'Sedang membuat inspection...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                // Kirim data ke server
+                $.ajax({
+                    url: '{{ route("qc-inspect-inmaterial-header.store") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id_whs_lokasi_inmaterial: row.id_whs_lokasi_inmaterial,
+                        id_item: row.id_item,
+                        tgl_pl: row.tgl_dok,
+                        no_pl: row.no_pl,
+                        no_lot: row.no_lot,
+                        color: row.color,
+                        supplier: row.supplier,
+                        buyer: row.buyer,
+                        style: row.style,
+                        qty_roll: row.jumlah_roll,
+                        notes: row.catatan
+                    },
+                    success: function(response) {
+
+                    var redirectUrl = "{{ route('qc-inspect-inmaterial-header') }}";
+                        Swal.fire(
+                            'Berhasil!',
+                            'Inspection berhasil dibuat.',
+                            'success'
+                        ).then(() => {
+                            // Reload tabel setelah berhasil
+                            // $('#datatable').DataTable().ajax.reload();
+                            window.location.href = redirectUrl; // Menggunakan URL dari route name
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire(
+                            'Gagal!',
+                            xhr.responseJSON?.message || 'Terjadi kesalahan saat membuat inspection.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
     };
+
 });
 </script>
 @endsection

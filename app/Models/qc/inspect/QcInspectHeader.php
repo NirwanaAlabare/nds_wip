@@ -1,26 +1,30 @@
 <?php
 
-namespace App\Models\qc;
+namespace App\Models\qc\inspect;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MasterDefect extends Model
+class QcInspectHeader extends Model
 {
     use HasFactory;
     protected $connection = 'mysql_sb';
     protected $table = 'qc_inspect_list_inspect';
     protected $fillable = [
         'id_whs_lokasi_inmaterial',
-        'no_pl',
         'tgl_pl',
+        'no_pl',
         'no_lot',
         'color',
-        'id_item',
         'supplier',
         'buyer',
         'style',
         'qty_roll',
         'notes',
     ];
+
+    public function imaterialBarcode()
+    {
+        return $this->belongsTo(InmaterialLokasi::class, 'id_whs_lokasi_inmaterial', 'id');
+    }
 }
