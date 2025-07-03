@@ -203,7 +203,8 @@ $(document).ready(function() {
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        id_whs_lokasi_inmaterial: row.id_item,
+                        id_whs_lokasi_inmaterial: row.id_whs_lokasi_inmaterial,
+                        id_item: row.id_item,
                         tgl_pl: row.tgl_dok,
                         no_pl: row.no_pl,
                         no_lot: row.no_lot,
@@ -215,13 +216,16 @@ $(document).ready(function() {
                         notes: row.catatan
                     },
                     success: function(response) {
+
+                    var redirectUrl = "{{ route('qc-inspect-inmaterial-header') }}";
                         Swal.fire(
                             'Berhasil!',
                             'Inspection berhasil dibuat.',
                             'success'
                         ).then(() => {
                             // Reload tabel setelah berhasil
-                            $('#datatable').DataTable().ajax.reload();
+                            // $('#datatable').DataTable().ajax.reload();
+                            window.location.href = redirectUrl; // Menggunakan URL dari route name
                         });
                     },
                     error: function(xhr) {

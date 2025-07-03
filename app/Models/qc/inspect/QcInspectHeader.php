@@ -25,6 +25,6 @@ class QcInspectHeader extends Model
 
     public function imaterialBarcode()
     {
-        return $this->belongsTo(InmaterialLokasi::class, 'id', 'id_whs_lokasi_inmaterial');
+        return $this->belongsTo(InmaterialLokasi::class, 'id_whs_lokasi_inmaterial', 'id');
     }
 }
