@@ -11,8 +11,10 @@ use App\Models\MarkerDetail;
 use App\Models\Marker;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
+use App\Models\PartForm;
 use App\Models\Auth\User;
 use App\Exports\Cutting\ExportCuttingForm;
+use App\Services\StockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -358,11 +360,35 @@ class SpreadingController extends Controller
         );
     }
 
-    public function updateStatus(Request $request) {
+    public function updateStatus(Request $request, StockerService $stockerService) {
         $validatedRequest = $request->validate([
             "edit_id_status" => "required",
             "edit_status" => "required",
         ]);
+
+        // If the form already has stockers (return error)
+        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
+        if ($stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
+        // If the form only has part form (delete part form & reorder)
+        $partForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->first();
+        if ($partForm) {
+            // Delete part form
+            $deletePartForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->delete();
+
+            if ($deletePartForm) {
+                // Reorder part form group
+                $stockerService->reorderStockerNumbering($partForm->part_id);
+            }
+        }
 
         $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
             'status' => $validatedRequest['edit_status']
@@ -400,6 +426,31 @@ class SpreadingController extends Controller
 
         $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
 
+        // If the form already has stockers (return error)
+        $stockerForm = Stocker::where('form_cut_id', $id)->first();
+        if ($stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
+        // If the form only has part form (delete part form & reorder)
+        $partForm = PartForm::where('form_id', $id)->first();
+        if ($partForm) {
+            // Delete part form
+            $deletePartForm = PartForm::where('form_id', $id)->delete();
+
+            if ($deletePartForm) {
+                // Reorder part form group
+                $stockerService->reorderStockerNumbering($partForm->part_id);
+            }
+        }
+
+        // Spreading Form Delete Process
         $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
         if ($deleteSpreadingForm) {
             // Update Marker Balance
@@ -430,6 +481,7 @@ class SpreadingController extends Controller
                 }
             }
 
+            // Delete Detail
             $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
             $deleteSpreadingFormDetail = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
             if ($deleteSpreadingFormDetail) {
@@ -471,12 +523,12 @@ class SpreadingController extends Controller
                     array_push($idFormDetailLapArr, $spreadingFormDetail->id);
                 }
 
+                // Delete Detail Lap
                 $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
             }
 
+            // Delete Related Items
             $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
-            $deleteStocker = Stocker::where("form_cut_id", $id)->delete();
-            $deleteNumbering = StockerDetail::where("form_cut_id", $id)->delete();
 
             return array(
                 "status" => 200,

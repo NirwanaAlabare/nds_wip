@@ -22,7 +22,7 @@ use Illuminate\Http\Request;
 
 class StockerService
 {
-    public function reorderStockerNumbering(Request $request)
+    public function reorderStockerNumbering($partId)
     {
         ini_set('max_execution_time', 360000);
 
@@ -41,7 +41,7 @@ class StockerService
             leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             whereRaw("part_form.id is not null")->
-            where("part.id", $request->id)->
+            where("part.id", $partId)->
             groupBy("form_cut_input.id")->
             orderBy("marker_input.color", "asc")->
             orderBy("form_cut_input.waktu_selesai", "asc")->
