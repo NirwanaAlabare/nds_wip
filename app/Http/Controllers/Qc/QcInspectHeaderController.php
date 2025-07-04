@@ -36,7 +36,7 @@ class QcInspectHeaderController extends Controller
             ->addColumn('action', function($row) {
                 return '<div class="d-flex gap-1 justify-content-center">
                     <button type="button" class="btn btn-sm btn-info" onclick="viewDetails('.json_encode($row).')">
-                        <i class="fa fa-eye"></i> Details
+                        <i class="fa fa-plus"></i>
                     </button>
                 </div>';
             })
