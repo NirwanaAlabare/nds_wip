@@ -630,7 +630,7 @@
             } else {
                 let cbopo = po.split('_')[0];
                 let dest = po.split('_')[1];
-
+console.log(po);
                 $.ajax({
                     url: '{{ route('show_det_po') }}',
                     method: 'get',

@@ -228,9 +228,11 @@ class CompletedFormController extends Controller
             "start" => "required",
             "finish" => "required",
             "current_id_item" => "required",
+            "current_detail_item" => "nullable",
             "current_group" => "required",
             "current_group_stocker" => "nullable",
             "current_roll" => "nullable",
+            "current_roll_buyer" => "nullable",
             "current_qty" => "required",
             "current_qty_real" => "required",
             "current_unit" => "required",
@@ -257,9 +259,11 @@ class CompletedFormController extends Controller
             update([
                 "id_roll" => $validatedRequest['current_id_roll'],
                 "id_item" => $validatedRequest['current_id_item'],
+                "detail_item" => $validatedRequest['current_detail_item'],
                 "group_roll" => $validatedRequest['current_group'],
                 "lot" => $request["current_lot"],
                 "roll" => $validatedRequest['current_roll'],
+                "roll_buyer" => $validatedRequest['current_roll_buyer'],
                 "qty" => $itemQty,
                 "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
@@ -291,10 +295,12 @@ class CompletedFormController extends Controller
                 $itemRemain = $detailAfter->sisa_kain;
 
                 $detailAfter->id_roll = $validatedRequest['current_id_roll'];
+                $detailAfter->detail_item = $validatedRequest['current_detail_item'];
                 $detailAfter->id_item = $validatedRequest['current_id_item'];
                 $detailAfter->group_roll = $validatedRequest['current_group'];
                 $detailAfter->lot = $request["current_lot"];
                 $detailAfter->roll = $validatedRequest['current_roll'];
+                $detailAfter->roll_buyer = $validatedRequest['current_roll_buyer'];
                 $detailAfter->qty = ($itemQty-$validatedRequest['current_total_pemakaian_roll']);
                 $detailAfter->short_roll = $detailAfter->total_pemakaian_roll-($itemQty-$validatedRequest['current_total_pemakaian_roll']);
                 $detailAfter->save();
@@ -311,8 +317,10 @@ class CompletedFormController extends Controller
             ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
                 update([
                     "id_item" => $validatedRequest['current_id_item'],
+                    "detail_item" => $validatedRequest['current_detail_item'],
                     "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
+                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
                     "qty" => $itemRemain,
                     "unit" => $itemUnit,
                 ]);
