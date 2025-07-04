@@ -93,6 +93,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('qc-inspect-inmaterial-header')->group(function() {
         Route::post('/store', [QcInspectHeaderController::class, 'store'])->name('qc-inspect-inmaterial-header.store');    
         Route::get('/', [QcInspectHeaderController::class, 'index'])->name('qc-inspect-inmaterial-header');
+        Route::get('-generateRoll', [QcInspectHeaderController::class, 'generateRoll'])->name('qc-inspect-inmaterial-generateRoll');
+        Route::get('-getDataRolltables', [QcInspectHeaderController::class, 'getDataRolltables'])->name('qc-inspect-inmaterial-getDataRolltables');
     });
 
     Route::post('qc-inspect-inmaterial-header_data', [QcInspectHeaderController::class, 'getDatatables'])->name('qc-inspect-inmaterial-header.data');
