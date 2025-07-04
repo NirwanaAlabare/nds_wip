@@ -774,14 +774,14 @@
                             class="nav-link dropdown-toggle">QC</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <!-- <a href="{{ route('qc-pass') }}" class="dropdown-item">
+                                <a href="{{ route('qc-pass') }}" class="dropdown-item">
                                     QC Inspect
-                                </a> -->
+                                </a>
                                 <a href="{{ route('qc-inspect-inmaterial') }}" class="dropdown-item">
                                     Data Penerimaan
                                 </a>
                                  <a href="{{ route('qc-inspect-inmaterial-header') }}" class="dropdown-item">
-                                    QC Inspect
+                                    QC Inspect 2
                                 </a>
                             </li>
                         </ul>

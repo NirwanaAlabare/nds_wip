@@ -35,13 +35,13 @@ class QcInspectHeaderController extends Controller
             ->whereBetween('tgl_pl', [$tgl_awal, $tgl_akhir])
             ->orderBy('tgl_pl', 'desc')
             ->get();
-    // dd("data", $data);   
+        // dd("data", $data);   
 
-        return datatables()->of($data)
-            ->addIndexColumn()
+            return datatables()->of($data)
+                ->addIndexColumn()
 
-            ->rawColumns(['action'])
-            ->make(true);
+                ->rawColumns(['action'])
+                ->make(true);
     }
    public function store(Request $request)
     {

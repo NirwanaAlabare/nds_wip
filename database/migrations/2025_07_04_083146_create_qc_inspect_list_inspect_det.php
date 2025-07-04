@@ -15,6 +15,9 @@ class CreateQcInspectListInspectDet extends Migration
     {
         Schema::create('qc_inspect_list_inspect_det', function (Blueprint $table) {
             $table->id();
+            $table->string('result')->nullable();
+            $table->decimal('rata_rata', 10, 2)->nullable();
+            $table->foreignId('id_master_group_inspect')->nullable()->constrained('qc_inspect_master_group_inspect')->onDelete('set null');
             $table->timestamps();
         });
     }
