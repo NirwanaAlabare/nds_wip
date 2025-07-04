@@ -9,18 +9,9 @@ class MasterDefect extends Model
 {
     use HasFactory;
     protected $connection = 'mysql_sb';
-    protected $table = 'qc_inspect_list_inspect';
+    protected $table = 'qc_inspect_master_defect';
     protected $fillable = [
-        'id_whs_lokasi_inmaterial',
-        'no_pl',
-        'tgl_pl',
-        'no_lot',
-        'color',
-        'id_item',
-        'supplier',
-        'buyer',
-        'style',
-        'qty_roll',
-        'notes',
+        'critical_defect',
+        'point_defect'
     ];
 }
