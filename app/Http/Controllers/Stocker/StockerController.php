@@ -2431,6 +2431,11 @@ class StockerController extends Controller
             // Convert seconds to days
             $daysInterval = $diffInSeconds / (60 * 60 * 24);
 
+            // Limit to 1 month
+            if ($daysInterval > 30) {
+                $dateTo = date("Y-m-d", strtotime($dateFrom . " +30 days"));
+            }
+
             if ($daysInterval > 3) {
                 $stockerList = DB::select("
                     SELECT
@@ -2737,6 +2742,11 @@ class StockerController extends Controller
         $stocker_range_filter = "";
         if ($request->stocker_range_filter) {
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$request->stocker_range_filter."%' ";
+        }
+
+        // Limit to 1 month
+        if ($daysInterval > 30) {
+            $dateTo = date("Y-m-d", strtotime($dateFrom . " +30 days"));
         }
 
         if ($daysInterval > 3) {
@@ -3357,6 +3367,11 @@ class StockerController extends Controller
 
         // Convert seconds to days
         $daysInterval = $diffInSeconds / (60 * 60 * 24);
+
+        // Limit to 1 month
+        if ($daysInterval > 30) {
+            $dateTo = date("Y-m-d", strtotime($dateFrom . " +30 days"));
+        }
 
         $tanggal_filter = "";
         if ($request->tanggal_filter) {
