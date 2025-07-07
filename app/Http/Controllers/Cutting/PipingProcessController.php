@@ -437,11 +437,8 @@ class PipingProcessController extends Controller
         $customPaper = array(0, 0, 300, 250);
         $pdf = PDF::loadView('cutting.piping-process.pdf.pdf-piping-process', ["pipingProcess" => $pipingProcess])->setPaper('A7', 'landscape');
 
-        $path = public_path('pdf/');
         $fileName = 'Piping '.$pipingProcess->kode_piping.'.pdf';
-        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-        return response()->download($generatedFilePath);
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 }

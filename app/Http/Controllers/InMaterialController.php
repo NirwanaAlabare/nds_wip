@@ -943,59 +943,46 @@ class InMaterialController extends Controller
 
     public function barcodeinmaterial(Request $request, $id)
     {
-
-       if($id == 'SA'){
-
-        $dataItem = DB::connection('mysql_sb')->select("select a.*,CONCAT(a.no_roll) roll,IF(no_mut = '',dok_num,concat(dok_num,' ',(nomut))) no_dok from (select a.no_style styleno,a.no_barcode id,b.itemdesc item_desc,b.goods_code kode_item,a.id_jo,a.id_item,'-' supplier,if(a.no_bpb ='-' ,'-',concat(a.no_bpb,' | ',a.tgl_bpb)) dok_num, concat(' | ',coalesce(no_mut,'')) nomut,coalesce(no_mut,'') no_mut,a.no_bpb,no_po,a.no_ws,no_roll,'' no_roll_buyer,no_lot,ROUND(qty,2) qty,unit satuan,'-' grouping,kode_lok from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where a.qty != 0 and a.no_barcode like '%F%' order by a.no_lot asc) a order by a.no_lot asc");
-
-       }else{
-        $dataItem = DB::connection('mysql_sb')->select("select a.*,CONCAT(a.no_roll,' Of ',all_roll) roll, ac.styleno,IF(no_mut = '',dok_num,concat(dok_num,' ',(nomut))) no_dok from (select b.id,concat(s.itemdesc) item_desc,kode_item,id_jo,b.id_item,supplier,concat(a.no_dok,' | ',a.tgl_dok) dok_num, concat(' | ',coalesce(no_mut,'')) nomut,coalesce(no_mut,'') no_mut,a.no_dok no_bpb,no_po,b.no_ws,no_roll,no_roll_buyer,no_lot,ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) qty,satuan,'-' grouping,kode_lok from whs_inmaterial_fabric a inner join whs_lokasi_inmaterial b on b.no_dok = a.no_dok inner join masteritem s on s.id_item = b.id_item where a.id = '$id' and b.status = 'Y' and ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) > 0) a INNER JOIN
-        (select no_dok nodok,no_lot nolot,COUNT(no_roll) all_roll from (select item_desc,kode_item,id_item,supplier,a.no_dok,no_po,b.no_ws,no_roll,no_lot,ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) qty,satuan,'-' grouping from whs_inmaterial_fabric a inner join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where a.id = '$id' and b.status = 'Y' and ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) > 0) a GROUP BY no_lot) b on b.nodok = a.no_bpb and a.no_lot = b.nolot
-        inner join jo_det jd on a.id_jo = jd.id_jo
-        inner join so on jd.id_so = so.id
-        inner join act_costing ac on so.id_cost = ac.id order by a.no_lot,a.id asc");
-       }
+        if($id == 'SA'){
+            $dataItem = DB::connection('mysql_sb')->select("select a.*,CONCAT(a.no_roll) roll,IF(no_mut = '',dok_num,concat(dok_num,' ',(nomut))) no_dok from (select a.no_style styleno,a.no_barcode id,b.itemdesc item_desc,b.goods_code kode_item,a.id_jo,a.id_item,'-' supplier,if(a.no_bpb ='-' ,'-',concat(a.no_bpb,' | ',a.tgl_bpb)) dok_num, concat(' | ',coalesce(no_mut,'')) nomut,coalesce(no_mut,'') no_mut,a.no_bpb,no_po,a.no_ws,no_roll,'' no_roll_buyer,no_lot,ROUND(qty,2) qty,unit satuan,'-' grouping,kode_lok from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where a.qty != 0 and a.no_barcode like '%F%' order by a.no_lot asc) a order by a.no_lot asc");
+        }else{
+            $dataItem = DB::connection('mysql_sb')->select("select a.*,CONCAT(a.no_roll,' Of ',all_roll) roll, ac.styleno,IF(no_mut = '',dok_num,concat(dok_num,' ',(nomut))) no_dok from (select b.id,concat(s.itemdesc) item_desc,kode_item,id_jo,b.id_item,supplier,concat(a.no_dok,' | ',a.tgl_dok) dok_num, concat(' | ',coalesce(no_mut,'')) nomut,coalesce(no_mut,'') no_mut,a.no_dok no_bpb,no_po,b.no_ws,no_roll,no_roll_buyer,no_lot,ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) qty,satuan,'-' grouping,kode_lok from whs_inmaterial_fabric a inner join whs_lokasi_inmaterial b on b.no_dok = a.no_dok inner join masteritem s on s.id_item = b.id_item where a.id = '$id' and b.status = 'Y' and ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) > 0) a INNER JOIN
+            (select no_dok nodok,no_lot nolot,COUNT(no_roll) all_roll from (select item_desc,kode_item,id_item,supplier,a.no_dok,no_po,b.no_ws,no_roll,no_lot,ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) qty,satuan,'-' grouping from whs_inmaterial_fabric a inner join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where a.id = '$id' and b.status = 'Y' and ROUND(qty_aktual - COALESCE(qty_mutasi,0) - COALESCE(qty_out,0),2) > 0) a GROUP BY no_lot) b on b.nodok = a.no_bpb and a.no_lot = b.nolot
+            inner join jo_det jd on a.id_jo = jd.id_jo
+            inner join so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id order by a.no_lot,a.id asc");
+        }
 
 
-            // decode qr code
-            // $qrCodeDecode = base64_encode(Barcode::format('svg')->size(100)->generate($dataLokasi->kode_lok));
+        // decode qr code
+        // $qrCodeDecode = base64_encode(Barcode::format('svg')->size(100)->generate($dataLokasi->kode_lok));
 
-            // generate pdf
-            // dd($dataItem);
-            PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('inmaterial.pdf.print-barcode', ["dataItem" => $dataItem])->setPaper('a7', 'landscape');
+        // generate pdf
+        // dd($dataItem);
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('inmaterial.pdf.print-barcode', ["dataItem" => $dataItem])->setPaper('a7', 'landscape');
 
-            $path = public_path('pdf/');
-            $fileName = 'barcode-material.pdf';
-            $pdf->save($path . '/' . $fileName);
-            $generatedFilePath = public_path('pdf/'.$fileName);
+        $fileName = 'barcode-material.pdf';
 
-            return response()->download($generatedFilePath);
-
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
 
     public function pdfinmaterial(Request $request, $id)
     {
+        $dataHeader = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id' limit 1");
+        $dataDetail = DB::connection('mysql_sb')->select("select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit,b.deskripsi from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y'");
+        $dataSum = DB::connection('mysql_sb')->select("select sum(qty) qty_all from (select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
+        $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$id' limit 1");
+        $dataHead = DB::connection('mysql_sb')->select("select CONCAT('Bandung, ',DATE_FORMAT(a.tgl_dok,'%d %b %Y')) tgl_dok,a.supplier,b.alamat, CURRENT_TIMESTAMP() tgl_cetak from whs_inmaterial_fabric a inner join mastersupplier b on b.supplier = a.supplier where id = '$id' and b.tipe_sup = 'S' limit 1");
 
 
-            $dataHeader = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id' limit 1");
-            $dataDetail = DB::connection('mysql_sb')->select("select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit,b.deskripsi from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y'");
-            $dataSum = DB::connection('mysql_sb')->select("select sum(qty) qty_all from (select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
-            $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$id' limit 1");
-            $dataHead = DB::connection('mysql_sb')->select("select CONCAT('Bandung, ',DATE_FORMAT(a.tgl_dok,'%d %b %Y')) tgl_dok,a.supplier,b.alamat, CURRENT_TIMESTAMP() tgl_cetak from whs_inmaterial_fabric a inner join mastersupplier b on b.supplier = a.supplier where id = '$id' and b.tipe_sup = 'S' limit 1");
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('inmaterial.pdf.print-pdf', ["dataHeader" => $dataHeader,"dataDetail" => $dataDetail,"dataSum" => $dataSum,"dataUser" => $dataUser,"dataHead" => $dataHead])->setPaper('a4', 'potrait');
 
+        $fileName = 'pdf-material.pdf';
 
-            PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('inmaterial.pdf.print-pdf', ["dataHeader" => $dataHeader,"dataDetail" => $dataDetail,"dataSum" => $dataSum,"dataUser" => $dataUser,"dataHead" => $dataHead])->setPaper('a4', 'potrait');
-
-            $path = public_path('pdf/');
-            $fileName = 'pdf-material.pdf';
-            $pdf->save($path . '/' . $fileName);
-            $generatedFilePath = public_path('pdf/'.$fileName);
-
-            return response()->download($generatedFilePath);
-
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     /**

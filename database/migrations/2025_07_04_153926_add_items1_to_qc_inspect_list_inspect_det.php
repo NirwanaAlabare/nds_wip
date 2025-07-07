@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateQcInspectMasterResult extends Migration
+class AddItems1ToQcInspectListInspectDet extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,8 @@ class CreateQcInspectMasterResult extends Migration
      */
     public function up()
     {
-        Schema::create('qc_inspect_master_result', function (Blueprint $table) {
-            $table->id();
-            $table->string('result');
-            $table->timestamps();
+        Schema::table('qc_inspect_list_inspect_det', function (Blueprint $table) {
+            $table->decimal('percentage', 10, 2)->nullable();
         });
     }
 
@@ -27,6 +25,8 @@ class CreateQcInspectMasterResult extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('qc_inspect_master_result');
+        Schema::table('qc_inspect_list_inspect_det', function (Blueprint $table) {
+            //
+        });
     }
 }

@@ -697,12 +697,9 @@ class RollController extends Controller
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $pdf = PDF::loadView('cutting.roll.pdf.sisa-kain-roll', ["sbItem" => ($sbItem ? $sbItem[0] : null), "ndsItem" => $ndsItem])->setPaper('a7', 'landscape');
 
-        $path = public_path('pdf/');
         $fileName = 'Sisa_Kain_'.$id.'.pdf';
-        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-        return response()->download($generatedFilePath);
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     public function massPrintSisaKain(Request $request)
@@ -799,12 +796,9 @@ class RollController extends Controller
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $pdf = PDF::loadView('cutting.roll.pdf.mass-sisa-kain-roll', ["sbItems" => ($sbItems ? $sbItems : null), "ndsItems" => $ndsItems])->setPaper('a7', 'landscape');
 
-        $path = public_path('pdf/');
         $fileName = 'Mass_Sisa_Kain.pdf';
-        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-        return response()->download($generatedFilePath);
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     public function create()

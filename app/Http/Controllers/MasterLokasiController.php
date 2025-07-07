@@ -75,7 +75,7 @@ class MasterLokasiController extends Controller
                 (select kode_lok, unit from whs_unit_lokasi where unit = 'BUNDLE' and status = 'Y' GROUP BY kode_lok) c on c.kode_lok = a.kode_lok left join
                 (select kode_lok, unit from whs_unit_lokasi where unit = 'BOX' and status = 'Y' GROUP BY kode_lok) d on d.kode_lok = a.kode_lok left join
                 (select kode_lok, unit from whs_unit_lokasi where unit = 'PACK' and status = 'Y' GROUP BY kode_lok) e on e.kode_lok = a.kode_lok left join
-                (select kode_lok, GROUP_CONCAT(unit) unit from whs_unit_lokasi where status = 'Y' GROUP BY kode_lok) f on f.kode_lok = a.kode_lok 
+                (select kode_lok, GROUP_CONCAT(unit) unit from whs_unit_lokasi where status = 'Y' GROUP BY kode_lok) f on f.kode_lok = a.kode_lok
                 " . $additionalQuery . "
                 " . $keywordQuery . "
             ");
@@ -106,7 +106,7 @@ class MasterLokasiController extends Controller
 
     public function updatestatus(Request $request)
     {
-        
+
         $id = $request['id_lok'];
         $status = $request['status_lok'];
         if ($status == 'Active') {
@@ -127,7 +127,7 @@ class MasterLokasiController extends Controller
                 "additional" => [],
                 "redirect" => url('/master-lokasi')
             );
-        
+
     }
 
     /**
@@ -158,14 +158,14 @@ class MasterLokasiController extends Controller
         select kode_lok from whs_master_lokasi where kode_lok = '".$lokCode."'");
         $nomor_lokasi = $datanomor ? $datanomor[0] : null;
       if($nomor_lokasi == null){
-           
+
         if ($request['ROLL'] == 'on') {
              $unitStore1 = UnitLokasi::create([
                 'kode_lok' => $lokCode,
                 'unit' => 'ROLL',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['BUNDLE'] == 'on') {
              $unitStore2 = UnitLokasi::create([
@@ -173,7 +173,7 @@ class MasterLokasiController extends Controller
                 'unit' => 'BUNDLE',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['BOX'] == 'on') {
              $unitStore3 = UnitLokasi::create([
@@ -181,7 +181,7 @@ class MasterLokasiController extends Controller
                 'unit' => 'BOX',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['PACK'] == 'on') {
              $unitStore4 = UnitLokasi::create([
@@ -189,12 +189,12 @@ class MasterLokasiController extends Controller
                 'unit' => 'PACK',
                 'status' => 'Y',
             ]);
-            
+
         }
         $timestamp = Carbon::now();
 
         if ($request['ROLL'] == 'on' || $request['BUNDLE'] == 'on' || $request['BOX'] == 'on' || $request['PACK'] == 'on') {
-           
+
             $lokasiStore = MasterLokasi::create([
                 'kode_lok' => $lokCode,
                 'area_lok' => $validatedRequest['txt_area_new'],
@@ -225,7 +225,7 @@ class MasterLokasiController extends Controller
                 "additional" => [],
             );
     }
-        
+
     }
 
     public function simpanedit(Request $request)
@@ -261,7 +261,7 @@ class MasterLokasiController extends Controller
                 'unit' => 'ROLL',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['BUNDLE_edit'] == 'on') {
              $unitStore2 = UnitLokasi::create([
@@ -269,7 +269,7 @@ class MasterLokasiController extends Controller
                 'unit' => 'BUNDLE',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['BOX_edit'] == 'on') {
              $unitStore3 = UnitLokasi::create([
@@ -277,7 +277,7 @@ class MasterLokasiController extends Controller
                 'unit' => 'BOX',
                 'status' => 'Y',
             ]);
-            
+
         }
         if ($request['PACK_edit'] == 'on') {
              $unitStore4 = UnitLokasi::create([
@@ -285,7 +285,7 @@ class MasterLokasiController extends Controller
                 'unit' => 'PACK',
                 'status' => 'Y',
             ]);
-            
+
         }
 
         $timestamp = Carbon::now();
@@ -321,34 +321,28 @@ class MasterLokasiController extends Controller
                 "additional" => [],
             );
     }
-        
+
     }
 
 
     public function printlokasi(Request $request, $id)
     {
-       
-       
-            $dataLokasi = MasterLokasi::selectRaw("
-                    CONCAT(inisial_lok,baris_lok,level_lok,no_lok) kode_lok,
-                    kode_lok kode,
-                    id
-                ")->
-                where("id", $id)->
-                first();
+        $dataLokasi = MasterLokasi::selectRaw("
+                CONCAT(inisial_lok,baris_lok,level_lok,no_lok) kode_lok,
+                kode_lok kode,
+                id
+            ")->
+            where("id", $id)->
+            first();
 
-                // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-                $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi])->setPaper('a7', 'landscape');
+        // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi])->setPaper('a7', 'landscape');
 
-                // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
+        // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
 
-                $path = public_path('pdf/');
-                $fileName = 'Lokasi-'.$dataLokasi->kode_lok.'.pdf';
-                $pdf->save($path . '/' . $fileName);
-                $generatedFilePath = public_path('pdf/'.$fileName);
+        $fileName = 'Lokasi-'.$dataLokasi->kode_lok.'.pdf';
 
-                return response()->download($generatedFilePath);
-        
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     /**
@@ -357,7 +351,7 @@ class MasterLokasiController extends Controller
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -388,12 +382,12 @@ class MasterLokasiController extends Controller
                 level_lok,
                 no_lok,
                 unit,
-                kapasitas, 
-                CONCAT(create_by, ' ',create_date) create_user, 
+                kapasitas,
+                CONCAT(create_by, ' ',create_date) create_user,
                 status from whs_master_lokasi where id = '$id'");
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
-       
+
         return view('master.update-lokasi', ["dataLokasi" => $dataLokasi,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
     }
 
@@ -408,7 +402,7 @@ class MasterLokasiController extends Controller
         //
     }
 
-  
 
-    
+
+
 }

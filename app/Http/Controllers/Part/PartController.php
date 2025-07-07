@@ -146,7 +146,7 @@ class PartController extends Controller
         }
 
         $panels = DB::connection('mysql_sb')->select("
-                select nama_panel panel from
+                select mp.id, nama_panel panel from
                     (select id_panel from bom_jo_item k
                         inner join so_det sd on k.id_so_det = sd.id
                         inner join so on sd.id_so = so.id
@@ -162,20 +162,7 @@ class PartController extends Controller
         $html = "<option value=''>Pilih Panel</option>";
 
         foreach ($panels as $panel) {
-            $html .= " <option value='" . $panel->panel . "'>" . $panel->panel . "</option> ";
-        }
-
-        return $html;
-    }
-
-    public function getPartDetail(Request $request)
-    {
-        $partDetails =
-
-            $html = "<option value=''>Pilih Panel</option>";
-
-        foreach ($panels as $panel) {
-            $html .= " <option value='" . $panel->panel . "'>" . $panel->panel . "</option> ";
+            $html .= " <option value='" . $panel->id . "'>" . $panel->panel . "</option> ";
         }
 
         return $html;
@@ -234,6 +221,7 @@ class PartController extends Controller
             "ws_id" => "required",
             "ws" => "required",
             "color" => "required",
+            "panel_id" => "required",
             "panel" => "required",
             "buyer" => "required",
             "style" => "required",
@@ -245,9 +233,12 @@ class PartController extends Controller
                 "act_costing_id" => $validatedRequest['ws_id'],
                 "act_costing_ws" => $validatedRequest['ws'],
                 "color" => $validatedRequest['color'],
+                "panel_id" => $validatedRequest['panel_id'],
                 "panel" => $validatedRequest['panel'],
                 "buyer" => $validatedRequest['buyer'],
                 "style" => $validatedRequest['style'],
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username,
             ]);
 
             $timestamp = Carbon::now();

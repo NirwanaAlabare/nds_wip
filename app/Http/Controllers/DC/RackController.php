@@ -281,12 +281,9 @@ class RackController extends Controller
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
             $pdf = PDF::loadView('dc.rack.pdf.print-rack', ["dataRack" => $dataRack])->setPaper('a4', 'landscape');
 
-            $path = public_path('pdf/');
             $fileName = 'rack-'.$dataRack->nama_rak.'.pdf';
-            $pdf->save($path . '/' . $fileName);
-            $generatedFilePath = public_path('pdf/'.$fileName);
 
-            return response()->download($generatedFilePath);
+            return $pdf->download(str_replace("/", "_", $fileName));
         }
     }
 

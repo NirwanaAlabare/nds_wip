@@ -945,12 +945,9 @@ public function barcodeinmaterial(Request $request, $id)
     PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
     $pdf = PDF::loadView('inmaterial.pdf.print-barcode', ["dataItem" => $dataItem])->setPaper('a7', 'landscape');
 
-    $path = public_path('pdf/');
     $fileName = 'barcode-material.pdf';
-    $pdf->save($path . '/' . $fileName);
-    $generatedFilePath = public_path('pdf/'.$fileName);
 
-    return response()->download($generatedFilePath);
+    return $pdf->download(str_replace("/", "_", $fileName));
 
 }
 
@@ -969,12 +966,9 @@ public function pdfoutmaterial(Request $request, $id)
     PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
     $pdf = PDF::loadView('outmaterial.pdf.print-pdf', ["dataHeader" => $dataHeader,"dataDetail" => $dataDetail,"dataSum" => $dataSum,"dataUser" => $dataUser,"dataHead" => $dataHead])->setPaper('a4', 'potrait');
 
-    $path = public_path('pdf/');
     $fileName = 'pdf-material.pdf';
-    $pdf->save($path . '/' . $fileName);
-    $generatedFilePath = public_path('pdf/'.$fileName);
 
-    return response()->download($generatedFilePath);
+    return $pdf->download(str_replace("/", "_", $fileName));
 
 }
 

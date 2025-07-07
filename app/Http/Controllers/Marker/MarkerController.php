@@ -1022,12 +1022,9 @@ class MarkerController extends Controller
             PDF::setOption(['dpi' => 150]);
             $pdf = PDF::loadView('marker.marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
 
-            $path = public_path('pdf/');
             $fileName = 'stocker-' . str_replace("/", "_", $kodeMarker) . '.pdf';
-            $pdf->save($path . '/' . str_replace("/", "_", $kodeMarker));
-            $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $kodeMarker));
 
-            return response()->download($generatedFilePath);
+            return $pdf->download(str_replace("/", "_", $fileName));
         }
     }
 

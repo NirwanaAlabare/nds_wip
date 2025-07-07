@@ -1225,6 +1225,8 @@
 
             // -Start Process Transaction-
             function updateToStartProcess() {
+                let id = document.getElementById("id").value;
+
                 return $.ajax({
                     url: '{{ route('start-process-form-cut-input') }}/' + id,
                     type: 'put',
@@ -1253,6 +1255,8 @@
 
             // -Process One Transaction-
             function updateToNextProcessOne() {
+                let id = document.getElementById("id").value;
+
                 return $.ajax({
                     url: '{{ route('next-process-one-form-cut-input') }}/' + id,
                     type: 'put',
@@ -1276,6 +1280,8 @@
 
             // -Process Two Transaction-
             function updateToNextProcessTwo() {
+                let id = document.getElementById("id").value;
+
                 var pActual = document.getElementById('p_act').value;
                 var pUnitActual = document.getElementById('unit_p_act').value;
                 var commaActual = document.getElementById('comma_act').value;
@@ -1767,6 +1773,8 @@
                     confirmButtonColor: "#6531a0",
                 }).then(async (result) => {
                     if (result.isConfirmed) {
+                        let id = document.getElementById("id").value;
+
                         document.getElementById("loading").classList.remove("d-none");
 
                         await updateToNextProcessOne();

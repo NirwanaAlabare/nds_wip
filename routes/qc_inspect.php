@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\QC\Master\GroupInspect;
 use App\Http\Livewire\QC\Master\Lenght;
 use App\Http\Livewire\QC\Master\Result;
+use App\Http\Livewire\QC\Inspect\QCInmaterialFabricController;
+use App\Http\Controllers\Qc\QcInspectHeaderController;
+use App\Http\Controllers\Qc\QcInspectDetailController;
 
 Route::middleware('auth')->group(function () {
     // Main page route
@@ -81,4 +84,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/data', [Result::class, 'getDatatables'])
             ->name('qc-inspect-result.data');
     });
-});
+
+    Route::prefix('qc-inspect-inmaterial')->group(function() {
+        Route::get('/', [QCInmaterialFabricController::class, 'index'])->name('qc-inspect-inmaterial');
+        Route::post('qc-inspect-inmaterial/data', [QCInmaterialFabricController::class, 'getDatatables'])->name('qc-inspect-inmaterial.data');    });
+
+
+
+    Route::prefix('qc-inspect-inmaterial-header')->group(function() {
+        Route::post('/store', [QcInspectHeaderController::class, 'store'])->name('qc-inspect-inmaterial-header.store');    
+        Route::get('/', [QcInspectHeaderController::class, 'index'])->name('qc-inspect-inmaterial-header');
+        Route::get('-generateRoll', [QcInspectHeaderController::class, 'generateRoll'])->name('qc-inspect-inmaterial-generateRoll');
+        Route::get('-getDataRolltables', [QcInspectHeaderController::class, 'getDataRolltables'])->name('qc-inspect-inmaterial-getDataRolltables');
+    });
+
+    Route::prefix('qc-inspect-inmaterial-detail')->group(function() {
+        Route::post('/store', [QcInspectDetailController::class, 'store'])->name('qc-inspect-inmaterial-detail.store');    
+    });
+
+    Route::post('qc-inspect-inmaterial-header_data', [QcInspectHeaderController::class, 'getDatatables'])->name('qc-inspect-inmaterial-header.data');
+
+    });

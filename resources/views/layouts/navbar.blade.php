@@ -281,7 +281,13 @@
                                 <li>
                                     <a href="{{ route('master-part') }}"
                                         class="dropdown-item {{ $routeName == 'master-part' ? 'active' : '' }}">
-                                        Master Part <i class="fas fa-plus-square fa-sm"></i>
+                                        Master Part <i class="fa-regular fa-square-plus"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('master-secondary') }}"
+                                        class="dropdown-item {{ $routeName == 'master-secondary' ? 'active' : '' }}">
+                                        Master Secondary <i class="fa-regular fa-square-plus"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -770,6 +776,12 @@
                             <li>
                                 <a href="{{ route('qc-pass') }}" class="dropdown-item">
                                     QC Inspect
+                                </a>
+                                <a href="{{ route('qc-inspect-inmaterial') }}" class="dropdown-item">
+                                    Data Penerimaan
+                                </a>
+                                 <a href="{{ route('qc-inspect-inmaterial-header') }}" class="dropdown-item">
+                                    QC Inspect 2
                                 </a>
                             </li>
                         </ul>

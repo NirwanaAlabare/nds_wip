@@ -21,11 +21,11 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
                         <label class="form-label"><small>Tanggal Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label"><small>Tanggal Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
@@ -494,10 +494,55 @@
             },
         });
 
-        function dataTableReload() {
+        async function dataTableReload() {
+            await limitDateRange();
+
             $('#datatable').DataTable().ajax.reload(function () {
                 document.getElementById("loading").classList.add("d-none");
             }, false);
+        }
+
+        async function limitDateRange() {
+            const from = document.getElementById('tgl-awal').value;
+            const to = document.getElementById('tgl-akhir').value;
+
+            if (!from || !to) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Harap isi tanggal',
+                    // html: 'Harap isi tanggal awal dan tanggal akhir.',
+                    allowOutsideClick: false,
+                });
+
+                return;
+            }
+
+            const fromDate = new Date(from);
+            const toDate = new Date(to);
+
+            // Create a new date that's 1 months after fromDate
+            const maxToDate = new Date(fromDate);
+            maxToDate.setMonth(maxToDate.getMonth() + 1);
+
+            if (toDate > maxToDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Maks. 1 Bulan',
+                    // html: 'Harap isi tanggal awal dan tanggal akhir.',
+                    allowOutsideClick: false,
+                });
+
+                // Format maxToDate as YYYY-MM-DD
+                const y = maxToDate.getFullYear();
+                const m = String(maxToDate.getMonth() + 1).padStart(2, '0');
+                const d = String(maxToDate.getDate()).padStart(2, '0');
+                const formatted = `${y}-${m}-${d}`;
+
+                // Set it to #dateto
+                document.getElementById('tgl-akhir').value = formatted;
+            } else {
+                // alert('Date range is valid.');
+            }
         }
 
         function exportExcel() {

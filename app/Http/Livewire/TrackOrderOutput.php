@@ -71,10 +71,11 @@ class TrackOrderOutput extends Component
         if ($firstPlan) {
             $this->dateFromFilter = $firstPlan->tgl_plan;
             $this->dateToFilter = $lastPlan->tgl_plan;
-        } else {
-            $this->dateFromFilter = date("Y-m-d");
-            $this->dateToFilter = date("Y-m-d");
         }
+        // else {
+        //     $this->dateFromFilter = date("Y-m-d");
+        //     $this->dateToFilter = date("Y-m-d");
+        // }
     }
 
     public function render()
@@ -208,7 +209,7 @@ class TrackOrderOutput extends Component
                 $this->dailyOrderGroup = $dailyOrderGroupSql->get();
 
             $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
-            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-7 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
+            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
 
             $dailyOrderOutputSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("

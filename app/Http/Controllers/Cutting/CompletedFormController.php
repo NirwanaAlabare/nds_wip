@@ -228,9 +228,11 @@ class CompletedFormController extends Controller
             "start" => "required",
             "finish" => "required",
             "current_id_item" => "required",
+            "current_detail_item" => "nullable",
             "current_group" => "required",
             "current_group_stocker" => "nullable",
             "current_roll" => "nullable",
+            "current_roll_buyer" => "nullable",
             "current_qty" => "required",
             "current_qty_real" => "required",
             "current_unit" => "required",
@@ -257,9 +259,11 @@ class CompletedFormController extends Controller
             update([
                 "id_roll" => $validatedRequest['current_id_roll'],
                 "id_item" => $validatedRequest['current_id_item'],
+                "detail_item" => $validatedRequest['current_detail_item'],
                 "group_roll" => $validatedRequest['current_group'],
                 "lot" => $request["current_lot"],
                 "roll" => $validatedRequest['current_roll'],
+                "roll_buyer" => $validatedRequest['current_roll_buyer'],
                 "qty" => $itemQty,
                 "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
@@ -274,7 +278,11 @@ class CompletedFormController extends Controller
                 "pemakaian_lembar" => $request->current_pemakaian_lembar,
                 "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
                 "short_roll" => $validatedRequest['current_short_roll'],
-                "piping" => $validatedRequest['current_piping']
+                "piping" => $validatedRequest['current_piping'],
+                "edited" => 1,
+                "edited_by" => Auth::user()->id,
+                "edited_by_username" => Auth::user()->username,
+                "edited_at" => Carbon::now(),
             ]);
 
         $itemRemain = $validatedRequest['current_sisa_kain'];
@@ -291,12 +299,18 @@ class CompletedFormController extends Controller
                 $itemRemain = $detailAfter->sisa_kain;
 
                 $detailAfter->id_roll = $validatedRequest['current_id_roll'];
+                $detailAfter->detail_item = $validatedRequest['current_detail_item'];
                 $detailAfter->id_item = $validatedRequest['current_id_item'];
                 $detailAfter->group_roll = $validatedRequest['current_group'];
                 $detailAfter->lot = $request["current_lot"];
                 $detailAfter->roll = $validatedRequest['current_roll'];
+                $detailAfter->roll_buyer = $validatedRequest['current_roll_buyer'];
                 $detailAfter->qty = ($itemQty-$validatedRequest['current_total_pemakaian_roll']);
                 $detailAfter->short_roll = $detailAfter->total_pemakaian_roll-($itemQty-$validatedRequest['current_total_pemakaian_roll']);
+                $detailAfter->edited = 1;
+                $detailAfter->edited_by = Auth::user()->id;
+                $detailAfter->edited_by_username = Auth::user()->username;
+                $detailAfter->edited_at = Carbon::now();
                 $detailAfter->save();
             }
         }
@@ -308,15 +322,29 @@ class CompletedFormController extends Controller
             first();
 
         if ($updateTimeRecordSummary) {
+            // Update Scanned Item Qty
+            if (($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
+                // On change ID Roll
+                ScannedItem::where("id_roll", $request->current_id_roll_ori)->
+                    update([
+                        "qty" => DB::raw("COALESCE(qty, 0) + ".(floatval($request->current_qty_ori))),
+                        "unit" => $request->current_unit_ori,
+                    ]);
+            }
+
+            // On exist ID Roll
             ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
                 update([
                     "id_item" => $validatedRequest['current_id_item'],
+                    "detail_item" => $validatedRequest['current_detail_item'],
                     "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
+                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
                     "qty" => $itemRemain,
                     "unit" => $itemUnit,
                 ]);
 
+            // Form Cut Detail Reorder Group Stocker
             $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
             $currentGroup = "";
             $groupNumber = 0;

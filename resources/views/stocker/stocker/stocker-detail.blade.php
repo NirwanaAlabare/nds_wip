@@ -920,7 +920,7 @@
         // Step Three (Panel) on change event
         $('#add_panel_id').on('change', function(e) {
             if (this.value) {
-                $('#add_panel').val($('#add_panel_id option:selected').html());
+                $('#add_panel').val($('#add_panel_id option:selected').text());
             }
         });
 

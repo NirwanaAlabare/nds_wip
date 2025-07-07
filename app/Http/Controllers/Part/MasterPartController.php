@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Part;
 use App\Http\Controllers\Controller;
 use App\Models\MasterPart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -67,6 +68,9 @@ class MasterPartController extends Controller
             "kode_master_part" => $masterPartCode,
             "nama_part" => $validatedRequest["nama_part"],
             "bag" => $validatedRequest["bag"],
+            "cancel" => "N",
+            "created_by" => Auth::user()->id,
+            "created_by_username" => Auth::user()->username,
         ]);
 
         if ($masterPartStore) {
@@ -153,12 +157,24 @@ class MasterPartController extends Controller
      */
     public function destroy(MasterPart $masterPart, $id = 0)
     {
-        $destroyMasterPart = MasterPart::find($id)->delete();
+        $checkPartDetail = PartDetail::where("master_part_id", $id)->first();
 
-        if ($destroyMasterPart) {
+        if (!$checkPartDetail) {
+            $destroyMasterPart = MasterPart::find($id)->delete();
+
+            if ($destroyMasterPart) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Master Part berhasil dihapus',
+                    'redirect' => '',
+                    'table' => 'datatable-master-part',
+                    'additional' => [],
+                );
+            }
+        } else {
             return array(
-                'status' => 200,
-                'message' => 'Master Part berhasil dihapus',
+                'status' => 400,
+                'message' => 'Master Part sudah digunakan',
                 'redirect' => '',
                 'table' => 'datatable-master-part',
                 'additional' => [],

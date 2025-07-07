@@ -556,6 +556,12 @@
                                     <input type="text" class="form-control form-control-sm" id="current_id_item" name="current_id_item">
                                 </div>
                             </div>
+                            <div class="col-3 d-none">
+                                <div class="mb-3">
+                                    <label class="form-label" id="current_detail_item_label"><small><b>Detail Item</b></small></label>
+                                    <input type="hidden" class="form-control form-control-sm" id="current_detail_item" name="current_detail_item" readonly>
+                                </div>
+                            </div>
                             <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label" id="current_lot_label"><small><b>Lot</b></small></label>
@@ -1379,6 +1385,7 @@
             data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
             data.group_stocker ? document.getElementById("current_group_stocker").value = data.group_stocker : '';
             data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
+            data.detail_item ? document.getElementById("current_detail_item").value = data.detail_item : '';
             data.lot ? document.getElementById("current_lot").value = data.lot : '';
             data.roll ? document.getElementById("current_roll").value = data.roll : '';
             data.roll_buyer ? document.getElementById("current_roll_buyer").value = data.roll_buyer : '';
