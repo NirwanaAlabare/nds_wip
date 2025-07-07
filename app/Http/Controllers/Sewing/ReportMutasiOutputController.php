@@ -33,1080 +33,426 @@ class ReportMutasiOutputController extends Controller
 
     public function show_mut_output(Request $request)
     {
-        ini_set('memory_limit', '2048M');
+        ini_set('memory_limit', '4096M');
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $buyer = $request->cbobuyer;
 
         if (!empty($buyer)) {
-            $filter = " where ms.supplier  = '" . $buyer  . "'";
+            $filter = " where buyer  = '" . $buyer  . "'";
         } else {
             $filter = "";
         }
 
         if ($request->ajax()) {
-            $data_mut = DB::connection('mysql_sb')->select("WITH d_rep AS (
-            SELECT
-            d_rep.so_det_id,
-            sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) saldo_awal_sewing,
-            sum(qty_loading) qty_loading,
-            sum(input_rework_sewing) input_rework_sewing,
-            sum(input_rework_spotcleaning) input_rework_spotcleaning,
-            sum(input_rework_mending) input_rework_mending,
-            sum(defect_sewing) defect_sewing,
-            sum(defect_spotcleaning) defect_spotcleaning,
-            sum(defect_mending) defect_mending,
-            sum(output_rejects) output_rejects,
-            sum(output_rfts) output_rfts,
-            sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) + sum(qty_loading) + sum(input_rework_sewing) + sum(input_rework_spotcleaning) + sum(input_rework_mending) - sum(defect_sewing) - sum(defect_spotcleaning) - sum(defect_mending) - sum(output_rejects) - sum(output_rfts) saldo_akhir,
-						SUM(sa_sewing_adj_awal) sa_sewing_adj_awal,
-						SUM(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
-            sum(sa_out_sew) + sum(sa_steam) saldo_awal_steam,
-						SUM(sa_steam_adj_awal) sa_steam_adj_awal,
-						SUM(sa_steam_adj_akhir) sa_steam_adj_akhir,
-            sum(input_steam) input_steam,
-            sum(output_steam) output_steam,
-            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam,
-						SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
-						sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
-						SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
-						sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
-						SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
-						sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
-						SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
-						sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
-						SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
-						sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
-						SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
-						sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
-            FROM
-            (
-            SELECT
-                        so_det_id,
-                        sum(loading) sa_loading,
-                        sum(sewing) sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        sum(out_sew) sa_out_sew,
-                        sum(steam) sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                            laravel_nds.sa_report_output where tgl_saldo = '2025-01-01'
-            GROUP BY
-                                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        sum(qty) sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                qty
-            FROM
-				laravel_nds.loading_line
-            LEFT JOIN
-					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-            WHERE
-				form_reject_id is not null AND loading_line.updated_at >= '2025-01-01 00:00:00' and loading_line.updated_at <= '$tgl_awal'
-            GROUP BY
-					so_det_id, form_reject_id
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        sum(qty) sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                MIN(qty) qty
-            FROM
-                    laravel_nds.loading_line a
-            INNER JOIN
-                    laravel_nds.stocker_input b ON a.stocker_id = b.id
-            WHERE
-                    a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal' and b.form_cut_id > 0
-            GROUP BY
-                        b.so_det_id,
-                        b.form_cut_id,
-                        b.group_stocker,
-                        b.ratio
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        count(so_det_id) sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        count(so_det_id) sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rejects a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        count(so_det_id) sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        count(so_det_id) sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.defect_status in ('REWORKED','REJECTED') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-                        SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        sum(qty) qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                qty
-            FROM
-				laravel_nds.loading_line
-            LEFT JOIN
-					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-            WHERE
-				form_reject_id is not null AND loading_line.updated_at >= '$tgl_awal' and loading_line.updated_at <= '$tgl_akhir'
-            GROUP BY
-					so_det_id, form_reject_id
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        sum(qty) qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                MIN(qty) qty
-            FROM
-                    laravel_nds.loading_line a
-            INNER JOIN
-                    laravel_nds.stocker_input b ON a.stocker_id = b.id
-            WHERE
-                    a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and b.form_cut_id > 0
-            GROUP BY
-                        b.so_det_id,
-                        b.form_cut_id,
-                        b.group_stocker,
-                        b.ratio
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_sewing,
+            $data_mut = DB::connection('mysql_sb')->select("WITH m as (
+SELECT
+ms.supplier buyer,
+ac.kpno ws,
+ac.styleno,
+sd.color,
+sd.size,
+sd.id id_so_det
+from signalbit_erp.act_costing ac
+inner join signalbit_erp.so on ac.id = so.id_cost
+inner join signalbit_erp.so_det sd on so.id = sd.id_so
+inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
+where ac.aktif = 'Y' and so.cancel_h = 'N' and sd.cancel = 'N'
+),
+
+saldo_loading as (
+SELECT
+	id_so_det,
+	SUM(CASE
+		WHEN tanggal_loading >= '2025-07-01' and tanggal_loading < '$tgl_awal' THEN qty_loading
+		ELSE 0
+	END) as qty_loading_awal,
+	SUM(CASE
+		WHEN tanggal_loading >= '$tgl_awal' and tanggal_loading <= '$tgl_akhir' THEN qty_loading
+		ELSE 0
+	END) as qty_loading
+FROM (
+	SELECT
+		b.so_det_id AS id_so_det,
+		a.tanggal_loading,
+		MIN( qty ) AS qty_loading
+	FROM
+		laravel_nds.loading_line a
+		INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+	WHERE
+		b.form_cut_id > 0
+	GROUP BY
+		b.so_det_id,
+		b.form_cut_id,
+		b.group_stocker,
+		b.ratio,
+		a.tanggal_loading
+	UNION ALL
+	SELECT
+		so_det_id AS id_so_det,
+		tanggal_loading,
+		MIN( qty ) AS qty_loading
+	FROM
+		laravel_nds.loading_line
+		LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+	WHERE
+		form_reject_id IS NOT NULL
+	GROUP BY
+		so_det_id,
+		form_reject_id,
+		tanggal_loading
+) loading
+GROUP BY
+	id_so_det
+),
+
+saldo_sewing_awal as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew_awal
+from signalbit_erp.output_rfts a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '2025-07-01 00:00:00' and updated_at < '$tgl_awal 00:00:00' and mp.cancel = 'N'
+group by so_det_id
+),
+saldo_sewing_akhir as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew
+from signalbit_erp.output_rfts a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+group by so_det_id
+),
+
+saldo_sewing_defect_awal as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_sewing,
                 SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
                 SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending,
                 SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_sewing,
                 SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_spotcleaning,
-                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_mending
+FROM signalbit_erp.output_defects a
+INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        count(so_det_id) output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rejects a
-            WHERE
-                a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        count(so_det_id) output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        count(so_det_id) sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        count(so_det_id) sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts_packing a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        count(so_det_id) input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        count(so_det_id) output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts_packing a
-            WHERE
-                updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-								UNION ALL
-						SELECT
-												id_so_det so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												sum(sa_sewing_adj_awal) sa_sewing_adj_awal,
-												sum(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
-												sum(sa_steam_adj_awal) sa_steam_adj_awal,
-												sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
-												SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
-												sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
-												SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
-												sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
-												SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
-												sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
-												SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
-												sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
-												SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
-												sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
-												SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
-												sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
-
-from
-(
-SELECT
-    id_so_det,
-    SUM(sa_sewing) AS sa_sewing_adj_awal,
-    '0' AS sa_sewing_adj_akhir,
-    SUM(sa_steam) AS sa_steam_adj_awal,
-    '0' AS sa_steam_adj_akhir,
-
-    SUM(sa_def_sewing) AS sa_def_sewing_adj_awal,
-    '0' AS sa_def_sewing_adj_akhir,
-    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_awal,
-    '0' AS sa_def_spotcleaning_adj_akhir,
-    SUM(sa_def_mending) AS sa_def_mending_adj_awal,
-    '0' AS sa_def_mending_adj_akhir,
-    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_awal,
-    '0' AS sa_def_pck_sewing_adj_akhir,
-    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_awal,
-    '0' AS sa_def_pck_spotcleaning_adj_akhir,
-    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_awal,
-    '0' AS sa_def_pck_mending_adj_akhir
-FROM
-    laravel_nds.report_output_adj
 WHERE
-    tgl_adj < '$tgl_awal'
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
 GROUP BY
-    id_so_det
-
-UNION ALL
-
-SELECT
-    id_so_det,
-    '0' AS sa_sewing_adj_awal,
-    SUM(sa_sewing) AS sa_sewing_adj_akhir,
-    '0' AS sa_steam_adj_awal,
-    SUM(sa_steam) AS sa_steam_adj_akhir,
-
-    '0' AS sa_def_sewing_adj_awal,
-    SUM(sa_def_sewing) AS sa_def_sewing_adj_akhir,
-    '0' AS sa_def_spotcleaning_adj_awal,
-    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_akhir,
-    '0' AS sa_def_mending_adj_awal,
-    SUM(sa_def_mending) AS sa_def_mending_adj_akhir,
-    '0' AS sa_def_pck_sewing_adj_awal,
-    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_akhir,
-    '0' AS sa_def_pck_spotcleaning_adj_awal,
-    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_akhir,
-    '0' AS sa_def_pck_mending_adj_awal,
-    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_akhir
-FROM
-    laravel_nds.report_output_adj
+                so_det_id
+),
+saldo_sewing_defect_akhir as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending,
+                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_mending
+FROM signalbit_erp.output_defects a
+INNER JOIN
+                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    tgl_adj >= '$tgl_awal' AND tgl_adj <= '$tgl_akhir'
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
 GROUP BY
-    id_so_det
-) a
-GROUP BY id_so_det
-
-                    ) d_rep
-            GROUP BY so_det_id
-
-
-),
-mut_def AS (
-            SELECT
-            so_det_id,
-            sum(sa_defect_trans_sewing) - sum(sa_defect_trans_rew_sewing) saldo_awal_def_sew,
-            sum(defect_trans_sewing) defect_trans_sewing,
-            sum(defect_trans_rew_sewing) defect_trans_rew_sewing,
-            sum(sa_defect_trans_sewing) - sum(sa_defect_trans_rew_sewing) + sum(defect_trans_sewing) - sum(defect_trans_rew_sewing) saldo_akhir_def_sewing,
-            sum(sa_defect_trans_spotcleaning) - sum(sa_defect_trans_rew_spotcleaning) saldo_awal_def_spotcleaning,
-            sum(defect_trans_spotcleaning) defect_trans_spotcleaning,
-            sum(defect_trans_rew_spotcleaning) defect_trans_rew_spotcleaning,
-            sum(sa_defect_trans_spotcleaning) - sum(sa_defect_trans_rew_spotcleaning) + sum(defect_trans_spotcleaning) - sum(defect_trans_rew_spotcleaning) saldo_akhir_def_spotcleaning,
-            sum(sa_defect_trans_mending) - sum(sa_defect_trans_rew_mending) saldo_awal_def_mending,
-            sum(defect_trans_mending) defect_trans_mending,
-            sum(defect_trans_rew_mending) defect_trans_rew_mending,
-            sum(sa_defect_trans_mending) - sum(sa_defect_trans_rew_mending) + sum(defect_trans_mending) - sum(defect_trans_rew_mending) saldo_akhir_def_mending
-            FROM
-            (
-            SELECT
-                    so_det_id,
-                    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending,
-                    SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_mending,
-                    '0' defect_trans_sewing,
-                    '0' defect_trans_spotcleaning,
-                    '0' defect_trans_mending,
-                    '0' defect_trans_rew_sewing,
-                    '0' defect_trans_rew_spotcleaning,
-                    '0' defect_trans_rew_mending
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
                 so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_defect_trans_sewing,
-                        '0' sa_defect_trans_spotcleaning,
-                        '0' sa_defect_trans_mending,
-                        '0' sa_defect_trans_rew_sewing,
-                        '0' sa_defect_trans_rew_spotcleaning,
-                        '0' sa_defect_trans_rew_mending,
-                    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending,
-                    SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                    so_det_id
-            ) mut_def
-            group by so_det_id
 ),
-mut_pck AS (
-            SELECT
-            so_det_id,
-            sum(sa_defect_trans_sewing_pck) - sum(sa_defect_trans_rew_sewing_pck) saldo_awal_def_sew_pck,
-            sum(defect_trans_sewing_pck) defect_trans_sewing_pck,
-            sum(defect_trans_rew_sewing_pck) defect_trans_rew_sewing_pck,
-            sum(sa_defect_trans_sewing_pck) - sum(sa_defect_trans_rew_sewing_pck) + sum(defect_trans_sewing_pck) - sum(defect_trans_rew_sewing_pck) saldo_akhir_def_sewing_pck,
-            sum(sa_defect_trans_spotcleaning_pck) - sum(sa_defect_trans_rew_spotcleaning_pck) saldo_awal_def_spotcleaning_pck,
-            sum(defect_trans_spotcleaning_pck) defect_trans_spotcleaning_pck,
-            sum(defect_trans_rew_spotcleaning_pck) defect_trans_rew_spotcleaning_pck,
-            sum(sa_defect_trans_spotcleaning_pck) - sum(sa_defect_trans_rew_spotcleaning_pck) + sum(defect_trans_spotcleaning_pck) - sum(defect_trans_rew_spotcleaning_pck) saldo_akhir_def_spotcleaning_pck,
-            sum(sa_defect_trans_mending_pck) - sum(sa_defect_trans_rew_mending_pck) saldo_awal_def_mending_pck,
-            sum(defect_trans_mending_pck) defect_trans_mending_pck,
-            sum(defect_trans_rew_mending_pck) defect_trans_rew_mending_pck,
-            sum(sa_defect_trans_mending_pck) - sum(sa_defect_trans_rew_mending_pck) + sum(defect_trans_mending_pck) - sum(defect_trans_rew_mending_pck) saldo_akhir_def_mending_pck
-            FROM
-            (
-            SELECT
-                so_det_id,
-                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing_pck,
-                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning_pck,
-                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending_pck,
-                SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_sewing_pck,
-                SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_spotcleaning_pck,
-                SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_mending_pck,
-                '0' defect_trans_sewing_pck,
-                '0' defect_trans_spotcleaning_pck,
-                '0' defect_trans_mending_pck,
-                '0' defect_trans_rew_sewing_pck,
-                '0' defect_trans_rew_spotcleaning_pck,
-                '0' defect_trans_rew_mending_pck
-            FROM signalbit_erp.output_defects_packing a
-            INNER JOIN
+saldo_sewing_reject_awal as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew_reject_awal
+from signalbit_erp.output_rejects a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '2025-07-01 00:00:00' and updated_at < '$tgl_awal 00:00:00' and mp.cancel = 'N'
+group by so_det_id
+),
+saldo_sewing_reject_akhir as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew_reject
+from signalbit_erp.output_rejects a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+group by so_det_id
+),
+
+saldo_packing_awal as (
+select
+so_det_id,
+COUNT(so_det_id) qty_pck_awal
+from signalbit_erp.output_rfts_packing a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '2025-07-01 00:00:00' and updated_at < '$tgl_awal 00:00:00' and mp.cancel = 'N'
+group by so_det_id
+),
+saldo_packing_akhir as (
+select
+so_det_id,
+COUNT(so_det_id) qty_pck_akhir
+from signalbit_erp.output_rfts_packing a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+group by so_det_id
+),
+
+saldo_packing_defect_awal as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_mending,
+                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_pck_mending
+FROM signalbit_erp.output_defects_packing a
+INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
+WHERE
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
+GROUP BY
                 so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_defect_trans_sewing_pck,
-                        '0' sa_defect_trans_spotcleaning_pck,
-                        '0' sa_defect_trans_mending_pck,
-                        '0' sa_defect_trans_rew_sewing_pck,
-                        '0' sa_defect_trans_rew_spotcleaning_pck,
-                        '0' sa_defect_trans_rew_mending_pck,
-                    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing_pck,
-                    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning_pck,
-                    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending_pck,
-                    SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing_pck,
-                    SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning_pck,
-                    SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending_pck
-            FROM signalbit_erp.output_defects_packing a
-            INNER JOIN
+),
+saldo_packing_defect_akhir as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_mending,
+                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_pck_mending
+FROM signalbit_erp.output_defects_packing a
+INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                    so_det_id
-                    ) mut_pck
-            GROUP BY so_det_id
+WHERE
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
+GROUP BY
+                so_det_id
+),
+saldo_adj_awal as (
+select
+id_so_det,
+sum(sa_sewing) sa_adj_awal,
+sum(sa_steam) sa_steam_adj_awal,
+sum(sa_def_sewing) sa_def_adj_sewing_awal,
+sum(sa_def_spotcleaning) sa_def_adj_spotcleaning_awal,
+sum(sa_def_mending) sa_def_adj_mending_awal,
+sum(sa_def_pck_sewing) sa_def_pck_adj_sewing_awal,
+sum(sa_def_pck_spotcleaning) sa_def_pck_adj_spotcleaning_awal,
+sum(sa_def_pck_mending) sa_def_pck_adj_mending_awal
+from laravel_nds.report_output_adj where tgl_adj >= '2025-07-01 00:00:00' and tgl_adj < '$tgl_awal 00:00:00'
+group by id_so_det
+),
+saldo_adj_akhir as (
+select
+id_so_det,
+sum(sa_sewing) sa_adj_akhir,
+sum(sa_steam) sa_steam_adj_akhir,
+sum(sa_def_sewing) sa_def_adj_sewing_akhir,
+sum(sa_def_spotcleaning) sa_def_adj_spotcleaning_akhir,
+sum(sa_def_mending) sa_def_adj_mending_akhir,
+sum(sa_def_pck_sewing) sa_def_pck_adj_sewing_akhir,
+sum(sa_def_pck_spotcleaning) sa_def_pck_adj_spotcleaning_akhir,
+sum(sa_def_pck_mending) sa_def_pck_adj_mending_akhir
+from laravel_nds.report_output_adj where tgl_adj >= '$tgl_awal 00:00:00' and tgl_adj <= '$tgl_akhir 23:59:59'
+group by id_so_det
 )
-        SELECT
-        ac.kpno,
-        ms.supplier buyer,
-        ac.styleno,
-        sd.color,
-        sd.size,
-        d_rep.so_det_id,
+
+SELECT
+buyer,
+ws,
+color,
+m.size,
+styleno,
+group_concat(m.id_so_det) id_so_det,
+sum(coalesce(a.qty_loading_awal,0)) qty_loading_awal,
+sum(coalesce(a.qty_loading,0)) qty_loading,
+
+sum(coalesce(b.qty_sew_awal,0)) qty_sew_awal_before_adj,
+sum(coalesce(sawal.sa_adj_awal,0)) qty_sew_adj_awal,
+sum(coalesce(b.qty_sew_awal,0)) +  sum(coalesce(sawal.sa_adj_awal,0)) qty_sew_awal_after_adj,
+sum(coalesce(c.qty_sew,0)) qty_sew,
+sum(coalesce(sakhir.sa_adj_akhir,0)) qty_sew_adj,
+
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) defect_sewing_awal,
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) defect_spotcleaning_awal,
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)) defect_mending_awal,
+
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) input_rework_sewing_awal,
+sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) input_rework_spotcleaning_awal,
+sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)) input_rework_mending_awal,
+
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) defect_sewing_akhir,
+sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) defect_spotcleaning_akhir,
+sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0)) defect_mending_akhir,
+
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) input_rework_sewing,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) input_rework_spotcleaning,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0)) input_rework_mending,
+
+sum(coalesce(d.qty_sew_reject_awal,0)) qty_sew_reject_awal,
+sum(coalesce(e.qty_sew_reject,0)) qty_sew_reject,
+
+/* saldo awal */
+coalesce(
+sum(coalesce(a.qty_loading_awal,0)) -
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
++
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0))
+-
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(d.qty_sew_reject_awal,0)) + sum(coalesce(sawal.sa_adj_awal,0)),0)  as saldo_awal_sewing,
 
 
-        sum(saldo_awal_sewing) + sum(sa_sewing_adj_awal) saldo_awal_sewing,
-        sum(qty_loading) qty_loading,
-        sum(input_rework_sewing) input_rework_sewing,
-        sum(input_rework_spotcleaning) input_rework_spotcleaning,
-        sum(input_rework_mending) input_rework_mending,
-        sum(defect_sewing) defect_sewing,
-        sum(defect_spotcleaning) defect_spotcleaning,
-        sum(defect_mending) defect_mending,
-        sum(output_rejects) output_rejects,
-        sum(output_rfts) output_rfts,
-				sum(sa_sewing_adj_akhir) saldo_akhir_adj,
-        sum(saldo_akhir)  + sum(sa_sewing_adj_awal) + sum(sa_sewing_adj_akhir) saldo_akhir,
-
-        sum(saldo_awal_steam) + sum(sa_steam_adj_awal) saldo_awal_steam,
-        sum(input_steam) input_steam,
-        sum(output_steam) output_steam,
-				sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
-        sum(saldo_akhir_steam) + sum(sa_steam_adj_awal) + sum(sa_steam_adj_akhir) saldo_akhir_steam,
-
-
-        coalesce(sum(saldo_awal_def_sew),0) + coalesce(sum(sa_def_sewing_adj_awal),0)  saldo_awal_def_sew,
-        coalesce(sum(defect_trans_sewing),0) defect_trans_sewing,
-        coalesce(sum(defect_trans_rew_sewing),0) defect_trans_rew_sewing,
-				sum(sa_def_sewing_adj_akhir) sa_def_sewing_adj_akhir,
-        coalesce(sum(saldo_akhir_def_sewing),0) + coalesce(sum(sa_def_sewing_adj_akhir),0) saldo_akhir_def_sewing,
-
-        coalesce(sum(saldo_awal_def_spotcleaning),0) + coalesce(sum((sa_def_spotcleaning_adj_awal) ),0)  saldo_awal_def_spotcleaning,
-        coalesce(sum(defect_trans_spotcleaning),0) defect_trans_spotcleaning,
-        coalesce(sum(defect_trans_rew_spotcleaning),0) defect_trans_rew_spotcleaning,
-				coalesce(sum((sa_def_spotcleaning_adj_akhir) ),0) sa_def_spotcleaning_adj_akhir,
-        coalesce(sum(saldo_akhir_def_spotcleaning),0) + coalesce(sum(sa_def_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning,
-
-        coalesce(sum(saldo_awal_def_mending),0) + coalesce(sum((sa_def_mending_adj_awal) ),0) saldo_awal_def_mending,
-        coalesce(sum(defect_trans_mending),0) defect_trans_mending,
-        coalesce(sum(defect_trans_rew_mending),0) defect_trans_rew_mending,
-				coalesce(sum(sa_def_mending_adj_akhir),0) sa_def_mending_adj_akhir,
-        coalesce(sum(saldo_akhir_def_mending),0) + coalesce(sum(sa_def_mending_adj_akhir),0) saldo_akhir_def_mending,
+(
+coalesce(
+sum(coalesce(a.qty_loading_awal,0)) -
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
++
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0))
+-
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(d.qty_sew_reject_awal,0)) + sum(coalesce(sawal.sa_adj_awal,0)),0)
+)
++
+/* saldo akhir */
+sum(coalesce(a.qty_loading,0)) -
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0))
++
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) + sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) + sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0))
+-
+sum(coalesce(c.qty_sew,0)) - sum(coalesce(e.qty_sew_reject,0)) + sum(coalesce(sakhir.sa_adj_akhir,0))  as saldo_akhir_sewing,
 
 
-        coalesce(sum(saldo_awal_def_sew_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_awal),0) saldo_awal_def_sew_pck,
-        coalesce(sum(defect_trans_sewing_pck),0) defect_trans_sewing_pck,
-        coalesce(sum(defect_trans_rew_sewing_pck),0) defect_trans_rew_sewing_pck,
-				coalesce(sum(sa_def_pck_sewing_adj_akhir),0) sa_def_pck_sewing_adj_akhir,
-        coalesce(sum(saldo_akhir_def_sewing_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_akhir),0) saldo_akhir_def_sewing_pck,
 
-        coalesce(sum(saldo_awal_def_spotcleaning_pck),0) +  coalesce(sum(sa_def_pck_spotcleaning_adj_awal),0) saldo_awal_def_spotcleaning_pck,
-        coalesce(sum(defect_trans_spotcleaning_pck),0) defect_trans_spotcleaning_pck,
-        coalesce(sum(defect_trans_rew_spotcleaning_pck),0) defect_trans_rew_spotcleaning_pck,
-				coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) sa_def_pck_spotcleaning_adj_akhir,
-        coalesce(sum(saldo_akhir_def_spotcleaning_pck),0) + coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning_pck,
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) saldo_awal_steam,
+sum(coalesce(c.qty_sew,0)) in_steam,
+sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) out_steam,
+sum(coalesce(sakhir.sa_steam_adj_akhir,0)) adj_steam,
 
-        coalesce(sum(saldo_awal_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_awal),0) saldo_awal_def_mending_pck,
-        coalesce(sum(defect_trans_mending_pck),0) defect_trans_mending_pck,
-        coalesce(sum(defect_trans_rew_mending_pck),0) defect_trans_rew_mending_pck,
-				coalesce(sum(sa_def_pck_mending_adj_akhir),0) sa_def_pck_mending_adj_akhir,
-        coalesce(sum(saldo_akhir_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_akhir),0)  saldo_akhir_def_mending_pck
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) +
+sum(coalesce(c.qty_sew,0)) - sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) + sum(coalesce(sakhir.sa_steam_adj_akhir,0)) saldo_akhir_steam,
 
-        FROM d_rep
-        left join mut_def on d_rep.so_det_id = mut_def.so_det_id
-        left join mut_pck on d_rep.so_det_id = mut_pck.so_det_id
-        inner join signalbit_erp.so_det sd on d_rep.so_det_id = sd.id
-        inner join signalbit_erp.so so on sd.id_so = so.id
-        inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-        inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-        left join signalbit_erp.master_size_new msn on sd.size = msn.size
-        $filter
-        GROUP BY ac.kpno, ac.styleno, sd.color, sd.size
-        order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
+-- saldo defect sewing
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) + sum(coalesce(sawal.sa_def_adj_sewing_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) saldo_awal_def_sewing,
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) in_def_sewing,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) out_def_sewing,
+sum(coalesce(sakhir.sa_def_adj_sewing_akhir,0)) adj_def_sewing,
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) + sum(coalesce(sawal.sa_def_adj_sewing_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) +
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) + sum(coalesce(sakhir.sa_def_adj_sewing_akhir,0)) saldo_akhir_def_sewing,
+
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) + sum(coalesce(sawal.sa_def_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) saldo_awal_def_spotcleaning,
+sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) in_def_spotcleaning,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) out_def_spotcleaning,
+sum(coalesce(sakhir.sa_def_adj_spotcleaning_akhir,0)) adj_def_spotcleaning,
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) + sum(coalesce(sawal.sa_def_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) +
+sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) + sum(coalesce(sakhir.sa_def_adj_spotcleaning_akhir,0)) saldo_akhir_def_spotcleaning,
+
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)) + sum(coalesce(sawal.sa_def_adj_mending_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)) saldo_awal_def_mending,
+sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0)) in_def_mending,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0)) out_def_mending,
+sum(coalesce(sakhir.sa_def_adj_mending_akhir,0)) adj_def_mending,
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)) + sum(coalesce(sawal.sa_def_adj_mending_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)) +
+sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0)) - sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0)) + sum(coalesce(sakhir.sa_def_adj_mending_akhir,0)) saldo_akhir_def_mending,
+
+sum(coalesce(saldo_packing_defect_awal.defect_pck_sewing,0)) + sum(coalesce(sawal.sa_def_pck_adj_sewing_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_sewing,0)) saldo_awal_def_pck_sewing,
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_sewing,0)) in_def_pck_sewing,
+sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_sewing,0)) out_def_pck_sewing,
+sum(coalesce(sakhir.sa_def_pck_adj_sewing_akhir,0)) adj_def_pck_sewing,
+sum(coalesce(saldo_packing_defect_awal.defect_pck_sewing,0)) + sum(coalesce(sawal.sa_def_pck_adj_sewing_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_sewing,0)) +
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_sewing,0)) - sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_sewing,0)) + sum(coalesce(sakhir.sa_def_pck_adj_sewing_akhir,0)) saldo_akhir_def_pck_sewing,
+
+sum(coalesce(saldo_packing_defect_awal.defect_pck_spotcleaning,0)) + sum(coalesce(sawal.sa_def_pck_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_spotcleaning,0)) saldo_awal_def_pck_spotcleaning,
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_spotcleaning,0)) in_def_pck_spotcleaning,
+sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_spotcleaning,0)) out_def_pck_spotcleaning,
+sum(coalesce(sakhir.sa_def_pck_adj_spotcleaning_akhir,0)) adj_def_pck_spotcleaning,
+sum(coalesce(saldo_packing_defect_awal.defect_pck_spotcleaning,0)) + sum(coalesce(sawal.sa_def_pck_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_spotcleaning,0)) +
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_spotcleaning,0)) - sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_spotcleaning,0)) + sum(coalesce(sakhir.sa_def_pck_adj_spotcleaning_akhir,0)) saldo_akhir_def_pck_spotcleaning,
+
+
+sum(coalesce(saldo_packing_defect_awal.defect_pck_mending,0)) + sum(coalesce(sawal.sa_def_pck_adj_mending_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_mending,0)) saldo_awal_def_pck_mending,
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_mending,0)) in_def_pck_mending,
+sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_mending,0)) out_def_pck_mending,
+sum(coalesce(sakhir.sa_def_pck_adj_mending_akhir,0)) adj_def_pck_mending,
+sum(coalesce(saldo_packing_defect_awal.defect_pck_mending,0)) + sum(coalesce(sawal.sa_def_pck_adj_mending_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_mending,0)) +
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_mending,0)) - sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_mending,0)) + sum(coalesce(sakhir.sa_def_pck_adj_mending_akhir,0)) saldo_akhir_def_pck_mending
+
+from m
+left join saldo_loading a on m.id_so_det = a.id_so_det
+left join saldo_sewing_awal b on m.id_so_det = b.so_det_id
+left join saldo_sewing_akhir c on m.id_so_det = c.so_det_id
+left join saldo_adj_awal sawal on m.id_so_det = sawal.id_so_det
+left join saldo_adj_akhir sakhir on m.id_so_det = sakhir.id_so_det
+left join saldo_sewing_defect_awal on m.id_so_det = saldo_sewing_defect_awal.so_det_id
+left join saldo_sewing_defect_akhir on m.id_so_det = saldo_sewing_defect_akhir.so_det_id
+left join saldo_sewing_reject_awal d on m.id_so_det = d.so_det_id
+left join saldo_sewing_reject_akhir e on m.id_so_det = e.so_det_id
+left join saldo_packing_awal on m.id_so_det = saldo_packing_awal.so_det_id
+left join saldo_packing_akhir on m.id_so_det = saldo_packing_akhir.so_det_id
+left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.so_det_id
+left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
+left join laravel_nds.master_size_new msn on m.size = msn.size
+$filter
+group by
+buyer,
+ws,
+color,
+m.size
+HAVING
+(
+    qty_loading_awal != 0 OR
+    qty_loading != 0 OR
+    defect_sewing_akhir != 0 OR
+    defect_spotcleaning_akhir != 0 OR
+    defect_mending_akhir != 0 OR
+    input_rework_sewing != 0 OR
+    input_rework_spotcleaning != 0 OR
+    input_rework_mending != 0 OR
+    qty_sew_reject != 0 OR
+    qty_sew != 0 OR
+    qty_sew_adj != 0 OR
+    saldo_akhir_sewing != 0 OR
+    saldo_awal_steam != 0 OR
+    in_steam != 0 OR
+    out_steam != 0 OR
+    adj_steam != 0 OR
+    saldo_akhir_steam != 0 OR
+    saldo_awal_def_sewing != 0 OR
+    in_def_sewing != 0 OR
+    out_def_sewing != 0 OR
+    adj_def_sewing != 0 OR
+    saldo_akhir_def_sewing != 0 OR
+    saldo_awal_def_spotcleaning != 0 OR
+    in_def_spotcleaning != 0 OR
+    out_def_spotcleaning != 0 OR
+    adj_def_spotcleaning != 0 OR
+    saldo_akhir_def_spotcleaning != 0 OR
+    saldo_awal_def_mending != 0 OR
+    in_def_mending != 0 OR
+    out_def_mending != 0 OR
+    adj_def_mending != 0 OR
+    saldo_akhir_def_mending != 0 OR
+    saldo_awal_def_pck_sewing != 0 OR
+    in_def_pck_sewing != 0 OR
+    out_def_pck_sewing != 0 OR
+    adj_def_pck_sewing != 0 OR
+    saldo_akhir_def_pck_sewing != 0 OR
+    saldo_awal_def_pck_spotcleaning != 0 OR
+    in_def_pck_spotcleaning != 0 OR
+    out_def_pck_spotcleaning != 0 OR
+    adj_def_pck_spotcleaning != 0 OR
+    saldo_akhir_def_pck_spotcleaning != 0 OR
+    saldo_awal_def_pck_mending != 0 OR
+    in_def_pck_mending != 0 OR
+    out_def_pck_mending != 0 OR
+    adj_def_pck_mending != 0 OR
+    saldo_akhir_def_pck_mending != 0
+)
+ORDER BY
+buyer asc,
+ws asc,
+color asc,
+msn.urutan asc
       ");
 
             return DataTables::of($data_mut)->toJson();
@@ -1120,1073 +466,419 @@ mut_pck AS (
         $buyer = $request->cbobuyer;
 
         if (!empty($buyer)) {
-            $filter = " where ms.supplier  = '" . $buyer  . "'";
+            $filter = " where buyer  = '" . $buyer  . "'";
         } else {
             $filter = "";
         }
 
-        $data = DB::connection('mysql_sb')->select("WITH d_rep AS (
-            SELECT
-            d_rep.so_det_id,
-            sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) saldo_awal_sewing,
-            sum(qty_loading) qty_loading,
-            sum(input_rework_sewing) input_rework_sewing,
-            sum(input_rework_spotcleaning) input_rework_spotcleaning,
-            sum(input_rework_mending) input_rework_mending,
-            sum(defect_sewing) defect_sewing,
-            sum(defect_spotcleaning) defect_spotcleaning,
-            sum(defect_mending) defect_mending,
-            sum(output_rejects) output_rejects,
-            sum(output_rfts) output_rfts,
-            sum(sa_loading) + sum(sa_rft) - sum(sa_reject) - sum(sa_defect) + sum(sa_rework) + sum(qty_loading) + sum(input_rework_sewing) + sum(input_rework_spotcleaning) + sum(input_rework_mending) - sum(defect_sewing) - sum(defect_spotcleaning) - sum(defect_mending) - sum(output_rejects) - sum(output_rfts) saldo_akhir,
-						SUM(sa_sewing_adj_awal) sa_sewing_adj_awal,
-						SUM(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
-            sum(sa_out_sew) + sum(sa_steam) saldo_awal_steam,
-						SUM(sa_steam_adj_awal) sa_steam_adj_awal,
-						SUM(sa_steam_adj_akhir) sa_steam_adj_akhir,
-            sum(input_steam) input_steam,
-            sum(output_steam) output_steam,
-            sum(sa_steam) + sum(input_steam) - sum(output_steam) saldo_akhir_steam,
-						SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
-						sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
-						SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
-						sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
-						SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
-						sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
-						SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
-						sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
-						SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
-						sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
-						SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
-						sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
-            FROM
-            (
-            SELECT
-                        so_det_id,
-                        sum(loading) sa_loading,
-                        sum(sewing) sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        sum(out_sew) sa_out_sew,
-                        sum(steam) sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                            laravel_nds.sa_report_output where tgl_saldo = '2025-01-01'
-            GROUP BY
-                                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        sum(qty) sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                qty
-            FROM
-				laravel_nds.loading_line
-            LEFT JOIN
-					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-            WHERE
-				form_reject_id is not null AND loading_line.updated_at >= '2025-01-01 00:00:00' and loading_line.updated_at <= '$tgl_awal'
-            GROUP BY
-					so_det_id, form_reject_id
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        sum(qty) sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                MIN(qty) qty
-            FROM
-                    laravel_nds.loading_line a
-            INNER JOIN
-                    laravel_nds.stocker_input b ON a.stocker_id = b.id
-            WHERE
-                    a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal' and b.form_cut_id > 0
-            GROUP BY
-                        b.so_det_id,
-                        b.form_cut_id,
-                        b.group_stocker,
-                        b.ratio
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        count(so_det_id) sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        count(so_det_id) sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rejects a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        count(so_det_id) sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        count(so_det_id) sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.defect_status in ('REWORKED','REJECTED') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-                        SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        sum(qty) qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                qty
-            FROM
-				laravel_nds.loading_line
-            LEFT JOIN
-					laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
-            WHERE
-				form_reject_id is not null AND loading_line.updated_at >= '$tgl_awal' and loading_line.updated_at <= '$tgl_akhir'
-            GROUP BY
-					so_det_id, form_reject_id
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        sum(qty) qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM
-                    (
-            SELECT
-                so_det_id,
-                MIN(qty) qty
-            FROM
-                    laravel_nds.loading_line a
-            INNER JOIN
-                    laravel_nds.stocker_input b ON a.stocker_id = b.id
-            WHERE
-                    a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir' and b.form_cut_id > 0
-            GROUP BY
-                        b.so_det_id,
-                        b.form_cut_id,
-                        b.group_stocker,
-                        b.ratio
-                    ) a
-            GROUP BY so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_sewing,
+        $data = DB::connection('mysql_sb')->select("WITH m as (
+SELECT
+ms.supplier buyer,
+ac.kpno ws,
+ac.styleno,
+sd.color,
+sd.size,
+sd.id id_so_det
+from signalbit_erp.act_costing ac
+inner join signalbit_erp.so on ac.id = so.id_cost
+inner join signalbit_erp.so_det sd on so.id = sd.id_so
+inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
+where ac.aktif = 'Y' and so.cancel_h = 'N' and sd.cancel = 'N'
+),
+
+saldo_loading as (
+SELECT
+	id_so_det,
+	SUM(CASE
+		WHEN tanggal_loading >= '2025-07-01' and tanggal_loading < '$tgl_awal' THEN qty_loading
+		ELSE 0
+	END) as qty_loading_awal,
+	SUM(CASE
+		WHEN tanggal_loading >= '$tgl_awal' and tanggal_loading <= '$tgl_akhir' THEN qty_loading
+		ELSE 0
+	END) as qty_loading
+FROM (
+	SELECT
+		b.so_det_id AS id_so_det,
+		a.tanggal_loading,
+		MIN( qty ) AS qty_loading
+	FROM
+		laravel_nds.loading_line a
+		INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+	WHERE
+		b.form_cut_id > 0
+	GROUP BY
+		b.so_det_id,
+		b.form_cut_id,
+		b.group_stocker,
+		b.ratio,
+		a.tanggal_loading
+	UNION ALL
+	SELECT
+		so_det_id AS id_so_det,
+		tanggal_loading,
+		MIN( qty ) AS qty_loading
+	FROM
+		laravel_nds.loading_line
+		LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+	WHERE
+		form_reject_id IS NOT NULL
+	GROUP BY
+		so_det_id,
+		form_reject_id,
+		tanggal_loading
+) loading
+GROUP BY
+	id_so_det
+),
+
+saldo_sewing_awal as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew_awal
+from signalbit_erp.output_rfts a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '2025-07-01 00:00:00' and updated_at < '$tgl_awal 00:00:00' and mp.cancel = 'N'
+group by so_det_id
+),
+saldo_sewing_akhir as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew
+from signalbit_erp.output_rfts a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+group by so_det_id
+),
+
+saldo_sewing_defect_awal as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_sewing,
                 SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
                 SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending,
                 SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_sewing,
                 SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_spotcleaning,
-                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_mending
+FROM signalbit_erp.output_defects a
+INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        count(so_det_id) output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rejects a
-            WHERE
-                a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        count(so_det_id) output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        count(so_det_id) sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        count(so_det_id) sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts_packing a
-            WHERE
-                a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        count(so_det_id) input_steam,
-                        '0' output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts a
-            WHERE
-                updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        count(so_det_id) output_steam,
-												'0' sa_sewing_adj_awal,
-												'0' sa_sewing_adj_akhir,
-												'0' sa_steam_adj_awal,
-												'0' sa_steam_adj_akhir,
-												'0' sa_def_sewing_adj_awal,
-												'0' sa_def_sewing_adj_akhir,
-												'0' sa_def_spotcleaning_adj_awal,
-												'0' sa_def_spotcleaning_adj_akhir,
-												'0' sa_def_mending_adj_awal,
-												'0' sa_def_mending_adj_akhir,
-												'0' sa_def_pck_sewing_adj_awal,
-												'0' sa_def_pck_sewing_adj_akhir ,
-												'0' sa_def_pck_spotcleaning_adj_awal,
-												'0' sa_def_pck_spotcleaning_adj_akhir,
-												'0' sa_def_pck_mending_adj_awal,
-												'0' sa_def_pck_mending_adj_akhir
-            FROM signalbit_erp.output_rfts_packing a
-            WHERE
-                updated_at >= '$tgl_awal' and updated_at <= '$tgl_akhir'
-            GROUP BY
-                so_det_id
-								UNION ALL
-						SELECT
-												id_so_det so_det_id,
-                        '0' sa_loading,
-                        '0' sa_rft,
-                        '0' sa_reject,
-                        '0' sa_defect,
-                        '0' sa_rework,
-                        '0' qty_loading,
-                        '0' input_rework_sewing,
-                        '0' input_rework_spotcleaning,
-                        '0' input_rework_mending,
-                        '0' defect_sewing,
-                        '0' defect_spotcleaning,
-                        '0' defect_mending,
-                        '0' output_rejects,
-                        '0' output_rfts,
-                        '0' sa_out_sew,
-                        '0' sa_steam,
-                        '0' input_steam,
-                        '0' output_steam,
-												sum(sa_sewing_adj_awal) sa_sewing_adj_awal,
-												sum(sa_sewing_adj_akhir) sa_sewing_adj_akhir,
-												sum(sa_steam_adj_awal) sa_steam_adj_awal,
-												sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
-												SUM(sa_def_sewing_adj_awal) AS sa_def_sewing_adj_awal,
-												sum(sa_def_sewing_adj_akhir) AS sa_def_sewing_adj_akhir,
-												SUM(sa_def_spotcleaning_adj_awal) AS sa_def_spotcleaning_adj_awal,
-												sum(sa_def_spotcleaning_adj_akhir) AS sa_def_spotcleaning_adj_akhir,
-												SUM(sa_def_mending_adj_awal) AS sa_def_mending_adj_awal,
-												sum(sa_def_mending_adj_akhir) AS sa_def_mending_adj_akhir,
-												SUM(sa_def_pck_sewing_adj_awal) AS sa_def_pck_sewing_adj_awal,
-												sum(sa_def_pck_sewing_adj_akhir) as sa_def_pck_sewing_adj_akhir ,
-												SUM(sa_def_pck_spotcleaning_adj_awal) AS sa_def_pck_spotcleaning_adj_awal,
-												sum(sa_def_pck_spotcleaning_adj_akhir) AS sa_def_pck_spotcleaning_adj_akhir,
-												SUM(sa_def_pck_mending_adj_awal) AS sa_def_pck_mending_adj_awal,
-												sum(sa_def_pck_mending_adj_akhir) AS sa_def_pck_mending_adj_akhir
-
-from
-(
-SELECT
-    id_so_det,
-    SUM(sa_sewing) AS sa_sewing_adj_awal,
-    '0' AS sa_sewing_adj_akhir,
-    SUM(sa_steam) AS sa_steam_adj_awal,
-    '0' AS sa_steam_adj_akhir,
-
-    SUM(sa_def_sewing) AS sa_def_sewing_adj_awal,
-    '0' AS sa_def_sewing_adj_akhir,
-    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_awal,
-    '0' AS sa_def_spotcleaning_adj_akhir,
-    SUM(sa_def_mending) AS sa_def_mending_adj_awal,
-    '0' AS sa_def_mending_adj_akhir,
-    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_awal,
-    '0' AS sa_def_pck_sewing_adj_akhir,
-    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_awal,
-    '0' AS sa_def_pck_spotcleaning_adj_akhir,
-    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_awal,
-    '0' AS sa_def_pck_mending_adj_akhir
-FROM
-    laravel_nds.report_output_adj
 WHERE
-    tgl_adj < '$tgl_awal'
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
 GROUP BY
-    id_so_det
-
-UNION ALL
-
-SELECT
-    id_so_det,
-    '0' AS sa_sewing_adj_awal,
-    SUM(sa_sewing) AS sa_sewing_adj_akhir,
-    '0' AS sa_steam_adj_awal,
-    SUM(sa_steam) AS sa_steam_adj_akhir,
-
-    '0' AS sa_def_sewing_adj_awal,
-    SUM(sa_def_sewing) AS sa_def_sewing_adj_akhir,
-    '0' AS sa_def_spotcleaning_adj_awal,
-    SUM(sa_def_spotcleaning) AS sa_def_spotcleaning_adj_akhir,
-    '0' AS sa_def_mending_adj_awal,
-    SUM(sa_def_mending) AS sa_def_mending_adj_akhir,
-    '0' AS sa_def_pck_sewing_adj_awal,
-    SUM(sa_def_pck_sewing) AS sa_def_pck_sewing_adj_akhir,
-    '0' AS sa_def_pck_spotcleaning_adj_awal,
-    SUM(sa_def_pck_spotcleaning) AS sa_def_pck_spotcleaning_adj_akhir,
-    '0' AS sa_def_pck_mending_adj_awal,
-    SUM(sa_def_pck_mending) AS sa_def_pck_mending_adj_akhir
-FROM
-    laravel_nds.report_output_adj
+                so_det_id
+),
+saldo_sewing_defect_akhir as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending,
+                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_mending
+FROM signalbit_erp.output_defects a
+INNER JOIN
+                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-    tgl_adj >= '$tgl_awal' AND tgl_adj <= '$tgl_akhir'
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
 GROUP BY
-    id_so_det
-) a
-GROUP BY id_so_det
-
-                    ) d_rep
-            GROUP BY so_det_id
-
-
-),
-mut_def AS (
-            SELECT
-            so_det_id,
-            sum(sa_defect_trans_sewing) - sum(sa_defect_trans_rew_sewing) saldo_awal_def_sew,
-            sum(defect_trans_sewing) defect_trans_sewing,
-            sum(defect_trans_rew_sewing) defect_trans_rew_sewing,
-            sum(sa_defect_trans_sewing) - sum(sa_defect_trans_rew_sewing) + sum(defect_trans_sewing) - sum(defect_trans_rew_sewing) saldo_akhir_def_sewing,
-            sum(sa_defect_trans_spotcleaning) - sum(sa_defect_trans_rew_spotcleaning) saldo_awal_def_spotcleaning,
-            sum(defect_trans_spotcleaning) defect_trans_spotcleaning,
-            sum(defect_trans_rew_spotcleaning) defect_trans_rew_spotcleaning,
-            sum(sa_defect_trans_spotcleaning) - sum(sa_defect_trans_rew_spotcleaning) + sum(defect_trans_spotcleaning) - sum(defect_trans_rew_spotcleaning) saldo_akhir_def_spotcleaning,
-            sum(sa_defect_trans_mending) - sum(sa_defect_trans_rew_mending) saldo_awal_def_mending,
-            sum(defect_trans_mending) defect_trans_mending,
-            sum(defect_trans_rew_mending) defect_trans_rew_mending,
-            sum(sa_defect_trans_mending) - sum(sa_defect_trans_rew_mending) + sum(defect_trans_mending) - sum(defect_trans_rew_mending) saldo_akhir_def_mending
-            FROM
-            (
-            SELECT
-                    so_det_id,
-                    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending,
-                    SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_mending,
-                    '0' defect_trans_sewing,
-                    '0' defect_trans_spotcleaning,
-                    '0' defect_trans_mending,
-                    '0' defect_trans_rew_sewing,
-                    '0' defect_trans_rew_spotcleaning,
-                    '0' defect_trans_rew_mending
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
                 so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_defect_trans_sewing,
-                        '0' sa_defect_trans_spotcleaning,
-                        '0' sa_defect_trans_mending,
-                        '0' sa_defect_trans_rew_sewing,
-                        '0' sa_defect_trans_rew_spotcleaning,
-                        '0' sa_defect_trans_rew_mending,
-                    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending,
-                    SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing,
-                    SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning,
-                    SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending
-            FROM signalbit_erp.output_defects a
-            INNER JOIN
-                signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                    so_det_id
-            ) mut_def
-            group by so_det_id
 ),
-mut_pck AS (
-            SELECT
-            so_det_id,
-            sum(sa_defect_trans_sewing_pck) - sum(sa_defect_trans_rew_sewing_pck) saldo_awal_def_sew_pck,
-            sum(defect_trans_sewing_pck) defect_trans_sewing_pck,
-            sum(defect_trans_rew_sewing_pck) defect_trans_rew_sewing_pck,
-            sum(sa_defect_trans_sewing_pck) - sum(sa_defect_trans_rew_sewing_pck) + sum(defect_trans_sewing_pck) - sum(defect_trans_rew_sewing_pck) saldo_akhir_def_sewing_pck,
-            sum(sa_defect_trans_spotcleaning_pck) - sum(sa_defect_trans_rew_spotcleaning_pck) saldo_awal_def_spotcleaning_pck,
-            sum(defect_trans_spotcleaning_pck) defect_trans_spotcleaning_pck,
-            sum(defect_trans_rew_spotcleaning_pck) defect_trans_rew_spotcleaning_pck,
-            sum(sa_defect_trans_spotcleaning_pck) - sum(sa_defect_trans_rew_spotcleaning_pck) + sum(defect_trans_spotcleaning_pck) - sum(defect_trans_rew_spotcleaning_pck) saldo_akhir_def_spotcleaning_pck,
-            sum(sa_defect_trans_mending_pck) - sum(sa_defect_trans_rew_mending_pck) saldo_awal_def_mending_pck,
-            sum(defect_trans_mending_pck) defect_trans_mending_pck,
-            sum(defect_trans_rew_mending_pck) defect_trans_rew_mending_pck,
-            sum(sa_defect_trans_mending_pck) - sum(sa_defect_trans_rew_mending_pck) + sum(defect_trans_mending_pck) - sum(defect_trans_rew_mending_pck) saldo_akhir_def_mending_pck
-            FROM
-            (
-            SELECT
-                so_det_id,
-                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS sa_defect_trans_sewing_pck,
-                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS sa_defect_trans_spotcleaning_pck,
-                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS sa_defect_trans_mending_pck,
-                SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_sewing_pck,
-                SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_spotcleaning_pck,
-                SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS sa_defect_trans_rew_mending_pck,
-                '0' defect_trans_sewing_pck,
-                '0' defect_trans_spotcleaning_pck,
-                '0' defect_trans_mending_pck,
-                '0' defect_trans_rew_sewing_pck,
-                '0' defect_trans_rew_spotcleaning_pck,
-                '0' defect_trans_rew_mending_pck
-            FROM signalbit_erp.output_defects_packing a
-            INNER JOIN
+saldo_sewing_reject_awal as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew_reject_awal
+from signalbit_erp.output_rejects a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '2025-07-01 00:00:00' and updated_at < '$tgl_awal 00:00:00' and mp.cancel = 'N'
+group by so_det_id
+),
+saldo_sewing_reject_akhir as (
+select
+so_det_id,
+COUNT(so_det_id) qty_sew_reject
+from signalbit_erp.output_rejects a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+group by so_det_id
+),
+
+saldo_packing_awal as (
+select
+so_det_id,
+COUNT(so_det_id) qty_pck_awal
+from signalbit_erp.output_rfts_packing a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '2025-07-01 00:00:00' and updated_at < '$tgl_awal 00:00:00' and mp.cancel = 'N'
+group by so_det_id
+),
+saldo_packing_akhir as (
+select
+so_det_id,
+COUNT(so_det_id) qty_pck_akhir
+from signalbit_erp.output_rfts_packing a
+inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+group by so_det_id
+),
+
+saldo_packing_defect_awal as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_mending,
+                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_pck_mending
+FROM signalbit_erp.output_defects_packing a
+INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-01-01 00:00:00' and a.updated_at <= '$tgl_awal'
-            GROUP BY
+WHERE
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
+GROUP BY
                 so_det_id
-            UNION ALL
-            SELECT
-                        so_det_id,
-                        '0' sa_defect_trans_sewing_pck,
-                        '0' sa_defect_trans_spotcleaning_pck,
-                        '0' sa_defect_trans_mending_pck,
-                        '0' sa_defect_trans_rew_sewing_pck,
-                        '0' sa_defect_trans_rew_spotcleaning_pck,
-                        '0' sa_defect_trans_rew_mending_pck,
-                    SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_trans_sewing_pck,
-                    SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_trans_spotcleaning_pck,
-                    SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_trans_mending_pck,
-                    SUM(CASE WHEN allocation = 'SEWING'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_sewing_pck,
-                    SUM(CASE WHEN allocation = 'spotcleaning'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_spotcleaning_pck,
-                    SUM(CASE WHEN allocation = 'mending'  AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END ) AS defect_trans_rew_mending_pck
-            FROM signalbit_erp.output_defects_packing a
-            INNER JOIN
+),
+saldo_packing_defect_akhir as(
+select
+						so_det_id,
+						    SUM(CASE WHEN allocation = 'SEWING' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' AND  defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_pck_mending,
+                SUM(CASE WHEN allocation = 'SEWING' THEN 1 ELSE 0 END) AS defect_pck_sewing,
+                SUM(CASE WHEN allocation = 'spotcleaning' THEN 1 ELSE 0 END) AS defect_pck_spotcleaning,
+                SUM(CASE WHEN allocation = 'mending' THEN 1 ELSE 0 END) AS defect_pck_mending
+FROM signalbit_erp.output_defects_packing a
+INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-            WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal' and a.updated_at <= '$tgl_akhir'
-            GROUP BY
-                    so_det_id
-                    ) mut_pck
-            GROUP BY so_det_id
+WHERE
+                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
+GROUP BY
+                so_det_id
+),
+saldo_adj_awal as (
+select
+id_so_det,
+sum(sa_sewing) sa_adj_awal,
+sum(sa_steam) sa_steam_adj_awal,
+sum(sa_def_sewing) sa_def_adj_sewing_awal,
+sum(sa_def_spotcleaning) sa_def_adj_spotcleaning_awal,
+sum(sa_def_mending) sa_def_adj_mending_awal,
+sum(sa_def_pck_sewing) sa_def_pck_adj_sewing_awal,
+sum(sa_def_pck_spotcleaning) sa_def_pck_adj_spotcleaning_awal,
+sum(sa_def_pck_mending) sa_def_pck_adj_mending_awal
+from laravel_nds.report_output_adj where tgl_adj >= '2025-07-01 00:00:00' and tgl_adj < '$tgl_awal 00:00:00'
+group by id_so_det
+),
+saldo_adj_akhir as (
+select
+id_so_det,
+sum(sa_sewing) sa_adj_akhir,
+sum(sa_steam) sa_steam_adj_akhir,
+sum(sa_def_sewing) sa_def_adj_sewing_akhir,
+sum(sa_def_spotcleaning) sa_def_adj_spotcleaning_akhir,
+sum(sa_def_mending) sa_def_adj_mending_akhir,
+sum(sa_def_pck_sewing) sa_def_pck_adj_sewing_akhir,
+sum(sa_def_pck_spotcleaning) sa_def_pck_adj_spotcleaning_akhir,
+sum(sa_def_pck_mending) sa_def_pck_adj_mending_akhir
+from laravel_nds.report_output_adj where tgl_adj >= '$tgl_awal 00:00:00' and tgl_adj <= '$tgl_akhir 23:59:59'
+group by id_so_det
 )
-        SELECT
-        ac.kpno,
-        ms.supplier buyer,
-        ac.styleno,
-        sd.color,
-        sd.size,
-        d_rep.so_det_id,
+
+SELECT
+buyer,
+ws,
+color,
+m.size,
+styleno,
+group_concat(m.id_so_det) id_so_det,
+sum(coalesce(a.qty_loading_awal,0))  qty_loading_awal,
+sum(coalesce(a.qty_loading,0)) qty_loading,
+
+sum(coalesce(b.qty_sew_awal,0)) qty_sew_awal_before_adj,
+sum(coalesce(sawal.sa_adj_awal,0)) qty_sew_adj_awal,
+sum(coalesce(b.qty_sew_awal,0)) +  sum(coalesce(sawal.sa_adj_awal,0)) qty_sew_awal_after_adj,
+sum(coalesce(c.qty_sew,0)) qty_sew,
+sum(coalesce(sakhir.sa_adj_akhir,0)) qty_sew_adj,
+
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) defect_sewing_awal,
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) defect_spotcleaning_awal,
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)) defect_mending_awal,
+
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) input_rework_sewing_awal,
+sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) input_rework_spotcleaning_awal,
+sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)) input_rework_mending_awal,
+
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) defect_sewing_akhir,
+sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) defect_spotcleaning_akhir,
+sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0)) defect_mending_akhir,
+
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) input_rework_sewing,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) input_rework_spotcleaning,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0)) input_rework_mending,
+
+sum(coalesce(d.qty_sew_reject_awal,0)) qty_sew_reject_awal,
+sum(coalesce(e.qty_sew_reject,0)) qty_sew_reject,
+
+/* saldo awal */
+coalesce(
+sum(coalesce(a.qty_loading_awal,0)) -
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
++
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0))
+-
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(d.qty_sew_reject_awal,0)) + sum(coalesce(sawal.sa_adj_awal,0)),0)  as saldo_awal_sewing,
 
 
-        sum(saldo_awal_sewing) + sum(sa_sewing_adj_awal) saldo_awal_sewing,
-        sum(qty_loading) qty_loading,
-        sum(input_rework_sewing) input_rework_sewing,
-        sum(input_rework_spotcleaning) input_rework_spotcleaning,
-        sum(input_rework_mending) input_rework_mending,
-        sum(defect_sewing) defect_sewing,
-        sum(defect_spotcleaning) defect_spotcleaning,
-        sum(defect_mending) defect_mending,
-        sum(output_rejects) output_rejects,
-        sum(output_rfts) output_rfts,
-				sum(sa_sewing_adj_akhir) saldo_akhir_adj,
-        sum(saldo_akhir)  + sum(sa_sewing_adj_awal) + sum(sa_sewing_adj_akhir) saldo_akhir,
-
-        sum(saldo_awal_steam) + sum(sa_steam_adj_awal) saldo_awal_steam,
-        sum(input_steam) input_steam,
-        sum(output_steam) output_steam,
-		sum(sa_steam_adj_akhir) sa_steam_adj_akhir,
-        sum(saldo_akhir_steam) + sum(sa_steam_adj_awal) + sum(sa_steam_adj_akhir) saldo_akhir_steam,
-
-
-        coalesce(sum(saldo_awal_def_sew),0) + coalesce(sum(sa_def_sewing_adj_awal),0)  saldo_awal_def_sew,
-        coalesce(sum(defect_trans_sewing),0) defect_trans_sewing,
-        coalesce(sum(defect_trans_rew_sewing),0) defect_trans_rew_sewing,
-				sum(sa_def_sewing_adj_akhir) sa_def_sewing_adj_akhir,
-        coalesce(sum(saldo_akhir_def_sewing),0) + coalesce(sum(sa_def_sewing_adj_akhir),0) saldo_akhir_def_sewing,
-
-        coalesce(sum(saldo_awal_def_spotcleaning),0) + coalesce(sum((sa_def_spotcleaning_adj_awal) ),0)  saldo_awal_def_spotcleaning,
-        coalesce(sum(defect_trans_spotcleaning),0) defect_trans_spotcleaning,
-        coalesce(sum(defect_trans_rew_spotcleaning),0) defect_trans_rew_spotcleaning,
-				coalesce(sum((sa_def_spotcleaning_adj_akhir) ),0) sa_def_spotcleaning_adj_akhir,
-        coalesce(sum(saldo_akhir_def_spotcleaning),0) + coalesce(sum(sa_def_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning,
-
-        coalesce(sum(saldo_awal_def_mending),0) + coalesce(sum((sa_def_mending_adj_awal) ),0) saldo_awal_def_mending,
-        coalesce(sum(defect_trans_mending),0) defect_trans_mending,
-        coalesce(sum(defect_trans_rew_mending),0) defect_trans_rew_mending,
-				coalesce(sum(sa_def_mending_adj_akhir),0) sa_def_mending_adj_akhir,
-        coalesce(sum(saldo_akhir_def_mending),0) + coalesce(sum(sa_def_mending_adj_akhir),0) saldo_akhir_def_mending,
+(
+coalesce(
+sum(coalesce(a.qty_loading_awal,0)) -
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
++
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) + sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0))
+-
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(d.qty_sew_reject_awal,0)) + sum(coalesce(sawal.sa_adj_awal,0)),0)
+)
++
+/* saldo akhir */
+sum(coalesce(a.qty_loading,0)) -
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0))
++
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) + sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) + sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0))
+-
+sum(coalesce(c.qty_sew,0)) - sum(coalesce(e.qty_sew_reject,0)) + sum(coalesce(sakhir.sa_adj_akhir,0))  as saldo_akhir_sewing,
 
 
-        coalesce(sum(saldo_awal_def_sew_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_awal),0) saldo_awal_def_sew_pck,
-        coalesce(sum(defect_trans_sewing_pck),0) defect_trans_sewing_pck,
-        coalesce(sum(defect_trans_rew_sewing_pck),0) defect_trans_rew_sewing_pck,
-				coalesce(sum(sa_def_pck_sewing_adj_akhir),0) sa_def_pck_sewing_adj_akhir,
-        coalesce(sum(saldo_akhir_def_sewing_pck),0) + coalesce(sum(sa_def_pck_sewing_adj_akhir),0) saldo_akhir_def_sewing_pck,
 
-        coalesce(sum(saldo_awal_def_spotcleaning_pck),0) +  coalesce(sum(sa_def_pck_spotcleaning_adj_awal),0) saldo_awal_def_spotcleaning_pck,
-        coalesce(sum(defect_trans_spotcleaning_pck),0) defect_trans_spotcleaning_pck,
-        coalesce(sum(defect_trans_rew_spotcleaning_pck),0) defect_trans_rew_spotcleaning_pck,
-				coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) sa_def_pck_spotcleaning_adj_akhir,
-        coalesce(sum(saldo_akhir_def_spotcleaning_pck),0) + coalesce(sum(sa_def_pck_spotcleaning_adj_akhir),0) saldo_akhir_def_spotcleaning_pck,
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) saldo_awal_steam,
+sum(coalesce(c.qty_sew,0)) in_steam,
+sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) out_steam,
+sum(coalesce(sakhir.sa_steam_adj_akhir,0)) adj_steam,
 
-        coalesce(sum(saldo_awal_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_awal),0) saldo_awal_def_mending_pck,
-        coalesce(sum(defect_trans_mending_pck),0) defect_trans_mending_pck,
-        coalesce(sum(defect_trans_rew_mending_pck),0) defect_trans_rew_mending_pck,
-				coalesce(sum(sa_def_pck_mending_adj_akhir),0) sa_def_pck_mending_adj_akhir,
-        coalesce(sum(saldo_akhir_def_mending_pck),0) + coalesce(sum(sa_def_pck_mending_adj_akhir),0)  saldo_akhir_def_mending_pck
+sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) +
+sum(coalesce(c.qty_sew,0)) - sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) + sum(coalesce(sakhir.sa_steam_adj_akhir,0)) saldo_akhir_steam,
 
-        FROM d_rep
-        left join mut_def on d_rep.so_det_id = mut_def.so_det_id
-        left join mut_pck on d_rep.so_det_id = mut_pck.so_det_id
-        inner join signalbit_erp.so_det sd on d_rep.so_det_id = sd.id
-        inner join signalbit_erp.so so on sd.id_so = so.id
-        inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-        inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-        left join signalbit_erp.master_size_new msn on sd.size = msn.size
-        $filter
-        GROUP BY ac.kpno, ac.styleno, sd.color, sd.size
-        order by buyer asc, kpno asc, styleno asc, color asc, msn.urutan asc
+-- saldo defect sewing
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) + sum(coalesce(sawal.sa_def_adj_sewing_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) saldo_awal_def_sewing,
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) in_def_sewing,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) out_def_sewing,
+sum(coalesce(sakhir.sa_def_adj_sewing_akhir,0)) adj_def_sewing,
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) + sum(coalesce(sawal.sa_def_adj_sewing_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)) +
+sum(coalesce(saldo_sewing_defect_akhir.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) + sum(coalesce(sakhir.sa_def_adj_sewing_akhir,0)) saldo_akhir_def_sewing,
+
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) + sum(coalesce(sawal.sa_def_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) saldo_awal_def_spotcleaning,
+sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) in_def_spotcleaning,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) out_def_spotcleaning,
+sum(coalesce(sakhir.sa_def_adj_spotcleaning_akhir,0)) adj_def_spotcleaning,
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) + sum(coalesce(sawal.sa_def_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)) +
+sum(coalesce(saldo_sewing_defect_akhir.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_akhir.input_rework_spotcleaning,0)) + sum(coalesce(sakhir.sa_def_adj_spotcleaning_akhir,0)) saldo_akhir_def_spotcleaning,
+
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)) + sum(coalesce(sawal.sa_def_adj_mending_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)) saldo_awal_def_mending,
+sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0)) in_def_mending,
+sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0)) out_def_mending,
+sum(coalesce(sakhir.sa_def_adj_mending_akhir,0)) adj_def_mending,
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)) + sum(coalesce(sawal.sa_def_adj_mending_awal,0)) - sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)) +
+sum(coalesce(saldo_sewing_defect_akhir.defect_mending,0)) - sum(coalesce(saldo_sewing_defect_akhir.input_rework_mending,0)) + sum(coalesce(sakhir.sa_def_adj_mending_akhir,0)) saldo_akhir_def_mending,
+
+sum(coalesce(saldo_packing_defect_awal.defect_pck_sewing,0)) + sum(coalesce(sawal.sa_def_pck_adj_sewing_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_sewing,0)) saldo_awal_def_pck_sewing,
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_sewing,0)) in_def_pck_sewing,
+sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_sewing,0)) out_def_pck_sewing,
+sum(coalesce(sakhir.sa_def_pck_adj_sewing_akhir,0)) adj_def_pck_sewing,
+sum(coalesce(saldo_packing_defect_awal.defect_pck_sewing,0)) + sum(coalesce(sawal.sa_def_pck_adj_sewing_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_sewing,0)) +
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_sewing,0)) - sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_sewing,0)) + sum(coalesce(sakhir.sa_def_pck_adj_sewing_akhir,0)) saldo_akhir_def_pck_sewing,
+
+sum(coalesce(saldo_packing_defect_awal.defect_pck_spotcleaning,0)) + sum(coalesce(sawal.sa_def_pck_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_spotcleaning,0)) saldo_awal_def_pck_spotcleaning,
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_spotcleaning,0)) in_def_pck_spotcleaning,
+sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_spotcleaning,0)) out_def_pck_spotcleaning,
+sum(coalesce(sakhir.sa_def_pck_adj_spotcleaning_akhir,0)) adj_def_pck_spotcleaning,
+sum(coalesce(saldo_packing_defect_awal.defect_pck_spotcleaning,0)) + sum(coalesce(sawal.sa_def_pck_adj_spotcleaning_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_spotcleaning,0)) +
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_spotcleaning,0)) - sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_spotcleaning,0)) + sum(coalesce(sakhir.sa_def_pck_adj_spotcleaning_akhir,0)) saldo_akhir_def_pck_spotcleaning,
+
+
+sum(coalesce(saldo_packing_defect_awal.defect_pck_mending,0)) + sum(coalesce(sawal.sa_def_pck_adj_mending_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_mending,0)) saldo_awal_def_pck_mending,
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_mending,0)) in_def_pck_mending,
+sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_mending,0)) out_def_pck_mending,
+sum(coalesce(sakhir.sa_def_pck_adj_mending_akhir,0)) adj_def_pck_mending,
+sum(coalesce(saldo_packing_defect_awal.defect_pck_mending,0)) + sum(coalesce(sawal.sa_def_pck_adj_mending_awal,0)) - sum(coalesce(saldo_packing_defect_awal.input_rework_pck_mending,0)) +
+sum(coalesce(saldo_packing_defect_akhir.defect_pck_mending,0)) - sum(coalesce(saldo_packing_defect_akhir.input_rework_pck_mending,0)) + sum(coalesce(sakhir.sa_def_pck_adj_mending_akhir,0)) saldo_akhir_def_pck_mending
+
+from m
+left join saldo_loading a on m.id_so_det = a.id_so_det
+left join saldo_sewing_awal b on m.id_so_det = b.so_det_id
+left join saldo_sewing_akhir c on m.id_so_det = c.so_det_id
+left join saldo_adj_awal sawal on m.id_so_det = sawal.id_so_det
+left join saldo_adj_akhir sakhir on m.id_so_det = sakhir.id_so_det
+left join saldo_sewing_defect_awal on m.id_so_det = saldo_sewing_defect_awal.so_det_id
+left join saldo_sewing_defect_akhir on m.id_so_det = saldo_sewing_defect_akhir.so_det_id
+left join saldo_sewing_reject_awal d on m.id_so_det = d.so_det_id
+left join saldo_sewing_reject_akhir e on m.id_so_det = e.so_det_id
+left join saldo_packing_awal on m.id_so_det = saldo_packing_awal.so_det_id
+left join saldo_packing_akhir on m.id_so_det = saldo_packing_akhir.so_det_id
+left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.so_det_id
+left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
+left join laravel_nds.master_size_new msn on m.size = msn.size
+$filter
+group by
+buyer,
+ws,
+color,
+m.size
+HAVING
+(
+    qty_loading_awal != 0 OR
+    qty_loading != 0 OR
+    defect_sewing_akhir != 0 OR
+    defect_spotcleaning_akhir != 0 OR
+    defect_mending_akhir != 0 OR
+    input_rework_sewing != 0 OR
+    input_rework_spotcleaning != 0 OR
+    input_rework_mending != 0 OR
+    qty_sew_reject != 0 OR
+    qty_sew != 0 OR
+    qty_sew_adj != 0 OR
+    saldo_akhir_sewing != 0 OR
+    saldo_awal_steam != 0 OR
+    in_steam != 0 OR
+    out_steam != 0 OR
+    adj_steam != 0 OR
+    saldo_akhir_steam != 0 OR
+    saldo_awal_def_sewing != 0 OR
+    in_def_sewing != 0 OR
+    out_def_sewing != 0 OR
+    adj_def_sewing != 0 OR
+    saldo_akhir_def_sewing != 0 OR
+    saldo_awal_def_spotcleaning != 0 OR
+    in_def_spotcleaning != 0 OR
+    out_def_spotcleaning != 0 OR
+    adj_def_spotcleaning != 0 OR
+    saldo_akhir_def_spotcleaning != 0 OR
+    saldo_awal_def_mending != 0 OR
+    in_def_mending != 0 OR
+    out_def_mending != 0 OR
+    adj_def_mending != 0 OR
+    saldo_akhir_def_mending != 0 OR
+    saldo_awal_def_pck_sewing != 0 OR
+    in_def_pck_sewing != 0 OR
+    out_def_pck_sewing != 0 OR
+    adj_def_pck_sewing != 0 OR
+    saldo_akhir_def_pck_sewing != 0 OR
+    saldo_awal_def_pck_spotcleaning != 0 OR
+    in_def_pck_spotcleaning != 0 OR
+    out_def_pck_spotcleaning != 0 OR
+    adj_def_pck_spotcleaning != 0 OR
+    saldo_akhir_def_pck_spotcleaning != 0 OR
+    saldo_awal_def_pck_mending != 0 OR
+    in_def_pck_mending != 0 OR
+    out_def_pck_mending != 0 OR
+    adj_def_pck_mending != 0 OR
+    saldo_akhir_def_pck_mending != 0
+)
+ORDER BY
+buyer asc,
+ws asc,
+color asc,
+msn.urutan asc
               ");
 
         return response()->json($data);

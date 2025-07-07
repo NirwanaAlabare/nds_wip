@@ -245,20 +245,6 @@
             let tglawal = $('#tgl-awal').val();
             let tglakhir = $('#tgl-akhir').val();
 
-            let dateFrom, dateTo;
-
-            if (!tglawal) {
-                dateFrom = '-';
-            } else {
-                dateFrom = tglawal + ' 00:00:00';
-            }
-            if (!tglakhir) {
-                dateTo = '-';
-            } else {
-                dateTo = tglakhir + ' 23:59:59';
-            }
-
-            console.log(dateFrom, dateTo);
             datatable = $("#datatable").DataTable({
                 processing: true,
                 serverSide: false,
@@ -275,13 +261,13 @@
                     url: '{{ route('show_mut_output') }}',
                     type: 'post',
                     data: function(d) {
-                        d.dateFrom = dateFrom;
-                        d.dateTo = dateTo;
+                        d.dateFrom = tglawal;
+                        d.dateTo = tglakhir;
                         d.cbobuyer = $("#cbobuyer").val();
                     },
                 },
                 columns: [{
-                        data: 'kpno'
+                        data: 'ws'
                     },
                     {
                         data: 'buyer'
@@ -302,13 +288,13 @@
                         data: 'qty_loading'
                     },
                     {
-                        data: 'defect_sewing'
+                        data: 'defect_sewing_akhir'
                     },
                     {
-                        data: 'defect_spotcleaning'
+                        data: 'defect_spotcleaning_akhir'
                     },
                     {
-                        data: 'defect_mending'
+                        data: 'defect_mending_akhir'
                     },
                     {
                         data: 'input_rework_sewing'
@@ -320,43 +306,43 @@
                         data: 'input_rework_mending'
                     },
                     {
-                        data: 'output_rejects'
+                        data: 'qty_sew_reject'
                     },
                     {
-                        data: 'output_rfts'
+                        data: 'qty_sew'
                     },
                     {
-                        data: 'saldo_akhir_adj'
+                        data: 'qty_sew_adj'
                     },
                     {
-                        data: 'saldo_akhir'
+                        data: 'saldo_akhir_sewing'
                     },
                     {
                         data: 'saldo_awal_steam'
                     },
                     {
-                        data: 'input_steam'
+                        data: 'in_steam'
                     },
                     {
-                        data: 'output_steam'
+                        data: 'out_steam'
                     },
                     {
-                        data: 'sa_steam_adj_akhir'
+                        data: 'adj_steam'
                     },
                     {
                         data: 'saldo_akhir_steam'
                     },
                     {
-                        data: 'saldo_awal_def_sew'
+                        data: 'saldo_awal_def_sewing'
                     },
                     {
-                        data: 'defect_trans_sewing'
+                        data: 'in_def_sewing'
                     },
                     {
-                        data: 'defect_trans_rew_sewing'
+                        data: 'out_def_sewing'
                     },
                     {
-                        data: 'sa_def_sewing_adj_akhir'
+                        data: 'adj_def_sewing'
                     },
                     {
                         data: 'saldo_akhir_def_sewing'
@@ -365,13 +351,13 @@
                         data: 'saldo_awal_def_spotcleaning'
                     },
                     {
-                        data: 'defect_trans_spotcleaning'
+                        data: 'in_def_spotcleaning'
                     },
                     {
-                        data: 'defect_trans_rew_spotcleaning'
+                        data: 'out_def_spotcleaning'
                     },
                     {
-                        data: 'sa_def_spotcleaning_adj_akhir'
+                        data: 'adj_def_spotcleaning'
                     },
                     {
                         data: 'saldo_akhir_def_spotcleaning'
@@ -380,61 +366,61 @@
                         data: 'saldo_awal_def_mending'
                     },
                     {
-                        data: 'defect_trans_mending'
+                        data: 'in_def_mending'
                     },
                     {
-                        data: 'defect_trans_rew_mending'
+                        data: 'out_def_mending'
                     },
                     {
-                        data: 'sa_def_mending_adj_akhir'
+                        data: 'adj_def_mending'
                     },
                     {
                         data: 'saldo_akhir_def_mending'
                     },
                     {
-                        data: 'saldo_awal_def_sew_pck'
+                        data: 'saldo_awal_def_pck_sewing'
                     },
                     {
-                        data: 'defect_trans_sewing_pck'
+                        data: 'in_def_pck_sewing'
                     },
                     {
-                        data: 'defect_trans_rew_sewing_pck'
+                        data: 'out_def_pck_sewing'
                     },
                     {
-                        data: 'sa_def_pck_sewing_adj_akhir'
+                        data: 'adj_def_pck_sewing'
                     },
                     {
-                        data: 'saldo_akhir_def_sewing_pck'
+                        data: 'saldo_akhir_def_pck_sewing'
                     },
                     {
-                        data: 'saldo_awal_def_spotcleaning_pck'
+                        data: 'saldo_awal_def_pck_spotcleaning'
                     },
                     {
-                        data: 'defect_trans_spotcleaning_pck'
+                        data: 'in_def_pck_spotcleaning'
                     },
                     {
-                        data: 'defect_trans_rew_spotcleaning_pck'
+                        data: 'out_def_pck_spotcleaning'
                     },
                     {
-                        data: 'sa_def_pck_spotcleaning_adj_akhir'
+                        data: 'adj_def_pck_spotcleaning'
                     },
                     {
-                        data: 'saldo_akhir_def_spotcleaning_pck'
+                        data: 'saldo_akhir_def_pck_spotcleaning'
                     },
                     {
-                        data: 'saldo_awal_def_mending_pck'
+                        data: 'saldo_awal_def_pck_mending'
                     },
                     {
-                        data: 'defect_trans_mending_pck'
+                        data: 'in_def_pck_mending'
                     },
                     {
-                        data: 'defect_trans_rew_mending_pck'
+                        data: 'out_def_pck_mending'
                     },
                     {
-                        data: 'sa_def_pck_mending_adj_akhir'
+                        data: 'adj_def_pck_mending'
                     },
                     {
-                        data: 'saldo_akhir_def_mending_pck'
+                        data: 'saldo_akhir_def_pck_mending'
                     },
 
                 ],
@@ -466,13 +452,10 @@
         }
 
         function export_excel() {
-            let tglawal = $('#tgl-awal').val();
-            let tglakhir = $('#tgl-akhir').val();
-            let dateFrom = tglawal + ' 00:00:00';
-            let dateTo = tglakhir + ' 23:59:59';
+            let dateFrom = $('#tgl-awal').val();
+            let dateTo = $('#tgl-akhir').val();
             let cbobuyer = $("#cbobuyer").val();
 
-            // Start the timer
             const startTime = new Date().getTime();
 
             Swal.fire({
@@ -484,7 +467,6 @@
                 allowOutsideClick: false,
             });
 
-            // Fetch all data from the server
             $.ajax({
                 type: "POST",
                 url: '{{ route('export_excel_mut_output') }}',
@@ -494,38 +476,31 @@
                     cbobuyer: cbobuyer
                 },
                 success: function(data) {
-                    // Create a new workbook and a worksheet
                     const workbook = new ExcelJS.Workbook();
                     const worksheet = workbook.addWorksheet("Mutasi Output Production ");
 
-                    // Add a main title row above the Tgl Transaksi
                     const mainTitleRow = worksheet.addRow(["Laporan Mutasi Saldo WIP"]);
-                    // Center align the main title row
                     worksheet.getCell(`A${mainTitleRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    // Optionally, you can merge cells for the main title
                     worksheet.mergeCells(`A${mainTitleRow.number}:E${mainTitleRow.number}`);
                     mainTitleRow.font = {
                         bold: true,
                         size: 14
                     };
 
-                    // Add a title row for Tgl Transaksi without borders
-                    const titleRow = worksheet.addRow([`Tgl Transaksi: ${tglawal} - ${tglakhir}`]);
-                    // Center align the title row
+                    const titleRow = worksheet.addRow([`Tgl Transaksi: ${dateFrom} - ${dateTo}`]);
                     worksheet.getCell(`A${titleRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    // Set border to null for the title row
                     titleRow.eachCell((cell) => {
                         cell.border = null;
                     });
 
-                    // Add an empty row for spacing
                     worksheet.addRow([]);
+
                     const headerRow = worksheet.addRow([
                         "Jenis Produk", "", "", "", "",
                         "Sewing", "", "", "", "", "", "", "", "", "", "", "",
@@ -538,19 +513,16 @@
                         "Defect Packing Mending", "", "", "", "",
                     ]);
 
-                    // Merge cells for the first header row
-                    worksheet.mergeCells(`A${headerRow.number}:E${headerRow.number}`); // Merge "Jenis Produk"
-                    worksheet.mergeCells(`F${headerRow.number}:Q${headerRow.number}`); // Merge "Packing Line"
-                    worksheet.mergeCells(`R${headerRow.number}:V${headerRow.number}`); //steam
-                    worksheet.mergeCells(`W${headerRow.number}:AA${headerRow.number}`); //def sewing
-                    worksheet.mergeCells(`AB${headerRow.number}:AF${headerRow.number}`); //def spotcleaning
-                    worksheet.mergeCells(`AG${headerRow.number}:AK${headerRow.number}`); //def mending
-                    worksheet.mergeCells(`AL${headerRow.number}:AP${headerRow.number}`); //def pck sewing
-                    worksheet.mergeCells(`AQ${headerRow.number}:AU${headerRow.number}`); //def pck spotcleaning
-                    worksheet.mergeCells(`AV${headerRow.number}:AZ${headerRow.number}`); //def pck mending
+                    worksheet.mergeCells(`A${headerRow.number}:E${headerRow.number}`);
+                    worksheet.mergeCells(`F${headerRow.number}:Q${headerRow.number}`);
+                    worksheet.mergeCells(`R${headerRow.number}:V${headerRow.number}`);
+                    worksheet.mergeCells(`W${headerRow.number}:AA${headerRow.number}`);
+                    worksheet.mergeCells(`AB${headerRow.number}:AF${headerRow.number}`);
+                    worksheet.mergeCells(`AG${headerRow.number}:AK${headerRow.number}`);
+                    worksheet.mergeCells(`AL${headerRow.number}:AP${headerRow.number}`);
+                    worksheet.mergeCells(`AQ${headerRow.number}:AU${headerRow.number}`);
+                    worksheet.mergeCells(`AV${headerRow.number}:AZ${headerRow.number}`);
 
-                    // Define the second header row
-                    // Center align the merged cells
                     worksheet.getCell(`A${headerRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
@@ -579,7 +551,7 @@
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    worksheet.getCell(`AK${headerRow.number}`).alignment = {
+                    worksheet.getCell(`AL${headerRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
@@ -591,14 +563,15 @@
                         horizontal: 'center',
                         vertical: 'middle'
                     };
+
                     const headers = [
                         "WS", "Buyer", "Style", "Color", "Size",
                         "Saldo Awal", "Terima Dari Loading", "Rework Sewing",
                         "Rework Spot Cleaning", "Rework Mending", "Defect Sewing",
-                        "Defect Spot Cleaning", "Defect Mending", "Reject", "Output", "Saldo Akhir Adj",
+                        "Defect Spot Cleaning", "Defect Mending", "Reject", "Output", "Adj",
                         "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir", //steam
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir", //def sewing
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
                         "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
                         "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
                         "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
@@ -607,65 +580,62 @@
                     ];
                     worksheet.addRow(headers);
 
-                    // Add data rows
                     data.forEach(function(row) {
                         worksheet.addRow([
-                            row.kpno,
+                            row.ws,
                             row.buyer,
                             row.styleno,
                             row.color,
                             row.size,
                             row.saldo_awal_sewing,
                             row.qty_loading,
+                            row.defect_sewing_akhir,
+                            row.defect_spotcleaning_akhir,
+                            row.defect_mending_akhir,
                             row.input_rework_sewing,
                             row.input_rework_spotcleaning,
                             row.input_rework_mending,
-                            row.defect_sewing,
-                            row.defect_spotcleaning,
-                            row.defect_mending,
-                            row.output_rejects,
-                            row.output_rfts,
-                            row.saldo_akhir_adj,
-                            row.saldo_akhir,
+                            row.qty_sew_reject,
+                            row.qty_sew,
+                            row.qty_sew_adj,
+                            row.saldo_akhir_sewing,
                             row.saldo_awal_steam,
-                            row.input_steam,
-                            row.output_steam,
-                            row.sa_steam_adj_akhir,
+                            row.in_steam,
+                            row.out_steam,
+                            row.adj_steam,
                             row.saldo_akhir_steam,
-                            row.saldo_awal_def_sew,
-                            row.defect_trans_sewing,
-                            row.defect_trans_rew_sewing,
-                            row.sa_def_sewing_adj_akhir,
+                            row.saldo_awal_def_sewing,
+                            row.in_def_sewing,
+                            row.out_def_sewing,
+                            row.adj_def_sewing,
                             row.saldo_akhir_def_sewing,
                             row.saldo_awal_def_spotcleaning,
-                            row.defect_trans_spotcleaning,
-                            row.defect_trans_rew_spotcleaning,
-                            row.sa_def_spotcleaning_adj_akhir,
+                            row.in_def_spotcleaning,
+                            row.out_def_spotcleaning,
+                            row.adj_def_spotcleaning,
                             row.saldo_akhir_def_spotcleaning,
                             row.saldo_awal_def_mending,
-                            row.defect_trans_mending,
-                            row.defect_trans_rew_mending,
-                            row.sa_def_mending_adj_akhir,
+                            row.in_def_mending,
+                            row.out_def_mending,
+                            row.adj_def_mending,
                             row.saldo_akhir_def_mending,
-                            row.saldo_awal_def_sew_pck,
-                            row.defect_trans_sewing_pck,
-                            row.defect_trans_rew_sewing_pck,
-                            row.sa_def_pck_sewing_adj_akhir,
-                            row.saldo_akhir_def_sewing_pck,
-                            row.saldo_awal_def_spotcleaning_pck,
-                            row.defect_trans_spotcleaning_pck,
-                            row.defect_trans_rew_spotcleaning_pck,
-                            row.sa_def_pck_spotcleaning_adj_akhir,
-                            row.saldo_akhir_def_spotcleaning_pck,
-                            row.saldo_awal_def_mending_pck,
-                            row.defect_trans_mending_pck,
-                            row.defect_trans_rew_mending_pck,
-                            row.sa_def_pck_mending_adj_akhir,
-                            row.saldo_akhir_def_mending_pck
+                            row.saldo_awal_def_pck_sewing,
+                            row.in_def_pck_sewing,
+                            row.out_def_pck_sewing,
+                            row.adj_def_pck_sewing,
+                            row.saldo_akhir_def_pck_sewing,
+                            row.saldo_awal_def_pck_spotcleaning,
+                            row.in_def_pck_spotcleaning,
+                            row.out_def_pck_spotcleaning,
+                            row.adj_def_pck_spotcleaning,
+                            row.saldo_akhir_def_pck_spotcleaning,
+                            row.saldo_awal_def_pck_mending,
+                            row.in_def_pck_mending,
+                            row.out_def_pck_mending,
+                            row.adj_def_pck_mending,
+                            row.saldo_akhir_def_pck_mending
                         ]);
                     });
-
-                    // Apply border style to all cells except title and A3
 
                     worksheet.eachRow({
                         includeEmpty: true
@@ -675,6 +645,7 @@
                             row.eachCell({
                                 includeEmpty: true
                             }, function(cell, colNumber) {
+                                // Apply borders
                                 cell.border = {
                                     top: {
                                         style: 'thin'
@@ -689,11 +660,40 @@
                                         style: 'thin'
                                     }
                                 };
+
+                                if (colNumber >= 6 && colNumber <= 52) {
+                                    cell.numFmt = '#,##0';
+
+                                    // Safely extract the numeric value
+                                    let val = cell.value;
+
+                                    // If cell.value is an object with 'result' or 'richText', unwrap it
+                                    if (val && typeof val === 'object') {
+                                        if ('result' in val) val = val.result;
+                                        else if ('richText' in val && Array.isArray(val
+                                                .richText) && val.richText.length > 0) {
+                                            val = val.richText[0].text;
+                                        }
+                                    }
+
+                                    // Convert to number if possible
+                                    const numVal = Number(val);
+
+                                    if (!isNaN(numVal) && numVal < 0) {
+                                        cell.font = {
+                                            color: {
+                                                argb: 'FFFF0000'
+                                            }, // red font
+                                            bold: true
+                                        };
+                                    }
+                                }
                             });
                         }
                     });
 
-                    // Export the workbook
+
+
                     workbook.xlsx.writeBuffer().then(function(buffer) {
                         const blob = new Blob([buffer], {
                             type: "application/octet-stream"
@@ -703,15 +703,10 @@
                         link.download = "Laporan Mutasi Output.xlsx";
                         link.click();
 
-                        // Calculate the elapsed time
                         const endTime = new Date().getTime();
-                        const elapsedTime = Math.round((endTime - startTime) /
-                            1000); // Convert to seconds
+                        const elapsedTime = Math.round((endTime - startTime) / 1000);
 
-                        // Close the loading notification
                         Swal.close();
-
-                        // Show success message with elapsed time
                         Swal.fire({
                             title: 'Success!',
                             text: `Data has been successfully exported in ${elapsedTime} seconds.`,
