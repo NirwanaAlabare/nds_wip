@@ -115,6 +115,7 @@
                         <th>Size</th>
                         <th>Qty</th>
                         <th>Range</th>
+                        <th>By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -210,6 +211,9 @@
                 {
                     data: 'rangeAwalAkhir',
                 },
+                {
+                    data: 'user',
+                },
             ],
             columnDefs: [
                 {
@@ -234,7 +238,7 @@
                 {
                     targets: [6],
                     render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '-') +`</span>`;
+                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '') +`</span>`;
                     }
                 },
                 {

@@ -91,7 +91,9 @@
                         <th>Stock</th>
                         <th>No. Bon</th>
                         <th>Qty</th>
-                        <th>Waktu Loading</th>
+                        <th>Tanggal</th>
+                        <th>Waktu</th>
+                        <th>By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -143,6 +145,8 @@
                             <td class="align-middle">{{ $loadingLine->no_bon }}</td>
                             <td class="align-middle">{{ num($qty) }}</td>
                             <td class="align-middle">{{ $loadingLine->tanggal_loading }}</td>
+                            <td class="align-middle">{{ $loadingLine->waktu_loading }}</td>
+                            <td class="align-middle">{{ $loadingLine->user }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -151,6 +155,8 @@
                         <th class="text-end" colspan="12">TOTAL</th>
                         <th id="total-qty">{{ num($totalQty) }}</th>
                         <th id="latest-update">{{ $latestUpdate }}</th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </tfoot>
             </table>

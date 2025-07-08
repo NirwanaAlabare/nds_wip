@@ -112,6 +112,7 @@
                                 <th>Size</th>
                                 <th>Qty</th>
                                 <th>Range</th>
+                                <th>By</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -130,6 +131,7 @@
                                         <td>{{ $trolleyStock->size }}</td>
                                         <td>{{ $trolleyStock->qty }}</td>
                                         <td>{{ $trolleyStock->rangeAwalAkhir }}</td>
+                                        <td>{{ $trolleyStock->user }}</td>
                                     </tr>
                                 @endforeach
                             @endif
