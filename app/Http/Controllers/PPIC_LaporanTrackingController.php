@@ -1306,11 +1306,12 @@ order by buyer asc");
 							master_sb_ws.size,
 							stocker_ws_additional.panel,
 							stocker_ws_additional_detail.ratio,
-							form_cut_input.total_lembar,
+							form_detail.total_lembar,
 							modify_size_qty.difference_qty,
-							CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
+							CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_detail.total_lembar) END AS qty_cut
 						FROM
 							laravel_nds.form_cut_input
+                            LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_lembar FROM laravel_nds.form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
 							LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
 							LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
 							LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
@@ -2462,11 +2463,12 @@ order by buyer asc");
 								master_sb_ws.size,
 								marker_input.panel,
 								marker_input_detail.ratio,
-								form_cut_input.total_lembar,
+								form_detail.total_lembar,
 								modify_size_qty.difference_qty,
-								CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM( marker_input_detail.ratio * form_cut_input.total_lembar ) END AS qty_cut
+								CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM( marker_input_detail.ratio * form_detail.total_lembar ) END AS qty_cut
 							FROM
 								laravel_nds.form_cut_input
+                                LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_lembar FROM laravel_nds.form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
 								LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
 								LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
 								LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
@@ -2487,11 +2489,12 @@ order by buyer asc");
 							master_sb_ws.size,
 							stocker_ws_additional.panel,
 							stocker_ws_additional_detail.ratio,
-							form_cut_input.total_lembar,
+							form_detail.total_lembar,
 							modify_size_qty.difference_qty,
-							CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_cut_input.total_lembar) END AS qty_cut
+							CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_detail.total_lembar) END AS qty_cut
 						FROM
 							laravel_nds.form_cut_input
+                            LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_lembar FROM laravel_nds.form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
 							LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
 							LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
 							LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja

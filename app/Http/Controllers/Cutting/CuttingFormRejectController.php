@@ -38,7 +38,7 @@ class CuttingFormRejectController extends Controller
 
                     $sizeList = "";
                     foreach ($sizes as $size) {
-                        $sizeList .= $size->size.($size->soDet && $size->soDet->dest ? " - ".$size->soDet->dest." / " : " / ");
+                        $sizeList .= $size->size.($size->soDet && $size->soDet->dest && $size->soDet->dest != '-' ? " - ".$size->soDet->dest." / " : " / ");
                     }
 
                     return $sizeList;
