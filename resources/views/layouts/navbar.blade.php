@@ -853,7 +853,7 @@
 
                             <li>
                                 <a href="{{ route('maintain-bpb') }}" class="dropdown-item">
-                                    Maintain BPB
+                                    Reverse BPB
                                 </a>
                             </li>
 
