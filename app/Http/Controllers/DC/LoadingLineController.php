@@ -487,7 +487,9 @@ class LoadingLineController extends Controller
                 loading_line_plan.line_id,
                 COALESCE(loading_line.no_bon, '-') no_bon,
                 COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                COALESCE(form_cut_input.no_cut, '-') no_cut
+                COALESCE(form_cut_input.no_cut, '-') no_cut,
+                DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
+                users.username as user
             FROM
                 loading_line
                 LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
@@ -500,6 +502,7 @@ class LoadingLineController extends Controller
                 LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                 LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                LEFT JOIN users ON users.id = loading_line.created_by
             WHERE
                 loading_line_plan.id = '".$id."' and
                 (loading_line.tanggal_loading between '".$dateFrom."' and '".$dateTo."')
