@@ -737,6 +737,7 @@ Route::middleware('auth')->group(function () {
 
         // reset stocker
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
+        Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
     });
 
     // DC :

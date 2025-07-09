@@ -463,7 +463,7 @@ class StockerController extends Controller
 
         $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$index])->first();
 
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+        $stockerCount = Stocker::lastId();
 
         $rangeAwal = $request['range_awal'][$index];
         $rangeAkhir = $request['range_akhir'][$index];
@@ -591,7 +591,7 @@ class StockerController extends Controller
             if ($request['part_detail_id'][$i] == $partDetailId) {
                 $modifySizeQty = ModifySizeQty::where("form_cut_id", $formData->id)->where("so_det_id", $request['so_det_id'][$i])->first();
 
-                $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+                $stockerCount = Stocker::lastId();
 
                 $rangeAwal = $request['range_awal'][$i];
                 $rangeAkhir = $request['range_akhir'][$i];
@@ -714,7 +714,7 @@ class StockerController extends Controller
 
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+        $stockerCount = Stocker::lastId();
 
         $partDetail = collect($request['part_detail_id']);
 
@@ -843,7 +843,7 @@ class StockerController extends Controller
     {
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+        $stockerCount = Stocker::lastId();
 
         $storeItemArr = [];
         for ($i = 0; $i < count($request['ratio_add']); $i++) {
@@ -970,7 +970,7 @@ class StockerController extends Controller
 
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+        $stockerCount = Stocker::lastId();
 
         $partDetail = collect($request['part_detail_id_add']);
 
@@ -1550,7 +1550,7 @@ class StockerController extends Controller
     {
         ini_set('max_execution_time', 360000);
 
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+        $stockerCount = Stocker::lastId();
 
         $redundantStockers = DB::select("
             select
@@ -4551,7 +4551,7 @@ class StockerController extends Controller
     {
         $formData = FormCutReject::where("id", $request['id'])->first();
 
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+        $stockerCount = Stocker::lastId();
 
         $i = 0;
         $storeItemArr = [];

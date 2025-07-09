@@ -15,6 +15,7 @@ use App\Models\LoadingLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use PDF;
 use DB;
 
 class StockerToolsController extends Controller
@@ -123,5 +124,98 @@ class StockerToolsController extends Controller
             'table' => '',
             'additional' => [],
         );
+    }
+
+    public function resetRedundantStocker(Request $request) {
+        ini_set('max_execution_time', 3600);
+
+        $redundantStockers = collect(DB::select("
+            select stocker_input.* from stocker_input where id_qr_stocker in (
+                select id_qr_stocker from stocker_input group by id_qr_stocker having count(id) > 1
+            ) order by CAST(SUBSTRING_INDEX(id_qr_stocker, '-', -1) AS UNSIGNED) asc, updated_at desc
+        "));
+
+        $currentStocker = "";
+        $updatedStockerIds = [];
+        foreach ($redundantStockers as $redundantStocker) {
+            if ($currentStocker != $redundantStocker->id_qr_stocker) {
+                $currentStocker = $redundantStocker->id_qr_stocker;
+            } else {
+                // Update Stocker
+                $stockerCount = Stocker::lastId();
+
+                $newIdQrStocker = "STK-".($stockerCount+1);
+
+                // update stocker
+                Stocker::where("id", $redundantStocker->id)->update([
+                    "id_qr_stocker" => $newIdQrStocker,
+                    "id_qr_stocker_old" => $redundantStocker->id_qr_stocker,
+                ]);
+
+                // // update dc
+                // DCIn::where("id_qr_stocker", $redundantStocker->id_qr_stocker)->
+                //     update([
+                //         "id_qr_stocker" => $newIdQrStocker,
+                //     ]);
+
+                // // update secondary inhouse
+                // SecondaryInhouse::where("id_qr_stocker", $redundantStocker->id_qr_stocker)->
+                //     update([
+                //         "id_qr_stocker" => $newIdQrStocker,
+                //     ]);
+
+                // // update secondary in
+                // SecondaryIn::where("id_qr_stocker", $redundantStocker->id_qr_stocker)->
+                //     update([
+                //         "id_qr_stocker" => $newIdQrStocker,
+                //     ]);
+
+                array_push($updatedStockerIds, $redundantStocker->id);
+            }
+        }
+
+        $dataStockers = Stocker::selectRaw("
+            (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
+            COALESCE(master_sb_ws.size, stocker_input.size) size,
+            stocker_input.range_awal,
+            stocker_input.range_akhir,
+            stocker_input.id_qr_stocker,
+            stocker_input.id_qr_stocker_old,
+            marker_input.act_costing_ws,
+            marker_input.buyer,
+            marker_input.style,
+            marker_input.color,
+            stocker_input.shade,
+            stocker_input.group_stocker,
+            COALESCE(stocker_input.notes) notes,
+            form_cut_input.no_cut,
+            master_part.nama_part part,
+            master_sb_ws.dest
+        ")->
+        leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+        leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+        leftJoin("part", "part.id", "=", "part_detail.part_id")->
+        leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+        leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+        leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+        leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+        leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
+        leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+        leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+        whereIn("stocker_input.id", $updatedStockerIds)->
+        groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
+        orderBy("stocker_input.group_stocker", "desc")->
+        orderBy("stocker_input.so_det_id", "asc")->
+        orderBy("stocker_input.ratio", "asc")->
+        get();
+
+        // generate pdf
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $customPaper = array(0, 0, 300, 250);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker-redundant', ["dataStockers" => $dataStockers])->setPaper('A7', 'landscape');
+
+        $fileName = 'STOCKER_REDUNDANT.pdf';
+
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 }

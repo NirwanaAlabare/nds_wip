@@ -29,6 +29,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="resetRedundantStocker()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Redundant Stocker</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -230,6 +239,57 @@
                             confirmButtonColor: "#082149",
                         });
                     }
+                }
+            });
+        }
+
+        function resetRedundantStocker() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('reset-redundant-stocker') }}",
+                processData: false,
+                contentType: false,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Redundant Stocker.pdf";
+                        link.click();
+                    }
+
+                    window.location.reload();
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    Swal.fire({
+                        icon:'error',
+                        title: 'Error',
+                        html: 'Terjadi kesalahan.',
+                    });
                 }
             });
         }

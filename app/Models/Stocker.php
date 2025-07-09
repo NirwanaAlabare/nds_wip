@@ -13,6 +13,13 @@ class Stocker extends Model
 
     protected $guarded = [];
 
+    public static function lastId(): string
+    {
+        $max = self::selectRaw("MAX(CAST(SUBSTRING_INDEX(id_qr_stocker, '-', -1) AS UNSIGNED)) as max_id")->value('max_id');
+
+        return $max;
+    }
+
     /**
      * Get the master sb ws.
      */

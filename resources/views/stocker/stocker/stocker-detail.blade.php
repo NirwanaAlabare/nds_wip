@@ -1311,6 +1311,19 @@
                     console.log(jqXHR);
 
                     generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printStocker(index); // Retry the request
+                        }
+                    });
                 }
             });
         }
@@ -1374,6 +1387,19 @@
                     console.log(jqXHR);
 
                     generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printStockerAllSize(part); // Retry the request
+                        }
+                    });
                 }
             });
         }
@@ -1437,6 +1463,19 @@
                     console.log(jqXHR);
 
                     generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printStockerAllSizeAdd(); // Retry the request
+                        }
+                    });
                 }
             });
         }
@@ -1521,6 +1560,19 @@
                         console.log(jqXHR);
 
                         generating = false;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan',
+                            confirmButtonText: 'Coba Lagi',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                generateCheckedStocker(); // Retry the request
+                            }
+                        });
                     }
                 });
             } else {
@@ -1601,6 +1653,19 @@
                         console.log(jqXHR);
 
                         generating = false;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan',
+                            confirmButtonText: 'Coba Lagi',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                generateCheckedStockerAdd(); // Retry the request
+                            }
+                        });
                     }
                 });
             } else {
@@ -1673,6 +1738,19 @@
                     console.log(jqXHR);
 
                     generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printNumbering(); // Retry the request
+                        }
+                    });
                 }
             });
         }
@@ -1748,6 +1826,19 @@
                         console.log(jqXHR);
 
                         generating = false;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan',
+                            confirmButtonText: 'Coba Lagi',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                generateCheckedNumbering(); // Retry the request
+                            }
+                        });
                     }
                 });
             } else {
