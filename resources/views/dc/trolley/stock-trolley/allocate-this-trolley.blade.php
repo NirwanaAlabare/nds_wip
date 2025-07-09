@@ -232,7 +232,7 @@
                 {
                     targets: [1],
                     render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '') +`</span>`;
+                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '-') +`</span>`;
                     }
                 },
                 {

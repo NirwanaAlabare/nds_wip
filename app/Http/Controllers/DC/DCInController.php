@@ -677,42 +677,38 @@ class DCInController extends Controller
                 tmp_dc_in_input_new
                 left join dc_in_input on dc_in_input.id_qr_stocker = tmp_dc_in_input_new.id_qr_stocker
             where
-                tmp_dc_in_input_new.id_qr_stocker = '" . $request->txtqrstocker . "'
+                tmp_dc_in_input_new.id_qr_stocker = '" . $request->txtqrstocker . "' and tmp_dc_in_input_new.user = '".Auth::user()->username."'
         ");
 
         $cekdata_fix = $cekdata ? $cekdata[0] : null;
         if ($cekdata_fix ==  null) {
 
-            $cekdata_fix = $cekdata ? $cekdata[0] : null;
-            if ($cekdata_fix ==  null) {
+            DB::insert("
+                insert into tmp_dc_in_input_new
+                (
+                    id_qr_stocker,
+                    qty_reject,
+                    qty_replace,
+                    tujuan,
+                    tempat,
+                    lokasi,
+                    user
+                )
+                values
+                (
+                    '" . $request->txtqrstocker . "',
+                    '0',
+                    '0',
+                    '$tujuan',
+                    '$tempat',
+                    '$lokasi',
+                    '$user'
+                )
+            ");
 
-                DB::insert("
-                    insert into tmp_dc_in_input_new
-                    (
-                        id_qr_stocker,
-                        qty_reject,
-                        qty_replace,
-                        tujuan,
-                        tempat,
-                        lokasi,
-                        user
-                    )
-                    values
-                    (
-                        '" . $request->txtqrstocker . "',
-                        '0',
-                        '0',
-                        '$tujuan',
-                        '$tempat',
-                        '$lokasi',
-                        '$user'
-                    )
-                ");
-
-                DB::update(
-                    "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
-                );
-            }
+            DB::update(
+                "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
+            );
         }
     }
 
