@@ -67,10 +67,10 @@
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="11" style="background-color: lightgreen; text-align:center;">Packing Line</th>
-                            <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment
+                            <th colspan="12" style="background-color: lightgreen; text-align:center;">Packing Line</th>
+                            <th colspan="5" style="background-color: lightsteelblue; text-align:center;">Transfer Garment
                             </th>
-                            <th colspan="4" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
+                            <th colspan="5" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
                                 Central</th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
@@ -82,21 +82,24 @@
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima Dari Steam</th>
                             <th style="background-color: lightgreen;">Defect Sewing</th>
-                            <th style="background-color: lightgreen;">Defect Mending</th>
                             <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
+                            <th style="background-color: lightgreen;">Defect Mending</th>
                             <th style="background-color: lightgreen;">Output Rework Sewing</th>
-                            <th style="background-color: lightgreen;">Output Mending</th>
                             <th style="background-color: lightgreen;">Output Spot Cleaning</th>
+                            <th style="background-color: lightgreen;">Output Mending</th>
                             <th style="background-color: lightgreen;">Reject</th>
                             <th style="background-color: lightgreen;">Keluar</th>
+                            <th style="background-color: lightgreen;">Adj</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
                             <th style="background-color: lightsteelblue;">Saldo Awal</th>
                             <th style="background-color: lightsteelblue;">Terima</th>
                             <th style="background-color: lightsteelblue;">Keluar</th>
+                            <th style="background-color: lightsteelblue;">Adj</th>
                             <th style="background-color: lightsteelblue;">Saldo Akhir</th>
                             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima</th>
                             <th style="background-color: lightgoldenrodyellow;">Keluar</th>
+                            <th style="background-color: lightgoldenrodyellow;">Adj</th>
                             <th style="background-color: lightgoldenrodyellow;">Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -134,11 +137,9 @@
             // Re-initialize the DataTable
             let tglawal = $('#tgl-awal').val();
             let tglakhir = $('#tgl-akhir').val();
-            let dateFrom = tglawal + ' 00:00:00';
-            let dateTo = tglakhir + ' 23:59:59';
             datatable = $("#datatable").DataTable({
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 scrollY: "450px",
                 scrollX: true,
                 scrollCollapse: true,
@@ -146,17 +147,17 @@
                 paging: true,
                 ordering: false,
                 fixedColumns: {
-                    leftColumns: 6 // Fix the first three columns
+                    leftColumns: 5 // Fix the first three columns
                 },
                 ajax: {
                     url: '{{ route('packing_rep_packing_mutasi_wip') }}',
                     data: function(d) {
-                        d.dateFrom = dateFrom;
-                        d.dateTo = dateTo;
+                        d.dateFrom = tglawal;
+                        d.dateTo = tglakhir;
                     },
                 },
                 columns: [{
-                        data: 'kpno'
+                        data: 'ws'
                     },
                     {
                         data: 'buyer'
@@ -171,61 +172,70 @@
                         data: 'size'
                     },
                     {
-                        data: 'sa_pck_line_awal'
+                        data: 'packing_line_awal'
                     },
                     {
-                        data: 'qty_in_pck_line'
+                        data: 'in_pck_line'
                     },
                     {
-                        data: 'output_def_sewing'
+                        data: 'defect_sewing_akhir'
                     },
                     {
-                        data: 'output_def_mending'
+                        data: 'defect_spotcleaning_akhir'
                     },
                     {
-                        data: 'output_def_spotcleaning'
+                        data: 'defect_mending_akhir'
                     },
                     {
                         data: 'input_rework_sewing'
                     },
                     {
-                        data: 'input_rework_mending'
-                    },
-                    {
                         data: 'input_rework_spotcleaning'
                     },
                     {
-                        data: 'qty_reject'
+                        data: 'input_rework_mending'
                     },
                     {
-                        data: 'qty_trf_gmt'
+                        data: 'qty_pck_reject'
+                    },
+                    {
+                        data: 'out_pck_line'
+                    },
+                    {
+                        data: 'adj_pck_line_akhir'
                     },
                     {
                         data: 'saldo_akhir_pck_line'
                     },
                     {
-                        data: 'sa_trf_gmt'
+                        data: 'saldo_awal_trf_garment'
                     },
                     {
-                        data: 'qty_trf_gmt_in'
+                        data: 'in_trf_garment'
                     },
                     {
-                        data: 'qty_trf_gmt_out'
+                        data: 'out_trf_garment'
                     },
                     {
-                        data: 'saldo_akhir_trf_gmt'
+                        data: 'adj_trf_garment'
                     },
                     {
-                        data: 'sa_pck_in'
+                        data: 'saldo_akhir_trf_garment'
                     },
                     {
-                        data: 'qty_pck_in'
+                        data: 'saldo_awal_packing_central'
                     },
                     {
-                        data: 'qty_pck_out'
+                        data: 'in_packing_central'
                     },
                     {
-                        data: 'saldo_akhir_packing_central'
+                        data: 'out_packing_central'
+                    },
+                    {
+                        data: 'adj_packing_central'
+                    },
+                    {
+                        data: 'saldo_akhir_pck_central'
                     },
 
                 ],
@@ -240,10 +250,7 @@
         function export_excel() {
             let tglawal = $('#tgl-awal').val();
             let tglakhir = $('#tgl-akhir').val();
-            let dateFrom = tglawal + ' 00:00:00';
-            let dateTo = tglakhir + ' 23:59:59';
 
-            // Start the timer
             const startTime = new Date().getTime();
 
             Swal.fire({
@@ -255,107 +262,122 @@
                 allowOutsideClick: false,
             });
 
-            // Fetch all data from the server
             $.ajax({
                 type: "GET",
                 url: '{{ route('export_excel_rep_packing_mutasi_wip') }}',
                 data: {
-                    dateFrom: dateFrom,
-                    dateTo: dateTo
+                    dateFrom: tglawal,
+                    dateTo: tglakhir
                 },
                 success: function(data) {
-                    // Create a new workbook and a worksheet
                     const workbook = new ExcelJS.Workbook();
                     const worksheet = workbook.addWorksheet("Packing List");
-                    // Add a title row for Tgl Transaksi without borders
+
+                    // Title
                     const titleRow = worksheet.addRow([`Tgl Transaksi: ${tglawal} - ${tglakhir}`]);
-                    // Center align the title row
+                    worksheet.mergeCells(`A${titleRow.number}:AA${titleRow.number}`);
                     worksheet.getCell(`A${titleRow.number}`).alignment = {
                         horizontal: 'center',
                         vertical: 'middle'
                     };
-                    // Add an empty row for spacing
-                    worksheet.addRow([]);
-                    const headerRow = worksheet.addRow([
+                    worksheet.addRow([]); // spacer row
+
+                    // First header row
+                    const groupHeader = worksheet.addRow([
                         "Jenis Produk", "", "", "", "",
-                        "Packing Line", "", "", "", "", "", "", "", "", "", "",
-                        "Transfer Garment", "", "", "",
-                        "Packing Central", "", "", "",
+                        "Packing Line", "", "", "", "", "", "", "", "", "", "", "",
+                        "Transfer Garment", "", "", "", "",
+                        "Packing Central", "", "", "", ""
                     ]);
 
-                    // Merge cells for the first header row
-                    worksheet.mergeCells(`A${headerRow.number}:E${headerRow.number}`); // Merge "Jenis Produk"
-                    worksheet.mergeCells(`F${headerRow.number}:P${headerRow.number}`); // Merge "Packing Line"
-                    worksheet.mergeCells(
-                        `Q${headerRow.number}:S${headerRow.number}`); // Merge "Transfer Garment"
-                    worksheet.mergeCells(
-                        `U${headerRow.number}:W${headerRow.number}`); // Merge "Packing Central"
-                    // Define the second header row
-                    // Center align the merged cells
-                    worksheet.getCell(`A${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`F${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`Q${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`U${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
+                    worksheet.mergeCells(`A${groupHeader.number}:E${groupHeader.number}`);
+                    worksheet.mergeCells(`F${groupHeader.number}:Q${groupHeader.number}`);
+                    worksheet.mergeCells(`R${groupHeader.number}:V${groupHeader.number}`);
+                    worksheet.mergeCells(`W${groupHeader.number}:AA${groupHeader.number}`);
+
+                    ['A', 'F', 'R', 'W'].forEach(col => {
+                        worksheet.getCell(`${col}${groupHeader.number}`).alignment = {
+                            horizontal: 'center',
+                            vertical: 'middle'
+                        };
+                    });
+
+                    // Second header row
                     const headers = [
                         "WS", "Buyer", "Style", "Color", "Size",
                         "Saldo Awal", "Terima Dari Steam", "Rework Sewing",
                         "Rework Mending", "Rework Spot Cleaning", "Defect Sewing",
                         "Defect Mending", "Defect Spot Cleaning", "Reject",
-                        "Keluar", "Saldo Akhir", "Saldo Awal", "Terima",
-                        "Keluar", "Saldo Akhir", "Saldo Awal", "Terima",
-                        "Keluar", "Saldo Akhir"
+                        "Keluar", "Adj", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
+                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir"
                     ];
                     worksheet.addRow(headers);
 
-                    // Add data rows
+                    // Data rows
                     data.forEach(function(row) {
-                        worksheet.addRow([
-                            row.kpno,
+                        const values = [
+                            row.ws,
                             row.buyer,
                             row.styleno,
                             row.color,
                             row.size,
-                            row.sa_pck_line_awal,
-                            row.qty_in_pck_line,
-                            row.input_rework_sewing,
-                            row.input_rework_mending,
-                            row.input_rework_spotcleaning,
-                            row.output_def_sewing,
-                            row.output_def_mending,
-                            row.output_def_spotcleaning,
-                            row.qty_reject,
-                            row.qty_trf_gmt,
-                            row.saldo_akhir_pck_line,
-                            row.sa_trf_gmt,
-                            row.qty_trf_gmt_in,
-                            row.qty_trf_gmt_out,
-                            row.saldo_akhir_trf_gmt,
-                            row.sa_pck_in,
-                            row.qty_pck_in,
-                            row.qty_pck_out,
-                            row.saldo_akhir_packing_central
-                        ]);
-                    });
+                            Number(row.packing_line_awal),
+                            Number(row.in_pck_line),
+                            Number(row.input_rework_sewing),
+                            Number(row.input_rework_mending),
+                            Number(row.input_rework_spotcleaning),
+                            Number(row.defect_sewing_akhir),
+                            Number(row.defect_mending_akhir),
+                            Number(row.defect_spotcleaning_akhir),
+                            Number(row.qty_pck_reject),
+                            Number(row.out_pck_line),
+                            Number(row.adj_pck_line_akhir),
+                            Number(row.saldo_akhir_pck_line),
+                            Number(row.saldo_awal_trf_garment),
+                            Number(row.in_trf_garment),
+                            Number(row.out_trf_garment),
+                            Number(row.adj_trf_garment),
+                            Number(row.saldo_akhir_trf_garment),
+                            Number(row.saldo_awal_packing_central),
+                            Number(row.in_packing_central),
+                            Number(row.out_packing_central),
+                            Number(row.adj_packing_central),
+                            Number(row.saldo_akhir_pck_central),
+                        ];
 
-                    // Apply border style to all cells
-                    worksheet.eachRow({
-                        includeEmpty: true
-                    }, function(row, rowNumber) {
-                        row.eachCell({
+                        const dataRow = worksheet.addRow(values);
+
+                        dataRow.eachCell({
                             includeEmpty: true
                         }, function(cell, colNumber) {
+                            if (colNumber >= 6 && colNumber <= 27) {
+                                // Only format numeric columns
+                                if (typeof cell.value === 'number' && !isNaN(cell.value)) {
+                                    cell.numFmt = '#,##0'; // thousand separator
+                                    cell.alignment = {
+                                        horizontal: 'right'
+                                    };
+
+                                    if (cell.value < 0) {
+                                        cell.font = {
+                                            color: {
+                                                argb: 'FFFF0000'
+                                            }
+                                        }; // Red for negative
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                    // Apply borders to all cells
+                    worksheet.eachRow({
+                        includeEmpty: true
+                    }, function(row) {
+                        row.eachCell({
+                            includeEmpty: true
+                        }, function(cell) {
                             cell.border = {
                                 top: {
                                     style: 'thin'
@@ -373,7 +395,7 @@
                         });
                     });
 
-                    // Export the workbook
+                    // Export
                     workbook.xlsx.writeBuffer().then(function(buffer) {
                         const blob = new Blob([buffer], {
                             type: "application/octet-stream"
@@ -383,15 +405,10 @@
                         link.download = "Laporan Mutasi Packing List.xlsx";
                         link.click();
 
-                        // Calculate the elapsed time
                         const endTime = new Date().getTime();
-                        const elapsedTime = Math.round((endTime - startTime) /
-                            1000); // Convert to seconds
+                        const elapsedTime = Math.round((endTime - startTime) / 1000);
 
-                        // Close the loading notification
                         Swal.close();
-
-                        // Show success message with elapsed time
                         Swal.fire({
                             title: 'Success!',
                             text: `Data has been successfully exported in ${elapsedTime} seconds.`,

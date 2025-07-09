@@ -258,6 +258,21 @@ sum(sa_def_pck_spotcleaning) sa_def_pck_adj_spotcleaning_akhir,
 sum(sa_def_pck_mending) sa_def_pck_adj_mending_akhir
 from laravel_nds.report_output_adj where tgl_adj >= '$tgl_awal 00:00:00' and tgl_adj <= '$tgl_akhir 23:59:59'
 group by id_so_det
+),
+saldo_awal_upload as
+(
+select
+so_det_id,
+sum(loading) loading,
+sum(sewing) sewing,
+sum(steam) steam,
+sum(out_sew) out_sew,
+sum(packing_line) packing_line,
+sum(trf_gmt) trf_gmt,
+sum(packing_central) packing_central
+from laravel_nds.sa_report_output
+where tgl_saldo = '2025-07-01'
+group by so_det_id
 )
 
 SELECT
@@ -267,7 +282,7 @@ color,
 m.size,
 styleno,
 group_concat(m.id_so_det) id_so_det,
-sum(coalesce(a.qty_loading_awal,0)) qty_loading_awal,
+sum(coalesce(a.qty_loading_awal,0)) + sum(coalesce(a.qty_loading,0)) qty_loading_awal,
 sum(coalesce(a.qty_loading,0)) qty_loading,
 
 sum(coalesce(b.qty_sew_awal,0)) qty_sew_awal_before_adj,
@@ -296,7 +311,12 @@ sum(coalesce(d.qty_sew_reject_awal,0)) qty_sew_reject_awal,
 sum(coalesce(e.qty_sew_reject,0)) qty_sew_reject,
 
 /* saldo awal */
+
+
 coalesce(
+
+sum(coalesce(sal.sewing,0)) +
+
 sum(coalesce(a.qty_loading_awal,0)) -
 sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
 +
@@ -307,6 +327,9 @@ sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(d.qty_sew_reject_awal,0)) + sum(c
 
 (
 coalesce(
+
+sum(coalesce(sal.sewing,0)) +
+
 sum(coalesce(a.qty_loading_awal,0)) -
 sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
 +
@@ -324,12 +347,13 @@ sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) + sum(coalesce(sa
 sum(coalesce(c.qty_sew,0)) - sum(coalesce(e.qty_sew_reject,0)) + sum(coalesce(sakhir.sa_adj_akhir,0))  as saldo_akhir_sewing,
 
 
-
+sum(coalesce(sal.steam,0)) +
 sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) saldo_awal_steam,
 sum(coalesce(c.qty_sew,0)) in_steam,
 sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) out_steam,
 sum(coalesce(sakhir.sa_steam_adj_akhir,0)) adj_steam,
 
+sum(coalesce(sal.steam,0)) +
 sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) +
 sum(coalesce(c.qty_sew,0)) - sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) + sum(coalesce(sakhir.sa_steam_adj_akhir,0)) saldo_akhir_steam,
 
@@ -391,6 +415,7 @@ left join saldo_packing_awal on m.id_so_det = saldo_packing_awal.so_det_id
 left join saldo_packing_akhir on m.id_so_det = saldo_packing_akhir.so_det_id
 left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.so_det_id
 left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
+left join saldo_awal_upload sal on m.id_so_det = sal.so_det_id
 left join laravel_nds.master_size_new msn on m.size = msn.size
 $filter
 group by
@@ -684,6 +709,21 @@ sum(sa_def_pck_spotcleaning) sa_def_pck_adj_spotcleaning_akhir,
 sum(sa_def_pck_mending) sa_def_pck_adj_mending_akhir
 from laravel_nds.report_output_adj where tgl_adj >= '$tgl_awal 00:00:00' and tgl_adj <= '$tgl_akhir 23:59:59'
 group by id_so_det
+),
+saldo_awal_upload as
+(
+select
+so_det_id,
+sum(loading) loading,
+sum(sewing) sewing,
+sum(steam) steam,
+sum(out_sew) out_sew,
+sum(packing_line) packing_line,
+sum(trf_gmt) trf_gmt,
+sum(packing_central) packing_central
+from laravel_nds.sa_report_output
+where tgl_saldo = '2025-07-01'
+group by so_det_id
 )
 
 SELECT
@@ -693,7 +733,7 @@ color,
 m.size,
 styleno,
 group_concat(m.id_so_det) id_so_det,
-sum(coalesce(a.qty_loading_awal,0))  qty_loading_awal,
+sum(coalesce(a.qty_loading_awal,0)) + sum(coalesce(a.qty_loading,0)) qty_loading_awal,
 sum(coalesce(a.qty_loading,0)) qty_loading,
 
 sum(coalesce(b.qty_sew_awal,0)) qty_sew_awal_before_adj,
@@ -722,7 +762,12 @@ sum(coalesce(d.qty_sew_reject_awal,0)) qty_sew_reject_awal,
 sum(coalesce(e.qty_sew_reject,0)) qty_sew_reject,
 
 /* saldo awal */
+
+
 coalesce(
+
+sum(coalesce(sal.sewing,0)) +
+
 sum(coalesce(a.qty_loading_awal,0)) -
 sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
 +
@@ -733,6 +778,9 @@ sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(d.qty_sew_reject_awal,0)) + sum(c
 
 (
 coalesce(
+
+sum(coalesce(sal.sewing,0)) +
+
 sum(coalesce(a.qty_loading_awal,0)) -
 sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)) - sum(coalesce(saldo_sewing_defect_awal.defect_mending,0))
 +
@@ -750,12 +798,13 @@ sum(coalesce(saldo_sewing_defect_akhir.input_rework_sewing,0)) + sum(coalesce(sa
 sum(coalesce(c.qty_sew,0)) - sum(coalesce(e.qty_sew_reject,0)) + sum(coalesce(sakhir.sa_adj_akhir,0))  as saldo_akhir_sewing,
 
 
-
+sum(coalesce(sal.steam,0)) +
 sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) saldo_awal_steam,
 sum(coalesce(c.qty_sew,0)) in_steam,
 sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) out_steam,
 sum(coalesce(sakhir.sa_steam_adj_akhir,0)) adj_steam,
 
+sum(coalesce(sal.steam,0)) +
 sum(coalesce(b.qty_sew_awal,0)) - sum(coalesce(saldo_packing_awal.qty_pck_awal,0)) +  sum(coalesce(sawal.sa_steam_adj_awal,0)) +
 sum(coalesce(c.qty_sew,0)) - sum(coalesce(saldo_packing_akhir.qty_pck_akhir,0)) + sum(coalesce(sakhir.sa_steam_adj_akhir,0)) saldo_akhir_steam,
 
@@ -817,6 +866,7 @@ left join saldo_packing_awal on m.id_so_det = saldo_packing_awal.so_det_id
 left join saldo_packing_akhir on m.id_so_det = saldo_packing_akhir.so_det_id
 left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.so_det_id
 left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
+left join saldo_awal_upload sal on m.id_so_det = sal.so_det_id
 left join laravel_nds.master_size_new msn on m.size = msn.size
 $filter
 group by
