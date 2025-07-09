@@ -811,6 +811,8 @@ class TrolleyStockerController extends Controller
                 stocker_input.size,
                 coalesce(stocker_input.qty_ply_mod, stocker_input.qty_ply) qty_ply,
                 stocker_input.status,
+                trolley_stocker.id trolley_stock_id,
+                loading_line.id line_id,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.buyer ELSE marker_input.buyer END) buyer,
                 (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
@@ -819,11 +821,13 @@ class TrolleyStockerController extends Controller
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
             leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
+            leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
             where('id_qr_stocker', $id)->
             first();
 
         if ($scannedStocker) {
-            if ($scannedStocker->status == "line") {
+            if ($scannedStocker->line_id) {
                 return json_encode(
                     array(
                         'status' => 400,
@@ -833,7 +837,7 @@ class TrolleyStockerController extends Controller
                         'additional' => []
                     )
                 );
-            } else if ($scannedStocker->status == "trolley") {
+            } else if ($scannedStocker->trolley_stock_id) {
                 return json_encode(
                     array(
                         'status' => 400,
