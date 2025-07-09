@@ -364,13 +364,13 @@
                 {
                     targets: [1],
                     render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
+                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : "") +`</span>`;
                     }
                 },
                 {
                     targets: [6],
                     render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
+                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : "") +`</span>`;
                     }
                 },
                 {
@@ -505,6 +505,11 @@
             document.getElementById("stocker_no_cut").readonly = true;
             document.getElementById("stocker_size").readonly = true;
             document.getElementById("stocker_qty_ply").readonly = true;
+        }
+
+        function clearStockerId() {
+            document.getElementById("stocker_id").value = "";
+            document.getElementById("kode_stocker").value = "";
         }
     </script>
 @endsection

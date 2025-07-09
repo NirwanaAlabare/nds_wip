@@ -271,7 +271,8 @@ class TrolleyStockerController extends Controller
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
-        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, trolley_stocker.id, trolley.nama_trolley, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
+
+        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, trolley.nama_trolley, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
             where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
@@ -294,7 +295,7 @@ class TrolleyStockerController extends Controller
                 'message' => "Stocker sudah di loading ke line",
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
-                'callback' => 'clearAll()',
+                'callback' => 'clearStockerId();',
                 'additional' => [],
             );
         }
@@ -314,7 +315,7 @@ class TrolleyStockerController extends Controller
                     ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
-                'callback' => 'clearAll()',
+                'callback' => 'clearStockerId();',
                 'additional' => [],
             );
         }
@@ -356,7 +357,7 @@ class TrolleyStockerController extends Controller
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
-                    'callback' => 'clearAll()',
+                    'callback' => 'clearStockerId();',
                     'additional' => [],
                 );
             }
@@ -366,7 +367,7 @@ class TrolleyStockerController extends Controller
                 'message' => 'Stocker gagal dialokasi',
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
-                'callback' => 'clearAll()',
+                'callback' => 'clearStockerId();',
                 'additional' => [],
             );
         }
@@ -376,7 +377,7 @@ class TrolleyStockerController extends Controller
             'message' => 'Stocker gagal dialokasi',
             'redirect' => '',
             'table' => 'trolley-stock-datatable',
-            'callback' => 'clearAll()',
+            'callback' => 'clearStockerId();',
             'additional' => [],
         );
     }
@@ -413,7 +414,7 @@ class TrolleyStockerController extends Controller
                 'message' => "Stocker sudah di loading ke line",
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
-                'callback' => 'clearAll()',
+                'callback' => 'clearStockerId();',
                 'additional' => [],
             );
         }
@@ -433,7 +434,7 @@ class TrolleyStockerController extends Controller
                     ($incompleteSecondary->count() > 0 ? "<br><br> Stocker Secondary belum masuk Secondary In : <br> <b>".$incompleteSecondary->pluck("id_qr_stocker")->implode(", ")."</b> <br> <u><a href='".route("secondary-in")."' class='text-sb' target='_blank'>Ke Secondary In</a></u>" : ""),
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
-                'callback' => 'clearAll()',
+                'callback' => 'clearStockerId();',
                 'additional' => [],
             );
         }
@@ -473,7 +474,7 @@ class TrolleyStockerController extends Controller
                     'message' => 'Stocker berhasil dialokasi',
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
-                    'callback' => 'trolleyStockDatatableReload()',
+                    'callback' => 'trolleyStockDatatableReload(); clearStockerId();',
                     'additional' => [],
                 );
             }
@@ -483,7 +484,7 @@ class TrolleyStockerController extends Controller
                 'message' => 'Stocker gagal dialokasi',
                 'redirect' => '',
                 'table' => 'trolley-stock-datatable',
-                'callback' => 'trolleyStockDatatableReload()',
+                'callback' => 'trolleyStockDatatableReload(); clearStockerId();',
                 'additional' => [],
             );
         }
@@ -493,7 +494,7 @@ class TrolleyStockerController extends Controller
             'message' => 'Stocker gagal dialokasi',
             'redirect' => '',
             'table' => 'trolley-stock-datatable',
-            'callback' => 'trolleyStockDatatableReload()',
+            'callback' => 'trolleyStockDatatableReload(); clearStockerId',
             'additional' => [],
         );
     }

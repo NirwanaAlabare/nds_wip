@@ -398,5 +398,10 @@
                         document.getElementById("stocker_size").readonly = true;
                         document.getElementById("stocker_qty_ply").readonly = true;
                     }
+
+                    function clearStockerId() {
+                        document.getElementById("stocker_id").value = "";
+                        document.getElementById("kode_stocker").value = "";
+                    }
     </script>
 @endsection
