@@ -140,6 +140,7 @@
                         <th>Size</th>
                         <th>Qty</th>
                         <th>Range</th>
+                        <th>By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -341,6 +342,9 @@
                 },
                 {
                     data: 'rangeAwalAkhir',
+                },
+                {
+                    data: 'user',
                 },
             ],
             columnDefs: [

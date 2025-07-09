@@ -19,7 +19,9 @@
         <th style="font-weight: 800;">Stock</th>
         <th style="font-weight: 800;">No. Bon</th>
         <th style="font-weight: 800;">Qty</th>
-        <th style="font-weight: 800;">Waktu Loading</th>
+        <th style="font-weight: 800;">Hari</th>
+        <th style="font-weight: 800;">Waktu</th>
+        <th style="font-weight: 800;">By</th>
     </tr>
     @php
         $currentForm = null;
@@ -73,6 +75,8 @@
             <td>{{ $loadingLine->no_bon ? $loadingLine->no_bon : '-' }}</td>
             <td>{{ $qty }}</td>
             <td>{{ $loadingLine->tanggal_loading }}</td>
+            <td>{{ $loadingLine->waktu_loading }}</td>
+            <td>{{ $loadingLine->user }}</td>
         </tr>
     @endforeach
     <tr>
