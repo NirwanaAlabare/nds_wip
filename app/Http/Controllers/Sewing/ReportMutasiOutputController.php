@@ -428,7 +428,7 @@ left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.s
 left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
 left join saldo_awal_upload sal on m.id_so_det = sal.so_det_id
 left join laravel_nds.master_size_new msn on m.size = msn.size
-where ws = 'FBL/0325/004'
+$filter
 group by
 buyer,
 ws,
@@ -890,7 +890,7 @@ left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.s
 left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
 left join saldo_awal_upload sal on m.id_so_det = sal.so_det_id
 left join laravel_nds.master_size_new msn on m.size = msn.size
-where ws = 'FBL/0325/004'
+$filter
 group by
 buyer,
 ws,
