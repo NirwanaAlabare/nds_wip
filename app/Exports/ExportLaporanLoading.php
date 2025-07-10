@@ -89,7 +89,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                 loading_line_plan
                 LEFT JOIN (
                     SELECT
-                        MAX(COALESCE ( DATE ( loading_line.updated_at ), loading_line.tanggal_loading )) tanggal_loading,
+                        MAX(COALESCE ( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) )) tanggal_loading,
                         loading_line.loading_plan_id,
                         loading_line.nama_line,
                         (

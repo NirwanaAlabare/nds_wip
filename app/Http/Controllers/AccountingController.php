@@ -434,7 +434,7 @@ public function ReportCeisaDetail(Request $request)
             SUBSTRING(kode_dokumen, 1, 1), '.',
             SUBSTRING(kode_dokumen, 2, 1))
             ELSE kode_dokumen
-            END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, curr, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit, IF(ndpbm = 1,'IDR','USD') curr,(cif/jumlah_satuan) price, ndpbm rates, CASE
+            END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, curr, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit, IF(ndpbm <= 1,'IDR','USD') curr,(cif/jumlah_satuan) price, ndpbm rates, CASE
             WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
             WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif
             WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN (harga_satuan * jumlah_satuan)
