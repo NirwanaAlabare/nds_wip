@@ -138,9 +138,10 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '2025-07-01 00:00:00' and a.created_at < '$tgl_awal 00:00:00'
+				ELSE a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00' END)
 GROUP BY
-                so_det_id
+so_det_id
 ),
 saldo_sewing_defect_akhir as(
 select
@@ -155,7 +156,8 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '$tgl_awal 00:00:00' and a.created_at < '$tgl_akhir 23:59:59'
+				ELSE a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59' END)
 GROUP BY
                 so_det_id
 ),
@@ -210,9 +212,8 @@ FROM signalbit_erp.output_defects_packing a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
-GROUP BY
-                so_det_id
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '2025-07-01 00:00:00' and a.created_at < '2025-07-01 23:59:59'
+				ELSE a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00' END)
 ),
 saldo_packing_defect_akhir as(
 select
@@ -227,7 +228,8 @@ FROM signalbit_erp.output_defects_packing a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '2025-07-01 00:00:00' and a.created_at <= '2025-07-09 23:59:59'
+				ELSE a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59' END)
 GROUP BY
                 so_det_id
 ),
@@ -312,7 +314,16 @@ sum(coalesce(e.qty_sew_reject,0)) qty_sew_reject,
 
 /* saldo awal */
 
-
+sum(coalesce(a.qty_loading_awal,0)),
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) ,
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)),
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)),
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)),
+sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)),
+sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)),
+sum(coalesce(b.qty_sew_awal,0)),
+sum(coalesce(d.qty_sew_reject_awal,0)),
+sum(coalesce(sawal.sa_adj_awal,0)),
 coalesce(
 
 sum(coalesce(sal.sewing,0)) +
@@ -417,7 +428,7 @@ left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.s
 left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
 left join saldo_awal_upload sal on m.id_so_det = sal.so_det_id
 left join laravel_nds.master_size_new msn on m.size = msn.size
-$filter
+where ws = 'FBL/0325/004'
 group by
 buyer,
 ws,
@@ -589,9 +600,10 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '2025-07-01 00:00:00' and a.created_at < '$tgl_awal 00:00:00'
+				ELSE a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00' END)
 GROUP BY
-                so_det_id
+so_det_id
 ),
 saldo_sewing_defect_akhir as(
 select
@@ -606,7 +618,8 @@ FROM signalbit_erp.output_defects a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '$tgl_awal 00:00:00' and a.created_at < '$tgl_akhir 23:59:59'
+				ELSE a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59' END)
 GROUP BY
                 so_det_id
 ),
@@ -661,9 +674,8 @@ FROM signalbit_erp.output_defects_packing a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00'
-GROUP BY
-                so_det_id
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '2025-07-01 00:00:00' and a.created_at < '2025-07-01 23:59:59'
+				ELSE a.updated_at >= '2025-07-01 00:00:00' and a.updated_at < '$tgl_awal 00:00:00' END)
 ),
 saldo_packing_defect_akhir as(
 select
@@ -678,7 +690,8 @@ FROM signalbit_erp.output_defects_packing a
 INNER JOIN
                 signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
 WHERE
-                allocation IN ('SEWING', 'spotcleaning', 'mending') and a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59'
+				allocation IN ('SEWING', 'spotcleaning', 'mending') and (CASE WHEN defect_status IN ('REWORKED','REJECTED') THEN a.created_at >= '2025-07-01 00:00:00' and a.created_at <= '2025-07-09 23:59:59'
+				ELSE a.updated_at >= '$tgl_awal 00:00:00' and a.updated_at <= '$tgl_akhir 23:59:59' END)
 GROUP BY
                 so_det_id
 ),
@@ -763,7 +776,16 @@ sum(coalesce(e.qty_sew_reject,0)) qty_sew_reject,
 
 /* saldo awal */
 
-
+sum(coalesce(a.qty_loading_awal,0)),
+sum(coalesce(saldo_sewing_defect_awal.defect_sewing,0)) ,
+sum(coalesce(saldo_sewing_defect_awal.defect_spotcleaning,0)),
+sum(coalesce(saldo_sewing_defect_awal.defect_mending,0)),
+sum(coalesce(saldo_sewing_defect_awal.input_rework_sewing,0)),
+sum(coalesce(saldo_sewing_defect_awal.input_rework_spotcleaning,0)),
+sum(coalesce(saldo_sewing_defect_awal.input_rework_mending,0)),
+sum(coalesce(b.qty_sew_awal,0)),
+sum(coalesce(d.qty_sew_reject_awal,0)),
+sum(coalesce(sawal.sa_adj_awal,0)),
 coalesce(
 
 sum(coalesce(sal.sewing,0)) +
@@ -868,7 +890,7 @@ left join saldo_packing_defect_awal on m.id_so_det = saldo_packing_defect_awal.s
 left join saldo_packing_defect_akhir on m.id_so_det = saldo_packing_defect_akhir.so_det_id
 left join saldo_awal_upload sal on m.id_so_det = sal.so_det_id
 left join laravel_nds.master_size_new msn on m.size = msn.size
-$filter
+where ws = 'FBL/0325/004'
 group by
 buyer,
 ws,

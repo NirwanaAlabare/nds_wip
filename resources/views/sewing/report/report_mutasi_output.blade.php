@@ -566,9 +566,10 @@
 
                     const headers = [
                         "WS", "Buyer", "Style", "Color", "Size",
-                        "Saldo Awal", "Terima Dari Loading", "Rework Sewing",
-                        "Rework Spot Cleaning", "Rework Mending", "Defect Sewing",
-                        "Defect Spot Cleaning", "Defect Mending", "Reject", "Output", "Adj",
+                        "Saldo Awal", "Terima Dari Loading",
+                        "Defect Sewing", "Defect Spot Cleaning", "Defect Mending",
+                        "Rework Sewing", "Rework Spot Cleaning", "Rework Mending",
+                        "Reject", "Output", "Adj",
                         "Saldo Akhir",
                         "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
                         "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
