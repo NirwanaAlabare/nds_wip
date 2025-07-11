@@ -1,0 +1,1094 @@
+@extends('layouts.index')
+
+@section('custom-link')
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@endsection
+
+@section('content')
+    @php
+        $currentCuttingPiece = null;
+
+        if (isset($cuttingFormPiece)) {
+            $currentCuttingPiece = $cuttingFormPiece;
+        }
+    @endphp
+
+    <div class="d-flex justify-content-between mb-3">
+        <h5 class="text-sb fw-bold">Create Cutting Fabric PCS</h5>
+        <button class="btn btn-primary btn-sm"><i class="fa fa-reply"></i> Kembali ke List Cutting</button>
+    </div>
+
+    {{-- PROCESS --}}
+        <input type="hidden" id="process" value="{{ $currentCuttingPiece ? $currentCuttingPiece->process : null }}"></input>
+
+    {{-- PROCESS ONE --}}
+        <form action="{{ route('store-cutting-piece') }}" method="POST" id="process-one-form" onsubmit="processOne(this, event)">
+            <input type="hidden" id="process-one" name="process-one" value="1">
+            <div class="card card-sb">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        Detail Form Fabric PCS
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row row-gap-3">
+                        <div class="col-md-6">
+                            <label class="form-label">No. Form</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="no_form" name="no_form" value="{{ $currentCuttingPiece ? $currentCuttingPiece->no_form : null }}" readonly>
+                                <button type="button" class="btn btn-sb" onclick="cuttingPieceCode()"><i class="fa fa-rotate"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal</label>
+                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? $currentCuttingPiece->tanggal : date("Y-m-d") }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Worksheet</label>
+                            @if ($currentCuttingPiece)
+                                <input type="hidden" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_id : null }}" readonly>
+                                <input type="text" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_ws : null }}" readonly>
+                            @else
+                                <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_id : null }}">
+                                    <option value="">Pilih Worksheet</option>
+                                    @foreach ($orders as $order)
+                                        <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" class="form-control" id="act_costing_ws" name="act_costing_ws" readonly>
+                            @endif
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Buyer</label>
+                            <input type="hidden" class="form-control" id="buyer_id" name="buyer_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->buyer_id : null }}" readonly>
+                            <input type="text" class="form-control" id="buyer" name="buyer" value="{{ $currentCuttingPiece ? $currentCuttingPiece->buyer : null }}" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Style</label>
+                            <input type="text" class="form-control" id="style" name="style" value="{{ $currentCuttingPiece ? $currentCuttingPiece->style : null }}" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Color</label>
+                            @if ($currentCuttingPiece)
+                                <input type="text" class="form-control" id="color" name="color" value="{{ $currentCuttingPiece ? $currentCuttingPiece->color : null }}" readonly>
+                            @else
+                                <select class="form-select select2bs4" id="color" name="color">
+                                    <option value="">Pilih Color</option>
+                                </select>
+                            @endif
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Panel</label>
+                            @if ($currentCuttingPiece)
+                                <input type="text" class="form-control" id="panel" name="panel" value="{{ $currentCuttingPiece ? $currentCuttingPiece->panel : null }}" readonly>
+                            @else
+                                <select class="form-select select2bs4" id="panel" name="panel">
+                                    <option value="">Pilih Panel</option>
+                                </select>
+                            @endif
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Cons. WS</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="cons_ws" name="cons_ws" value="{{ $currentCuttingPiece ? $currentCuttingPiece->cons_ws : null }}" readonly>
+                                <input type="text" class="form-control" id="unit_cons_ws" name="unit_cons_ws" value="{{ $currentCuttingPiece ? $currentCuttingPiece->unit_cons_ws : null }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <hr class="border-dark">
+                        </div>
+                        <div class="col-md-12">
+                            <div id="reader-operator"></div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label label-input">Scan ID Operator</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="employee_id" id="employee_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->employee_id : null }}">
+                                <button class="btn btn-sm btn-success" type="button" id="get-button-operator" onclick="fetchScanOperator()">Get</button>
+                                <button class="btn btn-sm btn-primary" type="button" id="scan-button-operator" onclick="refreshScanOperator()">Scan</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">NIK</label>
+                            <input type="text" class="form-control" name="employee_nik" id="employee_nik" value="{{ $currentCuttingPiece ? $currentCuttingPiece->employee_nik : null }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nama</label>
+                            <input type="text" class="form-control" name="employee_name" id="employee_name" value="{{ $currentCuttingPiece ? $currentCuttingPiece->employee_name : null }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer border-1">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-sb" type="submit">NEXT</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {{-- END OF PROCESS ONE --}}
+
+    {{-- ID --}}
+        <input type="hidden" id="id" name="id" value="" readonly>
+
+    {{-- PROCESS TWO --}}
+        <form action="{{ route('store-cutting-piece') }}" method="POST" id="process-two-form" onsubmit="processTwo()" class="{{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 1 ? "" : "d-none") : "d-none") }}">
+            <div class="card card-sb" id="item-card">
+                <div class="card-header">
+                    <h3 class="card-title">Scan QR</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="card-body" style="display: block;">
+                    <div class="row justify-content-center align-items-end">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <div id="reader-item"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-center mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="switch-method" checked onchange="switchMethod(this)">
+                                    <label class="form-check-label" id="to-scan">Scan Roll</label>
+                                    <label class="form-check-label d-none" id="to-select">Pilih Barang</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12" id="scan-method">
+                            <div class="row align-items-end mb-3">
+                                <div class="col-md-12">
+                                    <label class="form-label label-input">ID Roll</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="kode_barang" id="kode_barang">
+                                        <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScan()">Get</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="refreshScan()">Scan</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-sb btn-sm btn-block d-none" id="scan-item">START</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 d-none" id="select-method">
+                            <div class="row align-items-end mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Pilih Barang</label>
+                                    <select class="form-select select2bs4" name="barang" id="barang" onchange="clearItem()">
+                                        <option value="">Pilih Barang</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-sb btn-block" id="select-item" onclick="setSelectedItem()">Get</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">ID Item</label>
+                                <input type="text" class="form-control" name="id_item" id="id_item" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Detail Item</label>
+                                <input type="text" class="form-control" name="detail_item" id="detail_item" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Qty</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="qty_item" id="qty_item" readonly>
+                                    <input type="text" class="form-control" name="unit_qty_item" id="unit_qty_item" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sizes</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="sizes_item" id="sizes_item" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer border-1">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-sb" type="submit">NEXT</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {{-- END OF PROCESS TWO --}}
+
+    {{-- PROCESS THREE --}}
+        <form action="{{ route('store-cutting-piece') }}" method="POST" id="process-three-form" onsubmit="processThree()" class="{{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 2 ? "" : "d-none") : "d-none") }}">
+            <div class="card card-sb">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        Process
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row row-gap-3">
+                        <div class="col-md-4">
+                            <label class="form-label">ID Roll</label>
+                            <input type="text" class="form-control" id="id_roll" name="id_roll">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Group</label>
+                            <input type="text" class="form-control" id="group_roll" name="group_roll">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Lot</label>
+                            <input type="text" class="form-control" id="lot" name="lot" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">No. Roll</label>
+                            <input type="text" class="form-control" id="no_roll" name="no_roll" readonly>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Role BOM</label>
+                            <input type="text" class="form-control" id="role_bom" name="role_bom" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">QTY Pengeluaran</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="qty_pengeluaran" name="qty_pengeluaran" value="" readonly>
+                                <input type="text" class="form-control" id="qty_pengeluaran_unit" name="qty_pengeluaran_unit" value="PCS" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">QTY</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="qty" name="qty" value="" readonly>
+                                <input type="text" class="form-control" id="qty_unit" name="qty_unit" value="PCS" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-12 table-responsive">
+                            <table class="table table-bordered table mt-3" id="cutting-piece-table">
+                                <thead>
+                                    <tr>
+                                        <th>So Det ID</th>
+                                        <th>Size</th>
+                                        <th>Dest</th>
+                                        <th>Qty Output</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <td colspan="3" class="text-center">Data tidak ditemukan</td>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th>Total</th>
+                                        <th id="total-detail-qty">...</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">QTY Digunakan</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="qty_use" name="qty_use" value="" readonly>
+                                <input type="text" class="form-control" id="qty_use_unit" name="qty_use_unit" value="PCS" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">QTY Sisa</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="qty_sisa" name="qty_sisa" value="" readonly>
+                                <input type="text" class="form-control" id="qty_sisa_unit" name="qty_sisa_unit" value="PCS" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer border-1">
+                    <button class="btn btn-sb btn-block" type="submit">FINISH</button>
+                </div>
+            </div>
+        </form>
+    {{-- END OF PROCESS THREE --}}
+@endsection
+
+@section('custom-script')
+    <!-- DataTables  & Plugins -->
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script>
+        // Initial Window On Load Event
+        $(document).ready(async function () {
+            initial();
+
+            disableFormSubmit("#process-one-form");
+            disableFormSubmit("#process-two-form");
+            disableFormSubmit("#process-three-form");
+        });
+
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        // Initialize Select2 Elements
+        $('.select2').select2()
+
+        // Initialize Select2BS4 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+        })
+
+        // Init
+            async function initial() {
+                document.getElementById("loading").classList.remove("d-none");
+
+                if (document.getElementById("process").value > 0) {
+                    // Check Current Process
+                    await checkProcess(document.getElementById("process").value);
+                } else {
+                    //Reset Form
+                    if (document.getElementById('process-one-form')) {
+                        document.getElementById('process-one-form').reset();
+
+                        $("#act_costing_id").val(null).trigger("change");
+                    }
+
+                    // Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )
+                    $("#color").prop("disabled", true);
+                    $("#panel").prop("disabled", true);
+
+                    // Generate Code
+                    generateCode();
+
+                    // Open Scan Operator
+                    refreshScanOperator();
+                }
+
+                document.getElementById("switch-method").checked = true;
+
+                await document.getElementById("loading").classList.add("d-none");
+            }
+
+        // CHECK PROCESS
+            async function checkProcess(process) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                switch (process) {
+                    case "1" :
+                        initProcessTwo();
+
+                        break;
+                    case "2" :
+                        initProcessThree();
+
+                        break;
+                    case "3" :
+                        initFinish();
+
+                        break;
+                }
+
+                document.getElementById("loading").classList.add("d-none");
+            }
+
+        // PROCESS ONE
+            // Generate Code
+            function generateCode() {
+                $.ajax({
+                    url: "{{ route("generate-code-cutting-piece") }}",
+                    type: "get",
+                    success: function (response) {
+                        document.getElementById("no_form").value = response
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
+            }
+
+            // Step One (WS) on change event
+            $('#act_costing_id').on('change', async function(e) {
+                if (this.value) {
+                    document.getElementById('loading').classList.remove("d-none");
+
+                    await updateColorList();
+                    await updateOrderInfo();
+
+                    document.getElementById('loading').classList.add("d-none");
+                }
+            });
+
+            // Step Two (Color) on change event
+            $('#color').on('change', async function(e) {
+                if (this.value) {
+                    document.getElementById('loading').classList.remove("d-none");
+
+                    await updatePanelList();
+                    await cuttingPieceTableReload();
+
+                    document.getElementById('loading').classList.add("d-none");
+
+                }
+            });
+
+            // Step Three (Panel) on change event
+            $('#panel').on('change', async function(e) {
+                if (this.value) {
+                    document.getElementById('loading').classList.remove("d-none");
+
+                    await getNumber();
+
+                    document.getElementById('loading').classList.add("d-none");
+                } else {
+                    document.getElementById('cons_ws').value = null;
+                    document.getElementById('unit_cons_ws').value = null;
+                }
+            });
+
+            // Update Order Information
+            function updateOrderInfo() {
+                return $.ajax({
+                    url: '{{ route("get-general-order") }}',
+                    type: 'get',
+                    data: {
+                        act_costing_id: $('#act_costing_id').val(),
+                        color: $('#color').val(),
+                    },
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res) {
+                            document.getElementById('act_costing_ws').value = res.kpno;
+                            document.getElementById('buyer_id').value = res.id_buyer;
+                            document.getElementById('buyer').value = res.buyer;
+                            document.getElementById('style').value = res.styleno;
+                        } else {
+                            document.getElementById('act_costing_ws').value = null;
+                            document.getElementById('buyer_id').value = null;
+                            document.getElementById('buyer').value = null;
+                            document.getElementById('style').value = null;
+                        }
+                    },
+                });
+            }
+
+            // Update Color Select Option Based on Order WS
+            function updateColorList() {
+                document.getElementById('color').innerHTML = null;
+                document.getElementById('color').value = null;
+
+                return $.ajax({
+                    url: '{{ route("get-colors") }}',
+                    type: 'get',
+                    data: {
+                        act_costing_id: $('#act_costing_id').val(),
+                    },
+                    success: function (res) {
+                        if (res && res.length > 0) {
+                            // Update this step
+                            let select = document.getElementById("color");
+
+                            select.innerHTML = "";
+
+                            for (let i=0; i < res.length; i++) {
+                                let newOption = document.createElement("option");
+                                newOption.value = res[i].color;
+                                newOption.innerHTML = res[i].color;
+
+                                select.appendChild(newOption);
+                            }
+
+                            select.removeAttribute("disabled");
+
+                            $("#color").val(res[0].color).trigger("change");
+                        } else {
+                            $("#color").val(null).trigger("change");
+                        }
+                    },
+                });
+            }
+
+            // Update Panel Select Option Based on Order WS and Color WS
+            function updatePanelList() {
+                document.getElementById('panel').innerHTML = null;
+                document.getElementById('panel').value = null;
+
+                return $.ajax({
+                    url: '{{ route("get-panels") }}',
+                    type: 'get',
+                    data: {
+                        act_costing_id: $('#act_costing_id').val(),
+                        color: $('#color').val(),
+                    },
+                    success: function (res) {
+                        if (res && res.length > 0) {
+                            // Update this step
+                            let select = document.getElementById("panel");
+
+                            select.innerHTML = "";
+
+                            for (let i=0; i < res.length; i++) {
+                                let newOption = document.createElement("option");
+                                newOption.value = res[i].panel;
+                                newOption.innerHTML = res[i].panel;
+
+                                select.appendChild(newOption);
+                            }
+
+                            select.removeAttribute("disabled");
+
+                            $("#panel").val(res[0].color).trigger("change");
+                        } else {
+                            $("#panel").val(null).trigger("change");
+                        }
+                    },
+                });
+            }
+
+            // Get & Set Order WS Cons and Order Qty Based on Order WS, Order Color and Order Panel
+            function getNumber() {
+                document.getElementById('cons_ws').value = null;
+                document.getElementById('unit_cons_ws').value = null;
+                return $.ajax({
+                    url: ' {{ route("get-general-number") }}',
+                    type: 'get',
+                    dataType: 'json',
+                    data: {
+                        act_costing_id: $('#act_costing_id').val(),
+                        color: $('#color').val(),
+                        panel: $('#panel').val()
+                    },
+                    success: function (res) {
+                        if (res) {
+                            document.getElementById('cons_ws').value = res.cons_ws;
+                            document.getElementById('unit_cons_ws').value = res.unit_cons_ws;
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.log(jqXHR);
+                    }
+                });
+            }
+
+            // Scan Operator
+            var html5QrcodeScannerOperator = new Html5Qrcode("reader-operator");
+            var scannerInitializedOperator = false;
+
+            // Initialize Scan Operator
+            async function initScanOperator() {
+                if (document.getElementById("reader-operator")) {
+                    if (html5QrcodeScannerOperator == null || (html5QrcodeScannerOperator && (html5QrcodeScannerOperator.isScanning == false))) {
+                        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                                // handle the scanned code as you like, for example:
+                            console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                            // store to input text
+                            let breakDecodedText = decodedText.split('-');
+
+                            document.getElementById('employee_id').value = breakDecodedText[0];
+
+                            getScannedOperator(breakDecodedText[0]);
+
+                            clearQrCodeScannerOperator();
+                        };
+                        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                        await html5QrcodeScannerOperator.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+                    }
+                }
+            }
+
+            // Stop and Clear Scan Operator
+            async function clearQrCodeScannerOperator() {
+                if (html5QrcodeScannerOperator && (html5QrcodeScannerOperator.isScanning)) {
+                    await html5QrcodeScannerOperator.stop();
+                    await html5QrcodeScannerOperator.clear();
+                }
+            }
+
+            // Refresh Scan Operator
+            async function refreshScanOperator() {
+                await clearQrCodeScannerOperator();
+                await initScanOperator();
+            }
+
+            // Fetch Scanned ID Operator
+            function fetchScanOperator() {
+                let idOperator = document.getElementById('employee_id').value;
+
+                getScannedOperator(idOperator);
+            }
+
+            function getScannedOperator(id) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                document.getElementById("employee_nik").value = "";
+                document.getElementById("employee_name").value = "";
+
+                if (isNotNull(id)) {
+                    return $.ajax({
+                        url: '{{ route('get-scanned-employee') }}/' + id,
+                        type: 'get',
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res) {
+                                if (res.enroll_id) {
+                                    document.getElementById("employee_id").value = res.enroll_id;
+                                    document.getElementById("employee_nik").value = res.nik;
+                                    document.getElementById("employee_name").value = res.employee_name;
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: 'Operator tidak ditemukan.',
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                    });
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Terjadi kesalahan.',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+
+                            document.getElementById("loading").classList.add("d-none");
+                        },
+                        error: function(jqXHR) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: jqXHR.responseText ? jqXHR.responseText : 'Terjadi kesalahan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+                    });
+                }
+
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Item tidak ditemukan',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            // Submit Process One
+            function processOne(e, event) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                event.preventDefault();
+
+                let form = new FormData(e);
+
+                let dataObj = {
+                    "process": 1,
+                }
+
+                form.forEach((value, key) => dataObj[key] = value);
+
+                $.ajax({
+                    url: '{{ route('store-cutting-piece') }}',
+                    type: 'post',
+                    data: dataObj,
+                    dataType: "json",
+                    success: function (response) {
+
+                        console.log("something", response);
+                        if (response.status == 200) {
+                            console.log("success", response);
+
+                            if (response.additional) {
+                                document.getElementById("id").value = response.additional.id;
+                            }
+
+                            initProcessTwo();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: response.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function (jqXHR) {
+                        handleError(jqXHR.responseJSON);
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
+        // END OF PROCESS ONE
+
+
+        // PROCESS TWO
+            // Init Process Two
+            function initProcessTwo() {
+                clearItem();
+
+                initScan();
+                getItemList();
+
+                document.getElementById("process-two-form").classList.remove("d-none");
+
+                let form = document.getElementById("process-one-form");
+                for (let i = 0; i < form.length; i++) {
+                    form[i].setAttribute("disabled", "true");
+                }
+            }
+
+            // Switch Method
+            var method = "scan";
+
+            function switchMethod(element) {
+                clearItem();
+
+                if (element.checked) {
+                    toScanMethod();
+                } else {
+                    toSelectMethod();
+                }
+            }
+
+            function toScanMethod() {
+                method = "scan";
+
+                document.getElementById("select-method").classList.add('d-none');
+                document.getElementById("to-select").classList.add('d-none');
+
+                document.getElementById("scan-method").classList.remove('d-none');
+                document.getElementById("to-scan").classList.remove('d-none');
+                $("#kode_barang").val("").trigger("change");
+
+                initScan();
+
+                addColorSpreading();
+
+                location.href = "#item-card";
+            }
+
+            function toSelectMethod() {
+                method = "select";
+
+                document.getElementById("scan-method").classList.add('d-none');
+                document.getElementById("to-scan").classList.add('d-none');
+
+                document.getElementById("select-method").classList.remove('d-none');
+                document.getElementById("to-select").classList.remove('d-none');
+                $("#barang").val("").trigger("change");
+
+                clearQrCodeScanner();
+
+                location.href = "#item-card";
+            }
+
+            function clearItem() {
+                document.getElementById("kode_barang").value = "";
+                document.getElementById("barang").value = "";
+                document.getElementById("id_item").value = "";
+                document.getElementById("detail_item").value = "";
+                document.getElementById("qty_item").value = "";
+                document.getElementById("unit_qty_item").value = "";
+                document.getElementById("sizes_item").value = "";
+            }
+
+            // Scan QR Module :
+                // Variable List :
+                    var html5QrcodeScanner = new Html5Qrcode("reader-item");
+                    var scannerInitialized = false;
+                // Function List :
+                    // -Initialize Scanner-
+                    async function initScan() {
+                        if (document.getElementById("reader-item")) {
+                            if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.isScanning == false))) {
+                                const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                                        // handle the scanned code as you like, for example:
+                                    console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                                    // store to input text
+                                    let breakDecodedText = decodedText.split('-');
+
+                                    document.getElementById('kode_barang').value = breakDecodedText[0];
+
+                                    getScannedItem(breakDecodedText[0]);
+
+                                    clearQrCodeScanner();
+                                };
+                                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                                await html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+                            }
+                        }
+                    }
+
+                    async function clearQrCodeScanner() {
+                        if (html5QrcodeScanner && (html5QrcodeScanner.isScanning)) {
+                            await html5QrcodeScanner.stop();
+                            await html5QrcodeScanner.clear();
+                        }
+                    }
+
+                    async function refreshScan() {
+                        await clearQrCodeScanner();
+                        await initScan();
+                    }
+
+                    // Lock Scan Item Form then Clear Scanner
+                    function lockScanItemForm() {
+                        document.getElementById("kode_barang").setAttribute("readonly", true);
+                        document.getElementById("get-button").setAttribute("disabled", true);
+                        document.getElementById("scan-button").setAttribute("disabled", true);
+                        document.getElementById("switch-method").setAttribute("disabled", true);
+                        document.getElementById("reader-item").classList.add("d-none");
+
+                        clearQrCodeScanner();
+                    }
+
+                    // Open Scan Item Form then Open Scanner
+                    function openScanItemForm() {
+                        if (status != "SELESAI PENGERJAAN") {
+
+                            document.getElementById("kode_barang").removeAttribute("readonly");
+                            document.getElementById("get-button").removeAttribute("disabled");
+                            document.getElementById("scan-button").removeAttribute("disabled");
+                            document.getElementById("switch-method").removeAttribute("disabled");
+                            document.getElementById("reader-item").classList.remove("d-none");
+
+                            initScan();
+                        }
+                    }
+
+                // Fetch Scanned Item Data
+                function fetchScan() {
+                    let kodeBarang = document.getElementById('kode_barang').value;
+
+                    getScannedItem(kodeBarang);
+                }
+
+                function getScannedItem(id) {
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    document.getElementById("id_item").value = "";
+                    document.getElementById("detail_item").value = "";
+                    document.getElementById("qty_item").value = "";
+                    document.getElementById("unit_qty_item").value = "";
+
+                    if (isNotNull(id)) {
+                        return $.ajax({
+                            url: '{{ route('get-scanned-form-cut-input') }}/' + id,
+                            type: 'get',
+                            data: {
+                                unit: "PCS",
+                            },
+                            dataType: 'json',
+                            success: function(res) {
+                                if (res) {
+                                    if (res.qty > 0) {
+                                        currentScannedItem = res;
+
+                                        document.getElementById("id_item").value = res.id_item;
+                                        document.getElementById("detail_item").value = res.detail_item;
+                                        document.getElementById("qty_item").value = res.qty;
+                                        document.getElementById("unit_qty_item").value = res.unit;
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Gagal',
+                                            text: 'Qty sudah habis.',
+                                            showCancelButton: false,
+                                            showConfirmButton: true,
+                                            confirmButtonText: 'Oke',
+                                        });
+                                    }
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: res ? res : 'Roll tidak tersedia.',
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                    });
+                                }
+
+                                document.getElementById("loading").classList.add("d-none");
+                            },
+                            error: function(jqXHR) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+
+                                document.getElementById("loading").classList.add("d-none");
+                            }
+                        });
+                    }
+
+                    return Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Item tidak ditemukan',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    });
+                }
+
+            // Select Item Module :
+                async function getItemList() {
+                    $("#barang").prop("disabled", true);
+
+                    await $.ajax({
+                        url: '{{ route('get-item-form-cut-input') }}',
+                        type: 'get',
+                        data: {
+                            act_costing_id: $("#act_costing_id").val(),
+                            unit: "PCS"
+                        },
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res) {
+                                res.forEach((item) => {
+                                    let option = document.createElement("option");
+                                    option.text = item.id_item+" | "+item.itemdesc;
+                                    option.value = item.id_item;
+                                    option.setAttribute("data-detail", item.itemdesc);
+                                    option.setAttribute("data-unit-qty", item.unit);
+                                    option.setAttribute("data-sizes", item.sizes);
+
+                                    document.getElementById("barang").appendChild(option);
+                                })
+                            }
+                        },
+                    });
+
+                    $("#barang").prop("disabled", false);
+                }
+
+                function setSelectedItem() {
+                    let element = document.getElementById("barang");
+
+                    currentScannedItem = null;
+
+                    if (element.value && element.value != "") {
+                        document.getElementById("kode_barang").value = "";
+
+                        document.getElementById("id_item").value = element.value;
+                        document.getElementById("detail_item").value = $("#barang option:selected").attr("data-detail");
+                        document.getElementById("qty_item").value = "-";
+                        document.getElementById("unit_qty_item").value = $("#barang option:selected").attr("data-unit-qty");
+                        document.getElementById("sizes_item").value = $("#barang option:selected").attr("data-sizes");
+
+                        currentScannedItem = {"id_item": element.value, "detail_item": $("#barang option:selected").text(), "unit": "METER"};
+                    }
+                }
+
+            // Size List
+            let cuttingPieceTable = $("#cutting-piece-table").DataTable({
+                processing: true,
+                ordering: false,
+                serverSide: true,
+                paging: false,
+                ajax: {
+                    url: '{{ route('get-general-sizes') }}',
+                    data: function(d) {
+                        d.act_costing_id = $("#act_costing_id").val();
+                        d.color = $("#color").val();
+                    },
+                },
+                columns: [
+                    {
+                        data: 'so_det_id',
+                    },
+                    {
+                        data: 'size',
+                    },
+                    {
+                        data: 'dest',
+                    },
+                    {
+                        data: null, // qty
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [0],
+                        className: "d-none",
+                        render: (data, type, row, meta) => {
+                            let input = `<input type='text' class='form-control form-control-sm' id='so_det_id_`+meta.row+`' name='so_det_id[`+meta.row+`]' value='`+data+`' readonly>`
+
+                            return input;
+                        }
+                    },
+                    {
+                        targets: [1,2],
+                        className: "text-nowrap",
+                        render: (data, type, row, meta) => {
+                            return data;
+                        }
+                    },
+                    {
+                        targets: [3],
+                        className: "text-nowrap",
+                        render: (data, type, row, meta) => {
+                            let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_`+meta.row+`' name='qty[`+meta.row+`]' onkeyup="calculateTotalDetailQty()" onchange="calculateTotalDetailQty()">`
+
+                            return input;
+                        }
+                    }
+                ]
+            });
+
+            function cuttingPieceTableReload() {
+                $("#cutting-piece-table").DataTable().ajax.reload();
+            }
+
+            function calculateTotalDetailQty() {
+                let detailQtyElements = document.getElementsByClassName("detail-qty");
+
+                console.log(detailQtyElements.length);
+
+                let totalQty = 0;
+                for (let i = 0; i < detailQtyElements.length; i++) {
+                    console.log(i, detailQtyElements[i].value, detailQtyElements[i]);
+                    totalQty += Number(detailQtyElements[i].value);
+                }
+
+                document.getElementById("total-detail-qty").innerHTML = totalQty;
+            }
+    </script>
+@endsection

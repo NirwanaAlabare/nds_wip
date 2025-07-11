@@ -34,6 +34,7 @@ use App\Http\Controllers\Cutting\CuttingFormController;
 use App\Http\Controllers\Cutting\CuttingFormManualController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
 use App\Http\Controllers\Cutting\CuttingFormRejectController;
+use App\Http\Controllers\Cutting\CuttingFormPieceController;
 use App\Http\Controllers\Cutting\PipingController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
@@ -238,6 +239,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
         Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
+
+        // get scanned employee
+        Route::get('/get-scanned-employee/{id?}', 'getScannedEmployee')->name('get-scanned-employee');
     });
 
     // Worksheet
@@ -539,6 +543,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('cutting-reject');
         Route::get('/show/{id?}', 'show')->name('show-cutting-reject');
         Route::get('/create', 'create')->name('create-cutting-reject');
+        Route::get('/process', 'process')->name('process-cutting-reject');
         Route::post('/store', 'store')->name('store-cutting-reject');
         Route::get('/edit/{id?}', 'edit')->name('edit-cutting-reject');
         Route::put('/update', 'update')->name('update-cutting-reject');
@@ -553,6 +558,28 @@ Route::middleware('auth')->group(function () {
 
         // export reject
         Route::post('/export-excel', 'exportExcel')->name('export-form-reject');
+    });
+
+    // Cutting Piece
+    Route::controller(CuttingFormPieceController::class)->prefix("form-cut-input-piece")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('cutting-piece');
+        Route::get('/show/{id?}', 'show')->name('show-cutting-piece');
+        Route::get('/create', 'create')->name('create-cutting-piece');
+        Route::get('/process/{id?}', 'process')->name('process-cutting-piece');
+        Route::post('/store', 'store')->name('store-cutting-piece');
+        Route::get('/edit/{id?}', 'edit')->name('edit-cutting-piece');
+        Route::put('/update', 'update')->name('update-cutting-piece');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-piece');
+
+        // add-on
+        Route::get('/stock', 'stock')->name('stock-cutting-piece');
+        Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-piece');
+
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('get-form-piece-sizes');
+
+        // export piece
+        Route::post('/export-excel', 'exportExcel')->name('export-form-piece');
     });
 
     // Piping Stock

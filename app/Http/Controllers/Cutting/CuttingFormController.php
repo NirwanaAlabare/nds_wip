@@ -269,8 +269,15 @@ class CuttingFormController extends Controller
         return json_encode($numberData);
     }
 
-    public function getScannedItem($id = 0)
+    public function getScannedItem($id = 0, Request $request)
     {
+        $newItemAdditional = "";
+        $itemAdditional = "";
+        if ($request->unit) {
+            $newItemAdditional .= " and whs_bppb_det.satuan = '".$request->unit."'";
+            $itemAdditional .= " and br.unit = '".$request->unit."'";
+        }
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 whs_bppb_det.id_roll,
@@ -281,7 +288,8 @@ class CuttingFormController extends Controller
                 whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
+                SUM(whs_bppb_det.qty_out) qty,
+                whs_bppb_det.satuan unit
             FROM
                 whs_bppb_det
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
@@ -290,6 +298,7 @@ class CuttingFormController extends Controller
                 whs_bppb_det.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                ".$newItemAdditional."
             GROUP BY
                 whs_bppb_det.id_roll
             LIMIT 1
@@ -372,9 +381,15 @@ class CuttingFormController extends Controller
                     return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
                 }
             } else {
-                $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
-                $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
-                $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? 'METER' : $newItem[0]->unit;
+                if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
+                    $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+                    $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+                    $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? 'METER' : $newItem[0]->unit;
+                } else {
+                    $newItemQtyStok = $newItem[0]->qty_stok;
+                    $newItemQty = $newItem[0]->qty;
+                    $newItemUnit = $newItem[0]->unit;
+                }
 
                 ScannedItem::create(
                     [
@@ -417,9 +432,7 @@ class CuttingFormController extends Controller
                 bpb_roll br
                 INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
                 INNER JOIN masteritem mi ON brh.id_item = mi.id_item
-                INNER JOIN bpb ON brh.bpbno = bpb.bpbno
-                AND brh.id_jo = bpb.id_jo
-                AND brh.id_item = bpb.id_item
+                INNER JOIN bpb ON brh.bpbno = bpb.bpbno AND brh.id_jo = bpb.id_jo AND brh.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
@@ -428,6 +441,7 @@ class CuttingFormController extends Controller
             WHERE
                 br.id = '" . $id . "'
                 AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
+                ".$itemAdditional."
                 LIMIT 1
         ");
         if ($item) {
@@ -437,9 +451,15 @@ class CuttingFormController extends Controller
 
                 $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
 
-                $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
-                $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
-                $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
+                if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
+                    $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                    $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+                    $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
+                } else {
+                    $newItemQtyStok = $newItem[0]->qty_stok;
+                    $newItemQty = $newItem[0]->qty;
+                    $newItemUnit = $newItem[0]->unit;
+                }
 
                 if ($scannedItemUpdate) {
                     $scannedItemUpdate->qty_stok = $itemQtyStok;
@@ -487,13 +507,20 @@ class CuttingFormController extends Controller
     }
 
     public function getItem(Request $request) {
+        $additional = "";
+        if ($request->unit) {
+            $additional .= " and k.unit = '".$request->unit."'";
+        }
+
         $items = DB::connection("mysql_sb")->select("
-            select ac.id,ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno, mi.id_item, mi.itemdesc from jo_det jd
+            select ac.id,ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno, mi.id_item, mi.itemdesc, k.unit, GROUP_CONCAT(DISTINCT sd.size ORDER BY sd.id ASC) sizes from jo_det jd
             inner join (select * from so where so_date >= '2023-01-01') so on jd.id_so = so.id
             inner join act_costing ac on so.id_cost = ac.id
-                inner join bom_jo_item k on jd.id_jo = k.id_jo
-                inner join masteritem mi on k.id_item = mi.id_gen
+            inner join bom_jo_item k on jd.id_jo = k.id_jo
+            inner join masteritem mi on k.id_item = mi.id_gen
+            left join so_det sd on sd.id = k.id_so_det
             where jd.cancel = 'N' and k.cancel = 'N' and mi.Mattype = 'F' and ac.id = '".$request->act_costing_id."'
+            ".$additional."
             group by id_cost, k.id_item
         ");
 

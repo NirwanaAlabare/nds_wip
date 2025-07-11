@@ -20,6 +20,7 @@ use App\Models\PipingProcess;
 use App\Models\FormCutInput;
 use App\Models\FormCutReject;
 use App\Models\LoadingLinePlan;
+use App\Models\Hris\MasterEmployee;
 use PDF;
 
 class GeneralController extends Controller
@@ -253,7 +254,7 @@ class GeneralController extends Controller
     public function getNumber(Request $request)
     {
         $number = DB::connection('mysql_sb')->select("
-                select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
+                select k.cons cons_ws, k.unit unit_cons_ws, sum(sd.qty) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
@@ -555,5 +556,20 @@ class GeneralController extends Controller
             'status' => 200,
             'message' => 'Berhasil memperbarui '.$marker.' data marker <br> Berhasil memperbarui '.$part.' data part <br> Berhasil memperbarui '.$cuttingPlan.' data cutting plan <br> Berhasil memperbarui '.$stocker.' data stocker <br> Berhasil memperbarui '.$stockerAdditional.' data stocker additional <br> Berhasil memperbarui '.$piping.' data piping <br> Berhasil memperbarui '.$masterPiping.' data master piping <br> Berhasil memperbarui '.$pipingProcess.' data piping process <br> Berhasil memperbarui '.$formCutReject.' data form cut reject <br> Berhasil memperbarui '.$loadingLinePlan.' data loading line plan',
         );
+    }
+
+    public function getScannedEmployee($id = 0)
+    {
+        $employee = MasterEmployee::select(
+                "enroll_id",
+                "employee_name",
+                "status_jabatan",
+                "department_name",
+                "nik"
+            )->
+            where("enroll_id", $id)->
+            first();
+
+        return $employee;
     }
 }
