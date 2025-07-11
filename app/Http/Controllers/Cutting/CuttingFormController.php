@@ -1387,7 +1387,7 @@ class CuttingFormController extends Controller
         ]);
 
         if (Auth::validate(['username' => $validatedRequest['username'], 'password' => $validatedRequest['password']])) {
-            $unlocker = User::where("username", $validatedRequest['username'])->where('type', 'admin')->orWhere('type', 'superadmin')->first();
+            $unlocker = User::where("username", $validatedRequest['username'])->whereIn("type", ["admin", "superadmin"])->first();
 
             if ($unlocker) {
                 FormCutInput::where("id", $validatedRequest['id'])->update([
