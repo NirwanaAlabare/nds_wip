@@ -548,7 +548,6 @@ left join pck_scan_akhir on m.id_so_det = pck_scan_akhir.id_so_det
 left join saldo_adj_awal on m.id_so_det = saldo_adj_awal.id_so_det
 left join saldo_adj_akhir on m.id_so_det = saldo_adj_akhir.id_so_det
 left join laravel_nds.master_size_new msn on m.size = msn.size
-where buyer = 'KANMAX ENTERPRISES LTD'
 group by
 buyer,
 ws,
@@ -870,7 +869,6 @@ left join pck_scan_akhir on m.id_so_det = pck_scan_akhir.id_so_det
 left join saldo_adj_awal on m.id_so_det = saldo_adj_awal.id_so_det
 left join saldo_adj_akhir on m.id_so_det = saldo_adj_akhir.id_so_det
 left join laravel_nds.master_size_new msn on m.size = msn.size
-where buyer = 'KANMAX ENTERPRISES LTD'
 group by
 buyer,
 ws,

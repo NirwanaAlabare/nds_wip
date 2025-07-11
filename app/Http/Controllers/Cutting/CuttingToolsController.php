@@ -446,8 +446,8 @@ class CuttingToolsController extends Controller
                                 "act_costing_ws" => $currentData->kpno,
                                 "buyer" => $currentData->buyer,
                                 "style" => $currentData->styleno,
-                                "color" => $data->implode("color", ", "),
-                                "panel" => $data->implode("color", ", "),
+                                "color" => $data->unique('color')->pluck('color')->implode(', '),
+                                "panel" => $data->unique('panel')->pluck('panel')->implode(', '),
                             ]);
                         }
 

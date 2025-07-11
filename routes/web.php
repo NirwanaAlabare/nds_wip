@@ -173,6 +173,9 @@ use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\MarketingDashboardController;
 use App\Http\Controllers\Marketing_CostingController;
 
+// QC Inspect Kain
+use App\Http\Controllers\QCInspectDashboardController;
+
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
 /*
@@ -1504,7 +1507,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('save-maintainbpb');
         Route::get('/detail', 'detailmodal')->name('maintain-bpb-detail');
         Route::get('/cancel-maintain', 'cancelmaintain')->name('cancel-maintain');
-
     });
 
 
@@ -1976,6 +1978,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_jns_costing_material', 'get_jns_costing_material')->name('get_jns_costing_material');
         Route::get('/get_material_costing', 'get_material_costing')->name('get_material_costing');
     });
+
+
+
+    // QC Inspect Kain
+    // Dashboard
+    Route::controller(QCInspectDashboardController::class)->middleware('warehouse')->group(function () {
+        Route::get('/dashboard_qc_inspect', 'dashboard_qc_inspect')->name('dashboard-qc-inspect');
+        Route::get('/get_data_dash_marketing', 'get_data_dash_marketing')->name('get_data_dash_marketing');
+        Route::get('/get_data_dash_marketing_top_buyer', 'get_data_dash_marketing_top_buyer')->name('get_data_dash_marketing_top_buyer');
+    });
 });
 
 // Dashboard
@@ -2185,4 +2197,4 @@ Route::get('/bon-mutasi', function () {
     return view('bon-mutasi');
 })->middleware('auth');
 
-require __DIR__.'/qc_inspect.php';
+require __DIR__ . '/qc_inspect.php';

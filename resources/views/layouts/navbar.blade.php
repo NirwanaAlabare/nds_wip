@@ -780,7 +780,7 @@
                                 <a href="{{ route('qc-inspect-inmaterial') }}" class="dropdown-item">
                                     Data Penerimaan
                                 </a>
-                                 <a href="{{ route('qc-inspect-inmaterial-header') }}" class="dropdown-item">
+                                <a href="{{ route('qc-inspect-inmaterial-header') }}" class="dropdown-item">
                                     QC Inspect 2
                                 </a>
                             </li>
@@ -1145,6 +1145,24 @@
                         </ul>
                     </li>
                 @endif
+
+
+                {{-- QC Inspect Kain --}}
+                @if ($page == 'dashboard-qc-inspect')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('master-costing') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-costing' ? 'active' : '' }}">
+                                    Costing <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
 
                 {{-- PPIC --}}
                 @if ($page == 'dashboard-ppic')
