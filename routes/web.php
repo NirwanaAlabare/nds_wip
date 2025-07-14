@@ -175,6 +175,7 @@ use App\Http\Controllers\Marketing_CostingController;
 
 // QC Inspect Kain
 use App\Http\Controllers\QCInspectDashboardController;
+use App\Http\Controllers\QCInspectProsesPackingListController;
 
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
@@ -1985,8 +1986,13 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(QCInspectDashboardController::class)->middleware('warehouse')->group(function () {
         Route::get('/dashboard_qc_inspect', 'dashboard_qc_inspect')->name('dashboard-qc-inspect');
-        Route::get('/get_data_dash_marketing', 'get_data_dash_marketing')->name('get_data_dash_marketing');
-        Route::get('/get_data_dash_marketing_top_buyer', 'get_data_dash_marketing_top_buyer')->name('get_data_dash_marketing_top_buyer');
+    });
+
+    // Proses Packing List
+    Route::controller(QCInspectProsesPackingListController::class)->prefix("proses-packing-list")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('qc_inspect_proses_packing_list');
+        Route::get('/qc_inspect_proses_packing_list_det/{id_lok_in_material?}', 'qc_inspect_proses_packing_list_det')->name('qc_inspect_proses_packing_list_det');
+        Route::get('/show_calculate_qc_inspect', 'show_calculate_qc_inspect')->name('show_calculate_qc_inspect');
     });
 });
 
