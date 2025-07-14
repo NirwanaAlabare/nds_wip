@@ -96,12 +96,12 @@
                             <th style="background-color: lightblue;">Size</th>
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima Loading</th>
-                            <th style="background-color: lightgreen;">Defect Sewing</th>
-                            <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
-                            <th style="background-color: lightgreen;">Defect Mending</th>
                             <th style="background-color: lightgreen;">Output Rework Sewing</th>
                             <th style="background-color: lightgreen;">Output Spot Cleaning</th>
                             <th style="background-color: lightgreen;">Output Mending</th>
+                            <th style="background-color: lightgreen;">Defect Sewing</th>
+                            <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
+                            <th style="background-color: lightgreen;">Defect Mending</th>
                             <th style="background-color: lightgreen;">Reject</th>
                             <th style="background-color: lightgreen;">Output</th>
                             <th style="background-color: lightgreen;">Adj</th>
@@ -288,15 +288,6 @@
                         data: 'qty_loading'
                     },
                     {
-                        data: 'defect_sewing_akhir'
-                    },
-                    {
-                        data: 'defect_spotcleaning_akhir'
-                    },
-                    {
-                        data: 'defect_mending_akhir'
-                    },
-                    {
                         data: 'input_rework_sewing'
                     },
                     {
@@ -304,6 +295,15 @@
                     },
                     {
                         data: 'input_rework_mending'
+                    },
+                    {
+                        data: 'defect_sewing_akhir'
+                    },
+                    {
+                        data: 'defect_spotcleaning_akhir'
+                    },
+                    {
+                        data: 'defect_mending_akhir'
                     },
                     {
                         data: 'qty_sew_reject'
@@ -567,8 +567,8 @@
                     const headers = [
                         "WS", "Buyer", "Style", "Color", "Size",
                         "Saldo Awal", "Terima Dari Loading",
-                        "Defect Sewing", "Defect Spot Cleaning", "Defect Mending",
                         "Rework Sewing", "Rework Spot Cleaning", "Rework Mending",
+                        "Defect Sewing", "Defect Spot Cleaning", "Defect Mending",
                         "Reject", "Output", "Adj",
                         "Saldo Akhir",
                         "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
@@ -581,116 +581,111 @@
                     ];
                     worksheet.addRow(headers);
 
+                    // Data rows
                     data.forEach(function(row) {
-                        worksheet.addRow([
+                        const values = [
                             row.ws,
                             row.buyer,
                             row.styleno,
                             row.color,
                             row.size,
-                            row.saldo_awal_sewing,
-                            row.qty_loading,
-                            row.defect_sewing_akhir,
-                            row.defect_spotcleaning_akhir,
-                            row.defect_mending_akhir,
-                            row.input_rework_sewing,
-                            row.input_rework_spotcleaning,
-                            row.input_rework_mending,
-                            row.qty_sew_reject,
-                            row.qty_sew,
-                            row.qty_sew_adj,
-                            row.saldo_akhir_sewing,
-                            row.saldo_awal_steam,
-                            row.in_steam,
-                            row.out_steam,
-                            row.adj_steam,
-                            row.saldo_akhir_steam,
-                            row.saldo_awal_def_sewing,
-                            row.in_def_sewing,
-                            row.out_def_sewing,
-                            row.adj_def_sewing,
-                            row.saldo_akhir_def_sewing,
-                            row.saldo_awal_def_spotcleaning,
-                            row.in_def_spotcleaning,
-                            row.out_def_spotcleaning,
-                            row.adj_def_spotcleaning,
-                            row.saldo_akhir_def_spotcleaning,
-                            row.saldo_awal_def_mending,
-                            row.in_def_mending,
-                            row.out_def_mending,
-                            row.adj_def_mending,
-                            row.saldo_akhir_def_mending,
-                            row.saldo_awal_def_pck_sewing,
-                            row.in_def_pck_sewing,
-                            row.out_def_pck_sewing,
-                            row.adj_def_pck_sewing,
-                            row.saldo_akhir_def_pck_sewing,
-                            row.saldo_awal_def_pck_spotcleaning,
-                            row.in_def_pck_spotcleaning,
-                            row.out_def_pck_spotcleaning,
-                            row.adj_def_pck_spotcleaning,
-                            row.saldo_akhir_def_pck_spotcleaning,
-                            row.saldo_awal_def_pck_mending,
-                            row.in_def_pck_mending,
-                            row.out_def_pck_mending,
-                            row.adj_def_pck_mending,
-                            row.saldo_akhir_def_pck_mending
-                        ]);
-                    });
+                            Number(row.saldo_awal_sewing),
+                            Number(row.qty_loading),
+                            Number(row.input_rework_sewing),
+                            Number(row.input_rework_spotcleaning),
+                            Number(row.input_rework_mending),
+                            Number(row.defect_sewing_akhir),
+                            Number(row.defect_spotcleaning_akhir),
+                            Number(row.defect_mending_akhir),
+                            Number(row.qty_sew_reject),
+                            Number(row.qty_sew),
+                            Number(row.qty_sew_adj),
+                            Number(row.saldo_akhir_sewing),
+                            Number(row.saldo_awal_steam),
+                            Number(row.in_steam),
+                            Number(row.out_steam),
+                            Number(row.adj_steam),
+                            Number(row.saldo_akhir_steam),
+                            Number(row.saldo_awal_def_sewing),
+                            Number(row.in_def_sewing),
+                            Number(row.out_def_sewing),
+                            Number(row.adj_def_sewing),
+                            Number(row.saldo_akhir_def_sewing),
+                            Number(row.saldo_awal_def_spotcleaning),
+                            Number(row.in_def_spotcleaning),
+                            Number(row.out_def_spotcleaning),
+                            Number(row.adj_def_spotcleaning),
+                            Number(row.saldo_akhir_def_spotcleaning),
+                            Number(row.saldo_awal_def_mending),
+                            Number(row.in_def_mending),
+                            Number(row.out_def_mending),
+                            Number(row.adj_def_mending),
+                            Number(row.saldo_akhir_def_mending),
+                            Number(row.saldo_awal_def_pck_sewing),
+                            Number(row.in_def_pck_sewing),
+                            Number(row.out_def_pck_sewing),
+                            Number(row.adj_def_pck_sewing),
+                            Number(row.saldo_akhir_def_pck_sewing),
+                            Number(row.saldo_awal_def_pck_spotcleaning),
+                            Number(row.in_def_pck_spotcleaning),
+                            Number(row.out_def_pck_spotcleaning),
+                            Number(row.adj_def_pck_spotcleaning),
+                            Number(row.saldo_akhir_def_pck_spotcleaning),
+                            Number(row.saldo_awal_def_pck_mending),
+                            Number(row.in_def_pck_mending),
+                            Number(row.out_def_pck_mending),
+                            Number(row.adj_def_pck_mending),
+                            Number(row.saldo_akhir_def_pck_mending)
 
-                    worksheet.eachRow({
-                        includeEmpty: true
-                    }, function(row, rowNumber) {
-                        if (rowNumber !== mainTitleRow.number && rowNumber !== titleRow.number &&
-                            rowNumber !== 3) {
-                            row.eachCell({
-                                includeEmpty: true
-                            }, function(cell, colNumber) {
-                                // Apply borders
-                                cell.border = {
-                                    top: {
-                                        style: 'thin'
-                                    },
-                                    left: {
-                                        style: 'thin'
-                                    },
-                                    bottom: {
-                                        style: 'thin'
-                                    },
-                                    right: {
-                                        style: 'thin'
-                                    }
-                                };
+                        ];
 
-                                if (colNumber >= 6 && colNumber <= 52) {
-                                    cell.numFmt = '#,##0';
+                        const dataRow = worksheet.addRow(values);
 
-                                    // Safely extract the numeric value
-                                    let val = cell.value;
+                        dataRow.eachCell({
+                            includeEmpty: true
+                        }, function(cell, colNumber) {
+                            if (colNumber >= 6 && colNumber <= 54) {
+                                // Only format numeric columns
+                                if (typeof cell.value === 'number' && !isNaN(cell.value)) {
+                                    cell.numFmt = '#,##0'; // thousand separator
+                                    cell.alignment = {
+                                        horizontal: 'right'
+                                    };
 
-                                    // If cell.value is an object with 'result' or 'richText', unwrap it
-                                    if (val && typeof val === 'object') {
-                                        if ('result' in val) val = val.result;
-                                        else if ('richText' in val && Array.isArray(val
-                                                .richText) && val.richText.length > 0) {
-                                            val = val.richText[0].text;
-                                        }
-                                    }
-
-                                    // Convert to number if possible
-                                    const numVal = Number(val);
-
-                                    if (!isNaN(numVal) && numVal < 0) {
+                                    if (cell.value < 0) {
                                         cell.font = {
                                             color: {
                                                 argb: 'FFFF0000'
-                                            }, // red font
-                                            bold: true
-                                        };
+                                            }
+                                        }; // Red for negative
                                     }
                                 }
-                            });
-                        }
+                            }
+                        });
+                    });
+
+                    // Apply borders to all cells
+                    worksheet.eachRow({
+                        includeEmpty: true
+                    }, function(row) {
+                        row.eachCell({
+                            includeEmpty: true
+                        }, function(cell) {
+                            cell.border = {
+                                top: {
+                                    style: 'thin'
+                                },
+                                left: {
+                                    style: 'thin'
+                                },
+                                bottom: {
+                                    style: 'thin'
+                                },
+                                right: {
+                                    style: 'thin'
+                                }
+                            };
+                        });
                     });
 
 

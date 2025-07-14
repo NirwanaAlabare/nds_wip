@@ -1151,12 +1151,12 @@
                 @if ($page == 'dashboard-qc-inspect')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' ? 'active' : '' }}">Master</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'qc-inspect-proses' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('master-costing') }}"
-                                    class="dropdown-item {{ $subPage == 'marketing-master-costing' ? 'active' : '' }}">
-                                    Costing <i class="fa-solid fa-list-ul fa-sm"></i>
+                                <a href="{{ route('qc_inspect_proses_packing_list') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-proses-packing-list' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Packing List
                                 </a>
                             </li>
                         </ul>
