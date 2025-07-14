@@ -175,7 +175,7 @@
                 <div class="modal-body">
                     <!--  -->
                     <div class="form-group row">
-                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Approve Receive material Number :</label>
+                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Cancel BPB Number :</label>
                         <br>
                         <div class="col-sm-3">
                         </div>
@@ -187,8 +187,8 @@
                     <!--  -->
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                    <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approve</button>
+                    <button type="button" class="btn btn-sb" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                    <button type="submit" class="btn btn-danger toastsDefaultDanger"><i class="fa fa-trash" aria-hidden="true"></i> Cancel</button>
                 </div>
             </div>
         </div>
@@ -564,17 +564,17 @@ $('.select2type').select2({
                 if (row.type_pch == 'Saldo Awal') {
                     if (row.status == 'Pending' && row.qty_balance == 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
+                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
+                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance == 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
@@ -593,17 +593,17 @@ $('.select2type').select2({
                 }else{
                     if (row.status == 'Pending' && row.qty_balance == 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
+                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
+                   <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance == 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
