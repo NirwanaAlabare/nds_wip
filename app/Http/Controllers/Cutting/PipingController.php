@@ -49,7 +49,24 @@ class PipingController extends Controller
                     if ($tglAkhir) {
                         $query->whereRaw("form_cut_piping.tanggal_piping <= '" . $tglAkhir . "'");
                     }
-                }, true)->order(function ($query) {
+                }, true)->
+                filterColumn('id_item', function($query, $keyword) {
+                    $sql = "scanned_item.id_item like ?";
+                    $query->whereRaw($sql, ["%{$keyword}%"]);
+                })->
+                filterColumn('detail_item', function($query, $keyword) {
+                    $sql = "scanned_item.detail_item like ?";
+                    $query->whereRaw($sql, ["%{$keyword}%"]);
+                })->
+                filterColumn('lot', function($query, $keyword) {
+                    $sql = "scanned_item.lot like ?";
+                    $query->whereRaw($sql, ["%{$keyword}%"]);
+                })->
+                filterColumn('roll', function($query, $keyword) {
+                    $sql = "scanned_item.roll like ?";
+                    $query->whereRaw($sql, ["%{$keyword}%"]);
+                })->
+                order(function ($query) {
                     $query->orderBy('form_cut_piping.updated_at', 'desc');
                 })->toJson();
         }
