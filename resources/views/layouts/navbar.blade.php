@@ -335,7 +335,7 @@
                         <li class="nav-item">
                             <a href="{{ route('stocker-tools') }}"
                                 class="nav-link {{ $routeName == 'stocker-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
+                                <i class="fa-solid fa-toolbox"></i>
                             </a>
                         </li>
                     @endrole
@@ -511,7 +511,7 @@
                         <li class="nav-item">
                             <a href="{{ route('dc-tools') }}"
                                 class="nav-link {{ $routeName == 'dc-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
+                                <i class="fa-solid fa-toolbox"></i>
                             </a>
                         </li>
                     @endrole
@@ -691,7 +691,7 @@
                         <li class="nav-item">
                             <a href="{{ route('sewing-tools') }}"
                                 class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
+                                <i class="fa-solid fa-toolbox"></i>
                             </a>
                         </li>
                     @endrole
@@ -1246,7 +1246,7 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}">Tools</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i class="fa-solid fa-toolbox"></i></a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('ppic_tools_adj_mut_output') }}"
