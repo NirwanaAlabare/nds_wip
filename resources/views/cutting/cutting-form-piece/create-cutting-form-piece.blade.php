@@ -41,12 +41,14 @@
                     </h5>
                 </div>
                 <div class="card-body">
+                    {{-- ID --}}
+                    <input type="hidden" id="id" name="id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->id : null }}" readonly>
                     <div class="row row-gap-3">
                         <div class="col-md-6">
                             <label class="form-label">No. Form</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="no_form" name="no_form" value="{{ $currentCuttingPiece ? $currentCuttingPiece->no_form : null }}" readonly>
-                                <button type="button" class="btn btn-sb" onclick="cuttingPieceCode()"><i class="fa fa-rotate"></i></button>
+                                <button type="button" class="btn btn-sb" onclick="generateCode()"><i class="fa fa-rotate"></i></button>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -137,9 +139,6 @@
         </form>
     {{-- END OF PROCESS ONE --}}
 
-    {{-- ID --}}
-        <input type="hidden" id="id" name="id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->id : null }}" readonly>
-
     {{-- PROCESS TWO --}}
         @php
             $currentCuttingPieceDetail = $currentCuttingPiece && $currentCuttingPiece->status == "complete" && $currentCuttingPiece->formCutPieceDetails ? $currentCuttingPiece->formCutPieceDetails->sortByDesc("id")->first() : null;
@@ -174,8 +173,8 @@
                                     <label class="form-label label-input">ID Roll</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" name="kode_barang" id="kode_barang" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}">
-                                        <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScan()">Get</button>
-                                        <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="refreshScan()">Scan</button>
+                                        <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScanItem()">Get</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="refreshScanItem()">Scan</button>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -446,15 +445,15 @@
 
                 switch (process) {
                     case "1" :
-                        initProcessTwo();
+                        await initProcessTwo();
 
                         break;
                     case "2" :
-                        initProcessThree();
+                        await initProcessThree();
 
                         break;
                     case "3" :
-                        initFinish();
+                        await initFinish();
 
                         break;
                 }
@@ -469,7 +468,10 @@
                     url: "{{ route("generate-code-cutting-piece") }}",
                     type: "get",
                     success: function (response) {
-                        document.getElementById("no_form").value = response
+                        if (response) {
+                            document.getElementById("id").value = response.id;
+                            document.getElementById("no_form").value = response.no_form;
+                        }
                     },
                     error: function (jqXHR) {
                         console.error(jqXHR);
@@ -821,7 +823,7 @@
             function initProcessTwo() {
                 clearItem();
 
-                initScan();
+                initScanItem();
                 getItemList();
 
                 document.getElementById("process-two-form").classList.remove("d-none");
@@ -835,17 +837,17 @@
             // Switch Method
             var method = "scan";
 
-            function switchMethod(element) {
+            function switchMethod(element, scanner = true) {
                 clearItem();
 
                 if (element.checked) {
-                    toScanMethod();
+                    toScanMethod(scanner);
                 } else {
                     toSelectMethod();
                 }
             }
 
-            function toScanMethod() {
+            function toScanMethod(scanner = true) {
                 method = "scan";
 
                 document.getElementById("select-method").classList.add('d-none');
@@ -855,7 +857,9 @@
                 document.getElementById("to-scan").classList.remove('d-none');
                 $("#kode_barang").val("").trigger("change");
 
-                initScan();
+                if (scanner) {
+                    initScanItem();
+                }
 
                 location.href = "#item-card";
             }
@@ -870,7 +874,7 @@
                 document.getElementById("to-select").classList.remove('d-none');
                 $("#barang").val("").trigger("change");
 
-                clearQrCodeScanner();
+                clearQrCodeScannerItem();
 
                 location.href = "#item-card";
             }
@@ -891,7 +895,7 @@
                     var scannerInitialized = false;
                 // Function List :
                     // -Initialize Scanner-
-                    async function initScan() {
+                    async function initScanItem() {
                         if (document.getElementById("reader-item")) {
                             if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.isScanning == false))) {
                                 const qrCodeSuccessCallback = (decodedText, decodedResult) => {
@@ -905,7 +909,7 @@
 
                                     getScannedItem(breakDecodedText[0]);
 
-                                    clearQrCodeScanner();
+                                    clearQrCodeScannerItem();
                                 };
                                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
@@ -914,16 +918,16 @@
                         }
                     }
 
-                    async function clearQrCodeScanner() {
+                    async function clearQrCodeScannerItem() {
                         if (html5QrcodeScanner && (html5QrcodeScanner.isScanning)) {
                             await html5QrcodeScanner.stop();
                             await html5QrcodeScanner.clear();
                         }
                     }
 
-                    async function refreshScan() {
-                        await clearQrCodeScanner();
-                        await initScan();
+                    async function refreshScanItem() {
+                        await clearQrCodeScannerItem();
+                        await initScanItem();
                     }
 
                     // Lock Scan Item Form then Clear Scanner
@@ -934,7 +938,7 @@
                         document.getElementById("switch-method").setAttribute("disabled", true);
                         document.getElementById("reader-item").classList.add("d-none");
 
-                        clearQrCodeScanner();
+                        clearQrCodeScannerItem();
                     }
 
                     // Open Scan Item Form then Open Scanner
@@ -947,12 +951,12 @@
                             document.getElementById("switch-method").removeAttribute("disabled");
                             document.getElementById("reader-item").classList.remove("d-none");
 
-                            initScan();
+                            initScanItem();
                         }
                     }
 
                 // Fetch Scanned Item Data
-                function fetchScan() {
+                function fetchScanItem() {
                     let kodeBarang = document.getElementById('kode_barang').value;
 
                     getScannedItem(kodeBarang);
@@ -1186,7 +1190,7 @@
 
                     document.getElementById("switch-method").checked = true;
 
-                    await switchMethod(document.getElementById("switch-method"));
+                    await switchMethod(document.getElementById("switch-method"), false);
                 } else if (item.method == "select") {
                     document.getElementById("lot").removeAttribute("readonly");
                     document.getElementById("roll").removeAttribute("readonly");
@@ -1195,7 +1199,7 @@
 
                     document.getElementById("switch-method").checked = false;
 
-                    await switchMethod(document.getElementById("switch-method"));
+                    await switchMethod(document.getElementById("switch-method"), false);
                 }
 
                 document.getElementById("group_roll").removeAttribute("readonly");

@@ -271,7 +271,7 @@
                                         Form <i class="fa-solid fa-file-circle-exclamation"></i>
                                     </a>
                                 </li>
-                                <li>
+                                <li class="d-none">
                                     <a href="{{ route('stock-cutting-piece') }}"
                                         class="dropdown-item {{ $routeName == 'stock-cutting-piece' ? 'active' : '' }}">
                                         Stocker <i class="fa-solid fa-receipt"></i>

@@ -47,7 +47,7 @@ class CuttingFormPieceController extends Controller
                     }
                 })->
                 addColumn('qty', function ($row) {
-                    $qty = $row->formCutPieceDetails ? $row->formCutPieceDetails->sum("qty_use") : "-";
+                    $qty = $row->formCutPieceDetails ? $row->formCutPieceDetails->sum("qty_pemakaian") : "-";
 
                     return $qty;
                 })->
@@ -106,7 +106,11 @@ class CuttingFormPieceController extends Controller
 
         $noForm = "FP".$hari."-".$bulan."-".$urutan;
 
-        return $noForm;
+        $form = FormCutPiece::create([
+            "no_form" => $noForm
+        ]);
+
+        return $form;
     }
 
     public function incompleteItem($id = 0)
@@ -135,6 +139,7 @@ class CuttingFormPieceController extends Controller
         switch ($request->process) {
             case 1 :
                 $validatedRequest = $request->validate([
+                    "id" => "required",
                     "no_form" => "required",
                     "tanggal" => "required",
                     "act_costing_id" => "required",
@@ -155,8 +160,10 @@ class CuttingFormPieceController extends Controller
                     "unit_cons_ws.in" => "Unit Cons. WS harus bernilai 'PCS'."
                 ]);
 
-                $storeFormCutPiece = FormCutPiece::create([
-                    "no_form" => $validatedRequest["no_form"],
+                $storeFormCutPiece = FormCutPiece::updateOrCreate([
+                    "id" => $validatedRequest["id"],
+                    "no_form" => $validatedRequest["no_form"]
+                ],[
                     "tanggal" => $validatedRequest["tanggal"],
                     "process" => $request->process,
                     "act_costing_id" => $validatedRequest["act_costing_id"],

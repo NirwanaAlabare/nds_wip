@@ -20,6 +20,7 @@
                 </h5>
             </div>
             <div class="card-body">
+                <input type="hidden" id="id" name="id" readonly>
                 <div class="row row-gap-3">
                     <div class="col-md-6">
                         <label class="form-label">No. Form</label>
@@ -312,7 +313,10 @@
                 url: "{{ route("generate-code-cutting-reject") }}",
                 type: "get",
                 success: function (response) {
-                    document.getElementById("no_form").value = response
+                    if (response) {
+                        document.getElementById("id").value = response.id;
+                        document.getElementById("no_form").value = response.no_form;
+                    }
                 },
                 error: function (jqXHR) {
                     console.error(jqXHR);
