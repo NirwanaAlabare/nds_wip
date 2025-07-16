@@ -114,7 +114,7 @@
                     data: 'qty'
                 },
                 {
-                    data: 'ket'
+                    data: 'keterangan'
                 },
             ],
             columnDefs: [
@@ -122,9 +122,11 @@
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        let buttonEdit = `<a href="{{ route('edit-cutting-piece') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
-                        let buttonDetail = `<a href="{{ route('show-cutting-piece') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
-                        let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
+                        let buttonEdit = `<a href="{{ route('process-cutting-piece') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
+                        // let buttonDetail = `<a href="{{ route('show-cutting-piece') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
+                        let buttonDetail = "";
+                        // let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
+                        let buttonDelete = "";
 
                         return buttonEdit+buttonDetail+buttonDelete;
                     }
@@ -139,82 +141,82 @@
             ]
         });
 
-        function cuttingRejectTableReload() {
+        function cuttingPieceTableReload() {
             $("#cutting-piece-table").DataTable().ajax.reload();
         }
 
-        function exportExcel (elm) {
-            elm.setAttribute('disabled', 'true');
-            elm.innerText = "";
-            let loading = document.createElement('div');
-            loading.classList.add('loading-small');
-            elm.appendChild(loading);
+        // function exportExcel (elm) {
+        //     elm.setAttribute('disabled', 'true');
+        //     elm.innerText = "";
+        //     let loading = document.createElement('div');
+        //     loading.classList.add('loading-small');
+        //     elm.appendChild(loading);
 
-            iziToast.info({
-                title: 'Exporting...',
-                message: 'Data sedang di export. Mohon tunggu...',
-                position: 'topCenter'
-            });
+        //     iziToast.info({
+        //         title: 'Exporting...',
+        //         message: 'Data sedang di export. Mohon tunggu...',
+        //         position: 'topCenter'
+        //     });
 
-            let date = new Date();
+        //     let date = new Date();
 
-            let day = date.getDate();
-            let month = date.getMonth() + 1;
-            let year = date.getFullYear();
+        //     let day = date.getDate();
+        //     let month = date.getMonth() + 1;
+        //     let year = date.getFullYear();
 
-            // This arrangement can be altered based on how we want the date's format to appear.
-            let currentDate = `${day}-${month}-${year}`;
+        //     // This arrangement can be altered based on how we want the date's format to appear.
+        //     let currentDate = `${day}-${month}-${year}`;
 
-            $.ajax({
-                url: "{{ route("export-form-reject") }}",
-                type: 'post',
-                data: {
-                    dateFrom : $("#date-from").val(),
-                    dateTo : $("#date-to").val()
-                },
-                xhrFields: { responseType : 'blob' },
-                success: function(res) {
-                    elm.removeChild(loading);
-                    elm.removeAttribute('disabled');
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa-solid');
-                    icon.classList.add('fa', 'fa-file-excel');
-                    elm.appendChild(icon);
-                    elm.innerHTML += " Export";
+        //     $.ajax({
+        //         url: "{{ route("export-form-reject") }}",
+        //         type: 'post',
+        //         data: {
+        //             dateFrom : $("#date-from").val(),
+        //             dateTo : $("#date-to").val()
+        //         },
+        //         xhrFields: { responseType : 'blob' },
+        //         success: function(res) {
+        //             elm.removeChild(loading);
+        //             elm.removeAttribute('disabled');
+        //             let icon = document.createElement('i');
+        //             icon.classList.add('fa-solid');
+        //             icon.classList.add('fa', 'fa-file-excel');
+        //             elm.appendChild(icon);
+        //             elm.innerHTML += " Export";
 
-                    iziToast.success({
-                        title: 'Success',
-                        message: 'Success',
-                        position: 'topCenter'
-                    });
+        //             iziToast.success({
+        //                 title: 'Success',
+        //                 message: 'Success',
+        //                 position: 'topCenter'
+        //             });
 
-                    var blob = new Blob([res]);
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = "Form Reject "+$("#date-from").val()+" - "+$("#date-to").val()+".xlsx";
-                    link.click();
-                }, error: function (jqXHR) {
-                    elm.removeChild(loading);
-                    elm.removeAttribute('disabled');
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa', 'fa-file-excel');
-                    elm.appendChild(icon);
-                    elm.innerHTML += " Export";
+        //             var blob = new Blob([res]);
+        //             var link = document.createElement('a');
+        //             link.href = window.URL.createObjectURL(blob);
+        //             link.download = "Form Reject "+$("#date-from").val()+" - "+$("#date-to").val()+".xlsx";
+        //             link.click();
+        //         }, error: function (jqXHR) {
+        //             elm.removeChild(loading);
+        //             elm.removeAttribute('disabled');
+        //             let icon = document.createElement('i');
+        //             icon.classList.add('fa', 'fa-file-excel');
+        //             elm.appendChild(icon);
+        //             elm.innerHTML += " Export";
 
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    console.log(res.message);
-                    for (let key in res.errors) {
-                        message += res.errors[key]+' ';
-                        document.getElementById(key).classList.add('is-invalid');
-                    };
-                    iziToast.error({
-                        title: 'Error',
-                        message: message,
-                        position: 'topCenter'
-                    });
-                }
-            });
-        }
+        //             let res = jqXHR.responseJSON;
+        //             let message = '';
+        //             console.log(res.message);
+        //             for (let key in res.errors) {
+        //                 message += res.errors[key]+' ';
+        //                 document.getElementById(key).classList.add('is-invalid');
+        //             };
+        //             iziToast.error({
+        //                 title: 'Error',
+        //                 message: message,
+        //                 position: 'topCenter'
+        //             });
+        //         }
+        //     });
+        // }
     </script>
 @endsection

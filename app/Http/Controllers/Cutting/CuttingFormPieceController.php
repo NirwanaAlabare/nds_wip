@@ -35,19 +35,19 @@ class CuttingFormPieceController extends Controller
 
             return DataTables::eloquent($formCutPiece)->
                 addColumn('sizes', function ($row) {
-                    $sizes = $row->formCutPieceDetails->filter(function ($item) {
-                        return $item->qty > 0;
-                    });
+                    if ($row->formCutPieceDetailSizes) {
+                        $sizeArr = $row->formCutPieceDetailSizes->groupBy("so_det_id");
+                        $sizeText = "";
+                        foreach ($sizeArr as $sizes) {
+                            $size = $sizes->first();
+                            $sizeText .= $size->size.(($size->dest ? " - ".$size->dest : "").($sizes->sum("qty") > 0 ? "(".$sizes->sum("qty").")" : "")." / ");
+                        }
 
-                    $sizeList = "";
-                    foreach ($sizes as $size) {
-                        $sizeList .= $size->size.($size->soDet && $size->soDet->dest ? " - ".$size->soDet->dest." / " : " / ");
+                        return $sizeText;
                     }
-
-                    return $sizeList;
                 })->
                 addColumn('qty', function ($row) {
-                    $qty = $row->formCutPieceDetails ? $row->formCutPieceDetails->sum("qty") : "-";
+                    $qty = $row->formCutPieceDetails ? $row->formCutPieceDetails->sum("qty_use") : "-";
 
                     return $qty;
                 })->
@@ -107,6 +107,21 @@ class CuttingFormPieceController extends Controller
         $noForm = "FP".$hari."-".$bulan."-".$urutan;
 
         return $noForm;
+    }
+
+    public function incompleteItem($id = 0)
+    {
+        if ($id) {
+            $incomplete = FormCutPieceDetail::where("form_id", $id)->where("status", "incomplete")->first();
+
+            return $incomplete ? $incomplete : null;
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Incomplete tidak valid.",
+            "additional" => [],
+        );
     }
 
     /**
@@ -175,98 +190,82 @@ class CuttingFormPieceController extends Controller
                 $validatedRequest = $request->validate([
                     "id" => "required",
                     "method" => "required",
+                    "id_item" => "required",
+                    "detail_item" => "required",
+                    "qty_item" => "required",
+                    "unit_qty_item" => "required"
                 ]);
 
-                $idItem = $validatedRequest["method"] == "single" ? $request->id_item : implode(", ", array_unique(array_filter($request->id_item_rolls)));
-                $group = $validatedRequest["method"] == "single" ? $request->group_item : implode(", ", array_unique(array_filter($request->group_rolls)));
-                $lot = $validatedRequest["method"] == "single" ? $request->lot_item : implode(", ", array_unique(array_filter($request->lot_rolls)));
-                $noRoll = $validatedRequest["method"] == "single" ? $request->no_roll_item : implode(", ", array_unique(array_filter($request->no_rolls)));
-                $qty = $validatedRequest["method"] == "single" ? $request->qty_item : $request->total_qty;
-                $unit = $validatedRequest["method"] == "single" ? $request->unit_item : $request->total_unit;
-                $totalRoll = $validatedRequest["method"] == "single" ? 1 : $request->total_roll;
+                $idRoll = $validatedRequest["method"] == "scan" ? $request->kode_barang : "-";
+                $idItem = $validatedRequest["id_item"];
+                $detailItem = $validatedRequest["detail_item"];
+                $qtyItem = $validatedRequest["qty_item"];
+                $unitQtyItem = $validatedRequest["unit_qty_item"];
 
+                $formCutPieceModel = FormCutPiece::where("id", $validatedRequest["id"]);
 
-                $pipingProcessModel = PipingProcess::where("id", $validatedRequest["id"]);
+                if ($formCutPieceModel) {
+                    $storeFormCutPieceDetailArr = [];
 
-                if ($pipingProcessModel) {
-                    $storePipingProcessDetailArr = [];
-
-                    if ($validatedRequest["method"] == "single") {
+                    if ($validatedRequest["method"] == "scan") {
                         $validatedRequestDetail = $request->validate([
-                            "id_roll" => "required",
-                            "id_item" => "required",
-                            "color_act" => "required",
-                            "group_item" => "required",
-                            "lot_item" => "required",
-                            "no_roll_item" => "required",
-                            "form_cut_id" => "required",
-                            "no_form" => "required",
-                            "qty_item" => "required",
-                            "unit_item" => "required"
+                            "kode_barang" => "required",
                         ]);
 
-                        array_push($storePipingProcessDetailArr, [
-                            "piping_process_id" => $validatedRequest["id"],
-                            "id_roll" => $validatedRequestDetail["id_roll"],
-                            "id_item" => $validatedRequestDetail["id_item"],
-                            "color_act" => $validatedRequestDetail["color_act"],
-                            "group" => $validatedRequestDetail["group_item"],
-                            "lot" => $validatedRequestDetail["lot_item"],
-                            "no_roll" => $validatedRequestDetail["no_roll_item"],
-                            "form_cut_id" => $validatedRequestDetail["form_cut_id"],
-                            "no_form" => $validatedRequestDetail["no_form"],
-                            "qty" => $validatedRequestDetail["qty_item"],
-                            "unit" => $validatedRequestDetail["unit_item"],
+                        $scannedItem = ScannedItem::where("id_roll", $validatedRequestDetail["kode_barang"])->first();
+
+                        if ($scannedItem) {
+                            $storeFormCutPieceDetailArr = [
+                                "form_id" => $validatedRequest["id"],
+                                "method" => $validatedRequest["method"],
+                                "id_roll" => $validatedRequestDetail["kode_barang"],
+                                "id_item" => $scannedItem->id_item,
+                                "detail_item" => $scannedItem->detail_item,
+                                "lot" => $scannedItem->lot,
+                                "roll" => $scannedItem->roll,
+                                "roll_buyer" => $scannedItem->roll_buyer,
+                                "rule_bom" => $scannedItem->rule_bom,
+                                "qty_pengeluaran" => $scannedItem->qty_in,
+                                "qty" => $scannedItem->qty,
+                                "qty_unit" => $scannedItem->unit,
+                                "status" => "incomplete",
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username
+                            ];
+                        } else {
+                            return array(
+                                "status" => 400,
+                                "message" => "Item tidak ditemukan.",
+                                "additional" => [],
+                            );
+                        }
+                    } else if ($validatedRequest["method"] == "select") {
+                        $storeFormCutPieceDetailArr = [
+                            "form_id" => $validatedRequest["id"],
+                            "method" => $validatedRequest["method"],
+                            "id_item" => $validatedRequest["id_item"],
+                            "detail_item" => $validatedRequest["detail_item"],
+                            "qty_pengeluaran" => $validatedRequest["qty_item"],
+                            "qty" => $validatedRequest["qty_item"],
+                            "qty_unit" => $validatedRequest["unit_qty_item"],
+                            "status" => "incomplete",
                             "created_by" => Auth::user()->id,
                             "created_by_username" => Auth::user()->username
-                        ]);
-                    } else if ($validatedRequest["method"] == "multi") {
-                        for ($i = 1; $i <= count($request->id_rolls); $i++) {
-                            if ($request->id_rolls[$i] && $request->id_form_rolls[$i]) {
-                                array_push($storePipingProcessDetailArr, [
-                                    "piping_process_id" => $validatedRequest["id"],
-                                    "id_roll" => $request->id_rolls[$i],
-                                    "id_item" => $request->id_item_rolls[$i],
-                                    "color_act" => $request->color_rolls[$i],
-                                    "group" => $request->group_rolls[$i],
-                                    "lot" => $request->lot_rolls[$i],
-                                    "no_roll" => $request->no_rolls[$i],
-                                    "form_cut_id" => $request->id_form_rolls[$i],
-                                    "qty" => $request->qty_rolls[$i],
-                                    "unit" => $request->unit_rolls[$i],
-                                    "created_by" => Auth::user()->id,
-                                    "created_by_username" => Auth::user()->username
-                                ]);
-                            }
-                        }
+                        ];
                     }
 
-                    $storePipingProcessDetail = PipingProcessDetail::insert($storePipingProcessDetailArr);
+                    $storeFormCutPieceDetail = FormCutPieceDetail::create($storeFormCutPieceDetailArr);
 
-                    if (count($storePipingProcessDetailArr) > 0) {
-                        $updatePipingProcess = $pipingProcessModel->update([
+                    if ($storeFormCutPieceDetail) {
+                        $updateFormCutPiece = $formCutPieceModel->update([
                             "process" => $request->process,
-                            "method" => $validatedRequest["method"],
-                            "id_item" => $idItem,
-                            "group" => $group,
-                            "lot" => $lot,
-                            "no_roll" => $noRoll,
-                            "qty_awal" => $qty,
-                            "unit" => $unit,
-                            "panjang_roll_piping" => $pipingProcessModel->first()->masterPiping->panjang,
-                            "panjang_roll_piping_unit" => $pipingProcessModel->first()->masterPiping->unit,
-                            "lebar_kain_act_unit" => $unit,
-                            "lebar_kain_cuttable_unit" => $unit,
-                            // "lebar_roll_piping" => 0,
-                            "lebar_roll_piping_unit" => $pipingProcessModel->first()->masterPiping->unit,
-                            "total_roll" => $totalRoll
                         ]);
 
-                        if ($updatePipingProcess) {
+                        if ($updateFormCutPiece) {
                             return array(
                                 "status" => 200,
-                                "message" => "Process Item Piping berhasil disimpan.",
-                                "additional" => $pipingProcessModel->first(),
+                                "message" => "Item berhasil disimpan.",
+                                "additional" => $storeFormCutPieceDetail,
                             );
                         }
                     }
@@ -276,73 +275,82 @@ class CuttingFormPieceController extends Controller
             case 3 :
                 $validatedRequest = $request->validate([
                     "id" => "required",
-                    "arah_potong" => "required",
-                    "group" => "required",
-                    "id_item" => "required",
-                    "lot" => "required",
-                    "no_roll" => "required",
-                    "qty_awal" => "required|gt:0",
-                    "qty_awal_unit" => "required",
-                    "qty" => "required|gt:0",
-                    "qty_unit" => "required",
-                    "qty_konversi" => "required|gt:0",
-                    "qty_konversi_unit" => "required",
-                    "panjang_roll_piping" => "required|gt:0",
-                    "panjang_roll_piping_unit" => "required",
-                    "lebar_kain_act" => "required|gt:0",
-                    "lebar_kain_act_unit" => "required",
-                    "lebar_kain_cuttable" => "required|gt:0",
-                    "lebar_kain_cuttable_unit" => "required",
-                    "lebar_roll_piping" => "required|gt:0",
-                    "lebar_roll_piping_unit" => "required",
-                    "output_total_roll" => "required|gt:0",
-                    "output_total_roll_unit" => "required",
-                    "jenis_potong_piping" => "required",
-                    "estimasi_output_roll" => "required|gt:0",
-                    "estimasi_output_roll_unit" => "required",
-                    "estimasi_output_total" => "required|gt:0",
-                    "estimasi_output_total_unit" => "required",
+                    "id_detail" => "required",
+                    "group_roll" => "required",
+                    "lot" => "nullable",
+                    "roll" => "nullable",
+                    "roll_buyer" => "nullable",
+                    "rule_bom" => "nullable",
+                    "qty_pengeluaran" => "required",
+                    "qty" => "required",
+                    "qty_pemakaian" => "required|gt:0",
+                    "qty_sisa" => "required",
+                    "qty_unit" => "required|in:PCS",
+                ], [
+                    "qty_pemakaian.gt" => "Harap isi qty piece."
                 ]);
 
-                $pipingProcessModel = PipingProcess::where("id", $validatedRequest["id"]);
+                $cuttingPieceModel = FormCutPiece::where("id", $validatedRequest["id"]);
+                $cuttingPieceDetailModel = FormCutPieceDetail::where("id", $validatedRequest["id_detail"]);
 
-                if ($pipingProcessModel) {
-                    $updatePipingProcess = $pipingProcessModel->update([
-                        "process" => $request->process,
-                        "arah_potong" => $validatedRequest["arah_potong"],
-                        "group" => $validatedRequest["group"],
-                        "id_item" => $validatedRequest["id_item"],
-                        "lot" => $validatedRequest["lot"],
-                        "no_roll" => $validatedRequest["no_roll"],
-                        "qty_awal" => $validatedRequest["qty_awal"],
-                        "qty_awal_unit" => $validatedRequest["qty_awal_unit"],
-                        "qty" => $validatedRequest["qty"],
-                        "qty_unit" => $validatedRequest["qty_unit"],
-                        "qty_konversi" => $validatedRequest["qty_konversi"],
-                        "qty_konversi_unit" => $validatedRequest["qty_konversi_unit"],
-                        "panjang_roll_piping" => $validatedRequest["panjang_roll_piping"],
-                        "panjang_roll_piping_unit" => $validatedRequest["panjang_roll_piping_unit"],
-                        "lebar_kain_act" => $validatedRequest["lebar_kain_act"],
-                        "lebar_kain_act_unit" => $validatedRequest["lebar_kain_act_unit"],
-                        "lebar_kain_cuttable" => $validatedRequest["lebar_kain_cuttable"],
-                        "lebar_kain_cuttable_unit" => $validatedRequest["lebar_kain_cuttable_unit"],
-                        "lebar_roll_piping" => $validatedRequest["lebar_roll_piping"],
-                        "lebar_roll_piping_unit" => $validatedRequest["lebar_roll_piping_unit"],
-                        "output_total_roll_awal" => $validatedRequest["output_total_roll"],
-                        "output_total_roll" => $validatedRequest["output_total_roll"],
-                        "output_total_roll_unit" => $validatedRequest["output_total_roll_unit"],
-                        "jenis_potong_piping" => $validatedRequest["jenis_potong_piping"],
-                        "estimasi_output_roll" => $validatedRequest["estimasi_output_roll"],
-                        "estimasi_output_roll_unit" => $validatedRequest["estimasi_output_roll_unit"],
-                        "estimasi_output_total" => $validatedRequest["estimasi_output_total"],
-                        "estimasi_output_total_unit" => $validatedRequest["estimasi_output_total_unit"]
+                if ($cuttingPieceDetailModel) {
+                    $updateCuttingPieceDetail = $cuttingPieceDetailModel->update([
+                        "id" => $validatedRequest['id_detail'],
+                        "group_roll" => $validatedRequest['group_roll'],
+                        "lot" => $validatedRequest['lot'],
+                        "roll" => $validatedRequest['roll'],
+                        "roll_buyer" => $validatedRequest['roll_buyer'],
+                        "rule_bom" => $validatedRequest['rule_bom'],
+                        "qty_pemakaian" => $validatedRequest['qty_pemakaian'],
+                        "qty_sisa" => $validatedRequest['qty_sisa'],
+                        "qty_unit" => $validatedRequest['qty_unit'],
+                        "status" => "complete",
                     ]);
 
-                    if ($updatePipingProcess) {
+                    if ($updateCuttingPieceDetail) {
+                        // Scanned Item Qty
+                        if ($cuttingPieceDetailModel->first() && $cuttingPieceDetailModel->first()->method == "scan" && $cuttingPieceDetailModel->first()->id_roll) {
+                            $scannedItem = ScannedItem::where("id_roll", $cuttingPieceDetailModel->first()->id_roll)->first();
+
+                            if ($scannedItem) {
+                                $scannedItem->qty = $validatedRequest['qty_sisa'];
+                                $scannedItem->qty_pakai += $validatedRequest['qty_pemakaian'];
+                                $scannedItem->save();
+                            }
+                        }
+
+                        // Upsert Form Cut Piece Detail Size
+                        if ($request->so_det_id && count($request->so_det_id) > 1) {
+                            $cuttingPieceDetailSizeArr = [];
+                            for($i = 0; $i < count($request->so_det_id); $i++) {
+                                if ($request->so_det_id[$i] && $request->size[$i] && $request->qty_detail[$i] && $request->qty_detail[$i] > 0) {
+                                    array_push($cuttingPieceDetailSizeArr, [
+                                        "form_detail_id" => $validatedRequest["id_detail"],
+                                        "so_det_id" => $request->so_det_id[$i],
+                                        "size" => $request->size[$i],
+                                        "dest" => $request->dest[$i],
+                                        "qty" => $request->qty_detail[$i],
+                                        "created_by" => Auth::user()->id,
+                                        "created_by_username" => Auth::user()->username
+                                    ]);
+                                }
+                            }
+
+                            $storeCuttingPieceDetailSize = FormCutPieceDetailSize::upsert($cuttingPieceDetailSizeArr, ['form_detail_id', 'so_det_id'], ['size', 'qty', 'created_by', 'created_by_username']);
+                        }
+
+                        // Update Form Cut Piece
+                        $updateCuttingPiece = $cuttingPieceModel->update([
+                            "process" => $request->process,
+                            "status" => 'complete',
+                        ]);
+
+                        session()->forget('currentFormCutPiece');
+
                         return array(
                             "status" => 200,
-                            "message" => "Process Hitung Piping berhasil disimpan.",
-                            "additional" => $pipingProcessModel->first(),
+                            "message" => "Data Cutting Pcs berhasil disimpan.",
+                            "additional" => $cuttingPieceModel->first()
                         );
                     }
                 }

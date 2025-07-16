@@ -238,7 +238,7 @@
                                 <li>
                                     <a href="{{ route('piping-stock') }}"
                                         class="dropdown-item {{ $routeName == 'piping-stock' ? 'active' : '' }}">
-                                        Stock <i class="fa-solid fa-toolbox"></i>
+                                        Stock <i class="fa-solid fa-receipt"></i>
                                     </a>
                                 </li>
                             </ul>

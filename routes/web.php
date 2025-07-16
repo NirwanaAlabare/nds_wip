@@ -242,6 +242,10 @@ Route::middleware('auth')->group(function () {
 
         // get scanned employee
         Route::get('/get-scanned-employee/{id?}', 'getScannedEmployee')->name('get-scanned-employee');
+
+        // cutting items
+        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
+        Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
     });
 
     // Worksheet
@@ -363,8 +367,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('form-cut-input');
         Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
         Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
-        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
-        Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
         Route::put('/start-process/{id?}', 'startProcess')->name('start-process-form-cut-input');
         Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-form-cut-input');
         Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
@@ -565,7 +567,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('cutting-piece');
         Route::get('/show/{id?}', 'show')->name('show-cutting-piece');
         Route::get('/create', 'create')->name('create-cutting-piece');
+        Route::get('/create-new', 'createNew')->name('create-new-cutting-piece');
         Route::get('/process/{id?}', 'process')->name('process-cutting-piece');
+        Route::get('/incomplete-item/{id?}', 'incompleteItem')->name('incomplete-item-cutting-piece');
         Route::post('/store', 'store')->name('store-cutting-piece');
         Route::get('/edit/{id?}', 'edit')->name('edit-cutting-piece');
         Route::put('/update', 'update')->name('update-cutting-piece');

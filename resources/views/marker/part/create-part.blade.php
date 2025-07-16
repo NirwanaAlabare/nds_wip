@@ -61,7 +61,7 @@
                                     <option selected="selected" value="">Pilih Panel</option>
                                     {{-- select 2 option --}}
                                 </select>
-                                <input type="text" class="form-control" id="panel" name="panel" readonly>
+                                <input type="hidden" class="form-control" id="panel" name="panel" readonly>
                             </div>
                         </div>
                     </div>
