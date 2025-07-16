@@ -138,29 +138,35 @@ class RollController extends Controller
 
         $additionalQuery = "";
         $additionalQuery1 = "";
+        $additionalQuery2 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
             $additionalQuery1 .= " and form_cut_piping.created_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery2 .= " and form_cut_piece_detail.created_at >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
             $additionalQuery1 .= " and form_cut_piping.created_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery2 .= " and form_cut_piece_detail.created_at <= '" . $request->dateTo . " 23:59:59'";
         }
 
         if ($request->supplier) {
             $additionalQuery .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
             $additionalQuery1 .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
+            $additionalQuery2 .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
         }
 
         if ($request->id_ws) {
             $additionalQuery .= " and mrk.act_costing_id = " . $request->id_ws . "";
             $additionalQuery1 .= " and form_cut_piping.act_costing_id = " . $request->id_ws . "";
+            $additionalQuery2 .= " and form_cut_piece.act_costing_id = " . $request->id_ws . "";
         }
 
         $keywordQuery = "";
         $keywordQuery1 = "";
+        $keywordQuery2 = "";
         if ($request->search["value"]) {
             $keywordQuery = "
                 and (
@@ -173,6 +179,13 @@ class RollController extends Controller
                 and (
                     act_costing_ws like '%" . $request->search["value"] . "%' OR
                     DATE_FORMAT(form_cut_piping.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
+                )
+            ";
+
+            $keywordQuery2 = "
+                and (
+                    act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    DATE_FORMAT(form_cut_piece_detail.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
                 )
             ";
         }
@@ -249,7 +262,8 @@ class RollController extends Controller
                     CASE WHEN c.id IS NULL THEN round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-b.qty), 2) ELSE round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-c.qty), 2) END short_roll,
                     CASE WHEN c.id IS NULL THEN (round((CASE WHEN c.id IS NULL THEN round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-b.qty), 2) ELSE round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-c.qty), 2) END)/b.qty*100)) ELSE (round((CASE WHEN c.id IS NULL THEN round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-b.qty), 2) ELSE round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-c.qty), 2) END)/c.qty*100, 2)) END short_roll_percentage,
                     b.status,
-                    a.operator
+                    a.operator,
+                    a.tipe_form_cut
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
@@ -333,7 +347,8 @@ class RollController extends Controller
                     ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
                     ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
                     null `status`,
-                    form_cut_piping.operator
+                    form_cut_piping.operator,
+                    'PIPING' tipe_form_cut
                 from
                     form_cut_piping
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
@@ -344,6 +359,83 @@ class RollController extends Controller
                     ".$keywordQuery1."
                 group by
                     form_cut_piping.id
+                union
+                select
+                    COALESCE(scanned_item.qty_in, form_cut_piece_detail.qty) qty_in,
+                    form_cut_piece.created_at waktu_mulai,
+                    form_cut_piece.updated_at waktu_selesai,
+                    form_cut_piece.id,
+                    DATE_FORMAT(form_cut_piece.created_at, '%M') bulan,
+                    DATE_FORMAT(form_cut_piece.created_at, '%d-%m-%Y') tgl_input,
+                    form_cut_piece.no_form no_form_cut_input,
+                    '-' nama_meja,
+                    form_cut_piece.act_costing_ws,
+                    master_sb_ws.buyer,
+                    form_cut_piece.style,
+                    form_cut_piece.color,
+                    form_cut_piece.color color_act,
+                    form_cut_piece.panel,
+                    master_sb_ws.qty,
+                    form_cut_piece.cons_ws cons_ws,
+                    form_cut_piece.cons_ws cons_marker,
+                    '0' cons_ampar,
+                    0 cons_act,
+                    0 cons_piping,
+                    0 panjang_marker,
+                    '-' unit_panjang_marker,
+                    0 comma_marker,
+                    '-' unit_comma_marker,
+                    0 lebar_marker,
+                    '-' unit_lebar_marker,
+                    0 panjang_actual,
+                    '-' unit_panjang_actual,
+                    0 comma_actual,
+                    '-' unit_comma_actual,
+                    0 lebar_actual,
+                    '-' unit_lebar_actual,
+                    form_cut_piece_detail.id_roll,
+                    scanned_item.id_item,
+                    scanned_item.detail_item,
+                    COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                    scanned_item.lot,
+                    '-' group_roll,
+                    (CASE WHEN form_cut_piece_detail.qty >= COALESCE(scanned_item.qty_in, 0) THEN 'Roll Utuh' ELSE 'Sisa Kain' END) status_roll,
+                    COALESCE(scanned_item.qty_in, form_cut_piece_detail.qty) qty_awal,
+                    form_cut_piece_detail.qty qty_roll,
+                    form_cut_piece_detail.qty_unit unit_roll,
+                    0 berat_amparan,
+                    0 est_amparan,
+                    0 lembar_gelaran,
+                    0 total_ratio,
+                    0 qty_cut,
+                    '00:00' average_time,
+                    '0' sisa_gelaran,
+                    0 sambungan,
+                    0 sambungan_roll,
+                    0 kepala_kain,
+                    0 sisa_tidak_bisa,
+                    0 reject,
+                    0 piping,
+                    form_cut_piece_detail.qty_sisa sisa_kain,
+                    form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
+                    form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                    ROUND(form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa)) short_roll,
+                    ROUND((form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa))/coalesce(scanned_item.qty_in, form_cut_piece_detail.qty) * 100, 2) short_roll_percentage,
+                    form_cut_piece_detail.status `status`,
+                    form_cut_piece.employee_name,
+                    'PCS' tipe_form_cut
+                from
+                    form_cut_piece
+                    left join form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = form_cut_piece_detail.id_roll
+                where
+                    scanned_item.id_item is not null and
+                    form_cut_piece_detail.status = 'complete'
+                    ".$additionalQuery2."
+                    ".$keywordQuery2."
+                group by
+                    form_cut_piece_detail.id
             ) roll_consumption
             order by
                 waktu_mulai asc,

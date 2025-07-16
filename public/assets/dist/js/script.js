@@ -730,3 +730,35 @@ function objectValues(obj) {
     }
     return values;
 }
+
+function handleError(res) {
+    if (res && res.errors && Object.keys(res.errors).length > 0) {
+        for (let key in res.errors) {
+            console.log(res.errors[key], res.errors[key].join('\n'));
+
+            if (document.getElementById(key)) {
+                document.getElementById(key).classList.add('is-invalid');
+
+                modified.push(
+                    [key, '.classList', '.remove(', "'is-invalid')"]
+                );
+            }
+
+            if (document.getElementById(key + '_error')) {
+                document.getElementById(key + '_error').classList.remove('d-none');
+                document.getElementById(key + '_error').innerHTML = res.errors[key];
+
+                modified.push(
+                    [key + '_error', '.classList', '.add(', "'d-none')"],
+                    [key + '_error', '.innerHTML = ', "''"]
+                )
+            }
+
+            iziToast.error({
+                title: 'Error',
+                message: res.errors[key] ? res.errors[key].join('\n') : key + ' tidak valid.',
+                position: 'topCenter'
+            });
+        };
+    }
+}
