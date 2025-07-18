@@ -126,6 +126,7 @@
                                     <th>Size Ratio</th>
                                     <th>Marker</th>
                                     <th>WS</th>
+                                    <th>Type</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -168,6 +169,7 @@
                                     <th>Size Ratio</th>
                                     <th>Marker</th>
                                     <th>WS</th>
+                                    <th>Type</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -255,6 +257,9 @@
                 {
                     data: 'act_costing_ws'
                 },
+                {
+                    data: 'type'
+                },
             ],
             columnDefs: [
                 {
@@ -339,7 +344,8 @@
                 if (!isNaN(key)) {
                     partForms.push({
                         form_id: selectedForm[key]['id'],
-                        no_form: selectedForm[key]['no_form']
+                        no_form: selectedForm[key]['no_form'],
+                        type: selectedForm[key]['type']
                     });
                 }
             }
@@ -491,21 +497,48 @@
                 {
                     data: 'ws'
                 },
+                {
+                    data: 'type'
+                },
             ],
             columnDefs: [
                 {
-                    targets: [2],
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    targets: [1],
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
+                        if (data) {
+                            if (row.type == 'PIECE') {
+                                return `
+                                    <a href='{{ route('process-cutting-piece') }}/ `+row.id+`' target='_blank'>`+data+`</a>
+                                `;
+                            }
+                        }
 
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    targets: [2],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
                         return data ? data.toUpperCase() : "-";
                     }
                 },
                 {
                     targets: [9],
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return `
-                            <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
-                        `;
+                        if (data) {
+                            return `
+                                <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
+                            `;
+                        }
+
+                        return data ? data : '-';
                     }
                 },
             ]
@@ -544,7 +577,8 @@
                 if (!isNaN(key)) {
                     partForms.push({
                         form_id: selectedForm[key]['id'],
-                        no_form: selectedForm[key]['no_form']
+                        no_form: selectedForm[key]['no_form'],
+                        type: selectedForm[key]['type']
                     });
                 }
             }

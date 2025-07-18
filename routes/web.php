@@ -698,11 +698,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/fix-redundant-numbering', 'fixRedundantNumbering')->name('fix-redundant-numbering');
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
 
+        Route::get('/stocker-part', 'part')->name('stocker-part');
+
+        Route::get('/show-pcs/{formCutId?}', 'showPcs')->name('show-stocker-pcs');
+        Route::post('/print-stocker-pcs/{index?}', 'printStockerPcs')->name('print-stocker-pcs');
+        Route::post('/print-stocker-all-size-pcs/{partDetailId?}', 'printStockerAllSizePcs')->name('print-stocker-all-size-pcs');
+        Route::post('/print-stocker-checked-pcs', 'printStockerCheckedPcs')->name('print-stocker-checked-pcs');
+
+        // adjust
         Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
         Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
         Route::post('/modify-size-qty', 'modifySizeQty')->name('modify-size-qty');
-
-        Route::get('/stocker-part', 'part')->name('stocker-part');
 
         // part form
         Route::get('/manage-part-form/{id?}', 'managePartForm')->name('stocker-manage-part-form');

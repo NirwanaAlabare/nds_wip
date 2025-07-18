@@ -125,6 +125,7 @@
                                             <th>No. Marker</th>
                                             <th>No. WS</th>
                                             <th>Buyer</th>
+                                            <th>Type</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -361,12 +362,25 @@
                 {
                     data: 'buyer'
                 },
+                {
+                    data: 'type'
+                },
             ],
             columnDefs: [
                 // Act Column
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
+                        if (row.type == 'PIECE') {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='{{ route('show-stocker-pcs') }}/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            `;
+                        }
+
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
                                 <a class='btn btn-primary btn-sm' href='{{ route('show-stocker') }}/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'>
@@ -374,6 +388,21 @@
                                 </a>
                             </div>
                         `;
+                    }
+                },
+                // No. Form Column
+                {
+                    targets: [2],
+                    render: (data, type, row, meta) => {
+                        if (data) {
+                            if (row.type == 'PIECE') {
+                                return `
+                                    <a href='{{ route('process-cutting-piece') }}/ `+row.form_cut_id+`' target='_blank'>`+data+`</a>
+                                `;
+                            }
+                        }
+
+                        return data ? data : "-";
                     }
                 },
                 // No. Meja Column
@@ -385,9 +414,13 @@
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        return `
-                            <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
-                        `;
+                        if (data) {
+                            return `
+                                <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
+                            `;
+                        }
+
+                        return data ? data : "-";
                     }
                 },
                 // No Wrap

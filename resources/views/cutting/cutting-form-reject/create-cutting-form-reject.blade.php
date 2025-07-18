@@ -12,6 +12,9 @@
 @endsection
 
 @section('content')
+    <div class="d-flex justify-content-center">
+        <button type="button" class="btn btn-sb btn-sm mb-3" onclick="startProcess(this)">START</button>
+    </div>
     <form action="{{ route('store-cutting-reject') }}" method="post" id="store-cutting-form-reject" onsubmit="submitForm(this, event)">
         <div class="card card-sb">
             <div class="card-header">
@@ -24,10 +27,7 @@
                 <div class="row row-gap-3">
                     <div class="col-md-6">
                         <label class="form-label">No. Form</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="no_form" name="no_form" readonly>
-                            <button type="button" class="btn btn-sb" onclick="cuttingRejectCode()"><i class="fa fa-rotate"></i></button>
-                        </div>
+                        <input type="text" class="form-control" id="no_form" name="no_form" readonly>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Tanggal</label>
@@ -128,8 +128,6 @@
             $("#color").prop("disabled", true);
             $("#panel").prop("disabled", true);
 
-            cuttingRejectCode();
-
             document.getElementById("loading").classList.add("d-none");
         });
 
@@ -161,6 +159,22 @@
                 cuttingRejectTableReload();
             }
         });
+
+        function startProcess(element) {
+            Swal.fire({
+                icon: 'question',
+                title: 'Mulai Proses?',
+                confirmButtonText: 'Mulai',
+                showCancelButton: true,
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    cuttingRejectCode();
+                    
+                    element.classList.add("d-none");
+                }
+            });
+        }
 
         // Update Order Information Based on Order WS and Order Color
         function updateOrderInfo() {
