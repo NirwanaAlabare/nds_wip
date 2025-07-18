@@ -258,10 +258,6 @@
                             return res;
                         }, {});
 
-                        if (element[0].chief_name.includes("SUKAM")) {
-                            console.log(leaderOutput);
-                        }
-
                         // Total Data
                         let totalData = { totalEfficiency : Number((totalMinsProd/totalMinsAvail*100).toFixed(2)), totalRft : Number((totalRft/totalOutput*100).toFixed(2)) };
 
