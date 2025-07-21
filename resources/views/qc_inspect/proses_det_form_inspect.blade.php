@@ -636,8 +636,12 @@
                 inchValue = width * 0.3937;
             }
 
-            $('#txtinch').val(inchValue.toFixed(2)); // 2 decimals
+            // Round up to 2 decimal places
+            let roundedUp = Math.ceil(inchValue * 100) / 100;
+
+            $('#txtinch').val(roundedUp.toFixed(2));
         }
+
 
         $('#txtwidth, #unitWidth').on('input change', updateInch);
 
@@ -1037,33 +1041,38 @@
         function updateFullWidthAct() {
             const fullWidth = parseFloat(document.getElementById('txtfull_width').value) || 0;
             const unit = document.getElementById('unitFullWidth').value;
-            const actual = unit === 'inch' ? fullWidth : (fullWidth / 2.54);
+            let actual = unit === 'inch' ? fullWidth : (fullWidth / 2.54);
+
+            // Round up to 2 decimal places
+            actual = Math.ceil(actual * 100) / 100;
+
             document.getElementById('txtfull_width_act').value = actual.toFixed(2);
         }
-
-        // Attach event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('txtfull_width').addEventListener('input', updateFullWidthAct);
-            document.getElementById('unitFullWidth').addEventListener('change', updateFullWidthAct);
-
-            // Run once at load in case there's a preset value
-            updateFullWidthAct();
-        });
 
         function updateCuttableWidthAct() {
             const cuttableWidth = parseFloat(document.getElementById('txtcuttable_width').value) || 0;
             const unit = document.getElementById('unitCuttableWidth').value;
-            const actual = unit === 'inch' ? cuttableWidth : (cuttableWidth / 2.54);
+            let actual = unit === 'inch' ? cuttableWidth : (cuttableWidth / 2.54);
+
+            // Round up to 2 decimal places
+            actual = Math.ceil(actual * 100) / 100;
+
             document.getElementById('txtcuttable_width_act').value = actual.toFixed(2);
         }
 
+        // Attach event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Full Width listeners
+            document.getElementById('txtfull_width').addEventListener('input', updateFullWidthAct);
+            document.getElementById('unitFullWidth').addEventListener('change', updateFullWidthAct);
+            updateFullWidthAct(); // Initialize on load
+
+            // Cuttable Width listeners
             document.getElementById('txtcuttable_width').addEventListener('input', updateCuttableWidthAct);
             document.getElementById('unitCuttableWidth').addEventListener('change', updateCuttableWidthAct);
-
-            // Run once at page load
-            updateCuttableWidthAct();
+            updateCuttableWidthAct(); // Initialize on load
         });
+
 
         function save_visual_inspection() {
             let id = $('#id').val();
@@ -1257,34 +1266,38 @@
         function updateBintexAct() {
             const bintexLength = parseFloat(document.getElementById('txtbintex_length').value) || 0;
             const unit = document.getElementById('unitBintex').value;
-            const actual = unit === 'yard' ? bintexLength : (bintexLength / 0.9144);
+            let actual = unit === 'yard' ? bintexLength : (bintexLength / 0.9144);
+
+            // Round up to 2 decimal places
+            actual = Math.ceil(actual * 100) / 100;
+
             document.getElementById('txtbintex_act').value = actual.toFixed(2);
         }
-
-        // Attach event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('txtbintex_length').addEventListener('input', updateBintexAct);
-            document.getElementById('unitBintex').addEventListener('change', updateBintexAct);
-
-            // Run once at load in case there's a preset value
-            updateBintexAct();
-        });
 
         function updateActLengthFix() {
             const actLength = parseFloat(document.getElementById('txtact_length').value) || 0;
             const unit = document.getElementById('unitActLength').value;
-            const actual = unit === 'yard' ? actLength : (actLength / 0.9144);
+            let actual = unit === 'yard' ? actLength : (actLength / 0.9144);
+
+            // Round up to 2 decimal places
+            actual = Math.ceil(actual * 100) / 100;
+
             document.getElementById('txtact_length_fix').value = actual.toFixed(2);
         }
 
         // Attach event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Bintex
+            document.getElementById('txtbintex_length').addEventListener('input', updateBintexAct);
+            document.getElementById('unitBintex').addEventListener('change', updateBintexAct);
+            updateBintexAct();
+
+            // Actual Length
             document.getElementById('txtact_length').addEventListener('input', updateActLengthFix);
             document.getElementById('unitActLength').addEventListener('change', updateActLengthFix);
-
-            // Run once at load for preset value
             updateActLengthFix();
         });
+
 
 
         function calculate_act_point() {
