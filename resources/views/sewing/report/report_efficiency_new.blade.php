@@ -42,7 +42,8 @@
                     </a>
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#scrapFromOrtaxModal">
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#scrapFromOrtaxModal">
                         <i class="fa fa-download"></i>
                         Download Kurs
                     </button>
@@ -67,6 +68,8 @@
                             <th>Currency</th>
                             <th>CM Price</th>
                             <th>Earning</th>
+                            <th>Kurs Tengah BI</th>
+                            <th>Earning Rupiah</th>
                             <th>Mins. Prod</th>
                             <th>Efficiency</th>
                             <th>RFT</th>
@@ -75,8 +78,8 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="3"> Total </th>
-                            <th colspan="4"></th>
+                            <th colspan="4"> Total </th>
+                            <th colspan="3"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_mp'> </th>
                             <th></th>
@@ -87,7 +90,12 @@
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th colspan="4"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -96,21 +104,21 @@
     </div>
     <div class="modal fade" id="scrapFromOrtaxModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header bg-sb text-light">
-                <h1 class="modal-title fs-6">Download Data Kurs BI</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div>
-                    <label>Tanggal</label>
-                    <input type="date" class="form-control" value="{{ date('Y-m-d') }}" id="date">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-6">Download Data Kurs BI</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <label>Tanggal</label>
+                        <input type="date" class="form-control" value="{{ date('Y-m-d') }}" id="date">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" id="scrapFromOrtax">Download</button>
                 </div>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-dark" id="scrapFromOrtax">Download</button>
-            </div>
-          </div>
         </div>
     </div>
 @endsection
@@ -146,6 +154,15 @@
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
+
+        function intVal(i) {
+            return typeof i === 'string' ?
+                parseFloat(i.replace(/[\Rp\s,.]/g, '').replace(',', '.')) || 0 :
+                typeof i === 'number' ?
+                i :
+                0;
+        }
+
 
         let datatable = $("#datatable").DataTable({
             scrollY: "300px",
@@ -211,6 +228,12 @@
                 },
                 {
                     data: 'earning'
+                },
+                {
+                    data: 'kurs_tengah'
+                },
+                {
+                    data: 'tot_earning_rupiah'
                 },
                 {
                     data: 'mins_prod'
@@ -292,8 +315,23 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var sumTotalEarning = api
+                    .column(15, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var formattedEarning = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 2
+                }).format(sumTotalEarning);
+
                 var sumTotalMinProd = api
-                    .column(14, {
+                    .column(16, {
                         search: 'applied'
                     })
                     .data()
@@ -307,7 +345,8 @@
                 $(api.column(8).footer()).html(sumTotalMinsAvail.toFixed(2));
                 $(api.column(9).footer()).html(sumTotalTarget);
                 $(api.column(10).footer()).html(sumTotalOutput);
-                $(api.column(14).footer()).html(sumTotalMinProd.toFixed(2));
+                $(api.column(15).footer()).html(formattedEarning);
+                $(api.column(16).footer()).html(sumTotalMinProd.toFixed(2));
             }
         });
 
@@ -376,12 +415,12 @@
                     if (res["status"] == "success") {
                         let success = "";
                         res["tanggalSuccess"].forEach(element => {
-                            success += "Tanggal "+element+" Success <br>"
+                            success += "Tanggal " + element + " Success <br>"
                         });
 
                         let unavailable = "";
                         res["tanggalUnavailable"].forEach(element => {
-                            unavailable += "Tanggal "+element+" Not Found <br>"
+                            unavailable += "Tanggal " + element + " Not Found <br>"
                         });
 
                         console.log(success + unavailable);

@@ -166,6 +166,8 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
         $totalOutput = collect($data)->sum('tot_output');
         $totalMinsAvail = collect($data)->sum('mins_avail');
         $totalEarningRupiah = collect($data)->sum('tot_earning_rupiah');
+        $formattedEarningRupiah = 'Rp ' . number_format($totalEarningRupiah, 2, ',', '.');
+
         $totalMinsProd = collect($data)->sum('mins_prod');
 
         return view(
@@ -178,7 +180,7 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
                 'totalTarget' => $totalTarget,
                 'totalOutput' => $totalOutput,
                 'totalMinsAvail' => $totalMinsAvail,
-                'totalEarningRupiah' => $totalEarningRupiah,
+                'totalEarningRupiah' => $formattedEarningRupiah,
                 'totalMinsProd' => $totalMinsProd
             ]
         );
