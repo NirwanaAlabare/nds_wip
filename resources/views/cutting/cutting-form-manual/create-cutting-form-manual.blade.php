@@ -168,7 +168,7 @@
                             $totalCutQty = 0;
                             $totalCutQtyPly = 0;
                         @endphp
-                        <div class="table-responsive ? 'd-none' : '' }}">
+                        <div class="table-responsive">
                             <table id="ratio-datatable" class="table table-bordered table-striped table w-100">
                                 <thead>
                                     <tr>

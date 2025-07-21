@@ -147,7 +147,7 @@
                             <li class="nav-item dropdown">
                                 <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                                     class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed
-                                    Form</a>
+                                </a>
                                 <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                     <li>
                                         <a href="{{ route('manage-cutting') }}"
@@ -238,7 +238,7 @@
                                 <li>
                                     <a href="{{ route('piping-stock') }}"
                                         class="dropdown-item {{ $routeName == 'piping-stock' ? 'active' : '' }}">
-                                        Stock <i class="fa-solid fa-toolbox"></i>
+                                        Stock <i class="fa-solid fa-receipt"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -261,12 +261,30 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-piece' ? 'active' : '' }}">Pcs</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('cutting-piece') }}"
+                                        class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
+                                        Form <i class="fa-solid fa-file-circle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li class="d-none">
+                                    <a href="{{ route('stock-cutting-piece') }}"
+                                        class="dropdown-item {{ $routeName == 'stock-cutting-piece' ? 'active' : '' }}">
+                                        Stocker <i class="fa-solid fa-receipt"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endrole
                     @role('superadmin')
                         <li class="nav-item">
                             <a href="{{ route('cutting-tools') }}"
                                 class="nav-link {{ $routeName == 'cutting-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
+                                <i class="fa-solid fa-toolbox"></i>
                             </a>
                         </li>
                     @endrole
@@ -317,7 +335,7 @@
                         <li class="nav-item">
                             <a href="{{ route('stocker-tools') }}"
                                 class="nav-link {{ $routeName == 'stocker-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
+                                <i class="fa-solid fa-toolbox"></i>
                             </a>
                         </li>
                     @endrole
@@ -493,7 +511,7 @@
                         <li class="nav-item">
                             <a href="{{ route('dc-tools') }}"
                                 class="nav-link {{ $routeName == 'dc-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
+                                <i class="fa-solid fa-toolbox"></i>
                             </a>
                         </li>
                     @endrole
@@ -673,7 +691,7 @@
                         <li class="nav-item">
                             <a href="{{ route('sewing-tools') }}"
                                 class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
-                                Tools
+                                <i class="fa-solid fa-toolbox"></i>
                             </a>
                         </li>
                     @endrole
@@ -1234,7 +1252,7 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}">Tools</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i class="fa-solid fa-toolbox"></i></a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('ppic_tools_adj_mut_output') }}"

@@ -881,7 +881,7 @@
         // END OF PROCESS ONE
 
         // PROCESS TWO :
-            // -Init Process Two-
+            // Init Process Two
             function initProcessTwo() {
                 initScan();
 

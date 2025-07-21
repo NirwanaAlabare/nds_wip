@@ -78,7 +78,11 @@ class CuttingFormRejectController extends Controller
 
         $noForm = "GR".$hari."-".$bulan."-".$urutan;
 
-        return $noForm;
+        $form = FormCutReject::create([
+            "no_form" => $noForm
+        ]);
+
+        return $form;
     }
 
     /**
@@ -90,6 +94,7 @@ class CuttingFormRejectController extends Controller
     public function store(Request $request)
     {
         $validatedRequest = $request->validate([
+            "id" => "required",
             "no_form" => "required",
             "tanggal" => "required",
             "act_costing_id" => "required",
@@ -103,8 +108,10 @@ class CuttingFormRejectController extends Controller
         ]);
 
         if ($validatedRequest) {
-            $storeFormCutReject = FormCutReject::create([
+            $storeFormCutReject = FormCutReject::updateOrCreate([
+                "id" => $validatedRequest["id"],
                 "no_form" => $validatedRequest["no_form"],
+            ],[
                 "tanggal" => $validatedRequest["tanggal"],
                 "act_costing_id" => $validatedRequest["act_costing_id"],
                 "act_costing_ws" => $validatedRequest["act_costing_ws"],
@@ -140,7 +147,8 @@ class CuttingFormRejectController extends Controller
                 if ($upsertFormCutRejectDetail) {
                     return array(
                         "status" => 200,
-                        "message" => "Form Ganti Reject Berhasil disimpan."
+                        "message" => "Form Ganti Reject Berhasil disimpan.",
+                        "redirect" => route("cutting-reject")
                     );
                 }
 

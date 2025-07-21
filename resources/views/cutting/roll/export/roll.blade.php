@@ -169,8 +169,68 @@
                 <td>{{ $item->lot }}</td>
                 <td>{{ $item->group_roll }}</td>
                 <td>{{ $item->status_roll }}</td>
-                @if ($item->status != 'extension complete')
-                    <td>{{ $latestStatus != 'extension complete' ? $item->qty_roll : $latestQty }}</td>
+                @if ($item->tipe_form_cut != "PIPING" && $item->tipe_form_cut != "PCS")
+                    @if ($item->status != 'extension complete')
+                        <td>{{ $latestStatus != 'extension complete' ? $item->qty_roll : $latestQty }}</td>
+                        <td>{{ $item->unit_roll }}</td>
+                        <td>{{ $item->berat_amparan }}</td>
+                        <td>{{ $item->est_amparan }}</td>
+                        <td>{{ $item->lembar_gelaran }}</td>
+                        <td>{{ $item->total_ratio }}</td>
+                        <td>{{ $item->qty_cut }}</td>
+                        <td>{{ $item->average_time }}</td>
+                        <td>{{ $item->sisa_gelaran }}</td>
+                        <td>{{ $latestStatus != 'extension complete' ? 0 : $latestSambungan }}</td>
+                        <td>{{ $currentSambunganRoll }}</td>
+                        <td>{{ $currentKepalaKain }}</td>
+                        <td>{{ $currentSisaTidakBisa }}</td>
+                        <td>{{ $currentReject }}</td>
+                        <td>{{ $latestStatus != 'extension complete' ? $item->piping : round(($item->piping+$latestPiping), 2) }}</td>
+                        <td>{{ $item->sisa_kain }}</td>
+                        <td>{{ $currentPemakaianLembar }}</td>
+                        <td>{{ $currentTotalPemakaian }}</td>
+                        <td>{{ $currentShortRoll }}</td>
+                        <td>{{ $currentShortRollPercentage }} %</td>
+                    @else
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>{{ $item->lembar_gelaran }}</td>
+                        <td>{{ $item->total_ratio }}</td>
+                        <td>{{ $item->qty_cut }}</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    @endif
+
+                    @php
+                        $latestKepalaKain = $currentKepalaKain;
+                        $latestSisaTidakBisa = $currentSisaTidakBisa;
+                        $latestReject = $currentReject;
+                        $latestPiping = $currentPiping;
+                        $latestSambungan = $item->sambungan;
+                        $latestSambunganRoll = $currentSambunganRoll;
+                        $latestPemakaianLembar = $currentPemakaianLembar;
+                        $latestTotalPemakaian = $currentTotalPemakaian;
+                        $latestShortRoll = $currentShortRoll;
+
+                        $latestStatus = $item->status;
+                        $latestQty = $item->qty_roll;
+                        $latestUnit = $item->unit_roll;
+                    @endphp
+                @else
+                    <td>{{ $item->qty_roll }}</td>
                     <td>{{ $item->unit_roll }}</td>
                     <td>{{ $item->berat_amparan }}</td>
                     <td>{{ $item->est_amparan }}</td>
@@ -179,57 +239,20 @@
                     <td>{{ $item->qty_cut }}</td>
                     <td>{{ $item->average_time }}</td>
                     <td>{{ $item->sisa_gelaran }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? 0 : $latestSambungan }}</td>
-                    <td>{{ $currentSambunganRoll }}</td>
-                    <td>{{ $currentKepalaKain }}</td>
-                    <td>{{ $currentSisaTidakBisa }}</td>
-                    <td>{{ $currentReject }}</td>
-                    <td>{{ $latestStatus != 'extension complete' ? $item->piping : round(($item->piping+$latestPiping), 2) }}</td>
+                    <td>{{ $item->sambungan }}</td>
+                    <td>{{ $item->sambungan_roll }}</td>
+                    <td>{{ $item->kepala_kain }}</td>
+                    <td>{{ $item->sisa_tidak_bisa }}</td>
+                    <td>{{ $item->reject }}</td>
+                    <td>{{ $item->piping }}</td>
                     <td>{{ $item->sisa_kain }}</td>
-                    <td>{{ $currentPemakaianLembar }}</td>
-                    <td>{{ $currentTotalPemakaian }}</td>
-                    <td>{{ $currentShortRoll }}</td>
-                    <td>{{ $currentShortRollPercentage }} %</td>
-                @else
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>{{ $item->lembar_gelaran }}</td>
-                    <td>{{ $item->total_ratio }}</td>
-                    <td>{{ $item->qty_cut }}</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <td>{{ $item->pemakaian_lembar }}</td>
+                    <td>{{ $item->total_pemakaian_roll}}</td>
+                    <td>{{ $item->short_roll }}</td>
+                    <td>{{ $item->short_roll_percentage }} %</td>
                 @endif
                 <td>{{ $item->operator }}</td>
             </tr>
-
-            @php
-                $latestKepalaKain = $currentKepalaKain;
-                $latestSisaTidakBisa = $currentSisaTidakBisa;
-                $latestReject = $currentReject;
-                $latestPiping = $currentPiping;
-                $latestSambungan = $item->sambungan;
-                $latestSambunganRoll = $currentSambunganRoll;
-                $latestPemakaianLembar = $currentPemakaianLembar;
-                $latestTotalPemakaian = $currentTotalPemakaian;
-                $latestShortRoll = $currentShortRoll;
-
-                $latestStatus = $item->status;
-                $latestQty = $item->qty_roll;
-                $latestUnit = $item->unit_roll;
-            @endphp
         @endforeach
     </tbody>
 

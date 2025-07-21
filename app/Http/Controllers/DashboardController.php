@@ -1813,7 +1813,7 @@ class DashboardController extends Controller
                         COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
                         COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
                         COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
-                        CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) no_cut,
+                        (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.no_form ELSE CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) END) no_cut,
                         COALESCE(UPPER(loading_line.nama_line), '-') line,
                         loading_line.tanggal_loading,
                         stocker_input.updated_at latest_update

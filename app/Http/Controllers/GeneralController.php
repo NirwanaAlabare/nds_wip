@@ -18,8 +18,13 @@ use App\Models\Piping;
 use App\Models\MasterPiping;
 use App\Models\PipingProcess;
 use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
+use App\Models\FormCutPiece;
+use App\Models\FormCutPieceDetail;
 use App\Models\FormCutReject;
+use App\Models\ScannedItem;
 use App\Models\LoadingLinePlan;
+use App\Models\Hris\MasterEmployee;
 use PDF;
 
 class GeneralController extends Controller
@@ -253,7 +258,7 @@ class GeneralController extends Controller
     public function getNumber(Request $request)
     {
         $number = DB::connection('mysql_sb')->select("
-                select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
+                select k.cons cons_ws, k.unit unit_cons_ws, sum(sd.qty) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
@@ -555,5 +560,295 @@ class GeneralController extends Controller
             'status' => 200,
             'message' => 'Berhasil memperbarui '.$marker.' data marker <br> Berhasil memperbarui '.$part.' data part <br> Berhasil memperbarui '.$cuttingPlan.' data cutting plan <br> Berhasil memperbarui '.$stocker.' data stocker <br> Berhasil memperbarui '.$stockerAdditional.' data stocker additional <br> Berhasil memperbarui '.$piping.' data piping <br> Berhasil memperbarui '.$masterPiping.' data master piping <br> Berhasil memperbarui '.$pipingProcess.' data piping process <br> Berhasil memperbarui '.$formCutReject.' data form cut reject <br> Berhasil memperbarui '.$loadingLinePlan.' data loading line plan',
         );
+    }
+
+    public function getScannedEmployee($id = 0)
+    {
+        $employee = MasterEmployee::select(
+                "enroll_id",
+                "employee_name",
+                "status_jabatan",
+                "department_name",
+                "nik"
+            )->
+            where("enroll_id", $id)->
+            first();
+
+        return $employee;
+    }
+
+    public function getScannedItem($id = 0, Request $request)
+    {
+        $newItemAdditional = "";
+        $itemAdditional = "";
+        if ($request->unit) {
+            $newItemAdditional .= " and whs_bppb_det.satuan = '".$request->unit."'";
+            $itemAdditional .= " and br.unit = '".$request->unit."'";
+        }
+
+        $newItem = DB::connection("mysql_sb")->select("
+            SELECT
+                whs_bppb_det.id_roll,
+                whs_bppb_det.item_desc detail_item,
+                whs_bppb_det.id_item,
+                whs_bppb_det.no_lot lot,
+                whs_bppb_det.no_roll roll,
+                whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
+                whs_bppb_det.satuan unit,
+                whs_bppb_det.qty_stok,
+                SUM(whs_bppb_det.qty_out) qty,
+                whs_bppb_det.satuan unit,
+                bji.rule_bom,
+                GROUP_CONCAT(DISTINCT so_det.id) as so_det_list,
+                GROUP_CONCAT(DISTINCT so_det.size) as size_list
+            FROM
+                whs_bppb_det
+                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN bom_jo_item bji ON bji.id_item = whs_bppb_det.id_item AND bji.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN so_det ON so_det.id = bji.id_so_det
+            WHERE
+                whs_bppb_det.id_roll = '".$id."'
+                AND whs_bppb_h.tujuan = 'Production - Cutting'
+                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                ".$newItemAdditional."
+            GROUP BY
+                whs_bppb_det.id_roll
+            LIMIT 1
+        ");
+        if ($newItem) {
+            $scannedItem = ScannedItem::selectRaw("
+                scanned_item.id,
+                scanned_item.id_roll,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                scanned_item.color,
+                scanned_item.lot,
+                scanned_item.roll,
+                scanned_item.roll_buyer,
+                scanned_item.qty,
+                scanned_item.qty_stok,
+                scanned_item.qty_in,
+                COALESCE(pemakaian.total_pemakaian, scanned_item.qty_pakai) qty_pakai,
+                scanned_item.unit,
+                scanned_item.berat_amparan,
+                scanned_item.so_det_list,
+                scanned_item.size_list
+            ")->leftJoin(DB::raw("
+                (
+                    select
+                        id_roll,
+                        max( qty_awal ) qty_awal,
+                        sum( total_pemakaian ) total_pemakaian
+                    from
+                        (
+                            SELECT
+                                id_roll,
+                                max( qty ) qty_awal,
+                                sum( total_pemakaian_roll + sisa_kain ) total_pemakaian
+                            FROM
+                                form_cut_input_detail
+                            WHERE
+                                id_roll = '".$id."'
+                            GROUP BY
+                                id_roll
+                            UNION
+                            SELECT
+                                id_roll,
+                                max( qty ) qty_awal,
+                                sum( piping + qty_sisa ) total_pemakaian
+                            FROM
+                                form_cut_piping
+                            WHERE
+                                id_roll = '".$id."'
+                            GROUP BY
+                                id_roll
+                        ) pemakaian
+                    group by
+                        id_roll
+                ) pemakaian
+            "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
+            where('scanned_item.id_roll', $id)->
+            where('scanned_item.id_item', $newItem[0]->id_item)->
+            first();
+            if ($scannedItem) {
+                $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
+
+                $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+                $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+                $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
+
+                if ($scannedItemUpdate) {
+                    $scannedItemUpdate->qty_stok = $newItemQtyStok;
+                    $scannedItemUpdate->qty_in = $newItemQty;
+                    $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->save();
+
+                    if ($scannedItemUpdate->qty > 0) {
+                        return json_encode($scannedItemUpdate);
+                    }
+                }
+
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                if ($formCutInputDetail) {
+                    return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
+                } else {
+                    $formCutPieceDetail = FormCutPieceDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                    if ($formCutPieceDetail) {
+                        return "Roll sudah terpakai di form '".($formCutPieceDetail->formCutPiece ? $formCutPieceDetail->formCutpiece->no_form : "-")."'";
+                    }
+                }
+            } else {
+                if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
+                    $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+                    $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+                    $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? 'METER' : $newItem[0]->unit;
+                } else {
+                    $newItemQtyStok = $newItem[0]->qty_stok;
+                    $newItemQty = $newItem[0]->qty;
+                    $newItemUnit = $newItem[0]->unit;
+                }
+
+                ScannedItem::create(
+                    [
+                        "id_roll" => $id,
+                        "id_item" => $newItem[0]->id_item,
+                        "color" => '-',
+                        "detail_item" => $newItem[0]->detail_item,
+                        "lot" => $newItem[0]->lot,
+                        "roll" => $newItem[0]->roll,
+                        "roll_buyer" => $newItem[0]->roll_buyer,
+                        "qty" => $newItemQty,
+                        "qty_stok" => $newItemQtyStok,
+                        "qty_in" => $newItemQty,
+                        "qty_pakai" => 0,
+                        "unit" => $newItemUnit,
+                        "rule_bom" => $newItem[0]->rule_bom,
+                        "so_det_list" => $newItem[0]->so_det_list,
+                        "size_list" => $newItem[0]->size_list
+                    ]
+                );
+            }
+
+            return json_encode($newItem ? $newItem[0] : null);
+        }
+
+        $item = DB::connection("mysql_sb")->select("
+            SELECT
+                br.id id_roll,
+                mi.id_item,
+                mi.itemdesc detail_item,
+                goods_code,
+                supplier,
+                bpbno_int,
+                pono,
+                invno,
+                ac.kpno,
+                roll_no roll,
+                roll_qty qty,
+                lot_no lot,
+                bpb.unit,
+                kode_rak
+            FROM
+                bpb_roll br
+                INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
+                INNER JOIN masteritem mi ON brh.id_item = mi.id_item
+                INNER JOIN bpb ON brh.bpbno = bpb.bpbno AND brh.id_jo = bpb.id_jo AND brh.id_item = bpb.id_item
+                INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
+                INNER JOIN so ON jd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
+            WHERE
+                br.id = '" . $id . "'
+                AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
+                ".$itemAdditional."
+            GROUP BY
+                br.id
+            LIMIT 1
+        ");
+        if ($item) {
+            $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $item[0]->id_item)->first();
+
+            if ($scannedItem) {
+
+                $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
+
+                if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
+                    $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                    $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+                    $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
+                } else {
+                    $newItemQtyStok = $newItem[0]->qty_stok;
+                    $newItemQty = $newItem[0]->qty;
+                    $newItemUnit = $newItem[0]->unit;
+                }
+
+                if ($scannedItemUpdate) {
+                    $scannedItemUpdate->qty_stok = $itemQtyStok;
+                    $scannedItemUpdate->qty_in = $itemQty;
+                    $scannedItemUpdate->qty = floatval(($itemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->save();
+
+                    if ($scannedItemUpdate->qty > 0) {
+                        return json_encode($scannedItemUpdate);
+                    }
+                }
+
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                if ($formCutInputDetail) {
+                    return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
+                }
+            } else {
+                $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+                $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? 'METER' : $item[0]->unit;
+
+                $itemData = ScannedItem::create(
+                    [
+                        "id_roll" => $id,
+                        "id_item" => $item[0]->id_item,
+                        "color" => '-',
+                        "detail_item" => $item[0]->detail_item,
+                        "lot" => $item[0]->lot,
+                        "roll" => $item[0]->roll,
+                        "roll_buyer" => $item[0]->roll_buyer,
+                        "qty" => $itemQty,
+                        "qty_stok" => $itemQtyStok,
+                        "qty_in" => $itemQty,
+                        "qty_pakai" => 0,
+                        "unit" => $itemUnit
+                    ]
+                );
+            }
+
+            return json_encode($item ? $item[0] : null);
+        }
+
+        return  null;
+    }
+
+    public function getItem(Request $request) {
+        $additional = "";
+        if ($request->unit) {
+            $additional .= " and k.unit = '".$request->unit."'";
+        }
+
+        $items = DB::connection("mysql_sb")->select("
+            select ac.id,ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno, mi.id_item, mi.itemdesc, k.unit, GROUP_CONCAT(DISTINCT sd.size ORDER BY sd.id ASC) sizes from jo_det jd
+            inner join (select * from so where so_date >= '2023-01-01') so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            inner join bom_jo_item k on jd.id_jo = k.id_jo
+            inner join masteritem mi on k.id_item = mi.id_gen
+            left join so_det sd on sd.id = k.id_so_det
+            where jd.cancel = 'N' and k.cancel = 'N' and mi.Mattype = 'F' and ac.id = '".$request->act_costing_id."'
+            ".$additional."
+            group by id_cost, k.id_item
+        ");
+
+        return json_encode($items ? $items : null);
     }
 }
