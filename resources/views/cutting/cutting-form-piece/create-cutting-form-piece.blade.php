@@ -886,7 +886,7 @@
 
                 document.getElementById("scan-method").classList.remove('d-none');
                 document.getElementById("to-scan").classList.remove('d-none');
-                $("#kode_barang").val("").trigger("change");
+                // $("#kode_barang").val("").trigger("change");
 
                 if (scanner) {
                     initScanItem();
@@ -903,7 +903,7 @@
 
                 document.getElementById("select-method").classList.remove('d-none');
                 document.getElementById("to-select").classList.remove('d-none');
-                $("#barang").val("").trigger("change");
+                // $("#barang").val("").trigger("change");
 
                 clearQrCodeScannerItem();
 
@@ -1235,6 +1235,7 @@
 
                 document.getElementById("group_roll").removeAttribute("readonly");
 
+                document.getElementById("kode_barang").value = item.id_roll ? item.id_roll : "";
                 document.getElementById("id_detail").value = item.id ? item.id : "";
                 document.getElementById("id_roll").value = item.id_roll ? item.id_roll : "";
                 document.getElementById("id_item").value = item.id_item ? item.id_item : "";

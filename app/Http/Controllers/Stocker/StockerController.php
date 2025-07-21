@@ -96,6 +96,8 @@ class StockerController extends Controller
                     part_form.id IS NOT NULL
                     AND form_cut_input.tgl_form_cut >= DATE (NOW()- INTERVAL 2 YEAR)
                     ".$additionalQuery."
+                GROUP BY
+                    form_cut_input.id
                 UNION
 
                 SELECT
@@ -131,6 +133,8 @@ class StockerController extends Controller
                     part_form.id IS NOT NULL
                     AND form_cut_piece.tanggal >= DATE (NOW()- INTERVAL 2 YEAR)
                     ".$additionalQuery1."
+                GROUP BY
+                    form_cut_piece.id
             ");
 
             return Datatables::of($formCutInputs)->toJson();
@@ -4761,7 +4765,7 @@ class StockerController extends Controller
         if ($request->stocker) {
             $stockerData = Stocker::selectRaw("
                     stocker_input.id_qr_stocker,
-                    COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                    COALESCE(form_cut_input.id. form_cut_piece.id, form_cut_reject.id) form_cut_id,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
                     part.act_costing_id,
@@ -4769,7 +4773,7 @@ class StockerController extends Controller
                     stocker_input.color,
                     stocker_input.size,
                     master_part.nama_part part,
-                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
+                    COALESCE(form_cut_input.no_form. form_cut_piece.no_form, form_cut_reject.no_form) no_form,
                     (
                         (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
                         (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
@@ -4781,13 +4785,14 @@ class StockerController extends Controller
                     ) qty,
                     stocker_input.range_awal,
                     stocker_input.range_akhir,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                 ")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                 leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                 leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+                leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
                 leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
@@ -4831,7 +4836,7 @@ class StockerController extends Controller
     }
 
     public function getStockerYearSequence(Request $request) {
-        $yearSequenceFormFilter = $request->tipe == 'NORMAL' ? "year_sequence.form_cut_id = '".$request->form_cut_id."' and" : "year_sequence.form_reject_id = '".$request->form_cut_id."' and";
+        $yearSequenceFormFilter = $request->tipe == 'PIECE' ? "year_sequence.form_piece_id = '".$request->form_cut_id."' and" : ($request->tipe == 'REJECT' ? "year_sequence.form_reject_id = '".$request->form_cut_id."' and" : "year_sequence.form_cut_id = '".$request->form_cut_id."' and");
 
         $stockerListNumber = YearSequence::selectRaw("
                 year_sequence.id_year_sequence,
@@ -4866,7 +4871,7 @@ class StockerController extends Controller
                 ")->
                 where("month_count.month_year", $monthYear)->
                 whereRaw('number IS NOT NULL')->
-                whereRaw('form_cut_id IS NOT NULL')->
+                whereRaw('(form_cut_id IS NOT NULL OR form_piece_id IS NOT NULL OR form_reject_id IS NOT NULL)')->
                 whereRaw('so_det_id IS NOT NULL')->
                 orderBy('month_year_number', 'desc')->
                 first();
@@ -5055,7 +5060,7 @@ class StockerController extends Controller
     }
 
     public function modifyYearSequenceUpdate(Request $request) {
-        $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.form_reject_id,  stocker_input.so_det_id, stocker_input.size, stocker_input.range_akhir, (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
+        $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id, stocker_input.so_det_id, stocker_input.size, stocker_input.range_akhir, (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
 
         $request->size = $stocker ? $stocker->so_det_id : $request->size;
         $request->size_text = $stocker ? $stocker->size : $request->size_text;

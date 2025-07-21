@@ -46,7 +46,7 @@ class TrolleyStockerController extends Controller
                         SELECT
                             stocker_input.id,
                             stocker_input.so_det_id,
-                            (CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) form_cut_id,
+                            (CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END) form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.color,
                             COALESCE (
@@ -67,6 +67,7 @@ class TrolleyStockerController extends Controller
                             stocker_input
                             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                             LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                            LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                             LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -77,6 +78,7 @@ class TrolleyStockerController extends Controller
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
@@ -112,9 +114,9 @@ class TrolleyStockerController extends Controller
                     trolley_stocker.id,
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                     stocker_input.color,
                     CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -129,6 +131,7 @@ class TrolleyStockerController extends Controller
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                 leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+                leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -136,7 +139,7 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $request->trolley_id)->
                 where('trolley_stocker.status', "active")->
                 // where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio');
+                groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio');
 
             return DataTables::eloquent($trolley)->
                 filterColumn('id', function($query, $keyword) {
@@ -149,10 +152,10 @@ class TrolleyStockerController extends Controller
                     $query->whereRaw("stocker_input.act_costing_ws LIKE '%".$keyword."%'");
                 })->
                 filterColumn('no_cut', function($query, $keyword) {
-                    $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
+                    $query->whereRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('style', function($query, $keyword) {
-                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) LIKE '%".$keyword."%'");
+                    $query->whereRaw("(CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
@@ -184,9 +187,9 @@ class TrolleyStockerController extends Controller
                     trolley_stocker.id,
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                     stocker_input.color,
                     CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
@@ -201,6 +204,7 @@ class TrolleyStockerController extends Controller
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                 leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+                leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -221,10 +225,10 @@ class TrolleyStockerController extends Controller
                     $query->whereRaw("stocker_input.act_costing_ws LIKE '%".$keyword."%'");
                 })->
                 filterColumn('no_cut', function($query, $keyword) {
-                    $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
+                    $query->whereRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('style', function($query, $keyword) {
-                    $query->whereRaw("(CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) LIKE '%".$keyword."%'");
+                    $query->whereRaw("(CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) LIKE '%".$keyword."%'");
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
@@ -273,7 +277,7 @@ class TrolleyStockerController extends Controller
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
 
         $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, trolley.nama_trolley, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
-            where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+            where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
             leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
@@ -342,7 +346,7 @@ class TrolleyStockerController extends Controller
         $storeTrolleyStock = TrolleyStocker::upsert($trolleyStockArr, ['stocker_id'], ['trolley_id', 'status', 'tanggal_alokasi', 'created_at', 'updated_at', 'created_by', 'created_by_username']);
 
         if (count($trolleyStockArr) > 0) {
-            $updateStocker = Stocker::where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+            $updateStocker = Stocker::where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("so_det_id", $stockerData->so_det_id)->
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
@@ -394,7 +398,7 @@ class TrolleyStockerController extends Controller
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
         $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
-            where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+            where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
             leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
@@ -459,7 +463,7 @@ class TrolleyStockerController extends Controller
         $storeTrolleyStock = TrolleyStocker::upsert($trolleyStockArr, ['stocker_id'], ['trolley_id', 'status', 'tanggal_alokasi', 'created_at', 'updated_at', 'created_by', 'created_by_username']);
 
         if (count($trolleyStockArr) > 0) {
-            $updateStocker = Stocker::where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+            $updateStocker = Stocker::where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("so_det_id", $stockerData->so_det_id)->
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
@@ -548,6 +552,8 @@ class TrolleyStockerController extends Controller
         $deleteTrolleyStock = TrolleyStocker::leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
             whereRaw("trolley_stocker.trolley_id = '".$getTrolleyStockData->trolley_id."'")->
             whereRaw("stocker_input.form_cut_id = '".$stockerData->form_cut_id."'")->
+            whereRaw("stocker_input.form_reject_id = '".$stockerData->form_reject_id."'")->
+            whereRaw("stocker_input.form_piece_id = '".$stockerData->form_piece_id."'")->
             whereRaw("stocker_input.so_det_id = '".$stockerData->so_det_id."'")->
             whereRaw("stocker_input.group_stocker = '".$stockerData->group_stocker."'")->
             whereRaw("stocker_input.ratio = '".$stockerData->ratio."'")->
@@ -555,6 +561,8 @@ class TrolleyStockerController extends Controller
 
         if ($deleteTrolleyStock) {
             $updateStocker = Stocker::where("stocker_input.form_cut_id", $stockerData->form_cut_id)->
+                where("stocker_input.form_reject_id", $stockerData->form_reject_id)->
+                where("stocker_input.form_piece_id", $stockerData->form_piece_id)->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
@@ -605,9 +613,9 @@ class TrolleyStockerController extends Controller
                 GROUP_CONCAT(DISTINCT stocker_input.id ORDER BY stocker_input.id ASC) stocker_id,
                 GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                 stocker_input.act_costing_ws,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) style,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                 COALESCE(master_sb_ws.size, stocker_input.size) size,
@@ -622,6 +630,7 @@ class TrolleyStockerController extends Controller
             leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -629,7 +638,7 @@ class TrolleyStockerController extends Controller
             where('trolley_id', $id)->
             where('trolley_stocker.status', 'active')->
             where('stocker_input.status', "!=", "line")->
-            groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+            groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
             get();
 
         return view('dc.trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleys' => $trolleys, 'trolleyStocks' => $trolleyStocks]);
@@ -711,11 +720,11 @@ class TrolleyStockerController extends Controller
                             $storeLoadingPlan = LoadingLinePlan::create([
                                 "line_id" => $lineData['line_id'],
                                 "kode" => $kodeLoadingPlan,
-                                "act_costing_id" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->id_act_cost : $thisStockerData->formReject->act_costing_id),
-                                "act_costing_ws" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->ws : $thisStockerData->formReject->act_costing_ws),
-                                "buyer" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->buyer : $thisStockerData->formReject->buyer),
-                                "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->styleno : $thisStockerData->formReject->style),
-                                "color" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : $thisStockerData->formReject->color),
+                                "act_costing_id" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->id_act_cost : ($thisStockerData->formPiece->act_costing_id ? $thisStockerData->formPiece->act_costing_id : $thisStockerData->formReject->act_costing_id)),
+                                "act_costing_ws" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->ws : ($thisStockerData->formPiece->act_costing_ws ? $thisStockerData->formPiece->act_costing_ws : $thisStockerData->formReject->act_costing_ws)),
+                                "buyer" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->buyer : ($thisStockerData->formPiece->buyer ? $thisStockerData->formPiece->buyer : $thisStockerData->formReject->buyer)),
+                                "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->styleno : ($thisStockerData->formPiece->style ? $thisStockerData->formPiece->style : $thisStockerData->formReject->style)),
+                                "color" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : ($thisStockerData->formPiece->color ? $thisStockerData->formPiece->color : $thisStockerData->formReject->color)),
                                 "tanggal" => $request['tanggal_loading'],
                                 "created_by" => Auth::user()->id,
                                 "created_by_username" => Auth::user()->username,
@@ -814,13 +823,14 @@ class TrolleyStockerController extends Controller
                 stocker_input.status,
                 trolley_stocker.id trolley_stock_id,
                 loading_line.id line_id,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) no_cut,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.buyer ELSE marker_input.buyer END) buyer,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) style,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.buyer ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.buyer ELSE marker_input.buyer END) END) buyer,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE marker_input.style END) END) style,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
             ")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
             leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
             leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->

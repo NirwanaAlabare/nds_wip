@@ -443,7 +443,7 @@
                         document.getElementById('txtshell').value = response.panel;
                         document.getElementById('txtnocut').value = response.no_cut;
                         document.getElementById('txtsize').value = response.size;
-                        document.getElementById('txtgroup').value = response.grouplot;
+                        document.getElementById('txtgroup').value = response.shade;
                         document.getElementById('txtqtyply_h').value = response.qty_ply;
                         document.getElementById('txtrange_awal').value = response.range_awal;
                         document.getElementById('txtrange_akhir').value = response.range_akhir;

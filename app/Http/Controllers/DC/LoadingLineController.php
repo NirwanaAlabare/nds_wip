@@ -107,6 +107,7 @@ class LoadingLineController extends Controller
                             loading_line.loading_plan_id,
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.range_awal
@@ -134,6 +135,7 @@ class LoadingLineController extends Controller
                                 GROUP BY
                                     stocker_input.form_cut_id,
                                     stocker_input.form_reject_id,
+                                    stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
                                     stocker_input.group_stocker,
                                     stocker_input.range_awal
@@ -292,6 +294,7 @@ class LoadingLineController extends Controller
                                 loading_line.tanggal_loading,
                                 stocker_input.form_cut_id,
                                 stocker_input.form_reject_id,
+                                stocker_input.form_piece_id,
                                 stocker_input.so_det_id,
                                 stocker_input.group_stocker,
                                 stocker_input.range_awal
@@ -319,6 +322,7 @@ class LoadingLineController extends Controller
                                     GROUP BY
                                         stocker_input.form_cut_id,
                                         stocker_input.form_reject_id,
+                                        stocker_input.form_piece_id,
                                         stocker_input.so_det_id,
                                         stocker_input.group_stocker,
                                         stocker_input.range_awal
@@ -431,6 +435,8 @@ class LoadingLineController extends Controller
             leftJoin("loading_line", "loading_line.loading_plan_id", "=", "loading_line_plan.id")->
             leftJoin("stocker_input", "stocker_input.id", "loading_line.stocker_id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             groupBy("loading_line_plan.id");
 
             return DataTables::eloquent($line)
@@ -478,7 +484,7 @@ class LoadingLineController extends Controller
                 stocker_input.group_stocker,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
-                (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                 loading_line_plan.act_costing_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.buyer,
@@ -486,8 +492,8 @@ class LoadingLineController extends Controller
                 loading_line_plan.color,
                 loading_line_plan.line_id,
                 COALESCE(loading_line.no_bon, '-') no_bon,
-                COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                COALESCE(form_cut_input.no_cut, '-') no_cut,
+                COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
+                COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut,  '-') no_cut,
                 DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
                 users.username as user
             FROM
@@ -496,6 +502,7 @@ class LoadingLineController extends Controller
                 LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                 LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                 LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                 LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                 LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -512,6 +519,7 @@ class LoadingLineController extends Controller
                 loading_line.tanggal_loading,
                 stocker_input.form_cut_id,
                 stocker_input.form_reject_id,
+                stocker_input.form_piece_id,
                 stocker_input.so_det_id,
                 stocker_input.range_awal
         "));
@@ -713,6 +721,7 @@ class LoadingLineController extends Controller
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
@@ -822,6 +831,7 @@ class LoadingLineController extends Controller
                     GROUP BY
                         stocker_input.form_cut_id,
                         stocker_input.form_reject_id,
+                        stocker_input.form_piece_id,
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
                         stocker_input.ratio
@@ -982,6 +992,7 @@ class LoadingLineController extends Controller
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
@@ -1024,7 +1035,7 @@ class LoadingLineController extends Controller
 
             $allStockerIds = [];
             foreach($stockerDatas as $stockerData) {
-                $similarStockerData = Stocker::where(($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+                $similarStockerData = Stocker::where(($stockerData->form_piece_id ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id ? $stockerdata->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                     where("so_det_id", $stockerData->so_det_id)->
                     where("group_stocker", $stockerData->group_stocker)->
                     where("ratio", $stockerData->ratio)->
@@ -1058,7 +1069,7 @@ class LoadingLineController extends Controller
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 whereIn("stocker_input.id", $allStockerIds)->
-                groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+                groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
                 get();
 
             return DataTables::of($loadingLines)->toJson();
@@ -1078,7 +1089,7 @@ class LoadingLineController extends Controller
         foreach($stockerDatas as $stockerData) {
             $similarStockerData = Stocker::selectRaw("loading_line.id")->
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                where(($stockerData->form_reject_id > 0 ? "stocker_input.form_reject_id" : "stocker_input.form_cut_id"), ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id))->
+                where(($stockerData->form_piece_id > 0 ? "stocker_input.form_piece_id" : ($stockerData->form_reject_id > 0 ? "stocker_input.form_reject_id" : "stocker_input.form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->

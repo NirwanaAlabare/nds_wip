@@ -26,13 +26,16 @@ class ReportCuttingController extends Controller
     {
         if ($request->ajax()) {
             $additionalQuery = "";
+            $additionalQuery1 = "";
 
             if ($request->dateFrom) {
                 $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '".$request->dateFrom."'";
             }
 
             if ($request->dateTo) {
                 $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '".$request->dateTo."'";
             }
 
             $keywordQuery = "";
@@ -110,6 +113,43 @@ class ReportCuttingController extends Controller
                     marker_input.id,
                     marker_input_detail.so_det_id,
                     form_cut.tgl_form_cut
+                UNION
+                SELECT
+                    null as kode,
+                    form_cut_piece.no_form,
+                    null as meja,
+                    form_cut_piece.tanggal as tgl_form_cut,
+                    form_cut_piece.buyer,
+                    form_cut_piece.act_costing_id,
+                    form_cut_piece.act_costing_ws,
+                    form_cut_piece.style,
+                    form_cut_piece.color,
+                    form_cut_piece.panel,
+                    form_cut_piece.cons_ws,
+                    'PCS' unit,
+                    form_cut_piece_detail_size.so_det_id,
+                    CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                    1 as ratio,
+                    'PCS' notes,
+                    SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                    SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                    SUM(form_cut_piece_detail_size.qty) form_gelar,
+                    null form_diff
+                FROM
+                    form_cut_piece
+                    INNER JOIN
+                        form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                    INNER JOIN
+                        form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                    INNER JOIN
+                        master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                where
+                    form_cut_piece_detail_size.qty > 0
+                    ".$additionalQuery1."
+                group by
+                    form_cut_piece.id,
+                    form_cut_piece_detail_size.so_det_id,
+                    form_cut_piece.tanggal
             ");
 
             return DataTables::of($reportCutting)->toJson();
@@ -121,46 +161,58 @@ class ReportCuttingController extends Controller
     public function totalCutting(Request $request)
     {
         $additionalQuery = "";
+        $additionalQueryPcs = "";
         $additionalQuery1 = "";
+        $additionalQueryPcs1 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
+            $additionalQueryPcs .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '".$request->dateFrom."'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
+            $additionalQueryPcs .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '".$request->dateTo."'";
         }
 
         if ($request->tgl_form_cut) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) LIKE '%".$request->tgl_form_cut."%'";
+            $additionalQueryPcs .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) LIKE '%".$request->tgl_form_cut."%'";
         }
 
         if ($request->buyer) {
             $additionalQuery1 .= " and marker_input.buyer LIKE '%".$request->buyer."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.buyer LIKE '%".$request->buyer."%'";
         }
 
         if ($request->ws) {
             $additionalQuery1 .= " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.act_costing_ws LIKE '%".$request->ws."%'";
         }
 
         if ($request->style) {
             $additionalQuery1 .= " and marker_input.style LIKE '%".$request->style."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.style LIKE '%".$request->style."%'";
         }
 
         if ($request->color) {
             $additionalQuery1 .= " and marker_input.color LIKE '%".$request->color."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.color LIKE '%".$request->color."%'";
         }
 
         if ($request->panel) {
             $additionalQuery1 .= " and marker_input.panel LIKE '%".$request->panel."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.panel LIKE '%".$request->panel."%'";
         }
 
         if ($request->size) {
             $additionalQuery1 .= " and marker_input_detail.buyer LIKE '%".$request->size."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.buyer LIKE '%".$request->size."%'";
         }
 
         if ($request->notes) {
             $additionalQuery1 .= " and (form_cut.notes LIKE '%".$request->notes."%' or marker_input.notes LIKE '%".$request->notes."%')";
+            $additionalQueryPcs1 .= " and ('PCS' LIKE '%".$request->notes."%')";
         }
 
         $reportCutting = DB::select("
@@ -231,6 +283,44 @@ class ReportCuttingController extends Controller
                         marker_input.id,
                         marker_input_detail.so_det_id,
                         form_cut.tgl_form_cut
+                    UNION
+                    SELECT
+                        null as kode,
+                        form_cut_piece.no_form,
+                        null as meja,
+                        form_cut_piece.tanggal as tgl_form_cut,
+                        form_cut_piece.buyer,
+                        form_cut_piece.act_costing_id,
+                        form_cut_piece.act_costing_ws,
+                        form_cut_piece.style,
+                        form_cut_piece.color,
+                        form_cut_piece.panel,
+                        form_cut_piece.cons_ws,
+                        'PCS' unit,
+                        form_cut_piece_detail_size.so_det_id,
+                        CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                        1 as ratio,
+                        'PCS' notes,
+                        SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                        SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                        SUM(form_cut_piece_detail_size.qty) form_gelar,
+                        null form_diff
+                    FROM
+                        form_cut_piece
+                        INNER JOIN
+                            form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                        INNER JOIN
+                            form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                        INNER JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                    where
+                        form_cut_piece_detail_size.qty > 0
+                        ".$additionalQueryPcs."
+                        ".$additionalQueryPcs1."
+                    group by
+                        form_cut_piece.id,
+                        form_cut_piece_detail_size.so_det_id,
+                        form_cut_piece.tanggal
                 ) marker_cutting
             ");
 
@@ -618,13 +708,16 @@ class ReportCuttingController extends Controller
     public function cuttingDaily(Request $request) {
         if ($request->ajax()) {
             $additionalQuery = "";
+            $additionalQuery1 = "";
 
             if ($request->dateFrom) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '".$request->dateFrom."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) >= '".$request->dateFrom."'";
             }
 
             if ($request->dateTo) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '".$request->dateTo."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) <= '".$request->dateTo."'";
             }
 
             $keywordQuery = "";
@@ -721,6 +814,47 @@ class ReportCuttingController extends Controller
                             form_cut.tgl_form_cut,
                             form_cut.meja,
                             form_cut.id
+                        UNION
+                        SELECT
+                            null as kode,
+                            form_cut_piece.no_form no_form_meja,
+                            form_cut_piece.id form_cut_id,
+                            form_cut_piece.no_form,
+                            '-' id_meja,
+                            form_cut_piece.employee_name meja,
+                            form_cut_piece.tanggal tgl_form_cut,
+                            form_cut_piece.buyer,
+                            form_cut_piece.act_costing_id,
+                            form_cut_piece.act_costing_ws,
+                            form_cut_piece.style,
+                            form_cut_piece.color,
+                            form_cut_piece.panel,
+                            form_cut_piece.cons_ws,
+                            'PCS' unit,
+                            form_cut_piece_detail_size.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            1 ratio,
+                            'PCS' notes,
+                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                            null diff
+                        FROM
+                            form_cut_piece
+                            INNER JOIN
+                                form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                            INNER JOIN
+                                form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                            INNER JOIN
+                                master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                        where
+                            form_cut_piece_detail_size.qty > 0
+                            ".$additionalQuery1."
+                        group by
+                            form_cut_piece_detail_size.so_det_id,
+                            form_cut_piece.tanggal,
+                            form_cut_piece.employee_name,
+                            form_cut_piece.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,
@@ -746,46 +880,65 @@ class ReportCuttingController extends Controller
 
     public function totalCuttingDaily(Request $request) {
         $additionalQuery = "";
+        $additionalQuery1 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '".$request->dateFrom."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) >= '".$request->dateFrom."'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '".$request->dateTo."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) <= '".$request->dateTo."'";
         }
 
         $tanggalFilter = "";
+        $tanggalFilter1 = "";
         if ($request->tanggal) {
             $tanggalFilter = " and form_cut.tgl_form_cut LIKE '%".$request->tanggal."%'";
+            $tanggalFilter1 = " and form_cut_piece.tgl_form_cut LIKE '%".$request->tanggal."%'";
         }
         $noMejaFilter = "";
+        $noMejaFilter1 = "";
         if ($request->noMeja) {
             $noMejaFilter = " and form_cut.meja LIKE '%".$request->noMeja."%'";
+            $noMejaFilter1 = " and form_cut_piece.employee_name LIKE '%".$request->noMeja."%'";
         }
         $buyerFilter = "";
+        $buyerFilter1 = "";
         if ($request->buyer) {
             $buyerFilter = " and marker_input.buyer LIKE '%".$request->buyer."%'";
+            $buyerFilter1 = " and form_cut_piece.buyer LIKE '%".$request->buyer."%'";
         }
         $noFormFilter = "";
+        $noFormFilter1 = "";
         if ($request->noForm) {
             $noFormFilter = " and form_cut.no_form LIKE '%".$request->noForm."%'";
+            $noFormFilter1 = " and form_cut_piece.no_form LIKE '%".$request->noForm."%'";
         }
         $wsFilter = "";
+        $wsFilter1 = "";
         if ($request->ws) {
             $wsFilter = " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
+            $wsFilter1 = " and form_cut_piece.act_costing_ws LIKE '%".$request->ws."%'";
         }
         $styleFilter = "";
+        $styleFilter1 = "";
         if ($request->style) {
             $styleFilter = " and marker_input.style LIKE '%".$request->style."%'";
+            $styleFilter1 = " and form_cut_piece.style LIKE '%".$request->style."%'";
         }
         $colorFilter = "";
+        $colorFilter1 = "";
         if ($request->color) {
             $colorFilter = " and marker_input.color LIKE '%".$request->color."%'";
+            $colorFilter1 = " and form_cut_piece.color LIKE '%".$request->color."%'";
         }
         $panelFilter = "";
+        $panelFilter1 = "";
         if ($request->panel) {
             $panelFilter = " and marker_input.panel LIKE '%".$request->panel."%'";
+            $panelFilter1 = " and form_cut_piece.panel LIKE '%".$request->panel."%'";
         }
 
         $reportCutting = collect(
@@ -876,6 +1029,47 @@ class ReportCuttingController extends Controller
                             form_cut.tgl_form_cut,
                             form_cut.meja,
                             form_cut.id
+                        UNION
+                        SELECT
+                            null as kode,
+                            form_cut_piece.no_form no_form_meja,
+                            form_cut_piece.id form_cut_id,
+                            form_cut_piece.no_form,
+                            '-' id_meja,
+                            form_cut_piece.employee_name meja,
+                            form_cut_piece.tanggal tgl_form_cut,
+                            form_cut_piece.buyer,
+                            form_cut_piece.act_costing_id,
+                            form_cut_piece.act_costing_ws,
+                            form_cut_piece.style,
+                            form_cut_piece.color,
+                            form_cut_piece.panel,
+                            form_cut_piece.cons_ws,
+                            'PCS' unit,
+                            form_cut_piece_detail_size.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            1 ratio,
+                            'PCS' notes,
+                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                            null diff
+                        FROM
+                            form_cut_piece
+                            INNER JOIN
+                                form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                            INNER JOIN
+                                form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                            INNER JOIN
+                                master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                        where
+                            form_cut_piece_detail_size.qty > 0
+                            ".$additionalQuery1."
+                        group by
+                            form_cut_piece_detail_size.so_det_id,
+                            form_cut_piece.tanggal,
+                            form_cut_piece.employee_name,
+                            form_cut_piece.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,

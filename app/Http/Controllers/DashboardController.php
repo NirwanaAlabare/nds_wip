@@ -1795,7 +1795,7 @@ class DashboardController extends Controller
                 $dc = Stocker::selectRaw("
                         stocker_input.id stocker_id,
                         stocker_input.id_qr_stocker,
-                        (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
                         stocker_input.size,
@@ -1813,13 +1813,14 @@ class DashboardController extends Controller
                         COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
                         COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
                         COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
-                        (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.no_form ELSE CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) END) no_cut,
+                        (CASE WHEN stocker_input.form_piece_id THEN CONCAT(form_cut_piece.no_form, ' / ', form_cut_piece.no_cut) ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.no_form ELSE CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) END) END) no_cut,
                         COALESCE(UPPER(loading_line.nama_line), '-') line,
                         loading_line.tanggal_loading,
                         stocker_input.updated_at latest_update
                     ")->
                     leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                     leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+                    leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
                     leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
                     leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                     leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
@@ -1829,12 +1830,13 @@ class DashboardController extends Controller
                     leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                     leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                     leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                    whereRaw("(MONTH(form_cut_input.waktu_selesai) = '".$month."' OR MONTH(form_cut_reject.updated_at) = '".$month."')")->
-                    whereRaw("(YEAR(form_cut_input.waktu_selesai) = '".$year."' OR YEAR(form_cut_reject.updated_at) = '".$year."')")->
-                    whereRaw("(form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_reject.tanggal >= DATE(NOW()-INTERVAL 6 MONTH))")->
+                    whereRaw("(MONTH(form_cut_input.waktu_selesai) = '".$month."' OR MONTH(form_cut_reject.updated_at) = '".$month."' OR MONTH(form_cut_piece.updated_at) = '".$month."')")->
+                    whereRaw("(YEAR(form_cut_input.waktu_selesai) = '".$year."' OR YEAR(form_cut_reject.updated_at) = '".$year."' OR YEAR(form_cut_piece.updated_at) = '".$year."')")->
+                    whereRaw("(form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_reject.tanggal >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_piece.tanggal >= DATE(NOW()-INTERVAL 6 MONTH))")->
                     orderBy("stocker_input.act_costing_ws", "asc")->
                     orderBy("stocker_input.color", "asc")->
                     orderBy("form_cut_input.no_cut", "asc")->
+                    orderBy("form_cut_piece.no_cut", "asc")->
                     orderBy("master_part.nama_part", "asc")->
                     orderBy("stocker_input.so_det_id", "asc")->
                     orderBy("stocker_input.shade", "desc")->
