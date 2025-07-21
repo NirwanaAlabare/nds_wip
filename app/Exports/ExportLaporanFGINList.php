@@ -6,104 +6,75 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Events\AfterSheet;
-use Maatwebsite\Excel\Sheet;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use DB;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Illuminate\Support\Facades\DB;
 
-Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
-    $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
-});
-
-// class ExportLaporanPemakaian implements FromCollection
-// {
-//     /**
-//      * @return \Illuminate\Support\Collection
-//      */
-//     public function collection()
-//     {
-//         return Marker::all();
-//     }
-// }
-
-class ExportLaporanFGINList implements FromView, WithEvents, ShouldAutoSize
+class ExportLaporanFGINList implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
 
-
-    protected $from, $to;
+    protected $from, $to, $rowCount;
 
     public function __construct($from, $to)
     {
-
         $this->from = $from;
         $this->to = $to;
-        $this->rowCount = 0;
     }
 
-
     public function view(): View
-
     {
-        $data = DB::select("SELECT
-no_sb,
-tgl_penerimaan,
-concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
-            ) tgl_penerimaan_fix,
-a.po,
-a.barcode,
-a.id_so_det,
-buyer,
-ws,
-color,
-size,
-a.qty,
-m.dest,
-a.no_carton,
-a.notes,
-a.created_at,
-a.created_by
-from fg_fg_in a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where tgl_penerimaan >= '$this->from' and tgl_penerimaan <= '$this->to' and a.status = 'NORMAL'
-order by a.created_at desc
-        ");
+        $data = DB::select("
+            SELECT
+                no_sb,
+                tgl_penerimaan,
+                CONCAT(DATE_FORMAT(a.tgl_penerimaan, '%d'), '-', LEFT(DATE_FORMAT(a.tgl_penerimaan, '%M'), 3), '-', DATE_FORMAT(a.tgl_penerimaan, '%Y')) AS tgl_penerimaan_fix,
+                a.po,
+                a.barcode,
+                a.id_so_det,
+                buyer,
+                ws,
+                color,
+                size,
+                a.qty,
+                m.dest,
+                a.no_carton,
+                a.notes,
+                a.created_at,
+                a.created_by
+            FROM fg_fg_in a
+            INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+            INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
+            WHERE tgl_penerimaan >= ? AND tgl_penerimaan <= ? AND a.status = 'NORMAL'
+            ORDER BY a.created_at DESC
+        ", [$this->from, $this->to]);
 
-
-        $this->rowCount = count($data) + 4;
-
+        $this->rowCount = count($data) + 1; // 1 for header
 
         return view('finish_good.export_finish_good_penerimaan_list', [
             'data' => $data,
             'from' => $this->from,
-            'to' => $this->to
+            'to' => $this->to,
         ]);
     }
 
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => [self::class, 'afterSheet']
-        ];
-    }
-
-
-
-    public static function afterSheet(AfterSheet $event)
-    {
-
-        $event->sheet->styleCells(
-            'A4:N' . $event->getConcernable()->rowCount,
-            [
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['argb' => '000000'],
+            AfterSheet::class => function (AfterSheet $event) {
+                $endRow = $this->rowCount;
+                $event->sheet->getDelegate()->getStyle("A1:P{$endRow}")->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => '000000'],
+                        ],
                     ],
-                ],
-            ]
-        );
+                    'font' => [
+                        'size' => 10,
+                    ],
+                ]);
+            },
+        ];
     }
 }

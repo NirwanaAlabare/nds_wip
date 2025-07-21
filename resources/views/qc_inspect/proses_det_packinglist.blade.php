@@ -52,20 +52,32 @@
                             class="form-control form-control-sm border-primary" value="{{ $color }}" readonly>
                     </div>
                     <div class="col-md-3">
+                        <label for="txtitemdesc"><small><b>Item Desc :</b></small></label>
+                        <input type="text" id="txtitemdesc" name="txtitemdesc"
+                            class="form-control form-control-sm border-primary" value="{{ $itemdesc }}" readonly>
+                    </div>
+                    <div class="col-md-1">
                         <label for="txtid_item"><small><b>ID Item :</b></small></label>
                         <input type="text" id="txtid_item" name="txtid_item"
                             class="form-control form-control-sm border-primary" value="{{ $id_item }}" readonly>
                         <input type="hidden" id="txtid_jo" name="txtid_jo" value="{{ $id_jo }}">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-1">
                         <label for="txtjml_lot"><small><b>Jml Lot :</b></small></label>
                         <input type="text" id="txtjml_lot" name="txtjml_lot"
                             class="form-control form-control-sm border-primary" value="{{ $jml_lot }}" readonly>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-1">
                         <label for="txtjml_roll"><small><b>Jml Roll :</b></small></label>
                         <input type="text" id="txtjml_roll" name="txtjml_roll"
                             class="form-control form-control-sm border-primary" value="{{ $jml_roll }}" readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txttype_pch"><small><b>Notes :</b></small></label>
+                        <input type="text" id="txttype_pch" name="txttype_pch"
+                            class="form-control form-control-sm border-primary" value="{{ $type_pch }}" readonly>
+                        <input type="hidden" id="txtcount" name="txtcount"
+                            class="form-control form-control-sm border-primary" readonly>
                     </div>
                 </div>
 
@@ -88,14 +100,6 @@
                                 class="form-control border-primary" min="0" max="100" value="10">
                             <span class="input-group-text">%</span>
                         </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label for="txttype_pch"><small><b>Notes :</b></small></label>
-                        <input type="text" id="txttype_pch" name="txttype_pch"
-                            class="form-control form-control-sm border-primary" value="{{ $type_pch }}" readonly>
-                        <input type="text" id="txtcount" name="txtcount"
-                            class="form-control form-control-sm border-primary" readonly>
                     </div>
                 </div>
             </div>
@@ -336,11 +340,26 @@
                     cek_inspect: cek_inspect
                 },
                 success: function(response) {
-                    // Prepare HTML for summary list
+                    // Group the generated_forms by no_lot
+                    let formMap = {};
+                    response.generated_forms.forEach(form => {
+                        if (!formMap[form.no_lot]) {
+                            formMap[form.no_lot] = [];
+                        }
+                        formMap[form.no_lot].push(form.no_form);
+                    });
+
+                    // Prepare HTML for summary
                     let summaryHtml = `<ul>`;
                     response.summary.forEach(item => {
-                        summaryHtml +=
-                            `<li>No. Lot: <b>${item.no_lot}</b> → Generate <b>${item.generated_forms}</b> form(s)</li>`;
+                        let forms = formMap[item.no_lot] || [];
+                        let formList = forms.map(f => `<li style="margin-left:15px;">${f}</li>`).join(
+                            '');
+                        summaryHtml += `
+                    <li>
+                        <b>No. Lot:</b> ${item.no_lot} → Generate <b>${item.generated_forms}</b> form(s)
+                        <ul>${formList}</ul>
+                    </li>`;
                     });
                     summaryHtml += `</ul>`;
 
@@ -353,9 +372,10 @@
                     <p><b>No. Invoice:</b> ${response.data.no_inv}</p>
                     <p><b>Total Forms Generated:</b> ${response.total_generated_forms}</p>
                     <hr>
-                    <h4>Detail Per Lot:</h4>
+                    <h4>Detail Per Lot & Form:</h4>
                     ${summaryHtml}
-                `
+                `,
+                        width: 700
                     });
 
                     calculate();

@@ -86,6 +86,7 @@ order by tgl_dok asc, no_dok asc, no_invoice asc, color asc
     count(no_roll) jml_roll,
     count(distinct(no_lot)) jml_lot,
     mi.color,
+    mi.itemdesc,
     a.type_pch
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
@@ -111,6 +112,7 @@ group by a.tgl_dok, a.no_dok,b.id_item, b.id_jo, b.unit", [$id_lok_in_material])
         $jml_lot = $get_header[0]->jml_lot;
         $jml_roll = $get_header[0]->jml_roll;
         $type_pch = $get_header[0]->type_pch;
+        $itemdesc = $get_header[0]->itemdesc;
 
         $data_group = DB::connection('mysql_sb')->select("SELECT
 group_inspect isi,
@@ -136,6 +138,7 @@ from qc_inspect_master_group_inspect");
                 "jml_lot" => $jml_lot,
                 "jml_roll" => $jml_roll,
                 "type_pch" => $type_pch,
+                "itemdesc" => $itemdesc,
                 "data_group" => $data_group
             ]
         );
@@ -215,56 +218,51 @@ group by c.no_lot
 
         $max_shipment = !empty($get_data_inspect_group) ? $get_data_inspect_group[0]->shipment : 0;
 
-        $data = DB::connection('mysql_sb')->select("SELECT
-                        c.no_lot,
-                        count(no_roll) jml_roll,
-                        CEIL(count(no_roll) * ($cek_inspect /100)) jml_roll_cek,
-                        if(d.tot_form is null, '0', d.tot_form) tot_form,
-						IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect, ' %')) AS cek_inspect,
-						CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
-                        IF(d.proses IS NULL, 1, d.proses) AS proses_int,
-                        IF(d.shipment IS NULL, $max_shipment, d.shipment) max_shipment,
-                        '0' shipment_point,
-                        '-' result,
-                        IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot
-from signalbit_erp.whs_inmaterial_fabric a
-inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
-left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
-LEFT JOIN
-(
-		SELECT no_lot, id_item, id_jo, no_invoice, max(proses) proses, a.group_inspect, max(shipment) shipment, max(cek_inspect) cek_inspect, count(no_lot) tot_form
-		FROM signalbit_erp.qc_inspect_form a
-		inner join signalbit_erp.qc_inspect_master_group_inspect b on a.group_inspect = b.id
-		where a.id_item = '$id_item' and a.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
-		GROUP BY no_lot, id_item, id_jo, no_invoice
-) d
-ON c.no_lot = d.no_lot
-AND c.id_item = d.id_item
-AND c.id_jo = d.id_jo
-AND a.no_invoice = d.no_invoice
-where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv' and IF(d.no_lot IS NULL, 'N', 'Y')  = 'N'
-group by c.no_lot
-    ");
-        // Collect data for response
+        $data = DB::connection('mysql_sb')->select("
+        SELECT
+            c.no_lot,
+            COUNT(no_roll) AS jml_roll,
+            CEIL(COUNT(no_roll) * ($cek_inspect / 100)) AS jml_roll_cek,
+            IF(d.tot_form IS NULL, '0', d.tot_form) AS tot_form,
+            IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect, ' %')) AS cek_inspect,
+            CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
+            IF(d.proses IS NULL, 1, d.proses) AS proses_int,
+            IF(d.shipment IS NULL, $max_shipment, d.shipment) AS max_shipment,
+            '0' AS shipment_point,
+            '-' AS result,
+            IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot
+        FROM signalbit_erp.whs_inmaterial_fabric a
+        INNER JOIN signalbit_erp.whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok
+        LEFT JOIN signalbit_erp.whs_lokasi_inmaterial c ON a.no_dok = c.no_dok AND b.id_item = c.id_item AND b.id_jo = c.id_jo
+        LEFT JOIN (
+            SELECT no_lot, id_item, id_jo, no_invoice, MAX(proses) AS proses, a.group_inspect, MAX(shipment) AS shipment, MAX(cek_inspect) AS cek_inspect, COUNT(no_lot) AS tot_form
+            FROM signalbit_erp.qc_inspect_form a
+            INNER JOIN signalbit_erp.qc_inspect_master_group_inspect b ON a.group_inspect = b.id
+            WHERE a.id_item = ? AND a.id_jo = ? AND a.no_invoice = ?
+            GROUP BY no_lot, id_item, id_jo, no_invoice
+        ) d ON c.no_lot = d.no_lot AND c.id_item = d.id_item AND c.id_jo = d.id_jo AND a.no_invoice = d.no_invoice
+        WHERE c.id_item = ? AND c.id_jo = ? AND a.no_invoice = ? AND IF(d.no_lot IS NULL, 'N', 'Y') = 'N'
+        GROUP BY c.no_lot
+    ", [$id_item, $id_jo, $no_inv, $id_item, $id_jo, $no_inv]);
+
         $lot_summary = [];
+        $generated_forms = [];
         $total_generated = 0;
 
-
         // Prepare date values
-        $datePrefix = $timestamp->format('dmy'); // DDMMYY format for no_form
-
-        $month = $timestamp->format('m'); // Gets the month as "01" to "12"
-        $year = $timestamp->format('Y');  // Gets the year as "2025"
+        $datePrefix = $timestamp->format('dmy'); // DDMMYY format
+        $month = $timestamp->format('m');
+        $year = $timestamp->format('Y');
         $currentDate = $timestamp->format('Y-m-d');
 
-        $get_last_number = DB::connection('mysql_sb')->select("SELECT
-        MAX(CAST(SUBSTRING_INDEX(no_form, '/', -1) AS UNSIGNED)) AS last_number
-        from qc_inspect_form where month(tgl_form) = '$month' and year(tgl_form) = '$year'");
+        $get_last_number = DB::connection('mysql_sb')->select("
+        SELECT MAX(CAST(SUBSTRING_INDEX(no_form, '/', -1) AS UNSIGNED)) AS last_number
+        FROM qc_inspect_form
+        WHERE MONTH(tgl_form) = ? AND YEAR(tgl_form) = ?
+    ", [$month, $year]);
 
         $last_number = $get_last_number[0]->last_number ?? 0;
-
         $formCounter = $last_number + 1;
-
 
         foreach ($data as $row) {
             $lot_summary[] = [
@@ -275,6 +273,7 @@ group by c.no_lot
 
             for ($i = 0; $i < $row->jml_roll_cek; $i++) {
                 $no_form = 'INS/' . $datePrefix . '/' . $formCounter++;
+
                 DB::connection('mysql_sb')->table('qc_inspect_form')->insert([
                     'no_form'               => $no_form,
                     'tgl_form'              => $currentDate,
@@ -285,21 +284,25 @@ group by c.no_lot
                     'group_inspect'         => $cbo_group_def,
                     'cek_inspect'           => $cek_inspect,
                     'proses'                => $row->proses_int,
-                    'status'                => 'draft',
+                    'status_proses_form'    => 'draft',
                     'created_by'            => $user,
                     'created_at'            => $timestamp,
                     'updated_at'            => $timestamp,
                 ]);
+
+                $generated_forms[] = [
+                    'no_form' => $no_form,
+                    'no_lot' => $row->no_lot,
+                ];
             }
         }
 
-
-        // Return detailed response
         return response()->json([
             'status' => 'success',
             'message' => 'Data sudah di Generate',
             'summary' => $lot_summary,
             'total_generated_forms' => $total_generated,
+            'generated_forms' => $generated_forms,
             'data' => [
                 'id_item' => $id_item,
                 'id_jo' => $id_jo,
