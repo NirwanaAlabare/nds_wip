@@ -518,37 +518,47 @@ where no_form = '$txtno_form'
 
         $data_act_point = DB::connection('mysql_sb')->select("SELECT
     SUM(up_to_3) * 1 AS sum_up_to_3,
-    SUM(3_6) * 2 AS sum_3_6,
-    SUM(6_9) * 3 AS sum_6_9,
+    SUM(`3_6`) * 2 AS sum_3_6,
+    SUM(`6_9`) * 3 AS sum_6_9,
     SUM(over_9) * 4 AS sum_over_9,
 
     (
         SUM(up_to_3) * 1 +
-        SUM(3_6) * 2 +
-        SUM(6_9) * 3 +
+        SUM(`3_6`) * 2 +
+        SUM(`6_9`) * 3 +
         SUM(over_9) * 4
     ) AS total_point,
 
+ROUND(
     (
         (
             SUM(up_to_3) * 1 +
-            SUM(3_6) * 2 +
-            SUM(6_9) * 3 +
+            SUM(`3_6`) * 2 +
+            SUM(`6_9`) * 3 +
             SUM(over_9) * 4
         ) * 36 * 100
-    ) / (b.width * b.act_length_fix) AS act_point,
+    ) / (
+        AVG(a.cuttable_width_act) *
+        AVG(
+            CASE
+                WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
+                ELSE b.act_length
+            END
+        )
+    )
+) AS act_point,
 
-    shipment,
+    c.shipment,
 
     IF(
         (
             (
                 SUM(up_to_3) * 1 +
-                SUM(3_6) * 2 +
-                SUM(6_9) * 3 +
+                SUM(`3_6`) * 2 +
+                SUM(`6_9`) * 3 +
                 SUM(over_9) * 4
             ) * 36 * 100
-        ) / (b.width * b.act_length_fix) <= shipment,
+        ) / (b.width * b.act_length_fix) <= c.shipment,
         'PASS',
         'REJECT'
     ) AS result
