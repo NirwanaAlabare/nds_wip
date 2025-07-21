@@ -176,6 +176,7 @@ use App\Http\Controllers\Marketing_CostingController;
 // QC Inspect Kain
 use App\Http\Controllers\QCInspectDashboardController;
 use App\Http\Controllers\QCInspectProsesPackingListController;
+use App\Http\Controllers\QCInspectProsesFormInspectController;
 
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
@@ -1993,6 +1994,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('qc_inspect_proses_packing_list');
         Route::get('/qc_inspect_proses_packing_list_det/{id_lok_in_material?}', 'qc_inspect_proses_packing_list_det')->name('qc_inspect_proses_packing_list_det');
         Route::get('/show_calculate_qc_inspect', 'show_calculate_qc_inspect')->name('show_calculate_qc_inspect');
+        Route::post('/generate_qc_inspect', 'generate_qc_inspect')->name('generate_qc_inspect');
+    });
+
+    // Proses Form Inspect
+    Route::controller(QCInspectProsesFormInspectController::class)->prefix("proses-form-inspect")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('qc_inspect_proses_form_inspect');
+        Route::get('/qc_inspect_proses_form_inspect_det/{id?}', 'qc_inspect_proses_form_inspect_det')->name('qc_inspect_proses_form_inspect_det');
+        Route::post('/get_operator_info', 'get_operator_info')->name('get_operator_info');
+        Route::post('/save_start_form_inspect', 'save_start_form_inspect')->name('save_start_form_inspect');
+        Route::post('/get_barcode_info', 'get_barcode_info')->name('get_barcode_info');
+        Route::post('/save_fabric_form_inspect', 'save_fabric_form_inspect')->name('save_fabric_form_inspect');
+        Route::post('/save_detail_fabric', 'save_detail_fabric')->name('save_detail_fabric');
+        Route::post('/save_visual_inspection', 'save_visual_inspection')->name('save_visual_inspection');
+        Route::get('/qc_inspect_show_visual_inspect', 'qc_inspect_show_visual_inspect')->name('qc_inspect_show_visual_inspect');
+        Route::post('/qc_inspect_delete_visual', 'qc_inspect_delete_visual')->name('qc_inspect_delete_visual');
+        Route::post('/calculate_act_point', 'calculate_act_point')->name('calculate_act_point');
+        Route::get('/qc_inspect_show_act_point', 'qc_inspect_show_act_point')->name('qc_inspect_show_act_point');
     });
 });
 

@@ -22,17 +22,17 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Packing List Fabric</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Form Inspect</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <label class="form-label"><small><b>Tgl BPB Awal</b></small></label>
+                    <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
                         value="{{ $tgl_skrg_min_sebulan }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><small><b>Tgl BPB Akhir</b></small></label>
+                    <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -55,30 +55,22 @@
                         <tr style="text-align:center; vertical-align:middle">
                             <th scope="col"style="color: black;">Act</th>
                             <th scope="col">Tanggal</th>
+                            <th scope="col">No. Mesin</th>
+                            <th scope="col">No. Form</th>
                             <th scope="col">No. PL</th>
-                            <th scope="col">Supplier</th>
                             <th scope="col">Buyer</th>
+                            <th scope="col">WS</th>
                             <th scope="col">Style</th>
                             <th scope="col">Color</th>
-                            <th scope="col">ID Item</th>
-                            <th scope="col">Jml Lot</th>
-                            <th scope="col">Jml Roll</th>
-                            <th scope="col">Notes</th>
+                            <th scope="col">Group Inspect</th>
+                            <th scope="col">Lot</th>
+                            <th scope="col">No. Roll</th>
+                            <th scope="col">Point / Max Point</th>
+                            <th scope="col">Result</th>
+                            <th scope="col">Note</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Proses</th>
                         </tr>
-                        <tr>
-                            <th></th> <!-- Empty cell for Act (no search input) -->
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
-                        </tr>
-
                     </thead>
                 </table>
             </div>
@@ -139,7 +131,7 @@
                 leftColumns: 1
             },
             ajax: {
-                url: '{{ route('qc_inspect_proses_packing_list') }}',
+                url: '{{ route('qc_inspect_proses_form_inspect') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
@@ -151,23 +143,29 @@
                     searchable: false,
                     render: function(data, type, row) {
                         return `
-                    <a class="btn btn-outline-primary position-relative btn-sm" href="{{ route('qc_inspect_proses_packing_list_det') }}/` +
-                            data.id_lok_in_material + `" title="Detail" target="_blank">
+                    <a class="btn btn-outline-primary position-relative btn-sm" href="{{ route('qc_inspect_proses_form_inspect_det') }}/` +
+                            data.id + `" title="Detail" target="_blank">
                         Detail
                     </a>`;
                     }
                 },
                 {
-                    data: 'tgl_dok_fix'
+                    data: 'tgl_form_fix'
+                },
+                {
+                    data: 'no_mesin'
+                },
+                {
+                    data: 'no_form'
                 },
                 {
                     data: 'no_invoice'
                 },
                 {
-                    data: 'supplier'
+                    data: 'buyer'
                 },
                 {
-                    data: 'buyer'
+                    data: 'kpno'
                 },
                 {
                     data: 'styleno'
@@ -176,33 +174,30 @@
                     data: 'color'
                 },
                 {
-                    data: 'id_item'
+                    data: 'group_inspect'
                 },
                 {
-                    data: 'jml_lot'
+                    data: 'no_lot'
                 },
                 {
-                    data: 'jml_roll'
+                    data: 'no_lot'
+                },
+                {
+                    data: 'no_lot'
+                },
+                {
+                    data: 'no_lot'
                 },
                 {
                     data: 'type_pch'
                 },
+                {
+                    data: 'type_pch'
+                },
+                {
+                    data: 'proses'
+                },
             ],
-            initComplete: function() {
-                this.api().columns().every(function() {
-                    var column = this;
-                    $('input', this.header()).on('keyup change clear', function() {
-                        if (column.search() !== this.value) {
-                            column.search(this.value).draw();
-                        }
-                    });
-                });
-            },
-            createdRow: function(row, data, dataIndex) {
-                if (data.status_inspect === 'Y') {
-                    $(row).addClass('table-success');
-                }
-            },
         });
     </script>
 @endsection

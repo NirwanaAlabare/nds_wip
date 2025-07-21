@@ -1159,6 +1159,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Packing List
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc_inspect_proses_form_inspect') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-proses-form-inspect' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Form Inspect
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

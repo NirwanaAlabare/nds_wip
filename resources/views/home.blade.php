@@ -131,7 +131,7 @@
                                 </div>
                             </a>
                         </div>
-                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-qc-inspect') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -143,7 +143,7 @@
                                     </div>
                                 </div>
                             </a>
-                        </div> --}}
+                        </div>
                         <div class="col-lg-2 col-md-3 col-sm-6 d-none">
                             <a href="{{ route('procurement') }}" class="home-item">
                                 <div class="card h-100">
