@@ -368,12 +368,12 @@ public function ReportRekonsiliasi(Request $request)
         select nomor_aju, kode_barang, uraian, jumlah_satuan, CASE
         WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
         WHEN fil_aju IN (23, 27, 261, 262) THEN cif
-        WHEN fil_aju IN (30) THEN (harga_satuan * jumlah_satuan)
+        WHEN fil_aju IN (30) THEN fob
         ELSE '0'
         END AS cif, CASE
         WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
         WHEN fil_aju IN (23, 27, 261, 262) THEN cif_rupiah
-        WHEN fil_aju IN (30) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
+        WHEN fil_aju IN (30) THEN (fob * ndpbm)
         ELSE '0'
         END AS cif_rupiah, kode_satuan
         from (SELECT nomor_aju, LEFT(nomor_aju,6) + 0 fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM exim_barang) a
@@ -437,12 +437,12 @@ public function ReportCeisaDetail(Request $request)
             END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, curr, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit, IF(ndpbm <= 1,'IDR','USD') curr,(cif/jumlah_satuan) price, ndpbm rates, CASE
             WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
             WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif
-            WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN (harga_satuan * jumlah_satuan)
+            WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN fob
             ELSE '0'
             END AS cif, CASE
             WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
             WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif_rupiah
-            WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
+            WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN (fob * ndpbm)
             ELSE '0'
             END AS cif_rupiah FROM exim_barang) b ON b.nomor_aju=a.nomor_aju left join (select * from (select nomor_aju, nomor_identitas, nama_entitas, alamat_entitas from exim_entitas where seri = '8' and kode_entitas = '8' and kode_jenis_identitas = '6' and (LEFT(nomor_aju,6) + 0) IN (25,27,41,261) GROUP BY nomor_aju
             UNION

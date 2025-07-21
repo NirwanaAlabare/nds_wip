@@ -626,18 +626,22 @@
 
 
         function updateInch() {
-            let width = parseFloat($('#txtwidth').val()) || 0;
-            let unit = $('#unitWidth').val();
+    let width = parseFloat($('#txtwidth').val()) || 0;
+    let unit = $('#unitWidth').val();
 
-            let inchValue = 0;
-            if (unit === 'inch') {
-                inchValue = width;
-            } else if (unit === 'cm') {
-                inchValue = width * 0.3937;
-            }
+    let inchValue = 0;
+    if (unit === 'inch') {
+        inchValue = width;
+    } else if (unit === 'cm') {
+        inchValue = width * 0.3937;
+    }
 
-            $('#txtinch').val(inchValue.toFixed(2)); // 2 decimals
-        }
+    // Round up to 2 decimal places
+    let roundedUp = Math.ceil(inchValue * 100) / 100;
+
+    $('#txtinch').val(roundedUp.toFixed(2));
+}
+
 
         $('#txtwidth, #unitWidth').on('input change', updateInch);
 
