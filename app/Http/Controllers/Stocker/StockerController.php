@@ -3275,7 +3275,7 @@ class StockerController extends Controller
                     FROM
                         (
                             SELECT
-                                coalesce(form_cut_id, form_reject_id) form_cut_id,
+                                coalesce(form_cut_id, form_piece_id, form_reject_id) form_cut_id,
                                 so_det_id,
                                 CONCAT( YEAR, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -3283,7 +3283,7 @@ class StockerController extends Controller
                                 MIN( year_sequence_number ) range_awal,
                                 MAX( year_sequence_number ) range_akhir,
                                 updated_at,
-                                (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                                (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                             FROM
                                 year_sequence
                             WHERE
@@ -3293,13 +3293,14 @@ class StockerController extends Controller
                             GROUP BY
                                 form_cut_id,
                                 form_reject_id,
+                                form_piece_id,
                                 so_det_id,
                                 updated_at
                         ) year_sequence_num
                         LEFT JOIN (
                             SELECT
                                 GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                                COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                                coalesce(form_cut_id, form_piece_id, form_reject_id) form_cut_id,
                                 stocker_input.act_costing_ws,
                                 stocker_input.so_det_id,
                                 master_sb_ws.buyer buyer,
@@ -3315,14 +3316,14 @@ class StockerController extends Controller
                                 stocker_input.range_akhir,
                                 stocker_input.created_at,
                                 stocker_input.updated_at,
-                                COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at) waktu_mulai,
-                                COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at) waktu_selesai,
-                                COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                                COALESCE(form_cut_input.no_cut, '-') no_cut,
+                                COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at, form_cut_piece.created_at) waktu_mulai,
+                                COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at, form_cut_piece.updated_at) waktu_selesai,
+                                COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                                COALESCE(form_cut_input.no_cut, form_cut_piece.no_form, '-') no_cut,
                                 GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                                 CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
                                 ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
-                                (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                             FROM
                                 stocker_input
                                 LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -3330,14 +3331,15 @@ class StockerController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                                 LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                                LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                             GROUP BY
                                 stocker_input.form_cut_id,
                                 stocker_input.form_reject_id,
+                                stocker_input.form_piece_id,
                                 stocker_input.so_det_id,
                                 stocker_input.group_stocker,
                                 stocker_input.ratio
-                        ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe
-                        AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe AND year_sequence_num.so_det_id = stocker_input.so_det_id
                         AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
                         AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
                         WHERE
@@ -3371,7 +3373,7 @@ class StockerController extends Controller
                         year_sequence_num.updated_at,
                         GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
                         GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
-                        COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                        COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
                         stocker_input.act_costing_ws,
                         stocker_input.so_det_id,
                         master_sb_ws.buyer buyer,
@@ -3379,8 +3381,8 @@ class StockerController extends Controller
                         master_sb_ws.color,
                         master_sb_ws.size,
                         master_sb_ws.dest,
-                        COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                        COALESCE(form_cut_input.no_cut, '-') no_cut,
+                        COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                        COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                         stocker_input.group_stocker,
                         stocker_input.shade,
                         stocker_input.ratio,
@@ -3389,7 +3391,7 @@ class StockerController extends Controller
                         year_sequence_num.year_sequence,
                         ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
                         CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                        (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                        (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                     FROM
                         stocker_input
                         LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -3397,9 +3399,10 @@ class StockerController extends Controller
                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                         LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                        LEFT JOIN (
+                        LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+                        INNER JOIN (
                             SELECT
-                                COALESCE(form_cut_id, form_reject_id) form_cut_id,
+                                COALESCE(form_cut_id, form_reject_id, form_piece_id) form_cut_id,
                                 so_det_id,
                                 CONCAT( `year`, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -3407,7 +3410,7 @@ class StockerController extends Controller
                                 MIN( year_sequence_number ) range_awal,
                                 MAX( year_sequence_number ) range_akhir,
                                 COALESCE ( updated_at, created_at ) updated_at,
-                                (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                                (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                             FROM
                                 year_sequence
                             WHERE
@@ -3417,12 +3420,13 @@ class StockerController extends Controller
                             GROUP BY
                                 form_cut_id,
                                 form_reject_id,
-                                (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END),
+                                form_piece_id,
+                                (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                                 so_det_id,
                                 COALESCE ( updated_at, created_at )
                             ORDER BY
                                 COALESCE ( updated_at, created_at)
-                        ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END)
+                        ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
                         AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
                         AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
@@ -3430,6 +3434,8 @@ class StockerController extends Controller
                         (
                             form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
                             OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                            OR form_cut_reject.updated_at >= '".$dateFrom." 00:00:00'
+                            OR form_cut_piece.updated_at >= '".$dateFrom." 00:00:00'
                             OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
                             OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
                             OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
@@ -3437,6 +3443,8 @@ class StockerController extends Controller
                         AND (
                             form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
                             OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                            OR form_cut_reject.updated_at <= '".$dateTo." 23:59:59'
+                            OR form_cut_piece.updated_at <= '".$dateTo." 23:59:59'
                             OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
                             OR stocker_input.created_at <= '".$dateTo." 23:59:59'
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
@@ -3444,10 +3452,11 @@ class StockerController extends Controller
                     GROUP BY
                         stocker_input.form_cut_id,
                         stocker_input.form_reject_id,
+                        stocker_input.form_piece_id,
                         stocker_input.so_det_id,
                         year_sequence_num.updated_at
                     HAVING
-                        (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null)
+                        (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                     ORDER BY
                         year_sequence_num.updated_at DESC
                 ");
@@ -3484,11 +3493,11 @@ class StockerController extends Controller
         }
         $no_form_filter = "";
         if ($request->no_form_filter) {
-            $no_form_filter = "AND form_cut_input.no_form LIKE '%".$request->no_form_filter."%' ";
+            $no_form_filter = "AND COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) LIKE '%".$request->no_form_filter."%' ";
         }
         $no_cut_filter = "";
         if ($request->no_cut_filter) {
-            $no_cut_filter = "AND form_cut_input.no_cut LIKE '%".$request->no_cut_filter."%' ";
+            $no_cut_filter = "AND COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') LIKE '%".$request->no_cut_filter."%' ";
         }
         $color_filter = "";
         if ($request->color_filter) {
@@ -3593,7 +3602,7 @@ class StockerController extends Controller
                     FROM
                         (
                             SELECT
-                                coalesce(form_cut_id, form_reject_id) form_cut_id,
+                                coalesce(form_cut_id, form_reject_id, form_piece_id) form_cut_id,
                                 so_det_id,
                                 CONCAT( YEAR, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -3601,7 +3610,7 @@ class StockerController extends Controller
                                 MIN( year_sequence_number ) range_awal,
                                 MAX( year_sequence_number ) range_akhir,
                                 updated_at,
-                                (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                                (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                             FROM
                                 year_sequence
                             WHERE
@@ -3611,13 +3620,14 @@ class StockerController extends Controller
                             GROUP BY
                                 form_cut_id,
                                 form_reject_id,
+                                form_piece_id,
                                 so_det_id,
                                 updated_at
                         ) year_sequence_num
                         LEFT JOIN (
                             SELECT
                                 GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                                COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                                COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
                                 stocker_input.act_costing_ws,
                                 stocker_input.so_det_id,
                                 master_sb_ws.buyer buyer,
@@ -3633,14 +3643,14 @@ class StockerController extends Controller
                                 stocker_input.range_akhir,
                                 stocker_input.created_at,
                                 stocker_input.updated_at,
-                                COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at) waktu_mulai,
-                                COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at) waktu_selesai,
-                                COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                                COALESCE(form_cut_input.no_cut, '-') no_cut,
+                                COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at, form_cut_piece.created_at) waktu_mulai,
+                                COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at, form_cut_piece.updated_at) waktu_selesai,
+                                COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                                COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                                 GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                                 CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
                                 ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
-                                (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                                (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                             FROM
                                 stocker_input
                                 LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -3648,9 +3658,11 @@ class StockerController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                                 LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                                LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                             GROUP BY
                                 stocker_input.form_cut_id,
                                 stocker_input.form_reject_id,
+                                stocker_input.form_piece_id,
                                 stocker_input.so_det_id,
                                 stocker_input.group_stocker,
                                 stocker_input.ratio
@@ -3714,7 +3726,7 @@ class StockerController extends Controller
                         year_sequence_num.updated_at,
                         GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
                         GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
-                        COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                        COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
                         stocker_input.act_costing_ws,
                         stocker_input.so_det_id,
                         master_sb_ws.buyer buyer,
@@ -3722,8 +3734,8 @@ class StockerController extends Controller
                         master_sb_ws.color,
                         master_sb_ws.size,
                         master_sb_ws.dest,
-                        COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                        COALESCE(form_cut_input.no_cut, '-') no_cut,
+                        COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                        COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                         stocker_input.group_stocker,
                         stocker_input.shade,
                         stocker_input.ratio,
@@ -3732,7 +3744,7 @@ class StockerController extends Controller
                         year_sequence_num.year_sequence,
                         ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
                         CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                        (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                     FROM
                         stocker_input
                         LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -3740,9 +3752,10 @@ class StockerController extends Controller
                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                         LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                        LEFT JOIN (
+                        LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+                        INNER JOIN (
                             SELECT
-                                COALESCE(form_cut_id, form_reject_id) form_cut_id,
+                                COALESCE(form_cut_id, form_reject_id, form_piece_id) form_cut_id,
                                 so_det_id,
                                 CONCAT( `year`, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -3750,7 +3763,7 @@ class StockerController extends Controller
                                 MIN( year_sequence_number ) range_awal,
                                 MAX( year_sequence_number ) range_akhir,
                                 COALESCE ( updated_at, created_at ) updated_at,
-                                (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                                (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                             FROM
                                 year_sequence
                             WHERE
@@ -3760,12 +3773,13 @@ class StockerController extends Controller
                             GROUP BY
                                 form_cut_id,
                                 form_reject_id,
-                                (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END),
+                                form_piece_id,
+                                (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                                 so_det_id,
                                 COALESCE ( updated_at, created_at )
                             ORDER BY
                                 COALESCE ( updated_at, created_at)
-                        ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END)
+                        ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
                         AND year_sequence_num.so_det_id = stocker_input.so_det_id
                         AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
                         AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
@@ -3773,6 +3787,7 @@ class StockerController extends Controller
                         (
                             form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
                             OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                            OR form_cut_piece.updated_at >= '".$dateFrom." 00:00:00'
                             OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
                             OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
                             OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
@@ -3780,6 +3795,7 @@ class StockerController extends Controller
                         AND (
                             form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
                             OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                            OR form_cut_piece.updated_at <= '".$dateTo." 23:59:59'
                             OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
                             OR stocker_input.created_at <= '".$dateTo." 23:59:59'
                             OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
@@ -3800,10 +3816,11 @@ class StockerController extends Controller
                     GROUP BY
                         stocker_input.form_cut_id,
                         stocker_input.form_reject_id,
+                        stocker_input.form_piece_id,
                         stocker_input.so_det_id,
                         year_sequence_num.updated_at
                     HAVING
-                        (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null)
+                        (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                         ".$qty_filter."
                         ".$numbering_range_filter."
                         ".$stocker_filter."
@@ -3829,18 +3846,18 @@ class StockerController extends Controller
     }
 
     public function stockerListDetail($form_cut_id, $group_stocker, $ratio, $so_det_id, $normal = 1) {
-        if (($form_cut_id && $group_stocker && $ratio && $so_det_id && $normal) || ($form_cut_id && $so_det_id && !$normal)) {
+        if (($form_cut_id && $group_stocker && $ratio && $so_det_id && $normal == 1) || ($form_cut_id && $so_det_id && $normal == 2) || ($form_cut_id && $so_det_id && $normal == 3)) {
             $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
             $years = array_reverse(range(1999, date('Y')));
 
-            $formFilter = $normal ? "stocker_input.form_cut_id = '".$form_cut_id."' and" : "stocker_input.form_reject_id = '".$form_cut_id."' and";
-            $yearSequenceFormFilter = $normal ? "year_sequence.form_cut_id = '".$form_cut_id."' and" : "year_sequence.form_reject_id = '".$form_cut_id."' and";
+            $formFilter = $normal == 1 ? "stocker_input.form_cut_id = '".$form_cut_id."' and" : ($normal == 2 ? "stocker_input.form_reject_id = '".$form_cut_id."' and" : ($normal  == 3 ? "stocker_input.form_piece_id = '".$form_cut_id."' and" : "stocker_input.form_cut_id = '".$form_cut_id."' and"));
+            $yearSequenceFormFilter = $normal == 1 ? "year_sequence.form_cut_id = '".$form_cut_id."' and" : ($normal == 2 ? "year_sequence.form_reject_id = '".$form_cut_id."' and" : ($normal  == 3 ? "year_sequence.form_piece_id = '".$form_cut_id."' and" : "year_sequence.form_cut_id = '".$form_cut_id."' and"));
 
             $stockerList = DB::select("
                 SELECT
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
                     GROUP_CONCAT(DISTINCT master_part.nama_part) part,
-                    COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                    COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.so_det_id,
                     master_sb_ws.buyer buyer,
@@ -3848,15 +3865,15 @@ class StockerController extends Controller
                     master_sb_ws.color,
                     master_sb_ws.size,
                     master_sb_ws.dest,
-                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                    COALESCE(form_cut_input.no_cut, 'REJECT') no_cut,
+                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                    COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, 'REJECT') no_cut,
                     stocker_input.group_stocker,
                     stocker_input.shade,
                     stocker_input.ratio,
                     MIN(stocker_input.range_awal) range_awal,
                     MAX(stocker_input.range_akhir) range_akhir,
                     CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                 FROM
                     stocker_input
                 LEFT JOIN
@@ -3869,14 +3886,17 @@ class StockerController extends Controller
                     form_cut_input on form_cut_input.id = stocker_input.form_cut_id
                 LEFT JOIN
                     form_cut_reject on form_cut_reject.id = stocker_input.form_reject_id
+                LEFT JOIN
+                    form_cut_piece on form_cut_piece.id = stocker_input.form_piece_id
                 WHERE
                     ".$formFilter."
-                    ".($normal ? ("stocker_input.group_stocker = '".$group_stocker."' AND") : (""))."
-                    ".($normal ? ("stocker_input.ratio = '".$ratio."' AND") : (""))."
+                    ".($normal == 1 ? ("stocker_input.group_stocker = '".$group_stocker."' AND") : (""))."
+                    ".($normal == 1 ? ("stocker_input.ratio = '".$ratio."' AND") : (""))."
                     stocker_input.so_det_id = '".$so_det_id."'
                 GROUP BY
                     stocker_input.form_cut_id,
                     stocker_input.form_reject_id,
+                    stocker_input.form_piece_id,
                     stocker_input.so_det_id,
                     stocker_input.group_stocker,
                     stocker_input.ratio
@@ -4068,7 +4088,7 @@ class StockerController extends Controller
             //         where("number", "<=", $validatedRequest['range_akhir_stocker'])->
             //         delete();
             // }
-            $formColumn = $validatedRequest['tipe'] == 'REJECT' ? 'form_reject_id' : 'form_cut_id';
+            $formColumn = $validatedRequest['tipe'] == 'PIECE' ? 'form_piece_id' : ($validatedRequest['tipe'] == 'REJECT' ? 'form_reject_id' : 'form_cut_id');
 
             $currentData = YearSequence::selectRaw("
                     number
@@ -4190,11 +4210,11 @@ class StockerController extends Controller
         }
         $no_form_filter = "";
         if ($request->no_form_filter) {
-            $no_form_filter = "AND form_cut_input.no_form LIKE '%".$request->no_form_filter."%' ";
+            $no_form_filter = "AND COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) LIKE '%".$request->no_form_filter."%' ";
         }
         $no_cut_filter = "";
         if ($request->no_cut_filter) {
-            $no_cut_filter = "AND form_cut_input.no_cut LIKE '%".$request->no_cut_filter."%' ";
+            $no_cut_filter = "AND COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') LIKE '%".$request->no_cut_filter."%' ";
         }
         $color_filter = "";
         if ($request->color_filter) {
@@ -4289,7 +4309,7 @@ class StockerController extends Controller
                 FROM
                     (
                         SELECT
-                            coalesce(form_cut_id, form_reject_id) form_cut_id,
+                            coalesce(form_cut_id, form_piece_id, form_reject_id) form_cut_id,
                             so_det_id,
                             CONCAT( YEAR, '_', year_sequence ) year_sequence,
                             MIN( number ) range_numbering_awal,
@@ -4297,7 +4317,7 @@ class StockerController extends Controller
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
                             updated_at,
-                            (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                         FROM
                             year_sequence
                         WHERE
@@ -4307,13 +4327,14 @@ class StockerController extends Controller
                         GROUP BY
                             form_cut_id,
                             form_reject_id,
+                            form_piece_id,
                             so_det_id,
                             updated_at
                     ) year_sequence_num
                     INNER JOIN (
                         SELECT
                             GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                            COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                            COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.so_det_id,
                             master_sb_ws.buyer buyer,
@@ -4329,14 +4350,14 @@ class StockerController extends Controller
                             stocker_input.range_akhir,
                             stocker_input.created_at,
                             stocker_input.updated_at,
-                            COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at) waktu_mulai,
-                            COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at) waktu_selesai,
-                            COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                            COALESCE(form_cut_input.no_cut, '-') no_cut,
+                            COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at,  form_cut_piece.created_at) waktu_mulai,
+                            COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at,  form_cut_piece.updated_at) waktu_selesai,
+                            COALESCE(form_cut_input.no_form, form_cut_reject.no_form,  form_cut_piece.no_form) no_form,
+                            COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                             GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                             CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
                             ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
-                            (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                            (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                         FROM
                             stocker_input
                             LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -4344,9 +4365,11 @@ class StockerController extends Controller
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                             LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                            LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
@@ -4405,7 +4428,7 @@ class StockerController extends Controller
                     year_sequence_num.updated_at,
                     GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
                     GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
-                    COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                    COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.so_det_id,
                     master_sb_ws.buyer buyer,
@@ -4413,8 +4436,8 @@ class StockerController extends Controller
                     master_sb_ws.color,
                     master_sb_ws.size,
                     master_sb_ws.dest,
-                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                    COALESCE(form_cut_input.no_cut, '-') no_cut,
+                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                    COALESCE(form_cut_input.no_cut, form_cut_reject.no_cut, '-') no_cut,
                     stocker_input.group_stocker,
                     stocker_input.shade,
                     stocker_input.ratio,
@@ -4423,7 +4446,7 @@ class StockerController extends Controller
                     year_sequence_num.year_sequence,
                     ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
                     CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                 FROM
                     stocker_input
                     LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -4431,6 +4454,7 @@ class StockerController extends Controller
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                     LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                     LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                    LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                     INNER JOIN (
                         SELECT
                             COALESCE(form_cut_id, form_reject_id) form_cut_id,
@@ -4456,7 +4480,7 @@ class StockerController extends Controller
                             COALESCE ( updated_at, created_at )
                         ORDER BY
                             COALESCE ( updated_at, created_at)
-                    ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END)
+                    ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
                     AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
                     AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
@@ -4765,7 +4789,7 @@ class StockerController extends Controller
         if ($request->stocker) {
             $stockerData = Stocker::selectRaw("
                     stocker_input.id_qr_stocker,
-                    COALESCE(form_cut_input.id. form_cut_piece.id, form_cut_reject.id) form_cut_id,
+                    COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) form_cut_id,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
                     part.act_costing_id,
@@ -4773,7 +4797,7 @@ class StockerController extends Controller
                     stocker_input.color,
                     stocker_input.size,
                     master_part.nama_part part,
-                    COALESCE(form_cut_input.no_form. form_cut_piece.no_form, form_cut_reject.no_form) no_form,
+                    COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
                     (
                         (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
                         (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
@@ -4891,16 +4915,20 @@ class StockerController extends Controller
 
     public function getSequenceYearSequence(Request $request) {
         if ($request->year) {
-            $availableYearSequence = YearSequence::selectRaw("
-                    year_sequence
-                ")->
-                where("year_sequence.year",  $request->year)->
-                groupBy("year_sequence.year_sequence")->
-                orderBy("year_sequence.year_sequence", "asc")->
-                get();
+            $availableYearSequence = DB::select("
+                SELECT `year_sequence`
+                FROM `year_sequence`
+                WHERE `year` = '".$request->year."'
+                ORDER BY `year_sequence` DESC
+                LIMIT 1
+            ");
 
-            if ($availableYearSequence->count() > 0) {
-                return json_encode($availableYearSequence);
+            $max = $availableYearSequence[0]->year_sequence ?? 0;
+
+            $sequenceList = range(0, $max);
+
+            if (count($sequenceList) > 0) {
+                return json_encode($sequenceList);
             } else {
                 return json_encode([["year" => $request->year, "year_sequence" => 1]]);
             }

@@ -367,6 +367,16 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
+                        if (row.type == 'PIECE') {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='{{ route('show-stocker-pcs') }}/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            `;
+                        }
+
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
                                 <a class='btn btn-primary btn-sm' href='{{ route('show-stocker') }}/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'>
@@ -385,9 +395,13 @@
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        return `
-                            <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
-                        `;
+                        if (data) {
+                            return `
+                                <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
+                            `;
+                        }
+
+                        return data ? data : "-";
                     }
                 },
                 // No Wrap

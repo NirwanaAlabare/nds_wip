@@ -955,6 +955,14 @@
         //     dropdownParent: $("#editMejaModal")
         // })
 
+        document.getElementById('txtqrstocker').addEventListener('keydown', function (evt) {
+            if (evt.keyCode === 13) {
+                evt.preventDefault();
+
+                scan_qr();
+            }
+        });
+
         // Scan QR Module :
         // Variable List :
         var html5QrcodeScanner = null;
@@ -1108,6 +1116,8 @@
         }
 
         function scan_qr() {
+            document.getElementById("loading").classList.remove("d-none");
+
             let txtqrstocker = document.form.txtqrstocker.value;
             let html = $.ajax({
                 type: "get",
@@ -1117,6 +1127,8 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
                     if (response[0] && response[0].status && response[0].status == 400) {
                         return Swal.fire({
                             icon: "error",
@@ -1186,6 +1198,8 @@
 
                 },
                 error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Ada',

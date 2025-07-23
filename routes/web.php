@@ -681,6 +681,9 @@ Route::middleware('auth')->group(function () {
         // fix form marker
         Route::get('/get-form-marker', 'getFormMarker')->name('get-form-marker');
         Route::post('/update-form-marker', 'updateFormMarker')->name('update-form-marker');
+
+        // fix form swap size
+        Route::post('/update-form-swap', 'updateFormSwap')->name('update-form-swap');
     });
 
     // Stocker :
