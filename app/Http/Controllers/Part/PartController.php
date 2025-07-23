@@ -436,7 +436,7 @@ class PartController extends Controller
                 GROUP BY
                     `form_cut_piece`.`id`
                 ORDER BY
-                    no_cut,
+                    CAST(no_cut as UNSIGNED),
                     color
             ");
 
@@ -893,7 +893,7 @@ class PartController extends Controller
             GROUP BY
                 form_cut_piece.id
             order by
-                no_cut asc,
+                CAST(no_cut AS UNSIGNED) asc,
                 color asc
             ");
 

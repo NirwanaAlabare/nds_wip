@@ -2217,49 +2217,81 @@ class StockerController extends Controller
     public function managePartForm(Request $request, $id = 0)
     {
         if ($request->ajax()) {
-            $formCutInputs = FormCutInput::selectRaw("
+            $formCutInputs = DB::select("
+                SELECT
                     form_cut_input.id,
                     form_cut_input.id_marker,
                     form_cut_input.no_form,
-                    form_cut_input.tgl_form_cut,
-                    users.name nama_meja,
+                    COALESCE ( DATE ( form_cut_input.waktu_mulai ), form_cut_input.tgl_form_cut ) tgl_mulai_form,
+                    users.NAME nama_meja,
+                    marker_input.id AS marker_id,
                     marker_input.act_costing_ws,
                     marker_input.buyer,
                     marker_input.urutan_marker,
                     marker_input.style,
                     marker_input.color,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE master_sb_ws.size  END  ), '(', marker_input_detail.ratio, ')'  )  ORDER BY master_size_new.urutan ASC SEPARATOR ' / '  ) marker_details,
                     form_cut_input.qty_ply,
-                    form_cut_input.no_cut
-                ")->
-                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-                leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
-                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
-                where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                whereRaw("part_form.id is not null")->
-                where("part_form.part_id", $id)->
-                where("marker_input.act_costing_ws", $request->act_costing_ws)->
-                where("marker_input.panel", $request->panel)->
-                groupBy("form_cut_input.id");
+                    form_cut_input.no_cut,
+                    'GENERAL' as type
+                FROM
+                    `form_cut_input`
+                    LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
+                    LEFT JOIN `marker_input_detail` ON `marker_input_detail`.`marker_id` = `marker_input`.`id`
+                    LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `marker_input_detail`.`so_det_id`
+                    LEFT JOIN `master_size_new` ON `master_size_new`.`size` = `master_sb_ws`.`size`
+                    LEFT JOIN `users` ON `users`.`id` = `form_cut_input`.`no_meja`
+                    LEFT JOIN `part_form` ON `part_form`.`form_id` = `form_cut_input`.`id`
+                WHERE
+                    `form_cut_input`.`status` = 'SELESAI PENGERJAAN'
+                    AND part_form.id IS NOT NULL
+                    AND `part_form`.`part_id` = '".$id."'
+                    AND `marker_input`.`act_costing_ws` = '".$request->act_costing_ws."'
+                    AND `marker_input`.`panel` = '".$request->panel."'
+                    AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 2 YEAR )
+                GROUP BY
+                    `form_cut_input`.`id`
+            UNION
+                 SELECT
+                    form_cut_piece.id,
+                    null as id_marker,
+                    form_cut_piece.no_form,
+                    COALESCE ( DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tgl_mulai_form,
+                    null nama_meja,
+                    form_cut_piece.id AS marker_id,
+                    form_cut_piece.act_costing_ws,
+                    form_cut_piece.buyer,
+                    null as urutan_marker,
+                    form_cut_piece.style,
+                    form_cut_piece.color,
+                    form_cut_piece.panel,
+                    GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE master_sb_ws.size  END  ), '(', form_cut_piece_detail_size.qty, ')'  )  ORDER BY master_size_new.urutan ASC SEPARATOR ' / '  ) marker_details,
+                    SUM(form_cut_piece_detail.qty) total_qty,
+                    form_cut_piece.no_cut,
+                    'PIECE' as type
+                FROM
+                    `form_cut_piece`
+                    LEFT JOIN `form_cut_piece_detail` ON `form_cut_piece_detail`.`form_id` = `form_cut_piece`.`id`
+                    LEFT JOIN `form_cut_piece_detail_size` ON `form_cut_piece_detail_size`.`form_detail_id` = `form_cut_piece_detail`.`id`
+                    LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `form_cut_piece_detail_size`.`so_det_id`
+                    LEFT JOIN `master_size_new` ON `master_size_new`.`size` = `master_sb_ws`.`size`
+                    LEFT JOIN `part_form` ON `part_form`.`form_pcs_id` = `form_cut_piece`.`id`
+                WHERE
+                    `form_cut_piece`.`status` = 'complete'
+                    AND part_form.id IS NOT NULL
+                    AND `part_form`.`part_id` = '".$id."'
+                    AND `form_cut_piece`.`act_costing_ws` = '".$request->act_costing_ws."'
+                    AND `form_cut_piece`.`panel` = '".$request->panel."'
+                    AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                GROUP BY
+                    `form_cut_piece`.`id`
+                ORDER BY
+                    CAST(no_cut as UNSIGNED),
+                    color
+            ");
 
-            return Datatables::eloquent($formCutInputs)->filterColumn('act_costing_ws', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('buyer', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('style', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('color', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('panel', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('nama_meja', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
-                })->order(function ($query) {
-                    $query->orderBy('form_cut_input.no_cut', 'asc');
-                })->toJson();
+            return Datatables::of($formCutInputs)->toJson();
         }
 
         $part = Part::selectRaw("
@@ -2271,14 +2303,9 @@ class StockerController extends Controller
                 part.color,
                 part.panel,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
-            ")->
-            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
-            leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->
-            where("part.id", $id)->
-            groupBy("part.id")->
-            first();
+            ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
 
-        return view("stocker.part.manage-part-form", ["part" => $part, "page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
+        return view("marker.part.manage-part-form", ["part" => $part, "page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     public function managePartSecondary(Request $request, $id = 0)

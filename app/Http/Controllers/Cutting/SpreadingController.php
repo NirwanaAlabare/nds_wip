@@ -420,7 +420,7 @@ class SpreadingController extends Controller
      * @param  \App\Models\FormCutInput  $formCutInput
      * @return \Illuminate\Http\Response
      */
-    public function destroy(FormCutInput $formCutInput, $id)
+    public function destroy(FormCutInput $formCutInput, $id, StockerService $stockerService)
     {
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
