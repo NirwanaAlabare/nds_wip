@@ -799,10 +799,11 @@ class ReportDefectController extends Controller
         if (in_array('top_defect', $types)) {
             $topDefectQuery = "
                 SELECT
-                    CONCAT(userpassword.username, act_costing.styleno, so_det.color, so_det.size, output_defect_types.id) as grouping,
+                    CONCAT(userpassword.username, act_costing.kpno, act_costing.styleno, so_det.color, so_det.size, output_defect_types.id) as grouping,
                     CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
                     CONCAT(act_costing.styleno, output_defect_types.id) as style_grouping,
                     userpassword.username sewing_line,
+                    act_costing.kpno as ws,
                     act_costing.styleno style,
                     so_det.color,
                     so_det.size,
@@ -837,12 +838,14 @@ class ReportDefectController extends Controller
                     ".($sewingLine ? "AND userpassword.username in (".$sewingLine.")" : "")."
                 GROUP BY
                     userpassword.username,
+                    act_costing.kpno,
                     act_costing.styleno,
                     so_det.color,
                     output_defect_types.id,
                     DATE(output_defects.updated_at)
                 ORDER BY
                     userpassword.username,
+                    act_costing.kpno,
                     act_costing.styleno,
                     so_det.color,
                     DATE(output_defects.updated_at),
@@ -854,10 +857,11 @@ class ReportDefectController extends Controller
         if (in_array('top_reject', $types)) {
             $topRejectQuery = "
                 SELECT
-                    CONCAT(userpassword.username, act_costing.styleno, so_det.color, output_defect_types.id) as grouping,
+                    CONCAT(userpassword.username, act_costing.kpno, act_costing.styleno, so_det.color, output_defect_types.id) as grouping,
                     CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
-                    CONCAT(act_costing.styleno, output_defect_types.id) as style_grouping,
+                    CONCAT(act_costing.kpno, output_defect_types.id) as style_grouping,
                     userpassword.username sewing_line,
+                    act_costing.kpno as ws,
                     act_costing.styleno style,
                     so_det.color,
                     so_det.size,
@@ -891,12 +895,14 @@ class ReportDefectController extends Controller
                     ".($sewingLine ? "AND userpassword.username in (".$sewingLine.")" : "")."
                 GROUP BY
                     userpassword.username,
+                    act_costing.kpno,
                     act_costing.styleno,
                     so_det.color,
                     output_defect_types.id,
                     DATE(output_rejects.updated_at)
                 ORDER BY
                     userpassword.username,
+                    act_costing.kpno,
                     act_costing.styleno,
                     so_det.color,
                     DATE(output_rejects.updated_at),
