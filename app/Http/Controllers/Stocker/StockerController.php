@@ -1238,7 +1238,7 @@ class StockerController extends Controller
             $cumRangeAkhir = $rangeAwal - 1;
 
             $ratio = $request['ratio'][$index];
-            if ($ratio < 1 && $modifySizeQty) {
+            if ($ratio < 1) {
                 $ratio += 1;
             }
 
@@ -1259,7 +1259,7 @@ class StockerController extends Controller
                 $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
 
                 if (!$checkStocker) {
-                    if ($request['qty_cut'][$index] > 0 || $modifySizeQty) {
+                    if ($request['qty_cut'][$index] > 0) {
                         array_push($storeItemArr, [
                             'id_qr_stocker' => $stockerId,
                             'act_costing_ws' => $request["no_ws"],
@@ -5338,7 +5338,7 @@ class StockerController extends Controller
                     where("shade", $request["group"])->
                     first();
 
-                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i + 1);
+                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($i + 1);
 
                 if (!$checkStocker) {
                     if ($request['qty'][$i] > 0) {
