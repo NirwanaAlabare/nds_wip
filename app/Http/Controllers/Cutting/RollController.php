@@ -532,6 +532,9 @@ class RollController extends Controller
 
     public function getScannedItem($id)
     {
+        $newItemAdditional = "";
+        $itemAdditional = "";
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 mastersupplier.Supplier buyer,
@@ -543,9 +546,14 @@ class RollController extends Controller
                 whs_bppb_det.id_item,
                 whs_bppb_det.no_lot lot,
                 COALESCE(whs_lokasi_inmaterial.no_roll_buyer, whs_bppb_det.no_roll) no_roll,
+                whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
+                SUM(whs_bppb_det.qty_out) qty,
+                whs_bppb_det.satuan unit,
+                bji.rule_bom,
+                GROUP_CONCAT(DISTINCT so_det.id) as so_det_list,
+                GROUP_CONCAT(DISTINCT so_det.size) as size_list
             FROM
                 whs_bppb_det
                 LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
@@ -554,47 +562,118 @@ class RollController extends Controller
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN bom_jo_item bji ON bji.id_item = whs_bppb_det.id_item AND bji.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN so_det ON so_det.id = bji.id_so_det
             WHERE
                 whs_bppb_det.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                ".$newItemAdditional."
             GROUP BY
                 whs_bppb_det.id_roll
             LIMIT 1
         ");
-
         if ($newItem) {
             $scannedItem = ScannedItem::selectRaw("
-                marker_input.buyer,
-                marker_input.act_costing_ws no_ws,
-                marker_input.style style,
-                marker_input.color color,
+                scanned_item.id,
                 scanned_item.id_roll,
                 scanned_item.id_item,
                 scanned_item.detail_item,
+                scanned_item.color,
                 scanned_item.lot,
-                COALESCE(scanned_item.roll_buyer, scanned_item.roll) no_roll,
+                scanned_item.roll,
+                scanned_item.roll_buyer,
                 scanned_item.qty,
-                scanned_item.qty_in,
                 scanned_item.qty_stok,
+                scanned_item.qty_in,
+                COALESCE(pemakaian.total_pemakaian, scanned_item.qty_pakai) qty_pakai,
                 scanned_item.unit,
-                COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
-            ")->
-            leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
-            leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
-            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
+                scanned_item.berat_amparan,
+                scanned_item.so_det_list,
+                scanned_item.size_list
+            ")->leftJoin(DB::raw("
+                (
+                    select
+                        id_roll,
+                        max( qty_awal ) qty_awal,
+                        sum( total_pemakaian ) total_pemakaian
+                    from
+                        (
+                            SELECT
+                                id_roll,
+                                max( qty ) qty_awal,
+                                sum( total_pemakaian_roll + sisa_kain ) total_pemakaian
+                            FROM
+                                form_cut_input_detail
+                            WHERE
+                                id_roll = '".$id."'
+                            GROUP BY
+                                id_roll
+                            UNION
+                            SELECT
+                                id_roll,
+                                max( qty ) qty_awal,
+                                sum( piping + qty_sisa ) total_pemakaian
+                            FROM
+                                form_cut_piping
+                            WHERE
+                                id_roll = '".$id."'
+                            GROUP BY
+                                id_roll
+                        ) pemakaian
+                    group by
+                        id_roll
+                ) pemakaian
+            "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $newItem[0]->id_item)->
             first();
-
             if ($scannedItem) {
-                $scannedItem->qty_stok = $newItem[0]->qty_stok;
-                $scannedItem->qty_in = $newItem[0]->qty;
-                $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
-                $scannedItem->save();
+                $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
 
-                return json_encode($scannedItem);
+                $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+                $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+                $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
+
+                if ($scannedItemUpdate) {
+                    $scannedItemUpdate->qty_stok = $newItemQtyStok;
+                    $scannedItemUpdate->qty_in = $newItemQty;
+                    $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->save();
+                }
+
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+            } else {
+                if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
+                    $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+                    $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+                    $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? 'METER' : $newItem[0]->unit;
+                } else {
+                    $newItemQtyStok = $newItem[0]->qty_stok;
+                    $newItemQty = $newItem[0]->qty;
+                    $newItemUnit = $newItem[0]->unit;
+                }
+
+                ScannedItem::create(
+                    [
+                        "id_roll" => $id,
+                        "id_item" => $newItem[0]->id_item,
+                        "color" => '-',
+                        "detail_item" => $newItem[0]->detail_item,
+                        "lot" => $newItem[0]->lot,
+                        "roll" => $newItem[0]->roll,
+                        "roll_buyer" => $newItem[0]->roll_buyer,
+                        "qty" => $newItemQty,
+                        "qty_stok" => $newItemQtyStok,
+                        "qty_in" => $newItemQty,
+                        "qty_pakai" => 0,
+                        "unit" => $newItemUnit,
+                        "rule_bom" => $newItem[0]->rule_bom,
+                        "so_det_list" => $newItem[0]->so_det_list,
+                        "size_list" => $newItem[0]->size_list
+                    ]
+                );
             }
 
             return json_encode($newItem ? $newItem[0] : null);
@@ -607,13 +686,14 @@ class RollController extends Controller
                 ac.styleno style,
                 mi.color,
                 br.id id_roll,
-                mi.itemdesc detail_item,
                 mi.id_item,
+                mi.itemdesc detail_item,
                 goods_code,
                 supplier,
                 bpbno_int,
                 pono,
                 invno,
+                ac.kpno,
                 roll_no no_roll,
                 roll_qty qty,
                 lot_no lot,
@@ -623,9 +703,7 @@ class RollController extends Controller
                 bpb_roll br
                 INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
                 INNER JOIN masteritem mi ON brh.id_item = mi.id_item
-                INNER JOIN bpb ON brh.bpbno = bpb.bpbno
-                AND brh.id_jo = bpb.id_jo
-                AND brh.id_item = bpb.id_item
+                INNER JOIN bpb ON brh.bpbno = bpb.bpbno AND brh.id_jo = bpb.id_jo AND brh.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
@@ -634,35 +712,57 @@ class RollController extends Controller
             WHERE
                 br.id = '" . $id . "'
                 AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
-                LIMIT 1
+                ".$itemAdditional."
+            GROUP BY
+                br.id
+            LIMIT 1
         ");
-
         if ($item) {
-            $scannedItem = ScannedItem::selectRaw("
-                marker_input.buyer,
-                marker_input.act_costing_ws no_ws,
-                marker_input.style style,
-                marker_input.color color,
-                scanned_item.id_roll,
-                scanned_item.id_item,
-                scanned_item.detail_item,
-                scanned_item.lot,
-                COALESCE(scanned_item.roll, scanned_item.roll_buyer) no_roll,
-                scanned_item.qty,
-                scanned_item.qty_in,
-                scanned_item.qty_stok,
-                scanned_item.unit,
-                COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
-            ")->
-            leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
-            leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
-            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
-            where('scanned_item.id_roll', $id)->
-            where('scanned_item.id_item', $item[0]->id_item)->
-            first();
+            $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $item[0]->id_item)->first();
 
-            if ($scannedItem && $scannedItem->buyer) {
-                return json_encode($scannedItem);
+            if ($scannedItem) {
+
+                $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
+
+                if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
+                    $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                    $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+                    $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
+                } else {
+                    $newItemQtyStok = $newItem[0]->qty_stok;
+                    $newItemQty = $newItem[0]->qty;
+                    $newItemUnit = $newItem[0]->unit;
+                }
+
+                if ($scannedItemUpdate) {
+                    $scannedItemUpdate->qty_stok = $itemQtyStok;
+                    $scannedItemUpdate->qty_in = $itemQty;
+                    $scannedItemUpdate->qty = floatval(($itemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->save();
+                }
+
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+            } else {
+                $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+                $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? 'METER' : $item[0]->unit;
+
+                $itemData = ScannedItem::create(
+                    [
+                        "id_roll" => $id,
+                        "id_item" => $item[0]->id_item,
+                        "color" => '-',
+                        "detail_item" => $item[0]->detail_item,
+                        "lot" => $item[0]->lot,
+                        "roll" => $item[0]->roll,
+                        "roll_buyer" => $item[0]->roll_buyer,
+                        "qty" => $itemQty,
+                        "qty_stok" => $itemQtyStok,
+                        "qty_in" => $itemQty,
+                        "qty_pakai" => 0,
+                        "unit" => $itemUnit
+                    ]
+                );
             }
 
             return json_encode($item ? $item[0] : null);
@@ -672,26 +772,57 @@ class RollController extends Controller
     }
 
     public function getSisaKainForm(Request $request) {
-        $forms = FormCutInputDetail::selectRaw("
+        $forms = DB::select("
+            SELECT
                 form_cut_input.id id_form,
                 no_form_cut_input,
                 form_cut_input.no_cut,
                 id_roll,
-                MAX(qty) qty,
+                MAX( qty ) qty,
                 unit,
-                SUM(total_pemakaian_roll) total_pemakaian_roll,
-                SUM(short_roll) short_roll,
+                SUM( total_pemakaian_roll ) total_pemakaian_roll,
+                SUM( short_roll ) short_roll,
                 MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
-                form_cut_input.status status_form,
+                form_cut_input.STATUS status_form,
                 form_cut_input_detail.status,
-                COALESCE(form_cut_input_detail.created_at, form_cut_input_detail.updated_at) updated_at
-            ")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
-            whereRaw("(form_cut_input.status != 'SELESAI PENGERJAAN' OR (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension') )")->
-            where("id_roll", $request->id)->
-            whereRaw("(id_roll is not null AND id_roll != '')")->
-            groupBy("form_cut_input.id")->
-            orderBy("form_cut_input_detail.id");
+                COALESCE ( form_cut_input_detail.created_at, form_cut_input_detail.updated_at ) updated_at
+            FROM
+                `form_cut_input_detail`
+                LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `form_cut_input_detail`.`form_cut_id`
+            WHERE
+                ( form_cut_input.status != 'SELESAI PENGERJAAN' OR ( form_cut_input.STATUS = 'SELESAI PENGERJAAN' AND form_cut_input.STATUS != 'not complete' AND form_cut_input.STATUS != 'extension' ) )
+                AND `id_roll` = '".$request->id."'
+                AND ( id_roll IS NOT NULL AND id_roll != '' )
+                AND form_cut_input_detail.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
+            GROUP BY
+                `form_cut_input`.`id`
+
+            UNION
+
+            SELECT
+                form_cut_piece_detail.id id_form,
+                form_cut_piece.no_form no_form_cut_input,
+                form_cut_piece.no_cut,
+                id_roll,
+                MAX( qty ) qty,
+                qty_unit as unit,
+                SUM( qty_pemakaian ) total_pemakaian_roll,
+                SUM( qty - (qty_pemakaian + qty_sisa) ) short_roll,
+                qty_sisa sisa_kain,
+                form_cut_piece.status status_form,
+                form_cut_piece_detail.status,
+                COALESCE ( form_cut_piece_detail.created_at, form_cut_piece_detail.updated_at ) updated_at
+            FROM
+                `form_cut_piece_detail`
+                LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `form_cut_piece_detail`.`form_id`
+            WHERE
+                ( form_cut_piece_detail.status = 'complete' )
+                AND `id_roll` = '".$request->id."'
+                AND ( id_roll IS NOT NULL AND id_roll != '' )
+                AND form_cut_piece_detail.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
+            GROUP BY
+                `form_cut_piece`.`id`
+        ");
 
         return DataTables::of($forms)->toJson();
     }

@@ -135,6 +135,12 @@ class StockerController extends Controller
                     ".$additionalQuery1."
                 GROUP BY
                     form_cut_piece.id
+                ORDER BY
+                    tanggal_selesai desc,
+                    act_costing_ws desc,
+                    style desc,
+                    color desc,
+                    CAST(no_cut AS UNSIGNED) desc
             ");
 
             return Datatables::of($formCutInputs)->toJson();
