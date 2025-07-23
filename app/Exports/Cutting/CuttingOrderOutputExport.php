@@ -72,65 +72,104 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             groupBy('kpno')->
             get();
 
-        $orderGroupSql = FormCutInput::selectRaw("
+        $orderGroupSql = DB::select("
+            SELECT
                 meja.id id_meja,
-                meja.name meja,
+                meja.NAME meja,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
-                COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tanggal,
+                COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tanggal,
                 marker_input.act_costing_id,
                 marker_input.act_costing_ws ws,
                 marker_input.style,
                 marker_input.color,
                 marker_input.panel
                 ".($this->groupBy == 'size' ? ", marker_input_detail.so_det_id, CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size" : '')."
-            ")->
-            leftJoin(
-            DB::raw("
-                (
+            FROM
+                `form_cut_input`
+                LEFT JOIN (
                     SELECT
                         meja.id id_meja,
                         meja.`name` meja,
-                        COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form,
+                        COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tgl_form,
                         form_cut_input.id_marker,
                         form_cut_input.id,
                         form_cut_input.no_form,
                         form_cut_input.qty_ply,
                         form_cut_input.total_lembar,
                         form_cut_input.notes,
-                        SUM(form_cut_input_detail.lembar_gelaran) detail
+                        SUM( form_cut_input_detail.lembar_gelaran ) detail
                     FROM
                         form_cut_input
                         LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                     WHERE
                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                        AND form_cut_input.id_marker is not null
+                        AND form_cut_input.id_marker IS NOT NULL
                         ".$dateFilter."
                     GROUP BY
                         form_cut_input.id
-                ) form_cut"
-            ), "form_cut.id", "=", "form_cut_input.id")->
-            leftJoin("users as meja", "meja.id", "=", "form_cut_input.no_meja")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("marker_input_detail", function ($join) { $join->on('marker_input.id', '=', 'marker_input_detail.marker_id'); $join->on('marker_input_detail.ratio', '>', DB::raw('0')); })->
-            leftJoin("master_sb_ws", "marker_input_detail.so_det_id", "=", "master_sb_ws.id_so_det")->
-            whereRaw("
+                ) form_cut ON `form_cut`.`id` = `form_cut_input`.`id`
+                LEFT JOIN `users` AS `meja` ON `meja`.`id` = `form_cut_input`.`no_meja`
+                LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
+                LEFT JOIN `marker_input_detail` ON `marker_input`.`id` = `marker_input_detail`.`marker_id`
+                AND `marker_input_detail`.`ratio` > 0
+                LEFT JOIN `master_sb_ws` ON `marker_input_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
+            WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                AND form_cut_input.id_marker is not null
-                AND COALESCE(form_cut.total_lembar, form_cut.detail) > 0
-            ");
-            if ($this->order) {
-                $orderGroupSql->where("marker_input.act_costing_id", $this->order);
-            }
-            $orderGroupSql->
-                groupByRaw("marker_input.act_costing_id, marker_input.style, marker_input.color, marker_input.panel, form_cut_input.no_meja ".($this->groupBy == 'size' ? ', marker_input_detail.so_det_id ' : ''))->
-                orderBy("marker_input.act_costing_id", "asc")->
-                orderBy("marker_input.style", "asc")->
-                orderBy("marker_input.color", "asc")->
-                orderByRaw("form_cut_input.no_meja asc, marker_input.panel asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
+                AND form_cut_input.id_marker IS NOT NULL
+                AND COALESCE ( form_cut.total_lembar, form_cut.detail ) > 0
+                AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) >= '".$this->dateFrom."'
+                AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) <= '".$this->dateTo."' AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 2 YEAR )
+                ".($this->order ? "AND marker_input.act_costing_id = '".$this->order."'" : "")."
+            GROUP BY
+                marker_input.act_costing_id,
+                marker_input.style,
+                marker_input.color,
+                marker_input.panel,
+                form_cut_input.no_meja,
+                marker_input_detail.so_det_id
+        UNION
+            SELECT
+                '-' id_meja,
+                '-' meja,
+                '-' id_marker,
+                form_cut_piece.no_form,
+                COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tanggal,
+                form_cut_piece.act_costing_id,
+                form_cut_piece.act_costing_ws ws,
+                form_cut_piece.style,
+                form_cut_piece.color,
+                form_cut_piece.panel
+                ".($this->groupBy == 'size' ? ", form_cut_piece_detail_size.so_det_id, CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size" : '')."
+            FROM
+                `form_cut_piece`
+                LEFT JOIN `form_cut_piece_detail` ON `form_cut_piece_detail`.`form_id` = `form_cut_piece`.`id`
+                LEFT JOIN `form_cut_piece_detail_size` ON `form_cut_piece_detail_size`.`form_detail_id` = `form_cut_piece_detail`.`id`
+                LEFT JOIN `master_sb_ws` ON `form_cut_piece_detail_size`.`so_det_id` = `master_sb_ws`.`id_so_det`
+            WHERE
+                form_cut_piece.`status` = 'complete'
+                AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
+                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '".$this->dateFrom."'
+                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) <= '".$this->dateTo."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                ".($this->order ? "AND form_cut_piece.act_costing_id = '".$this->order."'" : "")."
+            GROUP BY
+                form_cut_piece.act_costing_id,
+                form_cut_piece.style,
+                form_cut_piece.color,
+                form_cut_piece.panel,
+                form_cut_piece_detail_size.so_det_id
+            ORDER BY
+                `act_costing_id` ASC,
+                `style` ASC,
+                `color` ASC,
+                id_meja ASC,
+                panel,
+                so_det_id ASC,
+                size ASC
+        ");
 
-            $orderGroup = $orderGroupSql->get();
+        $orderGroup = collect($orderGroupSql);
 
         $orderOutputSql = collect(
                 DB::select("
@@ -207,8 +246,44 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                             group by
                                 marker_input.id,
                                 marker_input_detail.so_det_id,
-                                form_cut.tgl_form_cut,
-                                form_cut.meja
+                                form_cut.id
+                            union
+                            SELECT
+                                '-' as kode,
+                                form_cut_piece.no_form,
+                                '-' as id_meja,
+                                '-' as meja,
+                                COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tgl_form_cut,
+                                form_cut_piece.buyer,
+                                form_cut_piece.act_costing_id,
+                                form_cut_piece.act_costing_ws,
+                                form_cut_piece.style,
+                                form_cut_piece.color,
+                                form_cut_piece.panel,
+                                form_cut_piece.cons_ws,
+                                'PCS' unit,
+                                form_cut_piece_detail_size.so_det_id,
+                                CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                                1 as ratio,
+                                COALESCE(form_cut_piece.keterangan, 'PIECE') notes,
+                                SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                                SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                                SUM(form_cut_piece_detail_size.qty) form_gelar,
+                                null diff
+                            FROM
+                                `form_cut_piece`
+                                LEFT JOIN `form_cut_piece_detail` ON `form_cut_piece_detail`.`form_id` = `form_cut_piece`.`id`
+                                LEFT JOIN `form_cut_piece_detail_size` ON `form_cut_piece_detail_size`.`form_detail_id` = `form_cut_piece_detail`.`id`
+                                LEFT JOIN `master_sb_ws` ON `form_cut_piece_detail_size`.`so_det_id` = `master_sb_ws`.`id_so_det`
+                            WHERE
+                                form_cut_piece.`status` = 'complete'
+                                AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
+                                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '".$this->dateFrom."'
+                                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) <= '".$this->dateTo."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                                ".($this->order ? "AND form_cut_piece.act_costing_id = '".$this->order."'" : "")."
+                            GROUP BY
+                                form_cut_piece.id,
+                                form_cut_piece_detail_size.so_det_id
                         ) marker_cutting
                     GROUP BY
                         marker_cutting.act_costing_id,

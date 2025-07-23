@@ -30,7 +30,6 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
         $this->dateTo = $dateTo ? $dateTo : date('Y-m-d');
     }
 
-
     public function view(): View
     {
         $data = DB::select("
@@ -41,6 +40,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 marker_input.buyer,
                 marker_input.style,
                 marker_input.color,
+                master_sb_ws.id_so_det,
                 (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE marker_input_detail.size END) size,
                 form_cut_input_detail.group_roll,
                 form_cut_input_detail.lot,
@@ -95,14 +95,48 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_input.id,
                 form_cut_input_detail.group_stocker,
                 marker_input_detail.id
+            UNION
+            SELECT
+                COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) tanggal,
+                '-' meja,
+                form_cut_piece.act_costing_ws worksheet,
+                form_cut_piece.buyer,
+                form_cut_piece.style,
+                form_cut_piece.color,
+                master_sb_ws.id_so_det,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE form_cut_piece_detail_size.size END) size,
+                form_cut_piece_detail.`group_roll`,
+                form_cut_piece_detail.lot,
+                form_cut_piece.no_cut,
+                form_cut_piece.no_form,
+                '-' no_marker,
+                form_cut_piece.panel,
+                '-' max_group,
+                form_cut_piece_detail.group_stocker,
+                null,
+                null,
+                SUM(form_cut_piece_detail_size.qty) as qty
+            FROM
+                form_cut_piece
+                LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+            WHERE
+                form_cut_piece.`status` = 'complete' and
+                COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) between '".$this->dateFrom."' and '".$this->dateTo."' and
+                form_cut_piece_detail_size.qty > 0
+            GROUP BY
+                form_cut_piece.id,
+                form_cut_piece_detail.group_stocker,
+                form_cut_piece_detail_size.id
             ORDER BY
-                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_input) desc,
-                form_cut_input.no_meja,
-                marker_input.act_costing_id,
-                marker_input.style,
-                marker_input.color,
-                marker_input.panel,
-                marker_input_detail.id
+                tanggal desc,
+                meja,
+                worksheet,
+                style,
+                color,
+                panel,
+                id_so_det
         ");
 
         $this->rowCount = count($data);

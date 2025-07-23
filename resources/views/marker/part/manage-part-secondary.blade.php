@@ -106,7 +106,12 @@
                                     <div class="input-group mb-3">
                                         <input type="text" class="form-control" name="txtcons" id="txtcons">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text" style="border-radius: 0 3px 3px 0;">METER</span>
+                                            <select class="form-select" style="border-radius: 0 3px 3px 0;" name="txtconsunit" id="txtconsunit">
+                                                <option value="meter">METER</option>
+                                                <option value="yard">YARD</option>
+                                                <option value="kgm">KGM</option>
+                                                <option value="pcs">PCS</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -243,6 +248,7 @@
             $("#cbotuj").val('').trigger('change');
             $("#txtpart").val('').trigger('change');
             $("#txtcons").val('').trigger('change');
+            $("#txtconsunit").val('METER').trigger('change');
         }
 
         async function getproses(element, basedOn) {
@@ -329,6 +335,7 @@
             let cbotuj = document.form.cbotuj.value;
             let txtpart = document.form.txtpart.value;
             let txtcons = document.form.txtcons.value;
+            let txtconsunit = document.form.txtconsunit.value;
             let cboproses = document.form.cboproses.value;
             $.ajax({
                 type: "post",
@@ -338,6 +345,7 @@
                     cbotuj: cbotuj,
                     txtpart: txtpart,
                     txtcons: txtcons,
+                    txtconsunit: txtconsunit,
                     cboproses: cboproses
                 },
                 success: function(response) {

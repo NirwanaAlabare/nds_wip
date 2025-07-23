@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='selectedSupplier, selectedOrder, groupBy, colorFilter, panelFilter, mejaFilter, sizeFilter, clearFilter'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='selectedSupplier, groupBy, colorFilter, panelFilter, mejaFilter, sizeFilter, clearFilter'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
