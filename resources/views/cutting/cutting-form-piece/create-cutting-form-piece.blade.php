@@ -23,8 +23,9 @@
     <div class="d-flex justify-content-between mb-3">
         <h5 class="text-sb fw-bold">Create Cutting Fabric PCS</h5>
         <div class="d-flex gap-1">
-            <a href="{{ route("create-new-cutting-piece") }}" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Baru</a>
-            <button class="btn btn-primary btn-sm"><i class="fa fa-reply"></i> Kembali ke List Cutting</button>
+            <a href="{{ route("create-new-cutting-piece") }}" class="btn btn-success btn-sm {{ $currentCuttingPiece && $currentCuttingPiece->process >= 1 ? "" : "d-none" }}" id="create-new-process-button"><i class="fa fa-plus"></i> Baru</a>
+            <button class="btn btn-sb btn-sm {{ $currentCuttingPiece && $currentCuttingPiece->process >= 1 ? "d-none" : "" }}" onclick="startProcess()" id="start-process-button"><i class="fa fa-plus"></i> MULAI</button>
+            <a href="{{ route("cutting-piece") }}" class="btn btn-primary btn-sm"><i class="fa fa-reply"></i> Kembali ke List Cutting</a>
         </div>
     </div>
 
@@ -48,20 +49,20 @@
                             <label class="form-label">No. Form</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="no_form" name="no_form" value="{{ $currentCuttingPiece ? $currentCuttingPiece->no_form : null }}" readonly>
-                                <button type="button" class="btn btn-sb" onclick="generateCode()"><i class="fa fa-rotate"></i></button>
+                                <button type="button" class="btn btn-sb" id="generate-code-button" onclick="generateCode()" disabled><i class="fa fa-rotate"></i></button>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Tanggal</label>
-                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? $currentCuttingPiece->tanggal : date("Y-m-d") }}">
+                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? $currentCuttingPiece->tanggal : date("Y-m-d") }}" disabled>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Worksheet</label>
-                            @if ($currentCuttingPiece)
+                            @if ($currentCuttingPiece && $currentCuttingPiece->process >= 1)
                                 <input type="hidden" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_id : null }}" readonly>
                                 <input type="text" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_ws : null }}" readonly>
                             @else
-                                <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_id : null }}">
+                                <select class="form-select select2bs4" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_id : null }}" disabled>
                                     <option value="">Pilih Worksheet</option>
                                     @foreach ($orders as $order)
                                         <option value="{{ $order->id }}">{{ $order->kpno }}</option>
@@ -81,20 +82,20 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Color</label>
-                            @if ($currentCuttingPiece)
+                            @if ($currentCuttingPiece && $currentCuttingPiece->process >= 1)
                                 <input type="text" class="form-control" id="color" name="color" value="{{ $currentCuttingPiece ? $currentCuttingPiece->color : null }}" readonly>
                             @else
-                                <select class="form-select select2bs4" id="color" name="color">
+                                <select class="form-select select2bs4" id="color" name="color" disabled>
                                     <option value="">Pilih Color</option>
                                 </select>
                             @endif
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Panel</label>
-                            @if ($currentCuttingPiece)
+                            @if ($currentCuttingPiece && $currentCuttingPiece->process >= 1)
                                 <input type="text" class="form-control" id="panel" name="panel" value="{{ $currentCuttingPiece ? $currentCuttingPiece->panel : null }}" readonly>
                             @else
-                                <select class="form-select select2bs4" id="panel" name="panel">
+                                <select class="form-select select2bs4" id="panel" name="panel" disabled>
                                     <option value="">Pilih Panel</option>
                                 </select>
                             @endif
@@ -115,9 +116,9 @@
                         <div class="col-md-12">
                             <label class="form-label label-input">Scan ID Operator</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" name="employee_id" id="employee_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->employee_id : null }}">
-                                <button class="btn btn-sm btn-success" type="button" id="get-button-operator" onclick="fetchScanOperator()">Get</button>
-                                <button class="btn btn-sm btn-primary" type="button" id="scan-button-operator" onclick="refreshScanOperator()">Scan</button>
+                                <input type="text" class="form-control" name="employee_id" id="employee_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->employee_id : null }}" disabled>
+                                <button class="btn btn-sm btn-success" type="button" id="get-button-operator" onclick="fetchScanOperator()" disabled>Get</button>
+                                <button class="btn btn-sm btn-primary" type="button" id="scan-button-operator" onclick="refreshScanOperator()" disabled>Scan</button>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -132,7 +133,7 @@
                 </div>
                 <div class="card-footer border-1">
                     <div class="d-flex justify-content-end">
-                        <button class="btn btn-sb" type="submit">NEXT</button>
+                        <button class="btn btn-sb" type="submit" id="submit_process_one" disabled>NEXT</button>
                     </div>
                 </div>
             </div>
@@ -388,7 +389,9 @@
     <script>
         // Initial Window On Load Event
         $(document).ready(async function () {
-            initial();
+            if ($("#id").val() >= 1) {
+                checkProcess();
+            }
 
             disableFormSubmit("#process-one-form");
             disableFormSubmit("#process-two-form");
@@ -408,9 +411,36 @@
             theme: 'bootstrap4',
         })
 
+        function startProcess() {
+            Swal.fire({
+                icon: 'question',
+                title: 'Mulai Proses?',
+                confirmButtonText: 'Mulai',
+                showCancelButton: true,
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    initial();
+
+                    generateCode();
+                }
+            });
+        }
+
         // Init
             async function initial() {
                 document.getElementById("loading").classList.remove("d-none");
+
+                $("#act_costing_id").removeAttr("disabled");
+                $("#tanggal").removeAttr("disabled");
+                $("#employee_id").removeAttr("disabled");
+                $("#submit_process_one").removeAttr("disabled");
+                $("#generate-code-button").removeAttr("disabled");
+                $("#get-button-operator").removeAttr("disabled");
+                $("#scan-button-operator").removeAttr("disabled");
+
+                $("#start-process-button").addClass("d-none");
+                $("#create-new-process-button").removeClass("d-none");
 
                 if (document.getElementById("process").value > 0) {
                     // Check Current Process
@@ -426,9 +456,6 @@
                     // Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )
                     $("#color").prop("disabled", true);
                     $("#panel").prop("disabled", true);
-
-                    // Generate Code
-                    generateCode();
 
                     // Open Scan Operator
                     refreshScanOperator();
@@ -454,6 +481,10 @@
                         break;
                     case "3" :
                         await initFinish();
+
+                        break;
+                    default :
+                        await initial();
 
                         break;
                 }
@@ -855,7 +886,7 @@
 
                 document.getElementById("scan-method").classList.remove('d-none');
                 document.getElementById("to-scan").classList.remove('d-none');
-                $("#kode_barang").val("").trigger("change");
+                // $("#kode_barang").val("").trigger("change");
 
                 if (scanner) {
                     initScanItem();
@@ -872,7 +903,7 @@
 
                 document.getElementById("select-method").classList.remove('d-none');
                 document.getElementById("to-select").classList.remove('d-none');
-                $("#barang").val("").trigger("change");
+                // $("#barang").val("").trigger("change");
 
                 clearQrCodeScannerItem();
 
@@ -1204,15 +1235,16 @@
 
                 document.getElementById("group_roll").removeAttribute("readonly");
 
-                document.getElementById("id_detail").value = item.id;
-                document.getElementById("id_roll").value = item.id_roll;
-                document.getElementById("id_item").value = item.id_item;
-                document.getElementById("detail_item").value = item.detail_item;
-                document.getElementById("qty_item").value = item.qty;
-                document.getElementById("unit_qty_item").value = item.qty_unit;
-                document.getElementById("lot").value = item.lot;
-                document.getElementById("roll").value = item.roll;
-                document.getElementById("roll_buyer").value = item.roll_buyer;
+                document.getElementById("kode_barang").value = item.id_roll ? item.id_roll : "";
+                document.getElementById("id_detail").value = item.id ? item.id : "";
+                document.getElementById("id_roll").value = item.id_roll ? item.id_roll : "";
+                document.getElementById("id_item").value = item.id_item ? item.id_item : "";
+                document.getElementById("detail_item").value = item.detail_item ? item.detail_item : "";
+                document.getElementById("qty_item").value = item.qty ? item.qty : "";
+                document.getElementById("unit_qty_item").value = item.qty_unit ? item.qty_unit : "";
+                document.getElementById("lot").value = item.lot ? item.lot : "";
+                document.getElementById("roll").value = item.roll ? item.roll : "";
+                document.getElementById("roll_buyer").value = item.roll_buyer ? item.roll_buyer : "";
                 if (item.roll_buyer) {
                     document.getElementById("roll_container").classList.add("d-none");
                     document.getElementById("roll_buyer_container").classList.remove("d-none");
@@ -1220,12 +1252,12 @@
                     document.getElementById("roll_container").classList.remove("d-none");
                     document.getElementById("roll_buyer_container").classList.add("d-none");
                 }
-                document.getElementById("qty_pengeluaran").value = item.qty_pengeluaran;
-                document.getElementById("qty_pengeluaran_unit").value = item.qty_unit;
-                document.getElementById("qty").value = item.qty;
-                document.getElementById("qty_unit").value = item.qty_unit;
-                document.getElementById("qty_pemakaian_unit").value = item.qty_unit;
-                document.getElementById("qty_sisa_unit").value = item.qty_unit;
+                document.getElementById("qty_pengeluaran").value = item.qty_pengeluaran ? item.qty_pengeluaran : "";
+                document.getElementById("qty_pengeluaran_unit").value = item.qty_unit ? item.qty_unit : "";
+                document.getElementById("qty").value = item.qty ? item.qty : "";
+                document.getElementById("qty_unit").value = item.qty_unit ? item.qty_unit : "";
+                document.getElementById("qty_pemakaian_unit").value = item.qty_unit ? item.qty_unit : "";
+                document.getElementById("qty_sisa_unit").value = item.qty_unit ? item.qty_unit : "";
             }
 
             // Size List

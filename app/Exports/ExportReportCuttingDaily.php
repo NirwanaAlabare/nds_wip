@@ -38,15 +38,18 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
     public function view(): View
     {
         $additionalQuery = "";
+        $additionalQuery1 = "";
 
         $sheets = [];
 
         if ($this->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '".$this->dateFrom."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) >= '".$request->dateFrom."'";
         }
 
         if ($this->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '".$this->dateTo."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) <= '".$request->dateTo."'";
         }
 
         $reportCutting = collect(
@@ -128,6 +131,47 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                             form_cut.tgl_form_cut,
                             form_cut.meja,
                             form_cut.id
+                        UNION
+                        SELECT
+                            null as kode,
+                            form_cut_piece.no_form no_form_meja,
+                            form_cut_piece.id form_cut_id,
+                            form_cut_piece.no_form,
+                            '-' id_meja,
+                            form_cut_piece.employee_name meja,
+                            form_cut_piece.tanggal tgl_form_cut,
+                            form_cut_piece.buyer,
+                            form_cut_piece.act_costing_id,
+                            form_cut_piece.act_costing_ws,
+                            form_cut_piece.style,
+                            form_cut_piece.color,
+                            form_cut_piece.panel,
+                            form_cut_piece.cons_ws,
+                            'PCS' unit,
+                            form_cut_piece_detail_size.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            1 ratio,
+                            'PCS' notes,
+                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                            null diff
+                        FROM
+                            form_cut_piece
+                            INNER JOIN
+                                form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                            INNER JOIN
+                                form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                            INNER JOIN
+                                master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                        where
+                            form_cut_piece_detail_size.qty > 0
+                            ".$additionalQuery1."
+                        group by
+                            form_cut_piece_detail_size.so_det_id,
+                            form_cut_piece.tanggal,
+                            form_cut_piece.employee_name,
+                            form_cut_piece.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,

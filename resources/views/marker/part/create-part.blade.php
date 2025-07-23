@@ -98,6 +98,7 @@
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                             <option value="kgm">KGM</option>
+                                            <option value="pcs">PCS</option>
                                         </select>
                                     </div>
                                 </div>

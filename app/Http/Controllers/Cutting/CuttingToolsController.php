@@ -9,6 +9,7 @@ use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\Part;
 use App\Models\PartForm;
+use App\Models\Stocker;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
 use Illuminate\Http\Request;
@@ -478,6 +479,163 @@ class CuttingToolsController extends Controller
             //         "additional" => [],
             //     );
             // }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi Kesalahan.",
+            "additional" => [],
+        );
+    }
+
+    public function updateFormSwap(Request $request, StockerService $stockerService) {
+        ini_set("max_execution_time", 36000);
+        ini_set("memory_limit", "2048M");
+
+        $validatedRequest = $request->validate([
+            "modify_swap_form_id" => "required",
+            "modify_swap_from" => "required",
+            "modify_swap_to" => "required",
+        ]);
+
+        if ($validatedRequest) {
+            $form = FormCutInput::where("id", $validatedRequest['modify_swap_form_id'])->first();
+
+            $oldMarker = Marker::where("id", $form->marker->id)->first();
+
+            $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
+            $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
+            $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
+
+            $markerStore = Marker::create([
+                'tgl_cutting' => $oldMarker->tgl_cutting,
+                'kode' => $markerCode,
+                'act_costing_id' => $oldMarker->act_costing_id,
+                'act_costing_ws' => $oldMarker->act_costing_ws,
+                'buyer' => $oldMarker->buyer,
+                'style' => $oldMarker->style,
+                'cons_ws' => $oldMarker->cons_ws,
+                'color' => $oldMarker->color,
+                'panel' => $oldMarker->panel,
+                'panjang_marker' => $oldMarker->panjang_marker,
+                'unit_panjang_marker' => $oldMarker->unit_panjang_marker,
+                'comma_marker' => $oldMarker->comma_marker,
+                'unit_comma_marker' => $oldMarker->unit_comma_marker,
+                'lebar_marker' => $oldMarker->lebar_marker,
+                'unit_lebar_marker' => $oldMarker->unit_lebar_marker,
+                'gelar_qty' => $oldMarker->gelar_qty,
+                'gelar_qty_balance' => $oldMarker->gelar_qty_balance,
+                'po_marker' => $oldMarker->po_marker,
+                'urutan_marker' => $oldMarker->urutan_marker,
+                'cons_marker' => $oldMarker->cons_marker,
+                'gramasi' => $oldMarker->gramasi,
+                'tipe_marker' => $oldMarker->tipe_marker,
+                'notes' => $oldMarker->notes,
+                'cons_piping' => $oldMarker->cons_piping,
+                'cancel' => 'N',
+            ]);
+
+            $timestamp = Carbon::now();
+            $markerId = $markerStore->id;
+            $markerDetailData = [];
+
+            if ($oldMarker && $oldMarker->markerDetails()) {
+                $fromSize = $oldMarker->markerDetails()->firstWhere("so_det_id", $validatedRequest["modify_swap_from"]);
+                $toSize = $oldMarker->markerDetails()->firstWhere("so_det_id", $validatedRequest["modify_swap_to"]);
+
+                foreach ($oldMarker->markerDetails()->get() as $markerDetail) {
+                    if ($fromSize && $markerDetail->so_det_id == $fromSize->so_det_id) {
+                        array_push($markerDetailData, [
+                            "marker_id" => $markerId,
+                            "so_det_id" => $fromSize->so_det_id,
+                            "size" => $fromSize->size,
+                            "ratio" => $toSize->ratio,
+                            "cut_qty" => ($toSize->cut_qty > 0 ? $toSize->cut_qty : $toSize->ratio * $markerStore->gelar_qty),
+                            "cancel" => 'N',
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                        ]);
+                    } else if ($toSize && $markerDetail->so_det_id == $toSize->so_det_id) {
+                        array_push($markerDetailData, [
+                            "marker_id" => $markerId,
+                            "so_det_id" => $toSize->so_det_id,
+                            "size" => $toSize->size,
+                            "ratio" => $fromSize->ratio,
+                            "cut_qty" => ($fromSize->cut_qty > 0 ? $fromSize->cut_qty : $fromSize->ratio * $markerStore->gelar_qty),
+                            "cancel" => 'N',
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                        ]);
+                    } else {
+                        array_push($markerDetailData, [
+                            "marker_id" => $markerId,
+                            "so_det_id" => $markerDetail->so_det_id,
+                            "size" => $markerDetail->size,
+                            "ratio" => $markerDetail->ratio,
+                            "cut_qty" => ($markerDetail->cut_qty > 0 ? $markerDetail->cut_qty : $markerDetail->ratio * $markerStore->gelar_qty),
+                            "cancel" => 'N',
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                        ]);
+                    }
+                }
+
+                $markerDetailStore = null;
+                if (count($markerDetailData) > 0) {
+                    $markerDetailStore = MarkerDetail::upsert(
+                            $markerDetailData, // array of rows
+                            ['marker_id', 'so_det_id'], // unique constraint columns
+                            ['ratio', 'cut_qty', 'cancel', 'updated_at'] // columns to update if a match is found
+                        );
+                }
+
+                if ($markerStore && $markerDetailStore && ($fromSize && $toSize)) {
+                    $updateFormCut = FormCutInput::where("id", $form->id)->update([
+                        "marker_id" => $markerId,
+                        "id_marker" => $markerCode
+                    ]);
+
+                    // Stocker
+                    if ($fromSize && $toSize) {
+                        $tempId = -1 * time(); // use a unique negative temp value
+
+                        // Step 1: Temporarily move one of the rows to a temp so_det_id
+                        Stocker::where("form_cut_id", $form->id)
+                            ->where("so_det_id", $fromSize->so_det_id)
+                            ->update([
+                                "so_det_id" => $tempId,
+                                "size" => $toSize->size,
+                                "notes" => "SWAP SIZE"
+                            ]);
+
+                        // Step 2: Move second row to first's original so_det_id
+                        Stocker::where("form_cut_id", $form->id)
+                            ->where("so_det_id", $toSize->so_det_id)
+                            ->update([
+                                "so_det_id" => $fromSize->so_det_id,
+                                "size" => $fromSize->size,
+                                "notes" => "SWAP SIZE"
+                            ]);
+
+                        // Step 3: Move temp row to second's original so_det_id
+                        Stocker::where("form_cut_id", $form->id)
+                            ->where("so_det_id", $tempId)
+                            ->update([
+                                "so_det_id" => $toSize->so_det_id
+                            ]);
+                    }
+                    $partForm = PartForm::where("form_id", $form->id)->first();
+                    $partId = $partForm->part->id;
+
+                    $stockerService->reorderStockerNumbering($partId);
+
+                    return array(
+                        "status" => 300,
+                        "message" => "Proses Selesai.",
+                        "additional" => [],
+                    );
+                }
+            }
         }
 
         return array(

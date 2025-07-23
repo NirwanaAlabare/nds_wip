@@ -219,7 +219,7 @@
             // $('#month_year_month').val(todayMonth).trigger("change");
             // $('#month_year_year').val(todayYear).trigger("change");
 
-            await $('#year').val('2024').trigger("change");
+            await $('#year').val(todayYear).trigger("change");
 
             clearScanItemForm();
 
@@ -433,12 +433,12 @@
                             let latestVal = null;
                             for(let i = 0; i < res.length; i++) {
                                 let option = document.createElement("option");
-                                option.setAttribute("value", res[i].year_sequence);
-                                option.innerHTML = res[i].year_sequence;
+                                option.setAttribute("value", res[i]);
+                                option.innerHTML = res[i];
                                 select.appendChild(option);
                             }
 
-                            $("#sequence").val(res[res.length-1].year_sequence).trigger("change");
+                            $("#sequence").val(res[res.length-1]).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',

@@ -26,7 +26,7 @@ class PartForm extends Model
      */
     public function formCutInput()
     {
-        return $this->belongsTo(FormCutInput::class, 'form_id', 'id');
+        return $this->hasOne(FormCutInput::class, "form_id", "id");
     }
 
     /**

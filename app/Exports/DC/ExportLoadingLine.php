@@ -163,6 +163,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                             loading_line.tanggal_loading,
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.range_awal
@@ -190,6 +191,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                                 GROUP BY
                                     stocker_input.form_cut_id,
                                     stocker_input.form_reject_id,
+                                    stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
                                     stocker_input.group_stocker,
                                     stocker_input.range_awal
@@ -258,9 +260,9 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     loading_line_plan.style,
                     loading_line_plan.color,
                     loading_line_plan.line_id,
-                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                    COALESCE(form_cut_input.no_cut, '-') no_cut,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) type,
+                    COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
+                    COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) type,
                     master_part.nama_part as part,
                     loading_line.no_bon,
                     DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
@@ -273,6 +275,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                     LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                     LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                    LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                     LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                     LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                     LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -290,6 +293,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     loading_line.tanggal_loading,
                     stocker_input.form_cut_id,
                     stocker_input.form_reject_id,
+                    stocker_input.form_piece_id,
                     stocker_input.so_det_id,
                     stocker_input.range_awal
             ")
