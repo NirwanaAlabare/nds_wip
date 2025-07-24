@@ -387,8 +387,8 @@ public function approvematerial(Request $request)
 
         // 4. Insert ke whs_lokasi_inmaterial_cancel
         DB::connection('mysql_sb')->insert("
-            INSERT INTO whs_lokasi_inmaterial_cancel 
-            SELECT * FROM whs_lokasi_inmaterial 
+            INSERT INTO whs_lokasi_inmaterial_cancel
+            SELECT * FROM whs_lokasi_inmaterial
             WHERE no_dok = ?
             ", [$noDok]);
 
@@ -1020,7 +1020,7 @@ public function pdfinmaterial(Request $request, $id)
     $dataDetail = DB::connection('mysql_sb')->select("select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit,b.deskripsi from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y'");
     $dataSum = DB::connection('mysql_sb')->select("select sum(qty) qty_all from (select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
     $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$id' limit 1");
-    $dataHead = DB::connection('mysql_sb')->select("select CONCAT('Bandung, ',DATE_FORMAT(a.tgl_dok,'%d %b %Y')) tgl_dok,a.supplier,b.alamat, CURRENT_TIMESTAMP() tgl_cetak from whs_inmaterial_fabric a inner join mastersupplier b on b.supplier = a.supplier where id = '$id' and b.tipe_sup = 'S' limit 1");
+    $dataHead = DB::connection('mysql_sb')->select("select CONCAT('Bandung, ',DATE_FORMAT(a.tgl_dok,'%d %b %Y')) tgl_dok,a.supplier,b.alamat, CURRENT_TIMESTAMP() tgl_cetak from whs_inmaterial_fabric a inner join mastersupplier b on b.supplier = a.supplier where id = '$id' limit 1");
 
 
     PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
