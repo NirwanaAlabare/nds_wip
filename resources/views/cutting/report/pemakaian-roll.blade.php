@@ -263,11 +263,11 @@
             datatableReload();
         });
 
-        var pemakaianKainFilter = ['bppbno', 'no_out', 'bppbdate', 'tujuan', 'no_ws', 'styleno', 'buyer', 'id_item', 'itemdesc'];
+        var pemakaianKainFilter = ['bppbno', 'no_out', 'bppbdate', 'tujuan', 'no_ws', 'styleno', 'buyer', 'id_item', 'itemdesc', 'qty', 'unit'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" id="'+pemakaianKainFilter[(i-1)]+'" />');
 

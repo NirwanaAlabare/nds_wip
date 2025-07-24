@@ -374,150 +374,107 @@ class ReportCuttingController extends Controller
             //     ")
             // );
 
-            return DataTables::of($pemakaianRoll)->
-                addColumn('total_roll_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+            $rollData = collect();
+            foreach ($pemakaianRoll as $row) {
+                $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
-                    $rollIds = $rollIdsArr->pluck("id_roll");
+                $rollIds = addQuotesAround($rollIdsArr->pluck("id_roll")->implode("\n"));
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                $rolls = collect(DB::select("
+                    SELECT
+                        req.id_roll,
+                        req.id_item,
+                        req.item_desc detail_item,
+                        req.no_lot lot,
+                        req.styleno,
+                        req.color,
+                        COALESCE(roll.roll, req.no_roll) roll,
+                        COALESCE(roll.qty, req.qty_out) qty,
+                        COALESCE(roll.sisa_kain, 0) sisa_kain,
+                        COALESCE(roll.unit, req.satuan) unit,
+                        COALESCE(roll.total_pemakaian_roll, 0) total_pemakaian_roll,
+                        COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
+                        COALESCE(roll.total_short_roll, 0) total_short_roll
+                    FROM (
+                        select b.*, c.color, tmpjo.styleno from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item left join (select id_jo,kpno,styleno from signalbit_erp.act_costing ac inner join signalbit_erp.so on ac.id=so.id_cost inner join signalbit_erp.jo_det jod on signalbit_erp.so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll
+                    ) req
+                    LEFT JOIN (
+                        select
                             id_roll,
                             id_item,
                             detail_item,
                             lot,
                             COALESCE(roll_buyer, roll) roll,
                             MAX(qty) qty,
+                            ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
                             unit,
                             ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls->count();
-                })->
-                addColumn('total_roll_balance', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
+                            ROUND(SUM(short_roll), 2) total_short_roll_2,
+                            ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+                        from
+                            laravel_nds.form_cut_input_detail
+                        WHERE
+                            `status` in ('complete', 'need extension', 'extension complete')
+                            ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                        GROUP BY
+                            id_item,
+                            id_roll
+                    UNION ALL
+                        SELECT
                             id_roll,
                             id_item,
                             detail_item,
                             lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
+                            COALESCE ( roll_buyer, roll ) roll,
+                            MAX( form_cut_piece_detail.qty_pengeluaran ) qty,
+                            MIN( form_cut_piece_detail.qty_sisa ) sisa_kain,
+                            qty_unit as unit,
+                            ROUND( SUM( form_cut_piece_detail.qty_pemakaian ) ) total_pemakaian_roll,
+                            ROUND( SUM( form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa) ) ) total_short_roll_2,
+                            ROUND( SUM( form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa) ) ) total_short_roll
+                        FROM
+                            `form_cut_piece_detail`
+                        WHERE
+                            `status` = 'complete'
+                            ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                        GROUP BY
+                            `id_item`,
+                            `id_roll`
+                    ) roll ON req.id_roll = roll.id_roll
+                "));
 
-                    $balance = $rolls ? $row->roll_out - $rolls->count() : $row->roll_out;
+                $balanceRoll = $rolls ? $row->roll_out - $rolls->count() : $row->roll_out;
+                $balancePakai = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
 
-                    return $balance > 0 ? $balance : ($balance < 0 ? str_replace("-", "+", round($balance, 2)) : round($balance, 2));
-                })->
-                addColumn('total_qty_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+                $rollData->push(collect([
+                    'bppbno' => $row->bppbno,
+                    'bppbno' => $row->bppbno,
+                    'bppbdate' => $row->bppbdate,
+                    'no_out' => $row->no_out,
+                    'tujuan' => $row->tujuan,
+                    'no_ws' => $row->no_ws,
+                    'styleno' => $row->styleno,
+                    'buyer' => $row->buyer,
+                    'id_item' => $row->id_item,
+                    'itemdesc' => $row->itemdesc,
+                    'qty_req' => $row->qty_req,
+                    'unit' => $row->unit,
+                    'no_out' => $row->no_out,
+                    'roll_out' => $row->roll_out,
+                    'qty_out' => $row->qty_out,
+                    'total_roll_cutting' => $rolls->count(),
+                    'total_pakai_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2) ) : 0,
+                    'total_qty_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("qty") * 1.09361 , 2) : round($rolls->sum("qty"), 2) ) : 0,
+                    'total_short_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_short_roll") * 1.0361, 2) : round($rolls->sum("total_short_roll"), 2) ) : 0,
+                    'total_roll_balance' => $balanceRoll > 0 ? $balanceRoll : ($balanceRoll < 0 ? str_replace("-", "+", round($balanceRoll, 2)) : round($balanceRoll, 2)),
+                    'total_pakai_balance' => $balancePakai > 0 ? round($balancePakai, 2) : ($balancePakai < 0 ? ( str_replace("-", "+", round($balancePakai, 2)) ) : round($balancePakai, 2)),
+                    'no_retur' => $row->no_retur,
+                    'roll_retur' => $row->roll_retur,
+                    'qty_retur' => $row->qty_retur,
+                ]));
+            }
 
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("qty") * 1.09361 , 2) : round($rolls->sum("qty"), 2) ) : 0;
-                })->
-                addColumn('total_pakai_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2) ) : 0;
-                })->
-                addColumn('total_short_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_short_roll") * 1.0361, 2) : round($rolls->sum("total_short_roll"), 2) ) : 0;
-                })->
-                addColumn('total_pakai_balance', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    $balance = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
-
-                    return $balance > 0 ? round($balance, 2) : ($balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
-                })->
-                toJson();
+            return DataTables::of($rollData)->toJson();
         }
 
         return view('cutting.report.pemakaian-roll', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "pemakaian-roll"]);
@@ -529,29 +486,62 @@ class ReportCuttingController extends Controller
 
         $rollData = collect();
         foreach ($rollIdsArr as $rollId) {
-            $rolls = FormCutInputDetail::selectRaw("
-                id_roll,
-                id_item,
-                detail_item,
-                lot,
-                COALESCE(roll_buyer, roll) roll,
-                MAX(qty) qty,
-                unit,
-                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
-                ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) total_sisa_kain,
-                ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll,
-                CONCAT(ROUND((((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty))/(SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) * 100), 2), ' %') total_short_roll_percentage,
-                '".$rollId->tgl_dok."' tanggal_return
-            ")->
-            whereNotNull("id_roll")->
-            whereIn("status", ['complete', 'need extension', 'extension complete'])->
-            where("id_roll", $rollId->id_roll)->
-            groupBy("id_item", "id_roll")->
-            first();
+            $rolls = collect(DB::select("
+                SELECT * FROM (
+                    SELECT
+                        id_roll,
+                        id_item,
+                        detail_item,
+                        lot,
+                        COALESCE ( roll_buyer, roll ) roll,
+                        MAX( qty ) qty,
+                        unit,
+                        ROUND( SUM( total_pemakaian_roll ), 2 ) total_pemakaian_roll,
+                        ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
+                        ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) total_sisa_kain,
+                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll,
+                        CONCAT(ROUND((((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty))/(SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) * 100), 2), ' %') total_short_roll_percentage,
+                        '".$rollId->tgl_dok."' tanggal_return
+                    FROM
+                        `form_cut_input_detail`
+                    WHERE
+                        `id_roll` IS NOT NULL
+                        AND `id_roll` = '".$rollId->id_roll."'
+                        AND form_cut_input_detail.updated_at >= DATE ( NOW()- INTERVAL 1 YEAR )
+                        AND form_cut_input_detail.status in ('complete', 'need extension', 'extension complete')
+                    GROUP BY
+                        `id_item`,
+                        `id_roll`
+                    UNION ALL
+                    SELECT
+                        id_roll,
+                        id_item,
+                        detail_item,
+                        lot,
+                        COALESCE ( roll_buyer, roll ) roll,
+                        MAX( form_cut_piece_detail.qty_pengeluaran ) qty,
+                        qty_unit as unit,
+                        ROUND(SUM( form_cut_piece_detail.qty_pemakaian )) total_pemakaian_roll,
+                        ROUND(MAX( form_cut_piece_detail.qty_pengeluaran ) - SUM( form_cut_piece_detail.qty_pemakaian )) total_sisa_kain_1,
+                        ROUND(MIN( form_cut_piece_detail.qty_sisa )) total_sisa_kain,
+                        ROUND(( SUM( form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) )) total_short_roll,
+                        CONCAT(ROUND( SUM( form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) / MAX( form_cut_piece_detail.qty_pengeluaran ), 2), ' %') total_short_roll_percentage,
+                        '".$rollId->tgl_dok."' tanggal_return
+                    FROM
+                        `form_cut_piece_detail`
+                    WHERE
+                        `id_roll` IS NOT NULL
+                        AND `id_roll` = '".$rollId->id_roll."'
+                        AND form_cut_piece_detail.updated_at >= DATE ( NOW()- INTERVAL 1 YEAR )
+                        AND status = 'complete'
+                    GROUP BY
+                        `id_item`,
+                        `id_roll`
+                ) roll_use
+            "));
 
-            if ($rolls) {
-                $rollData->push($rolls);
+            if ($rolls && $rolls->first()) {
+                $rollData->push($rolls->first());
             } else {
                 $rollData->push(collect([
                     "id_roll" => $rollId->id_roll,
