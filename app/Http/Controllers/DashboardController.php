@@ -1686,26 +1686,12 @@ class DashboardController extends Controller
                             master_sb_ws.id_act_cost,
                             DATE(master_sb_ws.tgl_kirim) tgl_kirim,
                             stocker_input.id,
-                            stocker_input.form_cut_id,
+                            COALESCE(stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id) form_cut_id,
                             stocker_input.act_costing_ws,
                             master_sb_ws.styleno,
                             stocker_input.color,
                             stocker_input.size,
-                            COALESCE (
-                                (
-                                    MAX( dc_in_input.qty_awal ) - (
-                                        MAX(
-                                            COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(
-                                        COALESCE ( dc_in_input.qty_replace, 0 ))) - (
-                                        MAX(
-                                            COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(
-                                        COALESCE ( secondary_in_input.qty_replace, 0 ))) - (
-                                        MAX(
-                                            COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(
-                                        COALESCE ( secondary_inhouse_input.qty_replace, 0 )))
-                                ),
-                                COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )
-                            ) qty_ply
+                            COALESCE ((MAX( dc_in_input.qty_awal ) - (MAX(COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(COALESCE ( dc_in_input.qty_replace, 0 ))) - (MAX(COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_in_input.qty_replace, 0 ))) - (MAX(COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_inhouse_input.qty_replace, 0 )))), COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty_ply
                         FROM
                             stocker_input
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
@@ -1716,6 +1702,8 @@ class DashboardController extends Controller
                             MONTH(master_sb_ws.tgl_kirim) = '".$month."' AND YEAR(master_sb_ws.tgl_kirim) = '".$year."'
                         GROUP BY
                             stocker_input.form_cut_id,
+                            stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
