@@ -151,12 +151,23 @@
                     searchable: false,
                     render: function(data, type, row) {
                         return `
-                    <a class="btn btn-outline-primary position-relative btn-sm" href="{{ route('qc_inspect_proses_packing_list_det') }}/` +
-                            data.id_lok_in_material + `" title="Detail" target="_blank">
-                        Detail
-                    </a>`;
+            <a class="btn btn-outline-primary position-relative btn-sm"
+               href="{{ route('qc_inspect_proses_packing_list_det') }}/${data.id_lok_in_material}"
+               title="Detail" target="_blank">
+                Detail
+            </a>
+
+            ${data.status_pdf === 'Y' ? `
+                        <a class="btn btn-outline-danger position-relative btn-sm"
+                           href="{{ route('export_qc_inspect') }}/${data.id_lok_in_material}"
+                           title="PDF" target="_blank">
+                            PDF
+                        </a>
+                    ` : ''}
+        `;
                     }
                 },
+
                 {
                     data: 'tgl_dok_fix'
                 },

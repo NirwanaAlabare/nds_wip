@@ -52,24 +52,27 @@
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered w-100 text-nowrap">
                     <thead class="bg-sb">
-                        <tr style="text-align:center; vertical-align:middle">
-                            <th scope="col"style="color: black;">Act</th>
-                            <th scope="col">Tanggal</th>
-                            <th scope="col">No. Mesin</th>
-                            <th scope="col">No. Form</th>
-                            <th scope="col">No. PL</th>
-                            <th scope="col">Buyer</th>
-                            <th scope="col">WS</th>
-                            <th scope="col">Style</th>
-                            <th scope="col">Color</th>
-                            <th scope="col">Group Inspect</th>
-                            <th scope="col">Lot</th>
-                            <th scope="col">No. Roll</th>
-                            <th scope="col">Point / Max Point</th>
-                            <th scope="col">Result</th>
-                            <th scope="col">Note</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Proses</th>
+                        <tr>
+                            <th scope="col" class="text-center align-middle" style="color: black;">Act</th>
+                            <th scope="col" class="text-center align-middle">Tanggal</th>
+                            <th scope="col" class="text-center align-middle">No. Mesin</th>
+                            <th scope="col" class="text-center align-middle">No. Form</th>
+                            <th scope="col" class="text-center align-middle">No. PL</th>
+                            <th scope="col" class="text-center align-middle">Buyer</th>
+                            <th scope="col" class="text-center align-middle">WS</th>
+                            <th scope="col" class="text-center align-middle">Style</th>
+                            <th scope="col" class="text-center align-middle">Color</th>
+                            <th scope="col" class="text-center align-middle">ID Item</th>
+                            <th scope="col" class="text-center align-middle">Fabric</th>
+                            <th scope="col" class="text-center align-middle">Supplier</th>
+                            <th scope="col" class="text-center align-middle">Group Inspect</th>
+                            <th scope="col" class="text-center align-middle">Lot</th>
+                            <th scope="col" class="text-center align-middle">No. Roll</th>
+                            <th scope="col" class="text-center align-middle">Point / Max Point</th>
+                            <th scope="col" class="text-center align-middle">Result</th>
+                            <th scope="col" class="text-center align-middle">Note</th>
+                            <th scope="col" class="text-center align-middle">Status</th>
+                            <th scope="col" class="text-center align-middle">Proses</th>
                         </tr>
                     </thead>
                 </table>
@@ -120,6 +123,7 @@
 
         let datatable = $("#datatable").DataTable({
             ordering: false,
+            responsive: true,
             processing: true,
             serverSide: false,
             paging: true,
@@ -174,30 +178,69 @@
                     data: 'color'
                 },
                 {
+                    data: 'id_item'
+                },
+                {
+                    data: 'itemdesc'
+                },
+                {
+                    data: 'supplier'
+                },
+                {
                     data: 'group_inspect'
                 },
                 {
                     data: 'no_lot'
                 },
                 {
-                    data: 'no_lot'
+                    data: 'no_roll'
                 },
                 {
-                    data: 'no_lot'
+                    data: 'point_max_point',
+                    className: 'text-end'
                 },
                 {
-                    data: 'no_lot'
+                    data: 'result',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
                 },
                 {
                     data: 'type_pch'
                 },
                 {
-                    data: 'type_pch'
+                    data: 'status_proses_form',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
                 },
                 {
                     data: 'proses'
-                },
+                }
             ],
+
+            // ✅ Add this block just after columns
+            rowCallback: function(row, data) {
+                const status = data.status_proses_form?.toLowerCase();
+
+                // Remove any previous Bootstrap table-* color classes
+                $(row).removeClass('table-success table-primary table-warning');
+
+                // Apply new light row background color
+                switch (status) {
+                    case 'done':
+                        $(row).addClass('table-success');
+                        break;
+                    case 'ongoing':
+                        $(row).addClass('table-primary');
+                        break;
+                    case 'new':
+                        $(row).addClass('table-warning');
+                        break;
+                        // draft or others = no color change
+                }
+            }
+
         });
     </script>
 @endsection

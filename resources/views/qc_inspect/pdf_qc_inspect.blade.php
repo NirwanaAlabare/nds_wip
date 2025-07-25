@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>lokasi</title>
+    <title>QC Inspect</title>
     <style>
         @page {
             margin: 15px;
@@ -64,13 +64,48 @@
     <div class="card-body">
         <div class="form-group row">
             <div class="col-md-12 mb-3">
-                <table class="table2" style="border-bottom: 2px solid #000000; margin-bottom:5px;">
-                    <tr>
-                        <td><img src="{{ public_path('nag-logo.png') }}" width="auto" height="auto"> </td>
-                        <td style="text-align: right;vertical-align: bottom;font-size: 14px;">
-                            <?= strtoupper('PT. NIRWANA ALABARE GARMENT') ?></td>
-                    </tr>
+                <table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">
+                    <tbody>
+                        <tr>
+                            <!-- Logo Cell -->
+                            <td rowspan="4" style="width: 20%; border: 1px solid #000; text-align: center;">
+                                <img src="{{ public_path('nag-logo.png') }}" style="max-width: 80px; height: auto;">
+                            </td>
+
+                            <!-- Title Cell -->
+                            <td rowspan="4" colspan="1"
+                                style="width: 50%;border: 1px solid #000; text-align: center; vertical-align: middle; font-size: 18px; font-weight: bold;">
+                                FABRIC INSPECTION
+                            </td>
+
+                            <!-- Label: Kode Dok -->
+                            <td style="width: 15%; border: 1px solid #000;">Kode Dok</td>
+                            <td style="width: 15%; border: 1px solid #000;">:</td>
+
+                        </tr>
+
+                        <tr>
+                            <td style="border: 1px solid #000;">Revisi</td>
+                            <td style="border: 1px solid #000;">:</td>
+
+                        </tr>
+
+                        <tr>
+                            <td style="border: 1px solid #000;">Tanggal Revisi</td>
+                            <td style="border: 1px solid #000;">:</td>
+
+                        </tr>
+
+                        <tr>
+                            <td style="border: 1px solid #000;">Tanggal Berlaku</td>
+                            <td style="border: 1px solid #000;">:</td>
+
+                        </tr>
+                    </tbody>
                 </table>
+
+
+
                 <div class="table-responsive">
                     @foreach ($data_header as $dheader)
                         <table width="100%" class="text-nowrap">
@@ -147,7 +182,7 @@
                         <table class="text-nowrap" width="100%" border="1">
                             <thead>
                                 <tr>
-                                    <th class="text-center">Length</th>
+                                    <th class="text-center">Le</th>
                                     <th class="text-center">Defect Name</th>
                                     <th class="text-center">Code</th>
                                     <th class="text-center">Up To 3"</th>
