@@ -54,7 +54,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Tanggal</label>
-                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? $currentCuttingPiece->tanggal : date("Y-m-d") }}" disabled>
+                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? ($currentCuttingPiece->tanggal ? $currentCuttingPiece->tanggal : date("Y-m-d")) : date("Y-m-d") }}" disabled>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Worksheet</label>
