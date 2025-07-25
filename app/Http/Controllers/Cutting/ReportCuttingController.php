@@ -828,7 +828,7 @@ class ReportCuttingController extends Controller
                             SUM(form_cut_piece_detail_size.qty) marker_gelar,
                             SUM(form_cut_piece_detail_size.qty) spreading_gelar,
                             SUM(form_cut_piece_detail_size.qty) form_gelar,
-                            null diff
+                            0 diff
                         FROM
                             form_cut_piece
                             INNER JOIN
@@ -1055,10 +1055,17 @@ class ReportCuttingController extends Controller
                         where
                             form_cut_piece_detail_size.qty > 0
                             ".$additionalQuery1."
+                            ".$tanggalFilter1."
+                            ".$noMejaFilter1."
+                            ".$buyerFilter1."
+                            ".$wsFilter1."
+                            ".$styleFilter1."
+                            ".$colorFilter1."
+                            ".$panelFilter1."
                         group by
+                            form_cut_piece_detail.id,
                             form_cut_piece_detail_size.so_det_id,
                             form_cut_piece.tanggal,
-                            form_cut_piece.employee_name,
                             form_cut_piece.id
                     ) marker_cutting
                 GROUP BY
