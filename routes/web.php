@@ -2026,6 +2026,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/qc_inspect_proses_packing_list_det/{id_lok_in_material?}', 'qc_inspect_proses_packing_list_det')->name('qc_inspect_proses_packing_list_det');
         Route::get('/show_calculate_qc_inspect', 'show_calculate_qc_inspect')->name('show_calculate_qc_inspect');
         Route::post('/generate_qc_inspect', 'generate_qc_inspect')->name('generate_qc_inspect');
+        Route::get('/show_qc_inspect_form_modal', 'show_qc_inspect_form_modal')->name('show_qc_inspect_form_modal');
+        Route::post('/generate_form_kedua', 'generate_form_kedua')->name('generate_form_kedua');
+        Route::get('/show_inspect_pertama', 'show_inspect_pertama')->name('show_inspect_pertama');
+        Route::get('/show_inspect_kedua', 'show_inspect_kedua')->name('show_inspect_kedua');
+        Route::get('/export_qc_inspect/{id_lok_in_material?}', 'export_qc_inspect')->name('export_qc_inspect');
+        Route::post('/pass_with_condition', 'pass_with_condition')->name('pass_with_condition');
     });
 
     // Proses Form Inspect
@@ -2042,6 +2048,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/qc_inspect_delete_visual', 'qc_inspect_delete_visual')->name('qc_inspect_delete_visual');
         Route::post('/calculate_act_point', 'calculate_act_point')->name('calculate_act_point');
         Route::get('/qc_inspect_show_act_point', 'qc_inspect_show_act_point')->name('qc_inspect_show_act_point');
+        Route::post('/finish_form_inspect', 'finish_form_inspect')->name('finish_form_inspect');
     });
 });
 

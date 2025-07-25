@@ -25,6 +25,9 @@ qc.tgl_form,
 DATE_FORMAT(qc.tgl_form, '%d-%M-%Y') AS tgl_form_fix,
 qc.no_mesin,
 qc.no_form,
+qc.id_item,
+a.itemdesc,
+a.supplier,
 qc.no_invoice,
 a.buyer,
 a.kpno,
@@ -33,11 +36,20 @@ a.color,
 qc.group_inspect,
 qc.no_lot,
 a.type_pch,
-qc.proses
+qc.proses,
+qc.barcode,
+b.no_roll,
+CONCAT(
+    ROUND(IFNULL(d.act_point, 0)),
+    '/',
+    IFNULL(c.individu, 0)
+) AS point_max_point,
+qc.result,
+qc.status_proses_form
 from signalbit_erp.qc_inspect_form  qc
 inner join
 (
-select a.no_invoice, c.id_item, c.id_jo, mi.color, ms.supplier buyer, ac.kpno, ac.styleno, a.type_pch
+select a.no_invoice, c.id_item, mi.itemdesc,c.id_jo, mi.color,a.supplier, ms.supplier buyer, ac.kpno, ac.styleno, a.type_pch
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 inner join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
@@ -48,8 +60,39 @@ inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 group by c.id_item, c.id_jo, a.no_invoice
 ) a on qc.id_item = a.id_item and qc.id_jo = a.id_jo and qc.no_invoice = a.no_invoice
+left join signalbit_erp.whs_lokasi_inmaterial b on qc.barcode = b.no_barcode
+left join signalbit_erp.qc_inspect_master_group_inspect c on qc.group_inspect = c.id
+left join
+(
+SELECT
+a.no_form,
+ROUND(
+    (
+        (
+            SUM(up_to_3) * 1 +
+            SUM(`3_6`) * 2 +
+            SUM(`6_9`) * 3 +
+            SUM(over_9) * 4
+        ) * 36 * 100
+    ) / (
+        AVG(a.cuttable_width_act) *
+        AVG(
+            CASE
+                WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
+                ELSE b.act_length
+            END
+        )
+    )
+) AS act_point
+FROM qc_inspect_form_det a
+INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+INNER JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where tgl_form >= '$tgl_awal' and tgl_form <= '$tgl_akhir'
+group by no_form
+)
+d on qc.no_form = d.no_form
 where qc.tgl_form >= '$tgl_awal' and qc.tgl_form <= '$tgl_akhir'
-order by no_form desc, tgl_form desc, color asc
+order by no_form asc, tgl_form desc, color asc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -97,9 +140,10 @@ qc.operator,
 qc.nik,
 qc.barcode,
 b.no_roll,
-b.item_desc,
-c.supplier,
+mi.itemdesc,
+a.supplier,
 DATE_FORMAT(start_form, '%d-%m-%Y %H:%i:%s') AS start_form_fix,
+DATE_FORMAT(finish_form, '%d-%m-%Y %H:%i:%s') AS finish_form_fix,
 qc.weight,
 qc.lbs,
 qc.width,
@@ -114,7 +158,7 @@ qc.unit_act_length
 from signalbit_erp.qc_inspect_form  qc
 inner join
 (
-select a.no_invoice, c.id_item, c.id_jo, mi.color, ms.supplier buyer, ac.kpno, ac.styleno, a.type_pch
+select a.no_invoice, c.id_item, c.id_jo, mi.color,a.supplier, ms.supplier buyer, ac.kpno, ac.styleno, a.type_pch
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 inner join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
@@ -125,8 +169,9 @@ inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 group by c.id_item, c.id_jo, a.no_invoice
 ) a on qc.id_item = a.id_item and qc.id_jo = a.id_jo and qc.no_invoice = a.no_invoice
-left join whs_lokasi_inmaterial b on qc.barcode = b.no_barcode
-left join whs_inmaterial_fabric c on b.no_dok = c.no_dok
+left join signalbit_erp.whs_lokasi_inmaterial b on qc.barcode = b.no_barcode
+left join signalbit_erp.whs_inmaterial_fabric c on b.no_dok = c.no_dok
+inner join signalbit_erp.masteritem mi on qc.id_item = mi.id_item
 where qc.id = ?
 order by no_form desc, tgl_form desc, color asc", [$id]);
 
@@ -135,6 +180,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $id                     = $get_header[0]->id;
         $status_proses_form     = $get_header[0]->status_proses_form;
         $start_form_fix         = $get_header[0]->start_form_fix;
+        $finish_form_fix         = $get_header[0]->finish_form_fix;
 
         $buyer                  = $get_header[0]->buyer;
         $ws                     = $get_header[0]->kpno;
@@ -153,21 +199,21 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
 
         $barcode                = $get_header[0]->barcode    ?? '';
         $no_roll                = $get_header[0]->no_roll    ?? '';
-        $itemdesc               = $get_header[0]->item_desc   ?? '';
+        $itemdesc               = $get_header[0]->itemdesc   ?? '';
         $supplier               = $get_header[0]->supplier   ?? '';
 
-        $weight                 = $get_header[0]->weight   ?? '0';
-        $lbs                    = $get_header[0]->lbs   ?? '0';
-        $width                  = $get_header[0]->width   ?? '0';
+        $weight                 = $get_header[0]->weight;
+        $lbs                    = $get_header[0]->lbs;
+        $width                  = $get_header[0]->width;
         $unit_width             = $get_header[0]->unit_width   ?? '';
-        $act_weight             = $get_header[0]->act_weight   ?? '0';
+        $act_weight             = $get_header[0]->act_weight;
         $act_unit_weight        = $get_header[0]->act_unit_weight   ?? '';
-        $gramage                = $get_header[0]->gramage   ?? '0';
+        $gramage                = $get_header[0]->gramage;
 
-        $bintex_length                 = $get_header[0]->bintex_length   ?? '0';
-        $unit_bintex                 = $get_header[0]->unit_bintex   ?? '';
-        $act_length                 = $get_header[0]->act_length   ?? '0';
-        $unit_act_length                 = $get_header[0]->unit_act_length   ?? '';
+        $bintex_length          = $get_header[0]->bintex_length;
+        $unit_bintex            = $get_header[0]->unit_bintex   ?? '';
+        $act_length             = $get_header[0]->act_length;
+        $unit_act_length        = $get_header[0]->unit_act_length   ?? '';
 
         $data_length = DB::connection('mysql_sb')->select("SELECT
         id isi,
@@ -193,6 +239,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
                 "id" => $id,
                 "status_proses_form" => $status_proses_form,
                 "start_form_fix" => $start_form_fix,
+                "finish_form_fix" => $finish_form_fix,
                 "buyer" => $buyer,
                 "ws" => $ws,
                 "style" => $style,
@@ -273,6 +320,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $enroll_id = $cek_operator[0]->enroll_id;
 
         $update = DB::connection('mysql_sb')->update("UPDATE qc_inspect_form set
+        no_mesin = '$user',
         enroll_id = '$enroll_id',
         nik = '$nik',
         operator = '$nm_operator',
@@ -295,46 +343,63 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
 
     public function get_barcode_info(Request $request)
     {
-        $barcode = $request->barcode;
-        $id_item = $request->id_item;
-        $id_jo = $request->id_jo;
-        $no_lot = $request->no_lot;
-        $no_invoice = $request->no_invoice;
-        $color = $request->color;
+        $barcode     = $request->barcode;
+        $id_item     = $request->id_item;
+        $id_jo       = $request->id_jo;
+        $no_lot      = $request->no_lot;
+        $no_invoice  = $request->no_invoice;
+        $color       = $request->color;
 
-        $cek_barcode = DB::connection('mysql_sb')->select("SELECT
-        no_barcode,
-        supplier,
-        no_roll,
-        mi.color,
-        mi.itemdesc
-        FROM `whs_lokasi_inmaterial` a
-        inner join whs_inmaterial_fabric_det b on a.id_item = b.id_item and a.id_jo = b.id_jo
-        inner join whs_inmaterial_fabric c on b.no_dok = c.no_dok
-        inner join masteritem mi on a.id_item = mi.id_item
-        where a.id_item = '$id_item' and a.id_jo = '$id_jo' and no_invoice = '$no_invoice' and no_lot = '$no_lot' and color = '$color' and no_barcode = '$barcode'
+        // Check for duplicate barcode
+        $cek_duplicate = DB::connection('mysql_sb')->select("
+        SELECT barcode
+        FROM qc_inspect_form
+        WHERE barcode = ?
+    ", [$barcode]);
 
-    ");
-
-        if (empty($cek_barcode)) {
+        if (!empty($cek_duplicate)) {
             return response()->json([
-                'status' => 'not_found'
+                'status' => 'duplicate',
+                'message' => 'Barcode sudah dipakai'
             ]);
         }
 
-        $rowbarcode = $cek_barcode[0];
+        // Fetch barcode information
+        $cek_barcode = DB::connection('mysql_sb')->select("
+        SELECT
+            no_barcode,
+            supplier,
+            no_roll,
+            mi.color,
+            mi.itemdesc
+        FROM whs_lokasi_inmaterial a
+        INNER JOIN whs_inmaterial_fabric_det b ON a.id_item = b.id_item AND a.id_jo = b.id_jo
+        INNER JOIN whs_inmaterial_fabric c ON b.no_dok = c.no_dok
+        INNER JOIN masteritem mi ON a.id_item = mi.id_item
+        WHERE a.id_item = ? AND a.id_jo = ? AND no_invoice = ? AND no_lot = ? AND color = ? AND no_barcode = ?
+    ", [$id_item, $id_jo, $no_invoice, $no_lot, $color, $barcode]);
+
+        if (empty($cek_barcode)) {
+            return response()->json([
+                'status' => 'not_found',
+                'message' => 'Barcode tidak ditemukan'
+            ]);
+        }
+
+        $row = $cek_barcode[0];
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'barcode'   => $rowbarcode->no_barcode,
-                'supplier'  => $rowbarcode->supplier,
-                'no_roll'   => $rowbarcode->no_roll,
-                'color'     => $rowbarcode->color,
-                'itemdesc'  => $rowbarcode->itemdesc,
+                'barcode'   => $row->no_barcode,
+                'supplier'  => $row->supplier,
+                'no_roll'   => $row->no_roll,
+                'color'     => $row->color,
+                'itemdesc'  => $row->itemdesc,
             ]
         ]);
     }
+
 
     public function save_fabric_form_inspect(Request $request)
     {
@@ -362,12 +427,12 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $timestamp = Carbon::now();
 
         $id = $request->id;
-        $weight = $request->weight;
-        $width = $request->width;
-        $unitWidth = $request->unitWidth;
-        $lbs = $request->lbs;
-        $act_weight = $request->act_weight;
-        $gramage = $request->gramage;
+        $weight     = $request->weight     ?? 0;
+        $width      = $request->width      ?? 0;
+        $unitWidth  = $request->unitWidth;
+        $lbs        = $request->lbs        ?? 0;
+        $act_weight = $request->act_weight ?? 0;
+        $gramage    = $request->gramage    ?? 0;
 
         $update = DB::connection('mysql_sb')->update("UPDATE qc_inspect_form set
         weight = '$weight',
@@ -378,7 +443,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         act_weight = '$act_weight',
         act_unit_weight = 'KG',
         gramage ='$gramage',
-        status_proses_form = 'scan_form_fabric'
+        status_proses_form = 'ongoing'
         WHERE id = '$id'
     ");
 
@@ -454,11 +519,13 @@ up_to_3,
 over_9,
 concat(full_width_act, ' -> ' , cuttable_width_act) hasil,
 full_width_act,
-cuttable_width_act
+cuttable_width_act,
+qc.status_proses_form
 FROM qc_inspect_form_det a
 inner join qc_inspect_master_defect b on a.id_defect = b.id
 inner join qc_inspect_master_lenght c on a.id_length = c.id
-where no_form = '$txtno_form'
+inner join qc_inspect_form qc on a.no_form = qc.no_form
+where a.no_form = '$txtno_form'
             ");
 
         return DataTables::of($data_visual_inspect)->toJson();
@@ -487,10 +554,10 @@ where no_form = '$txtno_form'
 
         $id = $request->id;
         $txtno_form = $request->txtno_form;
-        $txtbintex_length = $request->txtbintex_length;
+        $txtbintex_length = $request->txtbintex_length ?? 0;
         $unitBintex = $request->unitBintex;
         $txtbintex_act = $request->txtbintex_act;
-        $txtact_length = $request->txtact_length;
+        $txtact_length = $request->txtact_length ?? 0;
         $unitActLength = $request->unitActLength;
         $txtact_length_fix = $request->txtact_length_fix;
 
@@ -547,29 +614,85 @@ ROUND(
         )
     )
 ) AS act_point,
-
-    c.shipment,
-
+    c.individu,
     IF(
+ROUND(
+    (
         (
-            (
-                SUM(up_to_3) * 1 +
-                SUM(`3_6`) * 2 +
-                SUM(`6_9`) * 3 +
-                SUM(over_9) * 4
-            ) * 36 * 100
-        ) / (b.width * b.act_length_fix) <= c.shipment,
+            SUM(up_to_3) * 1 +
+            SUM(`3_6`) * 2 +
+            SUM(`6_9`) * 3 +
+            SUM(over_9) * 4
+        ) * 36 * 100
+    ) / (
+        AVG(a.cuttable_width_act) *
+        AVG(
+            CASE
+                WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
+                ELSE b.act_length
+            END
+        )
+    )
+) <= c.individu,
         'PASS',
         'REJECT'
     ) AS result
-
 FROM qc_inspect_form_det a
 INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
 INNER JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
 WHERE a.no_form = '$txtno_form';
-
             ");
 
         return DataTables::of($data_act_point)->toJson();
+    }
+
+    public function finish_form_inspect(Request $request)
+    {
+        $id = $request->id;
+        $txtno_form = $request->txtno_form;
+        $timestamp = Carbon::now();
+
+        $get_result = DB::connection('mysql_sb')->select("SELECT
+                    IF(
+                ROUND(
+                    (
+                        (
+                            SUM(up_to_3) * 1 +
+                            SUM(`3_6`) * 2 +
+                            SUM(`6_9`) * 3 +
+                            SUM(over_9) * 4
+                        ) * 36 * 100
+                    ) / (
+                        AVG(a.cuttable_width_act) *
+                        AVG(
+                            CASE
+                                WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
+                                ELSE b.act_length
+                            END
+                        )
+                    )
+                ) <= c.individu,
+                        'pass',
+                        'reject'
+                    ) AS result
+                FROM qc_inspect_form_det a
+                INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+                INNER JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+                WHERE a.no_form = '$txtno_form';
+            ");
+
+        $result                = $get_result[0]->result;
+
+        $finish_form = DB::connection('mysql_sb')->select("UPDATE qc_inspect_form SET
+        status_proses_form = 'done',
+        result = '$result',
+        finish_form = '$timestamp'
+        where no_form = '$txtno_form'
+            ");
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Form inspection berhasil diselesaikan.'
+        ]);
     }
 }
