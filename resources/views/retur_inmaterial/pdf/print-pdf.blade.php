@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stocker</title>
+    <title>Return Fabric</title>
     <style>
-        @page { margin: 5px; }
+        @page { margin: 15px; }
 
-        body { margin: 5px; }
+        body { margin: 15px;
+        font-family: sans-serif;}
+
+        td {
+        font-family: Helvetica, Arial, sans-serif;
+        }
+
+        tr {
+        font-family: Helvetica, Arial, sans-serif;
+        }
 
         /** {
             font-size: 13px;
@@ -78,7 +87,7 @@
             <td>No PO</td>
             <td> : {{ $dheader->no_po }}</td>
             <td>Tgl. BPB</td>
-            <td> : {{ $dheader->tgl_dok }}</td>    
+            <td> : {{ $dheader->tgl_dok }}</td>
         </tr>
         <tr>
             <td>Dok. BC</td>
@@ -89,20 +98,20 @@
     </table>
     @endforeach
     <br>
-    <table class="main" repeat_header="1" border="1" cellspacing="0" width="100%" 
+    <table class="main" repeat_header="1" border="1" cellspacing="0" width="100%"
                  style="border-collapse: collapse; width:100%; font-size: 11px;">
            <thead>
               <tr class="head">
                  <td align="center">No.</td>
                         <td align="center">WS #</td>
                         <td align="center">Nama Barang</td>
-                        <td align="center">Jumlah</td> 
+                        <td align="center">Jumlah</td>
                         <td align="center">Satuan</td>
-                        <td align="center">Keterangan</td>                    
+                        <td align="center">Keterangan</td>
                     </tr>
                     </thead>
 
-                   <tbody> 
+                   <tbody>
                     <?php $x = 1; ?>
                         @foreach ($dataDetail as $ddetail)
                             <tr>

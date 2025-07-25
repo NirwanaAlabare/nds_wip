@@ -26,13 +26,16 @@ class ReportCuttingController extends Controller
     {
         if ($request->ajax()) {
             $additionalQuery = "";
+            $additionalQuery1 = "";
 
             if ($request->dateFrom) {
                 $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '".$request->dateFrom."'";
             }
 
             if ($request->dateTo) {
                 $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '".$request->dateTo."'";
             }
 
             $keywordQuery = "";
@@ -110,6 +113,43 @@ class ReportCuttingController extends Controller
                     marker_input.id,
                     marker_input_detail.so_det_id,
                     form_cut.tgl_form_cut
+                UNION
+                SELECT
+                    null as kode,
+                    form_cut_piece.no_form,
+                    null as meja,
+                    form_cut_piece.tanggal as tgl_form_cut,
+                    form_cut_piece.buyer,
+                    form_cut_piece.act_costing_id,
+                    form_cut_piece.act_costing_ws,
+                    form_cut_piece.style,
+                    form_cut_piece.color,
+                    form_cut_piece.panel,
+                    form_cut_piece.cons_ws,
+                    'PCS' unit,
+                    form_cut_piece_detail_size.so_det_id,
+                    CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                    1 as ratio,
+                    'PCS' notes,
+                    SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                    SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                    SUM(form_cut_piece_detail_size.qty) form_gelar,
+                    null form_diff
+                FROM
+                    form_cut_piece
+                    INNER JOIN
+                        form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                    INNER JOIN
+                        form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                    INNER JOIN
+                        master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                where
+                    form_cut_piece_detail_size.qty > 0
+                    ".$additionalQuery1."
+                group by
+                    form_cut_piece.id,
+                    form_cut_piece_detail_size.so_det_id,
+                    form_cut_piece.tanggal
             ");
 
             return DataTables::of($reportCutting)->toJson();
@@ -121,46 +161,58 @@ class ReportCuttingController extends Controller
     public function totalCutting(Request $request)
     {
         $additionalQuery = "";
+        $additionalQueryPcs = "";
         $additionalQuery1 = "";
+        $additionalQueryPcs1 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
+            $additionalQueryPcs .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '".$request->dateFrom."'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
+            $additionalQueryPcs .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '".$request->dateTo."'";
         }
 
         if ($request->tgl_form_cut) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) LIKE '%".$request->tgl_form_cut."%'";
+            $additionalQueryPcs .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) LIKE '%".$request->tgl_form_cut."%'";
         }
 
         if ($request->buyer) {
             $additionalQuery1 .= " and marker_input.buyer LIKE '%".$request->buyer."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.buyer LIKE '%".$request->buyer."%'";
         }
 
         if ($request->ws) {
             $additionalQuery1 .= " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.act_costing_ws LIKE '%".$request->ws."%'";
         }
 
         if ($request->style) {
             $additionalQuery1 .= " and marker_input.style LIKE '%".$request->style."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.style LIKE '%".$request->style."%'";
         }
 
         if ($request->color) {
             $additionalQuery1 .= " and marker_input.color LIKE '%".$request->color."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.color LIKE '%".$request->color."%'";
         }
 
         if ($request->panel) {
             $additionalQuery1 .= " and marker_input.panel LIKE '%".$request->panel."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.panel LIKE '%".$request->panel."%'";
         }
 
         if ($request->size) {
             $additionalQuery1 .= " and marker_input_detail.buyer LIKE '%".$request->size."%'";
+            $additionalQueryPcs1 .= " and form_cut_piece.buyer LIKE '%".$request->size."%'";
         }
 
         if ($request->notes) {
             $additionalQuery1 .= " and (form_cut.notes LIKE '%".$request->notes."%' or marker_input.notes LIKE '%".$request->notes."%')";
+            $additionalQueryPcs1 .= " and ('PCS' LIKE '%".$request->notes."%')";
         }
 
         $reportCutting = DB::select("
@@ -231,6 +283,44 @@ class ReportCuttingController extends Controller
                         marker_input.id,
                         marker_input_detail.so_det_id,
                         form_cut.tgl_form_cut
+                    UNION
+                    SELECT
+                        null as kode,
+                        form_cut_piece.no_form,
+                        null as meja,
+                        form_cut_piece.tanggal as tgl_form_cut,
+                        form_cut_piece.buyer,
+                        form_cut_piece.act_costing_id,
+                        form_cut_piece.act_costing_ws,
+                        form_cut_piece.style,
+                        form_cut_piece.color,
+                        form_cut_piece.panel,
+                        form_cut_piece.cons_ws,
+                        'PCS' unit,
+                        form_cut_piece_detail_size.so_det_id,
+                        CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                        1 as ratio,
+                        'PCS' notes,
+                        SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                        SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                        SUM(form_cut_piece_detail_size.qty) form_gelar,
+                        null form_diff
+                    FROM
+                        form_cut_piece
+                        INNER JOIN
+                            form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                        INNER JOIN
+                            form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                        INNER JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                    where
+                        form_cut_piece_detail_size.qty > 0
+                        ".$additionalQueryPcs."
+                        ".$additionalQueryPcs1."
+                    group by
+                        form_cut_piece.id,
+                        form_cut_piece_detail_size.so_det_id,
+                        form_cut_piece.tanggal
                 ) marker_cutting
             ");
 
@@ -284,150 +374,107 @@ class ReportCuttingController extends Controller
             //     ")
             // );
 
-            return DataTables::of($pemakaianRoll)->
-                addColumn('total_roll_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+            $rollData = collect();
+            foreach ($pemakaianRoll as $row) {
+                $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
-                    $rollIds = $rollIdsArr->pluck("id_roll");
+                $rollIds = addQuotesAround($rollIdsArr->pluck("id_roll")->implode("\n"));
 
-                    $rolls = FormCutInputDetail::selectRaw("
+                $rolls = collect(DB::select("
+                    SELECT
+                        req.id_roll,
+                        req.id_item,
+                        req.item_desc detail_item,
+                        req.no_lot lot,
+                        req.styleno,
+                        req.color,
+                        COALESCE(roll.roll, req.no_roll) roll,
+                        COALESCE(roll.qty, req.qty_out) qty,
+                        COALESCE(roll.sisa_kain, 0) sisa_kain,
+                        COALESCE(roll.unit, req.satuan) unit,
+                        COALESCE(roll.total_pemakaian_roll, 0) total_pemakaian_roll,
+                        COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
+                        COALESCE(roll.total_short_roll, 0) total_short_roll
+                    FROM (
+                        select b.*, c.color, tmpjo.styleno from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item left join (select id_jo,kpno,styleno from signalbit_erp.act_costing ac inner join signalbit_erp.so on ac.id=so.id_cost inner join signalbit_erp.jo_det jod on signalbit_erp.so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll
+                    ) req
+                    LEFT JOIN (
+                        select
                             id_roll,
                             id_item,
                             detail_item,
                             lot,
                             COALESCE(roll_buyer, roll) roll,
                             MAX(qty) qty,
+                            ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
                             unit,
                             ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls->count();
-                })->
-                addColumn('total_roll_balance', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
+                            ROUND(SUM(short_roll), 2) total_short_roll_2,
+                            ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+                        from
+                            laravel_nds.form_cut_input_detail
+                        WHERE
+                            `status` in ('complete', 'need extension', 'extension complete')
+                            ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                        GROUP BY
+                            id_item,
+                            id_roll
+                    UNION ALL
+                        SELECT
                             id_roll,
                             id_item,
                             detail_item,
                             lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
+                            COALESCE ( roll_buyer, roll ) roll,
+                            MAX( form_cut_piece_detail.qty_pengeluaran ) qty,
+                            MIN( form_cut_piece_detail.qty_sisa ) sisa_kain,
+                            qty_unit as unit,
+                            ROUND( SUM( form_cut_piece_detail.qty_pemakaian ) ) total_pemakaian_roll,
+                            ROUND( SUM( form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa) ) ) total_short_roll_2,
+                            ROUND( SUM( form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa) ) ) total_short_roll
+                        FROM
+                            `form_cut_piece_detail`
+                        WHERE
+                            `status` = 'complete'
+                            ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                        GROUP BY
+                            `id_item`,
+                            `id_roll`
+                    ) roll ON req.id_roll = roll.id_roll
+                "));
 
-                    $balance = $rolls ? $row->roll_out - $rolls->count() : $row->roll_out;
+                $balanceRoll = $rolls ? $row->roll_out - $rolls->count() : $row->roll_out;
+                $balancePakai = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
 
-                    return $balance > 0 ? $balance : ($balance < 0 ? str_replace("-", "+", round($balance, 2)) : round($balance, 2));
-                })->
-                addColumn('total_qty_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+                $rollData->push(collect([
+                    'bppbno' => $row->bppbno,
+                    'bppbno' => $row->bppbno,
+                    'bppbdate' => $row->bppbdate,
+                    'no_out' => $row->no_out,
+                    'tujuan' => $row->tujuan,
+                    'no_ws' => $row->no_ws,
+                    'styleno' => $row->styleno,
+                    'buyer' => $row->buyer,
+                    'id_item' => $row->id_item,
+                    'itemdesc' => $row->itemdesc,
+                    'qty_req' => $row->qty_req,
+                    'unit' => $row->unit,
+                    'no_out' => $row->no_out,
+                    'roll_out' => $row->roll_out,
+                    'qty_out' => $row->qty_out,
+                    'total_roll_cutting' => $rolls->count(),
+                    'total_pakai_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2) ) : 0,
+                    'total_qty_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("qty") * 1.09361 , 2) : round($rolls->sum("qty"), 2) ) : 0,
+                    'total_short_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_short_roll") * 1.0361, 2) : round($rolls->sum("total_short_roll"), 2) ) : 0,
+                    'total_roll_balance' => $balanceRoll > 0 ? $balanceRoll : ($balanceRoll < 0 ? str_replace("-", "+", round($balanceRoll, 2)) : round($balanceRoll, 2)),
+                    'total_pakai_balance' => $balancePakai > 0 ? round($balancePakai, 2) : ($balancePakai < 0 ? ( str_replace("-", "+", round($balancePakai, 2)) ) : round($balancePakai, 2)),
+                    'no_retur' => $row->no_retur,
+                    'roll_retur' => $row->roll_retur,
+                    'qty_retur' => $row->qty_retur,
+                ]));
+            }
 
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("qty") * 1.09361 , 2) : round($rolls->sum("qty"), 2) ) : 0;
-                })->
-                addColumn('total_pakai_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2) ) : 0;
-                })->
-                addColumn('total_short_cutting', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    return $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_short_roll") * 1.0361, 2) : round($rolls->sum("total_short_roll"), 2) ) : 0;
-                })->
-                addColumn('total_pakai_balance', function ($row) {
-                    $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
-
-                    $rollIds = $rollIdsArr->pluck("id_roll");
-
-                    $rolls = FormCutInputDetail::selectRaw("
-                            id_roll,
-                            id_item,
-                            detail_item,
-                            lot,
-                            COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
-                            unit,
-                            ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                            ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-                        ")->
-                        whereNotNull("id_roll")->
-                        whereIn("id_roll", $rollIds)->
-                        groupBy("id_item", "id_roll")->
-                        get();
-
-                    $balance = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
-
-                    return $balance > 0 ? round($balance, 2) : ($balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
-                })->
-                toJson();
+            return DataTables::of($rollData)->toJson();
         }
 
         return view('cutting.report.pemakaian-roll', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "pemakaian-roll"]);
@@ -439,29 +486,62 @@ class ReportCuttingController extends Controller
 
         $rollData = collect();
         foreach ($rollIdsArr as $rollId) {
-            $rolls = FormCutInputDetail::selectRaw("
-                id_roll,
-                id_item,
-                detail_item,
-                lot,
-                COALESCE(roll_buyer, roll) roll,
-                MAX(qty) qty,
-                unit,
-                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
-                ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) total_sisa_kain,
-                ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll,
-                CONCAT(ROUND((((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty))/(SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) * 100), 2), ' %') total_short_roll_percentage,
-                '".$rollId->tgl_dok."' tanggal_return
-            ")->
-            whereNotNull("id_roll")->
-            whereIn("status", ['complete', 'need extension', 'extension complete'])->
-            where("id_roll", $rollId->id_roll)->
-            groupBy("id_item", "id_roll")->
-            first();
+            $rolls = collect(DB::select("
+                SELECT * FROM (
+                    SELECT
+                        id_roll,
+                        id_item,
+                        detail_item,
+                        lot,
+                        COALESCE ( roll_buyer, roll ) roll,
+                        MAX( qty ) qty,
+                        unit,
+                        ROUND( SUM( total_pemakaian_roll ), 2 ) total_pemakaian_roll,
+                        ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
+                        ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) total_sisa_kain,
+                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll,
+                        CONCAT(ROUND((((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty))/(SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) * 100), 2), ' %') total_short_roll_percentage,
+                        '".$rollId->tgl_dok."' tanggal_return
+                    FROM
+                        `form_cut_input_detail`
+                    WHERE
+                        `id_roll` IS NOT NULL
+                        AND `id_roll` = '".$rollId->id_roll."'
+                        AND form_cut_input_detail.updated_at >= DATE ( NOW()- INTERVAL 1 YEAR )
+                        AND form_cut_input_detail.status in ('complete', 'need extension', 'extension complete')
+                    GROUP BY
+                        `id_item`,
+                        `id_roll`
+                    UNION ALL
+                    SELECT
+                        id_roll,
+                        id_item,
+                        detail_item,
+                        lot,
+                        COALESCE ( roll_buyer, roll ) roll,
+                        MAX( form_cut_piece_detail.qty_pengeluaran ) qty,
+                        qty_unit as unit,
+                        ROUND(SUM( form_cut_piece_detail.qty_pemakaian )) total_pemakaian_roll,
+                        ROUND(MAX( form_cut_piece_detail.qty_pengeluaran ) - SUM( form_cut_piece_detail.qty_pemakaian )) total_sisa_kain_1,
+                        ROUND(MIN( form_cut_piece_detail.qty_sisa )) total_sisa_kain,
+                        ROUND(( SUM( form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) )) total_short_roll,
+                        CONCAT(ROUND( SUM( form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) / MAX( form_cut_piece_detail.qty_pengeluaran ), 2), ' %') total_short_roll_percentage,
+                        '".$rollId->tgl_dok."' tanggal_return
+                    FROM
+                        `form_cut_piece_detail`
+                    WHERE
+                        `id_roll` IS NOT NULL
+                        AND `id_roll` = '".$rollId->id_roll."'
+                        AND form_cut_piece_detail.updated_at >= DATE ( NOW()- INTERVAL 1 YEAR )
+                        AND status = 'complete'
+                    GROUP BY
+                        `id_item`,
+                        `id_roll`
+                ) roll_use
+            "));
 
-            if ($rolls) {
-                $rollData->push($rolls);
+            if ($rolls && $rolls->first()) {
+                $rollData->push($rolls->first());
             } else {
                 $rollData->push(collect([
                     "id_roll" => $rollId->id_roll,
@@ -618,13 +698,16 @@ class ReportCuttingController extends Controller
     public function cuttingDaily(Request $request) {
         if ($request->ajax()) {
             $additionalQuery = "";
+            $additionalQuery1 = "";
 
             if ($request->dateFrom) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '".$request->dateFrom."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) >= '".$request->dateFrom."'";
             }
 
             if ($request->dateTo) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '".$request->dateTo."'";
+                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) <= '".$request->dateTo."'";
             }
 
             $keywordQuery = "";
@@ -721,6 +804,47 @@ class ReportCuttingController extends Controller
                             form_cut.tgl_form_cut,
                             form_cut.meja,
                             form_cut.id
+                        UNION
+                        SELECT
+                            null as kode,
+                            form_cut_piece.no_form no_form_meja,
+                            form_cut_piece.id form_cut_id,
+                            form_cut_piece.no_form,
+                            '-' id_meja,
+                            form_cut_piece.employee_name meja,
+                            form_cut_piece.tanggal tgl_form_cut,
+                            form_cut_piece.buyer,
+                            form_cut_piece.act_costing_id,
+                            form_cut_piece.act_costing_ws,
+                            form_cut_piece.style,
+                            form_cut_piece.color,
+                            form_cut_piece.panel,
+                            form_cut_piece.cons_ws,
+                            'PCS' unit,
+                            form_cut_piece_detail_size.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            1 ratio,
+                            'PCS' notes,
+                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                            0 diff
+                        FROM
+                            form_cut_piece
+                            INNER JOIN
+                                form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                            INNER JOIN
+                                form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                            INNER JOIN
+                                master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                        where
+                            form_cut_piece_detail_size.qty > 0
+                            ".$additionalQuery1."
+                        group by
+                            form_cut_piece_detail_size.so_det_id,
+                            form_cut_piece.tanggal,
+                            form_cut_piece.employee_name,
+                            form_cut_piece.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,
@@ -746,46 +870,65 @@ class ReportCuttingController extends Controller
 
     public function totalCuttingDaily(Request $request) {
         $additionalQuery = "";
+        $additionalQuery1 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '".$request->dateFrom."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) >= '".$request->dateFrom."'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '".$request->dateTo."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), form_cut_piece.tanggal) <= '".$request->dateTo."'";
         }
 
         $tanggalFilter = "";
+        $tanggalFilter1 = "";
         if ($request->tanggal) {
             $tanggalFilter = " and form_cut.tgl_form_cut LIKE '%".$request->tanggal."%'";
+            $tanggalFilter1 = " and form_cut_piece.tgl_form_cut LIKE '%".$request->tanggal."%'";
         }
         $noMejaFilter = "";
+        $noMejaFilter1 = "";
         if ($request->noMeja) {
             $noMejaFilter = " and form_cut.meja LIKE '%".$request->noMeja."%'";
+            $noMejaFilter1 = " and form_cut_piece.employee_name LIKE '%".$request->noMeja."%'";
         }
         $buyerFilter = "";
+        $buyerFilter1 = "";
         if ($request->buyer) {
             $buyerFilter = " and marker_input.buyer LIKE '%".$request->buyer."%'";
+            $buyerFilter1 = " and form_cut_piece.buyer LIKE '%".$request->buyer."%'";
         }
         $noFormFilter = "";
+        $noFormFilter1 = "";
         if ($request->noForm) {
             $noFormFilter = " and form_cut.no_form LIKE '%".$request->noForm."%'";
+            $noFormFilter1 = " and form_cut_piece.no_form LIKE '%".$request->noForm."%'";
         }
         $wsFilter = "";
+        $wsFilter1 = "";
         if ($request->ws) {
             $wsFilter = " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
+            $wsFilter1 = " and form_cut_piece.act_costing_ws LIKE '%".$request->ws."%'";
         }
         $styleFilter = "";
+        $styleFilter1 = "";
         if ($request->style) {
             $styleFilter = " and marker_input.style LIKE '%".$request->style."%'";
+            $styleFilter1 = " and form_cut_piece.style LIKE '%".$request->style."%'";
         }
         $colorFilter = "";
+        $colorFilter1 = "";
         if ($request->color) {
             $colorFilter = " and marker_input.color LIKE '%".$request->color."%'";
+            $colorFilter1 = " and form_cut_piece.color LIKE '%".$request->color."%'";
         }
         $panelFilter = "";
+        $panelFilter1 = "";
         if ($request->panel) {
             $panelFilter = " and marker_input.panel LIKE '%".$request->panel."%'";
+            $panelFilter1 = " and form_cut_piece.panel LIKE '%".$request->panel."%'";
         }
 
         $reportCutting = collect(
@@ -876,6 +1019,54 @@ class ReportCuttingController extends Controller
                             form_cut.tgl_form_cut,
                             form_cut.meja,
                             form_cut.id
+                        UNION
+                        SELECT
+                            null as kode,
+                            form_cut_piece.no_form no_form_meja,
+                            form_cut_piece.id form_cut_id,
+                            form_cut_piece.no_form,
+                            '-' id_meja,
+                            form_cut_piece.employee_name meja,
+                            form_cut_piece.tanggal tgl_form_cut,
+                            form_cut_piece.buyer,
+                            form_cut_piece.act_costing_id,
+                            form_cut_piece.act_costing_ws,
+                            form_cut_piece.style,
+                            form_cut_piece.color,
+                            form_cut_piece.panel,
+                            form_cut_piece.cons_ws,
+                            'PCS' unit,
+                            form_cut_piece_detail_size.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            1 ratio,
+                            'PCS' notes,
+                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
+                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
+                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                            null diff
+                        FROM
+                            form_cut_piece
+                            INNER JOIN
+                                form_cut_piece_detail on form_cut_piece_detail.form_id = form_cut_piece.id
+                            INNER JOIN
+                                form_cut_piece_detail_size on form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                            INNER JOIN
+                                master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                        where
+                            form_cut_piece_detail_size.qty > 0
+                            ".$additionalQuery1."
+                            ".$tanggalFilter1."
+                            ".$noMejaFilter1."
+                            ".$buyerFilter1."
+                            ".$wsFilter1."
+                            ".$styleFilter1."
+                            ".$colorFilter1."
+                            ".$panelFilter1."
+                        group by
+                            form_cut_piece_detail.id,
+                            form_cut_piece_detail_size.so_det_id,
+                            form_cut_piece.tanggal,
+                            form_cut_piece.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,

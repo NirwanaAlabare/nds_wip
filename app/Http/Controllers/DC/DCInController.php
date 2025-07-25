@@ -78,7 +78,7 @@ class DCInController extends Controller
             $data_input = DB::select("
                 SELECT
                     UPPER(a.id_qr_stocker) id_qr_stocker,
-                    (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                    (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                     DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                     a.tgl_trans,
                     s.act_costing_ws,
@@ -94,7 +94,7 @@ class DCInController extends Controller
                     a.tempat,
                     a.created_at,
                     a.user,
-                    f.no_cut,
+                    COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                     COALESCE(msb.size, s.size) size,
                     mp.nama_part
                 from
@@ -103,6 +103,7 @@ class DCInController extends Controller
                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                     left join form_cut_input f on f.id = s.form_cut_id
                     left join form_cut_reject fr on fr.id = s.form_reject_id
+                    left join form_cut_piece fp on fp.id = s.form_piece_id
                     left join part_detail pd on s.part_detail_id = pd.id
                     left join part p on pd.part_id = p.id
                     left join master_part mp on mp.id = pd.master_part_id
@@ -133,7 +134,7 @@ class DCInController extends Controller
         $data_input = collect(DB::select("
             SELECT
                 UPPER(a.id_qr_stocker) id_qr_stocker,
-                (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                 DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                 a.tgl_trans,
                 s.act_costing_ws,
@@ -149,7 +150,7 @@ class DCInController extends Controller
                 a.tempat,
                 a.created_at,
                 a.user,
-                f.no_cut,
+                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part
             from
@@ -158,6 +159,7 @@ class DCInController extends Controller
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
                 left join form_cut_reject fr on fr.id = s.form_reject_id
+                left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
@@ -239,7 +241,7 @@ class DCInController extends Controller
         }
 
         if ($request->no_cut) {
-            $additionalQuery .= " and f.no_cut LIKE '%".$request->no_cut."%'";
+            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') LIKE '%".$request->no_cut."%'";
         }
 
         if ($request->tujuan) {
@@ -300,7 +302,7 @@ class DCInController extends Controller
             $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
         }
         if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
-            $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
+            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
         }
         if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
             $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->dc_filter_tujuan)).")";
@@ -324,6 +326,7 @@ class DCInController extends Controller
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
                 left join form_cut_reject fr on fr.id = s.form_reject_id
+                left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
@@ -458,13 +461,13 @@ class DCInController extends Controller
         $data_header = DB::select("
             SELECT
                 a.act_costing_ws,
-                COALESCE(msb.buyer, m.buyer, fr.buyer) buyer,
-                COALESCE(msb.styleno, m.style, fr.style) styleno,
+                COALESCE(msb.buyer, m.buyer, fp.buyer, fr.buyer) buyer,
+                COALESCE(msb.styleno, m.style, fp.style, fr.style) styleno,
                 a.color,
                 COALESCE(msb.size, a.size) size,
                 a.panel,
-                f.no_cut,
-                f.id,
+                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+                COALESCE(f.id, fr.id, fp.id) id,
                 a.shade,
                 a.qty_ply,
                 a.range_awal,
@@ -478,6 +481,7 @@ class DCInController extends Controller
                 left join master_sb_ws msb on msb.id_so_det = a.so_det_id
                 left join form_cut_input f on a.form_cut_id = f.id
                 left join form_cut_reject fr on a.form_reject_id = fr.id
+                left join form_cut_piece fp on a.form_piece_id = fp.id
                 left JOIN marker_input m ON m.kode = f.id_marker
                 left join part_detail pd on a.part_detail_id = pd.id
                 left join master_secondary ms on pd.master_secondary_id = ms.id
@@ -652,6 +656,39 @@ class DCInController extends Controller
                 y.form_reject_id is not null
             group by
                 ms.id_qr_stocker
+            UNION
+            SELECT
+                ms.id_qr_stocker,
+                mp.nama_part,
+                concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
+                ifnull( s.tujuan, '-' ) tujuan,
+                ifnull( tmp.tempat, '-' ) tempat,
+                ifnull( tmp.lokasi, '-' ) lokasi,
+                concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
+                concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
+                ms.act_costing_ws,
+                msb.size,
+                ms.color,
+                ms.panel,
+                concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+            FROM
+                tmp_dc_in_input_new x
+                left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
+                LEFT JOIN stocker_input ms ON ms.form_piece_id = y.form_piece_id AND ms.so_det_id = y.so_det_id
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
+                LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
+                left JOIN part_detail pd ON ms.part_detail_id = pd.id
+                left JOIN master_part mp ON pd.master_part_id = mp.id
+                LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+            WHERE
+                x.`user` = '".$user."' and
+                y.id is not null and
+                ms.id is not null and
+                (y.form_cut_id < 1 or y.form_cut_id is null) and
+                (y.form_reject_id < 1 or y.form_reject_id is null)
+            group by
+                ms.id_qr_stocker
         ");
 
         return DataTables::of($tmpDcIn)->toJson();
@@ -715,8 +752,9 @@ class DCInController extends Controller
     // mass insert tmp dc in
     public function mass_insert_tmp_dc_in(Request $request)
     {
-        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut")->
+        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut, form_cut_piece.no_cut")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             where("id_qr_stocker", $request->txtqrstocker)->
             first();
 
@@ -724,13 +762,13 @@ class DCInController extends Controller
             $data_header = DB::select("
                 SELECT
                     a.act_costing_ws,
-                    m.buyer,
-                    m.style styleno,
+                    COALESCE(msb.buyer, m.buyer, fp.buyer, fr.buyer) buyer,
+                    COALESCE(msb.style, m.style, fp.style, fr.style) styleno,
                     a.color,
                     COALESCE(msb.size, a.size) size,
                     a.panel,
-                    f.no_cut,
-                    f.id,
+                    COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+                    COALESCE(f.id, fp.id, fr.id) id,
                     a.shade,
                     a.qty_ply,
                     a.range_awal,
@@ -739,18 +777,21 @@ class DCInController extends Controller
                     ms.tujuan,
                     IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi,
                     a.tempat,
-                    a.id_qr_stocker
+                    a.id_qr_stocker,
+                    (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                 FROM
                     `stocker_input` a
                     left join master_sb_ws msb on msb.id_so_det = a.so_det_id
                     left join form_cut_input f on a.form_cut_id = f.id
+                    left join form_cut_reject fr on a.form_reject_id = fr.id
+                    left join form_cut_piece fp on a.form_piece_id = fp.id
                     left JOIN marker_input m ON m.kode = f.id_marker
                     left join part_detail pd on a.part_detail_id = pd.id
                     left join master_secondary ms on pd.master_secondary_id = ms.id
                 WHERE
                     a.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
                     a.color = '".$thisStocker->color."' AND
-                    f.no_cut = '".$thisStocker->no_cut."'
+                    COALESCE(f.no_cut, fp.no_cut) = '".$thisStocker->no_cut."'
             ");
 
             $user = Auth::user()->name;

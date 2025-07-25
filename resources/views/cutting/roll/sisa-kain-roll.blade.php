@@ -211,6 +211,8 @@
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
+                            console.log("res", res);
+
                             datatableReload();
 
                             if (typeof res === 'object' && res !== null) {

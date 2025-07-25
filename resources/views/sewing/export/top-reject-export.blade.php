@@ -21,6 +21,7 @@
             return [
                 'grouping' => $group->first()->grouping,
                 'sewing_line' => $group->first()->sewing_line,
+                'ws' => $group->first()->ws,
                 'style' => $group->first()->style,
                 'color' => $group->first()->color,
                 'size' => $group->first()->size,
@@ -31,6 +32,7 @@
 
         $sortedLineStyleGroup = $lineStyleGroup->sortBy([
             ['sewing_line', 'asc'],
+            ['ws', 'asc'],
             ['style', 'asc'],
             ['color', 'asc'],
             ['total_reject', 'desc'],
@@ -39,6 +41,7 @@
     {{-- Line Style --}}
     <tr>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Line</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">WS</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Style</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Color</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Size</th>
@@ -58,6 +61,7 @@
                     ?>
                         <tr>
                             <td style="border: 1px solid #000;">{{ $lineStyle['sewing_line'] }}</td>
+                            <td style="border: 1px solid #000;">{{ $lineStyle['ws'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['style'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['color'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['size'] }}</td>
@@ -85,7 +89,7 @@
             }
         ?>
     <tr>
-        <th style="font-weight: 800;text-align: center;border: 1px solid #000;" colspan="5">TOTAL</th>
+        <th style="font-weight: 800;text-align: center;border: 1px solid #000;" colspan="6">TOTAL</th>
         @foreach ($topReject->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
             @php
                 $thisReject = $topReject->where('tanggal', $dailyDate->first()->tanggal)->sum("total_reject");

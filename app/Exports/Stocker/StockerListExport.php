@@ -89,11 +89,11 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
         }
         $no_form_filter = "";
         if ($this->no_form_filter) {
-            $no_form_filter = "AND COALESCE(form_cut_input.no_form, form_cut_reject.no_form) LIKE '%".$this->no_form_filter."%' ";
+            $no_form_filter = "AND COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) LIKE '%".$this->no_form_filter."%' ";
         }
         $no_cut_filter = "";
         if ($this->no_cut_filter) {
-            $no_cut_filter = "AND form_cut_input.no_cut LIKE '%".$this->no_cut_filter."%' ";
+            $no_cut_filter = "AND COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') LIKE '%".$this->no_cut_filter."%' ";
         }
         $color_filter = "";
         if ($this->color_filter) {
@@ -184,7 +184,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                 FROM
                     (
                         SELECT
-                            coalesce(form_cut_id, form_reject_id) form_cut_id,
+                            coalesce(form_cut_id, form_reject_id, form_piece_id,) form_cut_id,
                             so_det_id,
                             CONCAT( YEAR, '_', year_sequence ) year_sequence,
                             MIN( number ) range_numbering_awal,
@@ -192,7 +192,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
                             COALESCE ( updated_at, created_at ) updated_at,
-                            (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                         FROM
                             year_sequence
                         WHERE
@@ -202,14 +202,15 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         GROUP BY
                             form_cut_id,
                             form_reject_id,
-                            (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END),
+                            form_piece_id,
+                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                             so_det_id,
                             COALESCE ( updated_at, created_at )
                     ) year_sequence_num
                     LEFT JOIN (
                         SELECT
                             GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                            COALESCE(form_cut_input.id, form_cut_reject.id) form_cut_id,
+                            COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.so_det_id,
                             master_sb_ws.buyer buyer,
@@ -225,10 +226,10 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                             stocker_input.range_akhir,
                             stocker_input.created_at,
                             stocker_input.updated_at,
-                            COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at) waktu_mulai,
-                            COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at) waktu_selesai,
-                            COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                            COALESCE(form_cut_input.no_cut, '-') no_cut,
+                            COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at, form_cut_piece.created_at) waktu_mulai,
+                            COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at, form_cut_piece.updated_at) waktu_selesai,
+                            COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                            COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                             GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                             CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
                             ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
@@ -243,7 +244,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
-                            (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END),
+                            stocker_input.form_piece_id,
+                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
@@ -308,8 +310,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     master_sb_ws.color,
                     master_sb_ws.size,
                     master_sb_ws.dest,
-                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form) no_form,
-                    COALESCE(form_cut_input.no_cut, '-') no_cut,
+                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                    COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                     stocker_input.group_stocker,
                     stocker_input.shade,
                     stocker_input.ratio,
@@ -318,7 +320,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     year_sequence_num.year_sequence,
                     ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
                     CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                    (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                 FROM
                     stocker_input
                     LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
@@ -326,9 +328,10 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                     LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                     LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                    LEFT JOIN (
+                    LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+                    INNER JOIN (
                         SELECT
-                            COALESCE(form_cut_id, form_reject_id) form_cut_id,
+                            COALESCE(form_cut_id, form_reject_id, form_piece_id) form_cut_id,
                             so_det_id,
                             CONCAT( `year`, '_', year_sequence ) year_sequence,
                             MIN( number ) range_numbering_awal,
@@ -336,7 +339,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
                             COALESCE ( updated_at, created_at ) updated_at,
-                            (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                         FROM
                             year_sequence
                         WHERE
@@ -346,12 +349,13 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         GROUP BY
                             form_cut_id,
                             form_reject_id,
-                            (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END),
+                            form_piece_id,
+                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                             so_det_id,
                             COALESCE ( updated_at, created_at )
                         ORDER BY
                             COALESCE ( updated_at, created_at)
-                    ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END)
+                    ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
                     AND year_sequence_num.so_det_id = stocker_input.so_det_id
                     AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
                     AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
@@ -359,6 +363,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     (
                         form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
                         OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                        OR form_cut_reject.updated_at >= '".$dateFrom." 00:00:00'
+                        OR form_cut_piece.updated_at >= '".$dateFrom." 00:00:00'
                         OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
                         OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
                         OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
@@ -366,6 +372,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     AND (
                         form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
                         OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                        OR form_cut_reject.updated_at <= '".$dateTo." 23:59:59'
+                        OR form_cut_piece.updated_at <= '".$dateTo." 23:59:59'
                         OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
                         OR stocker_input.created_at <= '".$dateTo." 23:59:59'
                         OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
@@ -386,10 +394,11 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                 GROUP BY
                     stocker_input.form_cut_id,
                     stocker_input.form_reject_id,
+                    stocker_input.form_piece_id,
                     stocker_input.so_det_id,
                     year_sequence_num.updated_at
                 HAVING
-                    (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null)
+                    (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                     ".$qty_filter."
                     ".$numbering_range_filter."
                     ".$stocker_filter."

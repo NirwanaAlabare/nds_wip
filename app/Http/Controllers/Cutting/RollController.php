@@ -566,10 +566,10 @@ class RollController extends Controller
 
         if ($newItem) {
             $scannedItem = ScannedItem::selectRaw("
-                marker_input.buyer,
-                marker_input.act_costing_ws no_ws,
-                marker_input.style style,
-                marker_input.color color,
+                COALESCE(marker_input.buyer, form_cut_piece.buyer) buyer,
+                COALESCE(marker_input.act_costing_ws, form_cut_piece.act_costing_ws) no_ws,
+                COALESCE(marker_input.style, form_cut_piece.style) style,
+                COALESCE(marker_input.color, form_cut_piece.color) color,
                 scanned_item.id_roll,
                 scanned_item.id_item,
                 scanned_item.detail_item,
@@ -584,6 +584,8 @@ class RollController extends Controller
             leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
             leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
             leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
+            leftJoin('form_cut_piece_detail', 'form_cut_piece_detail.id_roll', '=', 'scanned_item.id_roll')->
+            leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')->
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $newItem[0]->id_item)->
             first();
@@ -672,26 +674,57 @@ class RollController extends Controller
     }
 
     public function getSisaKainForm(Request $request) {
-        $forms = FormCutInputDetail::selectRaw("
+        $forms = DB::select("
+            SELECT
                 form_cut_input.id id_form,
                 no_form_cut_input,
                 form_cut_input.no_cut,
                 id_roll,
-                MAX(qty) qty,
+                MAX( qty ) qty,
                 unit,
-                SUM(total_pemakaian_roll) total_pemakaian_roll,
-                SUM(short_roll) short_roll,
-                MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
+                SUM( total_pemakaian_roll ) total_pemakaian_roll,
+                SUM( short_roll ) short_roll,
+                MIN( CASE WHEN form_cut_input_detail.status = 'extension' OR form_cut_input_detail.status = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
                 form_cut_input.status status_form,
                 form_cut_input_detail.status,
-                COALESCE(form_cut_input_detail.created_at, form_cut_input_detail.updated_at) updated_at
-            ")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
-            whereRaw("(form_cut_input.status != 'SELESAI PENGERJAAN' OR (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension') )")->
-            where("id_roll", $request->id)->
-            whereRaw("(id_roll is not null AND id_roll != '')")->
-            groupBy("form_cut_input.id")->
-            orderBy("form_cut_input_detail.id");
+                COALESCE ( form_cut_input_detail.created_at, form_cut_input_detail.updated_at ) updated_at
+            FROM
+                `form_cut_input_detail`
+                LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `form_cut_input_detail`.`form_cut_id`
+            WHERE
+                ( form_cut_input.status != 'SELESAI PENGERJAAN' OR ( form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension' ) )
+                AND `id_roll` = '".$request->id."'
+                AND ( id_roll IS NOT NULL AND id_roll != '' )
+                AND form_cut_input_detail.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
+            GROUP BY
+                `form_cut_input`.`id`
+
+            UNION
+
+            SELECT
+                form_cut_piece_detail.id id_form,
+                form_cut_piece.no_form no_form_cut_input,
+                form_cut_piece.no_cut,
+                id_roll,
+                MAX( qty ) qty,
+                qty_unit as unit,
+                SUM( qty_pemakaian ) total_pemakaian_roll,
+                SUM( qty - (qty_pemakaian + qty_sisa) ) short_roll,
+                qty_sisa sisa_kain,
+                form_cut_piece.status status_form,
+                form_cut_piece_detail.status,
+                COALESCE ( form_cut_piece_detail.created_at, form_cut_piece_detail.updated_at ) updated_at
+            FROM
+                `form_cut_piece_detail`
+                LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `form_cut_piece_detail`.`form_id`
+            WHERE
+                ( form_cut_piece.status = 'complete' OR form_cut_piece_detail.status = 'complete' )
+                AND `id_roll` = '".$request->id."'
+                AND ( id_roll IS NOT NULL AND id_roll != '' )
+                AND form_cut_piece_detail.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
+            GROUP BY
+                `form_cut_piece`.`id`
+        ");
 
         return DataTables::of($forms)->toJson();
     }

@@ -7,8 +7,10 @@ use App\Models\FormCutPiece;
 use App\Models\FormCutPieceDetail;
 use App\Models\FormCutPieceDetailSize;
 use App\Models\PartDetail;
-use App\Models\Stocker;
 use App\Models\ScannedItem;
+use App\Models\Part;
+use App\Models\PartForm;
+use App\Models\Stocker;
 use App\Models\Hris\MasterEmployee;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Cutting\ExportCuttingFormReject;
@@ -109,6 +111,8 @@ class CuttingFormPieceController extends Controller
         $form = FormCutPiece::create([
             "no_form" => $noForm
         ]);
+
+        session(['currentFormCutPiece' => $form->id]);
 
         return $form;
     }
@@ -354,6 +358,9 @@ class CuttingFormPieceController extends Controller
 
                         session()->forget('currentFormCutPiece');
 
+                        // finishing
+                        $this->finishProcess($validatedRequest["id"]);
+
                         return array(
                             "status" => 200,
                             "message" => "Data Cutting Pcs berhasil disimpan.",
@@ -369,6 +376,53 @@ class CuttingFormPieceController extends Controller
                     "message" => "Proses tidak ditemukan",
                     "additional" => [],
                 );
+        }
+    }
+
+    public function finishProcess($id = 0) {
+        if ($id) {
+            $currentForm = FormCutPiece::where("id", $id)->first();
+
+            $formCutPieceSimilarLatest = FormCutPiece::
+                where("form_cut_piece.act_costing_ws", $currentForm->act_costing_ws)->
+                where("form_cut_piece.color", $currentForm->color)->
+                where("form_cut_piece.panel", $currentForm->panel)->
+                where("form_cut_piece.status", "complete")->
+                max("form_cut_piece.no_cut");
+
+            // delete incomplete detail
+            $currentFormDetail = $currentForm->formCutPieceDetails()->where('status', 'incomplete')->get();
+            foreach ($currentFormDetail as $formDetail) {
+                $formDetail->formCutPieceDetailSizes()->delete();
+                $formDetail->delete();
+            }
+
+            // store to part form
+            $partData = Part::select('part.id')->
+                where("act_costing_id", $currentForm->act_costing_id)->
+                where("act_costing_ws", $currentForm->act_costing_ws)->
+                where("panel", $currentForm->panel)->
+                first();
+
+            if ($partData) {
+                $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+                $addToPartForm = PartForm::create([
+                    "kode" => $kodePartForm,
+                    "part_id" => $partData->id,
+                    "form_pcs_id" => $currentForm->id,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+            }
+
+            // update form
+            $currentForm->no_cut = $formCutPieceSimilarLatest+1;
+            $currentForm->save();
+
+            return true;
         }
     }
 

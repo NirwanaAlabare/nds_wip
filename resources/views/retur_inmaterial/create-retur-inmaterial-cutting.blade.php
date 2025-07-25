@@ -756,7 +756,7 @@ function ri_scan($id_item,$id_jo,$bppbno_int){
                 $('#qty_out' + i).val(qty_stok.round(2));
                 $('#qty_sisa' + i).val((0).round(2));
             } else {
-                $('#qty_out' + i).val(qty_out.round(2));
+                // $('#qty_out' + i).val(qty_out.round(2));
                 $('#qty_sisa' + i).val(sisa_qty.round(2));
             }
             sum_out += qty_out;

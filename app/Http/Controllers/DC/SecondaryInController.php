@@ -52,7 +52,7 @@ class SecondaryInController extends Controller
             }
 
             if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {
-                $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
+                $additionalQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
             }
             if ($request->sec_filter_buyer && count($request->sec_filter_buyer) > 0) {
                 $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->sec_filter_buyer)).")";
@@ -76,7 +76,7 @@ class SecondaryInController extends Controller
                 $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
             }
             if ($request->sec_filter_no_cut && count($request->sec_filter_no_cut) > 0) {
-                $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
+                $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
             }
             if ($request->sec_filter_tujuan && count($request->sec_filter_tujuan) > 0) {
                 $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
@@ -91,7 +91,7 @@ class SecondaryInController extends Controller
             $data_input = DB::select("
                 SELECT
                 a.id_qr_stocker,
-                (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+                (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                 DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                 a.tgl_trans,
                 s.act_costing_ws,
@@ -106,7 +106,7 @@ class SecondaryInController extends Controller
                 a.qty_replace,
                 a.qty_in,
                 a.created_at,
-                f.no_cut,
+                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 a.user,
                 mp.nama_part
@@ -115,6 +115,7 @@ class SecondaryInController extends Controller
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
                 left join form_cut_reject fr on fr.id = s.form_reject_id
+                left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
@@ -147,7 +148,7 @@ class SecondaryInController extends Controller
         $data_input = collect(DB::select("
             SELECT
             a.id_qr_stocker,
-            (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe,
+            (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
             DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
             a.tgl_trans,
             s.act_costing_ws,
@@ -162,7 +163,7 @@ class SecondaryInController extends Controller
             a.qty_replace,
             a.qty_in,
             a.created_at,
-            f.no_cut,
+            COALESCE(f.no_cut, fp.no_cut, '-'),
             COALESCE(msb.size, s.size) size,
             a.user,
             mp.nama_part
@@ -171,6 +172,7 @@ class SecondaryInController extends Controller
             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
             left join form_cut_input f on f.id = s.form_cut_id
             left join form_cut_reject fr on fr.id = s.form_reject_id
+            left join form_cut_piece fp on fp.id = s.form_piece_id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on pd.part_id = p.id
             left join master_part mp on mp.id = pd.master_part_id
@@ -339,7 +341,7 @@ class SecondaryInController extends Controller
             s.id_qr_stocker,
             s.act_costing_ws,
             msb.buyer,
-            no_cut,
+            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
             msb.styleno as style,
             s.color,
             COALESCE(msb.size, s.size) size,
@@ -366,6 +368,8 @@ class SecondaryInController extends Controller
             left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
             left join form_cut_input a on s.form_cut_id = a.id
+            left join form_cut_reject b on s.form_reject_id = b.id
+            left join form_cut_piece c on s.form_piece_id = c.id
             left join part_detail p on s.part_detail_id = p.id
             left join master_part mp on p.master_part_id = mp.id
             left join marker_input mi on a.id_marker = mi.kode
@@ -391,7 +395,7 @@ class SecondaryInController extends Controller
             s.id_qr_stocker,
             s.act_costing_ws,
             msb.buyer,
-            no_cut,
+            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
             msb.styleno as style,
             s.color,
             COALESCE(msb.size, s.size) size,
@@ -425,6 +429,8 @@ class SecondaryInController extends Controller
             left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
             left join form_cut_input a on s.form_cut_id = a.id
+            left join form_cut_reject b on s.form_reject_id = b.id
+            left join form_cut_piece c on s.form_piece_id = c.id
             left join part_detail p on s.part_detail_id = p.id
             left join master_part mp on p.master_part_id = mp.id
             left join marker_input mi on a.id_marker = mi.kode
@@ -542,8 +548,10 @@ class SecondaryInController extends Controller
         $tgltrans = date('Y-m-d');
         $timestamp = Carbon::now();
 
-        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut")->
+        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') as no_cut")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
+            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
             where("id_qr_stocker", $request['txtno_stocker'])->
             first();
 
@@ -553,7 +561,7 @@ class SecondaryInController extends Controller
                     s.id_qr_stocker,
                     s.act_costing_ws,
                     msb.buyer,
-                    no_cut,
+                    COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
                     style,
                     s.color,
                     COALESCE ( msb.size, s.size ) size,
@@ -595,6 +603,8 @@ class SecondaryInController extends Controller
                     INNER JOIN stocker_input s ON md.id_qr_stocker = s.id_qr_stocker
                     LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
                     INNER JOIN form_cut_input a ON s.form_cut_id = a.id
+                    LEFT JOIN form_cut_reject b ON s.form_reject_id = b.id
+                    LEFT JOIN form_cut_piece c ON s.form_piece_id = c.id
                     INNER JOIN part_detail p ON s.part_detail_id = p.id
                     INNER JOIN master_part mp ON p.master_part_id = mp.id
                     INNER JOIN marker_input mi ON a.id_marker = mi.kode

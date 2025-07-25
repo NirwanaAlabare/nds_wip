@@ -393,7 +393,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.group_stocker+`/`+row.ratio+`/`+row.so_det_id+`/`+(row.tipe == 'REJECT' ? 0 : 1)+`' target='_blank'><i class='fa fa-search-plus'></i></a>
+                                <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.group_stocker+`/`+row.ratio+`/`+row.so_det_id+`/`+(row.tipe == 'PIECE' ? 3 : (row.tipe == 'REJECT' ? 2 : 1))+`'     target='_blank'><i class='fa fa-search-plus'></i></a>
                                 <div class="form-check">
                                     <input class="form-check-input check-stock-number" type="checkbox" onchange="checkStockNumber(this)" id="stock_number_`+meta.row+`">
                                 </div>
@@ -773,24 +773,24 @@
 
                                 for(let i = 0; i < res.length; i++) {
                                     let option = document.createElement("option");
-                                    option.setAttribute("value", res[i].year_sequence);
-                                    option.innerHTML = res[i].year_sequence;
+                                    option.setAttribute("value", res[i]);
+                                    option.innerHTML = res[i];
                                     select.appendChild(option);
                                 }
 
-                                $("#new-year-sequence-sequence").val(res[res.length-1].year_sequence).trigger("change");
+                                $("#new-year-sequence-sequence").val(res[res.length-1]).trigger("change");
                             } else {
                                 let select = document.getElementById('year-sequence-sequence');
                                 select.innerHTML = "";
 
                                 for(let i = 0; i < res.length; i++) {
                                     let option = document.createElement("option");
-                                    option.setAttribute("value", res[i].year_sequence);
-                                    option.innerHTML = res[i].year_sequence;
+                                    option.setAttribute("value", res[i]);
+                                    option.innerHTML = res[i];
                                     select.appendChild(option);
                                 }
 
-                                $("#year-sequence-sequence").val(res[res.length-1].year_sequence).trigger("change");
+                                $("#year-sequence-sequence").val(res[res.length-1]).trigger("change");
                             }
                         } else {
                             Swal.fire({

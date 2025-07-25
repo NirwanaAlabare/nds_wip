@@ -498,11 +498,11 @@
                             let latestVal = null;
                             for(let i = 0; i < res.length; i++) {
                                 let option = document.createElement("option");
-                                option.setAttribute("value", res[i].year_sequence);
-                                option.innerHTML = res[i].year_sequence;
+                                option.setAttribute("value", res[i]);
+                                option.innerHTML = res[i];
                                 select.appendChild(option);
 
-                                latestVal = res[i].year_sequence;
+                                latestVal = res[i];
                             }
 
                             $("#sequence").val(latestVal).trigger("change");

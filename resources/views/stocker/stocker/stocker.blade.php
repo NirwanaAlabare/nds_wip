@@ -55,6 +55,7 @@
                             <th>No. Marker</th>
                             <th>WS</th>
                             <th>Buyer</th>
+                            <th>Type</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -157,13 +158,32 @@
                 {
                     data: 'buyer'
                 },
+                {
+                    data: 'type'
+                },
             ],
             columnDefs: [
                 // Act Column
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
+                        if (row.type == "PIECE") {
+                            return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-primary btn-sm' href='{{ route("show-stocker-pcs") }}/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-search-plus'></i></a> </div>`;
+                        }
+
                         return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-primary btn-sm' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-search-plus'></i></a> </div>`;
+                    }
+                },
+                // No. Form Column
+                {
+                    targets: [2],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        if (row.type == "PIECE") {
+                            return data ? `<a class='fw-bold' href='{{ route('process-cutting-piece') }}/ `+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                        }
+
+                        return data;
                     }
                 },
                 // No. Meja Column

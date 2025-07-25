@@ -49,4 +49,9 @@ class FormCutInput extends Model
     {
         return $this->hasMany(FormCutInputDetail::class, 'form_cut_id', 'id');
     }
+
+    public function partForm()
+    {
+        return $this->hasOne(PartForm::class, 'form_id', 'id');
+    }
 }

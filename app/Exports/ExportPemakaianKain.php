@@ -124,6 +124,27 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     GROUP BY
                         id_item,
                         id_roll
+                UNION ALL
+                    SELECT
+                        id_roll,
+                        id_item,
+                        detail_item,
+                        lot,
+                        COALESCE ( roll_buyer, roll ) roll,
+                        SUM( form_cut_piece_detail.qty ) qty,
+                        MIN( form_cut_piece_detail.qty_sisa ) sisa_kain,
+                        qty_unit as unit,
+                        ROUND( SUM( form_cut_piece_detail.qty_pemakaian ) ) total_pemakaian_roll,
+                        ROUND( SUM( (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa) - form_cut_piece_detail.qty ) ) total_short_roll_2,
+                        ROUND( SUM( (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa) - form_cut_piece_detail.qty ) ) total_short_roll
+                    FROM
+                        `form_cut_piece_detail`
+                    WHERE
+                        `status` = 'complete'
+                        ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                    GROUP BY
+                        `id_item`,
+                        `id_roll`
                 ) roll ON req.id_roll = roll.id_roll
             "));
 
@@ -163,7 +184,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
         $currentRow = 1;
 
         $event->sheet->styleCells(
-            'A3:Q' . ($event->getConcernable()->rowCount+2+1),
+            'A3:R' . ($event->getConcernable()->rowCount+2+1),
             [
                 'borders' => [
                     'allBorders' => [

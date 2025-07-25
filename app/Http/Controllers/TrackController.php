@@ -921,10 +921,10 @@ class TrackController extends Controller
             $dateTo = $request->dateTo;
 
             $stockerSql = Stocker::selectRaw("
-                marker_input.color,
-                marker_input.panel,
-                form_cut_input.no_form,
-                form_cut_input.no_cut,
+                COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) color,
+                COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) panel,
+                COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                 stocker_input.id stocker_id,
                 stocker_input.id_qr_stocker,
                 stocker_input.act_costing_ws,
@@ -948,6 +948,8 @@ class TrackController extends Controller
                 stocker_input.updated_at latest_update
             ")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -957,23 +959,18 @@ class TrackController extends Controller
             leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
             leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
             leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-            whereRaw("
-                (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-                and (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')
-                and form_cut_input.`status` = 'SELESAI PENGERJAAN'
-            ");
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id");
 
             if ($actCostingId) {
-                $stockerSql->whereRaw("marker_input.act_costing_id = '" . $actCostingId . "'");
+                $stockerSql->whereRaw("COALESCE(marker_input.act_costing_id, form_cut_reject.act_costing_id, form_cut_piece.act_costing_id) = '" . $actCostingId . "'");
             }
 
             if ($color) {
-                $stockerSql->whereRaw("marker_input.color = '" . $color . "'");
+                $stockerSql->whereRaw("COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) = '" . $color . "'");
             }
 
             if ($panel) {
-                $stockerSql->whereRaw("marker_input.panel = '" . $panel . "'");
+                $stockerSql->whereRaw("COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) = '" . $panel . "'");
             }
 
             if ($size) {
@@ -992,7 +989,7 @@ class TrackController extends Controller
                 groupBy("stocker_input.id_qr_stocker")->
                 orderBy("stocker_input.act_costing_ws", "asc")->
                 orderBy("stocker_input.color", "asc")->
-                orderBy("form_cut_input.no_cut", "asc")->
+                orderByRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') asc")->
                 orderBy("master_part.nama_part", "asc")->
                 orderBy("stocker_input.so_det_id", "asc")->
                 orderBy("stocker_input.group_stocker", "desc")->
@@ -1013,11 +1010,11 @@ class TrackController extends Controller
 
                 if (request('search')['value']) {
                     $query->whereRaw("(
-                        marker_input.color LIKE '%".request('search')['value']."%' OR
-                        marker_input.panel LIKE '%".request('search')['value']."%' OR
+                        COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) LIKE '%".request('search')['value']."%' OR
+                        COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) LIKE '%".request('search')['value']."%' OR
                         master_part.nama_part LIKE '%".request('search')['value']."%' OR
-                        form_cut_input.no_form LIKE '%".request('search')['value']."%' OR
-                        form_cut_input.no_cut LIKE '%".request('search')['value']."%' OR
+                        COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) LIKE '%".request('search')['value']."%' OR
+                        COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') LIKE '%".request('search')['value']."%' OR
                         stocker_input.size LIKE '%".request('search')['value']."%' OR
                         stocker_input.shade LIKE '%".request('search')['value']."%' OR
                         stocker_input.id_qr_stocker LIKE '%".request('search')['value']."%' OR
@@ -1030,19 +1027,19 @@ class TrackController extends Controller
                 }
             }, true)->
             filterColumn('color', function ($query, $keyword) {
-                $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color)) LIKE LOWER('%" . $keyword . "%')");
             })->
             filterColumn('panel', function ($query, $keyword) {
-                $query->whereRaw("LOWER(marker_input.panel) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel)) LIKE LOWER('%" . $keyword . "%')");
             })->
             filterColumn('nama_part', function ($query, $keyword) {
                 $query->whereRaw("LOWER(master_part.nama_part) LIKE LOWER('%" . $keyword . "%')");
             })->
             filterColumn('no_form', function ($query, $keyword) {
-                $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form)) LIKE LOWER('%" . $keyword . "%')");
             })->
             filterColumn('no_cut', function ($query, $keyword) {
-                $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-')) LIKE LOWER('%" . $keyword . "%')");
             })->
             filterColumn('shade', function ($query, $keyword) {
                 $query->whereRaw("LOWER(stocker_input.shade) LIKE LOWER('%" . $keyword . "%')");
@@ -1103,10 +1100,10 @@ class TrackController extends Controller
         $stkDifference = $request->stkDifference;
 
         $stockerSql = Stocker::selectRaw("
-            marker_input.color,
-            marker_input.panel,
-            form_cut_input.no_form,
-            form_cut_input.no_cut,
+            COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) color,
+            COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) panel,
+            COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+            COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
             stocker_input.id stocker_id,
             stocker_input.id_qr_stocker,
             stocker_input.act_costing_ws,
@@ -1132,6 +1129,8 @@ class TrackController extends Controller
             stocker_input.updated_at latest_update
         ")->
         leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+        leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+        leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
         leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
         leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
         leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -1141,23 +1140,18 @@ class TrackController extends Controller
         leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
         leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
         leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-        whereRaw("
-            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-            and (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')
-            and form_cut_input.`status` = 'SELESAI PENGERJAAN'
-        ");
+        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id");
 
         if ($actCostingId) {
-            $stockerSql->whereRaw("marker_input.act_costing_id = '" . $actCostingId . "'");
+            $stockerSql->whereRaw("COALESCE(marker_input.act_costing_id, form_cut_reject.act_costing_id, form_cut_piece.act_costing_id) = '" . $actCostingId . "'");
         }
 
         if ($color) {
-            $stockerSql->whereRaw("marker_input.color = '" . $color . "'");
+            $stockerSql->whereRaw("COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) = '" . $color . "'");
         }
 
         if ($panel) {
-            $stockerSql->whereRaw("marker_input.panel = '" . $panel . "'");
+            $stockerSql->whereRaw("COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) = '" . $panel . "'");
         }
 
         if ($size) {
@@ -1185,11 +1179,11 @@ class TrackController extends Controller
         }
 
         if ($stkNoForm) {
-            $stockerSql->whereRaw("form_cut_input.no_form LIKE '%" . $stkNoForm . "%'");
+            $stockerSql->whereRaw("COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) LIKE '%" . $stkNoForm . "%'");
         }
 
         if ($stkNoCut) {
-            $stockerSql->whereRaw("form_cut_input.no_cut LIKE '%" . $stkNoCut . "%'");
+            $stockerSql->whereRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') LIKE '%" . $stkNoCut . "%'");
         }
 
         if ($stkSize) {
@@ -1225,10 +1219,10 @@ class TrackController extends Controller
         }
 
         $stocker = $stockerSql->
-            groupBy("stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio")->
+            groupBy("stocker_input.form_cut_id", "stocker_input.form_reject_id", "stocker_input.form_piece_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio")->
             orderBy("stocker_input.act_costing_ws", "asc")->
             orderBy("stocker_input.color", "asc")->
-            orderBy("form_cut_input.no_cut", "asc")->
+            orderByRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') asc")->
             orderBy("master_part.nama_part", "asc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.shade", "desc")->
