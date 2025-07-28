@@ -120,7 +120,7 @@ class CuttingFormPieceController extends Controller
     public function incompleteItem($id = 0)
     {
         if ($id) {
-            $incomplete = FormCutPieceDetail::where("form_id", $id)->where("status", "incomplete")->first();
+            $incomplete = FormCutPieceDetail::with("scannedItem")->where("form_id", $id)->where("status", "incomplete")->first();
 
             return $incomplete ? $incomplete : null;
         }
@@ -273,10 +273,12 @@ class CuttingFormPieceController extends Controller
                         ]);
 
                         if ($updateFormCutPiece) {
+                            $thisFormCutPieceDetail = FormCutPieceDetail::with("scannedItem")->where("id", $storeFormCutPieceDetail->id)->first();
+
                             return array(
                                 "status" => 200,
                                 "message" => "Item berhasil disimpan.",
-                                "additional" => $storeFormCutPieceDetail,
+                                "additional" => $thisFormCutPieceDetail,
                             );
                         }
                     }
@@ -604,7 +606,7 @@ class CuttingFormPieceController extends Controller
                     foreach ($formCutPieceDetails as $d) {
                         // Piece Detail
                         array_push($formCutPieceDetailIds, $d->id);
-                        
+
                         // Piece Detail Size
                         $currentCutPieceDetailSizeIds = $d->formCutPieceDetailSizes ? $d->formCutPieceDetailSizes->pluck("id") : null;
                         if (count($currentCutPieceDetailSizeIds) > 0) {

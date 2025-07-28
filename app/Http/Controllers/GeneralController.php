@@ -586,6 +586,15 @@ class GeneralController extends Controller
             $itemAdditional .= " and br.unit = '".$request->unit."'";
         }
 
+        if ($request->act_costing_id) {
+            $newItemAdditional .= " and act_costing.id = '".$request->act_costing_id."'";
+            $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
+        }
+
+        if ($request->color) {
+            $newItemAdditional .= " and so_det.color = '".$request->color."'";
+        }
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 whs_bppb_det.id_roll,
@@ -599,14 +608,17 @@ class GeneralController extends Controller
                 SUM(whs_bppb_det.qty_out) qty,
                 whs_bppb_det.satuan unit,
                 bji.rule_bom,
-                GROUP_CONCAT(DISTINCT so_det.id) as so_det_list,
-                GROUP_CONCAT(DISTINCT so_det.size) as size_list
+                GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC) as so_det_list,
+                GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC) as size_list
             FROM
                 whs_bppb_det
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
                 LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-                LEFT JOIN bom_jo_item bji ON bji.id_item = whs_bppb_det.id_item AND bji.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+                LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen and bji.id_jo = whs_lokasi_inmaterial.id_jo
                 LEFT JOIN so_det ON so_det.id = bji.id_so_det
+                LEFT JOIN so ON so.id = so_det.id_so
+                LEFT JOIN act_costing ON act_costing.id = so.id_cost
             WHERE
                 whs_bppb_det.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
@@ -682,6 +694,8 @@ class GeneralController extends Controller
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
                     $scannedItemUpdate->qty_in = $newItemQty;
                     $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->so_det_list = $newItem[0]->so_det_list;
+                    $scannedItemUpdate->size_list = $newItem[0]->size_list;
                     $scannedItemUpdate->save();
 
                     if ($scannedItemUpdate->qty > 0) {
