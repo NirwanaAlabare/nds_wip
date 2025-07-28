@@ -628,7 +628,7 @@ class GeneralController extends Controller
                     LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
                     LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
                     LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
-                    LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen and bji.id_jo = whs_lokasi_inmaterial.id_jo
+                    LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
                     LEFT JOIN so_det ON so_det.id = bji.id_so_det
                     LEFT JOIN so ON so.id = so_det.id_so
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
