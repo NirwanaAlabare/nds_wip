@@ -138,7 +138,7 @@
                             </div>
                             <small class="text-danger d-none" id="target_effy_error"></small>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 d-none">
                             <label>Gambar</label>
                             <input accept="image/*"  type="file" class="form-control form-control-sm" name="gambar" id="gambar">
                             <img id="gambar-preview" src="#" alt="Preview Gambar" class="img-fluid" />
@@ -178,19 +178,21 @@
                         @if ($masterPlan->count() > 0)
                             @foreach ($masterPlan as $mp)
                                 <tr>
-                                    <td>{{ $mp->no_ws  }}</td>
-                                    <td>{{ $mp->style }}</td>
-                                    <td>{{ $mp->style_production }}</td>
-                                    <td>{{ $mp->color }}</td>
-                                    <td>{{ curr($mp->smv) }}</td>
-                                    <td>{{ curr($mp->jam_kerja) }}</td>
-                                    <td>{{ num($mp->man_power) }}</td>
-                                    <td>{{ num($mp->plan_target) }}</td>
-                                    <td>{{ curr($mp->target_effy) }} %</td>
-                                    <td>{{ num($mp->rfts->count()) }}</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm" onclick='editData({{ $mp->makeHidden(["rfts"]) }}, "editMasterPlanModal");'><i class="fa fa-edit"></i></button>
-                                        <button class="btn btn-danger btn-sm" data='{{ $mp->makeHidden(["rfts"]) }}' data-url='{{ route('destroy-master-plan', ['id' => $mp->id]) }}' onclick='deleteData(this)'><i class="fa fa-trash"></i></button>
+                                    <td class="text-nowrap">{{ $mp->no_ws  }}</td>
+                                    <td class="text-nowrap">{{ $mp->style }}</td>
+                                    <td class="text-nowrap">{{ $mp->style_production }}</td>
+                                    <td class="text-nowrap">{{ $mp->color }}</td>
+                                    <td class="text-nowrap">{{ curr($mp->smv) }}</td>
+                                    <td class="text-nowrap">{{ curr($mp->jam_kerja) }}</td>
+                                    <td class="text-nowrap">{{ num($mp->man_power) }}</td>
+                                    <td class="text-nowrap">{{ num($mp->plan_target) }}</td>
+                                    <td class="text-nowrap">{{ curr($mp->target_effy) }} %</td>
+                                    <td class="text-nowrap">{{ num($mp->rfts->count()) }}</td>
+                                    <td class="text-nowrap">
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-primary btn-sm" onclick='editData({{ $mp->makeHidden(["rfts"]) }}, "editMasterPlanModal");'><i class="fa fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm" data='{{ $mp->makeHidden(["rfts"]) }}' data-url='{{ route('destroy-master-plan', ['id' => $mp->id]) }}' onclick='deleteData(this)'><i class="fa fa-trash"></i></button>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -269,12 +271,12 @@
                                     </div>
                                     <small class="text-danger d-none" id="edit_target_effy_error"></small>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 d-none">
                                     <label>Gambar Baru</label>
                                     <input accept="image/*"  type="file" class="form-control form-control-sm" name="edit_gambar_new" id="edit_gambar_new">
                                     <img id="edit_gambar_new-preview" src="#" alt="Preview Gambar Baru" class="img-fluid" />
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 d-none">
                                     <label>Gambar Lama</label>
                                     <div>
                                         <img id="edit_gambar" src="#" alt="Gambar Lama" class="img-fluid" />
