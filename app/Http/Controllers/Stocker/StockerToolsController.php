@@ -64,7 +64,7 @@ class StockerToolsController extends Controller
         if ($checkYearSequence > 0) {
             return array(
                 'status' => 400,
-                'message' => 'Stocker Form <br> "'.$validatedRequest['no_form'].'" <br> memiliki data year sequence (label).',
+                'message' => 'Stocker Form <br> "'.$validatedRequest['no_form'].'" <br> memiliki data year sequence (label qr).',
                 'redirect' => '',
                 'table' => '',
                 'additional' => [],
