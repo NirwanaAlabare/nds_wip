@@ -480,7 +480,7 @@
                                 <li>
                                     <a href="{{ route('stocker-list') }}"
                                         class="dropdown-item {{ $routeName == 'stocker-list' ? 'active' : '' }}">
-                                        Stocker List <i class="fa-solid fa-list-ul"></i>
+                                        Registration List <i class="fa-solid fa-list-ul"></i>
                                     </a>
                                 </li>
                                 <li>
