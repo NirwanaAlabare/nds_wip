@@ -637,21 +637,21 @@
 
 
         function updateInch() {
-    let width = parseFloat($('#txtwidth').val()) || 0;
-    let unit = $('#unitWidth').val();
+            let width = parseFloat($('#txtwidth').val()) || 0;
+            let unit = $('#unitWidth').val();
 
-    let inchValue = 0;
-    if (unit === 'inch') {
-        inchValue = width;
-    } else if (unit === 'cm') {
-        inchValue = width * 0.3937;
-    }
+            let inchValue = 0;
+            if (unit === 'inch') {
+                inchValue = width;
+            } else if (unit === 'cm') {
+                inchValue = width * 0.3937;
+            }
 
-    // Round up to 2 decimal places
-    let roundedUp = Math.ceil(inchValue * 100) / 100;
+            // Round up to 2 decimal places
+            let roundedUp = Math.ceil(inchValue * 100) / 100;
 
-    $('#txtinch').val(roundedUp.toFixed(2));
-}
+            $('#txtinch').val(roundedUp.toFixed(2));
+        }
 
 
 
@@ -1137,17 +1137,6 @@
                 return;
             }
 
-            if (!cbo_defect || cbo_defect === "") {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Peringatan',
-                    text: 'Silakan pilih CRITICAL DEFECT terlebih dahulu.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                return;
-            }
-
             // Send data only if confirmed
             $.ajax({
                 type: "POST",
@@ -1447,7 +1436,7 @@
                     data: 'sum_over_9'
                 },
                 {
-                    data: 'total_point'
+                    data: 'tot_point'
                 },
                 {
                     data: 'act_point'

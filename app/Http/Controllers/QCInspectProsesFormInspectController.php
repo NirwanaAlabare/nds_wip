@@ -44,7 +44,12 @@ CONCAT(
     '/',
     IFNULL(c.individu, 0)
 ) AS point_max_point,
-qc.result,
+CASE
+    WHEN qc.result = 'REJECT' and pass_with_condition = 'N' THEN 'REJECT'
+    WHEN qc.result = 'REJECT' and pass_with_condition = 'Y' THEN 'PASS WITH CONDITION'
+    ELSE
+        qc.result
+    END as result,
 qc.status_proses_form
 from signalbit_erp.qc_inspect_form  qc
 inner join
@@ -522,7 +527,7 @@ full_width_act,
 cuttable_width_act,
 qc.status_proses_form
 FROM qc_inspect_form_det a
-inner join qc_inspect_master_defect b on a.id_defect = b.id
+left join qc_inspect_master_defect b on a.id_defect = b.id
 inner join qc_inspect_master_lenght c on a.id_length = c.id
 inner join qc_inspect_form qc on a.no_form = qc.no_form
 where a.no_form = '$txtno_form'
@@ -583,64 +588,54 @@ where a.no_form = '$txtno_form'
         $id = $request->id;
         $txtno_form = $request->txtno_form;
 
-        $data_act_point = DB::connection('mysql_sb')->select("SELECT
-    SUM(up_to_3) * 1 AS sum_up_to_3,
-    SUM(`3_6`) * 2 AS sum_3_6,
-    SUM(`6_9`) * 3 AS sum_6_9,
-    SUM(over_9) * 4 AS sum_over_9,
+        $data_act_point = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+        a.no_form,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				c.individu
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE a.no_form = '$txtno_form'
+),
+b AS (
+    SELECT
+        a.no_form,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE a.no_form = '$txtno_form'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu
+    FROM a
+)
 
-    (
-        SUM(up_to_3) * 1 +
-        SUM(`3_6`) * 2 +
-        SUM(`6_9`) * 3 +
-        SUM(over_9) * 4
-    ) AS total_point,
-
-ROUND(
-    (
-        (
-            SUM(up_to_3) * 1 +
-            SUM(`3_6`) * 2 +
-            SUM(`6_9`) * 3 +
-            SUM(over_9) * 4
-        ) * 36 * 100
-    ) / (
-        AVG(a.cuttable_width_act) *
-        AVG(
-            CASE
-                WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
-                ELSE b.act_length
-            END
-        )
-    )
-) AS act_point,
-    c.individu,
-    IF(
-ROUND(
-    (
-        (
-            SUM(up_to_3) * 1 +
-            SUM(`3_6`) * 2 +
-            SUM(`6_9`) * 3 +
-            SUM(over_9) * 4
-        ) * 36 * 100
-    ) / (
-        AVG(a.cuttable_width_act) *
-        AVG(
-            CASE
-                WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
-                ELSE b.act_length
-            END
-        )
-    )
-) <= c.individu,
-        'PASS',
-        'REJECT'
-    ) AS result
-FROM qc_inspect_form_det a
-INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
-INNER JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
-WHERE a.no_form = '$txtno_form';
+SELECT
+sum_up_to_3,
+sum_3_6,
+sum_6_9,
+sum_over_9,
+c.tot_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
+individu,
+if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result
+FROM c
+INNER JOIN b ON c.no_form = b.no_form;
             ");
 
         return DataTables::of($data_act_point)->toJson();

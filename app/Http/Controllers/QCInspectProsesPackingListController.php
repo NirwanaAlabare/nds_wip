@@ -184,64 +184,107 @@ from qc_inspect_master_group_inspect");
         from qc_inspect_master_group_inspect where id = '$cbo_group_def'");
 
         $max_shipment = !empty($get_data_inspect_group) ? $get_data_inspect_group[0]->shipment : '0';
-        $data_input = DB::connection('mysql_sb')->select("WITH d as (
-               SELECT
-				COUNT(DISTINCT a.no_form) AS tot_form,
-				COUNT(DISTINCT CASE WHEN a.status_proses_form = 'done' THEN a.no_form END) AS tot_form_done,
-				        CEIL(
-        ROUND(
-            (
-            (
-                SUM(up_to_3) * 1 +
-                SUM(`3_6`) * 2 +
-                SUM(`6_9`) * 3 +
-                SUM(over_9) * 4
-            ) * 36 * 100
-            ) / (
-            AVG(b.cuttable_width_act) *
-            AVG(
-                CASE
-                WHEN a.unit_act_length = 'meter' THEN a.act_length / 0.9144
-                ELSE a.act_length
-                END
-            ) * COUNT(DISTINCT b.no_form)
-            ),
-            2
-        )
-        ) AS avg_act_point,
-				no_lot,
-        id_item,
-        id_jo,
-        no_invoice,
-        max(proses) proses,
-        a.group_inspect,
-        shipment,
-        cek_inspect,
-        a.pass_with_condition
-		FROM qc_inspect_form a
-        left JOIN qc_inspect_form_det b ON a.no_form = b.no_form
-        INNER JOIN qc_inspect_master_group_inspect c ON a.group_inspect = c.id
-        where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+        $data_input = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+        b.no_form,
+				b.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				status_proses_form,
+				c.individu,
+				b.group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+group by no_form, no_lot
+),
+b AS (
+    SELECT
+        a.no_form,
+				b.no_lot,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				id_item,
+				id_jo,
+				no_invoice,
+				a.no_lot,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				status_proses_form
+    FROM a
+		group by no_form, no_lot
+),
+d AS (
+				SELECT
+				COUNT(c.no_form) AS tot_form,
+				COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END) AS tot_form_done,
+				c.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+				c.tot_point,
+				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) avg_act_point,
+				individu,
+				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				max(proses) proses,
+				max(pass_with_condition)pass_with_condition
+FROM c
+left JOIN b ON c.no_form = b.no_form
         GROUP BY
-            a.no_lot,
-            a.id_item,
-            a.id_jo,
-            a.no_invoice,
-            a.group_inspect,
-            c.shipment,
-            a.cek_inspect,
-            pass_with_condition
-
+            no_lot,
+            id_item,
+            id_jo,
+            no_invoice,
+            group_inspect,
+            shipment,
+            cek_inspect
 )
 
 select
-d.id_item,
-d.id_jo,
-d.no_invoice,
+b.id_item,
+b.id_jo,
+a.no_invoice,
 c.no_lot,
 d.group_inspect,
 count(no_roll) jml_roll,
-CEIL(count(no_roll) * ($cek_inspect /100)) jml_roll_cek,
+(CEIL(count(no_roll) * ($cek_inspect /100)) * d.proses) jml_roll_cek,
 if(d.tot_form is null, '0', d.tot_form) tot_form,
 if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
 IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
@@ -546,6 +589,7 @@ order by no_form asc, tgl_form desc, color asc
                 'cek_inspect'           => $cek_inspect,
                 'proses'                => '2',
                 'status_proses_form'    => 'draft',
+                'pass_with_condition'   => 'N',
                 'created_by'            => $user,
                 'created_at'            => $timestamp,
                 'updated_at'            => $timestamp,
@@ -587,66 +631,110 @@ order by no_form asc, tgl_form desc, color asc
         from qc_inspect_master_group_inspect where id = '$cbo_group_def'");
 
         $max_shipment = !empty($get_data_inspect_group) ? $get_data_inspect_group[0]->shipment : '0';
-        $data_input = DB::connection('mysql_sb')->select("WITH d as (
-               SELECT
-				COUNT(DISTINCT a.no_form) AS tot_form,
-				COUNT(DISTINCT CASE WHEN a.status_proses_form = 'done' THEN a.no_form END) AS tot_form_done,
-				        CEIL(
-        ROUND(
-            (
-            (
-                SUM(up_to_3) * 1 +
-                SUM(`3_6`) * 2 +
-                SUM(`6_9`) * 3 +
-                SUM(over_9) * 4
-            ) * 36 * 100
-            ) / (
-            AVG(b.cuttable_width_act) *
-            AVG(
-                CASE
-                WHEN a.unit_act_length = 'meter' THEN a.act_length / 0.9144
-                ELSE a.act_length
-                END
-            ) * COUNT(DISTINCT b.no_form)
-            ),
-            2
-        )
-        ) AS avg_act_point,
-				no_lot,
-        id_item,
-        id_jo,
-        no_invoice,
-        max(proses) proses,
-        a.group_inspect,
-        shipment,
-        cek_inspect,
-        pass_with_condition
-				FROM qc_inspect_form a
-        left JOIN qc_inspect_form_det b ON a.no_form = b.no_form
-        INNER JOIN qc_inspect_master_group_inspect c ON a.group_inspect = c.id
-        where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+        $data_input = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+        b.no_form,
+				b.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				status_proses_form,
+				c.individu,
+				b.group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+group by no_form, no_lot
+),
+b AS (
+    SELECT
+        a.no_form,
+				b.no_lot,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				id_item,
+				id_jo,
+				no_invoice,
+				a.no_lot,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				status_proses_form
+    FROM a
+		group by no_form, no_lot
+),
+d AS (
+				SELECT
+				COUNT(c.no_form) AS tot_form,
+				COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END) AS tot_form_done,
+				c.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+				c.tot_point,
+				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) avg_act_point,
+				individu,
+				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				max(proses) proses,
+				max(pass_with_condition)pass_with_condition
+FROM c
+left JOIN b ON c.no_form = b.no_form
         GROUP BY
-            a.no_lot,
-            a.id_item,
-            a.id_jo,
-            a.no_invoice,
-            a.group_inspect,
-            c.shipment,
-            a.cek_inspect,
-            pass_with_condition
+            no_lot,
+            id_item,
+            id_jo,
+            no_invoice,
+            group_inspect,
+            shipment,
+            cek_inspect
 )
 
 select
-d.id_item,
-d.id_jo,
-d.no_invoice,
-d.no_lot,
+b.id_item,
+b.id_jo,
+a.no_invoice,
+c.no_lot,
 d.group_inspect,
 count(no_roll) jml_roll,
 CEIL(count(no_roll) * ($cek_inspect /100)) jml_roll_cek,
 if(d.tot_form is null, '0', d.tot_form) tot_form,
 if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
-IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect, ' %')) AS cek_inspect,
+IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
 CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
 IF(d.proses IS NULL, 1, d.proses) AS proses_int,
 IF(d.shipment IS NULL, $max_shipment, d.shipment) max_shipment,
@@ -659,14 +747,26 @@ CASE
 	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment THEN '-'
 	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
     END AS result,
+CASE
+    WHEN proses = '2' AND pass_with_condition = 'N' AND  (
+        CASE
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) < IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point < d.shipment THEN '-'
+        END = 'REJECT'
+    ) THEN 'Y'
+    ELSE 'N'
+END AS stat_reject,
     IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot,
 				CASE
-						WHEN if(d.tot_form is null, '0', d.tot_form) = if(d.tot_form_done is null, '0', d.tot_form_done) and d.proses = '1' and
-									CASE
-                  WHEN d.shipment IS NULL AND d.avg_act_point IS NULL THEN '-'
-									WHEN d.avg_act_point IS NULL THEN '-'
-                  WHEN d.avg_act_point <= d.shipment THEN 'PASS'
-                  ELSE 'REJECT'
+					WHEN if(d.tot_form is null, '0', d.tot_form) = if(d.tot_form_done is null, '0', d.tot_form_done) and d.proses = '1' and
+						CASE
+                        WHEN d.shipment IS NULL AND d.avg_act_point IS NULL THEN '-'
+						WHEN d.avg_act_point IS NULL THEN '-'
+                        WHEN d.avg_act_point <= d.shipment THEN 'PASS'
+                        ELSE 'REJECT'
                   END = 'REJECT' THEN 'Y'
 						ELSE 'N'
 		END as gen_more
@@ -699,66 +799,110 @@ group by c.no_lot
         from qc_inspect_master_group_inspect where id = '$cbo_group_def'");
 
         $max_shipment = !empty($get_data_inspect_group) ? $get_data_inspect_group[0]->shipment : '0';
-        $data_input = DB::connection('mysql_sb')->select("WITH d as (
-               SELECT
-				COUNT(DISTINCT a.no_form) AS tot_form,
-				COUNT(DISTINCT CASE WHEN a.status_proses_form = 'done' THEN a.no_form END) AS tot_form_done,
-				        CEIL(
-        ROUND(
-            (
-            (
-                SUM(up_to_3) * 1 +
-                SUM(`3_6`) * 2 +
-                SUM(`6_9`) * 3 +
-                SUM(over_9) * 4
-            ) * 36 * 100
-            ) / (
-            AVG(b.cuttable_width_act) *
-            AVG(
-                CASE
-                WHEN a.unit_act_length = 'meter' THEN a.act_length / 0.9144
-                ELSE a.act_length
-                END
-            ) * COUNT(DISTINCT b.no_form)
-            ),
-            2
-        )
-        ) AS avg_act_point,
-				no_lot,
-        id_item,
-        id_jo,
-        no_invoice,
-        max(proses) proses,
-        a.group_inspect,
-        shipment,
-        cek_inspect,
-        pass_with_condition
-				FROM qc_inspect_form a
-        left JOIN qc_inspect_form_det b ON a.no_form = b.no_form
-        INNER JOIN qc_inspect_master_group_inspect c ON a.group_inspect = c.id
-        where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+        $data_input = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+        b.no_form,
+				b.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				status_proses_form,
+				c.individu,
+				b.group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+group by no_form, no_lot
+),
+b AS (
+    SELECT
+        a.no_form,
+				b.no_lot,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				id_item,
+				id_jo,
+				no_invoice,
+				a.no_lot,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				status_proses_form
+    FROM a
+		group by no_form, no_lot
+),
+d AS (
+				SELECT
+				COUNT(c.no_form) AS tot_form,
+				COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END) AS tot_form_done,
+				c.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+				c.tot_point,
+				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) avg_act_point,
+				individu,
+				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				max(proses) proses,
+				max(pass_with_condition)pass_with_condition
+FROM c
+left JOIN b ON c.no_form = b.no_form
         GROUP BY
-            a.no_lot,
-            a.id_item,
-            a.id_jo,
-            a.no_invoice,
-            a.group_inspect,
-            c.shipment,
-            a.cek_inspect,
-            pass_with_condition
+            no_lot,
+            id_item,
+            id_jo,
+            no_invoice,
+            group_inspect,
+            shipment,
+            cek_inspect
 )
 
 select
-d.id_item,
-d.id_jo,
-d.no_invoice,
-d.no_lot,
+b.id_item,
+b.id_jo,
+a.no_invoice,
+c.no_lot,
 d.group_inspect,
 count(no_roll) jml_roll,
 CEIL(count(no_roll) * ($cek_inspect /100)) jml_roll_cek,
 if(d.tot_form is null, '0', d.tot_form) tot_form,
 if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
-IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect, ' %')) AS cek_inspect,
+IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
 CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
 IF(d.proses IS NULL, 1, d.proses) AS proses_int,
 IF(d.shipment IS NULL, $max_shipment, d.shipment) max_shipment,
@@ -771,14 +915,26 @@ CASE
 	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment THEN '-'
 	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
     END AS result,
+CASE
+    WHEN proses = '2' AND pass_with_condition = 'N' AND  (
+        CASE
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) < IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point < d.shipment THEN '-'
+        END = 'REJECT'
+    ) THEN 'Y'
+    ELSE 'N'
+END AS stat_reject,
     IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot,
 				CASE
-						WHEN if(d.tot_form is null, '0', d.tot_form) = if(d.tot_form_done is null, '0', d.tot_form_done) and d.proses = '1' and
-									CASE
-                  WHEN d.shipment IS NULL AND d.avg_act_point IS NULL THEN '-'
-									WHEN d.avg_act_point IS NULL THEN '-'
-                  WHEN d.avg_act_point <= d.shipment THEN 'PASS'
-                  ELSE 'REJECT'
+					WHEN if(d.tot_form is null, '0', d.tot_form) = if(d.tot_form_done is null, '0', d.tot_form_done) and d.proses = '1' and
+						CASE
+                        WHEN d.shipment IS NULL AND d.avg_act_point IS NULL THEN '-'
+						WHEN d.avg_act_point IS NULL THEN '-'
+                        WHEN d.avg_act_point <= d.shipment THEN 'PASS'
+                        ELSE 'REJECT'
                   END = 'REJECT' THEN 'Y'
 						ELSE 'N'
 		END as gen_more
@@ -825,23 +981,182 @@ group by c.no_lot
     }
 
 
-    public function export_qc_inspect($id)
+    public function export_qc_inspect($id_lok_in_material)
     {
-        // return Excel::download(new ExportLaporanQcpass($id), 'Laporan_qcpass.xlsx');
-        $kode_insp = DB::connection('mysql_sb')->select("select no_insp from whs_qc_insp where id = '" . $id . "'");
-        $data_header = DB::connection('mysql_sb')->select("select *,UPPER(fabric_name) fabricname from whs_qc_insp where id = '" . $id . "'");
-        $data_detail = DB::connection('mysql_sb')->select("select b.id,b.no_lot,a.no_form,a.tgl_form,a.weight_fabric,width_fabric,gramage,a.no_roll,fabric_supp,a.inspektor,no_mesin,c.lenght_barcode, lenght_actual, catatan from whs_qc_insp_det a inner join whs_qc_insp b on b.no_insp = a.no_insp inner join whs_qc_insp_sum c on c.no_form = a.no_form where b.id = '" . $id . "' GROUP BY a.no_roll,a.no_form order by a.no_form asc");
-        $data_temuan = DB::connection('mysql_sb')->select("select * from (select id,no_form,lenght_fabric,GROUP_CONCAT(kode_def) kode_def,GROUP_CONCAT(nama_defect) nama_defect,GROUP_CONCAT(ROUND(upto3,0)) upto3,GROUP_CONCAT(ROUND(over3,0)) over3,GROUP_CONCAT(ROUND(over6,0)) over6,GROUP_CONCAT(ROUND(over9,0)) over9,GROUP_CONCAT(width_det) width_det from (select DISTINCT a.id,b.no_form,lenght_fabric,kode_def,CONCAT('(',UPPER(c.nama_defect),')') nama_defect,upto3, over3, over6, over9,CONCAT(width_det1,'->',width_det2) width_det  from whs_qc_insp a inner join whs_qc_insp_det b on b.no_insp = a.no_insp left join whs_qc_insp_def c on c.kode = b.kode_def and c.no_form = b.no_form and c.lenght = b.lenght_fabric where a.id = '" . $id . "') a GROUP BY lenght_fabric,no_form order by no_form asc, lenght_fabric asc) a left join (select id id_pil,nama_pilihan from whs_master_pilihan where type_pilihan = 'Lenght_qc_pass' and status = 'Active') b on b.nama_pilihan = a.lenght_fabric order by no_form asc,id_pil asc");
-        $data_sum = DB::connection('mysql_sb')->select("select no_form,upto3, over3,over6,over9,width_fabric,l_actual,ttl_poin,round((x/(width_fabric * l_actual)),2) akt_poin from (select a.*,b.*,c.*, (upto3 + over3 + over6 + over9) ttl_poin, ((upto3 + over3 + over6 + over9) * 36 * 100) x , b.lenght_actual l_actual,d.id id_h from (select no_insp, (COALESCE(SUM(upto3),0) * 1) upto3, (COALESCE(SUM(over3),0) * 2 ) over3, (COALESCE(SUM(over6),0) * 3) over6, (COALESCE(SUM(over9),0) * 4) over9,no_form from whs_qc_insp_det GROUP BY no_form) a inner join (select no_form noform,lenght_actual from whs_qc_insp_sum) b on b.noform = a.no_form inner join (select no_form form_no,ROUND(sum(width_det2)/COUNT(width_det2),2) width_fabric from (select no_form,width_det2 from whs_qc_insp_det where width_det2 is not null) a GROUP BY no_form) c on c.form_no = a.no_form inner join whs_qc_insp d on d.no_insp = a.no_insp) a where id_h = '" . $id . "'");
-        $avg_poin = DB::connection('mysql_sb')->select("select ROUND(((ttl_poin * 36 * 100)/ ((akt_width/ttl_width) * akt_lenght)),2) avg_poin,IF(ROUND(((ttl_poin * 36 * 100)/ ((akt_width/ttl_width) * akt_lenght)),2) > 15,'-','PASS') status from (select sum(ttl_poin) ttl_poin, COUNT(width_fabric)ttl_width, SUM(width_fabric) akt_width, SUM(l_actual) akt_lenght from (select upto3, over3,over6,over9,width_fabric,l_actual,ttl_poin,round((x/(width_fabric * l_actual)),2) akt_poin from (select a.*, b.*, c.*, (upto3 + over3 + over6 + over9) ttl_poin, ((upto3 + over3 + over6 + over9) * 36 * 100) x , b.lenght_actual l_actual,d.id id_h from (select no_insp, (COALESCE(SUM(upto3),0) * 1) upto3, (COALESCE(SUM(over3),0) * 2 ) over3, (COALESCE(SUM(over6),0) * 3) over6, (COALESCE(SUM(over9),0) * 4) over9,no_form from whs_qc_insp_det GROUP BY no_form) a inner join (select no_form noform,lenght_actual from whs_qc_insp_sum) b on b.noform = a.no_form inner join (select no_form form_no,ROUND(sum(width_det2)/COUNT(width_det2),2) width_fabric from (select no_form,width_det2 from whs_qc_insp_det where width_det2 is not null) a GROUP BY no_form) c on c.form_no = a.no_form inner join whs_qc_insp d on d.no_insp = a.no_insp) a where id_h = '" . $id . "') a) a");
+        // Fetch header data using raw SQL query
+        $data_header = DB::connection('mysql_sb')->select("
+        SELECT
+            a.tgl_dok,
+            DATE_FORMAT(a.tgl_dok, '%d-%M-%Y') AS tgl_dok_fix,
+            a.no_dok,
+            a.supplier,
+            ms.supplier buyer,
+            ac.styleno,
+            no_invoice,
+            b.id_item,
+            b.id_jo,
+            COUNT(no_roll) AS jml_roll,
+            COUNT(DISTINCT no_lot) AS jml_lot,
+            mi.color,
+            mi.itemdesc,
+            a.type_pch
+        FROM signalbit_erp.whs_inmaterial_fabric a
+        INNER JOIN signalbit_erp.whs_inmaterial_fabric_det b
+            ON a.no_dok = b.no_dok
+        LEFT JOIN signalbit_erp.whs_lokasi_inmaterial c
+            ON a.no_dok = c.no_dok
+            AND b.id_item = c.id_item
+            AND b.id_jo = c.id_jo
+        INNER JOIN (
+            SELECT no_dok, id_item, id_jo
+            FROM signalbit_erp.whs_lokasi_inmaterial
+            WHERE id = ?
+        ) d
+            ON a.no_dok = d.no_dok
+            AND b.id_item = d.id_item
+            AND b.id_jo = d.id_jo
+        INNER JOIN signalbit_erp.masteritem mi
+            ON b.id_item = mi.id_item
+        INNER JOIN signalbit_erp.jo_det jd
+            ON b.id_jo = jd.id_jo
+        INNER JOIN signalbit_erp.so so
+            ON jd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac
+            ON so.id_cost = ac.id
+        INNER JOIN signalbit_erp.mastersupplier ms
+            ON ac.id_buyer = ms.Id_Supplier
+        GROUP BY a.tgl_dok, a.no_dok, b.id_item, b.id_jo, b.unit
+    ", [$id_lok_in_material]); // Use parameter binding for safety
 
-        // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-        $pdf = PDF::loadView('qc_inspect.pdf_qc_inspect', ['kode_insp' => $kode_insp, 'data_header' => $data_header, 'data_detail' => $data_detail, 'data_temuan' => $data_temuan, 'data_sum' => $data_sum, 'avg_poin' => $avg_poin])->setPaper('a4', 'potrait');
+        $id_item = $data_header[0]->id_item;
+        $id_jo = $data_header[0]->id_jo;
+        $no_inv  = $data_header[0]->no_invoice;
 
-        // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
+        $data_cek_inspect = DB::connection('mysql_sb')->select("SELECT
+cek_inspect
+from qc_inspect_form a
+where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo' limit 1
+");
+        $cek_inspect = $data_cek_inspect[0]->cek_inspect;
 
+        $data_header_form = DB::connection('mysql_sb')->select("SELECT
+a.no_form,
+a.tgl_form,
+a.created_by,
+a.operator,
+a.barcode,
+no_roll,
+concat(a.weight, ' ', act_unit_weight) weight,
+a.width,
+gramage,
+proses,
+a.no_lot,
+concat(bintex_length, ' ', upper(unit_bintex)) bintex,
+concat(act_length_fix, ' ', upper(unit_act_length)) length
+from qc_inspect_form a
+left join whs_lokasi_inmaterial b on a.barcode = b.no_barcode
+where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo'
+");
+
+        $form_numbers = collect($data_header_form)->pluck('no_form')->unique()->toArray();
+
+        $visual_inspection = [];
+        if (!empty($form_numbers)) {
+            $visual_inspection = DB::connection('mysql_sb')->select("
+        SELECT
+            a.no_form,
+            CONCAT(b.from, ' - ', b.to) AS length,
+            c.critical_defect AS defect_name,
+            a.up_to_3,
+            a.3_6,
+            a.6_9,
+            a.over_9,
+            CONCAT(a.full_width_act, ' -> ', a.cuttable_width_act) AS width
+        FROM qc_inspect_form_det a
+        INNER JOIN qc_inspect_master_lenght b ON a.id_length = b.id
+        INNER JOIN qc_inspect_master_defect c ON a.id_defect = c.id
+        WHERE a.no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+    ", $form_numbers);
+
+            // Group the result by no_form
+            $inspection_results_grouped = collect($visual_inspection)->groupBy('no_form');
+        }
+
+        $data_summary = [];
+        if (!empty($form_numbers)) {
+            $data_summary = DB::connection('mysql_sb')->select("
+WITH a AS (
+    SELECT
+        a.no_form,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				c.individu
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE a.no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+    group by a.no_form
+),
+b AS (
+    SELECT
+        a.no_form,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE a.no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu
+    FROM a
+    group by a.no_form
+)
+
+SELECT
+c.no_form,
+sum_up_to_3,
+sum_3_6,
+sum_6_9,
+sum_over_9,
+avg_width,
+c.tot_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
+individu,
+if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result
+FROM c
+INNER JOIN b ON c.no_form = b.no_form
+GROUP BY c.no_form
+", array_merge($form_numbers, $form_numbers));
+
+            // Group the result by no_form
+            $data_summary_grouped = collect($data_summary)->groupBy('no_form');
+        }
+
+
+
+        // Generate PDF from the view
+        $pdf = PDF::loadView('qc_inspect.pdf_qc_inspect', [
+            'data_header' => $data_header,
+            'data_header_form' => $data_header_form,
+            'inspection_results_grouped' => $inspection_results_grouped,
+            'data_summary_grouped' => $data_summary_grouped,
+            'cek_inspect' => $cek_inspect,
+        ])->setPaper('a4', 'portrait');
+
+        // Set filename and return download
         $fileName = 'pdf.pdf';
-
         return $pdf->download(str_replace("/", "_", $fileName));
     }
 }
