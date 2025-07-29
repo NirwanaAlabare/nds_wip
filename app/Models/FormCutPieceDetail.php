@@ -22,4 +22,9 @@ class FormCutPieceDetail extends Model
     {
         return $this->belongsTo(FormCutPiece::class, 'form_id', 'id');
     }
+
+    public function scannedItem()
+    {
+        return $this->belongsTo(ScannedItem::class, 'id_roll', 'id_roll');
+    }
 }

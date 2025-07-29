@@ -668,13 +668,7 @@
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
                         }).then(() => {
-                            if (res.redirect != '') {
-                                if (res.redirect != 'reload') {
-                                    location.href = res.redirect;
-                                } else {
-                                    location.reload();
-                                }
-                            }
+                            location.reload();
                         });
                     } else {
                         // When Actually Error :

@@ -54,7 +54,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Tanggal</label>
-                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? $currentCuttingPiece->tanggal : date("Y-m-d") }}" disabled>
+                            <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? ($currentCuttingPiece->tanggal ? $currentCuttingPiece->tanggal : date("Y-m-d")) : date("Y-m-d") }}" disabled>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Worksheet</label>
@@ -217,11 +217,19 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-6 col-md-6 d-none">
+                            <div class="mb-3">
+                                <label class="form-label">So Det</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="so_det_item" id="so_det_item" value="{{ ($currentCuttingPieceDetail ? ($currentCuttingPieceDetail->scannedItem ? $currentCuttingPieceDetail->scannedItem->so_det_list : null) : null) }}" readonly>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Sizes</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" name="sizes_item" id="sizes_item" readonly>
+                                    <input type="text" class="form-control" name="sizes_item" id="sizes_item" value="{{ ($currentCuttingPieceDetail ? ($currentCuttingPieceDetail->scannedItem ? $currentCuttingPieceDetail->scannedItem->size_list : null) : null) }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -915,6 +923,7 @@
                 document.getElementById("detail_item").value = "";
                 document.getElementById("qty_item").value = "";
                 document.getElementById("unit_qty_item").value = "";
+                document.getElementById("so_det_item").value = "";
                 document.getElementById("sizes_item").value = "";
 
                 document.getElementById("qty_item").setAttribute("readonly", true);
@@ -1000,6 +1009,8 @@
                     document.getElementById("detail_item").value = "";
                     document.getElementById("qty_item").value = "";
                     document.getElementById("unit_qty_item").value = "";
+                    document.getElementById("so_det_item").value = "";
+                    document.getElementById("sizes_item").value = "";
 
                     if (isNotNull(id)) {
                         return $.ajax({
@@ -1007,6 +1018,8 @@
                             type: 'get',
                             data: {
                                 unit: "PCS",
+                                act_costing_id: $("#act_costing_id").val(),
+                                color: $("#color").val(),
                             },
                             dataType: 'json',
                             success: function(res) {
@@ -1018,6 +1031,8 @@
                                         document.getElementById("detail_item").value = res.detail_item;
                                         document.getElementById("qty_item").value = res.qty;
                                         document.getElementById("unit_qty_item").value = res.unit;
+                                        document.getElementById("so_det_item").value = res.so_det_list;
+                                        document.getElementById("sizes_item").value = res.size_list;
                                     } else {
                                         Swal.fire({
                                             icon: 'error',
@@ -1213,6 +1228,8 @@
 
             // Set Item
             async function setProcessThree(item) {
+                console.log(item);
+
                 if (item.method == "scan") {
                     document.getElementById("lot").setAttribute("readonly", true);
                     document.getElementById("roll").setAttribute("readonly", true);
@@ -1242,6 +1259,9 @@
                 document.getElementById("detail_item").value = item.detail_item ? item.detail_item : "";
                 document.getElementById("qty_item").value = item.qty ? item.qty : "";
                 document.getElementById("unit_qty_item").value = item.qty_unit ? item.qty_unit : "";
+                document.getElementById("so_det_item").value = item.scanned_item ? item.scanned_item.so_det_list : "";
+                document.getElementById("sizes_item").value = item.roll_buyer ? item.scanned_item.size_list : "";
+
                 document.getElementById("lot").value = item.lot ? item.lot : "";
                 document.getElementById("roll").value = item.roll ? item.roll : "";
                 document.getElementById("roll_buyer").value = item.roll_buyer ? item.roll_buyer : "";
@@ -1252,12 +1272,15 @@
                     document.getElementById("roll_container").classList.remove("d-none");
                     document.getElementById("roll_buyer_container").classList.add("d-none");
                 }
+                document.getElementById("rule_bom").value = item.scanned_item ? item.scanned_item.rule_bom : "";
                 document.getElementById("qty_pengeluaran").value = item.qty_pengeluaran ? item.qty_pengeluaran : "";
                 document.getElementById("qty_pengeluaran_unit").value = item.qty_unit ? item.qty_unit : "";
                 document.getElementById("qty").value = item.qty ? item.qty : "";
                 document.getElementById("qty_unit").value = item.qty_unit ? item.qty_unit : "";
                 document.getElementById("qty_pemakaian_unit").value = item.qty_unit ? item.qty_unit : "";
                 document.getElementById("qty_sisa_unit").value = item.qty_unit ? item.qty_unit : "";
+
+                lockSizeInput();
             }
 
             // Size List
@@ -1332,7 +1355,7 @@
                         targets: [5],
                         className: "text-nowrap",
                         render: (data, type, row, meta) => {
-                            let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_detail_`+meta.row+`' name='qty_detail[`+meta.row+`]' onkeyup="calculateTotalDetailQty()" onchange="calculateTotalDetailQty()">`
+                            let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_detail_`+meta.row+`' name='qty_detail[`+meta.row+`]' data-so-det='`+row.so_det_id+`' onkeyup="calculateTotalDetailQty()" onchange="calculateTotalDetailQty()">`
 
                             return input;
                         }
@@ -1342,6 +1365,22 @@
 
             function cuttingPieceTableReload() {
                 $("#cutting-piece-table").DataTable().ajax.reload();
+            }
+
+            function lockSizeInput() {
+                let soDetList = document.getElementById("so_det_item").value;
+
+                let detailQty = document.getElementsByClassName("detail-qty");
+
+                if (detailQty.length > 0) {
+                    for (let i = 0; i < detailQty.length; i++) {
+                        if (soDetList.includes(detailQty[i].getAttribute('data-so-det'))) {
+                            detailQty[i].removeAttribute("readonly");
+                        } else {
+                            detailQty[i].setAttribute("readonly", true);
+                        }
+                    }
+                }
             }
 
             function calculateTotalDetailQty() {
