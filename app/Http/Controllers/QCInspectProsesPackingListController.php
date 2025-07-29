@@ -129,7 +129,7 @@ group by a.tgl_dok, a.no_dok,b.id_item, b.id_jo, b.unit", [$id_lok_in_material])
 
         // Set default as null if no data found
         $group_inspect = null;
-        $cek_inspect = null;
+        $cek_inspect = '0';
 
         if (!empty($cek_data)) {
             $group_inspect = $cek_data[0]->group_inspect;
