@@ -54,7 +54,7 @@
                         <img style="margin-bottom: 0px;" src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($data[$i]['id_year_sequence'])) !!}">
                     </center>
                 </div>
-                <h5 style="font-size: 4px;text-align: center;margin-top: 0.5px;margin-bottom: 0px;">{{ $data[$i]['year_sequence_number']; }}</h5>
+                <h5 style="font-size: 4px;text-align: center;margin-top: 0.5px;margin-bottom: 0px;">{{ $data[$i]['year_sequence_number'] }}</h5>
             </div>
             <h5 style="font-size: 6px;text-align: center;margin-top: 1px;margin-bottom: 1px;">{{ $data[$i]['size'] ? $data[$i]['size'] : '-' }}</h5>
         </div>
