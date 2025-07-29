@@ -27,7 +27,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table ble-bordered" id="datatable-worksheet">
+                <table class="table table-bordered" id="datatable-worksheet">
                     <thead>
                         <tr>
                             <th>Act</th>
