@@ -551,14 +551,14 @@ class TrolleyStockerController extends Controller
 
         $deleteTrolleyStock = TrolleyStocker::leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
             whereRaw("trolley_stocker.trolley_id = '".$getTrolleyStockData->trolley_id."'")->
-            whereRaw("COALESCE(stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id) = '".($stockerData->form_cut_id ?? $stockerData->form_reject_id ?? $stockerData->form_piece_id)."'")->
-            whereRaw("stocker_input.so_det_id = '".$stockerData->so_det_id."'")->
-            whereRaw("stocker_input.group_stocker = '".$stockerData->group_stocker."'")->
-            whereRaw("stocker_input.ratio = '".$stockerData->ratio."'")->
+            whereRaw("( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) = '".($stockerData->form_cut_id ?: $stockerData->form_reject_id ?: $stockerData->form_piece_id)."'")->
+            whereRaw("stocker_input.so_det_id", $stockerData->so_det_id)->
+            where("stocker_input.group_stocker", $stockerData->group_stocker)->
+            where("stocker_input.ratio", $stockerData->ratio)->
             delete();
 
         if ($deleteTrolleyStock) {
-            $updateStocker = Stocker::whereRaw("COALESCE(stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id) = '".($stockerData->form_cut_id ?? $stockerData->form_reject_id ?? $stockerData->form_piece_id)."'")->
+            $updateStocker = Stocker::whereRaw("( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) = '".($stockerData->form_cut_id ?: $stockerData->form_reject_id ?: $stockerData->form_piece_id)."'")->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
