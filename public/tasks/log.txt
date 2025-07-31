@@ -1,23 +1,21 @@
 
-   Illuminate\Database\QueryException 
+   Error 
 
-  SQLSTATE[HY000] [2002] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
- (SQL: select null as id, output_defects.id as defect_id, 'NORMAL' as status, output_defects.created_by, output_defects.created_at, output_defects.updated_at from output_defects left join output_reworks on output_reworks.defect_id = output_defects.id where output_reworks.id is null and defect_status = 'reworked')
+  Class 'App\Console\Commands\Log' not found
 
-  at C:\xampp\htdocs\nds_wip_local\vendor\laravel\framework\src\Illuminate\Database\Connection.php:712
-    708▕         // If an exception occurs when attempting to run a query, we'll format the error
-    709▕         // message to include the bindings with SQL, which will make this exception a
-    710▕         // lot more helpful to the developer instead of just the database's errors.
-    711▕         catch (Exception $e) {
-  ➜ 712▕             throw new QueryException(
-    713▕                 $query, $this->prepareBindings($bindings), $e
-    714▕             );
-    715▕         }
-    716▕     }
+  at C:\xampp\htdocs\nds_wip_local\app\Console\Commands\MissRework.php:82
+     78▕ 
+     79▕         $storeToRftPacking = RftPacking::insert($reworkPackingArr);
+     80▕ 
+     81▕         if ($storeToRework && $storeToRft && $storeToReworkPacking && $storeToRftPacking) {
+  ➜  82▕             Log::channel('missReworkOutput')->info([
+     83▕                 "Repair Defect->Rework->RFT Chain Data",
+     84▕                 "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+     85▕                 "Total Data ".count($defects),
+     86▕                 "Total Data Packing ".count($defectsPacking),
 
-  1   C:\xampp\htdocs\nds_wip_local\vendor\laravel\framework\src\Illuminate\Database\Connectors\Connector.php:70
-      PDOException::("SQLSTATE[HY000] [2002] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
-")
+  1   C:\xampp\htdocs\nds_wip_local\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php:36
+      App\Console\Commands\MissRework::handle()
 
-  2   C:\xampp\htdocs\nds_wip_local\vendor\laravel\framework\src\Illuminate\Database\Connectors\Connector.php:70
-      PDO::__construct("mysql:host=10.10.5.12;port=3306;dbname=signalbit_erp", "root", "ERP@S19n4lB1t", [])
+  2   C:\xampp\htdocs\nds_wip_local\vendor\laravel\framework\src\Illuminate\Container\Util.php:40
+      Illuminate\Container\BoundMethod::Illuminate\Container\{closure}()

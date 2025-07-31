@@ -120,7 +120,7 @@ class CuttingFormPieceController extends Controller
     public function incompleteItem($id = 0)
     {
         if ($id) {
-            $incomplete = FormCutPieceDetail::with("scannedItem")->where("form_id", $id)->where("status", "incomplete")->first();
+            $incomplete = FormCutPieceDetail::with("scannedItem", "formCutPieceDetailSizes")->where("form_id", $id)->orderBy("id", "desc")->get();
 
             return $incomplete ? $incomplete : null;
         }
@@ -354,14 +354,14 @@ class CuttingFormPieceController extends Controller
 
                         // Update Form Cut Piece
                         $updateCuttingPiece = $cuttingPieceModel->update([
-                            "process" => $request->process,
-                            "status" => 'complete',
+                            "process" => 1,
+                            // "status" => 'complete',
                         ]);
 
-                        session()->forget('currentFormCutPiece');
+                        // session()->forget('currentFormCutPiece');
 
-                        // finishing
-                        $this->finishProcess($validatedRequest["id"]);
+                        // // finishing
+                        // $this->finishProcess($validatedRequest["id"]);
 
                         return array(
                             "status" => 200,
@@ -370,6 +370,31 @@ class CuttingFormPieceController extends Controller
                         );
                     }
                 }
+
+                break;
+            case 4 :
+                $validatedRequest = $request->validate([
+                    "id" => "required"
+                ]);
+
+                $cuttingPieceModel = FormCutPiece::where("id", $validatedRequest["id"]);
+
+                // Update Form Cut Piece
+                $updateCuttingPiece = $cuttingPieceModel->update([
+                    "process" => 3,
+                    "status" => 'complete',
+                ]);
+
+                session()->forget('currentFormCutPiece');
+
+                // finishing
+                $this->finishProcess($validatedRequest["id"]);
+
+                return array(
+                    "status" => 200,
+                    "message" => "Data Cutting Pcs berhasil disimpan.",
+                    "additional" => $cuttingPieceModel->first()
+                );
 
                 break;
             default :
