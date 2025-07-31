@@ -74,6 +74,28 @@
                             <th scope="col" class="text-center align-middle">Status</th>
                             <th scope="col" class="text-center align-middle">Proses</th>
                         </tr>
+                        <tr>
+                            <th></th> <!-- Empty cell for Act (no search input) -->
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                        </tr>
                     </thead>
                 </table>
             </div>
@@ -218,6 +240,16 @@
                     data: 'proses'
                 }
             ],
+            initComplete: function() {
+                this.api().columns().every(function() {
+                    var column = this;
+                    $('input', this.header()).on('keyup change clear', function() {
+                        if (column.search() !== this.value) {
+                            column.search(this.value).draw();
+                        }
+                    });
+                });
+            },
 
             // ✅ Add this block just after columns
             rowCallback: function(row, data) {

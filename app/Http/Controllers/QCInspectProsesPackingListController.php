@@ -1033,11 +1033,89 @@ group by c.no_lot
         $no_inv  = $data_header[0]->no_invoice;
 
         $data_cek_inspect = DB::connection('mysql_sb')->select("SELECT
-cek_inspect
+cek_inspect, group_inspect
 from qc_inspect_form a
 where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo' limit 1
 ");
         $cek_inspect = $data_cek_inspect[0]->cek_inspect;
+        $group_inspect = $data_cek_inspect[0]->group_inspect;
+
+        $data_lot_report = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+				b.no_lot,
+        a.no_form,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				c.shipment,
+				b.pass_with_condition
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+    group by a.no_form
+),
+b AS (
+    SELECT
+        a.no_form,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+				a.no_lot,
+        a.no_form,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				shipment,
+				a.pass_with_condition
+    FROM a
+    group by a.no_form
+),
+d AS (
+SELECT
+c.no_form,
+c.no_lot,
+sum_up_to_3,
+sum_3_6,
+sum_6_9,
+sum_over_9,
+avg_width,
+c.tot_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
+shipment,
+if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= shipment,'PASS','REJECT') result,
+c.pass_with_condition
+FROM c
+INNER JOIN b ON c.no_form = b.no_form
+GROUP BY c.no_form
+)
+
+SELECT
+no_lot,
+count(no_form) tot_form,
+ROUND(SUM(act_point) / count(no_form)) act_point_total,
+shipment,
+max(pass_with_condition) pass_with_condition,
+CASE
+		WHEN ROUND(SUM(act_point) / count(no_form)) >= shipment and pass_with_condition = 'N' then 'REJECT'
+		WHEN ROUND(SUM(act_point) / count(no_form)) >= shipment and pass_with_condition = 'Y' then 'PASS WITH CONDITION'
+		WHEN ROUND(SUM(act_point) / count(no_form)) <= shipment and pass_with_condition = 'N' then 'PASS'
+END as result
+FROM d
+GROUP BY no_lot");
+
+
 
         $data_header_form = DB::connection('mysql_sb')->select("SELECT
 a.no_form,
@@ -1056,6 +1134,7 @@ concat(act_length_fix, ' ', upper(unit_act_length)) length
 from qc_inspect_form a
 left join whs_lokasi_inmaterial b on a.barcode = b.no_barcode
 where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo'
+order by a.no_lot asc, no_form asc
 ");
 
         $form_numbers = collect($data_header_form)->pluck('no_form')->unique()->toArray();
@@ -1153,10 +1232,72 @@ GROUP BY c.no_form
             'inspection_results_grouped' => $inspection_results_grouped,
             'data_summary_grouped' => $data_summary_grouped,
             'cek_inspect' => $cek_inspect,
+            'group_inspect' => $group_inspect,
+            'data_lot_report' => $data_lot_report,
         ])->setPaper('a4', 'portrait');
 
         // Set filename and return download
         $fileName = 'pdf.pdf';
         return $pdf->download(str_replace("/", "_", $fileName));
+    }
+
+    public function upload_blanket_photo(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|image|max:5120',
+            'id_item' => 'required',
+            'id_jo' => 'required',
+            'no_invoice' => 'required',
+            'no_lot' => 'required',
+        ]);
+
+        // Clean filename parts
+        $id_item = str_replace(['/', '\\'], '_', $request->id_item);
+        $id_jo = str_replace(['/', '\\'], '_', $request->id_jo);
+        $no_invoice = str_replace(['/', '\\'], '_', $request->no_invoice);
+        $no_lot = str_replace(['/', '\\'], '_', $request->no_lot);
+
+        $filename = "{$id_item}_{$id_jo}_{$no_invoice}_{$no_lot}.jpg";
+
+        $request->file('photo')->storeAs('public/gambar_blanket', $filename);
+
+        $cek_blanket = DB::connection('mysql_sb')->select("SELECT
+*
+        from qc_inspect_form_blanket a
+        where no_invoice = '$request->no_invoice' and a.id_item = '$request->id_item'
+        and a.id_jo = '$request->id_jo' and a.no_lot = '$request->no_lot' limit 1
+");
+
+        if ($cek_blanket) {
+            // UPDATE using raw SQL
+            DB::connection('mysql_sb')->statement("
+            UPDATE qc_inspect_form_blanket
+            SET photo = ?, rate = ?, updated_at = NOW()
+            WHERE no_invoice = ? AND id_item = ? AND id_jo = ? AND no_lot = ?
+        ", [
+                $filename,
+                $request->rate,
+                $request->no_invoice,
+                $request->id_item,
+                $request->id_jo,
+                $request->no_lot
+            ]);
+        } else {
+            // INSERT using raw SQL
+            DB::connection('mysql_sb')->statement("
+            INSERT INTO qc_inspect_form_blanket
+            (id_item, id_jo, no_invoice, no_lot, photo, rate, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?,?, NOW(), NOW())
+        ", [
+                $request->id_item,
+                $request->id_jo,
+                $request->no_invoice,
+                $request->no_lot,
+                $filename,
+                $request->rateSelect
+            ]);
+        }
+
+        return response()->json(['message' => 'Upload successful']);
     }
 }

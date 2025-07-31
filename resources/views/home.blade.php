@@ -138,7 +138,7 @@
                                         <div class="d-flex h-100 flex-column justify-content-between">
                                             <img src="{{ asset('dist/img/inspect.png') }}" class="img-fluid p-3"
                                                 alt="inspect image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Inspect</p>
+                                            <p class="text-center fw-bold text-uppercase text-dark">Fabric Inspection</p>
                                         </div>
                                     </div>
                                 </div>
