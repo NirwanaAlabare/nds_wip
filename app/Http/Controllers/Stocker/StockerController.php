@@ -4151,7 +4151,7 @@ class StockerController extends Controller
                         $yearSequenceNumber = 1;
                     }
 
-                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
+                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request['method'] == "add" ) {
                         $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n);
 
                         $currentYearSequence = YearSequence::where("id_year_sequence", $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1))->first();
@@ -4624,7 +4624,7 @@ class StockerController extends Controller
     public function printMonthCount(Request $request) {
         ini_set("max_execution_time", 360000);
 
-        $method = $request->method ? $request->method : 'qty';
+        $method = $request['method'] ? $request['method'] : 'qty';
         $qty = $request->qty ? $request->qty : 0;
         $rangeAwal = $request->rangeAwal ? $request->rangeAwal : 0;
         $rangeAkhir = $request->rangeAkhir ? $request->rangeAkhir : 0;
@@ -4697,7 +4697,7 @@ class StockerController extends Controller
         ini_set("max_execution_time", 360000);
         ini_set("memory_limit", '2048M');
 
-        $method = $request->method ? $request->method : 'qty';
+        $method = $request['method'] ? $request['method'] : 'qty';
         $yearSequenceYear = $request->year ? $request->year : Carbon::now()->format('Y');
         $yearSequenceSequence = $request->yearSequence ? $request->yearSequence : 0;
         $qty = $request->qty ? $request->qty : 0;
@@ -5010,7 +5010,7 @@ class StockerController extends Controller
     }
 
     public function modifyYearSequenceList(Request $request) {
-        if ($request->method == "list") {
+        if ($request['method'] == "list") {
             $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
 
             $data = YearSequence::selectRaw("
@@ -5132,7 +5132,7 @@ class StockerController extends Controller
         ]);
 
         if ($request->size != null && $request->size_text != null) {
-            if ($request->method == "list") {
+            if ($request['method'] == "list") {
                 $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
 
                 $yearSequences = YearSequence::whereRaw("id_year_sequence in (".$yearSequenceIds.")")->
@@ -5213,7 +5213,7 @@ class StockerController extends Controller
                     "so_det_id" => $request->size,
                 ]);
 
-                if ($request->method == "list") {
+                if ($request['method'] == "list") {
                     if ($yearSequenceIds) {
                         return array(
                             "status" => 200,
@@ -5256,7 +5256,7 @@ class StockerController extends Controller
             "sequence" => "required",
         ]);
 
-        if ($request->method == "list") {
+        if ($request['method'] == "list") {
             $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
 
             $yearSequences = YearSequence::whereRaw("id_year_sequence in (".$yearSequenceIds.")")->

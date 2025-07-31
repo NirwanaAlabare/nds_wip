@@ -939,6 +939,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
         Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
+        Route::delete('/modify-loading-line/delete', 'modifyLoadingLineDelete')->name('modify-loading-line-delete');
     });
 
     // Bon Loading

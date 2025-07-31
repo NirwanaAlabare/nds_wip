@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NDS - WIP</title>
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('dist/img/tabicon.png') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"> --}}
     @include('layouts.link')
 
     @yield('custom-link')
@@ -829,7 +829,7 @@
 <script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
 <!-- JSC CHART-->
-<script src="https://code.jscharting.com/latest/jscharting.js"></script>
+<script src="{{ asset('plugins/jscharting/JSC/jscharting.js') }}"></script>
 
 <!-- SOCKET.IO configuration -->
 {{-- <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="

@@ -439,8 +439,8 @@ class LoadingLineController extends Controller
             leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             groupBy("loading_line_plan.id");
 
-            return DataTables::eloquent($line)
-                ->filter(function ($query) {
+            return DataTables::eloquent($lineStocker)
+            ->filter(function ($query) {
                     if (request()->has('dateFrom') && request('dateFrom') != null && request('dateFrom') != "") {
                         $query->where("loading_line_plan.tanggal", ">=", request('dateFrom'));
                     }
@@ -1035,7 +1035,7 @@ class LoadingLineController extends Controller
 
             $allStockerIds = [];
             foreach($stockerDatas as $stockerData) {
-                $similarStockerData = Stocker::where(($stockerData->form_piece_id ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id ? $stockerdata->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
+                $similarStockerData = Stocker::where(($stockerData->form_piece_id ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                     where("so_det_id", $stockerData->so_det_id)->
                     where("group_stocker", $stockerData->group_stocker)->
                     where("ratio", $stockerData->ratio)->
@@ -1172,6 +1172,39 @@ class LoadingLineController extends Controller
         return array(
             "status" => 200,
             "message" => "Berhasil '".count($success)."' <br> Gagal ".count($fails),
+        );
+    }
+
+    public function modifyLoadingLineDelete(Request $request) {
+        $stockerIds = addQuotesAround($request->stockerIds);
+
+        $stockerDatas = Stocker::whereRaw("id_qr_stocker in (".$stockerIds.")")->get();
+
+        $allLoadingLineIds = [];
+        foreach($stockerDatas as $stockerData) {
+            $similarStockerData = Stocker::selectRaw("loading_line.id")->
+                leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+                where(($stockerData->form_piece_id > 0 ? "stocker_input.form_piece_id" : ($stockerData->form_reject_id > 0 ? "stocker_input.form_reject_id" : "stocker_input.form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
+                where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.group_stocker", $stockerData->group_stocker)->
+                where("stocker_input.ratio", $stockerData->ratio)->
+                get();
+
+            array_push($allLoadingLineIds, ...$similarStockerData->pluck('id')->toArray());
+        }
+
+        $deleteLoadingLine = LoadingLine::whereIn("id", $allLoadingLineIds)->delete();
+
+        if ($deleteLoadingLine) {
+            return array(
+                "status" => 200,
+                "message" => "Berhasil dihapus.",
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi kesalahan.",
         );
     }
 }
