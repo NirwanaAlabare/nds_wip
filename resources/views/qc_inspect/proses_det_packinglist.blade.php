@@ -485,7 +485,7 @@
                         data: 'result'
                     },
                     {
-                        data: 'result'
+                        data: 'photo'
                     },
                     {
                         data: null,

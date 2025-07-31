@@ -322,7 +322,8 @@ END AS stat_reject,
                         ELSE 'REJECT'
                   END = 'REJECT' THEN 'Y'
 						ELSE 'N'
-		END as gen_more
+		END as gen_more,
+        IF(photo IS NULL, 'N', 'Y') AS photo
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
@@ -330,6 +331,11 @@ left join d ON c.no_lot = d.no_lot
 AND c.id_item = d.id_item
 AND c.id_jo = d.id_jo
 AND a.no_invoice = d.no_invoice
+left join signalbit_erp.qc_inspect_form_blanket e on
+c.no_lot = e.no_lot
+AND c.id_item = e.id_item
+AND c.id_jo = e.id_jo
+AND a.no_invoice = e.no_invoice
 where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
 group by c.no_lot
             ");
