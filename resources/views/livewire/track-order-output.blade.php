@@ -90,7 +90,7 @@
                             ?>
                                 <tr>
                                     @if ($dailyGroup->ws != $currentWs)
-                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count() }}"><span>{{ $dailyGroup->ws }}</span></td>
 
                                         @php
                                             $currentWs = $dailyGroup->ws;
@@ -100,7 +100,7 @@
                                         @endphp
                                     @endif
                                     @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count() }}"><span>{{ $dailyGroup->style }}</span></td>
 
                                         @php
                                             $currentStyle = $dailyGroup->style;
@@ -109,7 +109,7 @@
                                         @endphp
                                     @endif
                                     @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count() }}"><span>{{ $dailyGroup->color }}</span></td>
 
                                         @php
                                             $currentColor = $dailyGroup->color;
@@ -117,7 +117,7 @@
                                         @endphp
                                     @endif
                                     @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->sewing_line != $currentLine)
-                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count() }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
 
                                         @php
                                             $currentLine = $dailyGroup->sewing_line;

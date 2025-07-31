@@ -1686,7 +1686,7 @@ class DashboardController extends Controller
                             master_sb_ws.id_act_cost,
                             DATE(master_sb_ws.tgl_kirim) tgl_kirim,
                             stocker_input.id,
-                            COALESCE(stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id) form_cut_id,
+                            ( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) form_cut_id,
                             stocker_input.act_costing_ws,
                             master_sb_ws.styleno,
                             stocker_input.color,
@@ -1992,7 +1992,7 @@ class DashboardController extends Controller
                         AND
                         YEAR(master_plan.tgl_plan) = '".$year."'
                         AND
-                        master_plan.tgl_plan <= '".date("Y-m-d")."'
+                        master_plan.tgl_plan < '".date("Y-m-d")."'
                     )")->
                     groupBy("master_plan.tgl_plan")->
                     get();
@@ -2029,6 +2029,8 @@ class DashboardController extends Controller
                     MONTH(master_plan.tgl_plan) = '".$month."'
                     AND
                     YEAR(master_plan.tgl_plan) = '".$year."'
+                    AND
+                    master_plan.tgl_plan < '".date("Y-m-d")."'
                 )")->
                 groupByRaw("MONTH(master_plan.tgl_plan), YEAR(master_plan.tgl_plan)")->first();
 
@@ -2081,6 +2083,7 @@ class DashboardController extends Controller
                             master_plan.cancel = 'N'
                             AND MONTH ( master_plan.tgl_plan ) = '".$month."'
                             AND YEAR ( master_plan.tgl_plan ) = '".$year."'
+                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
                         GROUP BY
                             MONTH ( master_plan.tgl_plan ),
                             YEAR ( master_plan.tgl_plan ),
@@ -2110,6 +2113,8 @@ class DashboardController extends Controller
                             AND YEAR ( rfts.updated_at ) = '".$year."'
                             AND MONTH ( master_plan.tgl_plan ) = '".$month."'
                             AND YEAR ( master_plan.tgl_plan ) = '".$year."'
+                            AND rfts.updated_at < '".date("Y-m-d")." 00:00:00'
+                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
                         GROUP BY
                             rfts.so_det_id
                         ) AS rfts ON `so_det`.`id` = `rfts`.`so_det_id`
@@ -2130,6 +2135,8 @@ class DashboardController extends Controller
                             AND YEAR ( defects.updated_at ) = '".$year."'
                             AND MONTH ( master_plan.tgl_plan ) = '".$month."'
                             AND YEAR ( master_plan.tgl_plan ) = '".$year."'
+                            AND defects.updated_at < '".date("Y-m-d")." 00:00:00'
+                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
                         GROUP BY
                             defects.so_det_id
                         ) AS defects ON `so_det`.`id` = `defects`.`so_det_id`
@@ -2150,6 +2157,8 @@ class DashboardController extends Controller
                             AND YEAR ( defrew.updated_at ) = '".$year."'
                             AND MONTH ( master_plan.tgl_plan ) = '".$month."'
                             AND YEAR ( master_plan.tgl_plan ) = '".$year."'
+                            AND defrew.updated_at < '".date("Y-m-d")." 00:00:00'
+                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
                         GROUP BY
                             defrew.so_det_id
                         ) AS reworks ON `so_det`.`id` = `reworks`.`so_det_id`
@@ -2170,6 +2179,8 @@ class DashboardController extends Controller
                             AND YEAR ( rejects.updated_at ) = '".$year."'
                             AND MONTH ( master_plan.tgl_plan ) = '".$month."'
                             AND YEAR ( master_plan.tgl_plan ) = '".$year."'
+                            AND rejects.updated_at < '".date("Y-m-d")." 00:00:00'
+                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
                         GROUP BY
                             rejects.so_det_id
                         ) AS rejects ON `so_det`.`id` = `rejects`.`so_det_id`
@@ -2190,6 +2201,8 @@ class DashboardController extends Controller
                             AND YEAR ( rfts.updated_at ) = '".$year."'
                             AND MONTH ( master_plan.tgl_plan ) = '".$month."'
                             AND YEAR ( master_plan.tgl_plan ) = '".$year."'
+                            AND rfts.updated_at < '".date("Y-m-d")." 00:00:00'
+                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
                         GROUP BY
                             rfts.so_det_id
                         ) AS rfts_packing ON `so_det`.`id` = `rfts_packing`.`so_det_id`

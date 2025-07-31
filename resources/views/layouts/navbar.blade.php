@@ -113,6 +113,12 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('cutting-piece') }}"
+                                        class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
+                                        Form Pieces <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('form-cut-piping') }}"
                                         class="dropdown-item {{ $routeName == 'form-cut-piping' ? 'active' : '' }}">
                                         Piping <i class="fa-solid fa-paperclip"></i>
@@ -256,24 +262,6 @@
                                 <li>
                                     <a href="{{ route('stock-cutting-reject') }}"
                                         class="dropdown-item {{ $routeName == 'stock-cutting-reject' ? 'active' : '' }}">
-                                        Stocker <i class="fa-solid fa-receipt"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-piece' ? 'active' : '' }}">Pcs</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('cutting-piece') }}"
-                                        class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
-                                        Form <i class="fa-solid fa-file-circle-exclamation"></i>
-                                    </a>
-                                </li>
-                                <li class="d-none">
-                                    <a href="{{ route('stock-cutting-piece') }}"
-                                        class="dropdown-item {{ $routeName == 'stock-cutting-piece' ? 'active' : '' }}">
                                         Stocker <i class="fa-solid fa-receipt"></i>
                                     </a>
                                 </li>
