@@ -143,7 +143,7 @@
                                 $currentGroup = "";
                                 $currentGroupStocker = 0;
                                 $currentTotal = 0;
-                                $currentBefore = 0;
+                                $currentBefore = collect();
                             @endphp
                             @foreach ($dataSpreading->formCutPieceDetails->where('status', 'complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
@@ -154,6 +154,7 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
+                                            $currentDetail = $dataDetail->where("group_roll", $currentGroup)->where("group_stocker", $currentGroupStocker);
                                         @endphp
                                     @endif
 
@@ -170,19 +171,19 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-part')
+                                        @include('stocker.stocker.stocker-piece-detail-part', ["currentDetail" => $currentDetail])
                                         @php
-                                            $index += $dataDetail->count() * $dataPartDetail->count();
+                                            $index += $currentDetail->count() * $dataPartDetail->count();
                                             $partIndex += $dataPartDetail->count();
                                         @endphp
 
                                         {{-- Change initial group --}}
                                         @php
-                                            $currentBefore += $currentTotal;
-
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->formCutPieceDetailSizes->sum("qty");
+
+                                            $currentDetail = $dataDetail->where("group_roll", $currentGroup)->where("group_stocker", $currentGroupStocker);
                                         @endphp
 
                                         @if ($loop->last)
@@ -198,9 +199,9 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-piece-detail-part')
+                                            @include('stocker.stocker.stocker-piece-detail-part', ["currentDetail" => $currentDetail])
                                             @php
-                                                $index += $dataDetail->count() * $dataPartDetail->count();
+                                                $index += $currentDetail->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
                                             @endphp
                                         @endif
@@ -223,9 +224,9 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-piece-detail-part')
+                                            @include('stocker.stocker.stocker-piece-detail-part', ["currentDetail" => $currentDetail])
                                             @php
-                                                $index += $dataDetail->count() * $dataPartDetail->count();
+                                                $index += $currentDetail->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
                                             @endphp
                                         @endif

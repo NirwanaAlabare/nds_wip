@@ -210,8 +210,11 @@ class GeneralController extends Controller
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
             ")->
             where("master_sb_ws.id_act_cost", $request->act_costing_id)->
-            where("master_sb_ws.color", $request->color)->
-            leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            where("master_sb_ws.color", $request->color);
+            if ($request->so_det_list) {
+                $sizeQuery->whereRaw("master_sb_ws.id_so_det in (".$request->so_det_list.")");
+            }
+            $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
             leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
 
@@ -621,8 +624,8 @@ class GeneralController extends Controller
                     whs_bppb_det.qty_out qty,
                     whs_bppb_det.satuan unit,
                     bji.rule_bom,
-                    GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC) as so_det_list,
-                    GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC) as size_list
+                    GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
+                    GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
                 FROM
                     whs_bppb_det
                     LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb

@@ -42,16 +42,18 @@
                                 {{-- <th>Print Numbering</th> --}}
                             </thead>
                             <tbody>
-                                @foreach ($dataDetail as $detail)
+                                @foreach ($currentDetail as $detail)
                                     @php
                                         $qty = intval(1) * intval($detail->qty);
+
+                                        $beforeQty = isset($currentBefore[$detail->so_det_id."_".$partDetail->id]) ? $currentBefore[$detail->so_det_id."_".$partDetail->id] : 0;
 
                                         if ($qty > 0) :
                                             $stockerThis = $dataStocker ? $dataStocker->where("so_det_id", $detail->so_det_id)->where("no_cut", $dataSpreading->no_cut)->first() : null;
                                             $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $detail->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortBy([['no_cut', 'desc'],['range_akhir', 'desc']])->first() : null;
 
-                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 : "-") : 1) : 1);
-                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty : "-") : $qty) : $qty);
+                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + $beforeQty : "-") : 1 + $beforeQty) : 1 + $beforeQty);
+                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + $beforeQty : "-") : $qty + $beforeQty) : $qty + $beforeQty);
                                     @endphp
                                     <tr>
                                         <input type="hidden" name="part_detail_id[{{ $index }}]" id="part_detail_id_{{ $index }}" value="{{ $partDetail->id }}">
@@ -110,6 +112,8 @@
                                     </tr>
                                     @php
                                             $index++;
+
+                                            $currentBefore->put($detail->so_det_id."_".$partDetail->id, $rangeAkhir);
                                         endif;
                                     @endphp
                                 @endforeach
