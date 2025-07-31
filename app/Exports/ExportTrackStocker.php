@@ -50,7 +50,7 @@ class ExportTrackStocker implements FromView, WithEvents, /*WithColumnWidths,*/ 
                     master_sb_ws.id_act_cost,
                     DATE(master_sb_ws.tgl_kirim) tgl_kirim,
                     stocker_input.id,
-                    COALESCE(stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id) form_cut_id,
+                    ( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) form_cut_id,
                     stocker_input.act_costing_ws,
                     master_sb_ws.styleno,
                     stocker_input.color,

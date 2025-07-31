@@ -55,6 +55,70 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="ModalBlanket" tabindex="-1" aria-labelledby="modalBlanketLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="modalBlanketLabel"><i class="fas fa-list"></i> Blanket</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+
+                <form id="blanketUploadForm" enctype="multipart/form-data">
+                    @csrf
+
+                    <div class="modal-body text-center" id="photoModalBody" style="max-height: 70vh; overflow-y: auto;">
+                        <div id="photoPreview"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="photoInput">Upload / Capture Blanket Photo</label>
+                            <input type="file" name="photo" accept="image/*" capture="environment" class="form-control"
+                                id="photoInput" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="rateSelect">Rate</label>
+                            <select name="rate" id="rateSelect" class="form-select" required>
+                                <option value="" selected disabled>-- Select Rate --</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1">1</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2">2</option>
+                                <option value="2.5">2.5</option>
+                                <option value="3">3</option>
+                                <option value="3.5">3.5</option>
+                                <option value="4">4</option>
+                                <option value="4.5">4.5</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+
+                        <!-- Result (PASS/REJECT) -->
+                        <div class="mb-3">
+                            <label class="form-label">Result</label>
+                            <input type="text" class="form-control" id="rateResult" name="rate_result" readonly>
+                        </div>
+
+
+                        <!-- Hidden Fields -->
+                        <input type="hidden" name="id_item" id="input_id_item">
+                        <input type="hidden" name="id_jo" id="input_id_jo">
+                        <input type="hidden" name="no_invoice" id="input_no_invoice">
+                        <input type="hidden" name="no_lot" id="input_no_lot">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Upload</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
 
 
 
@@ -179,6 +243,7 @@
                                 <th scope="col">Shipment Point</th>
                                 <th scope="col">Max Shipment Point</th>
                                 <th scope="col">Result</th>
+                                <th scope="col">Blanket</th>
                                 <th scope="col">Act</th>
                             </tr>
                         </thead>
@@ -188,6 +253,7 @@
                                 <th></th> <!-- For Jml Roll total -->
                                 <th></th> <!-- For Jml Roll (Cek) total -->
                                 <th></th> <!-- For Total Form total -->
+                                <th></th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -352,6 +418,14 @@
                 show_inspect_kedua();
             });
 
+            $('#rateSelect').on('change', function() {
+                const rate = parseFloat($(this).val());
+                const result = rate >= 4 ? 'PASS' : 'REJECT';
+                $('#rateResult').val(result);
+            });
+
+
+
         })
 
         function calculate() {
@@ -411,6 +485,9 @@
                         data: 'result'
                     },
                     {
+                        data: 'photo'
+                    },
+                    {
                         data: null,
                         orderable: false,
                         searchable: false,
@@ -433,7 +510,6 @@
                 onclick="generate_kedua('${data.id_item}', '${data.id_jo}', '${data.no_invoice}', '${data.no_lot}', '${data.cek_inspect}', '${data.group_inspect}', '${data.tot_form}')">`;
                             }
 
-                            // ✅ Add more if stat_reject is 'Y'
                             if (data.stat_reject === 'Y') {
                                 html +=
                                     `
@@ -444,10 +520,20 @@
                 onclick="pass_with_condition('${data.id_item}', '${data.id_jo}', '${data.no_invoice}', '${data.no_lot}')">`;
                             }
 
+                            // ✅ Add "Blanket" button unconditionally or conditionally if needed
+                            html +=
+                                `
+            <input
+                type="button"
+                class="btn btn-warning btn-sm ms-2"
+                value="Blanket"
+                onclick="show_list_blanket('${data.id_item}', '${data.id_jo}', '${data.no_invoice}', '${data.no_lot}')">`;
+
                             html += `</div>`;
                             return html;
                         }
                     }
+
 
                 ],
 
@@ -602,6 +688,145 @@
                 datatable_modal.ajax.reload();
             }
         }
+
+        // Instant preview when selecting a photo
+        document.getElementById('photoInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+
+            if (!file || !file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1024;
+                    const MAX_HEIGHT = 1024;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height && width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    } else if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convert to blob with quality compression (e.g. 0.7)
+                    canvas.toBlob(function(blob) {
+                        // Preview compressed image
+                        document.getElementById('photoPreview').innerHTML = `
+                    <img src="${URL.createObjectURL(blob)}" class="img-fluid rounded border mb-2" style="max-height: 400px;">
+                `;
+
+                        // Replace original file in form data
+                        const compressedFile = new File([blob], file.name, {
+                            type: 'image/jpeg'
+                        });
+
+                        // Store it for uploading later
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(compressedFile);
+                        document.getElementById('photoInput').files = dataTransfer.files;
+                    }, 'image/jpeg', 0.7);
+                };
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        $('#ModalBlanket').on('hidden.bs.modal', function() {
+            $('#blanketUploadForm')[0].reset();
+            $('#photoPreview').empty(); // clear image preview
+        });
+
+
+        function show_list_blanket(id_item, id_jo, no_invoice, no_lot) {
+            const sanitize = str => str.replace(/[\/\\]/g, '_');
+
+            const safe_id_item = sanitize(id_item);
+            const safe_id_jo = sanitize(id_jo);
+            const safe_no_invoice = sanitize(no_invoice);
+            const safe_no_lot = sanitize(no_lot);
+
+            const timestamp = new Date().getTime();
+            const imgPath =
+                `/nds_wip/public/storage/gambar_blanket/${safe_id_item}_${safe_id_jo}_${safe_no_invoice}_${safe_no_lot}.jpg?t=${timestamp}`;
+
+            const img = new Image();
+            img.src = imgPath;
+
+            const previewContainer = document.getElementById('photoPreview');
+            const input = document.getElementById('photoInput');
+
+            // Reset preview and input
+            if (previewContainer) previewContainer.innerHTML = '';
+            if (input) input.value = '';
+
+            img.onload = function() {
+                previewContainer.innerHTML = `
+            <img src="${imgPath}" alt="Blanket Photo"
+                 class="img-fluid rounded border mb-2" style="max-height: 400px;">
+        `;
+            };
+
+            img.onerror = function() {
+                previewContainer.innerHTML = `
+            <p class="text-muted">No photo available yet.</p>
+        `;
+            };
+
+            // Set hidden input values
+            $('#input_id_item').val(id_item);
+            $('#input_id_jo').val(id_jo);
+            $('#input_no_invoice').val(no_invoice);
+            $('#input_no_lot').val(no_lot);
+
+            const modal = new bootstrap.Modal(document.getElementById('ModalBlanket'));
+            modal.show();
+        }
+
+
+        $('#blanketUploadForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const modalEl = document.getElementById('ModalBlanket');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+
+            $.ajax({
+                url: '{{ route('upload_blanket_photo') }}',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Uploaded!',
+                        text: 'Photo uploaded successfully',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: 'There was an error uploading the photo. Please try again.',
+                    });
+                    console.error(xhr.responseText);
+                }
+            });
+        });
 
 
         let datatable_modal = $("#datatable_modal").DataTable({

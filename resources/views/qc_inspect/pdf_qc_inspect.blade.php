@@ -76,6 +76,12 @@
         }
     </style>
 
+    <style>
+        .light-border td,
+        .light-border th {
+            border: 0.5px solid #000 !important;
+        }
+    </style>
 
 </head>
 
@@ -120,124 +126,170 @@
                         </tr>
                     </tbody>
                 </table>
-
-
                 @php
                     $data = $data_header[0];
                 @endphp
+                @php
+                    $tgl_dok = $data->tgl_dok_fix ?? '-';
+                    $buyer = $data->buyer ?? '-';
+                    $id_item = $data->id_item ?? '-';
+                    $no_invoice = $data->no_invoice ?? '-';
+                    $style = $data->styleno ?? '-';
+                    $fabric = $data->itemdesc ?? '-';
+                    $color = $data->color ?? '-';
+                    $jml_roll = $data->jml_roll ?? '-';
+                    $jml_lot = $data->jml_lot ?? '-';
+                    $supplier = $data->supplier ?? '-';
+                    $type_pch = $data->type_pch ?? '-';
+                @endphp
+                <table
+                    style="width: 100%; margin-top: 10px; border-collapse: collapse; table-layout: auto; line-height: 1.8;">
 
-                <table style="width: 100%; margin-top: 10px; table-layout: fixed; border-collapse: collapse;">
                     <tbody>
                         <tr>
-                            @php
-                                $tgl_dok = $data->tgl_dok_fix ?? '-';
-                                $buyer = $data->buyer ?? '-';
-                                $id_item = $data->id_item ?? '-';
-                            @endphp
+                            <td style="font-weight: bold;">Tgl. BPB</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($tgl_dok) > 25 ? '9px' : '11px' }};">
+                                {{ $tgl_dok }}
+                            </td>
 
-                            <td style="width: 8%; font-weight: bold;">Tgl. BPB</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($tgl_dok) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $tgl_dok }}</td>
+                            <td style="font-weight: bold;">Buyer</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($buyer) > 25 ? '9px' : '11px' }};">
+                                {{ $buyer }}
+                            </td>
 
-                            <td style="width: 8%; font-weight: bold;">Buyer</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($buyer) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $buyer }}</td>
-
-                            <td style="width: 8%; font-weight: bold;">ID Item</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($id_item) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $id_item }}</td>
+                            <td style="font-weight: bold;">Jml. Lot</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($jml_lot) > 25 ? '9px' : '11px' }};">
+                                {{ $jml_lot }}
+                            </td>
                         </tr>
 
                         <tr>
-                            @php
-                                $no_invoice = $data->no_invoice ?? '-';
-                                $style = $data->styleno ?? '-';
-                                $fabric = $data->itemdesc ?? '-';
-                            @endphp
+                            <td style="font-weight: bold;">No. PL</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($no_invoice) > 25 ? '9px' : '11px' }};">
+                                {{ $no_invoice }}
+                            </td>
 
-                            <td style="width: 8%; font-weight: bold;">No. PL</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($no_invoice) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $no_invoice }}</td>
+                            <td style="font-weight: bold;">Style</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($style) > 25 ? '9px' : '11px' }};">
+                                {{ $style }}
+                            </td>
 
-                            <td style="width: 8%; font-weight: bold;">Style</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($style) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $style }}</td>
-
-                            <td style="width: 8%; font-weight: bold;">Fabric</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($fabric) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $fabric }}</td>
+                            <td style="font-weight: bold;">Group Inspect</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($group_inspect) > 25 ? '9px' : '11px' }};">
+                                {{ $group_inspect }}
+                            </td>
                         </tr>
 
                         <tr>
-                            @php
-                                $color = $data->color ?? '-';
-                                $jml_roll = $data->jml_roll ?? '-';
-                                $jml_lot = $data->jml_lot ?? '-';
-                            @endphp
+                            <td style="font-weight: bold;">Supplier</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($supplier) > 25 ? '9px' : '11px' }};">
+                                {{ $supplier }}
+                            </td>
 
-                            <td style="width: 8%; font-weight: bold;">Color</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($color) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $color }}</td>
+                            <td style="font-weight: bold;">Color</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($color) > 25 ? '9px' : '11px' }};">
+                                {{ $color }}
+                            </td>
 
-                            <td style="width: 8%; font-weight: bold;">Jml Roll</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($jml_roll) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $jml_roll }}</td>
-
-                            <td style="width: 8%; font-weight: bold;">Jml Lot</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($jml_lot) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $jml_lot }}</td>
+                            <td style="font-weight: bold;">% Inspect</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($cek_inspect) > 25 ? '9px' : '11px' }};">
+                                {{ $cek_inspect }} %
+                            </td>
                         </tr>
 
                         <tr>
-                            @php
-                                $supplier = $data->supplier ?? '-';
-                                $type_pch = $data->type_pch ?? '-';
-                            @endphp
+                            <td style="font-weight: bold;">Note</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($type_pch) > 25 ? '9px' : '11px' }};">
+                                {{ $type_pch }}
+                            </td>
 
-                            <td style="width: 8%; font-weight: bold;">Supplier</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($supplier) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $supplier }}</td>
+                            <td style="font-weight: bold;">ID Item</td>
+                            <td>:</td>
+                            <td style="font-size: {{ strlen($id_item) > 25 ? '9px' : '11px' }};">
+                                {{ $id_item }}
+                            </td>
+                        </tr>
 
-                            <td style="width: 8%; font-weight: bold;">Type PCH</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($type_pch) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $type_pch }}</td>
-
-                            <td style="width: 8%; font-weight: bold;">Inspect %</td>
-                            <td style="width: 2%;">:</td>
-                            <td
-                                style="width: 24%; font-size: {{ strlen($cek_inspect) > 25 ? '9px' : '11px' }}; word-wrap: break-word;">
-                                {{ $cek_inspect }} %</td>
+                        <tr>
+                            <td style="font-weight: bold;">Fabric</td>
+                            <td>:</td>
+                            <td colspan="7">
+                                {{ $fabric }}
+                            </td>
                         </tr>
                     </tbody>
                 </table>
+
+
                 <div style="height: 20px;"></div>
+
+                <table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                    </colgroup>
+
+                    <thead>
+                        <tr>
+                            <th colspan="5"
+                                style="border: 1px solid #000; padding: 8px; font-weight: bold; text-align: center; background-color: #f0f0f0;">
+                                Lot Inspection Report
+                            </th>
+                        </tr>
+                        <tr>
+                            <th style="border: 1px solid #000; padding: 6px;">Lot</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Jumlah Form</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Actual Point</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Max Point</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($data_lot_report as $rep)
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->no_lot }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->tot_form }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->act_point_total }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->shipment }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->result }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+
+                </table>
+                <div style="height: 10px;"></div>
+
+
+
                 @foreach ($data_header_form as $index => $dhf)
                     <div class="form-section page-break">
                         <table
                             style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed; margin-top: 10px; page-break-inside: avoid;">
                             <tbody>
+                                <tr>
+                                    <th colspan="9"
+                                        style="border: 1px solid #000; padding: 8px; font-weight: bold; text-align: center; background-color: #f0f0f0;">
+                                        Roll Inspection Report
+                                    </th>
+                                </tr>
                                 <tr>
                                     <td style="width: 15%; font-weight: bold; padding: 4px;">No Form</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
@@ -459,7 +511,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div style="height: 20px;"></div>
+                    <div style="height: 10px;"></div>
                 @endforeach
 
             </div>

@@ -3319,7 +3319,7 @@ class StockerController extends Controller
                     FROM
                         (
                             SELECT
-                                coalesce(form_cut_id, form_piece_id, form_reject_id) form_cut_id,
+                                ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                                 so_det_id,
                                 CONCAT( YEAR, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -3344,7 +3344,7 @@ class StockerController extends Controller
                         LEFT JOIN (
                             SELECT
                                 GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                                coalesce(form_cut_id, form_piece_id, form_reject_id) form_cut_id,
+                                ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                                 stocker_input.act_costing_ws,
                                 stocker_input.so_det_id,
                                 master_sb_ws.buyer buyer,
@@ -3446,7 +3446,7 @@ class StockerController extends Controller
                         LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                         INNER JOIN (
                             SELECT
-                                COALESCE(form_cut_id, form_reject_id, form_piece_id) form_cut_id,
+                                ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                                 so_det_id,
                                 CONCAT( `year`, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -3646,7 +3646,7 @@ class StockerController extends Controller
                     FROM
                         (
                             SELECT
-                                coalesce(form_cut_id, form_reject_id, form_piece_id) form_cut_id,
+                                ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                                 so_det_id,
                                 CONCAT( YEAR, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -3799,7 +3799,7 @@ class StockerController extends Controller
                         LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                         INNER JOIN (
                             SELECT
-                                COALESCE(form_cut_id, form_reject_id, form_piece_id) form_cut_id,
+                                ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                                 so_det_id,
                                 CONCAT( `year`, '_', year_sequence ) year_sequence,
                                 MIN( number ) range_numbering_awal,
@@ -4354,7 +4354,7 @@ class StockerController extends Controller
                 FROM
                     (
                         SELECT
-                            coalesce(form_cut_id, form_piece_id, form_reject_id) form_cut_id,
+                            ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                             so_det_id,
                             CONCAT( YEAR, '_', year_sequence ) year_sequence,
                             MIN( number ) range_numbering_awal,
@@ -4502,7 +4502,7 @@ class StockerController extends Controller
                     LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                     INNER JOIN (
                         SELECT
-                            COALESCE(form_cut_id, form_reject_id) form_cut_id,
+                            ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                             so_det_id,
                             CONCAT( `year`, '_', year_sequence ) year_sequence,
                             MIN( number ) range_numbering_awal,

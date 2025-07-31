@@ -455,6 +455,18 @@
                                 <th scope="col">ACT</th>
                             </tr>
                         </thead>
+                        <tfoot>
+                            <tr style="text-align:center; vertical-align:middle">
+                                <th scope="col">Total</th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -513,7 +525,7 @@
                     </button>
                 </div>
             </div>
-            <!-- Summary Title -->
+            <!-- Act Point Title -->
             <div class="row mb-2">
                 <div class="col">
                     <h6 class="text-primary fw-bold">Actual Point Length</h6>
@@ -1268,7 +1280,59 @@
                 if (tableStatus === 'done') {
                     $('.btnDelete').hide(); // Hide delete buttons
                 }
+            },
+
+            footerCallback: function(row, data, start, end, display) {
+                const api = this.api();
+
+                // Sum columns 2 to 5
+                const columnsToTotal = [2, 3, 4, 5];
+                columnsToTotal.forEach(function(colIdx) {
+                    let total = api
+                        .column(colIdx, {
+                            page: 'current'
+                        })
+                        .data()
+                        .reduce((a, b) => (parseFloat(a) || 0) + (parseFloat(b) || 0), 0);
+                    $(api.column(colIdx).footer()).html(total.toLocaleString());
+                });
+
+                // WIDTH column (index 6) average after decoding HTML entity
+                const widthColIdx = 6;
+
+                let widthValues = api
+                    .column(widthColIdx, {
+                        page: 'current'
+                    })
+                    .data()
+                    .toArray()
+                    .map(function(val) {
+                        if (typeof val === 'string' && val.includes('&gt;')) {
+                            // decode HTML entity
+                            let decoded = val.replace(/&gt;/g, '>');
+                            let parts = decoded.split('->');
+                            if (parts.length === 2) {
+                                let num = parseFloat(parts[1].trim());
+                                return !isNaN(num) && num !== 0 ? num : null;
+                            }
+                        }
+                        return null;
+                    })
+                    .filter(v => v !== null);
+
+                if (widthValues.length > 0) {
+                    let sum = widthValues.reduce((a, b) => a + b, 0);
+                    let avg = sum / widthValues.length;
+                    $(api.column(widthColIdx).footer()).html(avg.toFixed(2));
+                } else {
+                    $(api.column(widthColIdx).footer()).html('-');
+                }
+
+                // Optional debug:
+                console.log('WIDTH decoded data:', widthValues);
             }
+
+
         });
 
         // Adjust columns on draw (to fix zoom/layout issues)
