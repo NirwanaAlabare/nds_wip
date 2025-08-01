@@ -176,7 +176,7 @@
                                     <li>
                                         <a href="{{ route('sisa_kain_roll') }}"
                                             class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">
-                                            Sisa Kain Roll <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
+                                            Bintex Sisa Kain <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
                                         </a>
                                     </li>
                                 </ul>
