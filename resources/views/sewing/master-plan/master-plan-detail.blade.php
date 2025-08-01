@@ -445,5 +445,9 @@
             editGambarPreview.src = URL.createObjectURL(file)
         }
     }
+
+    function reloadWindow() {
+        window.location.reload();
+    }
 </script>
 @endsection

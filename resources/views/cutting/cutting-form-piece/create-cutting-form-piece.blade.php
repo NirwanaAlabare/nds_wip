@@ -9,6 +9,37 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        .scroll-to-bottom-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            background-color: var(--sb-secondary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .scroll-to-bottom-btn.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .scroll-to-bottom-btn:hover {
+            background-color: var(--sb-secondary-color);
+        }
+
+    </style>
 @endsection
 
 @section('content')
@@ -148,9 +179,6 @@
             <div class="card card-sb" id="item-card">
                 <div class="card-header">
                     <h3 class="card-title">Scan QR</h3>
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-                    </div>
                 </div>
                 <div class="card-body" style="display: block;">
                     <div class="row justify-content-center align-items-end">
@@ -245,137 +273,143 @@
     {{-- END OF PROCESS TWO --}}
 
     {{-- PROCESS THREE --}}
-        <form action="{{ route('store-cutting-piece') }}" method="POST" id="process-three-form" onsubmit="processThree(this, event)" class="{{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 2 ? "" : "d-none") : "d-none") }}">
-            <div class="card card-sb">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        Process
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row row-gap-3">
-                        <input type="hidden" class="form-control" id="id_detail" name="id_detail" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_detail : null }}" readonly>
-                        <input type="hidden" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" readonly>
-                        <div class="col-md-4">
-                            <label class="form-label">Group</label>
-                            <input type="text" class="form-control" id="group_roll" name="group_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->group_roll : null }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Lot</label>
-                            <input type="text" class="form-control" id="lot" name="lot" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->lot : null }}" readonly>
-                        </div>
-                        <div class="col-md-4 {{ $currentCuttingPieceDetail && $currentCuttingPieceDetail->roll_buyer ? "d-none" : "" }}" id="roll_container">
-                            <label class="form-label">No. Roll</label>
-                            <input type="text" class="form-control" id="roll" name="roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->roll : null }}" readonly>
-                        </div>
-                        <div class="col-md-4 {{ $currentCuttingPieceDetail && $currentCuttingPieceDetail->roll_buyer ? "" : "d-none" }}" id="roll_buyer_container">
-                            <label class="form-label">No. Roll</label>
-                            <input type="text" class="form-control" id="roll_buyer" name="roll_buyer" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->roll_buyer : null }}" readonly>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Role BOM</label>
-                            <input type="text" class="form-control" id="rule_bom" name="rule_bom" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->rule_bom : null }}" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">QTY Pengeluaran</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="qty_pengeluaran" name="qty_pengeluaran" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_pengeluaran : null }}" readonly>
-                                <input type="text" class="form-control" id="qty_pengeluaran_unit" name="qty_pengeluaran_unit" value="PCS" readonly>
+        <div id="process-three-container">
+            <form action="{{ route('store-cutting-piece') }}" method="POST" id="process-three-form" onsubmit="processThree(this, event)" class="{{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 2 ? "" : "d-none") : "d-none") }}">
+                <div class="card card-sb" id="process-three-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            Process
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row row-gap-3">
+                            <input type="hidden" class="form-control" id="id_detail" name="id_detail" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_detail : null }}" readonly>
+                            <input type="hidden" class="form-control" id="id_roll" name="id_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" readonly>
+                            <div class="col-md-4">
+                                <label class="form-label">Group</label>
+                                <input type="text" class="form-control" id="group_roll" name="group_roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->group_roll : null }}">
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">QTY</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="qty" name="qty" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty : null }}" readonly>
-                                <input type="text" class="form-control" id="qty_unit" name="qty_unit" value="PCS" readonly>
+                            <div class="col-md-4">
+                                <label class="form-label">Lot</label>
+                                <input type="text" class="form-control" id="lot" name="lot" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->lot : null }}" readonly>
                             </div>
-                        </div>
-                        <div class="col-md-12 table-responsive">
-                            @if ($currentCuttingPieceDetail)
-                                <table class="table table-bordered w-100 mt-3">
-                                    <thead>
-                                        <tr>
-                                            <th class="d-none">So Det ID</th>
-                                            <th class="d-none">Size</th>
-                                            <th class="d-none">Dest</th>
-                                            <th>Size</th>
-                                            <th>Dest</th>
-                                            <th>Qty Output</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($currentCuttingPieceDetail->formCutPieceDetailSizes->sortBy("so_det_id") as $size)
+                            <div class="col-md-4 {{ $currentCuttingPieceDetail && $currentCuttingPieceDetail->roll_buyer ? "d-none" : "" }}" id="roll_container">
+                                <label class="form-label">No. Roll</label>
+                                <input type="text" class="form-control" id="roll" name="roll" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->roll : null }}" readonly>
+                            </div>
+                            <div class="col-md-4 {{ $currentCuttingPieceDetail && $currentCuttingPieceDetail->roll_buyer ? "" : "d-none" }}" id="roll_buyer_container">
+                                <label class="form-label">No. Roll</label>
+                                <input type="text" class="form-control" id="roll_buyer" name="roll_buyer" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->roll_buyer : null }}" readonly>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Role BOM</label>
+                                <input type="text" class="form-control" id="rule_bom" name="rule_bom" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->rule_bom : null }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">QTY Pengeluaran</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="qty_pengeluaran" name="qty_pengeluaran" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_pengeluaran : null }}" readonly>
+                                    <input type="text" class="form-control" id="qty_pengeluaran_unit" name="qty_pengeluaran_unit" value="PCS" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">QTY</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="qty" name="qty" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty : null }}" readonly>
+                                    <input type="text" class="form-control" id="qty_unit" name="qty_unit" value="PCS" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-12 table-responsive table-container">
+                                @if ($currentCuttingPieceDetail)
+                                    <table class="table table-bordered w-100 mt-3">
+                                        <thead>
                                             <tr>
-                                                <td class="d-none"><input type="hidden" id="so_det_id_{{ $loop->index }}" name="so_det_id[{{ $loop->index }}]" value="{{ $size->so_det_id }}" readonly></td>
-                                                <td class="d-none"><input type="hidden" id="size_{{ $loop->index }}" name="size[{{ $loop->index }}]" value="{{ $size->size }}" readonly></td>
-                                                <td class="d-none"><input type="hidden" id="dest_{{ $loop->index }}" name="dest[{{ $loop->index }}]" value="{{ $size->dest }}" readonly></td>
-                                                <td>{{ $size->size }}</td>
-                                                <td>{{ $size->dest }}</td>
-                                                <td><input type="number" id="qty_detail_{{ $loop->index }}" name="qty_detail[{{ $loop->index }}]" value="{{ $size->qty }}"></td>
+                                                <th class="d-none">So Det ID</th>
+                                                <th class="d-none">Size</th>
+                                                <th class="d-none">Dest</th>
+                                                <th>Size</th>
+                                                <th>Dest</th>
+                                                <th>Qty Output</th>
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th class="d-none"></th>
-                                            <th class="d-none"></th>
-                                            <th class="d-none"></th>
-                                            <th></th>
-                                            <th>Total</th>
-                                            <th id="total-detail-qty">{{ $currentCuttingPieceDetail->qty_pemakaian }}</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            @else
-                                <table class="table table-bordered w-100 mt-3" id="cutting-piece-table">
-                                    <thead>
-                                        <tr>
-                                            <th>So Det ID</th>
-                                            <th>Size</th>
-                                            <th>Dest</th>
-                                            <th>Size</th>
-                                            <th>Dest</th>
-                                            <th>Qty Output</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <td colspan="6" class="text-center">Data tidak ditemukan</td>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th></th>
-                                            <th></th>
-                                            <th></th>
-                                            <th></th>
-                                            <th>Total</th>
-                                            <th id="total-detail-qty">...</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            @endif
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">QTY Digunakan</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="qty_pemakaian" name="qty_pemakaian" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_pemakaian : null }}" readonly>
-                                <input type="text" class="form-control" id="qty_pemakaian_unit" name="qty_pemakaian_unit" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_unit : null }}" readonly>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($currentCuttingPieceDetail->formCutPieceDetailSizes->sortBy("so_det_id") as $size)
+                                                <tr>
+                                                    <td class="d-none"><input type="hidden" id="so_det_id_{{ $loop->index }}" name="so_det_id[{{ $loop->index }}]" value="{{ $size->so_det_id }}" readonly></td>
+                                                    <td class="d-none"><input type="hidden" id="size_{{ $loop->index }}" name="size[{{ $loop->index }}]" value="{{ $size->size }}" readonly></td>
+                                                    <td class="d-none"><input type="hidden" id="dest_{{ $loop->index }}" name="dest[{{ $loop->index }}]" value="{{ $size->dest }}" readonly></td>
+                                                    <td>{{ $size->size }}</td>
+                                                    <td>{{ $size->dest }}</td>
+                                                    <td><input type="number" id="qty_detail_{{ $loop->index }}" name="qty_detail[{{ $loop->index }}]" value="{{ $size->qty }}"></td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th class="d-none"></th>
+                                                <th class="d-none"></th>
+                                                <th class="d-none"></th>
+                                                <th></th>
+                                                <th>Total</th>
+                                                <th id="total-detail-qty">{{ $currentCuttingPieceDetail->qty_pemakaian }}</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                @else
+                                    <table class="table table-bordered w-100 mt-3" id="cutting-piece-table">
+                                        <thead>
+                                            <tr>
+                                                <th>So Det ID</th>
+                                                <th>Size</th>
+                                                <th>Dest</th>
+                                                <th>Size</th>
+                                                <th>Dest</th>
+                                                <th>Qty Output</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <td colspan="6" class="text-center">Data tidak ditemukan</td>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th>Total</th>
+                                                <th id="total-detail-qty">...</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                @endif
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">QTY Sisa</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="qty_sisa" name="qty_sisa" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_sisa : null }}" readonly>
-                                <input type="text" class="form-control" id="qty_sisa_unit" name="qty_sisa_unit" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_unit : null }}" readonly>
+                            <div class="col-md-6">
+                                <label class="form-label">QTY Digunakan</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="qty_pemakaian" name="qty_pemakaian" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_pemakaian : null }}" readonly>
+                                    <input type="text" class="form-control" id="qty_pemakaian_unit" name="qty_pemakaian_unit" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_unit : null }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">QTY Sisa</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="qty_sisa" name="qty_sisa" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_sisa : null }}" readonly>
+                                    <input type="text" class="form-control" id="qty_sisa_unit" name="qty_sisa_unit" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->qty_unit : null }}" readonly>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <div class="card-footer border-1">
+                        <button class="btn btn-sb btn-block" type="submit">SUBMIT</button>
+                    </div>
                 </div>
-                <div class="card-footer border-1">
-                    <button class="btn btn-sb btn-block" type="submit">FINISH</button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     {{-- END OF PROCESS THREE --}}
+
+    {{-- FINISHING PROCESS --}}
+        <button type="button" class="btn btn-sb-secondary btn-block d-none mb-3" onclick="finishProcess()" id="finish-button" disabled><i class="fas fa-flag-checkered"></i> FINISH PROCESS</button>
+    {{-- END OF FINISHING PROCESS    --}}
 
     {{-- FINISH --}}
         <div id="cutting-piece-finish" class="my-5 {{ ($currentCuttingPiece ? ($currentCuttingPiece->process >= 3 ? "" : "d-none") : "d-none") }}">
@@ -383,6 +417,12 @@
             <h5 class="text-center">Last Update : <span id="last-update" class="fw-bold">{{ $currentCuttingPiece ? $currentCuttingPiece->updated_at : "-" }}</span></h5>
         </div>
     {{-- END OF THE LINE --}}
+
+    {{-- GO TO BOTTOM --}}
+        <button id="scroll-to-bottom" class="scroll-to-bottom-btn">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    {{-- END --}}
 @endsection
 
 @section('custom-script')
@@ -433,6 +473,15 @@
                     generateCode();
                 }
             });
+        }
+
+        function showFinishButton() {
+            if (document.getElementById("process").value <= 2) {
+                let button = document.getElementById("finish-button");
+
+                button.removeAttribute("disabled");
+                button.classList.remove("d-none");
+            }
         }
 
         // Init
@@ -497,7 +546,7 @@
                         break;
                 }
 
-                document.getElementById("loading").classList.add("d-none");
+                getProcessThree();
             }
 
         // PROCESS ONE
@@ -871,6 +920,16 @@
                 for (let i = 0; i < form.length; i++) {
                     form[i].setAttribute("disabled", "true");
                 }
+
+                let thisForm = document.getElementById("process-two-form");
+                for (let i = 0; i < thisForm.length; i++) {
+                    thisForm[i].removeAttribute("disabled");
+                }
+
+                let afterForm = document.getElementById("process-three-form");
+                for (let i = 0; i < thisForm.length; i++) {
+                    afterForm[i].setAttribute("disabled", "true");
+                }
             }
 
             // Switch Method
@@ -1197,6 +1256,12 @@
                     form2[i].setAttribute("disabled", "true");
                 }
 
+                // Process Three
+                let form3 = document.getElementById("process-three-form");
+                for (let i = 0; i < form3.length; i++) {
+                    form3[i].removeAttribute("disabled");
+                }
+
                 if (item) {
                     setProcessThree(item);
                 } else {
@@ -1205,6 +1270,7 @@
             }
 
             // Get Incomplete Item
+            var completedItem = [];
             async function getProcessThree() {
                 document.getElementById("loading").classList.remove("d-none");
 
@@ -1216,11 +1282,27 @@
                         url: "{{ route('incomplete-item-cutting-piece') }}/"+id,
                         dataType: "json",
                         success: async function (response) {
-                            if (response) {
-                                await setProcessThree(response);
+                            if (response && response.length > 0) {
+                                console.log("item", response);
 
-                                document.getElementById("loading").classList.add("d-none");
+                                for (let i = 0; i < response.length; i++) {
+                                    if (response[i].status == 'incomplete') {
+                                        setProcessThree(response[i]);
+                                    } else {
+                                        if (!completedItem.includes(response[i].id)) {
+                                            appendProcessThree(response[i]);
+                                        }
+
+                                        completedItem.push(response[i].id);
+                                    }
+                                }
+
+                                if (completedItem.length > 0) {
+                                    showFinishButton();
+                                }
                             }
+
+                            document.getElementById("loading").classList.add("d-none");
                         },
                     });
                 }
@@ -1228,8 +1310,6 @@
 
             // Set Item
             async function setProcessThree(item) {
-                console.log(item);
-
                 if (item.method == "scan") {
                     document.getElementById("lot").setAttribute("readonly", true);
                     document.getElementById("roll").setAttribute("readonly", true);
@@ -1280,13 +1360,143 @@
                 document.getElementById("qty_pemakaian_unit").value = item.qty_unit ? item.qty_unit : "";
                 document.getElementById("qty_sisa_unit").value = item.qty_unit ? item.qty_unit : "";
 
+                cuttingPieceTableReload();
+
                 lockSizeInput();
+            }
+
+            function appendProcessThree(item) {
+                const card = document.getElementById("process-three-card");
+                if (!card) return console.error("Card not found");
+
+                const container = document.getElementById("process-three-container");
+                const cloneCard = card.cloneNode(true);
+                const suffix = "_" + item.id_roll;
+                cloneCard.id = `process-three-card${suffix}`;
+                cloneCard.classList.add("collapsed-card");
+
+                // 💡 Header with collapse button (prevent duplicate)
+                const header = cloneCard.querySelector(".card-header");
+                if (header && !header.querySelector(".card-tools")) {
+                    const tools = document.createElement("div");
+                    tools.className = "card-tools";
+                    tools.innerHTML = `<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>`;
+                    header.appendChild(tools);
+                }
+
+                // 💡 Set title
+                const title = cloneCard.querySelector(".card-title");
+                if (title) title.textContent = `${item.id_roll}`;
+
+                // ✅ Value map from item
+                const valueMap = {
+                    group_roll: item.group_roll,
+                    lot: item.lot,
+                    roll: item.roll,
+                    roll_buyer: item.roll_buyer,
+                    rule_bom: item.scanned_item?.rule_bom,
+                    qty_pengeluaran: item.qty_pengeluaran,
+                    qty_pengeluaran_unit: item.qty_unit,
+                    qty: item.qty,
+                    qty_unit: item.qty_unit,
+                    qty_pemakaian: item.qty_pemakaian,
+                    qty_pemakaian_unit: item.qty_unit,
+                    qty_sisa: item.qty_sisa,
+                    qty_sisa_unit: item.qty_unit,
+                };
+
+                // 💡 Update all element IDs and set values if mapped
+                cloneCard.querySelectorAll("[id]").forEach((el) => {
+                    const oldId = el.id;
+                    const newId = `${oldId}${suffix}`;
+                    el.id = newId;
+
+                    if (valueMap.hasOwnProperty(oldId)) {
+                        if ("value" in el) el.value = valueMap[oldId] ?? "";
+                        el.setAttribute("readonly", true);
+                    }
+                });
+
+                // ✅ Toggle visibility for roll vs roll_buyer
+                const rollContainer = cloneCard.querySelector(`#roll_container${suffix}`);
+                const rollBuyerContainer = cloneCard.querySelector(`#roll_buyer_container${suffix}`);
+                if (item.roll_buyer) {
+                    rollContainer?.classList.add("d-none");
+                    rollBuyerContainer?.classList.remove("d-none");
+                } else {
+                    rollContainer?.classList.remove("d-none");
+                    rollBuyerContainer?.classList.add("d-none");
+                }
+
+                // Clean up the cloned DataTable (important!)
+                const clonedTable = cloneCard.querySelector("table");
+                if (clonedTable) {
+                    if ($.fn.DataTable.isDataTable(clonedTable)) {
+                        $(clonedTable).DataTable().destroy(); // Remove DT behavior from the clone
+                    }
+                    clonedTable.remove(); // Remove the cloned table completely
+                }
+
+                // Create a new clean table
+                const tableWrapper = document.createElement("div");
+                tableWrapper.innerHTML = `
+                    <table id="detail-table${suffix}" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Size</th>
+                                <th>Destination</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${buildTableRows(item.form_cut_piece_detail_sizes || [], suffix)}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" class="text-right font-weight-bold">Total</td>
+                                <td id="total-detail-qty${suffix}">${(item.form_cut_piece_detail_sizes || []).reduce((sum, row) => sum + Number(row.qty || 0), 0)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                `;
+
+                // Append clean table into card body
+                const tableContainer = cloneCard.querySelector(".table-container");
+                if (tableContainer) {
+                    tableContainer.innerHTML = "";
+                    tableContainer.appendChild(tableWrapper.firstElementChild);
+                }
+
+                // Remove card-footer if needed
+                cloneCard.querySelector(".card-footer")?.remove();
+
+                container.appendChild(cloneCard);
+            }
+
+
+            function buildTableRows(details, suffix) {
+                return details.map((row, index) => `
+                    <tr>
+                        <td>
+                            <input type="hidden" name="so_det_id[${index}]" id="so_det_id_${index}${suffix}" value="${row.so_det_id}" />
+                            ${row.size}
+                        </td>
+                        <td>
+                            <input type="hidden" name="dest[${index}]" id="dest_${index}${suffix}" value="${row.dest}" />
+                            ${row.dest}
+                        </td>
+                        <td>
+                            <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control" readonly />
+                        </td>
+                    </tr>
+                `).join("");
             }
 
             // Size List
             let cuttingPieceTable = $("#cutting-piece-table").DataTable({
                 processing: true,
                 ordering: false,
+                filter: false,
                 serverSide: true,
                 paging: false,
                 ajax: {
@@ -1294,6 +1504,7 @@
                     data: function(d) {
                         d.act_costing_id = $("#act_costing_id").val();
                         d.color = $("#color").val();
+                        d.so_det_list = $("#so_det_item").val();
                     },
                 },
                 columns: [
@@ -1434,6 +1645,84 @@
                                 confirmButtonText: 'Oke',
                             });
 
+                            getProcessThree();
+
+                            initProcessTwo();
+
+                            clearProcessThree();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: response.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function (jqXHR) {
+                        handleError(jqXHR.responseJSON);
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
+
+            function clearProcessThree() {
+                let thisForm = document.getElementById("process-three-form");
+                for (let i = 0; i < thisForm.length; i++) {
+                    thisForm[i].value = "";
+                }
+            }
+        // END OF PROCESS THREE
+
+        // FINISH PROCESS
+            function finishProcess() {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Akhiri Proses?',
+                    html: 'Proses yang <b>BELUM SELESAI</b> akan <b>HILANG</b>.',
+                    confirmButtonText: 'Akhiri',
+                    confirmButtonColor: '#238380',
+                    showCancelButton: true,
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        finish();
+                    }
+                });
+            }
+
+            function finish() {
+                document.getElementById("loading").classList.remove("d-none");
+
+                event.preventDefault();
+
+                let dataObj = {
+                    "id": document.getElementById("id").value,
+                    "id_detail": document.getElementById("id_detail").value,
+                    "process": 4,
+                }
+
+                $.ajax({
+                    url: '{{ route('store-cutting-piece') }}',
+                    type: 'post',
+                    data: dataObj,
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Cutting PCS berhasil diselesaikan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+
                             initFinish();
 
                             if (response.additional) {
@@ -1460,9 +1749,9 @@
                     }
                 });
             }
-        // END OF PROCESS THREE
+        // END OF FINISH PROCESS
 
-        // FINISH PROCESS
+        // FINISHED
             function initFinish() {
                 document.getElementById("cutting-piece-finish").classList.remove("d-none");
 
@@ -1483,6 +1772,10 @@
                 for (let i = 0; i < form3.length; i++) {
                     form3[i].setAttribute("disabled", "true");
                 }
+
+                // Finish
+                document.getElementById("finish-button").classList.add("d-none");
+                document.getElementById("finish-button").setAttribute("readonly", true);
             }
 
             function setFinish(data) {
@@ -1491,5 +1784,38 @@
                 }
             }
         // END OF THE LINE
+
+        // GO TO BOTTOM
+            const scrollBtn = document.getElementById("scroll-to-bottom");
+
+            function toggleScrollBtn() {
+                const scrolled = window.scrollY;
+                const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 200);
+
+                if (scrolled > 300 && !nearBottom) {
+                    scrollBtn.classList.add("show");
+                } else {
+                    scrollBtn.classList.remove("show");
+                }
+            }
+
+            window.addEventListener("scroll", toggleScrollBtn);
+
+            scrollBtn.addEventListener("click", () => {
+                const footer = document.querySelector("#finish-button");
+                if (footer) {
+                    footer.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                    // Optional: highlight the target briefly
+                    footer.style.transition = "background-color 0.5s";
+                    footer.style.backgroundColor = "#fbfbfb"; // yellow-ish
+                    setTimeout(() => {
+                        footer.style.backgroundColor = "";
+                    }, 500);
+                } else {
+                    console.warn("No button found.");
+                }
+            });
+        // END
     </script>
 @endsection
