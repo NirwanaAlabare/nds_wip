@@ -120,7 +120,7 @@ class CuttingFormPieceController extends Controller
     public function incompleteItem($id = 0)
     {
         if ($id) {
-            $incomplete = FormCutPieceDetail::with("scannedItem", "formCutPieceDetailSizes")->where("form_id", $id)->orderBy("id", "desc")->get();
+            $incomplete = FormCutPieceDetail::with("scannedItem", "formCutPieceDetailSizes")->where("form_id", $id)->orderBy("id", "asc")->get();
 
             return $incomplete ? $incomplete : null;
         }
@@ -223,13 +223,13 @@ class CuttingFormPieceController extends Controller
                             "kode_barang" => "required",
                         ]);
 
-                        $scannedItem = ScannedItem::where("id_roll", $validatedRequestDetail["kode_barang"])->first();
+                        $scannedItem = ScannedItem::where("id_roll", strtoupper($validatedRequestDetail["kode_barang"]))->first();
 
                         if ($scannedItem) {
                             $storeFormCutPieceDetailArr = [
                                 "form_id" => $validatedRequest["id"],
                                 "method" => $validatedRequest["method"],
-                                "id_roll" => $validatedRequestDetail["kode_barang"],
+                                "id_roll" => strtoupper($validatedRequestDetail["kode_barang"]),
                                 "id_item" => $scannedItem->id_item,
                                 "detail_item" => $scannedItem->detail_item,
                                 "lot" => $scannedItem->lot,

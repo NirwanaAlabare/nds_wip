@@ -911,7 +911,9 @@
             function initProcessTwo() {
                 clearItem();
 
+                // -Scan
                 initScanItem();
+                // -Select
                 getItemList();
 
                 document.getElementById("process-two-form").classList.remove("d-none");
@@ -930,6 +932,8 @@
                 for (let i = 0; i < thisForm.length; i++) {
                     afterForm[i].setAttribute("disabled", "true");
                 }
+
+                focusProcessTwo();
             }
 
             // Switch Method
@@ -953,7 +957,6 @@
 
                 document.getElementById("scan-method").classList.remove('d-none');
                 document.getElementById("to-scan").classList.remove('d-none');
-                // $("#kode_barang").val("").trigger("change");
 
                 if (scanner) {
                     initScanItem();
@@ -978,6 +981,9 @@
             }
 
             function clearItem() {
+                document.getElementById("kode_barang").value = "";
+
+                document.getElementById("id_item").value = "";
                 document.getElementById("id_item").value = "";
                 document.getElementById("detail_item").value = "";
                 document.getElementById("qty_item").value = "";
@@ -1211,10 +1217,8 @@
                         data: dataObj,
                         dataType: "json",
                         success: function (response) {
-
-                            console.log("something", response);
                             if (response.status == 200) {
-                                console.log("success", response);
+                                clearQrCodeScannerItem();
 
                                 initProcessThree(response.additional ? response.additional : null);
                             } else {
@@ -1237,11 +1241,24 @@
                         }
                     });
                 }
+
+                function focusProcessTwo() {
+                    let kodeBarang = document.getElementById("kode_barang");
+                    let barang = document.getElementById("barang");
+
+                    if (!kodeBarang.classList.contains("d-none")) {
+                        kodeBarang.focus();
+                    }
+
+                    if (!barang.classList.contains("d-none")) {
+                        barang.focus();
+                    }
+                }
         // END OF PROCESS TWO
 
         // PROCESS THREE
             // Init Process Three
-            function initProcessThree(item = null) {
+            async function initProcessThree(item = null) {
                 document.getElementById("process-three-form").classList.remove("d-none");
 
                 // Process One
@@ -1263,10 +1280,12 @@
                 }
 
                 if (item) {
-                    setProcessThree(item);
+                    await setProcessThree(item);
                 } else {
-                    getProcessThree();
+                    await getProcessThree();
                 }
+
+                focusProcessThree();
             }
 
             // Get Incomplete Item
@@ -1287,10 +1306,10 @@
 
                                 for (let i = 0; i < response.length; i++) {
                                     if (response[i].status == 'incomplete') {
-                                        setProcessThree(response[i]);
+                                        await setProcessThree(response[i]);
                                     } else {
                                         if (!completedItem.includes(response[i].id)) {
-                                            appendProcessThree(response[i]);
+                                            await appendProcessThree(response[i]);
                                         }
 
                                         completedItem.push(response[i].id);
@@ -1634,22 +1653,13 @@
                     type: 'post',
                     data: dataObj,
                     dataType: "json",
-                    success: function (response) {
+                    success: async function (response) {
                         if (response.status == 200) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: 'Data Cutting PCS berhasil disimpan.',
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                            });
+                            await getProcessThree();
 
-                            getProcessThree();
+                            await clearProcessThree();
 
-                            initProcessTwo();
-
-                            clearProcessThree();
+                            await initProcessTwo();
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -1676,6 +1686,8 @@
                 for (let i = 0; i < thisForm.length; i++) {
                     thisForm[i].value = "";
                 }
+
+                document.getElementById("total-detail-qty").innerHTML = "...";
             }
         // END OF PROCESS THREE
 
@@ -1782,6 +1794,10 @@
                 if (data && data.updated_at) {
                     document.getElementById("last-update").innerText = formatDateTime(data.updated_at);
                 }
+            }
+
+            function focusProcessThree() {
+                document.getElementById("group_roll").focus();
             }
         // END OF THE LINE
 
