@@ -115,7 +115,7 @@
                                 <li>
                                     <a href="{{ route('cutting-piece') }}"
                                         class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
-                                        Form Pieces <i class="fa-solid fa-file"></i>
+                                        Form Pieces <i class="fa-solid fa-shirt"></i>
                                     </a>
                                 </li>
                                 <li>
