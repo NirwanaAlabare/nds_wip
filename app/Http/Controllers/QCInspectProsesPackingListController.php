@@ -301,7 +301,7 @@ CASE
 	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
     END AS result,
 CASE
-    WHEN proses = '2' AND pass_with_condition = 'N' AND  (
+    WHEN  pass_with_condition = 'N' AND  (
         CASE
             WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
             WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
@@ -470,12 +470,14 @@ group by c.no_lot
         $no_lot = $request->no_lot;
 
         if ($request->ajax()) {
-            $data_input = DB::connection('mysql_sb')->select("SELECT
+            $data_input = DB::connection('mysql_sb')->select("WITH qc as (
+SELECT
 qc.id,
-qc.tgl_form,
-DATE_FORMAT(qc.tgl_form, '%d-%M-%Y') AS tgl_form_fix,
-qc.no_mesin,
 qc.no_form,
+qc.tgl_form,
+qc.no_mesin,
+DATE_FORMAT(qc.tgl_form, '%d-%M-%Y') AS tgl_form_fix,
+qc.no_lot,
 qc.id_item,
 a.itemdesc,
 a.supplier,
@@ -485,19 +487,14 @@ a.kpno,
 a.styleno,
 a.color,
 qc.group_inspect,
-qc.no_lot,
 a.type_pch,
 qc.proses,
 qc.barcode,
 b.no_roll,
-CONCAT(
-    ROUND(IFNULL(d.act_point, 0)),
-    '/',
-    IFNULL(c.individu, 0)
-) AS point_max_point,
-qc.result,
-qc.status_proses_form
-from signalbit_erp.qc_inspect_form  qc
+qc.status_proses_form,
+c.individu,
+qc.pass_with_condition
+from qc_inspect_form qc
 inner join
 (
 select a.no_invoice, c.id_item, mi.itemdesc,c.id_jo, mi.color,a.supplier, ms.supplier buyer, ac.kpno, ac.styleno, a.type_pch
@@ -513,37 +510,72 @@ group by c.id_item, c.id_jo, a.no_invoice
 ) a on qc.id_item = a.id_item and qc.id_jo = a.id_jo and qc.no_invoice = a.no_invoice
 left join signalbit_erp.whs_lokasi_inmaterial b on qc.barcode = b.no_barcode
 left join signalbit_erp.qc_inspect_master_group_inspect c on qc.group_inspect = c.id
-left join
-(
-SELECT
-a.no_form,
-ROUND(
-    (
-        (
-            SUM(up_to_3) * 1 +
-            SUM(`3_6`) * 2 +
-            SUM(`6_9`) * 3 +
-            SUM(over_9) * 4
-        ) * 36 * 100
-    ) / (
-        AVG(a.cuttable_width_act) *
-        AVG(
-            CASE
-                WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
-                ELSE b.act_length
-            END
-        )
-    )
-) AS act_point
-FROM qc_inspect_form_det a
-INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
-INNER JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
-where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_invoice' and no_lot = '$no_lot'
-group by no_form
-)
-d on qc.no_form = d.no_form
 where qc.id_item = '$id_item' and qc.id_jo = '$id_jo' and qc.no_invoice = '$no_invoice' and qc.no_lot = '$no_lot'
-order by no_form asc, tgl_form desc, color asc
+),
+a AS (
+    SELECT
+        a.no_form,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				c.individu
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where b.id_item = '$id_item' and b.id_jo = '$id_jo' and b.no_invoice = '$no_invoice' and b.no_lot = '$no_lot'
+		GROUP BY no_form
+),
+b AS (
+    SELECT
+        a.no_form,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where b.id_item = '$id_item' and b.id_jo = '$id_jo' and b.no_invoice = '$no_invoice' and b.no_lot = '$no_lot'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu
+    FROM a
+		GROUP BY a.no_form
+),
+d AS (
+SELECT
+c.no_form,
+sum_up_to_3,
+sum_3_6,
+sum_6_9,
+sum_over_9,
+c.tot_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)),2) AS act_point,
+individu,
+if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result
+FROM c
+INNER JOIN b ON c.no_form = b.no_form
+GROUP BY c.no_form
+)
+
+SELECT qc.*,
+d.act_point,
+concat(d.act_point, '/', qc.individu) point_max_point,
+CASE
+		WHEN d.result = 'REJECT' AND qc.pass_with_condition = 'Y' THEN 'PASS WITH CONDITION'
+		ELSE d.result
+		END as result
+FROM qc
+left join d on qc.no_form = d.no_form
+ORDER BY qc.tgl_form desc, no_form asc, no_invoice asc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -973,7 +1005,6 @@ group by c.no_lot
             ->where('id_jo', $id_jo)
             ->where('no_invoice', $no_inv)
             ->where('no_lot', $no_lot)
-            ->where('proses', 2)
             ->update([
                 'pass_with_condition' => 'Y',
                 'updated_at' => $timestamp
