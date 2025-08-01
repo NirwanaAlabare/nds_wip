@@ -201,7 +201,7 @@
                                 <div class="col-md-12">
                                     <label class="form-label label-input">ID Roll</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" name="kode_barang" id="kode_barang" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}">
+                                        <input type="text" class="form-control" name="kode_barang" id="kode_barang" value="{{ $currentCuttingPieceDetail ? $currentCuttingPieceDetail->id_roll : null }}" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
                                         <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScanItem()">Get</button>
                                         <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="refreshScanItem()">Scan</button>
                                     </div>
@@ -1084,6 +1084,8 @@
                             success: function(res) {
                                 if (res) {
                                     if (res.qty > 0) {
+                                        console.log(res);
+
                                         currentScannedItem = res;
 
                                         document.getElementById("id_item").value = res.id_item;
@@ -1339,8 +1341,8 @@
                 document.getElementById("detail_item").value = item.detail_item ? item.detail_item : "";
                 document.getElementById("qty_item").value = item.qty ? item.qty : "";
                 document.getElementById("unit_qty_item").value = item.qty_unit ? item.qty_unit : "";
-                document.getElementById("so_det_item").value = item.scanned_item ? item.scanned_item.so_det_list : "";
-                document.getElementById("sizes_item").value = item.roll_buyer ? item.scanned_item.size_list : "";
+                document.getElementById("so_det_item").value = item.scanned_item && item.scanned_item['so_det_list'] ? item.scanned_item['so_det_list'] : "";
+                document.getElementById("sizes_item").value = item.roll_buyer && item.scanned_item['size_list'] ? item.scanned_item['size_list'] : "";
 
                 document.getElementById("lot").value = item.lot ? item.lot : "";
                 document.getElementById("roll").value = item.roll ? item.roll : "";
