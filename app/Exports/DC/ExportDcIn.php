@@ -63,7 +63,7 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
                 a.tempat,
                 a.created_at,
                 a.user,
-                COALESCE(f.no_cut, fr.no_cut, '-') no_cut,
+                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part
             from

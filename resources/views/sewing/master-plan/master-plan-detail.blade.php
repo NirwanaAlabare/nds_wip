@@ -343,6 +343,10 @@
         editModalLoadingStop();
     });
 
+    $("#edit_color_select").on("change.select2", async (element) => {
+        $("#edit_color").val($("#edit_color_select").val());
+    });
+
     let datatableMasterPlan = $("#datatable-master-plan").DataTable({
         ordering: false,
         processing: true,

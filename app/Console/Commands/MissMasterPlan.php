@@ -23,7 +23,7 @@ class MissMasterPlan extends Command
      *
      * @var string
      */
-    protected $description = 'Missing Master Plan Output ';
+    protected $description = 'Missing Master Plan Output';
 
     /**
      * Create a new command instance.

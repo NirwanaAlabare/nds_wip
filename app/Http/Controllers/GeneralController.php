@@ -746,7 +746,7 @@ class GeneralController extends Controller
 
                 ScannedItem::create(
                     [
-                        "id_roll" => $id,
+                        "id_roll" => strtoupper($id),
                         "id_item" => $newItem[0]->id_item,
                         "color" => '-',
                         "detail_item" => $newItem[0]->detail_item,
@@ -842,7 +842,7 @@ class GeneralController extends Controller
 
                 $itemData = ScannedItem::create(
                     [
-                        "id_roll" => $id,
+                        "id_roll" => strtoupper($id),
                         "id_item" => $item[0]->id_item,
                         "color" => '-',
                         "detail_item" => $item[0]->detail_item,

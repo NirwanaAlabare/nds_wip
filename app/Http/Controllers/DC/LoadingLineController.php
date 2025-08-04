@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LoadingLinePlan;
 use App\Models\SignalBit\UserLine;
+use App\Models\TrolleyStocker;
 use App\Models\LoadingLine;
 use App\Models\Stocker;
 use App\Exports\ExportLaporanLoading;
@@ -1180,9 +1181,9 @@ class LoadingLineController extends Controller
 
         $stockerDatas = Stocker::whereRaw("id_qr_stocker in (".$stockerIds.")")->get();
 
-        $allLoadingLineIds = [];
+        $stockerIds = [];
         foreach($stockerDatas as $stockerData) {
-            $similarStockerData = Stocker::selectRaw("loading_line.id")->
+            $similarStockerData = Stocker::selectRaw("stocker_input.id")->
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
                 where(($stockerData->form_piece_id > 0 ? "stocker_input.form_piece_id" : ($stockerData->form_reject_id > 0 ? "stocker_input.form_reject_id" : "stocker_input.form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
@@ -1190,12 +1191,15 @@ class LoadingLineController extends Controller
                 where("stocker_input.ratio", $stockerData->ratio)->
                 get();
 
-            array_push($allLoadingLineIds, ...$similarStockerData->pluck('id')->toArray());
+            array_push($stockerIds, ...$similarStockerData->pluck('id')->toArray());
         }
 
-        $deleteLoadingLine = LoadingLine::whereIn("id", $allLoadingLineIds)->delete();
+        $deleteLoadingLine = LoadingLine::whereIn("stocker_id", $stockerIds)->delete();
 
         if ($deleteLoadingLine) {
+            $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $stockerIds)->update(["status" => "active"]);
+            $updateStocker = Stocker::whereIn("id", $stockerIds)->update(["status" => "trolley"]);
+
             return array(
                 "status" => 200,
                 "message" => "Berhasil dihapus.",
