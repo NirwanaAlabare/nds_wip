@@ -42,7 +42,7 @@ class CuttingFormPieceController extends Controller
                         $sizeText = "";
                         foreach ($sizeArr as $sizes) {
                             $size = $sizes->first();
-                            $sizeText .= $size->size.(($size->dest ? " - ".$size->dest : "").($sizes->sum("qty") > 0 ? "(".$sizes->sum("qty").")" : "")." / ");
+                            $sizeText .= $size->size.(($size->dest && $size->dest != "-" ? " - ".$size->dest : "").($sizes->sum("qty") > 0 ? " (".$sizes->sum("qty").")" : "")." / ");
                         }
 
                         return $sizeText;
@@ -333,7 +333,7 @@ class CuttingFormPieceController extends Controller
                         }
 
                         // Upsert Form Cut Piece Detail Size
-                        if ($request->so_det_id && count($request->so_det_id) > 1) {
+                        if ($request->so_det_id && count($request->so_det_id) > 0) {
                             $cuttingPieceDetailSizeArr = [];
                             for($i = 0; $i < count($request->so_det_id); $i++) {
                                 if ($request->so_det_id[$i] && $request->size[$i] && $request->qty_detail[$i] && $request->qty_detail[$i] > 0) {
