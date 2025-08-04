@@ -176,6 +176,7 @@ use App\Http\Controllers\Marketing_CostingController;
 
 // QC Inspect Kain
 use App\Http\Controllers\QCInspectDashboardController;
+use App\Http\Controllers\QCInspectMasterController;
 use App\Http\Controllers\QCInspectProsesPackingListController;
 use App\Http\Controllers\QCInspectProsesFormInspectController;
 
@@ -2028,6 +2029,12 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(QCInspectDashboardController::class)->middleware('warehouse')->group(function () {
         Route::get('/dashboard_qc_inspect', 'dashboard_qc_inspect')->name('dashboard-qc-inspect');
+    });
+
+    // Master QC Inspect
+    Route::controller(QCInspectMasterController::class)->prefix("master")->middleware('warehouse')->group(function () {
+        Route::get('/qc_inspect_master_critical_defect_show', 'qc_inspect_master_critical_defect_show')->name('qc_inspect_master_critical_defect_show');
+        Route::post('/qc_inspect_master_critical_defect_add', 'qc_inspect_master_critical_defect_add')->name('qc_inspect_master_critical_defect_add');
     });
 
     // Proses Packing List
