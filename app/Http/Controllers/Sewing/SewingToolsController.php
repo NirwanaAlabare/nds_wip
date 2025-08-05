@@ -322,7 +322,7 @@ class SewingToolsController extends Controller
 
         $defectTypes = DB::connection("mysql_sb")->table("output_defect_types")->whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy("updated_at", "desc")->get();
 
-        return view("sewing.tools.check-output-detail", ["buyers" => $buyers, "orders" => $orders, "lines" => $lines, "defectTypes" => $defectTypes]);
+        return view("sewing.tools.check-output-detail", ["buyers" => $buyers, "orders" => $orders, "lines" => $lines, "defectTypes" => $defectTypes, "page" => "dashboard-sewing-eff"]);
     }
 
     public function checkOutputDetailList(Request $request) {
