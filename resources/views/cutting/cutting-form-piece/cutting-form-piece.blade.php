@@ -22,7 +22,7 @@
                 <div class="d-flex justify-content-start align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-from" name="date-from" onchange="cuttingPieceTableReload()">
+                        <input type="date" class="form-control" value="{{ date("Y-m-d", strtotime(date("Y-m-d")." - 7 days")) }}" id="date-from" name="date-from" onchange="cuttingPieceTableReload()">
                     </div>
                     <div>
                         <label class="form-label">Sampai</label>

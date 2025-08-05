@@ -687,7 +687,8 @@ class RollController extends Controller
                 MIN( CASE WHEN form_cut_input_detail.status = 'extension' OR form_cut_input_detail.status = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
                 form_cut_input.status status_form,
                 form_cut_input_detail.status,
-                COALESCE ( form_cut_input_detail.created_at, form_cut_input_detail.updated_at ) updated_at
+                COALESCE ( form_cut_input_detail.created_at, form_cut_input_detail.updated_at ) updated_at,
+                'REGULAR' as tipe
             FROM
                 `form_cut_input_detail`
                 LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `form_cut_input_detail`.`form_cut_id`
@@ -702,7 +703,7 @@ class RollController extends Controller
             UNION
 
             SELECT
-                form_cut_piece_detail.id id_form,
+                form_cut_piece.id id_form,
                 form_cut_piece.no_form no_form_cut_input,
                 form_cut_piece.no_cut,
                 id_roll,
@@ -713,7 +714,8 @@ class RollController extends Controller
                 qty_sisa sisa_kain,
                 form_cut_piece.status status_form,
                 form_cut_piece_detail.status,
-                COALESCE ( form_cut_piece_detail.created_at, form_cut_piece_detail.updated_at ) updated_at
+                COALESCE ( form_cut_piece_detail.created_at, form_cut_piece_detail.updated_at ) updated_at,
+                'PIECE' as tipe
             FROM
                 `form_cut_piece_detail`
                 LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `form_cut_piece_detail`.`form_id`

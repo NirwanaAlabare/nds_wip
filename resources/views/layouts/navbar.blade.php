@@ -1157,6 +1157,18 @@
                 @if ($page == 'dashboard-qc-inspect')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'qc-inspect-master' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('qc_inspect_master_critical_defect_show') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-master-critical-defect' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Critical Defect
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'qc-inspect-proses' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
@@ -1240,7 +1252,8 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i class="fa-solid fa-toolbox"></i></a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i
+                                class="fa-solid fa-toolbox"></i></a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('ppic_tools_adj_mut_output') }}"

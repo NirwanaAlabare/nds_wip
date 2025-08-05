@@ -325,7 +325,19 @@
                     {
                         targets: [0],
                         render: (data, type, row, meta) => {
-                            return "<a href = '{{ route("detail-cutting") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
+                            switch (row.tipe) {
+                                case "REGULAR" :
+                                    return "<a href = '{{ route("detail-cutting") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
+                                    break;
+                                case "PIECE" :
+                                    return "<a href = '{{ route("process-cutting-piece") }}/"+row.id_form+"' target='_blank'>"+data+"</a>";
+                                    break;
+                                default :
+                                    return data;
+                                    break;
+                            }
+
+                            return data;
                         }
                     },
                     {
