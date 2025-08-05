@@ -20,6 +20,9 @@
         </div>
         <div class="card-body">
             <div class="row justify-content-start align-items-start g-3 mb-3">
+                <div class="col-md-12">
+                    <h6 class="text-sb fw-bold">ORDER INFO</h6>
+                </div>
                 <div class="col-md-6">
                     <label class="form-label">Buyer</label>
                     <select class="form-select select2bs4" name="buyer" id="buyer">
@@ -60,6 +63,7 @@
                 </div>
                 <div class="col-md-12">
                     <hr style="border: 0.1px solid #5a5a5a;">
+                    <h6 class="text-sb fw-bold">LOADING</h6>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Tanggal Loading</label>
@@ -77,6 +81,7 @@
                 </div>
                 <div class="col-md-12">
                     <hr style="border: 0.1px solid #5a5a5a;">
+                    <h6 class="text-sb fw-bold">SEWING</h6>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Tanggal Output</label>
@@ -119,6 +124,7 @@
                 </div>
                 <div class="col-md-12">
                     <hr style="border: 0.1px solid #5a5a5a;">
+                    <h6 class="text-sb fw-bold">PACKING</h6>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Tanggal Packing</label>
@@ -201,7 +207,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="back_date_packing">
                                 <label class="form-check-label" for="back_date_packing">
-                                    Back-date input Pack
+                                    Back-date input (Packing)
                                 </label>
                             </div>
                         </div>
@@ -209,7 +215,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="missmatch_code_packing">
                                 <label class="form-check-label" for="missmatch_code_packing">
-                                    Missmatch Code Pack
+                                    Missmatch Code (Packing)
                                 </label>
                             </div>
                         </div>
@@ -241,7 +247,7 @@
     <div class="card">
         <div class="card-header bg-sb-secondary">
             <h5 class="card-title">
-                List Data
+                <i class="fas fa-list fa-sm"></i> List Data
             </h5>
         </div>
         <div class="card-body">
