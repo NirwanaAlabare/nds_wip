@@ -1,18 +1,18 @@
 
    Error 
 
-  Class 'App\Console\Commands\Log' not found
+  Class 'App\Console\Commands\Auth' not found
 
-  at C:\xampp\htdocs\nds_wip_local\app\Console\Commands\MissRework.php:82
-     78▕ 
-     79▕         $storeToRftPacking = RftPacking::insert($reworkPackingArr);
-     80▕ 
-     81▕         if ($storeToRework && $storeToRft && $storeToReworkPacking && $storeToRftPacking) {
-  ➜  82▕             Log::channel('missReworkOutput')->info([
-     83▕                 "Repair Defect->Rework->RFT Chain Data",
-     84▕                 "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-     85▕                 "Total Data ".count($defects),
-     86▕                 "Total Data Packing ".count($defectsPacking),
+  at C:\xampp\htdocs\nds_wip_local\app\Console\Commands\MissRework.php:85
+     81▕ 
+     82▕         if ($storeToRework && $storeToRft && $storeToReworkPacking && $storeToRftPacking) {
+     83▕             Log::channel('missReworkOutput')->info([
+     84▕                 "Repair Defect->Rework->RFT Chain Data",
+  ➜  85▕                 "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+     86▕                 "Total Data ".count($defects),
+     87▕                 "Total Data Packing ".count($defectsPacking),
+     88▕                 $reworks
+     89▕             ]);
 
   1   C:\xampp\htdocs\nds_wip_local\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php:36
       App\Console\Commands\MissRework::handle()

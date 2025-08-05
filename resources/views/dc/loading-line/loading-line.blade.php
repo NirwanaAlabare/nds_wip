@@ -41,7 +41,7 @@
                         <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-               <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
+                <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
             </div>
             <div class="table-responsive">
                 <table id="datatable-loading-line" class="table table-bordered table w-100">
