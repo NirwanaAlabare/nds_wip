@@ -561,7 +561,7 @@
                 var blob = new Blob([res]);
                 var link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
-                link.download = "Loading Line List.xlsx";
+                link.download = "Detail Number.xlsx";
                 link.click();
             },
             error: function (jqXHR) {
