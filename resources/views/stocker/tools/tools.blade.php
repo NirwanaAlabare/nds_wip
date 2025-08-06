@@ -9,6 +9,56 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style type="text/css">
+        input[type=file]::file-selector-button {
+        margin-right: 20px;
+        border: none;
+        background: #084cdf;
+        padding: 10px 20px;
+        border-radius: 10px;
+        color: #fff;
+        cursor: pointer;
+        transition: background .2s ease-in-out;
+        }
+
+        input[type=file]::file-selector-button:hover {
+        background: #0d45a5;
+        }
+
+        .drop-container {
+        position: relative;
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px dashed #555;
+        color: #444;
+        cursor: pointer;
+        transition: background .2s ease-in-out, border .2s ease-in-out;
+        }
+
+        .drop-container:hover {
+        background: #eee;
+        border-color: #111;
+        }
+
+        .drop-container:hover .drop-title {
+        color: #222;
+        }
+
+        .drop-title {
+        color: #444;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        transition: color .2s ease-in-out;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -34,6 +84,15 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Redundant Stocker</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openImportStockerManual()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Import Stocker Manual</h5>
                             </div>
                         </div>
                     </a>
@@ -75,6 +134,32 @@
                     <button type="button" class="btn btn-sb" onclick="resetStockerForm()"><i class="fa fa-rotate-left"></i> Reset</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form method="post" action="{{ route('import-stocker-manual') }}" enctype="multipart/form-data" onsubmit="submitImportStockerManual(this, event)">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title" id="exampleModalLabel">Import Stocker Manual</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ csrf_field() }}
+                        <label for="images" class="drop-container" id="dropcontainer">
+                            <input type="file" name="file" required="required">
+                        </label>
+                        <a href="{{ asset('example/contoh-import-stocker-manual.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                        <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Import</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -290,6 +375,53 @@
                         title: 'Error',
                         html: 'Terjadi kesalahan.',
                     });
+                }
+            });
+        }
+
+        function openImportStockerManual(){
+            $('#importExcel').modal('show');
+        }
+
+        function submitImportStockerManual(e, evt) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            evt.preventDefault();
+
+            clearModified();
+
+            $.ajax({
+                url: e.getAttribute('action'),
+                type: e.getAttribute('method'),
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res.status == 200) {
+                        console.log(res);
+
+                        e.reset();
+
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Stocker berhasil diupload',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timer: 5000,
+                            timerProgressBar: true
+                        })
+
+                        $('#importExcel').modal('hide');
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
                 }
             });
         }
