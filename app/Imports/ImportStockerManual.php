@@ -10,6 +10,7 @@ use App\Models\SecondaryInhouse;
 use App\Models\SecondaryIn;
 use App\Models\LoadingLinePlan;
 use App\Models\LoadingLine;
+use App\Models\SignalBit\UserLine;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -141,7 +142,17 @@ class ImportStockerManual implements ToCollection, WithStartRow
 
                         if ($row[12] > 0) {
                             if ($row[14]) {
-                                $loadingLinePlan = LoadingLinePlan::where("line_id", $row[14])->
+
+                                if (is_numeric($row[14])) {
+                                    $line_id = $row[14];
+                                    $line_username = "line_".(sprintf('%02d', $row[14]));
+                                } else {
+                                    $line = UserLine::where("Groupp", "SEWING")->whereRaw("FullName LIKE '%".$row[14]."%'")->first();
+                                    $line_id = $line->line_id;
+                                    $line_username = $line->username;
+                                }
+
+                                $loadingLinePlan = LoadingLinePlan::where("line_id", $line_id)->
                                     where("act_costing_id", $orderInfo[0]->id_cost)->
                                     where("color", $row[1])->
                                     where("tanggal", $formattedDate)->
@@ -152,9 +163,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
                                 if ($loadingLinePlan) {
                                     LoadingLine::create([
                                         "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
-                                        "line_id" => $row[14],
+                                        "line_id" => $line_id,
                                         "loading_plan_id" => $loadingLinePlan['id'],
-                                        "nama_line" => "line_".(sprintf('%02d', $row[14])),
+                                        "nama_line" => $line_username,
                                         "stocker_id" => $createStocker->id,
                                         "qty" => $row[12],
                                         "status" => "active",
@@ -169,7 +180,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                                     $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
 
                                     $newLoadingPlan = LoadingLinePlan::create([
-                                        "line_id" => $row[14],
+                                        "line_id" => $line_id,
                                         "kode" => $kodeLoadingPlan,
                                         "act_costing_id" => $orderInfo[0]->id_cost,
                                         "act_costing_ws" => $row[0],
@@ -181,9 +192,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
 
                                     LoadingLine::create([
                                         "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
-                                        "line_id" => $row[14],
+                                        "line_id" => $line_id,
                                         "loading_plan_id" => $newLoadingPlan['id'],
-                                        "nama_line" => "line_".(sprintf('%02d', $row[14])),
+                                        "nama_line" => $line_username,
                                         "stocker_id" => $createStocker->id,
                                         "qty" => $row[12],
                                         "status" => "active",
