@@ -884,4 +884,18 @@ class GeneralController extends Controller
 
         return json_encode($items ? $items : null);
     }
+
+    public function getOutput(Request $request) {
+        $this->kodeNumberingList = YearSequence::selectRaw("
+            year_sequence.id_year_sequence,
+            master_sb_ws.ws,
+            master_sb_ws.styleno,
+            master_sb_ws.color,
+            master_sb_ws.size,
+            master_sb_ws.dest
+        ")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+        whereRaw("year_sequence.id_year_sequence in (".$kodeNumbering.")")->
+        get();
+    }
 }
