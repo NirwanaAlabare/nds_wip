@@ -618,6 +618,8 @@ class SewingToolsController extends Controller
             $callbackFilterOutput = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
 
+        ini_set("max_execution_time", 120);
+
         $outputList = DB::connection("mysql_sb")->select("
             select
                 COALESCE(output.kode_numbering, output_packing.kode_numbering, id_year_sequence) kode,
@@ -656,7 +658,7 @@ class SewingToolsController extends Controller
                         ".$filterYs."
                         ".$callbackFilterYs."
                 ) as ys
-                left join (
+                inner join (
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -822,7 +824,7 @@ class SewingToolsController extends Controller
                         output_rejects.reject_status = 'mati'
                         ".$filterRejectPck."
                         ".$callbackFilterOutput."
-                ) output_packing ON output_packing.kode_numbering = ys.id_year_sequence
+                ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
             left join laravel_nds.loading_line as loading on loading.stocker_id = stk.id
@@ -1172,7 +1174,7 @@ class SewingToolsController extends Controller
                         ".$filterYs."
                         ".$callbackFilterYs."
                 ) as ys
-                left join (
+                inner join (
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -1338,7 +1340,7 @@ class SewingToolsController extends Controller
                         output_rejects.reject_status = 'mati'
                         ".$filterRejectPck."
                         ".$callbackFilterOutput."
-                ) output_packing ON output_packing.kode_numbering = ys.id_year_sequence
+                ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
             left join laravel_nds.loading_line as loading on loading.stocker_id = stk.id

@@ -82,6 +82,14 @@ class TrackOrderOutput extends Component
     {
         ini_set("max_execution_time", 3600);
 
+        if (!$this->dateFromFilter) {
+            $this->dateFromFilter = date("Y-m-d");
+        }
+
+        if (!$this->dateToFilter) {
+            $this->dateToFilter = date("Y-m-d");
+        }
+
         $this->loadingOrderOutput = false;
 
         $this->suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
