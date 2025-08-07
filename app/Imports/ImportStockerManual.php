@@ -60,7 +60,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         master_secondary.proses
                     FROM
                         part_detail
-                        LEFT JOIN part ON part.id = part_detail.id
+                        LEFT JOIN part ON part.id = part_detail.part_id
                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                         LEFT JOIN master_secondary ON master_secondary.id = part_detail.master_secondary_id
                     WHERE
@@ -81,7 +81,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         'so_det_id' => $orderInfo[0]->id,
                         'color' => $row[1],
                         'panel' => $row[3],
-                        'shade' => $row[5],
+                        'shade' => $stockerId,
                         'group_stocker' => $stockerId,
                         'ratio' => 1,
                         'size' => $row[2],
@@ -206,8 +206,14 @@ class ImportStockerManual implements ToCollection, WithStartRow
                                 }
                             }
                         }
+                    } else {
+                        Log::info("Fail Import Stocker Manual on create stocker ROW :".$i, $createStocker);
                     }
+                } else {
+                    \Log::info("Fail Import Stocker Manual on part_detailing ROW :".$i, $partDetailInfo);
                 }
+            } else {
+                \Log::info("Fail Import Stocker Manual on order_info ROW :".$i, $orderInfo);
             }
         }
     }
