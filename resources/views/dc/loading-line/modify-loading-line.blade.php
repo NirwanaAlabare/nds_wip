@@ -89,11 +89,11 @@
                     <div class="col-md-4">
                         <div class="d-flex gap-3">
                             <div class="w-50">
-                                <button class="btn btn-sb btn-block" onclick="updateStocker()">UPDATE</button>
+                                <button class="btn btn-sb btn-block" onclick="updateStocker()"><i class="fa fa-save"></i> UPDATE</button>
                             </div>
                             @role('superadmin')
                                 <div class="w-50">
-                                    <button class="btn btn-danger btn-block" onclick="deleteStocker()">DELETE</button>
+                                    <button class="btn btn-danger btn-block" onclick="deleteStocker()"><i class="fa fa-trash"></i> DELETE</button>
                                 </div>
                             @endrole
                         </div>
