@@ -2058,6 +2058,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_qc_inspect/{id_lok_in_material?}', 'export_qc_inspect')->name('export_qc_inspect');
         Route::post('/pass_with_condition', 'pass_with_condition')->name('pass_with_condition');
         Route::post('/upload_blanket_photo', 'upload_blanket_photo')->name('upload_blanket_photo');
+        Route::get('/get_blanket_photo', 'get_blanket_photo')->name('get_blanket_photo');
     });
 
     // Proses Form Inspect

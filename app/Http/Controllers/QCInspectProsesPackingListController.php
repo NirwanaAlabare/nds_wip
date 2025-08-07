@@ -1439,60 +1439,122 @@ GROUP BY c.no_form
         return $pdf->download(str_replace("/", "_", $fileName));
     }
 
-    public function upload_blanket_photo(Request $request)
+
+    public function get_blanket_photo(Request $request)
     {
         $request->validate([
-            'photo' => 'required|image|max:5120',
+            'id_item' => 'required',
+            'id_jo' => 'required',
+            'no_invoice' => 'required',
+            'no_lot' => 'required'
+        ]);
+
+        $data = DB::connection('mysql_sb')->table('qc_inspect_form_blanket')
+            ->where('id_item', $request->id_item)
+            ->where('id_jo', $request->id_jo)
+            ->where('no_invoice', $request->no_invoice)
+            ->where('no_lot', $request->no_lot)
+            ->select('photo', 'rate', 'result')
+            ->first();
+
+        if ($data) {
+            return response()->json([
+                'photo' => $data->photo,
+                'rate' => $data->rate,
+                'result' => $data->result,
+            ]);
+        } else {
+            return response()->json([
+                'photo' => null,
+                'rate' => null,
+                'result' => null,
+            ]);
+        }
+    }
+
+
+
+
+    public function upload_blanket_photo(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $request->validate([
+            'photo' => 'nullable|image|max:5120', // Make photo optional
             'id_item' => 'required',
             'id_jo' => 'required',
             'no_invoice' => 'required',
             'no_lot' => 'required',
+            'rateSelect' => 'required|numeric',
+            'rateResult' => 'required|string',
         ]);
 
-        // Clean filename parts
-        $id_item = str_replace(['/', '\\'], '_', $request->id_item);
-        $id_jo = str_replace(['/', '\\'], '_', $request->id_jo);
-        $no_invoice = str_replace(['/', '\\'], '_', $request->no_invoice);
-        $no_lot = str_replace(['/', '\\'], '_', $request->no_lot);
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_invoice = $request->no_invoice;
+        $no_lot = $request->no_lot;
+        $rate = $request->rateSelect;
+        $result = $request->rateResult;
 
-        $filename = "{$id_item}_{$id_jo}_{$no_invoice}_{$no_lot}.jpg";
+        $filename = null;
 
-        $request->file('photo')->storeAs('public/gambar_blanket', $filename);
+        // Check if a new photo is uploaded
+        if ($request->hasFile('photo')) {
+            $raw_filename = "{$id_item}_{$id_jo}_{$no_invoice}_{$no_lot}";
+            $clean_filename = preg_replace('/[<>:"\/\\\\|?*]/', '_', $raw_filename);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $clean_filename . '.' . $extension;
 
-        $cek_blanket = DB::connection('mysql_sb')->select("SELECT
-*
-        from qc_inspect_form_blanket a
-        where no_invoice = '$request->no_invoice' and a.id_item = '$request->id_item'
-        and a.id_jo = '$request->id_jo' and a.no_lot = '$request->no_lot' limit 1
-");
+            $request->file('photo')->storeAs('public/gambar_blanket', $filename);
+        }
+
+        $cek_blanket = DB::connection('mysql_sb')->table('qc_inspect_form_blanket')
+            ->where([
+                ['no_invoice', '=', $no_invoice],
+                ['id_item', '=', $id_item],
+                ['id_jo', '=', $id_jo],
+                ['no_lot', '=', $no_lot],
+            ])
+            ->first();
 
         if ($cek_blanket) {
-            // UPDATE using raw SQL
-            DB::connection('mysql_sb')->statement("
-            UPDATE qc_inspect_form_blanket
-            SET photo = ?, rate = ?, updated_at = NOW()
-            WHERE no_invoice = ? AND id_item = ? AND id_jo = ? AND no_lot = ?
-        ", [
-                $filename,
-                $request->rate,
-                $request->no_invoice,
-                $request->id_item,
-                $request->id_jo,
-                $request->no_lot
-            ]);
+            // Build update query dynamically based on whether photo was uploaded
+            $updateData = [
+                'rate' => $rate,
+                'result' => $result,
+                'created_by' => $user,
+                'updated_at' => now(),
+            ];
+
+            if ($filename) {
+                $updateData['photo'] = $filename;
+            }
+
+            DB::connection('mysql_sb')->table('qc_inspect_form_blanket')
+                ->where([
+                    ['no_invoice', '=', $no_invoice],
+                    ['id_item', '=', $id_item],
+                    ['id_jo', '=', $id_jo],
+                    ['no_lot', '=', $no_lot],
+                ])
+                ->update($updateData);
         } else {
-            // INSERT using raw SQL
-            DB::connection('mysql_sb')->statement("
-            INSERT INTO qc_inspect_form_blanket
-            (id_item, id_jo, no_invoice, no_lot, photo, rate, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?,?, NOW(), NOW())
-        ", [
-                $request->id_item,
-                $request->id_jo,
-                $request->no_invoice,
-                $request->no_lot,
-                $filename,
-                $request->rateSelect
+            // If no record, photo must be provided
+            if (!$filename) {
+                return response()->json(['error' => 'Photo is required for new records.'], 422);
+            }
+
+            DB::connection('mysql_sb')->table('qc_inspect_form_blanket')->insert([
+                'id_item' => $id_item,
+                'id_jo' => $id_jo,
+                'no_invoice' => $no_invoice,
+                'no_lot' => $no_lot,
+                'photo' => $filename,
+                'rate' => $rate,
+                'result' => $result,
+                'created_by' => $user,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
 

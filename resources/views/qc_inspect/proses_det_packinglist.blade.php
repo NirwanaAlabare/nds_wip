@@ -78,12 +78,13 @@
                         <div class="mb-3">
                             <label class="form-label" for="photoInput">Upload / Capture Blanket Photo</label>
                             <input type="file" name="photo" accept="image/*" capture="environment"
-                                class="form-control" id="photoInput" required>
+                                class="form-control" id="photoInput">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label" for="rateSelect">Rate</label>
-                            <select name="rate" id="rateSelect" class="form-select" required>
+                            <!-- Rate Dropdown -->
+                            <select name="rateSelect" id="rateSelect" class="form-select" required>
                                 <option value="" selected disabled>-- Select Rate --</option>
                                 <option value="0.5">0.5</option>
                                 <option value="1">1</option>
@@ -114,7 +115,7 @@
                         <!-- Result (PASS/REJECT) -->
                         <div class="mb-3">
                             <label class="form-label">Result</label>
-                            <input type="text" class="form-control" id="rateResult" name="rate_result" readonly>
+                            <input type="text" class="form-control" id="rateResult" name="rateResult" readonly>
                         </div>
 
 
@@ -133,8 +134,6 @@
             </div>
         </div>
     </div>
-
-
 
 
 
@@ -815,49 +814,60 @@
 
 
         function show_list_blanket(id_item, id_jo, no_invoice, no_lot) {
-            const sanitize = str => str.replace(/[\/\\]/g, '_');
-
-            const safe_id_item = sanitize(id_item);
-            const safe_id_jo = sanitize(id_jo);
-            const safe_no_invoice = sanitize(no_invoice);
-            const safe_no_lot = sanitize(no_lot);
-
-            const timestamp = new Date().getTime();
-            const imgPath =
-                `/nds_wip/public/storage/gambar_blanket/${safe_id_item}_${safe_id_jo}_${safe_no_invoice}_${safe_no_lot}.jpg?t=${timestamp}`;
-
-            const img = new Image();
-            img.src = imgPath;
-
             const previewContainer = document.getElementById('photoPreview');
             const input = document.getElementById('photoInput');
 
             // Reset preview and input
-            if (previewContainer) previewContainer.innerHTML = '';
+            if (previewContainer) previewContainer.innerHTML = '<p class="text-muted">Loading photo...</p>';
             if (input) input.value = '';
 
-            img.onload = function() {
-                previewContainer.innerHTML = `
-            <img src="${imgPath}" alt="Blanket Photo"
-                 class="img-fluid rounded border mb-2" style="max-height: 400px;">
-        `;
-            };
-
-            img.onerror = function() {
-                previewContainer.innerHTML = `
-            <p class="text-muted">No photo available yet.</p>
-        `;
-            };
-
-            // Set hidden input values
+            // Set hidden inputs
             $('#input_id_item').val(id_item);
             $('#input_id_jo').val(id_jo);
             $('#input_no_invoice').val(no_invoice);
             $('#input_no_lot').val(no_lot);
 
+            // Open modal immediately
             const modal = new bootstrap.Modal(document.getElementById('ModalBlanket'));
             modal.show();
+
+            // Fetch actual photo filename from backend
+            $.ajax({
+                url: '{{ route('get_blanket_photo') }}',
+                method: 'GET',
+                data: {
+                    id_item: id_item,
+                    id_jo: id_jo,
+                    no_invoice: no_invoice,
+                    no_lot: no_lot,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(res) {
+                    previewContainer.innerHTML = ''; // Clear loading text
+
+                    // Show photo
+                    if (res.photo) {
+                        const timestamp = new Date().getTime();
+                        const imgPath = `/nds_wip/public/storage/gambar_blanket/${res.photo}?t=${timestamp}`;
+                        previewContainer.innerHTML = `
+            <img src="${imgPath}" alt="Blanket Photo"
+                 class="img-fluid rounded border mb-2" style="max-height: 400px;">
+        `;
+                    } else {
+                        previewContainer.innerHTML = `<p class="text-muted">No photo available yet.</p>`;
+                    }
+
+                    // Populate rate and result using helper
+                    resetFormState(res.rate, res.result);
+                },
+
+                error: function(xhr) {
+                    previewContainer.innerHTML = `<p class="text-danger">Error loading photo.</p>`;
+                    console.error(xhr.responseText);
+                }
+            });
         }
+
 
 
         $('#blanketUploadForm').on('submit', function(e) {
@@ -881,6 +891,7 @@
                         timer: 2000,
                         showConfirmButton: false
                     });
+                    calculate();
                 },
                 error: function(xhr) {
                     Swal.fire({
@@ -1360,38 +1371,53 @@
             });
         }
 
+        // Unified function to update the rate result
         function updateResult() {
             const rate = parseFloat($('#rateSelect').val());
-            let result = rate >= 4 ? 'PASS' : 'REJECT';
+            const isOverride = $('#passCheckbox').is(':checked');
+            let result = '';
 
-            // Update result field
-            $('#rateResult').val(result);
+            if (!isNaN(rate)) {
+                // Define base logic: PASS if >= 4
+                result = rate >= 4 ? 'PASS' : 'REJECT';
 
-            // Show/hide checkbox based on REJECT
-            if (result === 'REJECT') {
-                $('#passCheckboxContainer').show();
+                // If it's REJECT and user checked override, update to PASS WITH CONDITION
+                if (result === 'REJECT' && isOverride) {
+                    result = 'PASS WITH CONDITION';
+                }
+
+                // Set the result field
+                $('#rateResult').val(result);
+
+                // Show the override checkbox only if it's REJECT
+                if (rate < 4) {
+                    $('#passCheckboxContainer').show();
+                } else {
+                    $('#passCheckboxContainer').hide();
+                    $('#passCheckbox').prop('checked', false);
+                }
             } else {
+                // Invalid rate or none selected
+                $('#rateResult').val('');
                 $('#passCheckboxContainer').hide();
                 $('#passCheckbox').prop('checked', false);
             }
         }
 
-        // On rate change
-        $('#rateSelect').on('change', function() {
+        // Bind change events
+        $('#rateSelect').on('change', updateResult);
+        $('#passCheckbox').on('change', updateResult);
+
+        // Optional: Call this function when modal opens to apply current state
+        function resetFormState(rate = null, result = null) {
+            if (rate !== null) $('#rateSelect').val(rate);
+            if (result !== null) $('#rateResult').val(result);
+
+            // Set checkbox based on result string
+            const isPassWithCondition = result === 'PASS WITH CONDITION';
+            $('#passCheckbox').prop('checked', isPassWithCondition);
+
             updateResult();
-        });
-
-        // On checkbox change
-        $('#passCheckbox').on('change', function() {
-            const isChecked = $(this).is(':checked');
-            const originalRate = parseFloat($('#rateSelect').val());
-            const defaultResult = originalRate >= 4 ? 'PASS' : 'REJECT';
-
-            if (isChecked) {
-                $('#rateResult').val('PASS WITH CONDITION');
-            } else {
-                $('#rateResult').val(defaultResult);
-            }
-        });
+        }
     </script>
 @endsection
