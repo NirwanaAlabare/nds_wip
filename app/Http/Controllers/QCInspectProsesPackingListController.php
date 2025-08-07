@@ -201,10 +201,12 @@ from qc_inspect_master_group_inspect");
 				shipment,
 				cek_inspect,
 				proses,
-				pass_with_condition
+				pass_with_condition,
+				m.founding_issue
 			FROM	qc_inspect_form b
 			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
     LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+		LEFT JOIN qc_inspect_master_founding_issue m on b.founding_issue = m.id
 where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
 group by no_form, no_lot
 ),
@@ -239,7 +241,8 @@ c AS (
 				cek_inspect,
 				proses,
 				pass_with_condition,
-				status_proses_form
+				status_proses_form,
+				founding_issue
     FROM a
 		group by no_form, no_lot
 ),
@@ -257,14 +260,15 @@ d AS (
 				sum_over_9,
 				c.tot_point,
 				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
-				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) avg_act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END),2) avg_act_point,
 				individu,
 				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
 				group_inspect,
 				shipment,
 				cek_inspect,
 				max(proses) proses,
-				max(pass_with_condition)pass_with_condition
+				max(pass_with_condition)pass_with_condition,
+				GROUP_CONCAT(DISTINCT c.founding_issue ORDER BY c.founding_issue SEPARATOR ', ') AS list_founding_issue
 FROM c
 left JOIN b ON c.no_form = b.no_form
         GROUP BY
@@ -275,8 +279,35 @@ left JOIN b ON c.no_form = b.no_form
             group_inspect,
             shipment,
             cek_inspect
-)
-
+),
+sr_w AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    MIN(ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2)) as max_width_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+sr_l AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    'LENGTH' as dim,
+    MIN(ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2)) as max_length_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+main as (
 select
 b.id_item,
 b.id_jo,
@@ -323,7 +354,11 @@ END AS stat_reject,
                   END = 'REJECT' THEN 'Y'
 						ELSE 'N'
 		END as gen_more,
-        IF(photo IS NULL, 'N', 'Y') AS photo
+        IF(photo IS NULL, 'N', 'Y') AS photo,
+				list_founding_issue,
+				max_width_short_roll,
+				max_length_short_roll,
+				e.result as result_blanket
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
@@ -336,8 +371,23 @@ c.no_lot = e.no_lot
 AND c.id_item = e.id_item
 AND c.id_jo = e.id_jo
 AND a.no_invoice = e.no_invoice
+left join sr_w on c.id_item = sr_w.id_item and c.id_jo = sr_w.id_jo and c.no_lot = sr_w.no_lot and a.no_invoice = sr_w.no_invoice
+left join sr_l on c.id_item = sr_l.id_item and c.id_jo = sr_l.id_jo and c.no_lot = sr_l.no_lot and a.no_invoice = sr_l.no_invoice
 where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
 group by c.no_lot
+)
+
+SELECT
+main.*,
+CASE
+		WHEN main.result_blanket is null then '-'
+		WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+		WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+		WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+end as final_result
+from main
+
+
             ");
 
         $statusLotNCount = collect($data_input)->where('status_lot', 'N')->count();
@@ -493,7 +543,10 @@ qc.barcode,
 b.no_roll,
 qc.status_proses_form,
 c.individu,
-qc.pass_with_condition
+qc.pass_with_condition,
+IF(qc.founding_issue IS NULL, 'PASS', 'HOLD') AS founding_issue_result,
+qc.short_roll_result,
+qc.final_result
 from qc_inspect_form qc
 inner join
 (
@@ -686,10 +739,12 @@ ORDER BY qc.tgl_form desc, no_form asc, no_invoice asc
 				shipment,
 				cek_inspect,
 				proses,
-				pass_with_condition
+				pass_with_condition,
+				m.founding_issue
 			FROM	qc_inspect_form b
 			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
     LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+		LEFT JOIN qc_inspect_master_founding_issue m on b.founding_issue = m.id
 where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
 group by no_form, no_lot
 ),
@@ -724,7 +779,8 @@ c AS (
 				cek_inspect,
 				proses,
 				pass_with_condition,
-				status_proses_form
+				status_proses_form,
+				founding_issue
     FROM a
 		group by no_form, no_lot
 ),
@@ -742,14 +798,15 @@ d AS (
 				sum_over_9,
 				c.tot_point,
 				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
-				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) avg_act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END),2) avg_act_point,
 				individu,
 				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
 				group_inspect,
 				shipment,
 				cek_inspect,
 				max(proses) proses,
-				max(pass_with_condition)pass_with_condition
+				max(pass_with_condition)pass_with_condition,
+				GROUP_CONCAT(DISTINCT c.founding_issue ORDER BY c.founding_issue SEPARATOR ', ') AS list_founding_issue
 FROM c
 left JOIN b ON c.no_form = b.no_form
         GROUP BY
@@ -760,8 +817,35 @@ left JOIN b ON c.no_form = b.no_form
             group_inspect,
             shipment,
             cek_inspect
-)
-
+),
+sr_w AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    MIN(ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2)) as max_width_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+sr_l AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    'LENGTH' as dim,
+    MIN(ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2)) as max_length_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+main as (
 select
 b.id_item,
 b.id_jo,
@@ -769,7 +853,7 @@ a.no_invoice,
 c.no_lot,
 d.group_inspect,
 count(no_roll) jml_roll,
-CEIL(count(no_roll) * ($cek_inspect /100)) jml_roll_cek,
+(CEIL(count(no_roll) * ($cek_inspect /100)) * d.proses) jml_roll_cek,
 if(d.tot_form is null, '0', d.tot_form) tot_form,
 if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
 IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
@@ -786,7 +870,7 @@ CASE
 	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
     END AS result,
 CASE
-    WHEN proses = '2' AND pass_with_condition = 'N' AND  (
+    WHEN  pass_with_condition = 'N' AND  (
         CASE
             WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
             WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
@@ -807,7 +891,12 @@ END AS stat_reject,
                         ELSE 'REJECT'
                   END = 'REJECT' THEN 'Y'
 						ELSE 'N'
-		END as gen_more
+		END as gen_more,
+        IF(photo IS NULL, 'N', 'Y') AS photo,
+				list_founding_issue,
+				max_width_short_roll,
+				max_length_short_roll,
+				e.result as result_blanket
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
@@ -815,8 +904,26 @@ left join d ON c.no_lot = d.no_lot
 AND c.id_item = d.id_item
 AND c.id_jo = d.id_jo
 AND a.no_invoice = d.no_invoice
+left join signalbit_erp.qc_inspect_form_blanket e on
+c.no_lot = e.no_lot
+AND c.id_item = e.id_item
+AND c.id_jo = e.id_jo
+AND a.no_invoice = e.no_invoice
+left join sr_w on c.id_item = sr_w.id_item and c.id_jo = sr_w.id_jo and c.no_lot = sr_w.no_lot and a.no_invoice = sr_w.no_invoice
+left join sr_l on c.id_item = sr_l.id_item and c.id_jo = sr_l.id_jo and c.no_lot = sr_l.no_lot and a.no_invoice = sr_l.no_invoice
 where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv' and proses = '1'
 group by c.no_lot
+)
+
+SELECT
+main.*,
+CASE
+		WHEN main.result_blanket is null then '-'
+		WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+		WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+		WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+end as final_result
+from main
             ");
         return DataTables::of($data_input)->toJson();
     }
@@ -854,10 +961,12 @@ group by c.no_lot
 				shipment,
 				cek_inspect,
 				proses,
-				pass_with_condition
+				pass_with_condition,
+				m.founding_issue
 			FROM	qc_inspect_form b
 			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
     LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+		LEFT JOIN qc_inspect_master_founding_issue m on b.founding_issue = m.id
 where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
 group by no_form, no_lot
 ),
@@ -892,7 +1001,8 @@ c AS (
 				cek_inspect,
 				proses,
 				pass_with_condition,
-				status_proses_form
+				status_proses_form,
+				founding_issue
     FROM a
 		group by no_form, no_lot
 ),
@@ -910,14 +1020,15 @@ d AS (
 				sum_over_9,
 				c.tot_point,
 				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
-				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) avg_act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END),2) avg_act_point,
 				individu,
 				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
 				group_inspect,
 				shipment,
 				cek_inspect,
 				max(proses) proses,
-				max(pass_with_condition)pass_with_condition
+				max(pass_with_condition)pass_with_condition,
+				GROUP_CONCAT(DISTINCT c.founding_issue ORDER BY c.founding_issue SEPARATOR ', ') AS list_founding_issue
 FROM c
 left JOIN b ON c.no_form = b.no_form
         GROUP BY
@@ -928,8 +1039,35 @@ left JOIN b ON c.no_form = b.no_form
             group_inspect,
             shipment,
             cek_inspect
-)
-
+),
+sr_w AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    MIN(ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2)) as max_width_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+sr_l AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    'LENGTH' as dim,
+    MIN(ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2)) as max_length_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+main as (
 select
 b.id_item,
 b.id_jo,
@@ -937,7 +1075,7 @@ a.no_invoice,
 c.no_lot,
 d.group_inspect,
 count(no_roll) jml_roll,
-CEIL(count(no_roll) * ($cek_inspect /100)) jml_roll_cek,
+(CEIL(count(no_roll) * ($cek_inspect /100)) * d.proses) jml_roll_cek,
 if(d.tot_form is null, '0', d.tot_form) tot_form,
 if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
 IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
@@ -954,7 +1092,7 @@ CASE
 	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
     END AS result,
 CASE
-    WHEN proses = '2' AND pass_with_condition = 'N' AND  (
+    WHEN  pass_with_condition = 'N' AND  (
         CASE
             WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
             WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
@@ -975,7 +1113,12 @@ END AS stat_reject,
                         ELSE 'REJECT'
                   END = 'REJECT' THEN 'Y'
 						ELSE 'N'
-		END as gen_more
+		END as gen_more,
+        IF(photo IS NULL, 'N', 'Y') AS photo,
+				list_founding_issue,
+				max_width_short_roll,
+				max_length_short_roll,
+				e.result as result_blanket
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
@@ -983,8 +1126,26 @@ left join d ON c.no_lot = d.no_lot
 AND c.id_item = d.id_item
 AND c.id_jo = d.id_jo
 AND a.no_invoice = d.no_invoice
+left join signalbit_erp.qc_inspect_form_blanket e on
+c.no_lot = e.no_lot
+AND c.id_item = e.id_item
+AND c.id_jo = e.id_jo
+AND a.no_invoice = e.no_invoice
+left join sr_w on c.id_item = sr_w.id_item and c.id_jo = sr_w.id_jo and c.no_lot = sr_w.no_lot and a.no_invoice = sr_w.no_invoice
+left join sr_l on c.id_item = sr_l.id_item and c.id_jo = sr_l.id_jo and c.no_lot = sr_l.no_lot and a.no_invoice = sr_l.no_invoice
 where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv' and proses = '2'
 group by c.no_lot
+)
+
+SELECT
+main.*,
+CASE
+		WHEN main.result_blanket is null then '-'
+		WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+		WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+		WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+end as final_result
+from main
             ");
         return DataTables::of($data_input)->toJson();
     }

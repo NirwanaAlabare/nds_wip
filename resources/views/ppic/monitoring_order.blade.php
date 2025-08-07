@@ -11,7 +11,8 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> --}}
+    <script src="{{ asset('plugins/apexcharts/apexcharts_new.js') }}"></script>
 
     <style>
         /* Custom styles for the table */
@@ -921,7 +922,7 @@
                         // Calculate the elapsed time
                         const endTime = new Date().getTime();
                         const elapsedTime = Math.round((endTime - startTime) /
-                        1000); // Convert to seconds
+                            1000); // Convert to seconds
 
                         // Close the loading notification
                         Swal.close();

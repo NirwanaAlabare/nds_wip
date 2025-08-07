@@ -69,13 +69,19 @@
                             <th scope="col" class="text-center align-middle">Lot</th>
                             <th scope="col" class="text-center align-middle">No. Roll</th>
                             <th scope="col" class="text-center align-middle">Point / Max Point</th>
-                            <th scope="col" class="text-center align-middle">Result</th>
+                            <th scope="col" class="text-center align-middle">Visual Defect Result</th>
+                            <th scope="col" class="text-center align-middle">Short Roll Result</th>
+                            <th scope="col" class="text-center align-middle">Founding Issue Result</th>
+                            <th scope="col" class="text-center align-middle">Final Result</th>
                             <th scope="col" class="text-center align-middle">Note</th>
                             <th scope="col" class="text-center align-middle">Status</th>
                             <th scope="col" class="text-center align-middle">Proses</th>
                         </tr>
                         <tr>
                             <th></th> <!-- Empty cell for Act (no search input) -->
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
+                            <th><input type="text" class="column-search form-control form-control-sm" /></th>
                             <th><input type="text" class="column-search form-control form-control-sm" /></th>
                             <th><input type="text" class="column-search form-control form-control-sm" /></th>
                             <th><input type="text" class="column-search form-control form-control-sm" /></th>
@@ -223,6 +229,24 @@
                 },
                 {
                     data: 'result',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
+                },
+                {
+                    data: 'short_roll_result',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
+                },
+                {
+                    data: 'founding_issue_result',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
+                },
+                {
+                    data: 'final_result',
                     render: function(data) {
                         return data ? data.toUpperCase() : '';
                     }

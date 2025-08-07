@@ -2047,6 +2047,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(QCInspectMasterController::class)->prefix("master")->middleware('warehouse')->group(function () {
         Route::get('/qc_inspect_master_critical_defect_show', 'qc_inspect_master_critical_defect_show')->name('qc_inspect_master_critical_defect_show');
         Route::post('/qc_inspect_master_critical_defect_add', 'qc_inspect_master_critical_defect_add')->name('qc_inspect_master_critical_defect_add');
+        Route::get('/qc_inspect_master_founding_issue_show', 'qc_inspect_master_founding_issue_show')->name('qc_inspect_master_founding_issue_show');
+        Route::post('/qc_inspect_master_founding_issue_add', 'qc_inspect_master_founding_issue_add')->name('qc_inspect_master_founding_issue_add');
     });
 
     // Proses Packing List
@@ -2079,6 +2081,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/calculate_act_point', 'calculate_act_point')->name('calculate_act_point');
         Route::get('/qc_inspect_show_act_point', 'qc_inspect_show_act_point')->name('qc_inspect_show_act_point');
         Route::post('/finish_form_inspect', 'finish_form_inspect')->name('finish_form_inspect');
+        Route::get('/show_calculate_width_length', 'show_calculate_width_length')->name('show_calculate_width_length');
     });
 });
 

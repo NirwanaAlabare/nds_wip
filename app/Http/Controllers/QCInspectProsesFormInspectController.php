@@ -42,7 +42,10 @@ qc.barcode,
 b.no_roll,
 qc.status_proses_form,
 c.individu,
-qc.pass_with_condition
+qc.pass_with_condition,
+IF(qc.founding_issue IS NULL, 'PASS', 'HOLD') AS founding_issue_result,
+qc.short_roll_result,
+qc.final_result
 from qc_inspect_form qc
 inner join
 (
@@ -186,7 +189,9 @@ qc.gramage,
 qc.bintex_length,
 qc.unit_bintex,
 qc.act_length,
-qc.unit_act_length
+qc.unit_act_length,
+qc.founding_issue,
+qc.final_result
 from signalbit_erp.qc_inspect_form  qc
 inner join
 (
@@ -247,15 +252,24 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $act_length             = $get_header[0]->act_length;
         $unit_act_length        = $get_header[0]->unit_act_length   ?? '';
 
+        $founding_issue        = $get_header[0]->founding_issue   ?? '';
+        $final_result        = $get_header[0]->final_result   ?? '';
+
         $data_length = DB::connection('mysql_sb')->select("SELECT
         id isi,
         concat(a.from, ' - ', a.to) tampil
         from qc_inspect_master_lenght a");
 
-        $data_defect = DB::connection('mysql_sb')->select("select
+        $data_defect = DB::connection('mysql_sb')->select("SELECT
         a.id isi,
         critical_defect tampil
         from qc_inspect_master_defect a");
+
+        $data_founding_issue = DB::connection('mysql_sb')->select("SELECT
+        a.id isi,
+        founding_issue tampil
+        from qc_inspect_master_founding_issue a
+        order by founding_issue asc");
 
 
         return view(
@@ -302,6 +316,9 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
                 "unit_bintex" => $unit_bintex,
                 "act_length" => $act_length,
                 "unit_act_length" => $unit_act_length,
+                "data_founding_issue" => $data_founding_issue,
+                "founding_issue" => $founding_issue,
+                "final_result" => $final_result,
             ]
         );
     }
@@ -593,13 +610,22 @@ where a.no_form = '$txtno_form'
         $unitActLength = $request->unitActLength;
         $txtact_length_fix = $request->txtact_length_fix;
 
+        $cbo_founding_issue = $request->cbo_founding_issue ?: null;
+        $founding_issue_sql = is_null($cbo_founding_issue) ? 'NULL' : "'$cbo_founding_issue'";
+
+        $act_width = $request->act_width ?? 0;
+        $bintex_width = $request->bintex_width ?? 0;
+
         $update = DB::connection('mysql_sb')->update("UPDATE qc_inspect_form set
         bintex_length = '$txtbintex_length',
         unit_bintex = '$unitBintex',
         bintex_length_act = '$txtbintex_act',
         act_length = '$txtact_length',
         unit_act_length = '$unitActLength',
-        act_length_fix = '$txtact_length_fix'
+        act_length_fix = '$txtact_length_fix',
+        founding_issue = $founding_issue_sql,
+        act_width = $act_width,
+        bintex_width = $bintex_width
         WHERE id = '$id'
     ");
 
@@ -672,6 +698,8 @@ INNER JOIN b ON c.no_form = b.no_form;
     {
         $id = $request->id;
         $txtno_form = $request->txtno_form;
+        $final_result = $request->final_result;
+        $short_roll_result = $request->short_roll_result;
         $timestamp = Carbon::now();
 
         $get_result = DB::connection('mysql_sb')->select("SELECT
@@ -708,7 +736,9 @@ INNER JOIN b ON c.no_form = b.no_form;
         $finish_form = DB::connection('mysql_sb')->select("UPDATE qc_inspect_form SET
         status_proses_form = 'done',
         result = '$result',
-        finish_form = '$timestamp'
+        finish_form = '$timestamp',
+        final_result = '$final_result',
+        short_roll_result = '$short_roll_result'
         where no_form = '$txtno_form'
             ");
 
@@ -716,5 +746,45 @@ INNER JOIN b ON c.no_form = b.no_form;
             'status' => 'success',
             'message' => 'Form inspection berhasil diselesaikan.'
         ]);
+    }
+
+    public function show_calculate_width_length(Request $request)
+    {
+
+        $user = Auth::user()->name;
+        $id = $request->id;
+        $txtno_form = $request->txtno_form;
+
+        $data_width_length = DB::connection('mysql_sb')->select("SELECT
+    'WIDTH' as dim,
+    IFNULL(bintex_width, 0) as bintex,
+    IFNULL(act_width, 0) as actual,
+    ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2) as selisih,
+    '- 3' as max_selisih,
+    'INCH' as unit,
+    IF(IFNULL(act_width, 0) - IFNULL(bintex_width, 0) > -3, 'PASS', 'HOLD') as result
+FROM
+    qc_inspect_form a
+WHERE
+    a.no_form = '$txtno_form'
+
+UNION ALL
+
+SELECT
+    'LENGTH' as dim,
+    IFNULL(bintex_length, 0) as bintex,
+    IFNULL(act_length_fix, 0) as actual,
+    ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2) as selisih,
+    '- 3' as max_selisih,
+    'YARD' as unit,
+    IF(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0) > -3, 'PASS', 'HOLD') as result
+FROM
+    qc_inspect_form a
+WHERE
+    a.no_form = '$txtno_form';
+
+            ");
+
+        return DataTables::of($data_width_length)->toJson();
     }
 }

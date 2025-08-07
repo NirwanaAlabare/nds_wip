@@ -517,6 +517,29 @@
                 </div>
             </div>
 
+            <!-- Founding Issue Title -->
+            <div class="row mb-2">
+                <div class="col">
+                    <h6 class="text-primary fw-bold">Founding Issue</h6>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="cbo_founding_issue"><small><b>Founding Issue :</b></small></label>
+                    <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
+                        id="cbo_founding_issue" name="cbo_founding_issue" style="width: 100%;">
+                        <option value="" hidden {{ $founding_issue == '' ? 'selected' : '' }}>
+                            Pilih Founding Issue
+                        </option>
+                        @foreach ($data_founding_issue as $dfi)
+                            <option value="{{ $dfi->isi }}" {{ $dfi->isi == $founding_issue ? 'selected' : '' }}>
+                                {{ $dfi->tampil }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <div class="row mb-3">
                 <div class="col-12">
                     <button type="button" class="btn btn-info btn-sm w-100" id="btnCalculate"
@@ -525,6 +548,37 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Founding Issue Title -->
+            <div class="row mb-2">
+                <div class="col">
+                    <h6 class="text-primary fw-bold">Short Roll</h6>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="table-responsive">
+                    <table id="datatable_short_roll" class="table table-bordered table-striped w-100 text-wrap">
+                        <thead class="bg-sb">
+                            <tr style="text-align:center; vertical-align:middle">
+                                <th scope="col"></th>
+                                <th scope="col">Bintex</th>
+                                <th scope="col">Actual</th>
+                                <th scope="col">Selisih</th>
+                                <th scope="col">Max Selisih</th>
+                                <th scope="col">Unit</th>
+                                <th scope="col">Result</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr style="text-align:center; vertical-align:middle">
+                                <th colspan="6" style="text-align:left">Total Result:</th>
+                                <th id="total_result_footer" class="text-center"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
             <!-- Act Point Title -->
             <div class="row mb-2">
                 <div class="col">
@@ -550,6 +604,18 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Final Result Title -->
+            <div class="row mb-2">
+                <div class="col text-center"> <!-- Center-align the column -->
+                    <h6 class="text-primary fw-bold d-inline-block">
+                        Final Result:
+                        <span id="final_result_display" class="ms-2 fw-bold"></span>
+                    </h6>
+                </div>
+            </div>
+
+
 
             <div class="row mb-3">
                 <div class="col-12">
@@ -622,6 +688,24 @@
                 $('#btnCalculate').hide();
                 $('#btnFinish').hide();
                 $('.visual-input').prop('disabled', true);
+                const final_result = @json($final_result);
+                // Display final result visually
+                let icon = final_result === 'PASS' ? '✅' :
+                    final_result === 'HOLD' ? '⏸️' :
+                    final_result === 'REJECT' ? '❌' :
+                    '';
+
+                let colorClass = final_result === 'PASS' ? 'text-success' :
+                    final_result === 'HOLD' ? 'text-warning' :
+                    final_result === 'REJECT' ? 'text-danger' :
+                    '';
+
+                $('#final_result_display')
+                    .html(`${icon} ${final_result}`)
+                    .attr('data-value', final_result)
+                    .removeClass('text-success text-danger text-warning')
+                    .addClass(colorClass);
+
             }
             const barcode = $('#txtbarcode').val();
             if (barcode !== '') {
@@ -643,7 +727,6 @@
                     $('#txtlbs').val('');
                 }
             });
-
             updateInch();
         });
 
@@ -1429,6 +1512,11 @@
             let txtact_length = $('#txtact_length').val();
             let unitActLength = $('#unitActLength').val();
             let txtact_length_fix = $('#txtact_length_fix').val();
+            let cbo_founding_issue = $('#cbo_founding_issue').val();
+
+            let table = $('#datatable').DataTable();
+            let act_width = $(table.column(6).footer()).text();
+            let bintex_width = document.getElementById("txtinch").value;
 
             // Send data only if confirmed
             $.ajax({
@@ -1443,7 +1531,10 @@
                     txtbintex_act: txtbintex_act,
                     txtact_length: txtact_length,
                     unitActLength: unitActLength,
-                    txtact_length_fix: txtact_length_fix
+                    txtact_length_fix: txtact_length_fix,
+                    cbo_founding_issue: cbo_founding_issue,
+                    act_width: act_width,
+                    bintex_width: bintex_width
                 },
                 success: function(response) {
                     Swal.fire({
@@ -1452,8 +1543,11 @@
                         text: response.message || 'Data berhasil disimpan.'
                     }).then(() => {
                         isCalculated = true;
-                        datatable_act_point.ajax
-                            .reload(); // Reload the table only, don't refresh the page
+                        datatable_act_point.ajax.reload(function() {
+                            datatable_short_roll.ajax.reload(function() {
+                                calculate_final_result();
+                            });
+                        });
 
                     });
                     $('#btnFinish').prop('disabled', false);
@@ -1486,42 +1580,55 @@
                     d.id = $('#id').val();
                     d.txtno_form = $('#txtno_form').val();
                 },
+                complete: function() {
+                    // Adjust AFTER ajax completes
+                    datatable_act_point.columns.adjust().draw(false);
+                }
             },
             columns: [{
-                    data: 'sum_up_to_3'
+                    data: 'sum_up_to_3',
+                    className: 'text-center'
                 },
                 {
-                    data: 'sum_3_6'
+                    data: 'sum_3_6',
+                    className: 'text-center'
                 },
                 {
-                    data: 'sum_6_9'
+                    data: 'sum_6_9',
+                    className: 'text-center'
                 },
                 {
-                    data: 'sum_over_9'
+                    data: 'sum_over_9',
+                    className: 'text-center'
                 },
                 {
-                    data: 'tot_point'
+                    data: 'tot_point',
+                    className: 'text-center'
                 },
                 {
-                    data: 'act_point'
+                    data: 'act_point',
+                    className: 'text-center'
                 },
                 {
-                    data: 'individu'
+                    data: 'individu',
+                    className: 'text-center'
                 },
                 {
-                    data: 'result'
-                },
+                    data: 'result',
+                    className: 'text-center'
+                }
             ],
+
+            initComplete: function() {
+                // One-time adjustment after initial render
+                this.api().columns.adjust();
+            }
         });
 
-        // Adjust columns on draw (to fix zoom/layout issues)
-        datatable_act_point.on('draw', function() {
-            datatable_act_point.columns.adjust(false);
-        });
-
-        // Adjust columns on window resize (zoom triggers resize event)
         $(window).on('resize', function() {
-            datatable_act_point.columns.adjust();
+            setTimeout(function() {
+                datatable_act_point.columns.adjust().draw(false);
+            }, 200); // small delay
         });
 
 
@@ -1531,6 +1638,28 @@
                     icon: 'warning',
                     title: 'Perhatian!',
                     text: 'Silakan jalankan "Calculate" terlebih dahulu sebelum menyelesaikan.'
+                });
+                return;
+            }
+            final_result = $('#final_result_display').data('value');
+
+            // ✅ Check if final_result is missing
+            if (!final_result) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Final Result Kosong!',
+                    text: 'Silakan pastikan hasil akhir telah dihitung sebelum menyelesaikan.'
+                });
+                return;
+            }
+
+            let short_roll_result = $('#total_result_footer').text();
+
+            if (!short_roll_result) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Short Roll Result Kosong!',
+                    text: 'Silakan pastikan hasil akhir telah dihitung sebelum menyelesaikan.'
                 });
                 return;
             }
@@ -1552,6 +1681,8 @@
                             _token: '{{ csrf_token() }}',
                             id: $('#id').val(),
                             txtno_form: $('#txtno_form').val(),
+                            final_result: final_result,
+                            short_roll_result: short_roll_result,
                         },
                         success: function(response) {
                             Swal.fire({
@@ -1573,6 +1704,138 @@
                     });
                 }
             });
+        }
+
+
+        let datatable_short_roll = $("#datatable_short_roll").DataTable({
+            ordering: false,
+            responsive: false,
+            processing: true,
+            serverSide: false,
+            paging: false,
+            searching: false,
+            scrollX: true,
+            scrollCollapse: false,
+            info: false,
+            ajax: {
+                url: '{{ route('show_calculate_width_length') }}',
+                data: function(d) {
+                    d.id = $('#id').val();
+                    d.txtno_form = $('#txtno_form').val();
+                },
+                complete: function() {
+                    // Adjust AFTER ajax completes
+                    datatable_short_roll.columns.adjust().draw(false);
+                }
+            },
+            columns: [{
+                    data: 'dim',
+                    className: 'text-center'
+                },
+                {
+                    data: 'bintex',
+                    className: 'text-center'
+                },
+                {
+                    data: 'actual',
+                    className: 'text-center'
+                },
+                {
+                    data: 'selisih',
+                    className: 'text-center',
+                    render: function(data) {
+                        return parseFloat(data).toFixed(2); // force 2 decimal digits
+                    }
+                },
+                {
+                    data: 'max_selisih',
+                    className: 'text-center'
+                },
+                {
+                    data: 'unit',
+                    className: 'text-center'
+                },
+                {
+                    data: 'result',
+                    className: 'text-center'
+                }
+            ],
+
+            initComplete: function() {
+                // One-time adjustment after initial render
+                this.api().columns.adjust();
+            }
+        });
+
+        // Add draw event to calculate total result
+        datatable_short_roll.on('draw', function() {
+            let hasHold = false;
+
+            datatable_short_roll.column(6, {
+                search: 'applied'
+            }).data().each(function(value) {
+                if (value && value.toUpperCase() === 'HOLD') {
+                    hasHold = true;
+                }
+            });
+
+            $('#total_result_footer').text(hasHold ? 'HOLD' : 'PASS');
+        });
+
+        $(window).on('resize', function() {
+            setTimeout(function() {
+                datatable_short_roll.columns.adjust().draw(false);
+            }, 200); // small delay
+        });
+
+        function calculate_final_result() {
+            let cbo_founding_issue = $('#cbo_founding_issue').val() || '';
+            let act_point = datatable_act_point.cell(0, 7).data(); // Row 0, Column 7
+            let short_roll = $('#total_result_footer').text();
+
+            // console.log(cbo_founding_issue, act_point, short_roll);
+            let final_result = '';
+
+            if (act_point === 'PASS' && cbo_founding_issue === '' && short_roll === 'PASS') {
+                final_result = 'PASS';
+            } else
+            if (act_point === 'PASS' && cbo_founding_issue === '' && short_roll === 'HOLD') {
+                final_result = 'HOLD';
+            } else
+            if (act_point === 'PASS' && cbo_founding_issue !== '' && short_roll === 'PASS') {
+                final_result = 'HOLD';
+            } else
+            if (act_point === 'PASS' && cbo_founding_issue !== '' && short_roll === 'HOLD') {
+                final_result = 'HOLD';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue !== '' && short_roll === 'PASS') {
+                final_result = 'REJECT';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue !== '' && short_roll === 'HOLD') {
+                final_result = 'REJECT';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue === '' && short_roll === 'PASS') {
+                final_result = 'REJECT';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue === '' && short_roll === 'HOLD') {
+                final_result = 'REJECT';
+            }
+
+            // Display with icon and color
+            let icon = final_result === 'PASS' ? '✅' :
+                final_result === 'HOLD' ? '⏸️' :
+                final_result === 'REJECT' ? '❌' :
+                '';
+            let colorClass = final_result === 'PASS' ? 'text-success' :
+                final_result === 'HOLD' ? 'text-warning' :
+                final_result === 'REJECT' ? 'text-danger' :
+                '';
+
+            $('#final_result_display')
+                .html(`${icon} ${final_result}`)
+                .attr('data-value', final_result) // ✅ use .attr, not .data
+                .removeClass('text-success text-danger')
+                .addClass(colorClass);
         }
     </script>
 @endsection

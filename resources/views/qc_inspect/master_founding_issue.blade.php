@@ -21,15 +21,16 @@
 
 @section('content')
     <!-- Add Critical Defect Modal -->
-    <div class="modal fade" id="addDefectModal" tabindex="-1" aria-labelledby="addDefectModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addFoundingIssueModal" tabindex="-1" aria-labelledby="addFoundingIssueModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
-            <form id="addDefectForm">
+            <form id="addFoundingIssueForm">
                 <div class="modal-content">
 
                     <!-- Modal Header -->
                     <div class="modal-header bg-sb">
-                        <h5 class="modal-title" id="addDefectModalLabel">
-                            <i class="fas fa-plus-circle"></i> New Critical Defect
+                        <h5 class="modal-title" id="addFoundingIssueModalLabel">
+                            <i class="fas fa-plus-circle"></i> New Founding Issue
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                             aria-label="Close"></button>
@@ -38,25 +39,15 @@
                     <!-- Modal Body -->
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="criticalDefectName" class="form-label">Critical Defect</label>
-                            <input type="text" class="form-control" id="criticalDefectName" required>
+                            <label for="foundingissue" class="form-label">Founding Issue</label>
+                            <input type="text" class="form-control" id="foundingissue" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="pointDefect" class="form-label">Point Defect</label>
-                            <select class="form-control select2bs4" id="pointDefect" required style="width: 100%;">
-                                <option value="" disabled selected>Select Point Defect</option>
-                                <option value="KNITTING DEFECT">KNITTING DEFECT</option>
-                                <option value="DYEING DEFECT">DYEING DEFECT</option>
-                            </select>
-                        </div>
-
-
                     </div>
 
                     <!-- Modal Footer -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-success" id="saveButton"
-                            onclick="addCriticalDefect();">Save</button>
+                            onclick="addFoundingIssue();">Save</button>
 
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
@@ -69,12 +60,12 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Master Critical Defect</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Master Founding Issue</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-start mb-2">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDefectModal">
-                    <i class="fas fa-plus"></i> Add Critical Defect
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFoundingIssueModal">
+                    <i class="fas fa-plus"></i> Add Founding Issue
                 </button>
             </div>
 
@@ -82,8 +73,7 @@
                 <table id="datatable" class="table table-bordered w-100 text-nowrap">
                     <thead class="bg-sb">
                         <tr style="text-align:center; vertical-align:middle">
-                            <th scope="col">Critical Defect</th>
-                            <th scope="col">Point Defect</th>
+                            <th scope="col">Founding Issue</th>
                             <th scope="col">Created At</th>
                         </tr>
                     </thead>
@@ -130,12 +120,9 @@
 
         $(document).ready(function() {
             dataTableReload();
-            $('#addDefectModal').on('show.bs.modal', function() {
+            $('#addFoundingIssueModal').on('show.bs.modal', function() {
                 // Clear the critical defect input
-                $('#criticalDefectName').val('');
-
-                // Optional: Also clear the point defect select (if using select2)
-                $('#pointDefect').val(null).trigger('change');
+                $('#foundingissue').val('');
             });
 
 
@@ -152,13 +139,10 @@
             scrollX: true,
             scrollCollapse: false,
             ajax: {
-                url: '{{ route('qc_inspect_master_critical_defect_show') }}',
+                url: '{{ route('qc_inspect_master_founding_issue_show') }}',
             },
             columns: [{
-                    data: 'critical_defect'
-                },
-                {
-                    data: 'point_defect'
+                    data: 'founding_issue'
                 },
                 {
                     data: null,
@@ -174,17 +158,15 @@
         });
 
 
-        function addCriticalDefect() {
-            let criticalDefect = $('#criticalDefectName').val();
-            let pointDefect = $('#pointDefect').val();
+        function addFoundingIssue() {
+            let foundingissue = $('#foundingissue').val();
 
             // Trim values to remove whitespace
-            if (!criticalDefect || criticalDefect.trim() === '' ||
-                !pointDefect || pointDefect.trim() === '') {
+            if (!foundingissue || foundingissue.trim() === '') {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Missing Fields',
-                    text: 'Both fields are required and cannot be empty or whitespace.',
+                    text: 'fields are required and cannot be empty or whitespace.',
                 });
                 return;
             }
@@ -195,21 +177,20 @@
 
             $.ajax({
                 type: "POST",
-                url: '{{ route('qc_inspect_master_critical_defect_add') }}',
+                url: '{{ route('qc_inspect_master_founding_issue_add') }}',
                 data: {
                     _token: '{{ csrf_token() }}',
-                    criticalDefect: criticalDefect,
-                    pointDefect: pointDefect
+                    foundingissue: foundingissue
                 },
                 success: function(response) {
                     // Reset form and hide modal
-                    $('#addDefectForm')[0].reset();
-                    $('#addDefectModal').modal('hide');
+                    $('#addFoundingIssueForm')[0].reset();
+                    $('#addFoundingIssueModal').modal('hide');
                     dataTableReload();
                     // SweetAlert success notification
                     Swal.fire({
                         icon: 'success',
-                        title: 'Defect Added',
+                        title: 'Founding Issue Added',
                         text: response.message,
                         timer: 1500,
                         showConfirmButton: false
