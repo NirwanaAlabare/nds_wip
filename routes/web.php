@@ -784,6 +784,8 @@ Route::middleware('auth')->group(function () {
         // reset stocker
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
+
+        Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
     });
 
     // DC :
@@ -1217,6 +1219,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
         Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
         Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
+
+        Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
+        Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
+        Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
     });
 
     // Mutasi Mesin

@@ -15,6 +15,8 @@ use App\Models\LoadingLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Imports\ImportStockerManual;
+use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use DB;
 
@@ -217,5 +219,27 @@ class StockerToolsController extends Controller
         $fileName = 'STOCKER_REDUNDANT.pdf';
 
         return $pdf->download(str_replace("/", "_", $fileName));
+    }
+
+    public function importStockerManual(Request $request)
+    {
+    // validasi
+        $this->validate($request, [
+            'file' => 'required|mimes:csv,xls,xlsx'
+        ]);
+
+        $file = $request->file('file');
+
+        $nama_file = rand().$file->getClientOriginalName();
+
+        $file->move('file_upload',$nama_file);
+
+        Excel::import(new ImportStockerManual, public_path('/file_upload/'.$nama_file));
+
+        return array(
+            "status" => 200,
+            "message" => 'Data Berhasil Di Upload',
+            "additional" => [],
+        );
     }
 }
