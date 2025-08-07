@@ -450,7 +450,7 @@ class MasterLineController extends Controller
         return array(
             "status" => 400,
             "message" => "Data tidak ditemukan.",
-            "additional" => $destroyEmployeeLine,
+            "additional" => null,
         );
     }
 
