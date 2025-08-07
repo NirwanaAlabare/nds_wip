@@ -549,6 +549,7 @@ class SewingToolsController extends Controller
                     ".$styleFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput."
                     ".$missmatchDefect."
@@ -617,10 +618,18 @@ class SewingToolsController extends Controller
 
         // Callback
         $callbackFilterYs = "";
-        $callbackFilterOutput = "";
         if (!trim(str_replace("\n", "", $filterYs)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterRejectOutput)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
             $callbackFilterYs = " and DATE(ys.updated_at) > CURRENT_DATE()";
+        }
+
+        $callbackFilterOutput = "";
+        if (!trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRejectOutput))) {
             $callbackFilterOutput = " and master_plan.tgl_plan > CURRENT_DATE()";
+        }
+
+        $callbackFilterPacking = "";
+        if (!trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
+            $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
 
         ini_set("max_execution_time", 120);
@@ -774,7 +783,7 @@ class SewingToolsController extends Controller
                     where
                         output_defects.id is not null
                         ".$filterDefectPck."
-                        ".$callbackFilterOutput."
+                        ".$callbackFilterPacking."
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -801,7 +810,7 @@ class SewingToolsController extends Controller
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
                         ".$filterRftPck."
-                        ".$callbackFilterOutput."
+                        ".$callbackFilterPacking."
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -828,7 +837,7 @@ class SewingToolsController extends Controller
                     where
                         output_rejects.reject_status = 'mati'
                         ".$filterRejectPck."
-                        ".$callbackFilterOutput."
+                        ".$callbackFilterPacking."
                 ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
@@ -1135,10 +1144,18 @@ class SewingToolsController extends Controller
 
         // Callback
         $callbackFilterYs = "";
-        $callbackFilterOutput = "";
         if (!trim(str_replace("\n", "", $filterYs)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterRejectOutput)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
             $callbackFilterYs = " and DATE(ys.updated_at) > CURRENT_DATE()";
+        }
+
+        $callbackFilterOutput = "";
+        if (!trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRejectOutput))) {
             $callbackFilterOutput = " and master_plan.tgl_plan > CURRENT_DATE()";
+        }
+
+        $callbackFilterPacking = "";
+        if (!trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
+            $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
 
         $outputList ="
@@ -1290,7 +1307,7 @@ class SewingToolsController extends Controller
                     where
                         output_defects.id is not null
                         ".$filterDefectPck."
-                        ".$callbackFilterOutput."
+                        ".$callbackFilterPacking."
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1317,7 +1334,7 @@ class SewingToolsController extends Controller
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
                         ".$filterRftPck."
-                        ".$callbackFilterOutput."
+                        ".$callbackFilterPacking."
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1344,7 +1361,7 @@ class SewingToolsController extends Controller
                     where
                         output_rejects.reject_status = 'mati'
                         ".$filterRejectPck."
-                        ".$callbackFilterOutput."
+                        ".$callbackFilterPacking."
                 ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
