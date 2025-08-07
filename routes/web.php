@@ -249,6 +249,9 @@ Route::middleware('auth')->group(function () {
         // cutting items
         Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
         Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
+
+        // output
+        Route::get('/get-output', 'getOutput')->name('get-output');
     });
 
     // Worksheet
@@ -1223,6 +1226,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
         Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
+
+        Route::get('/undo-output', 'undoOutput')->name("undo-output");
+        Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
     });
 
     // Mutasi Mesin

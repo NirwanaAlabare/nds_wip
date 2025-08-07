@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Sewing;
 use App\Http\Controllers\Controller;
 use App\Models\SignalBit\SoDet;
 use App\Models\SignalBit\MasterPlan;
-use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\Rft;
-use App\Models\SignalBit\ReworkPacking;
+use App\Models\SignalBit\Defect;
+use App\Models\SignalBit\Rework;
+use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\RftPacking;
+use App\Models\SignalBit\DefectPacking;
+use App\Models\SignalBit\ReworkPacking;
+use App\Models\SignalBit\RejectPacking;
+use App\Models\SignalBit\Undo;
 use App\Models\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -1393,197 +1398,116 @@ class SewingToolsController extends Controller
         if ($request->kode_numbering) {
             $kodeNumbering = addQuotesAround($request->kode_numbering);
 
-            $kodeNumberingList = YearSequence::selectRaw("
-                year_sequence.id_year_sequence,
-                master_sb_ws.ws,
-                master_sb_ws.styleno,
-                master_sb_ws.color,
-                master_sb_ws.size,
-                master_sb_ws.dest
-            ")->
-            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
-            whereRaw("year_sequence.id_year_sequence in (".$kodeNumbering.")")->
-            get();
-
-            if ($kodeNumberingList) {
+            if ($kodeNumbering) {
                 $kodeNumberingOutput = collect(
                     DB::connection("mysql_sb")->select("
                         SELECT output.*, userpassword.username as sewing_line FROM (
-                            select created_by, kode_numbering, id, created_at, updated_at, 'rft' as status from output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
+                            select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'rft' as status from output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
                             UNION
-                            select created_by, kode_numbering, id, created_at, updated_at, defect_status as status from output_defects WHERE kode_numbering in (".$kodeNumbering.")
+                            select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, defect_status as status from output_defects WHERE kode_numbering in (".$kodeNumbering.")
                             UNION
-                            select created_by, kode_numbering, id, created_at, updated_at, reject_status as status from output_rejects WHERE reject_status = 'mati' kode_numbering in (".$kodeNumbering.")
+                            select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, reject_status as status from output_rejects WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
                         ) output
                         left join user_sb_wip on user_sb_wip.id = output.created_by
                         left join userpassword on userpassword.line_id = user_sb_wip.line_id
                     ")
                 );
 
+                $result = [];
                 foreach ($kodeNumberingOutput as $output) {
-                    switch ($output->type) {
+
+                    switch ($output->status) {
                         case 'rft' :
                             // Undo RFT
-                            $rftSql = Rft::where('master_plan_id', $this->orderInfo->id)->
-                                where('so_det_id', $this->undoSize)->
-                                where('status', 'NORMAL')->
-                                orderBy('updated_at', 'DESC')->
-                                orderBy('created_at', 'DESC')->
-                                take($this->undoQty);
+                            $rft = Rft::where('id', $output->id)->first();
 
-                            $getRfts = $rftSql->get();
+                            if ($rft) {
+                                $deleteRft = Rft::where('id', $rft->id)->delete();
 
-                            foreach ($getRfts as $getRft) {
-                                $addUndoHistory = Undo::create([
-                                    'master_plan_id' => $getRft->master_plan_id,
-                                    'so_det_id' => $getRft->so_det_id,
-                                    'output_rft_id' => $getRft->id,
-                                    'kode_numbering' => $getRft->kode_numbering,
-                                    'keterangan' => 'rft',
-                                ]);
-                            }
+                                if ($deleteRft) {
+                                    Undo::create(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft',]);
 
-                            $deleteRft = $rftSql->delete();
-
-                            if ($deleteRft)  {
-                                $this->emit('updateOutputRft');
-
-                                $this->emit('alert', 'success', 'Output RFT dengan ukuran '.$size[0]->size.' berhasil di UNDO sebanyak '.$deleteRft.' kali.');
-
-                                $this->emit('hideModal', 'undo');
-                            } else {
-                                $this->emit('alert', 'error', 'Output RFT dengan ukuran '.$size[0]->size.' gagal di UNDO.');
+                                    array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
+                                }
                             }
 
                             break;
                         case 'defect' :
                             // Undo DEFECT
-                            $defectQuery = Defect::selectRaw('output_defects.id as defect_id, output_defects.*')->
-                                leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_defects.defect_area_id')->
-                                leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_defects.defect_type_id')->
-                                where('master_plan_id', $this->orderInfo->id)->
-                                where('so_det_id', $this->undoSize)->
-                                where('defect_status', 'defect');
-                            if ($this->undoDefectType) {
-                                $defectQuery->where('output_defects.defect_type_id', $this->undoDefectType);
-                            };
-                            if ($this->undoDefectArea) {
-                                $defectQuery->where('output_defects.defect_area_id', $this->undoDefectArea);
-                            };
-                            $defectQuery->orderBy('output_defects.updated_at', 'DESC')->
-                                orderBy('output_defects.created_at', 'DESC')->
-                                take($this->undoQty);
+                            $defect = Defect::where('id', $output->id)->first();
 
-                            $getDefects = $defectQuery->get();
+                            if ($defect) {
+                                $deleteDefect = Defect::where('id', $defect->id)->delete();
 
-                            foreach ($getDefects as $getDefect) {
-                                $addUndoHistory = Undo::create([
-                                    'master_plan_id' => $getDefect->master_plan_id,
-                                    'so_det_id' => $getDefect->so_det_id,
-                                    'output_defect_id' => $getDefect->defect_id,
-                                    'kode_numbering' => $getDefect->kode_numbering,
-                                    'keterangan' => 'defect',
-                                ]);
+                                if ($deleteDefect) {
+                                    Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect',]);
 
-                                $deleteDefect = Defect::find($getDefect->id)->delete();
-                            }
-
-                            $defectTypeText = $defectType ? ' dengan defect type = '.$defectType->defect_type : '';
-                            $defectAreaText = $defectArea ? 'dengan defect area = '.$defectArea->defect_area.' ' : '';
-
-                            if ($getDefects->count() > 0) {
-                                $this->emit('updateOutputDefect');
-
-                                $this->emit('alert', 'success', 'Output DEFECT dengan ukuran '.$size[0]->size.''.$defectTypeText.' '.$defectAreaText.'berhasil di UNDO sebanyak '.$getDefects->count().' kali.');
-
-                                $this->emit('hideModal', 'undo');
-                            } else {
-                                $this->emit('alert', 'error', 'Output DEFECT dengan ukuran '.$size[0]->size.''.$defectTypeText.' '.$defectAreaText.'gagal di UNDO.');
+                                    array_push($result, "DEFECT '".$defect->kode_numbering."' -> DELETED");
+                                }
                             }
 
                             break;
-                        case 'reject' :
-                            $defectIds = [];
+                        case 'rejected' :
+                            // Undo Reject
+                            $defect = Defect::where('id', $output->id)->first();
 
-                            // Undo REJECT
-                            $rejectSql = Reject::where('master_plan_id', $this->orderInfo->id)->
-                                where('so_det_id', $this->undoSize)->
-                                orderBy('updated_at', 'DESC')->
-                                orderBy('created_at', 'DESC')->
-                                take($this->undoQty);
+                            if ($defect) {
+                                $reject = Reject::where('defect_id', $defect->id)->first();
 
-                            $getRejects = $rejectSql->get();
+                                if ($reject) {
+                                    $deleteReject = Reject::where("id", $reject->id)->delete();
 
-                            foreach ($getRejects as $reject) {
-                                $addUndoHistory = Undo::create([
-                                    'master_plan_id' => $reject->master_plan_id,
-                                    'so_det_id' => $reject->so_det_id,
-                                    'output_reject_id' => $reject->id,
-                                    'kode_numbering' => $reject->kode_numbering,
-                                    'keterangan' => 'reject',
-                                ]);
+                                    if ($deleteReject) {
+                                        Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'defect-reject',]);
 
-                                array_push($defectIds, $reject->defect_id);
+                                        Defect::where('id', $defect->id)->update([
+                                            "defect_status" => "defect"
+                                        ]);
+
+                                        array_push($result, "REJECT '".$reject->kode_numbering."' -> DEFECT");
+                                    }
+                                }
                             }
 
-                            $deleteReject = $rejectSql->delete();
+                            break;
+                        case 'reworked' :
+                            // Undo REWORK
+                            $defect = Defect::where('id', $output->id)->first();
 
-                            $updateDefect = Defect::whereIn('id', $defectIds)->update(['defect_status' => 'defect']);
+                            $rework = Rework::where('defect_id', $defect->id)->first();
+
+                            $deleteRework = Rework::where('id', $rework->id)->delete();
+
+                            if ($deleteRework) {
+                                Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework',]);
+
+                                Defect::where('id', $defect->id)->update([
+                                    "defect_status" => "defect"
+                                ]);
+
+                                Rft::where("rework_id", $rework->id)->delete();
+
+                                array_push($result, "REWORK '".$defect->kode_numbering."' -> DEFECT");
+                            }
+
+                            break;
+                        case 'mati' :
+                            // Undo REWORK
+                            $reject = Reject::where('id', $output->id)->first();
+
+                            $deleteReject = Reject::where('id', $reject->id)->delete();
 
                             if ($deleteReject) {
-                                $this->emit('updateOutputReject');
+                                Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject',]);
 
-                                $this->emit('alert', 'success', 'Output REJECT dengan ukuran '.$size[0]->size.' berhasil di UNDO sebanyak '.$deleteReject.' kali.');
-
-                                $this->emit('hideModal', 'undo');
-                            } else {
-                                $this->emit('alert', 'error', 'Output REJECT dengan ukuran '.$size[0]->size.' gagal di UNDO.');
-                            }
-
-                            break;
-                        case 'rework' :
-                            // Undo REWORK
-                            $defectQuery = Defect::selectRaw('output_defects.id as defect_id, output_defects.*')->
-                                leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_defects.defect_area_id')->
-                                leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_defects.defect_type_id')->
-                                where('master_plan_id', $this->orderInfo->id)->
-                                where('so_det_id', $this->undoSize)->
-                                where('defect_status', 'reworked');
-                            if ($this->undoDefectType) {
-                                $defectQuery->where('output_defects.defect_type_id', $this->undoDefectType);
-                            }
-                            if ($this->undoDefectArea) {
-                                $defectQuery->where('output_defects.defect_area_id', $this->undoDefectArea);
-                            }
-                            $getDefects = $defectQuery->orderBy('output_defects.updated_at', 'DESC')->
-                                orderBy('output_defects.created_at', 'DESC')->
-                                limit($this->undoQty)->
-                                get();
-
-                            // update defect & delete rework
-                            foreach ($getDefects as $defect) {
-                                Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_rework_id' => $defect->rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'rework',]);
-                                Defect::where('id', $defect->defect_id)->update(['defect_status' => 'defect']);
-                                Rft::leftJoin('output_reworks', 'output_reworks.id', '=', 'output_rfts.rework_id')->where('output_reworks.defect_id', $defect->defect_id)->delete();
-                                Rework::where('defect_id', $defect->defect_id)->delete();
-                            }
-
-                            $defectTypeText = $defectType ? ' dengan defect type = '.$defectType->defect_type : '';
-                            $defectAreaText = $defectArea ? 'dengan defect area = '.$defectArea->defect_area.' ' : '';
-
-                            if ($getDefects->count() > 0) {
-                                $this->emit('updateOutputRework');
-
-                                $this->emit('alert', 'success', 'Output REWORK dengan ukuran '.$size[0]->size.''.$defectTypeText.' '.$defectAreaText.'berhasil di UNDO sebanyak '.$getDefects->count().' kali.');
-
-                                $this->emit('hideModal', 'undo');
-                            } else {
-                                $this->emit('alert', 'error', 'Output REWORK dengan ukuran '.$size[0]->size.''.$defectTypeText.' '.$defectAreaText.'gagal di UNDO.');
+                                array_push($result, "REJECT '".$defect->kode_numbering."' -> DELETED");
                             }
 
                             break;
                     }
                 }
+
+                return $result;
             }
         }
     }
