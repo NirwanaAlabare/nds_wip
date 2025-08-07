@@ -42,7 +42,10 @@
                                     <th scope="col" class="text-center align-middle">Lot</th>
                                     <th scope="col" class="text-center align-middle">No. Roll</th>
                                     <th scope="col" class="text-center align-middle">Point / Max Point</th>
-                                    <th scope="col" class="text-center align-middle">Result</th>
+                                    <th scope="col" class="text-center align-middle">Visual Defect Result</th>
+                                    <th scope="col" class="text-center align-middle">Short Roll Result</th>
+                                    <th scope="col" class="text-center align-middle">Founding Issue Result</th>
+                                    <th scope="col" class="text-center align-middle">Final Result</th>
                                     <th scope="col" class="text-center align-middle">Note</th>
                                     <th scope="col" class="text-center align-middle">Status</th>
                                     <th scope="col" class="text-center align-middle">Proses</th>
@@ -74,8 +77,8 @@
 
                         <div class="mb-3">
                             <label class="form-label" for="photoInput">Upload / Capture Blanket Photo</label>
-                            <input type="file" name="photo" accept="image/*" capture="environment" class="form-control"
-                                id="photoInput" required>
+                            <input type="file" name="photo" accept="image/*" capture="environment"
+                                class="form-control" id="photoInput" required>
                         </div>
 
                         <div class="mb-3">
@@ -94,6 +97,19 @@
                                 <option value="5">5</option>
                             </select>
                         </div>
+
+                        <!-- Conditional Checkbox for REJECT Override -->
+                        <div class="mb-3" id="passCheckboxContainer" style="display: none;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="passCheckbox"
+                                    name="pass">
+                                <label class="form-check-label" for="passCheckbox">
+                                    Pass With Condition
+                                </label>
+                            </div>
+                        </div>
+
+
 
                         <!-- Result (PASS/REJECT) -->
                         <div class="mb-3">
@@ -242,7 +258,12 @@
                                 <th scope="col">Proses</th>
                                 <th scope="col">Shipment Point</th>
                                 <th scope="col">Max Shipment Point</th>
-                                <th scope="col">Result</th>
+                                <th scope="col">Visual Defect Result</th>
+                                <th scope="col">Max Width Short Roll</th>
+                                <th scope="col">Max Length Short Roll</th>
+                                <th scope="col">Founding Issue</th>
+                                <th scope="col">Blanket Result</th>
+                                <th scope="col">Final Inspect Result</th>
                                 <th scope="col">Blanket</th>
                                 <th scope="col">Act</th>
                             </tr>
@@ -253,6 +274,11 @@
                                 <th></th> <!-- For Jml Roll total -->
                                 <th></th> <!-- For Jml Roll (Cek) total -->
                                 <th></th> <!-- For Total Form total -->
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -296,12 +322,18 @@
                                     <th>Proses</th>
                                     <th>Shipment Point</th>
                                     <th>Max Shipment Point</th>
-                                    <th>Result</th>
+                                    <th>Visual Defect Result</th>
+                                    <th>Max Width Short Roll</th>
+                                    <th>Max Length Short Roll</th>
+                                    <th>Founding Issue</th>
                                 </tr>
                             </thead>
                             <tfoot>
                                 <tr class="text-end">
                                     <th>Total</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -340,12 +372,18 @@
                                     <th>Proses</th>
                                     <th>Shipment Point</th>
                                     <th>Max Shipment Point</th>
-                                    <th>Result</th>
+                                    <th>Visual Defect Result</th>
+                                    <th>Max Width Short Roll</th>
+                                    <th>Max Length Short Roll</th>
+                                    <th>Founding Issue</th>
                                 </tr>
                             </thead>
                             <tfoot>
                                 <tr class="text-end">
                                     <th>Total</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -418,14 +456,6 @@
                 show_inspect_kedua();
             });
 
-            $('#rateSelect').on('change', function() {
-                const rate = parseFloat($(this).val());
-                const result = rate >= 4 ? 'PASS' : 'REJECT';
-                $('#rateResult').val(result);
-            });
-
-
-
         })
 
         function calculate() {
@@ -482,7 +512,31 @@
                         data: 'max_shipment'
                     },
                     {
-                        data: 'result'
+                        data: 'result',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'max_width_short_roll',
+                        className: 'text-center',
+                        render: function(data) {
+                            return parseFloat(data).toFixed(2); // force 2 decimal digits
+                        }
+                    },
+                    {
+                        data: 'max_length_short_roll',
+                        className: 'text-center',
+                        render: function(data) {
+                            return parseFloat(data).toFixed(2); // force 2 decimal digits
+                        }
+                    },
+                    {
+                        data: 'list_founding_issue'
+                    },
+                    {
+                        data: 'result_blanket'
+                    },
+                    {
+                        data: 'final_result'
                     },
                     {
                         data: 'photo'
@@ -743,6 +797,17 @@
             reader.readAsDataURL(file);
         });
 
+        $('#ModalBlanket').on('show.bs.modal', function() {
+            // Clear checkbox and hide it
+            $('#passCheckbox').prop('checked', false);
+            $('#passCheckboxContainer').hide();
+
+            // Reset rate select and result
+            $('#rateSelect').val('');
+            $('#rateResult').val('');
+        });
+
+
         $('#ModalBlanket').on('hidden.bs.modal', function() {
             $('#blanketUploadForm')[0].reset();
             $('#photoPreview').empty(); // clear image preview
@@ -909,6 +974,25 @@
                 },
                 {
                     data: 'result',
+                    className: 'text-center',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
+                },
+                {
+                    data: 'short_roll_result',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
+                },
+                {
+                    data: 'founding_issue_result',
+                    render: function(data) {
+                        return data ? data.toUpperCase() : '';
+                    }
+                },
+                {
+                    data: 'final_result',
                     render: function(data) {
                         return data ? data.toUpperCase() : '';
                     }
@@ -1056,7 +1140,25 @@
                         data: 'max_shipment'
                     },
                     {
-                        data: 'result'
+                        data: 'result',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'max_width_short_roll',
+                        className: 'text-center',
+                        render: function(data) {
+                            return parseFloat(data).toFixed(2); // force 2 decimal digits
+                        }
+                    },
+                    {
+                        data: 'max_length_short_roll',
+                        className: 'text-center',
+                        render: function(data) {
+                            return parseFloat(data).toFixed(2); // force 2 decimal digits
+                        }
+                    },
+                    {
+                        data: 'list_founding_issue'
                     },
                 ],
 
@@ -1152,7 +1254,25 @@
                         data: 'max_shipment'
                     },
                     {
-                        data: 'result'
+                        data: 'result',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'max_width_short_roll',
+                        className: 'text-center',
+                        render: function(data) {
+                            return parseFloat(data).toFixed(2); // force 2 decimal digits
+                        }
+                    },
+                    {
+                        data: 'max_length_short_roll',
+                        className: 'text-center',
+                        render: function(data) {
+                            return parseFloat(data).toFixed(2); // force 2 decimal digits
+                        }
+                    },
+                    {
+                        data: 'list_founding_issue'
                     },
                 ],
 
@@ -1239,5 +1359,39 @@
                 }
             });
         }
+
+        function updateResult() {
+            const rate = parseFloat($('#rateSelect').val());
+            let result = rate >= 4 ? 'PASS' : 'REJECT';
+
+            // Update result field
+            $('#rateResult').val(result);
+
+            // Show/hide checkbox based on REJECT
+            if (result === 'REJECT') {
+                $('#passCheckboxContainer').show();
+            } else {
+                $('#passCheckboxContainer').hide();
+                $('#passCheckbox').prop('checked', false);
+            }
+        }
+
+        // On rate change
+        $('#rateSelect').on('change', function() {
+            updateResult();
+        });
+
+        // On checkbox change
+        $('#passCheckbox').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            const originalRate = parseFloat($('#rateSelect').val());
+            const defaultResult = originalRate >= 4 ? 'PASS' : 'REJECT';
+
+            if (isChecked) {
+                $('#rateResult').val('PASS WITH CONDITION');
+            } else {
+                $('#rateResult').val(defaultResult);
+            }
+        });
     </script>
 @endsection

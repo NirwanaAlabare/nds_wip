@@ -1165,6 +1165,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Critical Defect
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc_inspect_master_founding_issue_show') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-master-founding-issue' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Founding Issue
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
