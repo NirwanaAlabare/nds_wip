@@ -338,7 +338,7 @@ class CuttingFormRejectController extends Controller
             where("form_cut_reject.id", $id)->
             first();
 
-        if (!$stocker) {
+        if (!$stocker || (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
             $deleteFormCutReject = FormCutReject::where("id", $id)->delete();
 
             if ($deleteFormCutReject) {

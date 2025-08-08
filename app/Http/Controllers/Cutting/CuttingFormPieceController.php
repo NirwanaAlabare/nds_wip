@@ -637,10 +637,16 @@ class CuttingFormPieceController extends Controller
                         if (count($currentCutPieceDetailSizeIds) > 0) {
                             array_push($formCutPieceDetailSizeIds, ...$currentCutPieceDetailSizeIds);
                         }
+
+                        // Update Scanned Item
+                        ScannedItem::where("id_roll", $d->id_roll)->update([
+                            "qty" => DB::raw("qty + ".$d->qty_pemakaian),
+                            "qty_pakai" => DB::raw("qty_pakai - ".$d->qty_pemakaian),
+                        ]);
                     }
 
-                    $deleteFormCutPieceDetail = FormCutPieceDetail::whereIn("form_id", $formCutPieceDetailIds)->delete();
-                    $deleteFormCutPieceDetailSize = FormCutPieceDetailSize::whereIn("form_detail_id", $formCutPieceDetailSizeIds)->delete();
+                    FormCutPieceDetail::whereIn("id", $formCutPieceDetailIds)->delete();
+                    FormCutPieceDetailSize::whereIn("id", $formCutPieceDetailSizeIds)->delete();
                 }
 
                 return array(
