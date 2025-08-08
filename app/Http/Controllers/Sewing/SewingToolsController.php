@@ -634,6 +634,126 @@ class SewingToolsController extends Controller
 
         ini_set("max_execution_time", 120);
 
+        $outputQuery = DB::connection("mysql_sb")->select("
+            SELECT
+                DISTINCT kode_numbering
+            FROM (
+                -- Output defects
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output RFT
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output rejects
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output defects packing
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects_packing AS output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_defects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output RFT packing
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts_packing AS output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rfts.created_by
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output rejects packing
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects_packing AS output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectPck}
+                    {$callbackFilterPacking}
+            ) AS kode_list
+        ");
+
+        $kodeList = "'none'";
+        if (count($outputQuery) > 0) {
+            $kodeList = addQuotesAround(implode("\n", array_column($outputQuery, 'kode_numbering')));
+        }
+
         $outputList = DB::connection("mysql_sb")->select("
             select
                 COALESCE(output.kode_numbering, output_packing.kode_numbering, id_year_sequence) kode,
@@ -698,8 +818,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -726,8 +845,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -754,8 +872,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 ) output ON output.kode_numbering = ys.id_year_sequence
                 left join (
                     select
@@ -782,8 +899,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectPck."
-                        ".$callbackFilterPacking."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -809,8 +925,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftPck."
-                        ".$callbackFilterPacking."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -836,8 +951,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectPck."
-                        ".$callbackFilterPacking."
+                        and kode_numbering in (".$kodeList.")
                 ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
@@ -1158,6 +1272,126 @@ class SewingToolsController extends Controller
             $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
 
+        $outputQuery = DB::connection("mysql_sb")->select("
+            SELECT
+                DISTINCT kode_numbering
+            FROM (
+                -- Output defects
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output RFT
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output rejects
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output defects packing
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects_packing AS output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_defects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output RFT packing
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts_packing AS output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rfts.created_by
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output rejects packing
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects_packing AS output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectPck}
+                    {$callbackFilterPacking}
+            ) AS kode_list
+        ");
+
+        $kodeList = "'none'";
+        if (count($outputQuery) > 0) {
+            $kodeList = addQuotesAround(implode("\n", array_column($outputQuery, 'kode_numbering')));
+        }
+
         $outputList ="
             select
                 COALESCE(output.kode_numbering, output_packing.kode_numbering, id_year_sequence) kode,
@@ -1222,8 +1456,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1250,8 +1483,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1278,8 +1510,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 ) output ON output.kode_numbering = ys.id_year_sequence
                 left join (
                     select
@@ -1306,8 +1537,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectPck."
-                        ".$callbackFilterPacking."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1333,8 +1563,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftPck."
-                        ".$callbackFilterPacking."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1360,8 +1589,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectPck."
-                        ".$callbackFilterPacking."
+                        and kode_numbering in (".$kodeList.")
                 ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
