@@ -2770,7 +2770,7 @@ class StockerController extends Controller
                         } else if (!isset($sizeRangeAkhir[$stocker->so_det_id])) {
                             $rangeAwal =  1;
                             $sizeRangeAkhir->put($stocker->so_det_id, $lembarGelaran);
-                        }   
+                        }
                     }
 
                     $stocker->so_det_id && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
@@ -5559,6 +5559,28 @@ class StockerController extends Controller
         $fileName = 'stocker-' . $id . '.pdf';
 
         return $pdf->download(str_replace("/", "_", $fileName));
+    }
+
+    public function separateStocker(Request $request) {
+        $validatedRequest = $request->validate([
+            "form_cut_id" => "required",
+            "no_form" => "required",
+        ]);
+
+        if ($validatedRequest) {
+            for ($i = 0; $i < count($request["separate_qty"]); $i++) {
+                if (count($request["separate_qty"][$j])) {
+                    SeparateStocker::create([
+                        "form_cut_id" => $validatedRequest["form_cut_id"],
+                        "form_cut_id" => $validatedRequest["form_cut_id"],
+                    ]);
+
+                    for ($j = 0; $i < count($request["separate_qty"][$j]); $j++) {
+
+                    }
+                }
+            }
+        }
     }
 
     // public function printMonthCountChecked(Request $request) {

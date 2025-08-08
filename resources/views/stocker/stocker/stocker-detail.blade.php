@@ -48,6 +48,9 @@
                 </div>
             </div>
             <div class="d-flex justify-content-end gap-3 mb-3">
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#separate-qty-modal">
+                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Separate
+                </button>
                 <button type="button" class="btn btn-success btn-sm" onclick="countStockerUpdate()">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> No. Stocker
                 </button>
@@ -59,6 +62,7 @@
                 </button>
             </div>
             <form action="#" method="post" id="stocker-form">
+                {{-- Stocker --}}
                 <div class="row mb-3">
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
@@ -332,6 +336,7 @@
                         </div>
                     </div>
                 </div>
+                {{-- Additional Stocker --}}
                 <div class="mb-5">
                     <h5 class="text-sb-secondary fw-bold mb-3 ps-1">Additional Stocker</h5>
                     <div class="card">
@@ -551,6 +556,8 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Numbering --}}
                 <div class="mb-5">
                     <h5 class="fw-bold mb-3 ps-1">Print Numbering</h5>
                     <div class="table-responsive">
@@ -661,6 +668,7 @@
         </div>
     </div>
 
+    {{-- Modify Size Qty --}}
     <div class="modal" tabindex="-1" id="size-qty-modal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -730,6 +738,7 @@
         </div>
     </div>
 
+    {{-- Additional Modal --}}
     <div class="modal" id="additional-modal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -827,6 +836,199 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Tutup</button>
                     <button type="button" class="btn btn-success" onclick="submitAdditionalStocker()"><i class="fa-solid fa-save fa-sm"></i> Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Separate Stocker Qty --}}
+    <div class="modal" tabindex="-1" id="separate-qty-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h5 class="modal-title"><i class="fa-solid fa-expand"></i> Separate Qty</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="#" method="post" id="separate-qty-form">
+                        @php
+                            $indexSeparate = 0;
+
+                            $currentGroupSeparate = "";
+                            $currentGroupStockerSeparate = 0;
+                            $currentTotalSeparate = 0;
+                            $currentBeforeSeparate = 0;
+                        @endphp
+                        @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                            @if (!$detail->group_stocker)
+                            {{-- Without group stocker condition --}}
+
+                                @if ($loop->first)
+                                {{-- Initial group --}}
+                                    @php
+                                        $currentGroupSeparate = $detail->group_roll;
+                                        $currentGroupStockerSeparate = $detail->group_stocker;
+                                    @endphp
+                                @endif
+
+                                @if ($detail->group_roll != $currentGroupSeparate)
+                                    {{-- Create element when switching group --}}
+                                    <div class="d-flex gap-3">
+                                        <div class="mb-3">
+                                            <label><small>Group</small></label>
+                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroupSeparate }}" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label><small>Qty</small></label>
+                                            <input type="text" class="form-control form-control-sm" value="{{ $currentTotalSeparate }}" readonly>
+                                        </div>
+                                    </div>
+
+                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                    @php
+                                        $indexSeparate += $dataRatioSeparate->count();
+                                    @endphp
+
+                                    {{-- Change initial group --}}
+                                    @php
+                                        $currentBeforeSeparate += $currentTotal;
+
+                                        $currentGroupSeparate = $detail->group_roll;
+                                        $currentGroupStockerSeparate = $detail->group_stocker;
+                                        $currentTotalSeparate = $detail->lembar_gelaran;
+                                    @endphp
+
+                                    @if ($loop->last)
+                                        {{-- Create last element when it comes to an end of this loop --}}
+                                        <div class="d-flex gap-3">
+                                            <div class="mb-3">
+                                                <label><small>Group</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroupSeparate }}" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label><small>Qty</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotalSeparate }}" readonly>
+                                            </div>
+                                        </div>
+
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @php
+                                            $indexSeparate += $dataRatioSeparate->count();
+                                        @endphp
+                                    @endif
+                                @else
+                                    {{-- Accumulate when it still in the same group --}}
+                                    @php
+                                        $currentTotalSeparate += $detail->lembar_gelaran;
+                                    @endphp
+
+                                    {{-- Create last element when it comes to an end of this loop --}}
+                                    @if ($loop->last)
+                                        <div class="d-flex gap-3">
+                                            <div class="mb-3">
+                                                <label><small>Group</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroupSeparate }}" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label><small>Qty</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotalSeparate }}" readonly>
+                                            </div>
+                                        </div>
+
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @php
+                                            $indexSeparate += $dataRatioSeparate->count();
+                                        @endphp
+                                    @endif
+                                @endif
+                            @else
+                            {{-- With group stocker condition --}}
+
+                                @if ($loop->first)
+                                {{-- Initial Group --}}
+                                    @php
+                                        $currentGroupSeparate = $detail->group_roll;
+                                        $currentGroupStockerSeparate = $detail->group_stocker;
+                                    @endphp
+                                @endif
+
+                                @if ($detail->group_stocker != $currentGroupStockerSeparate)
+                                    {{-- Create element when switching group --}}
+                                    <div class="d-flex gap-3">
+                                        <div class="mb-3">
+                                            <label><small>Group</small></label>
+                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroupSeparate }}" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label><small>Qty</small></label>
+                                            <input type="text" class="form-control form-control-sm" value="{{ $currentTotalSeparate }}" readonly>
+                                        </div>
+                                    </div>
+
+                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                    @php
+                                        $indexSeparate += $dataRatioSeparate->count();
+                                    @endphp
+
+                                    {{-- Change initial group --}}
+                                    @php
+                                        $currentBeforeSeparate += $currentTotalSeparate;
+
+                                        $currentGroupSeparate = $detail->group_roll;
+                                        $currentGroupStockerSeparate = $detail->group_stocker;
+                                        $currentTotalSeparate = $detail->lembar_gelaran;
+                                    @endphp
+
+                                    {{-- Create last element when it comes to an end of this loop --}}
+                                    @if ($loop->last)
+                                        <div class="d-flex gap-3">
+                                            <div class="mb-3">
+                                                <label><small>Group</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroupSeparate }}" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label><small>Qty</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotalSeparate }}" readonly>
+                                            </div>
+                                        </div>
+
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @php
+                                            $indexSeparate += $dataRatioSeparate->count();
+                                        @endphp
+                                    @endif
+                                @else
+                                    {{-- Accumulate when it still in the group --}}
+                                    @php
+                                        $currentTotalSeparate += $detail->lembar_gelaran;
+                                    @endphp
+
+                                    @if ($loop->last)
+                                    {{-- Create last element when it comes to an end of this loop --}}
+                                        <div class="d-flex gap-3">
+                                            <div class="mb-3">
+                                                <label><small>Group</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroupSeparate }}" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label><small>Qty</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotalSeparate }}" readonly>
+                                            </div>
+                                        </div>
+
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @php
+                                            $indexSeparate += $dataRatio->count();
+                                        @endphp
+                                    @endif
+                                @endif
+                            @endif
+                        @endforeach
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Tutup</button>
+                    <button type="button" class="btn btn-success" onclick="submitSeparate()"><i class="fa-solid fa-save fa-sm"></i> Simpan</button>
                 </div>
             </div>
         </div>
@@ -2022,6 +2224,144 @@
             if (url) {
                 window.location.href = url;
             }
+        }
+
+        function addSeparatePart(index) {
+            let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
+            let targetQty = parseInt(wrapper.dataset.qty);
+
+            // Create new input
+            let input = document.createElement("input");
+            input.type = "number";
+            input.className = "form-control form-control-sm separate-part";
+            input.name = `separate_qty[${index}][]`;
+            input.onkeyup = () => validateSeparateSum(index);
+
+            wrapper.appendChild(input);
+            redistributeEvenly(wrapper, targetQty);
+        }
+
+        function removeSeparatePart(index) {
+            let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
+            let targetQty = parseInt(wrapper.dataset.qty);
+
+            if (wrapper.children.length > 1) {
+                wrapper.removeChild(wrapper.lastChild);
+                redistributeEvenly(wrapper, targetQty);
+            }
+        }
+
+        function redistributeEvenly(wrapper, targetQty) {
+            let parts = wrapper.querySelectorAll(".separate-part");
+            let count = parts.length;
+            let base = Math.floor(targetQty / count);
+            let remainder = targetQty % count;
+
+            parts.forEach((input, i) => {
+                input.value = base + (i < remainder ? 1 : 0);
+            });
+
+            validateSeparateSum(wrapper.id.replace("separate_qty_wrapper_", ""));
+        }
+
+        function validateSeparateSum(index) {
+            let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
+            let targetQty = parseInt(wrapper.dataset.qty);
+            let sum = 0;
+
+            wrapper.querySelectorAll(".separate-part").forEach(input => {
+                sum += parseInt(input.value) || 0;
+            });
+
+            let note = document.getElementById(`separate_qty_note_${index}`);
+            if (sum === targetQty) {
+                note.textContent = `✔ Total OK (${sum})`;
+                note.style.color = "green";
+            } else {
+                note.textContent = `✘ Total ${sum} (qty awal : ${targetQty})`;
+                note.style.color = "red";
+            }
+        }
+
+        function submitSeparate() {
+            Swal.fire({
+                icon: 'question',
+                title: 'Konfirmasi',
+                text: 'Apakah Anda yakin ingin memisahkan stocker ini?',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Pisahkan',
+                cancelButtonText: 'Tidak',
+            }).then(result => {
+                if (result.isConfirmed) {
+                    separateStocker();
+                }
+            });
+        }
+
+        function separateStocker() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Modifying Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            let separateQtyForm = new FormData(document.getElementById("separate-qty-form"));
+            separateQtyForm.append("form_cut_id", document.getElementById("form_cut_id").value);
+            separateQtyForm.append("no_form", document.getElementById("no_form_cut").value);
+
+            return $.ajax({
+                url: '{{ route('separate-stocker') }}',
+                type: 'post',
+                data: separateQtyForm,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res) {
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Pemisahan Stocker Berhasil disimpan.',
+                                html: res.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: (res.status == 200 ? 5000 : 3000),
+                                timerProgressBar: true
+                            }).then(() => {
+                                if (isNotNull(res.redirect)) {
+                                    if (res.redirect != 'reload') {
+                                        location.href = res.redirect;
+                                    } else {
+                                        location.reload();
+                                    }
+                                } else {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            iziToast.error({
+                                title: 'error',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        }
+                    }
+
+                    swal.close();
+                },
+                error: function(jqXHR) {
+                    iziToast.error({
+                        title: 'error',
+                        message: jqXHR.responseText,
+                        position: 'topCenter'
+                    });
+
+                    swal.close();
+                }
+            });
         }
     </script>
 @endsection

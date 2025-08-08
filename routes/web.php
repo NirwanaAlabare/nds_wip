@@ -777,6 +777,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker-reject-all-size/{partDetailId?}', 'printStockerRejectAllSize')->name('print-stocker-reject-all-size');
         Route::post('/print-stocker-reject-checked', 'printStockerRejectChecked')->name('print-stocker-reject-checked');
         Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
+
+        // separate stocker
+        Route::post('/separate-stocker', 'separateStocker')->name('separate-stocker');
     });
 
     // Stocker Tools
