@@ -66,8 +66,13 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             join(DB::raw("(
                 SELECT
                     master_plan.id_ws,
-                    rfts.master_plan_id,
-                    userpassword.username sewing_line
+                    userpassword.username sewing_line,
+                    coalesce( date( rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                    max( rfts.updated_at ) last_rft,
+                    count( rfts.id ) rft,
+                    master_plan.id master_plan_id,
+                    master_plan.id_ws master_plan_id_ws
+                    ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                 FROM
                     output_rfts".$this->outputType." rfts
                     INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
@@ -85,21 +90,23 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                     ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
                 GROUP BY
                     master_plan.id_ws,
+                    master_plan.color,
                     DATE ( rfts.updated_at ),
                     COALESCE ( userpassword.username, master_plan.sewing_line )
                     ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
-            ) as rfts"), function ($join) {
+                ) as rfts
+             "), function ($join) {
                 $join->on("rfts.master_plan_id", "=", "master_plan.id");
             });
             if ($this->groupBy == "size") {
                 $orderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
             }
-            // if ($this->dateFrom) {
-            //     $orderGroupSql->where('master_plan.tgl_plan', '>=', $this->dateFrom);
-            // }
-            // if ($this->dateTo) {
-            //     $orderGroupSql->where('master_plan.tgl_plan', '<=', $this->dateTo);
-            // }
+            if ($this->dateFrom) {
+                $orderGroupSql->where('rfts.tanggal', '>=', $this->dateFrom);
+            }
+            if ($this->dateTo) {
+                $orderGroupSql->where('rfts.tanggal', '<=', $this->dateTo);
+            }
 
             if ($this->order) {
                 $orderGroupSql->
@@ -161,6 +168,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
                     GROUP BY
                         master_plan.id_ws,
+                        master_plan.color,
                         DATE ( rfts.updated_at ),
                         COALESCE ( userpassword.username, master_plan.sewing_line )
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
