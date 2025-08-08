@@ -341,6 +341,11 @@
 
                     select.innerHTML = "";
 
+                    let initialOption = document.createElement("option");
+                    initialOption.value = "";
+                    initialOption.innerHTML = "ALL";
+                    select.appendChild(initialOption);
+
                     for (let i=0; i < res.length; i++) {
                         let newOption = document.createElement("option");
                         newOption.value = res[i].color;
@@ -416,7 +421,7 @@
             scrollY: '400px',
             data: function(d) {
                 d.buyer = $('#buyer').val();
-                d.ws = $('#ws option:selected').text();
+                d.ws = $('#ws').val();
                 d.style = $('#style option:selected').text();
                 d.color = $('#color').val();
                 d.size = $('#size').val();
@@ -529,7 +534,7 @@
             type: "post",
             data: {
                 buyer : $('#buyer').val(),
-                ws : $('#ws option:selected').text(),
+                ws : $('#ws').val(),
                 style : $('#style option:selected').text(),
                 color : $('#color').val(),
                 size : $('#size').val(),

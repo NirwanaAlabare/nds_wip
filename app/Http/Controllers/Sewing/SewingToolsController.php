@@ -341,8 +341,8 @@ class SewingToolsController extends Controller
         $wsFilterYs = "";
         $wsFilterOutput = "";
         if ($request->ws) {
-            $wsFilterYs = " and msb.ws = '".$request->ws."'";
-            $wsFilterOutput = " and act_costing.kpno = '".$request->ws."'";
+            $wsFilterYs = " and msb.id_act_cost = '".$request->ws."'";
+            $wsFilterOutput = " and act_costing.id = '".$request->ws."'";
         }
 
         $styleFilterYs = "";
@@ -352,11 +352,11 @@ class SewingToolsController extends Controller
             $styleFilterOutput = " and act_costing.styleno = '".$request->style."'";
         }
 
-        $styleFilterYs = "";
-        $styleFilterOutput = "";
+        $colorFilterYs = "";
+        $colorFilterOutput = "";
         if ($request->color) {
-            $styleFilterYs = " and msb.color = '".$request->color."'";
-            $styleFilterOutput = " and so_det.color = '".$request->color."'";
+            $colorFilterYs = " and msb.color = '".$request->color."'";
+            $colorFilterOutput = " and so_det.color = '".$request->color."'";
         }
 
         $sizeFilterYs = "";
@@ -364,8 +364,8 @@ class SewingToolsController extends Controller
         if ($request->size && count($request->size) > 0) {
             $sizeList = addQuotesAround(implode("\n", $request->size));
 
-            $sizeFilterYs = " and msb.color in (".$sizeList.")";
-            $sizeFilterOutput = " and so_det.color in (".$sizeList.")";
+            $sizeFilterYs = " and msb.id_so_det in (".$sizeList.")";
+            $sizeFilterOutput = " and so_det.id in (".$sizeList.")";
         }
 
         $kodeFilterYs = "";
@@ -537,7 +537,7 @@ class SewingToolsController extends Controller
         $filterYs = $buyerFilterYs."
                     ".$wsFilterYs."
                     ".$styleFilterYs."
-                    ".$styleFilterYs."
+                    ".$colorFilterYs."
                     ".$sizeFilterYs."
                     ".$kodeFilterYs;
 
@@ -547,6 +547,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -560,6 +561,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -571,6 +573,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -584,6 +587,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -597,6 +601,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -608,6 +613,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -982,8 +988,8 @@ class SewingToolsController extends Controller
         $wsFilterYs = "";
         $wsFilterOutput = "";
         if ($request->ws) {
-            $wsFilterYs = " and msb.ws = '".$request->ws."'";
-            $wsFilterOutput = " and act_costing.kpno = '".$request->ws."'";
+            $wsFilterYs = " and msb.id_act_cost = '".$request->ws."'";
+            $wsFilterOutput = " and act_costing.id = '".$request->ws."'";
         }
 
         $styleFilterYs = "";
@@ -993,11 +999,11 @@ class SewingToolsController extends Controller
             $styleFilterOutput = " and act_costing.styleno = '".$request->style."'";
         }
 
-        $styleFilterYs = "";
-        $styleFilterOutput = "";
+        $colorFilterYs = "";
+        $colorFilterOutput = "";
         if ($request->color) {
-            $styleFilterYs = " and msb.color = '".$request->color."'";
-            $styleFilterOutput = " and so_det.color = '".$request->color."'";
+            $colorFilterYs = " and msb.color = '".$request->color."'";
+            $colorFilterOutput = " and so_det.color = '".$request->color."'";
         }
 
         $sizeFilterYs = "";
@@ -1005,8 +1011,8 @@ class SewingToolsController extends Controller
         if ($request->size && count($request->size) > 0) {
             $sizeList = addQuotesAround(implode("\n", $request->size));
 
-            $sizeFilterYs = " and msb.color in (".$sizeList.")";
-            $sizeFilterOutput = " and so_det.color in (".$sizeList.")";
+            $sizeFilterYs = " and msb.id_so_det in (".$sizeList.")";
+            $sizeFilterOutput = " and so_det.id in (".$sizeList.")";
         }
 
         $kodeFilterYs = "";
@@ -1178,7 +1184,7 @@ class SewingToolsController extends Controller
         $filterYs = $buyerFilterYs."
                     ".$wsFilterYs."
                     ".$styleFilterYs."
-                    ".$styleFilterYs."
+                    ".$colorFilterYs."
                     ".$sizeFilterYs."
                     ".$kodeFilterYs;
 
@@ -1188,8 +1194,10 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput."
                     ".$missmatchDefect."
@@ -1200,6 +1208,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -1211,6 +1220,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -1224,6 +1234,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -1237,6 +1248,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -1248,6 +1260,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
