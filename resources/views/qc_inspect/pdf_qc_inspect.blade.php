@@ -322,7 +322,7 @@
                                 <tr>
                                     <td style="width: 15%; font-weight: bold; padding: 4px;">Machine</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 20%; padding: 4px;">{{ $dhf->created_by }}</td>
+                                    <td style="width: 20%; padding: 4px;">{{ $dhf->no_mesin }}</td>
 
                                     <td style="width: 10%; font-weight: bold; padding: 4px;">Weight</td>
                                     <td style="width: 3%; padding: 4px;">:</td>

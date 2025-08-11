@@ -66,8 +66,8 @@ class ExportLaporanCeisaDetail implements FromView, WithEvents, ShouldAutoSize
             CONCAT('BC ',
             SUBSTRING(kode_dokumen, 1, 1), '.',
             SUBSTRING(kode_dokumen, 2, 1))
-            ELSE kode_dokumen
-            END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date, if(kode_valuta = '','IDR', kode_valuta) curr FROM exim_header where tanggal_daftar >= '".$this->from."' and tanggal_daftar <= '".$this->to."') a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit,(cif/jumlah_satuan) price, ndpbm rates, CASE
+            ELSE kode_dokumen 
+            END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date, IF(kode_valuta = '' OR kode_valuta is null, 'IDR', kode_valuta) curr FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit,(cif/jumlah_satuan) price, ndpbm rates, CASE 
             WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
             WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif
             WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN fob
@@ -85,7 +85,7 @@ class ExportLaporanCeisaDetail implements FromView, WithEvents, ShouldAutoSize
             UNION
             select nomor_aju, nomor_identitas, nama_entitas, alamat_entitas from exim_entitas where seri = '8' and kode_entitas = '8' and kode_jenis_identitas = '' and (LEFT(nomor_aju,6) + 0) IN (30) GROUP BY nomor_aju) a) c on c.nomor_aju=a.nomor_aju) a) a where tgl_daftar >= '".$this->from."' and tgl_daftar <= '".$this->to."'
             UNION
-            select no_dok, jenis_dok, nomor_aju, nomor_aju no_aju, tanggal_aju, nomor_daftar, tanggal_daftar, created_by, created_date, supplier, '-' kode_barang, nama_item, qty, satuan, a.curr, (price / qty) price, IF(rate is null,1,rate) rate, price cif, IF(rate is null,price,price * rate) cif_rupiah, jenis_dok dok_format from exim_ceisa_manual a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tanggal_daftar and cr.curr = a.curr INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier where tanggal_daftar >= '".$this->from."' and tanggal_daftar <= '".$this->to."' and status != 'CANCEL') a where 1=1 ".$additionalQuery."");
+            select no_dok, jenis_dok, nomor_aju, nomor_aju no_aju, tanggal_aju, nomor_daftar, tanggal_daftar, created_by, created_date, a.curr, supplier, '-' kode_barang, nama_item, qty, satuan, (price / qty) price, IF(rate is null,1,rate) rate, price cif, IF(rate is null,price,price * rate) cif_rupiah, jenis_dok dok_format from exim_ceisa_manual a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tanggal_daftar and cr.curr = a.curr INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier where tanggal_daftar >= '".$this->from."' and tanggal_daftar <= '".$this->to."' and status != 'CANCEL') a where 1=1 ".$additionalQuery."");
 
 
 
