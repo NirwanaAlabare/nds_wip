@@ -380,10 +380,16 @@ group by c.no_lot
 SELECT
 main.*,
 CASE
-		WHEN main.result_blanket is null then '-'
-		WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
-		WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
-		WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket is null then '-'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'PASS' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS' THEN 'PASS WITH CONDITION'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'PASS WITH CONDITION' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
 end as final_result
 from main
 
@@ -1327,6 +1333,7 @@ a.width,
 gramage,
 proses,
 a.no_lot,
+a.no_mesin,
 concat(bintex_length, ' ', upper(unit_bintex)) bintex,
 concat(act_length_fix, ' ', upper(unit_act_length)) length
 from qc_inspect_form a
