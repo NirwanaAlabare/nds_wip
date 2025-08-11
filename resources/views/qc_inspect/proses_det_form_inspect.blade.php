@@ -125,7 +125,7 @@
                 <div class="col-md-6">
                     <label for="txtfinish_form"><small><b>Finish Form:</b></small></label>
                     <input type="text" id="txtfinish_form" name="txtfinish_form"
-                        class="form-control form-control-sm border-primary" value="" readonly>
+                        class="form-control form-control-sm border-primary" value="{{ $finish_form_fix }}" readonly>
                 </div>
             </div>
             <div class="row mb-3">
@@ -273,8 +273,8 @@
                         <select id="unitWidth" name="unitWidth"
                             class="form-select form-select-sm border-primary text-primary fabric-input"
                             style="max-width: 100px;">
-                            <option value="cm" {{ $unit_width === 'cm' ? 'selected' : '' }}>CM</option>
                             <option value="inch" {{ $unit_width === 'inch' ? 'selected' : '' }}>INCH</option>
+                            <option value="cm" {{ $unit_width === 'cm' ? 'selected' : '' }}>CM</option>
                         </select>
 
                     </div>
@@ -324,8 +324,8 @@
             <div class="row mb-3">
                 <div class="col-md-3">
                     <label for="cbo_length"><small><b>Length :</b></small></label>
-                    <select class="form-control form-control-sm select2bs4 select-border-primary" id="cbo_length"
-                        name="cbo_length" style="width: 100%;">
+                    <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
+                        id="cbo_length" name="cbo_length" style="width: 100%;">
                         <option selected="selected" value="" disabled="true">Pilih Length
                         </option>
                         @foreach ($data_length as $dl)
@@ -337,8 +337,8 @@
                 </div>
                 <div class="col-md-9">
                     <label for="cbo_defect"><small><b>Critical Defect :</b></small></label>
-                    <select class="form-control form-control-sm select2bs4 " id="cbo_defect" name="cbo_defect"
-                        style="width: 100%;">
+                    <select class="form-control form-control-sm select2bs4 visual-input" id="cbo_defect"
+                        name="cbo_defect" style="width: 100%;">
                         <option selected="selected" value="" disabled="true">Pilih Defect
                         </option>
                         @foreach ($data_defect as $dd)
@@ -354,28 +354,28 @@
                     <label for="txtup_to_3"><small><b>Up To 3" (1) :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" min="0" id="txtup_to_3" name="txtup_to_3"
-                            class="form-control form-control-sm border-primary" value="">
+                            class="form-control form-control-sm border-primary visual-input" value="">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <label for="txt3_6"><small><b>3" - 6" (2) :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" min="0" id="txt3_6" name="txt3_6"
-                            class="form-control form-control-sm border-primary" value="">
+                            class="form-control form-control-sm border-primary visual-input" value="">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <label for="txt6_9"><small><b>6" - 9" (3) :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" min="0" id="txt6_9" name="txt6_9"
-                            class="form-control form-control-sm border-primary" value="">
+                            class="form-control form-control-sm border-primary visual-input" value="">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <label for="txtovr_9"><small><b>Over 9" (4) :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" min="0" id="txtovr_9" name="txtovr_9"
-                            class="form-control form-control-sm border-primary" value="">
+                            class="form-control form-control-sm border-primary visual-input" value="">
                     </div>
                 </div>
             </div>
@@ -384,11 +384,11 @@
                     <label for="txtfull_width"><small><b>Full Width :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" step="any" min="0" id="txtfull_width" name="txtfull_width"
-                            class="form-control form-control-sm border-primary" value="">
+                            class="form-control form-control-sm border-primary visual-input" value="">
                         <select id="unitFullWidth" name="unitFullWidth"
                             class="form-select form-select-sm border-primary text-primary" style="max-width: 100px;">
-                            <option value="cm" {{ $unit_width === 'cm' ? 'selected' : '' }}>CM</option>
                             <option value="inch" {{ $unit_width === 'inch' ? 'selected' : '' }}>INCH</option>
+                            <option value="cm" {{ $unit_width === 'cm' ? 'selected' : '' }}>CM</option>
                         </select>
                     </div>
                 </div>
@@ -396,8 +396,8 @@
                     <label for="txtfull_width_act"><small><b>&nbsp;</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" step="any" min="0" id="txtfull_width_act"
-                            name="txtfull_width_act" class="form-control form-control-sm border-primary" value=""
-                            readonly>
+                            name="txtfull_width_act" class="form-control form-control-sm border-primary visual-input"
+                            value="" readonly>
                         <span class="input-group-text border-primary text-primary">INCH</span>
                     </div>
                 </div>
@@ -406,7 +406,8 @@
                     <label for="txtcuttable_width"><small><b>Cuttable Width :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" step="any" min="0" id="txtcuttable_width"
-                            name="txtcuttable_width" class="form-control form-control-sm border-primary" value="">
+                            name="txtcuttable_width" class="form-control form-control-sm border-primary visual-input"
+                            value="">
                         <select id="unitCuttableWidth" name="unitCuttableWidth"
                             class="form-select form-select-sm border-primary text-primary" style="max-width: 100px;">
                             <option value="cm" {{ $unit_width === 'cm' ? 'selected' : '' }}>CM</option>
@@ -418,7 +419,7 @@
                     <label for="txtcuttable_width_act"><small><b>&nbsp;</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" step="any" min="0" id="txtcuttable_width_act"
-                            name="txtcuttable_width_act" class="form-control form-control-sm border-primary"
+                            name="txtcuttable_width_act" class="form-control form-control-sm border-primary visual-input"
                             value="" readonly>
                         <span class="input-group-text border-primary text-primary">INCH</span>
                     </div>
@@ -426,7 +427,8 @@
             </div>
             <div class="row mb-4">
                 <div class="col-md-3 offset-md-9 text-end">
-                    <button type="button" class="btn btn-primary btn-sm" onclick="save_visual_inspection();">
+                    <button type="button" class="btn btn-primary btn-sm" id="btnAdd"
+                        onclick="save_visual_inspection();">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
@@ -453,6 +455,18 @@
                                 <th scope="col">ACT</th>
                             </tr>
                         </thead>
+                        <tfoot>
+                            <tr style="text-align:center; vertical-align:middle">
+                                <th scope="col">Total</th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -462,7 +476,7 @@
                     <label for="txtbintex_length"><small><b>Bintex Length :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" step="any" min="0" id="txtbintex_length"
-                            name="txtbintex_length" class="form-control form-control-sm border-primary"
+                            name="txtbintex_length" class="form-control form-control-sm border-primary visual-input"
                             value="{{ $bintex_length }}">
                         <select id="unitBintex" name="unitBintex"
                             class="form-select form-select-sm border-primary text-primary" style="max-width: 100px;">
@@ -475,7 +489,7 @@
                     <label for="txtbintex_act"><small><b>&nbsp;</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" step="any" min="0" id="txtbintex_act" name="txtbintex_act"
-                            class="form-control form-control-sm border-primary" value="" readonly>
+                            class="form-control form-control-sm border-primary visual-input" value="" readonly>
                         <span class="input-group-text border-primary text-primary">YARD</span>
                     </div>
                 </div>
@@ -484,7 +498,7 @@
                     <label for="txtact_length"><small><b>Actual length :</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" step="any" min="0" id="txtact_length" name="txtact_length"
-                            class="form-control form-control-sm border-primary" value="{{ $act_length }}">
+                            class="form-control form-control-sm border-primary visual-input" value="{{ $act_length }}">
                         <select id="unitActLength" name="unitActLength"
                             class="form-select form-select-sm border-primary text-primary" style="max-width: 100px;">
                             <option value="yard" {{ $unit_act_length === 'yard' ? 'selected' : '' }}>YARD</option>
@@ -503,6 +517,29 @@
                 </div>
             </div>
 
+            <!-- Founding Issue Title -->
+            <div class="row mb-2">
+                <div class="col">
+                    <h6 class="text-primary fw-bold">Founding Issue</h6>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="cbo_founding_issue"><small><b>Founding Issue :</b></small></label>
+                    <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
+                        id="cbo_founding_issue" name="cbo_founding_issue" style="width: 100%;">
+                        <option value="" hidden {{ $founding_issue == '' ? 'selected' : '' }}>
+                            Pilih Founding Issue
+                        </option>
+                        @foreach ($data_founding_issue as $dfi)
+                            <option value="{{ $dfi->isi }}" {{ $dfi->isi == $founding_issue ? 'selected' : '' }}>
+                                {{ $dfi->tampil }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <div class="row mb-3">
                 <div class="col-12">
                     <button type="button" class="btn btn-info btn-sm w-100" id="btnCalculate"
@@ -511,7 +548,38 @@
                     </button>
                 </div>
             </div>
-            <!-- Summary Title -->
+
+            <!-- Founding Issue Title -->
+            <div class="row mb-2">
+                <div class="col">
+                    <h6 class="text-primary fw-bold">Short Roll</h6>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="table-responsive">
+                    <table id="datatable_short_roll" class="table table-bordered table-striped w-100 text-wrap">
+                        <thead class="bg-sb">
+                            <tr style="text-align:center; vertical-align:middle">
+                                <th scope="col"></th>
+                                <th scope="col">Bintex</th>
+                                <th scope="col">Actual</th>
+                                <th scope="col">Selisih</th>
+                                <th scope="col">Max Selisih</th>
+                                <th scope="col">Unit</th>
+                                <th scope="col">Result</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr style="text-align:center; vertical-align:middle">
+                                <th colspan="6" style="text-align:left">Total Result:</th>
+                                <th id="total_result_footer" class="text-center"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Act Point Title -->
             <div class="row mb-2">
                 <div class="col">
                     <h6 class="text-primary fw-bold">Actual Point Length</h6>
@@ -537,9 +605,22 @@
                 </div>
             </div>
 
+            <!-- Final Result Title -->
+            <div class="row mb-2">
+                <div class="col text-center"> <!-- Center-align the column -->
+                    <h6 class="text-primary fw-bold d-inline-block">
+                        Final Result:
+                        <span id="final_result_display" class="ms-2 fw-bold"></span>
+                    </h6>
+                </div>
+            </div>
+
+
+
             <div class="row mb-3">
                 <div class="col-12">
-                    <button type="button" class="btn btn-success btn-sm w-100" id="btnFinish" onclick="">
+                    <button type="button" class="btn btn-success btn-sm w-100" id="btnFinish" onclick="handleFinish()"
+                        disabled>
                         <i class="fas fa-check"></i> Finish
                     </button>
                 </div>
@@ -592,13 +673,39 @@
                 // Hide the row that contains the Start Form button
                 $('#startFormRow').hide();
                 $('#visualInspection').hide();
-            } else if (status === 'scan_form_fabric') {
+            } else if (status === 'ongoing') {
                 $('.fabric-input').prop('disabled', true); // disables inputs & selects
                 $('#startFormRow').hide();
                 $('#btnNext').hide();
             } else if (status === 'draft') {
                 $('#scanFormFabric').hide();
                 $('#visualInspection').hide();
+            } else if (status === 'done') {
+                $('.fabric-input').prop('disabled', true); // disables inputs & selects
+                $('#startFormRow').hide();
+                $('#btnNext').hide();
+                $('#btnAdd').hide();
+                $('#btnCalculate').hide();
+                $('#btnFinish').hide();
+                $('.visual-input').prop('disabled', true);
+                const final_result = @json($final_result);
+                // Display final result visually
+                let icon = final_result === 'PASS' ? '✅' :
+                    final_result === 'HOLD' ? '⏸️' :
+                    final_result === 'REJECT' ? '❌' :
+                    '';
+
+                let colorClass = final_result === 'PASS' ? 'text-success' :
+                    final_result === 'HOLD' ? 'text-warning' :
+                    final_result === 'REJECT' ? 'text-danger' :
+                    '';
+
+                $('#final_result_display')
+                    .html(`${icon} ${final_result}`)
+                    .attr('data-value', final_result)
+                    .removeClass('text-success text-danger text-warning')
+                    .addClass(colorClass);
+
             }
             const barcode = $('#txtbarcode').val();
             if (barcode !== '') {
@@ -620,27 +727,26 @@
                     $('#txtlbs').val('');
                 }
             });
-
             updateInch();
         });
 
 
         function updateInch() {
-    let width = parseFloat($('#txtwidth').val()) || 0;
-    let unit = $('#unitWidth').val();
+            let width = parseFloat($('#txtwidth').val()) || 0;
+            let unit = $('#unitWidth').val();
 
-    let inchValue = 0;
-    if (unit === 'inch') {
-        inchValue = width;
-    } else if (unit === 'cm') {
-        inchValue = width * 0.3937;
-    }
+            let inchValue = 0;
+            if (unit === 'inch') {
+                inchValue = width;
+            } else if (unit === 'cm') {
+                inchValue = width * 0.3937;
+            }
 
-    // Round up to 2 decimal places
-    let roundedUp = Math.ceil(inchValue * 100) / 100;
+            // Round up to 2 decimal places
+            let roundedUp = Math.ceil(inchValue * 100) / 100;
 
-    $('#txtinch').val(roundedUp.toFixed(2));
-}
+            $('#txtinch').val(roundedUp.toFixed(2));
+        }
 
 
 
@@ -880,7 +986,6 @@
         }
 
 
-
         function check_barcode(barcode, callback) {
             const id_item = $('#txtid_item').val();
             const id_jo = $('#txtid_jo').val();
@@ -912,6 +1017,27 @@
                         return;
                     }
 
+                    if (response.status === 'duplicate') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Barcode Duplikat',
+                            text: response.message || 'Barcode sudah digunakan.'
+                        });
+                        callback(false);
+                        return;
+                    }
+
+                    if (!response.data) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Data Tidak Lengkap',
+                            text: 'Tidak dapat menampilkan detail fabric.'
+                        });
+                        callback(false);
+                        return;
+                    }
+
+                    // Show confirmation
                     Swal.fire({
                         title: 'Konfirmasi Data Fabric',
                         html: `
@@ -929,7 +1055,14 @@
                         cancelButtonText: 'Batal'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Save the data
+                            Swal.fire({
+                                title: 'Menyimpan...',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
                             $.ajax({
                                 type: "POST",
                                 url: '{{ route('save_fabric_form_inspect') }}',
@@ -945,7 +1078,7 @@
                                         text: res.message
                                     });
                                     $('#qrScannerModalFabric').modal('hide');
-                                    callback(true); // tell scanner to stop
+                                    callback(true);
                                     location.reload();
                                 },
                                 error: function(err) {
@@ -959,8 +1092,7 @@
                                 }
                             });
                         } else {
-                            // User clicked cancel
-                            callback(false); // IMPORTANT: ensure scanner continues/stops as needed
+                            callback(false); // User canceled
                         }
                     });
                 },
@@ -975,6 +1107,7 @@
                 }
             });
         }
+
 
         function save_detail_fabric() {
             let id = $('#id').val();
@@ -1099,17 +1232,6 @@
                 return;
             }
 
-            if (!cbo_defect || cbo_defect === "") {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Peringatan',
-                    text: 'Silakan pilih CRITICAL DEFECT terlebih dahulu.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                return;
-            }
-
             // Send data only if confirmed
             $.ajax({
                 type: "POST",
@@ -1166,6 +1288,8 @@
             $('#txtcuttable_width_act').val('');
         }
 
+        let tableStatus = null;
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             responsive: true,
@@ -1176,6 +1300,7 @@
             scrollY: true,
             scrollX: false,
             scrollCollapse: false,
+
             ajax: {
                 url: '{{ route('qc_inspect_show_visual_inspect') }}',
                 data: function(d) {
@@ -1183,6 +1308,7 @@
                     d.txtno_form = $('#txtno_form').val();
                 },
             },
+
             columns: [{
                     data: 'nm_length'
                 },
@@ -1215,18 +1341,93 @@
                     searchable: false,
                     render: function(data, type, row) {
                         return `
-            <div class="text-center align-middle">
-                <button class="btn btn-outline-danger btn-sm"
-                        onclick="deleteVisualInspection(${data.id})">
-                    Delete
-                </button>
-            </div>
-        `;
+                    <div class="text-center align-middle visual-input">
+                        <button class="btn btn-outline-danger btn-sm btnDelete"
+                                onclick="deleteVisualInspection(${data.id})">
+                            Delete
+                        </button>
+                    </div>
+                `;
                     }
                 }
-
             ],
+
+            drawCallback: function(settings) {
+                let data = this.api().rows({
+                    page: 'current'
+                }).data();
+                if (data.length > 0) {
+                    tableStatus = data[0].status_proses_form; // Assuming all rows share the same status
+                }
+
+                if (tableStatus === 'done') {
+                    $('.btnDelete').hide(); // Hide delete buttons
+                }
+            },
+
+            footerCallback: function(row, data, start, end, display) {
+                const api = this.api();
+
+                // Sum columns 2 to 5
+                const columnsToTotal = [2, 3, 4, 5];
+                columnsToTotal.forEach(function(colIdx) {
+                    let total = api
+                        .column(colIdx, {
+                            page: 'current'
+                        })
+                        .data()
+                        .reduce((a, b) => (parseFloat(a) || 0) + (parseFloat(b) || 0), 0);
+                    $(api.column(colIdx).footer()).html(total.toLocaleString());
+                });
+
+                // WIDTH column (index 6) average after decoding HTML entity
+                const widthColIdx = 6;
+
+                let widthValues = api
+                    .column(widthColIdx, {
+                        page: 'current'
+                    })
+                    .data()
+                    .toArray()
+                    .map(function(val) {
+                        if (typeof val === 'string' && val.includes('&gt;')) {
+                            // decode HTML entity
+                            let decoded = val.replace(/&gt;/g, '>');
+                            let parts = decoded.split('->');
+                            if (parts.length === 2) {
+                                let num = parseFloat(parts[1].trim());
+                                return !isNaN(num) && num !== 0 ? num : null;
+                            }
+                        }
+                        return null;
+                    })
+                    .filter(v => v !== null);
+
+                if (widthValues.length > 0) {
+                    let sum = widthValues.reduce((a, b) => a + b, 0);
+                    let avg = sum / widthValues.length;
+                    $(api.column(widthColIdx).footer()).html(avg.toFixed(2));
+                } else {
+                    $(api.column(widthColIdx).footer()).html('-');
+                }
+
+                // Optional debug:
+                console.log('WIDTH decoded data:', widthValues);
+            }
+
+
         });
+
+        // Adjust columns on draw (to fix zoom/layout issues)
+        datatable.on('draw', function() {
+            datatable.columns.adjust(false);
+        });
+
+        // Adjust columns on window resize (zoom triggers resize event)
+        $(window).on('resize', function() {
+            datatable.columns.adjust();
+        });
+
 
         function deleteVisualInspection(id) {
             Swal.fire({
@@ -1300,6 +1501,7 @@
         });
 
 
+        let isCalculated = false;
 
         function calculate_act_point() {
             let id = $('#id').val();
@@ -1310,6 +1512,11 @@
             let txtact_length = $('#txtact_length').val();
             let unitActLength = $('#unitActLength').val();
             let txtact_length_fix = $('#txtact_length_fix').val();
+            let cbo_founding_issue = $('#cbo_founding_issue').val();
+
+            let table = $('#datatable').DataTable();
+            let act_width = $(table.column(6).footer()).text();
+            let bintex_width = document.getElementById("txtinch").value;
 
             // Send data only if confirmed
             $.ajax({
@@ -1324,7 +1531,10 @@
                     txtbintex_act: txtbintex_act,
                     txtact_length: txtact_length,
                     unitActLength: unitActLength,
-                    txtact_length_fix: txtact_length_fix
+                    txtact_length_fix: txtact_length_fix,
+                    cbo_founding_issue: cbo_founding_issue,
+                    act_width: act_width,
+                    bintex_width: bintex_width
                 },
                 success: function(response) {
                     Swal.fire({
@@ -1332,8 +1542,15 @@
                         title: 'Berhasil',
                         text: response.message || 'Data berhasil disimpan.'
                     }).then(() => {
-                        location.reload();
+                        isCalculated = true;
+                        datatable_act_point.ajax.reload(function() {
+                            datatable_short_roll.ajax.reload(function() {
+                                calculate_final_result();
+                            });
+                        });
+
                     });
+                    $('#btnFinish').prop('disabled', false);
                 },
                 error: function(xhr) {
                     console.error('Save Error:', xhr.responseText);
@@ -1349,13 +1566,12 @@
 
         let datatable_act_point = $("#datatable_act_point").DataTable({
             ordering: false,
-            responsive: true,
+            responsive: false, // Disable responsive for scrollX compatibility
             processing: true,
             serverSide: false,
             paging: false,
             searching: false,
-            scrollY: true,
-            scrollX: false,
+            scrollX: true, // Enable horizontal scroll if needed
             scrollCollapse: false,
             info: false,
             ajax: {
@@ -1364,32 +1580,262 @@
                     d.id = $('#id').val();
                     d.txtno_form = $('#txtno_form').val();
                 },
+                complete: function() {
+                    // Adjust AFTER ajax completes
+                    datatable_act_point.columns.adjust().draw(false);
+                }
             },
             columns: [{
-                    data: 'sum_up_to_3'
+                    data: 'sum_up_to_3',
+                    className: 'text-center'
                 },
                 {
-                    data: 'sum_3_6'
+                    data: 'sum_3_6',
+                    className: 'text-center'
                 },
                 {
-                    data: 'sum_6_9'
+                    data: 'sum_6_9',
+                    className: 'text-center'
                 },
                 {
-                    data: 'sum_over_9'
+                    data: 'sum_over_9',
+                    className: 'text-center'
                 },
                 {
-                    data: 'total_point'
+                    data: 'tot_point',
+                    className: 'text-center'
                 },
                 {
-                    data: 'act_point'
+                    data: 'act_point',
+                    className: 'text-center'
                 },
                 {
-                    data: 'shipment',
+                    data: 'individu',
+                    className: 'text-center'
                 },
                 {
                     data: 'result',
-                },
+                    className: 'text-center'
+                }
             ],
+
+            initComplete: function() {
+                // One-time adjustment after initial render
+                this.api().columns.adjust();
+            }
         });
+
+        $(window).on('resize', function() {
+            setTimeout(function() {
+                datatable_act_point.columns.adjust().draw(false);
+            }, 200); // small delay
+        });
+
+
+        function handleFinish() {
+            if (!isCalculated) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Perhatian!',
+                    text: 'Silakan jalankan "Calculate" terlebih dahulu sebelum menyelesaikan.'
+                });
+                return;
+            }
+            final_result = $('#final_result_display').data('value');
+
+            // ✅ Check if final_result is missing
+            if (!final_result) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Final Result Kosong!',
+                    text: 'Silakan pastikan hasil akhir telah dihitung sebelum menyelesaikan.'
+                });
+                return;
+            }
+
+            let short_roll_result = $('#total_result_footer').text();
+
+            if (!short_roll_result) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Short Roll Result Kosong!',
+                    text: 'Silakan pastikan hasil akhir telah dihitung sebelum menyelesaikan.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Yakin ingin menyelesaikan?',
+                text: 'Setelah selesai, data tidak bisa diubah.',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Selesai',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Replace with your actual finish route
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('finish_form_inspect') }}',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            id: $('#id').val(),
+                            txtno_form: $('#txtno_form').val(),
+                            final_result: final_result,
+                            short_roll_result: short_roll_result,
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Selesai!',
+                                text: response.message || 'Data berhasil disimpan.'
+                            }).then(() => {
+                                location.reload(); // Do final reload
+                            });
+                        },
+                        error: function(xhr) {
+                            console.error('Finish Error:', xhr.responseText);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Gagal menyimpan data.'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+
+        let datatable_short_roll = $("#datatable_short_roll").DataTable({
+            ordering: false,
+            responsive: false,
+            processing: true,
+            serverSide: false,
+            paging: false,
+            searching: false,
+            scrollX: true,
+            scrollCollapse: false,
+            info: false,
+            ajax: {
+                url: '{{ route('show_calculate_width_length') }}',
+                data: function(d) {
+                    d.id = $('#id').val();
+                    d.txtno_form = $('#txtno_form').val();
+                },
+                complete: function() {
+                    // Adjust AFTER ajax completes
+                    datatable_short_roll.columns.adjust().draw(false);
+                }
+            },
+            columns: [{
+                    data: 'dim',
+                    className: 'text-center'
+                },
+                {
+                    data: 'bintex',
+                    className: 'text-center'
+                },
+                {
+                    data: 'actual',
+                    className: 'text-center'
+                },
+                {
+                    data: 'selisih',
+                    className: 'text-center',
+                    render: function(data) {
+                        return parseFloat(data).toFixed(2); // force 2 decimal digits
+                    }
+                },
+                {
+                    data: 'max_selisih',
+                    className: 'text-center'
+                },
+                {
+                    data: 'unit',
+                    className: 'text-center'
+                },
+                {
+                    data: 'result',
+                    className: 'text-center'
+                }
+            ],
+
+            initComplete: function() {
+                // One-time adjustment after initial render
+                this.api().columns.adjust();
+            }
+        });
+
+        // Add draw event to calculate total result
+        datatable_short_roll.on('draw', function() {
+            let hasHold = false;
+
+            datatable_short_roll.column(6, {
+                search: 'applied'
+            }).data().each(function(value) {
+                if (value && value.toUpperCase() === 'HOLD') {
+                    hasHold = true;
+                }
+            });
+
+            $('#total_result_footer').text(hasHold ? 'HOLD' : 'PASS');
+        });
+
+        $(window).on('resize', function() {
+            setTimeout(function() {
+                datatable_short_roll.columns.adjust().draw(false);
+            }, 200); // small delay
+        });
+
+        function calculate_final_result() {
+            let cbo_founding_issue = $('#cbo_founding_issue').val() || '';
+            let act_point = datatable_act_point.cell(0, 7).data(); // Row 0, Column 7
+            let short_roll = $('#total_result_footer').text();
+
+            // console.log(cbo_founding_issue, act_point, short_roll);
+            let final_result = '';
+
+            if (act_point === 'PASS' && cbo_founding_issue === '' && short_roll === 'PASS') {
+                final_result = 'PASS';
+            } else
+            if (act_point === 'PASS' && cbo_founding_issue === '' && short_roll === 'HOLD') {
+                final_result = 'HOLD';
+            } else
+            if (act_point === 'PASS' && cbo_founding_issue !== '' && short_roll === 'PASS') {
+                final_result = 'HOLD';
+            } else
+            if (act_point === 'PASS' && cbo_founding_issue !== '' && short_roll === 'HOLD') {
+                final_result = 'HOLD';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue !== '' && short_roll === 'PASS') {
+                final_result = 'REJECT';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue !== '' && short_roll === 'HOLD') {
+                final_result = 'REJECT';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue === '' && short_roll === 'PASS') {
+                final_result = 'REJECT';
+            } else
+            if (act_point === 'REJECT' && cbo_founding_issue === '' && short_roll === 'HOLD') {
+                final_result = 'REJECT';
+            }
+
+            // Display with icon and color
+            let icon = final_result === 'PASS' ? '✅' :
+                final_result === 'HOLD' ? '⏸️' :
+                final_result === 'REJECT' ? '❌' :
+                '';
+            let colorClass = final_result === 'PASS' ? 'text-success' :
+                final_result === 'HOLD' ? 'text-warning' :
+                final_result === 'REJECT' ? 'text-danger' :
+                '';
+
+            $('#final_result_display')
+                .html(`${icon} ${final_result}`)
+                .attr('data-value', final_result) // ✅ use .attr, not .data
+                .removeClass('text-success text-danger')
+                .addClass(colorClass);
+        }
     </script>
 @endsection

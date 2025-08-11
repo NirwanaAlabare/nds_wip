@@ -41,7 +41,7 @@
                         ?>
                             <tr>
                                 @if ($group->ws != $currentWs)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count(); }}">{{ $group->ws }}</td>
+                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count() }}">{{ $group->ws }}</td>
 
                                     @php
                                         $currentWs = $group->ws;
@@ -51,7 +51,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style != $currentStyle)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->count(); }}">{{ $group->style }}</td>
+                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->count() }}">{{ $group->style }}</td>
 
                                     @php
                                         $currentStyle = $group->style;
@@ -60,7 +60,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color != $currentColor)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->count(); }}">{{ $group->color }}</td>
+                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->count() }}">{{ $group->color }}</td>
 
                                     @php
                                         $currentColor = $group->color;
@@ -69,7 +69,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color == $currentColor && $group->id_meja != $currentMeja)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('id_meja', $group->id_meja)->count(); }}">{{ strtoupper(str_replace('_', ' ', $group->meja)) }}</td>
+                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('id_meja', $group->id_meja)->count() }}">{{ strtoupper(str_replace('_', ' ', $group->meja)) }}</td>
 
                                     @php
                                         $currentMeja = $group->id_meja;
@@ -77,7 +77,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color == $currentColor && $group->id_meja == $currentMeja && $group->panel != $currentPanel)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('id_meja', $group->id_meja)->where('panel', $group->panel)->count(); }}">{{ $group->panel }}</td>
+                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('id_meja', $group->id_meja)->where('panel', $group->panel)->count() }}">{{ $group->panel }}</td>
 
                                     @php
                                         $currentPanel = $group->panel;

@@ -82,6 +82,14 @@ class TrackOrderOutput extends Component
     {
         ini_set("max_execution_time", 3600);
 
+        if (!$this->dateFromFilter) {
+            $this->dateFromFilter = date("Y-m-d");
+        }
+
+        if (!$this->dateToFilter) {
+            $this->dateToFilter = date("Y-m-d");
+        }
+
         $this->loadingOrderOutput = false;
 
         $this->suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
@@ -144,7 +152,7 @@ class TrackOrderOutput extends Component
                 ) as rfts"), function ($join) {
                     $join->on("rfts.master_plan_id", "=", "master_plan.id");
                 });
-                if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', $this->dateFromFilter);
+                if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
                 if ($this->dateToFilter) $orderFilterSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
                 if ($this->groupBy == "size") $orderFilterSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
                 if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
@@ -158,6 +166,9 @@ class TrackOrderOutput extends Component
 
                 $this->orderFilter = $orderFilterSql->get();
 
+            $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
+            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
+
             $dailyOrderGroupSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("
                     master_plan.tgl_plan tanggal,
@@ -168,33 +179,43 @@ class TrackOrderOutput extends Component
                     ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
                 ")->
                 leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
-                leftJoin(DB::raw("
+                join(DB::raw("
                     (
                         SELECT
                             master_plan.id_ws,
-                            output_rfts".($this->outputType).".master_plan_id,
-                            userpassword.username sewing_line
+                            userpassword.username sewing_line,
+                            coalesce( date( rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                            max( rfts.updated_at ) last_rft,
+                            count( rfts.id ) rft,
+                            master_plan.id master_plan_id,
+                            master_plan.id_ws master_plan_id_ws
+                            ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                         FROM
-                            output_rfts".($this->outputType)."
-                            ".($this->outputType != "_packing" ?
-                            "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->outputType).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
-                            "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by")."
-                            LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
+                            output_rfts".$this->outputType." rfts
+                            INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
+                            (
+                                $this->outputType != " _packing " ? "
+                                LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by
+                                LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id " : "
+                                LEFT JOIN userpassword ON userpassword.username = rfts.created_by "
+                            )."
                         WHERE
-                            output_rfts".($this->outputType).".created_by IS NOT NULL
-                            AND output_rfts".($this->outputType).".updated_at >= '".$this->dateFromFilter." 00:00:00'
-                            AND output_rfts".($this->outputType).".updated_at <= '".$this->dateToFilter." 23:59:59'
-                            ".($this->selectedOrder ? "AND master_plan.id_ws = '".$this->selectedOrder."'" : "")."
+                            rfts.updated_at ".$masterPlanDateFilter."
+                            AND master_plan.tgl_plan ".$masterPlanDateFilter1."
+                            ". ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
                         GROUP BY
-                            output_rfts".($this->outputType).".master_plan_id,
-                            output_rfts".($this->outputType).".created_by
+                            master_plan.id_ws,
+                            master_plan.color,
+                            DATE ( rfts.updated_at ),
+                            COALESCE ( userpassword.username, master_plan.sewing_line )
+                            ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                     ) as rfts
                 "), function ($join) {
                     $join->on("rfts.master_plan_id", "=", "master_plan.id");
                 });
                 if ($this->groupBy == "size") $dailyOrderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
-                if ($this->dateFromFilter) $dailyOrderGroupSql->where('master_plan.tgl_plan', '>=', $this->dateFromFilter);
-                if ($this->dateToFilter) $dailyOrderGroupSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
+                if ($this->dateFromFilter) $dailyOrderGroupSql->where('rfts.tanggal', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
+                if ($this->dateToFilter) $dailyOrderGroupSql->where('rfts.tanggal', '<=', $this->dateToFilter);
                 if ($this->colorFilter) $dailyOrderGroupSql->where('master_plan.color', $this->colorFilter);
                 if ($this->lineFilter) $dailyOrderGroupSql->where('rfts.sewing_line', $this->lineFilter);
                 if ($this->groupBy == "size" && $this->sizeFilter) $dailyOrderGroupSql->where('so_det.size', $this->sizeFilter);
@@ -207,9 +228,6 @@ class TrackOrderOutput extends Component
                     orderByRaw("COALESCE(rfts.sewing_line, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
 
                 $this->dailyOrderGroup = $dailyOrderGroupSql->get();
-
-            $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
-            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
 
             $dailyOrderOutputSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("
@@ -251,6 +269,7 @@ class TrackOrderOutput extends Component
                             ". ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
                         GROUP BY
                             master_plan.id_ws,
+                            master_plan.color,
                             DATE ( rfts.updated_at ),
                             COALESCE ( userpassword.username, master_plan.sewing_line )
                             ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."

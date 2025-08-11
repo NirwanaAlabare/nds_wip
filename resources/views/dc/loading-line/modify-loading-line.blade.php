@@ -87,7 +87,16 @@
                         <input type="number" class="form-control" id="total_update" readonly>
                     </div>
                     <div class="col-md-4">
-                        <button class="btn btn-sb btn-block" onclick="updateStocker()">UPDATE</button>
+                        <div class="d-flex gap-3">
+                            <div class="w-50">
+                                <button class="btn btn-sb btn-block" onclick="updateStocker()"><i class="fa fa-save"></i> UPDATE</button>
+                            </div>
+                            @role('superadmin')
+                                <div class="w-50">
+                                    <button class="btn btn-danger btn-block" onclick="deleteStocker()"><i class="fa fa-trash"></i> DELETE</button>
+                                </div>
+                            @endrole
+                        </div>
                     </div>
                 </div>
             </div>
@@ -252,6 +261,54 @@
                 error: function(jqXHR) {
                     console.error(jqXHR);
                 }
+            });
+        }
+
+        function deleteStocker() {
+            Swal.fire({
+                icon: "info",
+                title: "Konfirmasi",
+                html: "Hapus Loading Line?",
+                showDenyButton: true,
+                showCancelButton: false,
+                confirmButtonText: "Lanjut",
+                denyButtonText: "Batal"
+            }).then((result) => {
+                $.ajax({
+                    type: "delete",
+                    url: "{{ route('modify-loading-line-delete') }}",
+                    data: {
+                        stockerIds: $("#stocker_ids").val()
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
+                        if (response.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: response.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: 'Terjadi Kesalahan',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+
+                        currentStockerTableReload();
+                    },
+                    error: function(jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
             });
         }
     </script>

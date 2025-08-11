@@ -50,7 +50,7 @@ class ExportTrackStocker implements FromView, WithEvents, /*WithColumnWidths,*/ 
                     master_sb_ws.id_act_cost,
                     DATE(master_sb_ws.tgl_kirim) tgl_kirim,
                     stocker_input.id,
-                    stocker_input.form_cut_id,
+                    ( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) form_cut_id,
                     stocker_input.act_costing_ws,
                     master_sb_ws.styleno,
                     stocker_input.color,
@@ -80,6 +80,8 @@ class ExportTrackStocker implements FromView, WithEvents, /*WithColumnWidths,*/ 
                     MONTH(master_sb_ws.tgl_kirim) = '".$month."' AND YEAR(master_sb_ws.tgl_kirim) = '".$year."'
                 GROUP BY
                     stocker_input.form_cut_id,
+                    stocker_input.form_reject_id,
+                    stocker_input.form_piece_id,
                     stocker_input.so_det_id,
                     stocker_input.group_stocker,
                     stocker_input.ratio

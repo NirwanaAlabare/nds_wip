@@ -176,6 +176,7 @@ use App\Http\Controllers\Marketing_CostingController;
 
 // QC Inspect Kain
 use App\Http\Controllers\QCInspectDashboardController;
+use App\Http\Controllers\QCInspectMasterController;
 use App\Http\Controllers\QCInspectProsesPackingListController;
 use App\Http\Controllers\QCInspectProsesFormInspectController;
 
@@ -248,6 +249,9 @@ Route::middleware('auth')->group(function () {
         // cutting items
         Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
         Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
+
+        // output
+        Route::get('/get-output', 'getOutput')->name('get-output');
     });
 
     // Worksheet
@@ -783,6 +787,8 @@ Route::middleware('auth')->group(function () {
         // reset stocker
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
+
+        Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
     });
 
     // DC :
@@ -939,6 +945,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
         Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
+        Route::delete('/modify-loading-line/delete', 'modifyLoadingLineDelete')->name('modify-loading-line-delete');
     });
 
     // Bon Loading
@@ -1215,6 +1222,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
         Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
         Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
+
+        Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
+        Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
+        Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
+
+        Route::get('/undo-output', 'undoOutput')->name("undo-output");
+        Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
     });
 
     // Mutasi Mesin
@@ -2029,12 +2043,33 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_qc_inspect', 'dashboard_qc_inspect')->name('dashboard-qc-inspect');
     });
 
+    // Master QC Inspect
+    Route::controller(QCInspectMasterController::class)->prefix("master")->middleware('warehouse')->group(function () {
+        Route::get('/qc_inspect_master_critical_defect_show', 'qc_inspect_master_critical_defect_show')->name('qc_inspect_master_critical_defect_show');
+        Route::post('/qc_inspect_master_critical_defect_add', 'qc_inspect_master_critical_defect_add')->name('qc_inspect_master_critical_defect_add');
+        Route::get('/qc_inspect_master_founding_issue_show', 'qc_inspect_master_founding_issue_show')->name('qc_inspect_master_founding_issue_show');
+        Route::post('/qc_inspect_master_founding_issue_add', 'qc_inspect_master_founding_issue_add')->name('qc_inspect_master_founding_issue_add');
+    });
+
     // Proses Packing List
     Route::controller(QCInspectProsesPackingListController::class)->prefix("proses-packing-list")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('qc_inspect_proses_packing_list');
         Route::get('/qc_inspect_proses_packing_list_det/{id_lok_in_material?}', 'qc_inspect_proses_packing_list_det')->name('qc_inspect_proses_packing_list_det');
         Route::get('/show_calculate_qc_inspect', 'show_calculate_qc_inspect')->name('show_calculate_qc_inspect');
         Route::post('/generate_qc_inspect', 'generate_qc_inspect')->name('generate_qc_inspect');
+        Route::get('/show_qc_inspect_form_modal', 'show_qc_inspect_form_modal')->name('show_qc_inspect_form_modal');
+        Route::post('/generate_form_kedua', 'generate_form_kedua')->name('generate_form_kedua');
+        Route::get('/show_inspect_pertama', 'show_inspect_pertama')->name('show_inspect_pertama');
+        Route::get('/show_inspect_kedua', 'show_inspect_kedua')->name('show_inspect_kedua');
+        Route::get('/export_qc_inspect/{id_lok_in_material?}', 'export_qc_inspect')->name('export_qc_inspect');
+        Route::post('/pass_with_condition', 'pass_with_condition')->name('pass_with_condition');
+        Route::post('/upload_blanket_photo', 'upload_blanket_photo')->name('upload_blanket_photo');
+        Route::get('/get_blanket_photo', 'get_blanket_photo')->name('get_blanket_photo');
+        Route::get('/get_info_modal_defect_packing_list', 'get_info_modal_defect_packing_list')->name('get_info_modal_defect_packing_list');
+        Route::post('/upload_modal_defect_photo', 'upload_modal_defect_photo')->name('upload_modal_defect_photo');
+        Route::get('/show_modal_defect_packing_list', 'show_modal_defect_packing_list')->name('show_modal_defect_packing_list');
+        Route::post('/delete_modal_defect_packing_list', 'delete_modal_defect_packing_list')->name('delete_modal_defect_packing_list');
+        Route::get('/export_pdf_list_defect/{id_lok_in_material?}', 'export_pdf_list_defect')->name('export_pdf_list_defect');
     });
 
     // Proses Form Inspect
@@ -2051,6 +2086,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/qc_inspect_delete_visual', 'qc_inspect_delete_visual')->name('qc_inspect_delete_visual');
         Route::post('/calculate_act_point', 'calculate_act_point')->name('calculate_act_point');
         Route::get('/qc_inspect_show_act_point', 'qc_inspect_show_act_point')->name('qc_inspect_show_act_point');
+        Route::post('/finish_form_inspect', 'finish_form_inspect')->name('finish_form_inspect');
+        Route::get('/show_calculate_width_length', 'show_calculate_width_length')->name('show_calculate_width_length');
     });
 });
 

@@ -377,7 +377,7 @@
             imageContainer.style.width = "75px";
             imageContainer.style.height = "75px";
             let imageElement = document.createElement("img");
-            imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
+            imageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
             imageElement.setAttribute("alt", "person")
             imageElement.classList.add("img-fluid")
@@ -460,7 +460,7 @@
                     leaderImageSubContainer.style.width = "33px";
                     leaderImageSubContainer.style.height = "33px";
                     let leaderImageElement = document.createElement("img");
-                    leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
+                    leaderImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                     leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                     leaderImageElement.setAttribute("alt", "person")
                     leaderImageElement.classList.add("img-fluid")
@@ -511,7 +511,7 @@
                         ieImageSubContainer.style.width = "33px";
                         ieImageSubContainer.style.height = "33px";
                         let ieImageElement = document.createElement("img");
-                        ieImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
+                        ieImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
                         ieImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                         ieImageElement.setAttribute("alt", "person")
                         ieImageElement.classList.add("img-fluid")
@@ -557,7 +557,7 @@
                         leaderqcImageSubContainer.style.width = "33px";
                         leaderqcImageSubContainer.style.height = "33px";
                         let leaderqcImageElement = document.createElement("img");
-                        leaderqcImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
+                        leaderqcImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
                         leaderqcImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                         leaderqcImageElement.setAttribute("alt", "person")
                         leaderqcImageElement.classList.add("img-fluid")
@@ -603,7 +603,7 @@
                         mechanicImageSubContainer.style.width = "33px";
                         mechanicImageSubContainer.style.height = "33px";
                         let mechanicImageElement = document.createElement("img");
-                        mechanicImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
+                        mechanicImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
                         mechanicImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                         mechanicImageElement.setAttribute("alt", "person")
                         mechanicImageElement.classList.add("img-fluid")
@@ -649,7 +649,7 @@
                         technicalImageSubContainer.style.width = "33px";
                         technicalImageSubContainer.style.height = "33px";
                         let technicalImageElement = document.createElement("img");
-                        technicalImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
+                        technicalImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
                         technicalImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                         technicalImageElement.setAttribute("alt", "person")
                         technicalImageElement.classList.add("img-fluid")
@@ -1115,7 +1115,7 @@
                 imageContainer.style.width = "75px";
                 imageContainer.style.height = "75px";
                 let imageElement = document.createElement("img");
-                imageElement.src = "{{ asset('../storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png";
+                imageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+data.nik+"%20"+data.name+".png";
                 imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                 imageElement.setAttribute("alt", "person")
                 imageElement.classList.add("img-fluid")
@@ -1197,7 +1197,7 @@
                         leaderImageSubContainer.style.width = "33px";
                         leaderImageSubContainer.style.height = "33px";
                         let leaderImageElement = document.createElement("img");
-                        leaderImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
+                        leaderImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
                         leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                         leaderImageElement.setAttribute("alt", "person")
                         leaderImageElement.classList.add("img-fluid")
@@ -1248,7 +1248,7 @@
                             ieImageSubContainer.style.width = "33px";
                             ieImageSubContainer.style.height = "33px";
                             let ieImageElement = document.createElement("img");
-                            ieImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
+                            ieImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
                             ieImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                             ieImageElement.setAttribute("alt", "person")
                             ieImageElement.classList.add("img-fluid")
@@ -1294,7 +1294,7 @@
                             leaderqcImageSubContainer.style.width = "33px";
                             leaderqcImageSubContainer.style.height = "33px";
                             let leaderqcImageElement = document.createElement("img");
-                            leaderqcImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
+                            leaderqcImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
                             leaderqcImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                             leaderqcImageElement.setAttribute("alt", "person")
                             leaderqcImageElement.classList.add("img-fluid")
@@ -1340,7 +1340,7 @@
                             mechanicImageSubContainer.style.width = "33px";
                             mechanicImageSubContainer.style.height = "33px";
                             let mechanicImageElement = document.createElement("img");
-                            mechanicImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
+                            mechanicImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
                             mechanicImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                             mechanicImageElement.setAttribute("alt", "person")
                             mechanicImageElement.classList.add("img-fluid")
@@ -1386,7 +1386,7 @@
                             technicalImageSubContainer.style.width = "33px";
                             technicalImageSubContainer.style.height = "33px";
                             let technicalImageElement = document.createElement("img");
-                            technicalImageElement.src = "{{ asset('../storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
+                            technicalImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
                             technicalImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
                             technicalImageElement.setAttribute("alt", "person")
                             technicalImageElement.classList.add("img-fluid")

@@ -40,7 +40,7 @@
                         ?>
                             <tr>
                                 @if ($group->ws != $currentWs)
-                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count(); }}">{{ $group->ws }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count() }}">{{ $group->ws }}</td>
 
                                     @php
                                         $currentWs = $group->ws;
@@ -50,7 +50,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style != $currentStyle)
-                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->count(); }}">{{ $group->style }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->count() }}">{{ $group->style }}</td>
 
                                     @php
                                         $currentStyle = $group->style;
@@ -59,7 +59,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color != $currentColor)
-                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->count(); }}">{{ $group->color }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->count() }}">{{ $group->color }}</td>
 
                                     @php
                                         $currentColor = $group->color;
@@ -67,7 +67,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color == $currentColor && $group->sewing_line != $currentLine)
-                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('sewing_line', $group->sewing_line)->count(); }}">{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('sewing_line', $group->sewing_line)->count() }}">{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
 
                                     @php
                                         $currentLine = $group->sewing_line;

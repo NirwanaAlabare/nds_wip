@@ -80,7 +80,7 @@ class ManageUserLineController extends Controller
             }
 
             return array(
-                'status' => '200',
+                'status' => '300',
                 'message' => 'User Created',
                 'table' => 'manage-user-line-table',
                 'redirect' => '',
@@ -143,7 +143,8 @@ class ManageUserLineController extends Controller
                 "username" => $validatedRequest["edit_username"],
                 "Password" => $validatedRequest["edit_password"],
                 "password_encrypt" => Hash::make($validatedRequest["edit_password"]),
-                "Groupp" => $request["edit_type"]
+                "Groupp" => $request["edit_type"],
+                "Locked" => $request["edit_locked"],
             ]);
 
             $subUserUpdate = UserSbWip::where("username", $userBefore->username)->update([
@@ -156,7 +157,8 @@ class ManageUserLineController extends Controller
             $updateUser = UserLine::where("line_id", $validatedRequest["edit_edit_id"])->update([
                 "FullName" => $validatedRequest["edit_name"],
                 "username" => $validatedRequest["edit_username"],
-                "Groupp" => $request["edit_type"]
+                "Groupp" => $request["edit_type"],
+                "Locked" => $request["edit_locked"],
             ]);
 
             $subUserUpdate = UserSbWip::where("username", $userBefore->username)->update([
@@ -170,6 +172,9 @@ class ManageUserLineController extends Controller
                 $totalSubUser = UserSbWip::where("line_id", $validatedRequest["edit_id"])->count();
 
                 $subUserArr = [];
+                if ($totalSubUser < 1) {
+                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["edit_username"]), "username" => $validatedRequest["edit_username"], "password" => Hash::make($validatedRequest["edit_password"]), "password_text" => $validatedRequest["edit_password"], "line_id" => $validatedRequest["edit_id"]]);
+                }
                 for ($i = 0; $i < $request['edit_sub_user']; $i++) {
                     array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["edit_username"])."_".($totalSubUser+$i+1), "username" => $validatedRequest["edit_username"]."_".($totalSubUser+$i+1), "password" => Hash::make($validatedRequest["edit_password"]), "password_text" => $validatedRequest["edit_password"], "line_id" => $validatedRequest["edit_id"]]);
                 }
@@ -178,7 +183,7 @@ class ManageUserLineController extends Controller
             }
 
             return array(
-                'status' => '200',
+                'status' => '300',
                 'message' => 'Profile updated',
                 'table' => 'manage-user-line-table',
                 'redirect' => '',
@@ -236,7 +241,7 @@ class ManageUserLineController extends Controller
                     UserSbWip::where("line_id", $id)->delete();
 
                     return array(
-                        'status' => '200',
+                        'status' => '300',
                         'message' => 'User Deleted',
                         'table' => 'manage-user-line-table',
                         'redirect' => '',

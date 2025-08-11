@@ -277,12 +277,35 @@ class MasterPlanController extends Controller
      */
     public function destroy($id)
     {
-        $destroyMasterPlan = MasterPlan::find($id)->update(["cancel" => "Y"]);
+        $dataOutput = collect(
+            DB::connection("mysql_sb")->select("
+                SELECT output.* FROM (
+                    (select master_plan_id, kode_numbering, id, created_at, updated_at from output_rfts WHERE master_plan_id = '".$id."' LIMIT 1)
+                    UNION
+                    (select master_plan_id, kode_numbering, id, created_at, updated_at from output_defects WHERE master_plan_id = '".$id."' LIMIT 1)
+                    UNION
+                    (select master_plan_id, kode_numbering, id, created_at, updated_at from output_rejects WHERE master_plan_id = '".$id."' LIMIT 1)
+                ) output
+            ")
+        )->count();
 
-        if ($destroyMasterPlan) {
+        if ($dataOutput < 1) {
+            $destroyMasterPlan = MasterPlan::find($id)->update(["cancel" => "Y"]);
+
+            if ($destroyMasterPlan) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Plan berhasil dihapus',
+                    'redirect' => '',
+                    'table' => '',
+                    'additional' => [],
+                    'callback' => 'reloadWindow()',
+                );
+            }
+        } else {
             return array(
-                'status' => 200,
-                'message' => 'Plan berhasil dihapus',
+                'status' => 400,
+                'message' => 'Plan sudah memiliki output',
                 'redirect' => '',
                 'table' => '',
                 'additional' => [],
@@ -293,7 +316,7 @@ class MasterPlanController extends Controller
             'status' => 400,
             'message' => 'Plan gagal dihapus',
             'redirect' => '',
-            'table' => 'e',
+            'table' => '',
             'additional' => [],
         );
     }

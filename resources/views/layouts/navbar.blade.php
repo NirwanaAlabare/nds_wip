@@ -113,6 +113,12 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('cutting-piece') }}"
+                                        class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
+                                        Form Pieces <i class="fa-solid fa-shirt"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('form-cut-piping') }}"
                                         class="dropdown-item {{ $routeName == 'form-cut-piping' ? 'active' : '' }}">
                                         Piping <i class="fa-solid fa-paperclip"></i>
@@ -170,7 +176,7 @@
                                     <li>
                                         <a href="{{ route('sisa_kain_roll') }}"
                                             class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">
-                                            Sisa Kain Roll <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
+                                            Bintex Sisa Kain <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
                                         </a>
                                     </li>
                                 </ul>
@@ -256,24 +262,6 @@
                                 <li>
                                     <a href="{{ route('stock-cutting-reject') }}"
                                         class="dropdown-item {{ $routeName == 'stock-cutting-reject' ? 'active' : '' }}">
-                                        Stocker <i class="fa-solid fa-receipt"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-piece' ? 'active' : '' }}">Pcs</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('cutting-piece') }}"
-                                        class="dropdown-item {{ $routeName == 'cutting-piece' ? 'active' : '' }}">
-                                        Form <i class="fa-solid fa-file-circle-exclamation"></i>
-                                    </a>
-                                </li>
-                                <li class="d-none">
-                                    <a href="{{ route('stock-cutting-piece') }}"
-                                        class="dropdown-item {{ $routeName == 'stock-cutting-piece' ? 'active' : '' }}">
                                         Stocker <i class="fa-solid fa-receipt"></i>
                                     </a>
                                 </li>
@@ -480,7 +468,7 @@
                                 <li>
                                     <a href="{{ route('stocker-list') }}"
                                         class="dropdown-item {{ $routeName == 'stocker-list' ? 'active' : '' }}">
-                                        Stocker List <i class="fa-solid fa-list-ul"></i>
+                                        Registration List <i class="fa-solid fa-list-ul"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -1169,6 +1157,24 @@
                 @if ($page == 'dashboard-qc-inspect')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'qc-inspect-master' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('qc_inspect_master_critical_defect_show') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-master-critical-defect' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Critical Defect
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc_inspect_master_founding_issue_show') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-master-founding-issue' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Founding Issue
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'qc-inspect-proses' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
@@ -1252,7 +1258,8 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i class="fa-solid fa-toolbox"></i></a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i
+                                class="fa-solid fa-toolbox"></i></a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('ppic_tools_adj_mut_output') }}"

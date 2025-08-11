@@ -262,7 +262,6 @@ class PartController extends Controller
             $partDetailStore = PartDetail::insert($partDetailData);
 
             $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
-
             foreach ($formCutData as $formCut) {
                 $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
 
@@ -275,6 +274,25 @@ class PartController extends Controller
                         "kode" => $kodePartForm,
                         "part_id" => $partId,
                         "form_id" => $formCut->id,
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
+                }
+            }
+
+            $formPieceData = FormCutPiece::select('form_cut_piece.id')->where("form_cut_piece.act_costing_id", $partStore->act_costing_id)->where("form_cut_piece.act_costing_ws", $partStore->act_costing_ws)->where("form_cut_piece.panel", $partStore->panel)->where("form_cut_piece.buyer", $partStore->buyer)->where("form_cut_piece.style", $partStore->style)->where("form_cut_piece.status", "complete")->orderBy("no_cut", "asc")->get();
+            foreach ($formPieceData as $formPiece) {
+                $isExist = PartForm::where("part_id", $partId)->where("form_pcs_id", $formPiece->id)->count();
+
+                if ($isExist < 1) {
+                    $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                    $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                    $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+                    $addToPartForm = PartForm::create([
+                        "kode" => $kodePartForm,
+                        "part_id" => $partId,
+                        "form_pcs_id" => $formPiece->id,
                         "created_at" => Carbon::now(),
                         "updated_at" => Carbon::now(),
                     ]);

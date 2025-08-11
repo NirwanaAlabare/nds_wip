@@ -57,7 +57,7 @@ return [
 
         'public_employee_profile' => [
             'driver' => 'local',
-            'root'   => public_path() . '/storage/employee_profile',
+            'root'   => storage_path('app/public/employee_profile'),
         ],
 
         's3' => [

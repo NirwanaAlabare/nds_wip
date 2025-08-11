@@ -239,6 +239,12 @@
                         </div>
                         </div>
                         </div>
+                        <div class="col-10 col-md-10">
+                            <textarea id="bulk_barcode_input" class="form-control" rows="4" placeholder="Tempel barcode di sini, pisahkan dengan spasi atau enter..."></textarea>
+                        </div>
+                        <div class="col-2 col-md-2">
+                            <button type="button" class="btn btn-info mt-2" onclick="convertToSelect()"><i class="fa fa-paper-plane" aria-hidden="true"></i> Send</button>
+                        </div>
                         <div class="col-md-12">
                             <input type="hidden" class="form-control " id="m_no_bppb2" name="m_no_bppb2" value="" readonly>
                             <input type="hidden" class="form-control " id="m_tgl_bppb2" name="m_tgl_bppb2" value="" readonly>
@@ -419,6 +425,38 @@
         if (document.getElementById('store-inmaterial')) {
             document.getElementById('store-inmaterial').reset();
         }
+
+        function convertToSelect() {
+          let input = $('#bulk_barcode_input').val();
+    if (!input) return;
+
+    let barcodes = input.split('\n').map(b => b.trim()).filter(b => b !== '');
+
+    let $select = $('#txt_barcode');
+
+    let validBarcodes = [];
+
+    barcodes.forEach(code => {
+        // Hanya pilih jika barcode SUDAH ADA di dalam <select>
+        if ($select.find("option[value='" + code + "']").length > 0) {
+            validBarcodes.push(code);
+            // Tandai sebagai selected
+            $select.find("option[value='" + code + "']").prop('selected', true);
+        }
+    });
+
+    // Update Select2 dengan pilihan yang valid saja
+    $select.trigger('change');
+
+    // Kosongkan textarea input
+    $('#bulk_barcode_input').val('');
+
+    // Opsional: alert jika ada barcode tidak ditemukan
+    let invalidCount = barcodes.length - validBarcodes.length;
+    if (invalidCount > 0) {
+        alert(`${invalidCount} barcode tidak ditemukan di pilihan dan telah diabaikan.`);
+    }
+}
 
 
         function sum_qty_aktual(){

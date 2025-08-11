@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\SignalBit\SoDet;
 
 class FormCutPieceDetailSize extends Model
 {
@@ -16,5 +17,10 @@ class FormCutPieceDetailSize extends Model
     public function formCutPieceDetail()
     {
         return $this->belongsTo(FormCutPieceDetailSize::class, 'form_detail_id', 'id');
+    }
+
+    public function soDet()
+    {
+        return $this->belongsTo(SoDet::class, 'so_det_id', 'id');
     }
 }

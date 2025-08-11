@@ -823,8 +823,9 @@ function submitFormScan(e, evt) {
                         $('#txt_nojo').val(res[0].jo_no);
                         $('#txt_dikirim').val(res[0].supplier);
                         $('#txt_idsupp').val(res[0].id_supplier);
-                        $('#txt_nows').val(res[0].idws_act);
+                        $('#txt_nows').val(res[0].idws);
                         $('#txt_buyer').val(res[0].buyer);
+                        $('#txt_nows_act').val(res[0].idws_act);
                         getlistdata();
                     }
                 },

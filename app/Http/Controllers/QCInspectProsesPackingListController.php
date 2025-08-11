@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use PDF;
 
 class QCInspectProsesPackingListController extends Controller
 {
@@ -33,7 +34,8 @@ count(distinct(no_lot)) jml_lot,
 mi.color,
 a.type_pch,
 min(c.id) id_lok_in_material,
-IF(d.no_invoice IS NULL, 'N', 'Y') AS status_inspect
+IF(d.no_invoice IS NULL, 'N', 'Y') AS status_inspect,
+if(d.tot_form = d.tot_done, 'Y','N') as status_pdf
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
@@ -44,7 +46,11 @@ inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
 left join
 (
-select id_item, id_jo, no_invoice from signalbit_erp.qc_inspect_form group by id_item, id_jo, no_invoice
+        select id_item, id_jo, no_invoice,
+            COUNT(CASE WHEN status_proses_form = 'done' THEN 1 END) AS tot_done,
+            COUNT(no_form) AS tot_form
+        from signalbit_erp.qc_inspect_form a
+        group by id_item, id_jo, no_invoice
 ) d on c.id_item = d.id_item and c.id_jo = d.id_jo and a.no_invoice = d.no_invoice
 where a.tgl_dok >= '$tgl_awal' and a.tgl_dok <= '$tgl_akhir' and a.type_pch not like '%Pengembalian dari Produksi%' and b.status = 'Y' and c.status = 'Y' and a.status != 'Cancel'
 group by a.tgl_dok, a.no_invoice,b.id_item, b.id_jo, b.unit
@@ -54,6 +60,11 @@ order by tgl_dok asc, no_dok asc, no_invoice asc, color asc
             return DataTables::of($data_input)->toJson();
         }
 
+        $data_defect = DB::connection('mysql_sb')->select("SELECT
+id isi,
+concat(critical_defect, ' - ', point_defect) tampil
+from qc_inspect_master_defect");
+
         return view(
             'qc_inspect.proses_packinglist',
             [
@@ -62,8 +73,9 @@ order by tgl_dok asc, no_dok asc, no_invoice asc, color asc
                 "subPage" => "qc-inspect-proses-packing-list",
                 'tgl_skrg_min_sebulan' => $tgl_skrg_min_sebulan,
                 'tgl_skrg' => $tgl_skrg,
+                "data_defect" => $data_defect,
                 "containerFluid" => true,
-                "user" => $user
+                "user" => $user,
             ]
         );
     }
@@ -114,6 +126,23 @@ group by a.tgl_dok, a.no_dok,b.id_item, b.id_jo, b.unit", [$id_lok_in_material])
         $type_pch = $get_header[0]->type_pch;
         $itemdesc = $get_header[0]->itemdesc;
 
+        $cek_data = DB::connection('mysql_sb')->select("
+    SELECT group_inspect, cek_inspect
+    FROM qc_inspect_form
+    WHERE id_item = ? AND id_jo = ? AND no_invoice = ?
+    LIMIT 1
+", [$id_item, $id_jo, $no_invoice]);
+
+        // Set default as null if no data found
+        $group_inspect = null;
+        $cek_inspect = '0';
+
+        if (!empty($cek_data)) {
+            $group_inspect = $cek_data[0]->group_inspect;
+            $cek_inspect = $cek_data[0]->cek_inspect;
+        }
+
+
         $data_group = DB::connection('mysql_sb')->select("SELECT
 group_inspect isi,
 concat(group_inspect, ' - ', name_fabric_group) tampil
@@ -139,7 +168,9 @@ from qc_inspect_master_group_inspect");
                 "jml_roll" => $jml_roll,
                 "type_pch" => $type_pch,
                 "itemdesc" => $itemdesc,
-                "data_group" => $data_group
+                "data_group" => $data_group,
+                "group_inspect" => $group_inspect,
+                "cek_inspect" => $cek_inspect
             ]
         );
     }
@@ -151,7 +182,7 @@ from qc_inspect_master_group_inspect");
         $id_item = $request->id_item;
         $id_jo = $request->id_jo;
         $no_inv = $request->no_inv;
-        $cek_inspect = $request->cek_inspect;
+        $cek_inspect = $request->cek_inspect ?? 0;
         $cbo_group_def = $request->cbo_group_def;
 
         $get_data_inspect_group = DB::connection('mysql_sb')->select("SELECT
@@ -159,35 +190,216 @@ from qc_inspect_master_group_inspect");
         from qc_inspect_master_group_inspect where id = '$cbo_group_def'");
 
         $max_shipment = !empty($get_data_inspect_group) ? $get_data_inspect_group[0]->shipment : '0';
-        $data_input = DB::connection('mysql_sb')->select("SELECT
-                        c.no_lot,
-                        count(no_roll) jml_roll,
-                        CEIL(count(no_roll) * ($cek_inspect /100)) jml_roll_cek,
-                        if(d.tot_form is null, '0', d.tot_form) tot_form,
-						IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect, ' %')) AS cek_inspect,
-						CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
-                        IF(d.proses IS NULL, 1, d.proses) AS proses_int,
-                        IF(d.shipment IS NULL, $max_shipment, d.shipment) max_shipment,
-                        '0' shipment_point,
-                        '-' result,
-                        IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot
+        $data_input = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+        b.no_form,
+				b.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				status_proses_form,
+				c.individu,
+				b.group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				m.founding_issue
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+		LEFT JOIN qc_inspect_master_founding_issue m on b.founding_issue = m.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+group by no_form, no_lot
+),
+b AS (
+    SELECT
+        a.no_form,
+				b.no_lot,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				id_item,
+				id_jo,
+				no_invoice,
+				a.no_lot,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				status_proses_form,
+				founding_issue
+    FROM a
+		group by no_form, no_lot
+),
+d AS (
+				SELECT
+				COUNT(c.no_form) AS tot_form,
+				COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END) AS tot_form_done,
+				c.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+				c.tot_point,
+				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END),2) avg_act_point,
+				individu,
+				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				max(proses) proses,
+				max(pass_with_condition)pass_with_condition,
+				GROUP_CONCAT(DISTINCT c.founding_issue ORDER BY c.founding_issue SEPARATOR ', ') AS list_founding_issue
+FROM c
+left JOIN b ON c.no_form = b.no_form
+        GROUP BY
+            no_lot,
+            id_item,
+            id_jo,
+            no_invoice,
+            group_inspect,
+            shipment,
+            cek_inspect
+),
+sr_w AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    MIN(ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2)) as max_width_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+sr_l AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    'LENGTH' as dim,
+    MIN(ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2)) as max_length_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+main as (
+select
+b.id_item,
+b.id_jo,
+a.no_invoice,
+c.no_lot,
+d.group_inspect,
+count(no_roll) jml_roll,
+(CEIL(count(no_roll) * ($cek_inspect /100)) * d.proses) jml_roll_cek,
+if(d.tot_form is null, '0', d.tot_form) tot_form,
+if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
+IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
+CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
+IF(d.proses IS NULL, 1, d.proses) AS proses_int,
+IF(d.shipment IS NULL, $max_shipment, d.shipment) max_shipment,
+d.avg_act_point shipment_point,
+CASE
+    WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point <= d.shipment THEN 'PASS'
+    WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment and pass_with_condition = 'N' THEN 'REJECT'
+	WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment and pass_with_condition = 'Y' THEN 'PASS WITH CONDITION'
+    WHEN if(d.tot_form is null, '0', d.tot_form) <  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point <= d.shipment THEN '-'
+	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment THEN '-'
+	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
+    END AS result,
+CASE
+    WHEN  pass_with_condition = 'N' AND  (
+        CASE
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) < IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point < d.shipment THEN '-'
+        END = 'REJECT'
+    ) THEN 'Y'
+    ELSE 'N'
+END AS stat_reject,
+    IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot,
+				CASE
+					WHEN if(d.tot_form is null, '0', d.tot_form) = if(d.tot_form_done is null, '0', d.tot_form_done) and d.proses = '1' and
+						CASE
+                        WHEN d.shipment IS NULL AND d.avg_act_point IS NULL THEN '-'
+						WHEN d.avg_act_point IS NULL THEN '-'
+                        WHEN d.avg_act_point <= d.shipment THEN 'PASS'
+                        ELSE 'REJECT'
+                  END = 'REJECT' THEN 'Y'
+						ELSE 'N'
+		END as gen_more,
+        IF(photo IS NULL, 'N', 'Y') AS photo,
+				list_founding_issue,
+				max_width_short_roll,
+				max_length_short_roll,
+				e.result as result_blanket
 from signalbit_erp.whs_inmaterial_fabric a
 inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
 left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
-LEFT JOIN
-(
-		SELECT no_lot, id_item, id_jo, no_invoice, max(proses) proses, a.group_inspect, max(shipment) shipment, max(cek_inspect) cek_inspect, count(no_lot) tot_form
-		FROM signalbit_erp.qc_inspect_form a
-		inner join signalbit_erp.qc_inspect_master_group_inspect b on a.group_inspect = b.id
-		where a.id_item = '$id_item' and a.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
-		GROUP BY no_lot, id_item, id_jo, no_invoice
-) d
-ON c.no_lot = d.no_lot
+left join d ON c.no_lot = d.no_lot
 AND c.id_item = d.id_item
 AND c.id_jo = d.id_jo
 AND a.no_invoice = d.no_invoice
+left join signalbit_erp.qc_inspect_form_blanket e on
+c.no_lot = e.no_lot
+AND c.id_item = e.id_item
+AND c.id_jo = e.id_jo
+AND a.no_invoice = e.no_invoice
+left join sr_w on c.id_item = sr_w.id_item and c.id_jo = sr_w.id_jo and c.no_lot = sr_w.no_lot and a.no_invoice = sr_w.no_invoice
+left join sr_l on c.id_item = sr_l.id_item and c.id_jo = sr_l.id_jo and c.no_lot = sr_l.no_lot and a.no_invoice = sr_l.no_invoice
 where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
 group by c.no_lot
+)
+
+SELECT
+main.*,
+CASE
+        WHEN main.result_blanket is null then '-'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'PASS' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS' THEN 'PASS WITH CONDITION'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'PASS WITH CONDITION' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+end as final_result
+from main
+
+
             ");
 
         $statusLotNCount = collect($data_input)->where('status_lot', 'N')->count();
@@ -285,6 +497,7 @@ group by c.no_lot
                     'cek_inspect'           => $cek_inspect,
                     'proses'                => $row->proses_int,
                     'status_proses_form'    => 'draft',
+                    'pass_with_condition'   => 'N',
                     'created_by'            => $user,
                     'created_at'            => $timestamp,
                     'updated_at'            => $timestamp,
@@ -309,5 +522,1252 @@ group by c.no_lot
                 'no_inv' => $no_inv,
             ]
         ]);
+    }
+
+    public function show_qc_inspect_form_modal(Request $request)
+    {
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_invoice = $request->no_invoice;
+        $no_lot = $request->no_lot;
+
+        if ($request->ajax()) {
+            $data_input = DB::connection('mysql_sb')->select("WITH qc as (
+SELECT
+qc.id,
+qc.no_form,
+qc.tgl_form,
+qc.no_mesin,
+DATE_FORMAT(qc.tgl_form, '%d-%M-%Y') AS tgl_form_fix,
+qc.no_lot,
+qc.id_item,
+a.itemdesc,
+a.supplier,
+qc.no_invoice,
+a.buyer,
+a.kpno,
+a.styleno,
+a.color,
+qc.group_inspect,
+a.type_pch,
+qc.proses,
+qc.barcode,
+b.no_roll,
+qc.status_proses_form,
+c.individu,
+qc.pass_with_condition,
+IF(qc.founding_issue IS NULL, 'PASS', 'HOLD') AS founding_issue_result,
+qc.short_roll_result,
+qc.final_result
+from qc_inspect_form qc
+inner join
+(
+select a.no_invoice, c.id_item, mi.itemdesc,c.id_jo, mi.color,a.supplier, ms.supplier buyer, ac.kpno, ac.styleno, a.type_pch
+from signalbit_erp.whs_inmaterial_fabric a
+inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
+inner join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
+inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
+inner join signalbit_erp.jo_det jd on b.id_jo = jd.id_jo
+inner join signalbit_erp.so so on jd.id_so = so.id
+inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+group by c.id_item, c.id_jo, a.no_invoice
+) a on qc.id_item = a.id_item and qc.id_jo = a.id_jo and qc.no_invoice = a.no_invoice
+left join signalbit_erp.whs_lokasi_inmaterial b on qc.barcode = b.no_barcode
+left join signalbit_erp.qc_inspect_master_group_inspect c on qc.group_inspect = c.id
+where qc.id_item = '$id_item' and qc.id_jo = '$id_jo' and qc.no_invoice = '$no_invoice' and qc.no_lot = '$no_lot'
+),
+a AS (
+    SELECT
+        a.no_form,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				c.individu
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where b.id_item = '$id_item' and b.id_jo = '$id_jo' and b.no_invoice = '$no_invoice' and b.no_lot = '$no_lot'
+		GROUP BY no_form
+),
+b AS (
+    SELECT
+        a.no_form,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where b.id_item = '$id_item' and b.id_jo = '$id_jo' and b.no_invoice = '$no_invoice' and b.no_lot = '$no_lot'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu
+    FROM a
+		GROUP BY a.no_form
+),
+d AS (
+SELECT
+c.no_form,
+sum_up_to_3,
+sum_3_6,
+sum_6_9,
+sum_over_9,
+c.tot_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)),2) AS act_point,
+individu,
+if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result
+FROM c
+INNER JOIN b ON c.no_form = b.no_form
+GROUP BY c.no_form
+)
+
+SELECT qc.*,
+d.act_point,
+concat(d.act_point, '/', qc.individu) point_max_point,
+CASE
+		WHEN d.result = 'REJECT' AND qc.pass_with_condition = 'Y' THEN 'PASS WITH CONDITION'
+		ELSE d.result
+		END as result
+FROM qc
+left join d on qc.no_form = d.no_form
+ORDER BY qc.tgl_form desc, no_form asc, no_invoice asc
+            ");
+
+            return DataTables::of($data_input)->toJson();
+        }
+    }
+
+    public function generate_form_kedua(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_inv = $request->no_invoice;
+        $no_lot = $request->no_lot;
+        $cek_inspect = $request->cek_inspect;
+        $group_inspect = $request->group_inspect;
+        $tot_form = (int) $request->tot_form;
+
+        // Prepare date values
+        $datePrefix = $timestamp->format('dmy'); // e.g., 230725
+        $month = $timestamp->format('m');
+        $year = $timestamp->format('Y');
+        $currentDate = $timestamp->format('Y-m-d');
+
+        // Get the last form number of the current month/year
+        $get_last_number = DB::connection('mysql_sb')->select("
+        SELECT MAX(CAST(SUBSTRING_INDEX(no_form, '/', -1) AS UNSIGNED)) AS last_number
+        FROM qc_inspect_form
+        WHERE MONTH(tgl_form) = ? AND YEAR(tgl_form) = ?
+    ", [$month, $year]);
+
+        $last_number = $get_last_number[0]->last_number ?? 0;
+        $formCounter = $last_number + 1;
+
+        $generated_forms = [];
+
+        for ($i = 0; $i < $tot_form; $i++) {
+            $no_form = 'INS/' . $datePrefix . '/' . $formCounter++;
+
+            DB::connection('mysql_sb')->table('qc_inspect_form')->insert([
+                'no_form'               => $no_form,
+                'tgl_form'              => $currentDate,
+                'no_lot'                => $no_lot,
+                'no_invoice'            => $no_inv,
+                'id_item'               => $id_item,
+                'id_jo'                 => $id_jo,
+                'group_inspect'         => $group_inspect,
+                'cek_inspect'           => $cek_inspect,
+                'proses'                => '2',
+                'status_proses_form'    => 'draft',
+                'pass_with_condition'   => 'N',
+                'created_by'            => $user,
+                'created_at'            => $timestamp,
+                'updated_at'            => $timestamp,
+            ]);
+
+            $generated_forms[] = [
+                'no_form' => $no_form,
+                'no_lot' => $no_lot,
+            ];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Form kedua berhasil digenerate.',
+            'total_generated_forms' => $tot_form,
+            'generated_forms' => $generated_forms,
+            'data' => [
+                'id_item' => $id_item,
+                'id_jo' => $id_jo,
+                'no_inv' => $no_inv,
+                'no_lot' => $no_lot,
+            ]
+        ]);
+    }
+
+
+    public function show_inspect_pertama(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_inv = $request->no_inv;
+        $cek_inspect = $request->cek_inspect;
+        $cbo_group_def = $request->cbo_group_def;
+
+        $get_data_inspect_group = DB::connection('mysql_sb')->select("SELECT
+        shipment
+        from qc_inspect_master_group_inspect where id = '$cbo_group_def'");
+
+        $max_shipment = !empty($get_data_inspect_group) ? $get_data_inspect_group[0]->shipment : '0';
+        $data_input = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+        b.no_form,
+				b.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				status_proses_form,
+				c.individu,
+				b.group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				m.founding_issue
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+		LEFT JOIN qc_inspect_master_founding_issue m on b.founding_issue = m.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+group by no_form, no_lot
+),
+b AS (
+    SELECT
+        a.no_form,
+				b.no_lot,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				id_item,
+				id_jo,
+				no_invoice,
+				a.no_lot,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				status_proses_form,
+				founding_issue
+    FROM a
+		group by no_form, no_lot
+),
+d AS (
+				SELECT
+				COUNT(c.no_form) AS tot_form,
+				COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END) AS tot_form_done,
+				c.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+				c.tot_point,
+				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END),2) avg_act_point,
+				individu,
+				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				max(proses) proses,
+				max(pass_with_condition)pass_with_condition,
+				GROUP_CONCAT(DISTINCT c.founding_issue ORDER BY c.founding_issue SEPARATOR ', ') AS list_founding_issue
+FROM c
+left JOIN b ON c.no_form = b.no_form
+        GROUP BY
+            no_lot,
+            id_item,
+            id_jo,
+            no_invoice,
+            group_inspect,
+            shipment,
+            cek_inspect
+),
+sr_w AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    MIN(ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2)) as max_width_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+sr_l AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    'LENGTH' as dim,
+    MIN(ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2)) as max_length_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '1'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+main as (
+select
+b.id_item,
+b.id_jo,
+a.no_invoice,
+c.no_lot,
+d.group_inspect,
+count(no_roll) jml_roll,
+(CEIL(count(no_roll) * ($cek_inspect /100)) * d.proses) jml_roll_cek,
+if(d.tot_form is null, '0', d.tot_form) tot_form,
+if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
+IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
+CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
+IF(d.proses IS NULL, 1, d.proses) AS proses_int,
+IF(d.shipment IS NULL, $max_shipment, d.shipment) max_shipment,
+d.avg_act_point shipment_point,
+CASE
+    WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point <= d.shipment THEN 'PASS'
+    WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment and pass_with_condition = 'N' THEN 'REJECT'
+	WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment and pass_with_condition = 'Y' THEN 'PASS WITH CONDITION'
+    WHEN if(d.tot_form is null, '0', d.tot_form) <  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point <= d.shipment THEN '-'
+	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment THEN '-'
+	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
+    END AS result,
+CASE
+    WHEN  pass_with_condition = 'N' AND  (
+        CASE
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) < IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point < d.shipment THEN '-'
+        END = 'REJECT'
+    ) THEN 'Y'
+    ELSE 'N'
+END AS stat_reject,
+    IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot,
+				CASE
+					WHEN if(d.tot_form is null, '0', d.tot_form) = if(d.tot_form_done is null, '0', d.tot_form_done) and d.proses = '1' and
+						CASE
+                        WHEN d.shipment IS NULL AND d.avg_act_point IS NULL THEN '-'
+						WHEN d.avg_act_point IS NULL THEN '-'
+                        WHEN d.avg_act_point <= d.shipment THEN 'PASS'
+                        ELSE 'REJECT'
+                  END = 'REJECT' THEN 'Y'
+						ELSE 'N'
+		END as gen_more,
+        IF(photo IS NULL, 'N', 'Y') AS photo,
+				list_founding_issue,
+				max_width_short_roll,
+				max_length_short_roll,
+				e.result as result_blanket
+from signalbit_erp.whs_inmaterial_fabric a
+inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
+left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
+left join d ON c.no_lot = d.no_lot
+AND c.id_item = d.id_item
+AND c.id_jo = d.id_jo
+AND a.no_invoice = d.no_invoice
+left join signalbit_erp.qc_inspect_form_blanket e on
+c.no_lot = e.no_lot
+AND c.id_item = e.id_item
+AND c.id_jo = e.id_jo
+AND a.no_invoice = e.no_invoice
+left join sr_w on c.id_item = sr_w.id_item and c.id_jo = sr_w.id_jo and c.no_lot = sr_w.no_lot and a.no_invoice = sr_w.no_invoice
+left join sr_l on c.id_item = sr_l.id_item and c.id_jo = sr_l.id_jo and c.no_lot = sr_l.no_lot and a.no_invoice = sr_l.no_invoice
+where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv' and proses = '1'
+group by c.no_lot
+)
+
+SELECT
+main.*,
+CASE
+		WHEN main.result_blanket is null then '-'
+		WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+		WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+		WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+end as final_result
+from main
+            ");
+        return DataTables::of($data_input)->toJson();
+    }
+
+
+    public function show_inspect_kedua(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_inv = $request->no_inv;
+        $cek_inspect = $request->cek_inspect;
+        $cbo_group_def = $request->cbo_group_def;
+
+        $get_data_inspect_group = DB::connection('mysql_sb')->select("SELECT
+        shipment
+        from qc_inspect_master_group_inspect where id = '$cbo_group_def'");
+
+        $max_shipment = !empty($get_data_inspect_group) ? $get_data_inspect_group[0]->shipment : '0';
+        $data_input = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+        b.no_form,
+				b.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				status_proses_form,
+				c.individu,
+				b.group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				m.founding_issue
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+		LEFT JOIN qc_inspect_master_founding_issue m on b.founding_issue = m.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+group by no_form, no_lot
+),
+b AS (
+    SELECT
+        a.no_form,
+				b.no_lot,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+			FROM	qc_inspect_form b
+			left JOIN qc_inspect_form_det a ON b.no_form = a.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				id_item,
+				id_jo,
+				no_invoice,
+				a.no_lot,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				proses,
+				pass_with_condition,
+				status_proses_form,
+				founding_issue
+    FROM a
+		group by no_form, no_lot
+),
+d AS (
+				SELECT
+				COUNT(c.no_form) AS tot_form,
+				COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END) AS tot_form_done,
+				c.no_lot,
+				id_item,
+				id_jo,
+				no_invoice,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+				c.tot_point,
+				(SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END)) AS act_point,
+				round((SUM((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)))) / COUNT(DISTINCT CASE WHEN status_proses_form = 'done' THEN b.no_form END),2) avg_act_point,
+				individu,
+				if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result,
+				group_inspect,
+				shipment,
+				cek_inspect,
+				max(proses) proses,
+				max(pass_with_condition)pass_with_condition,
+				GROUP_CONCAT(DISTINCT c.founding_issue ORDER BY c.founding_issue SEPARATOR ', ') AS list_founding_issue
+FROM c
+left JOIN b ON c.no_form = b.no_form
+        GROUP BY
+            no_lot,
+            id_item,
+            id_jo,
+            no_invoice,
+            group_inspect,
+            shipment,
+            cek_inspect
+),
+sr_w AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    MIN(ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2)) as max_width_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+sr_l AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    'LENGTH' as dim,
+    MIN(ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2)) as max_length_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv' and proses = '2'
+GROUP BY id_item, id_jo, no_invoice, no_lot
+),
+main as (
+select
+b.id_item,
+b.id_jo,
+a.no_invoice,
+c.no_lot,
+d.group_inspect,
+count(no_roll) jml_roll,
+(CEIL(count(no_roll) * ($cek_inspect /100)) * d.proses) jml_roll_cek,
+if(d.tot_form is null, '0', d.tot_form) tot_form,
+if(d.tot_form_done is null, '0', d.tot_form_done) tot_form_done,
+IF(d.cek_inspect IS NULL, CONCAT($cek_inspect, ' %'), CONCAT(d.cek_inspect * proses, ' %')) AS cek_inspect,
+CONCAT('Inspect Ke ', IF(d.proses IS NULL, 1, d.proses)) AS proses,
+IF(d.proses IS NULL, 1, d.proses) AS proses_int,
+IF(d.shipment IS NULL, $max_shipment, d.shipment) max_shipment,
+d.avg_act_point shipment_point,
+CASE
+    WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point <= d.shipment THEN 'PASS'
+    WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment and pass_with_condition = 'N' THEN 'REJECT'
+	WHEN if(d.tot_form is null, '0', d.tot_form) =  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment and pass_with_condition = 'Y' THEN 'PASS WITH CONDITION'
+    WHEN if(d.tot_form is null, '0', d.tot_form) <  if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point <= d.shipment THEN '-'
+	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point > d.shipment THEN '-'
+	WHEN if(d.tot_form is null, '0', d.tot_form) > if(d.tot_form_done is null, '0', d.tot_form_done) and d.avg_act_point < d.shipment THEN '-'
+    END AS result,
+CASE
+    WHEN  pass_with_condition = 'N' AND  (
+        CASE
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN 'PASS'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) = IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN 'REJECT'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) < IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point <= d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point > d.shipment THEN '-'
+            WHEN IF(d.tot_form IS NULL, '0', d.tot_form) > IF(d.tot_form_done IS NULL, '0', d.tot_form_done) AND d.avg_act_point < d.shipment THEN '-'
+        END = 'REJECT'
+    ) THEN 'Y'
+    ELSE 'N'
+END AS stat_reject,
+    IF(d.no_lot IS NULL, 'N', 'Y') AS status_lot,
+				CASE
+					WHEN if(d.tot_form is null, '0', d.tot_form) = if(d.tot_form_done is null, '0', d.tot_form_done) and d.proses = '1' and
+						CASE
+                        WHEN d.shipment IS NULL AND d.avg_act_point IS NULL THEN '-'
+						WHEN d.avg_act_point IS NULL THEN '-'
+                        WHEN d.avg_act_point <= d.shipment THEN 'PASS'
+                        ELSE 'REJECT'
+                  END = 'REJECT' THEN 'Y'
+						ELSE 'N'
+		END as gen_more,
+        IF(photo IS NULL, 'N', 'Y') AS photo,
+				list_founding_issue,
+				max_width_short_roll,
+				max_length_short_roll,
+				e.result as result_blanket
+from signalbit_erp.whs_inmaterial_fabric a
+inner join signalbit_erp.whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
+left join signalbit_erp.whs_lokasi_inmaterial c on a.no_dok = c.no_dok and b.id_item = c.id_item and b.id_jo = c.id_jo
+left join d ON c.no_lot = d.no_lot
+AND c.id_item = d.id_item
+AND c.id_jo = d.id_jo
+AND a.no_invoice = d.no_invoice
+left join signalbit_erp.qc_inspect_form_blanket e on
+c.no_lot = e.no_lot
+AND c.id_item = e.id_item
+AND c.id_jo = e.id_jo
+AND a.no_invoice = e.no_invoice
+left join sr_w on c.id_item = sr_w.id_item and c.id_jo = sr_w.id_jo and c.no_lot = sr_w.no_lot and a.no_invoice = sr_w.no_invoice
+left join sr_l on c.id_item = sr_l.id_item and c.id_jo = sr_l.id_jo and c.no_lot = sr_l.no_lot and a.no_invoice = sr_l.no_invoice
+where c.id_item = '$id_item' and c.id_jo = '$id_jo' and a.no_invoice = '$no_inv' and proses = '2'
+group by c.no_lot
+)
+
+SELECT
+main.*,
+CASE
+		WHEN main.result_blanket is null then '-'
+		WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+		WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+		WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+end as final_result
+from main
+            ");
+        return DataTables::of($data_input)->toJson();
+    }
+
+    public function pass_with_condition(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_inv = $request->no_invoice;
+        $no_lot = $request->no_lot;
+
+        // Perform the update and get the number of affected rows
+        $total_updated = DB::connection('mysql_sb')->table('qc_inspect_form')
+            ->where('id_item', $id_item)
+            ->where('id_jo', $id_jo)
+            ->where('no_invoice', $no_inv)
+            ->where('no_lot', $no_lot)
+            ->update([
+                'pass_with_condition' => 'Y',
+                'updated_at' => $timestamp
+            ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Form berhasil diupdate.',
+            'total_updated_forms' => $total_updated
+        ]);
+    }
+
+
+    public function export_qc_inspect($id_lok_in_material)
+    {
+        // Fetch header data using raw SQL query
+        $data_header = DB::connection('mysql_sb')->select("
+        SELECT
+            a.tgl_dok,
+            DATE_FORMAT(a.tgl_dok, '%d-%M-%Y') AS tgl_dok_fix,
+            a.no_dok,
+            a.supplier,
+            ms.supplier buyer,
+            ac.styleno,
+            no_invoice,
+            b.id_item,
+            b.id_jo,
+            COUNT(no_roll) AS jml_roll,
+            COUNT(DISTINCT no_lot) AS jml_lot,
+            mi.color,
+            mi.itemdesc,
+            a.type_pch
+        FROM signalbit_erp.whs_inmaterial_fabric a
+        INNER JOIN signalbit_erp.whs_inmaterial_fabric_det b
+            ON a.no_dok = b.no_dok
+        LEFT JOIN signalbit_erp.whs_lokasi_inmaterial c
+            ON a.no_dok = c.no_dok
+            AND b.id_item = c.id_item
+            AND b.id_jo = c.id_jo
+        INNER JOIN (
+            SELECT no_dok, id_item, id_jo
+            FROM signalbit_erp.whs_lokasi_inmaterial
+            WHERE id = ?
+        ) d
+            ON a.no_dok = d.no_dok
+            AND b.id_item = d.id_item
+            AND b.id_jo = d.id_jo
+        INNER JOIN signalbit_erp.masteritem mi
+            ON b.id_item = mi.id_item
+        INNER JOIN signalbit_erp.jo_det jd
+            ON b.id_jo = jd.id_jo
+        INNER JOIN signalbit_erp.so so
+            ON jd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac
+            ON so.id_cost = ac.id
+        INNER JOIN signalbit_erp.mastersupplier ms
+            ON ac.id_buyer = ms.Id_Supplier
+        GROUP BY a.tgl_dok, a.no_dok, b.id_item, b.id_jo, b.unit
+    ", [$id_lok_in_material]); // Use parameter binding for safety
+
+        $id_item = $data_header[0]->id_item;
+        $id_jo = $data_header[0]->id_jo;
+        $no_inv  = $data_header[0]->no_invoice;
+
+        $data_cek_inspect = DB::connection('mysql_sb')->select("SELECT
+cek_inspect, group_inspect
+from qc_inspect_form a
+where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo' limit 1
+");
+        $cek_inspect = $data_cek_inspect[0]->cek_inspect;
+        $group_inspect = $data_cek_inspect[0]->group_inspect;
+
+        $data_lot_report = DB::connection('mysql_sb')->select("WITH a AS (
+    SELECT
+				b.no_lot,
+        a.no_form,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				c.shipment,
+				b.pass_with_condition
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+    group by a.no_form
+),
+b AS (
+    SELECT
+        a.no_form,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+				a.no_lot,
+        a.no_form,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				shipment,
+				a.pass_with_condition
+    FROM a
+    group by a.no_form
+),
+d AS (
+SELECT
+c.no_form,
+c.no_lot,
+sum_up_to_3,
+sum_3_6,
+sum_6_9,
+sum_over_9,
+avg_width,
+c.tot_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
+shipment,
+if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= shipment,'PASS','REJECT') result,
+c.pass_with_condition
+FROM c
+INNER JOIN b ON c.no_form = b.no_form
+GROUP BY c.no_form
+)
+
+SELECT
+no_lot,
+count(no_form) tot_form,
+ROUND(SUM(act_point) / count(no_form)) act_point_total,
+shipment,
+max(pass_with_condition) pass_with_condition,
+CASE
+		WHEN ROUND(SUM(act_point) / count(no_form)) >= shipment and pass_with_condition = 'N' then 'REJECT'
+		WHEN ROUND(SUM(act_point) / count(no_form)) >= shipment and pass_with_condition = 'Y' then 'PASS WITH CONDITION'
+		WHEN ROUND(SUM(act_point) / count(no_form)) <= shipment and pass_with_condition = 'N' then 'PASS'
+END as result
+FROM d
+GROUP BY no_lot");
+
+
+
+        $data_header_form = DB::connection('mysql_sb')->select("SELECT
+a.no_form,
+a.tgl_form,
+a.created_by,
+a.operator,
+a.barcode,
+no_roll,
+concat(a.weight, ' ', act_unit_weight) weight,
+a.width,
+gramage,
+proses,
+a.no_lot,
+a.no_mesin,
+concat(bintex_length, ' ', upper(unit_bintex)) bintex,
+concat(act_length_fix, ' ', upper(unit_act_length)) length
+from qc_inspect_form a
+left join whs_lokasi_inmaterial b on a.barcode = b.no_barcode
+where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo'
+order by a.no_lot asc, no_form asc
+");
+
+        $form_numbers = collect($data_header_form)->pluck('no_form')->unique()->toArray();
+
+        $visual_inspection = [];
+        if (!empty($form_numbers)) {
+            $visual_inspection = DB::connection('mysql_sb')->select("
+        SELECT
+            a.no_form,
+            CONCAT(b.from, ' - ', b.to) AS length,
+            c.critical_defect AS defect_name,
+            a.up_to_3,
+            a.3_6,
+            a.6_9,
+            a.over_9,
+            CONCAT(a.full_width_act, ' -> ', a.cuttable_width_act) AS width
+        FROM qc_inspect_form_det a
+        INNER JOIN qc_inspect_master_lenght b ON a.id_length = b.id
+        INNER JOIN qc_inspect_master_defect c ON a.id_defect = c.id
+        WHERE a.no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+    ", $form_numbers);
+
+            // Group the result by no_form
+            $inspection_results_grouped = collect($visual_inspection)->groupBy('no_form');
+        }
+
+        $data_summary = [];
+        if (!empty($form_numbers)) {
+            $data_summary = DB::connection('mysql_sb')->select("
+WITH a AS (
+    SELECT
+        a.no_form,
+        SUM(up_to_3) * 1 AS sum_up_to_3,
+        SUM(`3_6`) * 2 AS sum_3_6,
+        SUM(`6_9`) * 3 AS sum_6_9,
+        SUM(over_9) * 4 AS sum_over_9,
+				c.individu
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE a.no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+    group by a.no_form
+),
+b AS (
+    SELECT
+        a.no_form,
+        AVG(cuttable_width_act) AS avg_width,
+        b.act_length_fix
+    FROM qc_inspect_form_det a
+    INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
+    LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+    WHERE a.no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+      AND cuttable_width_act > 0
+    GROUP BY a.no_form, b.act_length_fix
+),
+c AS (
+    SELECT
+        a.no_form,
+				sum_up_to_3,
+				sum_3_6,
+				sum_6_9,
+				sum_over_9,
+        (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
+				individu
+    FROM a
+    group by a.no_form
+)
+
+SELECT
+c.no_form,
+sum_up_to_3,
+sum_3_6,
+sum_6_9,
+sum_over_9,
+avg_width,
+c.tot_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
+individu,
+if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result
+FROM c
+INNER JOIN b ON c.no_form = b.no_form
+GROUP BY c.no_form
+", array_merge($form_numbers, $form_numbers));
+
+            // Group the result by no_form
+            $data_summary_grouped = collect($data_summary)->groupBy('no_form');
+        }
+
+
+
+        // Generate PDF from the view
+        $pdf = PDF::loadView('qc_inspect.pdf_qc_inspect', [
+            'data_header' => $data_header,
+            'data_header_form' => $data_header_form,
+            'inspection_results_grouped' => $inspection_results_grouped,
+            'data_summary_grouped' => $data_summary_grouped,
+            'cek_inspect' => $cek_inspect,
+            'group_inspect' => $group_inspect,
+            'data_lot_report' => $data_lot_report,
+        ])->setPaper('a4', 'portrait');
+
+        // Set filename and return download
+        $fileName = 'pdf.pdf';
+        return $pdf->download(str_replace("/", "_", $fileName));
+    }
+
+
+    public function get_blanket_photo(Request $request)
+    {
+        $request->validate([
+            'id_item' => 'required',
+            'id_jo' => 'required',
+            'no_invoice' => 'required',
+            'no_lot' => 'required'
+        ]);
+
+        $data = DB::connection('mysql_sb')->table('qc_inspect_form_blanket')
+            ->where('id_item', $request->id_item)
+            ->where('id_jo', $request->id_jo)
+            ->where('no_invoice', $request->no_invoice)
+            ->where('no_lot', $request->no_lot)
+            ->select('photo', 'rate', 'result')
+            ->first();
+
+        if ($data) {
+            return response()->json([
+                'photo' => $data->photo,
+                'rate' => $data->rate,
+                'result' => $data->result,
+            ]);
+        } else {
+            return response()->json([
+                'photo' => null,
+                'rate' => null,
+                'result' => null,
+            ]);
+        }
+    }
+
+
+
+
+    public function upload_blanket_photo(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $request->validate([
+            'photo' => 'nullable|image|max:5120', // Make photo optional
+            'id_item' => 'required',
+            'id_jo' => 'required',
+            'no_invoice' => 'required',
+            'no_lot' => 'required',
+            'rateSelect' => 'required|numeric',
+            'rateResult' => 'required|string',
+        ]);
+
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_invoice = $request->no_invoice;
+        $no_lot = $request->no_lot;
+        $rate = $request->rateSelect;
+        $result = $request->rateResult;
+
+        $filename = null;
+
+        // Check if a new photo is uploaded
+        if ($request->hasFile('photo')) {
+            $raw_filename = "{$id_item}_{$id_jo}_{$no_invoice}_{$no_lot}";
+            $clean_filename = preg_replace('/[<>:"\/\\\\|?*]/', '_', $raw_filename);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $clean_filename . '.' . $extension;
+
+            $request->file('photo')->storeAs('public/gambar_blanket', $filename);
+        }
+
+        $cek_blanket = DB::connection('mysql_sb')->table('qc_inspect_form_blanket')
+            ->where([
+                ['no_invoice', '=', $no_invoice],
+                ['id_item', '=', $id_item],
+                ['id_jo', '=', $id_jo],
+                ['no_lot', '=', $no_lot],
+            ])
+            ->first();
+
+        if ($cek_blanket) {
+            // Build update query dynamically based on whether photo was uploaded
+            $updateData = [
+                'rate' => $rate,
+                'result' => $result,
+                'created_by' => $user,
+                'updated_at' => now(),
+            ];
+
+            if ($filename) {
+                $updateData['photo'] = $filename;
+            }
+
+            DB::connection('mysql_sb')->table('qc_inspect_form_blanket')
+                ->where([
+                    ['no_invoice', '=', $no_invoice],
+                    ['id_item', '=', $id_item],
+                    ['id_jo', '=', $id_jo],
+                    ['no_lot', '=', $no_lot],
+                ])
+                ->update($updateData);
+        } else {
+            // If no record, photo must be provided
+            if (!$filename) {
+                return response()->json(['error' => 'Photo is required for new records.'], 422);
+            }
+
+            DB::connection('mysql_sb')->table('qc_inspect_form_blanket')->insert([
+                'id_item' => $id_item,
+                'id_jo' => $id_jo,
+                'no_invoice' => $no_invoice,
+                'no_lot' => $no_lot,
+                'photo' => $filename,
+                'rate' => $rate,
+                'result' => $result,
+                'created_by' => $user,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json(['message' => 'Upload successful']);
+    }
+
+    public function get_info_modal_defect_packing_list(Request $request)
+    {
+        $id = $request->id;
+
+        // Use query builder with parameter binding to avoid SQL injection
+        $data_input = DB::connection('mysql_sb')->selectOne("
+        SELECT
+            a.no_invoice,
+            b.id_item,
+            b.id_jo,
+            a.supplier,
+            color
+        FROM signalbit_erp.whs_inmaterial_fabric a
+        INNER JOIN signalbit_erp.whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok
+        LEFT JOIN signalbit_erp.whs_lokasi_inmaterial c ON a.no_dok = c.no_dok AND b.id_item = c.id_item AND b.id_jo = c.id_jo
+        INNER JOIN (
+            SELECT no_dok, id_item, id_jo FROM signalbit_erp.whs_lokasi_inmaterial WHERE id = ?
+        ) d ON a.no_dok = d.no_dok AND b.id_item = d.id_item AND b.id_jo = d.id_jo
+        INNER JOIN signalbit_erp.masteritem mi ON b.id_item = mi.id_item
+        INNER JOIN signalbit_erp.jo_det jd ON b.id_jo = jd.id_jo
+        INNER JOIN signalbit_erp.so so ON jd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+        GROUP BY a.tgl_dok, a.no_dok, b.id_item, b.id_jo, b.unit
+    ", [$id]);
+
+        if (!$data_input) {
+            return response()->json(['error' => 'Data not found'], 404);
+        }
+
+        return response()->json($data_input);
+    }
+
+    public function upload_modal_defect_photo(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $request->validate([
+            'photo' => 'required|image|max:5120', // Make photo optional
+            'txtid_item' => 'required',
+            'txtid_jo' => 'required',
+            'txtno_invoice' => 'required',
+            'cbo_defect' => 'required',
+        ]);
+
+        $id_item = $request->txtid_item;
+        $id_jo = $request->txtid_jo;
+        $no_invoice = $request->txtno_invoice;
+        $cbo_defect = $request->cbo_defect;
+
+        $maxNomor = DB::connection('mysql_sb')->table('qc_inspect_packing_list_defect')
+            ->where('id_item', $id_item)
+            ->where('id_jo', $id_jo)
+            ->where('no_invoice', $no_invoice)
+            ->max('no_urut');
+
+        $nextNomor = $maxNomor ? $maxNomor + 1 : 1;
+
+
+        // Check if a new photo is uploaded
+        if ($request->hasFile('photo')) {
+            $raw_filename = "{$id_item}_{$id_jo}_{$no_invoice}_$nextNomor";
+            $clean_filename = preg_replace('/[<>:"\/\\\\|?*]/', '_', $raw_filename);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $clean_filename . '.' . $extension;
+
+            $request->file('photo')->storeAs('public/gambar_defect_inspect', $filename);
+        }
+
+        // If no record, photo must be provided
+        if (!$filename) {
+            return response()->json(['error' => 'Photo is required for new records.'], 422);
+        }
+
+        DB::connection('mysql_sb')->table('qc_inspect_packing_list_defect')->insert([
+            'id_item' => $id_item,
+            'id_jo' => $id_jo,
+            'no_invoice' => $no_invoice,
+            'photo' => $filename,
+            'no_urut' => $nextNomor,
+            'id_defect' => $cbo_defect,
+            'created_by' => $user,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+
+        return response()->json(['message' => 'Upload successful']);
+    }
+
+    public function show_modal_defect_packing_list(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_inv = $request->no_inv;
+
+        $data_list_defect = DB::connection('mysql_sb')->select("SELECT
+        a.id,
+        critical_defect,
+        photo
+        FROM qc_inspect_packing_list_defect a
+            INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
+            WHERE a.id_item = '$id_item' and a.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
+            ");
+        return DataTables::of($data_list_defect)->toJson();
+    }
+
+    public function delete_modal_defect_packing_list(Request $request)
+    {
+        $id = $request->id;
+
+        // Perform delete
+        $deleted = DB::connection('mysql_sb')->delete("DELETE FROM qc_inspect_packing_list_defect WHERE id = ?", [$id]);
+
+        // Return JSON response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil dihapus.',
+            'deleted' => $deleted
+        ]);
+    }
+
+    public function export_pdf_list_defect($id_lok_in_material)
+    {
+        // Fetch header data using raw SQL query
+        $data_header = DB::connection('mysql_sb')->select("SELECT
+            a.tgl_dok,
+            DATE_FORMAT(a.tgl_dok, '%d-%M-%Y') AS tgl_dok_fix,
+            a.no_dok,
+            a.supplier,
+            ms.supplier buyer,
+            ac.styleno,
+            no_invoice,
+            b.id_item,
+            b.id_jo,
+            COUNT(no_roll) AS jml_roll,
+            COUNT(DISTINCT no_lot) AS jml_lot,
+            mi.color,
+            mi.itemdesc,
+            a.type_pch
+        FROM signalbit_erp.whs_inmaterial_fabric a
+        INNER JOIN signalbit_erp.whs_inmaterial_fabric_det b
+            ON a.no_dok = b.no_dok
+        LEFT JOIN signalbit_erp.whs_lokasi_inmaterial c
+            ON a.no_dok = c.no_dok
+            AND b.id_item = c.id_item
+            AND b.id_jo = c.id_jo
+        INNER JOIN (
+            SELECT no_dok, id_item, id_jo
+            FROM signalbit_erp.whs_lokasi_inmaterial
+            WHERE id = ?
+        ) d
+            ON a.no_dok = d.no_dok
+            AND b.id_item = d.id_item
+            AND b.id_jo = d.id_jo
+        INNER JOIN signalbit_erp.masteritem mi
+            ON b.id_item = mi.id_item
+        INNER JOIN signalbit_erp.jo_det jd
+            ON b.id_jo = jd.id_jo
+        INNER JOIN signalbit_erp.so so
+            ON jd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac
+            ON so.id_cost = ac.id
+        INNER JOIN signalbit_erp.mastersupplier ms
+            ON ac.id_buyer = ms.Id_Supplier
+        GROUP BY a.tgl_dok, a.no_dok, b.id_item, b.id_jo, b.unit
+    ", [$id_lok_in_material]); // Use parameter binding for safety
+
+        // dd($data_header);
+
+        $id_item = $data_header[0]->id_item;
+        $id_jo = $data_header[0]->id_jo;
+        $no_inv  = $data_header[0]->no_invoice;
+
+        $data_list = DB::connection('mysql_sb')->select("SELECT
+        a.id,
+        critical_defect,
+        photo
+        FROM qc_inspect_packing_list_defect a
+            INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
+            WHERE a.id_item = '$id_item' and a.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
+");
+
+
+        // Generate PDF from the view
+        $pdf = PDF::loadView('qc_inspect.pdf_list_defect', [
+            'data_header' => $data_header,
+            'data_list' => $data_list,
+        ])->setPaper('a4', 'portrait');
+
+        // Set filename and return download
+        $fileName = 'pdf.pdf';
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 }

@@ -210,8 +210,11 @@ class GeneralController extends Controller
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
             ")->
             where("master_sb_ws.id_act_cost", $request->act_costing_id)->
-            where("master_sb_ws.color", $request->color)->
-            leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            where("master_sb_ws.color", $request->color);
+            if ($request->so_det_list) {
+                $sizeQuery->whereRaw("master_sb_ws.id_so_det in (".$request->so_det_list.")");
+            }
+            $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
             leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
 
@@ -586,34 +589,62 @@ class GeneralController extends Controller
             $itemAdditional .= " and br.unit = '".$request->unit."'";
         }
 
+        if ($request->act_costing_id) {
+            $newItemAdditional .= " and act_costing.id = '".$request->act_costing_id."'";
+            $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
+        }
+
+        if ($request->color) {
+            $newItemAdditional .= " and so_det.color = '".$request->color."'";
+        }
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
-                whs_bppb_det.id_roll,
-                whs_bppb_det.item_desc detail_item,
-                whs_bppb_det.id_item,
-                whs_bppb_det.no_lot lot,
-                whs_bppb_det.no_roll roll,
-                whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
-                whs_bppb_det.satuan unit,
-                whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty,
-                whs_bppb_det.satuan unit,
-                bji.rule_bom,
-                GROUP_CONCAT(DISTINCT so_det.id) as so_det_list,
-                GROUP_CONCAT(DISTINCT so_det.size) as size_list
-            FROM
-                whs_bppb_det
-                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-                LEFT JOIN bom_jo_item bji ON bji.id_item = whs_bppb_det.id_item AND bji.id_jo = whs_bppb_det.id_jo
-                LEFT JOIN so_det ON so_det.id = bji.id_so_det
-            WHERE
-                whs_bppb_det.id_roll = '".$id."'
-                AND whs_bppb_h.tujuan = 'Production - Cutting'
-                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
-                ".$newItemAdditional."
+                id_roll,
+                detail_item,
+                id_item,
+                lot,
+                roll,
+                roll_buyer,
+                qty_stok,
+                SUM(qty) as qty,
+                unit,
+                rule_bom,
+                so_det_list,
+                size_list
+            FROM (
+                SELECT
+                    whs_bppb_det.id_roll,
+                    whs_bppb_det.item_desc detail_item,
+                    whs_bppb_det.id_item,
+                    whs_bppb_det.no_lot lot,
+                    whs_bppb_det.no_roll roll,
+                    whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
+                    whs_bppb_det.qty_stok,
+                    whs_bppb_det.qty_out qty,
+                    whs_bppb_det.satuan unit,
+                    bji.rule_bom,
+                    GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
+                    GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
+                FROM
+                    whs_bppb_det
+                    LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                    LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                    LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+                    LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
+                    LEFT JOIN so_det ON so_det.id = bji.id_so_det
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                WHERE
+                    whs_bppb_det.id_roll = '".$id."'
+                    AND whs_bppb_h.tujuan = 'Production - Cutting'
+                    AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                    ".$newItemAdditional."
+                GROUP BY
+                    whs_bppb_det.id
+            ) item
             GROUP BY
-                whs_bppb_det.id_roll
+                id_roll
             LIMIT 1
         ");
         if ($newItem) {
@@ -682,6 +713,8 @@ class GeneralController extends Controller
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
                     $scannedItemUpdate->qty_in = $newItemQty;
                     $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->so_det_list = $newItem[0]->so_det_list;
+                    $scannedItemUpdate->size_list = $newItem[0]->size_list;
                     $scannedItemUpdate->save();
 
                     if ($scannedItemUpdate->qty > 0) {
@@ -713,7 +746,7 @@ class GeneralController extends Controller
 
                 ScannedItem::create(
                     [
-                        "id_roll" => $id,
+                        "id_roll" => strtoupper($id),
                         "id_item" => $newItem[0]->id_item,
                         "color" => '-',
                         "detail_item" => $newItem[0]->detail_item,
@@ -809,7 +842,7 @@ class GeneralController extends Controller
 
                 $itemData = ScannedItem::create(
                     [
-                        "id_roll" => $id,
+                        "id_roll" => strtoupper($id),
                         "id_item" => $item[0]->id_item,
                         "color" => '-',
                         "detail_item" => $item[0]->detail_item,
@@ -850,5 +883,32 @@ class GeneralController extends Controller
         ");
 
         return json_encode($items ? $items : null);
+    }
+
+    public function getOutput(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        $kodeNumberingOutput = collect(
+            DB::connection("mysql_sb")->select("
+                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line FROM (
+                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
+                    UNION
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
+                    UNION
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                ) output
+                left join user_sb_wip on user_sb_wip.id = output.created_by
+                left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                left join so_det on so_det.id = output.so_det_id
+                left join so on so.id = so_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+            ")
+        );
+
+        return Datatables::of($kodeNumberingOutput)->toJson();
     }
 }

@@ -22,7 +22,7 @@
                 <div class="d-flex justify-content-start align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-from" name="date-from" onchange="cuttingPieceTableReload()">
+                        <input type="date" class="form-control" value="{{ date("Y-m-d", strtotime(date("Y-m-d")." - 7 days")) }}" id="date-from" name="date-from" onchange="cuttingPieceTableReload()">
                     </div>
                     <div>
                         <label class="form-label">Sampai</label>
@@ -125,8 +125,7 @@
                         let buttonEdit = `<a href="{{ route('process-cutting-piece') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
                         // let buttonDetail = `<a href="{{ route('show-cutting-piece') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
                         let buttonDetail = "";
-                        // let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
-                        let buttonDelete = "";
+                        let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
 
                         return buttonEdit+buttonDetail+buttonDelete;
                     }

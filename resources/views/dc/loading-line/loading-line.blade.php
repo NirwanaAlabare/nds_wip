@@ -41,7 +41,7 @@
                         <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-               <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
+                <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
             </div>
             <div class="table-responsive">
                 <table id="datatable-loading-line" class="table table-bordered table w-100">
@@ -177,9 +177,15 @@
                     }
                 },
                 {
-                    targets: [5,6,7,8,10],
+                    targets: [5,6,7,10],
                     render: (data, type, row, meta) => {
                         return Number(data).toLocaleString('id-ID')
+                    }
+                },
+                {
+                    targets: [8],
+                    render: (data, type, row, meta) => {
+                        return "<span class='"+(Number(data) >= 0 ? "text-success" : "text-danger")+" fw-bold'>"+Number(data).toLocaleString('id-ID')+"</span";
                     }
                 }
             ],
@@ -225,7 +231,7 @@
                             $(api.column(5).footer()).html((Number(response['total_target_sewing'])).toLocaleString("ID-id"));
                             $(api.column(6).footer()).html((Number(response['total_target_loading'])).toLocaleString("ID-id"));
                             $(api.column(7).footer()).html((Number(response['total_loading'])).toLocaleString("ID-id"));
-                            $(api.column(8).footer()).html((Number(response['total_balance_loading'])).toLocaleString("ID-id"));
+                            $(api.column(8).footer()).html("<span class='"+(Number(response['total_balance_loading']) >= 0 ? "text-success" : "text-danger")+" fw-bold'>"+(Number(response['total_balance_loading'])).toLocaleString("ID-id")+"</span>");
                         }
                     },
                     error: function(jqXHR) {

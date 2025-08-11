@@ -126,7 +126,7 @@ class ReportEfficiencyNewController extends Controller
         (
         select min(id), man_power, sewing_line, tgl_plan from master_plan where tgl_plan >= '$tgl_awal_n' and  tgl_plan <= '$tgl_akhir_n' and cancel = 'N' group by sewing_line, tgl_plan
         ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
-        left join master_kurs_bi mkb on a.tgl_trans = mkb.tanggal_kurs_bi
+        left join (SELECT * FROM master_kurs_bi GROUP BY tanggal_kurs_bi) mkb on a.tgl_trans = mkb.tanggal_kurs_bi
         group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
         order by a.tgl_trans asc, u.name asc, ac.kpno asc
 

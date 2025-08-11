@@ -49,7 +49,7 @@
             <span class="text-sb fw-bold">LEADER : {{ $employeeLine ? ($employeeLine->leader_nik." - ".$employeeLine->leader_name) : "-" }}</span>
         </div>
         <div class="row table-responsive">
-            <table class="table ble-bordered align-middle">
+            <table class="table table-bordered table-sm align-middle">
                 <thead>
                     <tr>
                         <th colspan="8" class="align-middle text-center">{{ ucfirst(str_replace("_", " ", $this->selectedLine != '' ? $this->selectedLine : '-')) }}</th>
@@ -221,7 +221,7 @@
             </button>
         </div>
         <div class="row table-responsive">
-            <table class="table ble-bordered mt-3">
+            <table class="table table-bordered table-sm mt-3">
                 <thead>
                     <tr>
                         <th colspan="6" class="text-center">{{ ucfirst(str_replace("_"," ",$this->selectedLine != '' ? $this->selectedLine : '-')) }}</th>

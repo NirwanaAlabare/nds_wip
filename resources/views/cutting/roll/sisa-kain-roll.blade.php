@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper-slash"></i> Sisa Kain Roll</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper-slash"></i> Bintex Sisa Kain</h5>
         </div>
         <div class="card-body">
             <div class="row justify-content-start align-items-end g-3">
@@ -325,7 +325,19 @@
                     {
                         targets: [0],
                         render: (data, type, row, meta) => {
-                            return "<a href = '{{ route("detail-cutting") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
+                            switch (row.tipe) {
+                                case "REGULAR" :
+                                    return "<a href = '{{ route("detail-cutting") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
+                                    break;
+                                case "PIECE" :
+                                    return "<a href = '{{ route("process-cutting-piece") }}/"+row.id_form+"' target='_blank'>"+data+"</a>";
+                                    break;
+                                default :
+                                    return data;
+                                    break;
+                            }
+
+                            return data;
                         }
                     },
                     {

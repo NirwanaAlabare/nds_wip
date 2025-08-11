@@ -33,7 +33,7 @@ class CuttingFormPieceController extends Controller
             $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
             $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
 
-            $formCutPiece = FormCutPiece::whereBetween("tanggal", [$dateFrom, $dateTo]);
+            $formCutPiece = FormCutPiece::whereNull("tanggal")->orWhereBetween("tanggal", [$dateFrom, $dateTo]);
 
             return DataTables::eloquent($formCutPiece)->
                 addColumn('sizes', function ($row) {
@@ -42,7 +42,7 @@ class CuttingFormPieceController extends Controller
                         $sizeText = "";
                         foreach ($sizeArr as $sizes) {
                             $size = $sizes->first();
-                            $sizeText .= $size->size.(($size->dest ? " - ".$size->dest : "").($sizes->sum("qty") > 0 ? "(".$sizes->sum("qty").")" : "")." / ");
+                            $sizeText .= $size->size.(($size->dest && $size->dest != "-" ? " - ".$size->dest : "").($sizes->sum("qty") > 0 ? " (".$sizes->sum("qty").")" : "")." / ");
                         }
 
                         return $sizeText;
@@ -120,7 +120,7 @@ class CuttingFormPieceController extends Controller
     public function incompleteItem($id = 0)
     {
         if ($id) {
-            $incomplete = FormCutPieceDetail::where("form_id", $id)->where("status", "incomplete")->first();
+            $incomplete = FormCutPieceDetail::with("scannedItem", "formCutPieceDetailSizes")->where("form_id", $id)->orderBy("id", "asc")->get();
 
             return $incomplete ? $incomplete : null;
         }
@@ -223,13 +223,13 @@ class CuttingFormPieceController extends Controller
                             "kode_barang" => "required",
                         ]);
 
-                        $scannedItem = ScannedItem::where("id_roll", $validatedRequestDetail["kode_barang"])->first();
+                        $scannedItem = ScannedItem::where("id_roll", strtoupper($validatedRequestDetail["kode_barang"]))->first();
 
                         if ($scannedItem) {
                             $storeFormCutPieceDetailArr = [
                                 "form_id" => $validatedRequest["id"],
                                 "method" => $validatedRequest["method"],
-                                "id_roll" => $validatedRequestDetail["kode_barang"],
+                                "id_roll" => strtoupper($validatedRequestDetail["kode_barang"]),
                                 "id_item" => $scannedItem->id_item,
                                 "detail_item" => $scannedItem->detail_item,
                                 "lot" => $scannedItem->lot,
@@ -273,10 +273,12 @@ class CuttingFormPieceController extends Controller
                         ]);
 
                         if ($updateFormCutPiece) {
+                            $thisFormCutPieceDetail = FormCutPieceDetail::with("scannedItem")->where("id", $storeFormCutPieceDetail->id)->first();
+
                             return array(
                                 "status" => 200,
                                 "message" => "Item berhasil disimpan.",
-                                "additional" => $storeFormCutPieceDetail,
+                                "additional" => $thisFormCutPieceDetail,
                             );
                         }
                     }
@@ -331,7 +333,7 @@ class CuttingFormPieceController extends Controller
                         }
 
                         // Upsert Form Cut Piece Detail Size
-                        if ($request->so_det_id && count($request->so_det_id) > 1) {
+                        if ($request->so_det_id && count($request->so_det_id) > 0) {
                             $cuttingPieceDetailSizeArr = [];
                             for($i = 0; $i < count($request->so_det_id); $i++) {
                                 if ($request->so_det_id[$i] && $request->size[$i] && $request->qty_detail[$i] && $request->qty_detail[$i] > 0) {
@@ -352,14 +354,14 @@ class CuttingFormPieceController extends Controller
 
                         // Update Form Cut Piece
                         $updateCuttingPiece = $cuttingPieceModel->update([
-                            "process" => $request->process,
-                            "status" => 'complete',
+                            "process" => 1,
+                            // "status" => 'complete',
                         ]);
 
-                        session()->forget('currentFormCutPiece');
+                        // session()->forget('currentFormCutPiece');
 
-                        // finishing
-                        $this->finishProcess($validatedRequest["id"]);
+                        // // finishing
+                        // $this->finishProcess($validatedRequest["id"]);
 
                         return array(
                             "status" => 200,
@@ -368,6 +370,31 @@ class CuttingFormPieceController extends Controller
                         );
                     }
                 }
+
+                break;
+            case 4 :
+                $validatedRequest = $request->validate([
+                    "id" => "required"
+                ]);
+
+                $cuttingPieceModel = FormCutPiece::where("id", $validatedRequest["id"]);
+
+                // Update Form Cut Piece
+                $updateCuttingPiece = $cuttingPieceModel->update([
+                    "process" => 3,
+                    "status" => 'complete',
+                ]);
+
+                session()->forget('currentFormCutPiece');
+
+                // finishing
+                $this->finishProcess($validatedRequest["id"]);
+
+                return array(
+                    "status" => 200,
+                    "message" => "Data Cutting Pcs berhasil disimpan.",
+                    "additional" => $cuttingPieceModel->first()
+                );
 
                 break;
             default :
@@ -572,17 +599,16 @@ class CuttingFormPieceController extends Controller
     {
         $stocker = Stocker::selectRaw("
                 stocker_input.id,
-                stocker_input.form_reject_id,
-                form_cut_reject.tanggal,
+                stocker_input.form_piece_id,
+                form_cut_piece.tanggal,
                 stocker_input.id_qr_stocker,
-                form_cut_reject.no_form,
-                COALESCE(master_sb_ws.ws, stocker_input.act_costing_ws, form_cut_reject.act_costing_ws) act_costing_ws,
-                COALESCE(master_sb_ws.styleno, form_cut_reject.style) style,
-                COALESCE(master_sb_ws.color, stocker_input.color, form_cut_reject.color) color,
+                form_cut_piece.no_form,
+                COALESCE(master_sb_ws.ws, stocker_input.act_costing_ws, form_cut_piece.act_costing_ws) act_costing_ws,
+                COALESCE(master_sb_ws.styleno, form_cut_piece.style) style,
+                COALESCE(master_sb_ws.color, stocker_input.color, form_cut_piece.color) color,
                 COALESCE(master_sb_ws.id_so_det, stocker_input.so_det_id) so_det_id,
                 COALESCE(master_sb_ws.size, stocker_input.size) size,
-                COALESCE(stocker_input.panel, form_cut_reject.panel) panel,
-                COALESCE(stocker_input.shade, form_cut_reject.group) group_reject,
+                COALESCE(stocker_input.panel, form_cut_piece.panel) panel,
                 master_part.nama_part part,
                 stocker_input.qty_ply qty,
                 stocker_input.notes
@@ -590,27 +616,56 @@ class CuttingFormPieceController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-            where("form_cut_reject.id", $id)->
+            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
+            where("form_cut_piece.id", $id)->
             first();
 
         if (!$stocker) {
             $deleteFormCutPiece = FormCutPiece::where("id", $id)->delete();
 
             if ($deleteFormCutPiece) {
-                $deleteFormCutPieceDetail = FormCutPieceDetail::where("form_id", $id)->delete();
+                $formCutPieceDetails = FormCutPieceDetail::where("form_id", $id)->get();
+                if ($formCutPieceDetails) {
+                    $formCutPieceDetailIds = [];
+                    $formCutPieceDetailSizeIds = [];
+                    foreach ($formCutPieceDetails as $d) {
+                        // Piece Detail
+                        array_push($formCutPieceDetailIds, $d->id);
+
+                        // Piece Detail Size
+                        $currentCutPieceDetailSizeIds = $d->formCutPieceDetailSizes ? $d->formCutPieceDetailSizes->pluck("id") : null;
+                        if (count($currentCutPieceDetailSizeIds) > 0) {
+                            array_push($formCutPieceDetailSizeIds, ...$currentCutPieceDetailSizeIds);
+                        }
+
+                        // Update Scanned Item
+                        ScannedItem::where("id_roll", $d->id_roll)->update([
+                            "qty" => DB::raw("qty + ".$d->qty_pemakaian),
+                            "qty_pakai" => DB::raw("qty_pakai - ".$d->qty_pemakaian),
+                        ]);
+                    }
+
+                    FormCutPieceDetail::whereIn("id", $formCutPieceDetailIds)->delete();
+                    FormCutPieceDetailSize::whereIn("id", $formCutPieceDetailSizeIds)->delete();
+                }
 
                 return array(
                     "status" => 200,
-                    "message" => "Form Reject berhasil dihapus.",
+                    "message" => "Form Piece berhasil dihapus.",
                     "table" => "cutting-piece-table"
                 );
             }
+        } else {
+            return array(
+                "status" => 400,
+                "message" => "Form Piece sudah memiliki stocker.",
+                "table" => "cutting-piece-table"
+            );
         }
 
         return array(
             "status" => 400,
-            "message" => "Form Reject sudah memiliki stocker.",
+            "message" => "Terjadi Kesalahan.",
             "table" => "cutting-piece-table"
         );
     }

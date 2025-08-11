@@ -63,35 +63,49 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                 ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
-            leftJoin(DB::raw("(
+            join(DB::raw("(
                 SELECT
                     master_plan.id_ws,
-                    output_rfts".($this->outputType).".master_plan_id,
-                    userpassword.username sewing_line
+                    userpassword.username sewing_line,
+                    coalesce( date( rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                    max( rfts.updated_at ) last_rft,
+                    count( rfts.id ) rft,
+                    master_plan.id master_plan_id,
+                    master_plan.id_ws master_plan_id_ws
+                    ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                 FROM
-                    output_rfts".($this->outputType)."
-                    ".($this->outputType != "_packing" ?
-                    "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->outputType).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
-                    "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by")."
-                    LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
+                    output_rfts".$this->outputType." rfts
+                    INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
+                    (
+                        $this->outputType != " _packing " ? "
+                        LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by
+                        LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id " : "
+                        LEFT JOIN userpassword ON userpassword.username = rfts.created_by "
+                    )."
+                    INNER JOIN act_costing on act_costing.id = master_plan.id_ws
                 WHERE
-                    output_rfts".($this->outputType).".created_by IS NOT NULL
-                    AND output_rfts".($this->outputType).".updated_at >= '".$this->dateFrom." 00:00:00'
-                    AND output_rfts".($this->outputType).".updated_at <= '".$this->dateTo." 23:59:59'
+                    rfts.updated_at ".$masterPlanDateFilter."
+                    AND master_plan.tgl_plan ".$masterPlanDateFilter1."
+                    ".($this->order ? " AND master_plan.id_ws = '".$this->order."'" : "")."
+                    ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
                 GROUP BY
-                    output_rfts".($this->outputType).".master_plan_id,
-                    output_rfts".($this->outputType).".created_by
-            ) as rfts"), function ($join) {
+                    master_plan.id_ws,
+                    master_plan.color,
+                    DATE ( rfts.updated_at ),
+                    COALESCE ( userpassword.username, master_plan.sewing_line )
+                    ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
+                ) as rfts
+             "), function ($join) {
                 $join->on("rfts.master_plan_id", "=", "master_plan.id");
             });
             if ($this->groupBy == "size") {
                 $orderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
             }
             if ($this->dateFrom) {
-                $orderGroupSql->where('master_plan.tgl_plan', '>=', $this->dateFrom);
+                $orderGroupSql->where('rfts.tanggal', '>=', $this->dateFrom);
             }
             if ($this->dateTo) {
-                $orderGroupSql->where('master_plan.tgl_plan', '<=', $this->dateTo);
+                $orderGroupSql->where('rfts.tanggal', '<=', $this->dateTo);
             }
 
             if ($this->order) {
@@ -154,6 +168,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
                     GROUP BY
                         master_plan.id_ws,
+                        master_plan.color,
                         DATE ( rfts.updated_at ),
                         COALESCE ( userpassword.username, master_plan.sewing_line )
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
