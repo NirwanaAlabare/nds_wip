@@ -772,7 +772,7 @@ UNION ALL
 
 SELECT
     'LENGTH' as dim,
-    IFNULL(bintex_length, 0) as bintex,
+    IFNULL(bintex_length_act, 0) as bintex,
     IFNULL(act_length_fix, 0) as actual,
     ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2) as selisih,
     '- 3' as max_selisih,
