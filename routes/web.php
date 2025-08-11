@@ -2065,6 +2065,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/pass_with_condition', 'pass_with_condition')->name('pass_with_condition');
         Route::post('/upload_blanket_photo', 'upload_blanket_photo')->name('upload_blanket_photo');
         Route::get('/get_blanket_photo', 'get_blanket_photo')->name('get_blanket_photo');
+        Route::get('/get_info_modal_defect_packing_list', 'get_info_modal_defect_packing_list')->name('get_info_modal_defect_packing_list');
+        Route::post('/upload_modal_defect_photo', 'upload_modal_defect_photo')->name('upload_modal_defect_photo');
+        Route::get('/show_modal_defect_packing_list', 'show_modal_defect_packing_list')->name('show_modal_defect_packing_list');
+        Route::post('/delete_modal_defect_packing_list', 'delete_modal_defect_packing_list')->name('delete_modal_defect_packing_list');
+        Route::get('/export_pdf_list_defect/{id_lok_in_material?}', 'export_pdf_list_defect')->name('export_pdf_list_defect');
     });
 
     // Proses Form Inspect

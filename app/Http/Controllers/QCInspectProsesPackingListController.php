@@ -60,6 +60,11 @@ order by tgl_dok asc, no_dok asc, no_invoice asc, color asc
             return DataTables::of($data_input)->toJson();
         }
 
+        $data_defect = DB::connection('mysql_sb')->select("SELECT
+id isi,
+concat(critical_defect, ' - ', point_defect) tampil
+from qc_inspect_master_defect");
+
         return view(
             'qc_inspect.proses_packinglist',
             [
@@ -68,8 +73,9 @@ order by tgl_dok asc, no_dok asc, no_invoice asc, color asc
                 "subPage" => "qc-inspect-proses-packing-list",
                 'tgl_skrg_min_sebulan' => $tgl_skrg_min_sebulan,
                 'tgl_skrg' => $tgl_skrg,
+                "data_defect" => $data_defect,
                 "containerFluid" => true,
-                "user" => $user
+                "user" => $user,
             ]
         );
     }
@@ -1566,5 +1572,202 @@ GROUP BY c.no_form
         }
 
         return response()->json(['message' => 'Upload successful']);
+    }
+
+    public function get_info_modal_defect_packing_list(Request $request)
+    {
+        $id = $request->id;
+
+        // Use query builder with parameter binding to avoid SQL injection
+        $data_input = DB::connection('mysql_sb')->selectOne("
+        SELECT
+            a.no_invoice,
+            b.id_item,
+            b.id_jo,
+            a.supplier,
+            color
+        FROM signalbit_erp.whs_inmaterial_fabric a
+        INNER JOIN signalbit_erp.whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok
+        LEFT JOIN signalbit_erp.whs_lokasi_inmaterial c ON a.no_dok = c.no_dok AND b.id_item = c.id_item AND b.id_jo = c.id_jo
+        INNER JOIN (
+            SELECT no_dok, id_item, id_jo FROM signalbit_erp.whs_lokasi_inmaterial WHERE id = ?
+        ) d ON a.no_dok = d.no_dok AND b.id_item = d.id_item AND b.id_jo = d.id_jo
+        INNER JOIN signalbit_erp.masteritem mi ON b.id_item = mi.id_item
+        INNER JOIN signalbit_erp.jo_det jd ON b.id_jo = jd.id_jo
+        INNER JOIN signalbit_erp.so so ON jd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+        GROUP BY a.tgl_dok, a.no_dok, b.id_item, b.id_jo, b.unit
+    ", [$id]);
+
+        if (!$data_input) {
+            return response()->json(['error' => 'Data not found'], 404);
+        }
+
+        return response()->json($data_input);
+    }
+
+    public function upload_modal_defect_photo(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $request->validate([
+            'photo' => 'required|image|max:5120', // Make photo optional
+            'txtid_item' => 'required',
+            'txtid_jo' => 'required',
+            'txtno_invoice' => 'required',
+            'cbo_defect' => 'required',
+        ]);
+
+        $id_item = $request->txtid_item;
+        $id_jo = $request->txtid_jo;
+        $no_invoice = $request->txtno_invoice;
+        $cbo_defect = $request->cbo_defect;
+
+        $maxNomor = DB::connection('mysql_sb')->table('qc_inspect_packing_list_defect')
+            ->where('id_item', $id_item)
+            ->where('id_jo', $id_jo)
+            ->where('no_invoice', $no_invoice)
+            ->max('no_urut');
+
+        $nextNomor = $maxNomor ? $maxNomor + 1 : 1;
+
+
+        // Check if a new photo is uploaded
+        if ($request->hasFile('photo')) {
+            $raw_filename = "{$id_item}_{$id_jo}_{$no_invoice}_$nextNomor";
+            $clean_filename = preg_replace('/[<>:"\/\\\\|?*]/', '_', $raw_filename);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $clean_filename . '.' . $extension;
+
+            $request->file('photo')->storeAs('public/gambar_defect_inspect', $filename);
+        }
+
+        // If no record, photo must be provided
+        if (!$filename) {
+            return response()->json(['error' => 'Photo is required for new records.'], 422);
+        }
+
+        DB::connection('mysql_sb')->table('qc_inspect_packing_list_defect')->insert([
+            'id_item' => $id_item,
+            'id_jo' => $id_jo,
+            'no_invoice' => $no_invoice,
+            'photo' => $filename,
+            'no_urut' => $nextNomor,
+            'id_defect' => $cbo_defect,
+            'created_by' => $user,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+
+        return response()->json(['message' => 'Upload successful']);
+    }
+
+    public function show_modal_defect_packing_list(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_inv = $request->no_inv;
+
+        $data_list_defect = DB::connection('mysql_sb')->select("SELECT
+        a.id,
+        critical_defect,
+        photo
+        FROM qc_inspect_packing_list_defect a
+            INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
+            WHERE a.id_item = '$id_item' and a.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
+            ");
+        return DataTables::of($data_list_defect)->toJson();
+    }
+
+    public function delete_modal_defect_packing_list(Request $request)
+    {
+        $id = $request->id;
+
+        // Perform delete
+        $deleted = DB::connection('mysql_sb')->delete("DELETE FROM qc_inspect_packing_list_defect WHERE id = ?", [$id]);
+
+        // Return JSON response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil dihapus.',
+            'deleted' => $deleted
+        ]);
+    }
+
+    public function export_pdf_list_defect($id_lok_in_material)
+    {
+        // Fetch header data using raw SQL query
+        $data_header = DB::connection('mysql_sb')->select("SELECT
+            a.tgl_dok,
+            DATE_FORMAT(a.tgl_dok, '%d-%M-%Y') AS tgl_dok_fix,
+            a.no_dok,
+            a.supplier,
+            ms.supplier buyer,
+            ac.styleno,
+            no_invoice,
+            b.id_item,
+            b.id_jo,
+            COUNT(no_roll) AS jml_roll,
+            COUNT(DISTINCT no_lot) AS jml_lot,
+            mi.color,
+            mi.itemdesc,
+            a.type_pch
+        FROM signalbit_erp.whs_inmaterial_fabric a
+        INNER JOIN signalbit_erp.whs_inmaterial_fabric_det b
+            ON a.no_dok = b.no_dok
+        LEFT JOIN signalbit_erp.whs_lokasi_inmaterial c
+            ON a.no_dok = c.no_dok
+            AND b.id_item = c.id_item
+            AND b.id_jo = c.id_jo
+        INNER JOIN (
+            SELECT no_dok, id_item, id_jo
+            FROM signalbit_erp.whs_lokasi_inmaterial
+            WHERE id = ?
+        ) d
+            ON a.no_dok = d.no_dok
+            AND b.id_item = d.id_item
+            AND b.id_jo = d.id_jo
+        INNER JOIN signalbit_erp.masteritem mi
+            ON b.id_item = mi.id_item
+        INNER JOIN signalbit_erp.jo_det jd
+            ON b.id_jo = jd.id_jo
+        INNER JOIN signalbit_erp.so so
+            ON jd.id_so = so.id
+        INNER JOIN signalbit_erp.act_costing ac
+            ON so.id_cost = ac.id
+        INNER JOIN signalbit_erp.mastersupplier ms
+            ON ac.id_buyer = ms.Id_Supplier
+        GROUP BY a.tgl_dok, a.no_dok, b.id_item, b.id_jo, b.unit
+    ", [$id_lok_in_material]); // Use parameter binding for safety
+
+        // dd($data_header);
+
+        $id_item = $data_header[0]->id_item;
+        $id_jo = $data_header[0]->id_jo;
+        $no_inv  = $data_header[0]->no_invoice;
+
+        $data_list = DB::connection('mysql_sb')->select("SELECT
+        a.id,
+        critical_defect,
+        photo
+        FROM qc_inspect_packing_list_defect a
+            INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
+            WHERE a.id_item = '$id_item' and a.id_jo = '$id_jo' and a.no_invoice = '$no_inv'
+");
+
+
+        // Generate PDF from the view
+        $pdf = PDF::loadView('qc_inspect.pdf_list_defect', [
+            'data_header' => $data_header,
+            'data_list' => $data_list,
+        ])->setPaper('a4', 'portrait');
+
+        // Set filename and return download
+        $fileName = 'pdf.pdf';
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 }
