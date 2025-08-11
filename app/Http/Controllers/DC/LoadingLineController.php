@@ -73,7 +73,7 @@ class LoadingLineController extends Controller
                     loading_line_plan.target_sewing,
                     loading_line_plan.target_loading,
                     sum( loading_stock.qty ) loading_qty,
-                    loading_line_plan.target_loading - sum( loading_stock.qty ) loading_balance,
+                    sum( loading_stock.qty ) - loading_line_plan.target_loading loading_balance,
                     loading_stock.nama_trolley nama_trolley,
                     trolley_stock.trolley_color trolley_color,
                     trolley_stock.trolley_qty trolley_qty
@@ -260,7 +260,7 @@ class LoadingLineController extends Controller
                         loading_line_plan.target_sewing,
                         loading_line_plan.target_loading,
                         sum( loading_stock.qty ) loading_qty,
-                        loading_line_plan.target_loading - sum( loading_stock.qty ) loading_balance,
+                        sum( loading_stock.qty ) - loading_line_plan.target_loading loading_balance,
                         loading_stock.nama_trolley nama_trolley,
                         trolley_stock.trolley_color trolley_color,
                         trolley_stock.trolley_qty trolley_qty

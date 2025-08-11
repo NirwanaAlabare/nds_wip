@@ -66,28 +66,40 @@
                     <h6 class="text-sb fw-bold">LOADING</h6>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Loading</label>
-                    <input type="date" class="form-control" name="tanggal_loading" id="tanggal_loading">
+                    <label class="form-label">Tanggal Loading Awal</label>
+                    <input type="date" class="form-control" name="tanggal_loading_awal" id="tanggal_loading_awal">
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label">Tanggal Loading Akhir</label>
+                    <input type="date" class="form-control" name="tanggal_loading_akhir" id="tanggal_loading_akhir">
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Line Loading</label>
                     <select class="form-select select2bs4" name="line_loading" id="line_loading">
                         <option value=""></option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Plan</label>
-                    <input type="date" class="form-control" name="tanggal_plan" id="tanggal_plan">
+                    <label class="form-label">Tanggal Plan Awal</label>
+                    <input type="date" class="form-control" name="tanggal_plan_awal" id="tanggal_plan_awal">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tanggal Plan Akhir</label>
+                    <input type="date" class="form-control" name="tanggal_plan_akhir" id="tanggal_plan_akhir">
                 </div>
                 <div class="col-md-12">
                     <hr style="border: 0.1px solid #5a5a5a;">
                     <h6 class="text-sb fw-bold">SEWING</h6>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Output</label>
-                    <input type="date" class="form-control" name="tanggal_output" id="tanggal_output">
+                    <label class="form-label">Tanggal Output Awal</label>
+                    <input type="date" class="form-control" name="tanggal_output_awal" id="tanggal_output_awal">
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label">Tanggal Output Akhir</label>
+                    <input type="date" class="form-control" name="tanggal_output_akhir" id="tanggal_output_akhir">
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Output Line</label>
                     <select class="form-select select2bs4" name="line_output" id="line_output">
                         <option value=""></option>
@@ -127,10 +139,14 @@
                     <h6 class="text-sb fw-bold">PACKING</h6>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Packing</label>
-                    <input type="date" class="form-control" name="tanggal_packing" id="tanggal_packing">
+                    <label class="form-label">Tanggal Packing Awal</label>
+                    <input type="date" class="form-control" name="tanggal_packing_awal" id="tanggal_packing_awal">
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label">Tanggal Packing Akhir</label>
+                    <input type="date" class="form-control" name="tanggal_packing_akhir" id="tanggal_packing_akhir">
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Output Packing</label>
                     <select class="form-select select2bs4" name="line_packing" id="line_packing">
                         <option value=""></option>
@@ -341,6 +357,11 @@
 
                     select.innerHTML = "";
 
+                    let initialOption = document.createElement("option");
+                    initialOption.value = "";
+                    initialOption.innerHTML = "ALL";
+                    select.appendChild(initialOption);
+
                     for (let i=0; i < res.length; i++) {
                         let newOption = document.createElement("option");
                         newOption.value = res[i].color;
@@ -416,19 +437,23 @@
             scrollY: '400px',
             data: function(d) {
                 d.buyer = $('#buyer').val();
-                d.ws = $('#ws option:selected').text();
+                d.ws = $('#ws').val();
                 d.style = $('#style option:selected').text();
                 d.color = $('#color').val();
                 d.size = $('#size').val();
-                d.tanggal_loading = $('#tanggal_loading').val();
+                d.tanggal_loading_awal = $('#tanggal_loading_awal').val();
+                d.tanggal_loading_akhir = $('#tanggal_loading_akhir').val();
                 d.line_loading = $('#line_loading').val();
-                d.tanggal_plan = $('#tanggal_plan').val();
-                d.tanggal_output = $('#tanggal_output').val();
+                d.tanggal_plan_awal = $('#tanggal_plan_awal').val();
+                d.tanggal_plan_akhir = $('#tanggal_plan_akhir').val();
+                d.tanggal_output_awal = $('#tanggal_output_awal').val();
+                d.tanggal_output_akhir = $('#tanggal_output_akhir').val();
                 d.line_output = $('#line_output').val();
                 d.status_output = $('#status_output').val();
                 d.defect_output = $('#defect_output').val();
                 d.allocation_output = $('#allocation_output').val();
-                d.tanggal_packing = $('#tanggal_packing').val();
+                d.tanggal_packing_awal = $('#tanggal_packing_awal').val();
+                d.tanggal_packing_akhir = $('#tanggal_packing_akhir').val();
                 d.line_packing = $('#line_packing').val();
                 d.status_packing = $('#status_packing').val();
                 d.defect_packing = $('#defect_packing').val();
@@ -529,19 +554,23 @@
             type: "post",
             data: {
                 buyer : $('#buyer').val(),
-                ws : $('#ws option:selected').text(),
+                ws : $('#ws').val(),
                 style : $('#style option:selected').text(),
                 color : $('#color').val(),
                 size : $('#size').val(),
-                tanggal_loading : $('#tanggal_loading').val(),
+                tanggal_loading_awal : $('#tanggal_loading_awal').val(),
+                tanggal_loading_akhir : $('#tanggal_loading_akhir').val(),
                 line_loading : $('#line_loading').val(),
-                tanggal_plan : $('#tanggal_plan').val(),
-                tanggal_output : $('#tanggal_output').val(),
+                tanggal_plan_awal : $('#tanggal_plan_awal').val(),
+                tanggal_plan_akhir : $('#tanggal_plan_akhir').val(),
+                tanggal_output_awal : $('#tanggal_output_awal').val(),
+                tanggal_output_akhir : $('#tanggal_output_akhir').val(),
                 line_output : $('#line_output').val(),
                 status_output : $('#status_output').val(),
                 defect_output : $('#defect_output').val(),
                 allocation_output : $('#allocation_output').val(),
-                tanggal_packing : $('#tanggal_packing').val(),
+                tanggal_packing_awal : $('#tanggal_packing_awal').val(),
+                tanggal_packing_akhir : $('#tanggal_packing_akhir').val(),
                 line_packing : $('#line_packing').val(),
                 status_packing : $('#status_packing').val(),
                 defect_packing : $('#defect_packing').val(),

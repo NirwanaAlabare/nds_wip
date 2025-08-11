@@ -341,8 +341,8 @@ class SewingToolsController extends Controller
         $wsFilterYs = "";
         $wsFilterOutput = "";
         if ($request->ws) {
-            $wsFilterYs = " and msb.ws = '".$request->ws."'";
-            $wsFilterOutput = " and act_costing.kpno = '".$request->ws."'";
+            $wsFilterYs = " and msb.id_act_cost = '".$request->ws."'";
+            $wsFilterOutput = " and act_costing.id = '".$request->ws."'";
         }
 
         $styleFilterYs = "";
@@ -352,11 +352,11 @@ class SewingToolsController extends Controller
             $styleFilterOutput = " and act_costing.styleno = '".$request->style."'";
         }
 
-        $styleFilterYs = "";
-        $styleFilterOutput = "";
+        $colorFilterYs = "";
+        $colorFilterOutput = "";
         if ($request->color) {
-            $styleFilterYs = " and msb.color = '".$request->color."'";
-            $styleFilterOutput = " and so_det.color = '".$request->color."'";
+            $colorFilterYs = " and msb.color = '".$request->color."'";
+            $colorFilterOutput = " and so_det.color = '".$request->color."'";
         }
 
         $sizeFilterYs = "";
@@ -364,8 +364,8 @@ class SewingToolsController extends Controller
         if ($request->size && count($request->size) > 0) {
             $sizeList = addQuotesAround(implode("\n", $request->size));
 
-            $sizeFilterYs = " and msb.color in (".$sizeList.")";
-            $sizeFilterOutput = " and so_det.color in (".$sizeList.")";
+            $sizeFilterYs = " and msb.id_so_det in (".$sizeList.")";
+            $sizeFilterOutput = " and so_det.id in (".$sizeList.")";
         }
 
         $kodeFilterYs = "";
@@ -380,8 +380,12 @@ class SewingToolsController extends Controller
         $additionalFilter = "";
 
         $tglLoading = "";
-        if ($request->tanggal_loading) {
-            $tglLoading = " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) = '".$request->tanggal_loading."'";
+        if ($request->tanggal_loading_awal) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) >= '".$request->tanggal_loading_awal."'";
+        }
+
+        if ($request->tanggal_loading_akhir) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
         }
 
         $lineLoading = "";
@@ -390,8 +394,13 @@ class SewingToolsController extends Controller
         }
 
         $tglPlan = "";
-        if ($request->tanggal_plan) {
-            $tglPlan = " and master_plan.tgl_plan = '".$request->tanggal_plan."'";
+        if ($request->tanggal_plan_awal || $request->tanggal_plan_akhir) {
+            if ($request->tanggal_plan_awal) {
+                $tglPlan .= " and master_plan.tgl_plan >= '".$request->tanggal_plan_awal."'";
+            }
+            if ($request->tanggal_plan_akhir) {
+                $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
+            }
             $additionalFilter .= "output.kode_numbering is not null";
         }
 
@@ -399,20 +408,28 @@ class SewingToolsController extends Controller
         $tglOutput = "";
         $tglDefect = "";
         $tglReject = "";
-        if ($request->tanggal_output) {
-            $tglOutput = " and output_rfts.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglDefect = " and output_defects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglReject = " and output_rejects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
+        if ($request->tanggal_output_awal || $request->tanggal_output_akhir) {
+            $tglAwalOutput = $request->tanggal_output_awal ? $request->tanggal_output_awal : date("Y-m-d");
+            $tglAkhirOutput = $request->tanggal_output_akhir ? $request->tanggal_output_akhir : date("Y-m-d");
+
+            $tglOutput = " and output_rfts.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglDefect = " and output_defects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglReject = " and output_rejects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+
             $additionalFilter .= " and output.tgl is not null";
         }
 
         $tglOutputPck = "";
         $tglDefectPck = "";
         $tglRejectPck = "";
-        if ($request->tanggal_packing) {
-            $tglOutputPck = " and output_rfts.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglDefectPck = " and output_defects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglRejectPck = " and output_rejects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
+        if ($request->tanggal_packing_awal || $request->tanggal_packing_akhir) {
+            $tglAwalPacking = $request->tanggal_packing_awal ? $request->tanggal_packing_awal : date("Y-m-d");
+            $tglAkhirPacking = $request->tanggal_packing_akhir ? $request->tanggal_packing_akhir : date("Y-m-d");
+
+            $tglOutputPck = " and output_rfts.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglDefectPck = " and output_defects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglRejectPck = " and output_rejects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+
             $additionalFilter .= " and output_packing.tgl is not null";
         }
 
@@ -537,7 +554,7 @@ class SewingToolsController extends Controller
         $filterYs = $buyerFilterYs."
                     ".$wsFilterYs."
                     ".$styleFilterYs."
-                    ".$styleFilterYs."
+                    ".$colorFilterYs."
                     ".$sizeFilterYs."
                     ".$kodeFilterYs;
 
@@ -547,8 +564,10 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput."
                     ".$missmatchDefect."
@@ -559,6 +578,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -570,6 +590,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -583,6 +604,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -596,6 +618,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -607,6 +630,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -617,13 +641,141 @@ class SewingToolsController extends Controller
 
         // Callback
         $callbackFilterYs = "";
-        $callbackFilterOutput = "";
         if (!trim(str_replace("\n", "", $filterYs)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterRejectOutput)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
             $callbackFilterYs = " and DATE(ys.updated_at) > CURRENT_DATE()";
+        }
+
+        $callbackFilterOutput = "";
+        if (!trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRejectOutput))) {
             $callbackFilterOutput = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
 
+        $callbackFilterPacking = "";
+        if (!trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
+            $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
+        }
+
         ini_set("max_execution_time", 120);
+
+        $outputQuery = DB::connection("mysql_sb")->select("
+            SELECT
+                DISTINCT kode_numbering
+            FROM (
+                -- Output defects
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output RFT
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output rejects
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output defects packing
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects_packing AS output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_defects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output RFT packing
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts_packing AS output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rfts.created_by
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output rejects packing
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects_packing AS output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectPck}
+                    {$callbackFilterPacking}
+            ) AS kode_list
+        ");
+
+        $kodeList = "'none'";
+        if (count($outputQuery) > 0) {
+            $kodeList = addQuotesAround(implode("\n", array_column($outputQuery, 'kode_numbering')));
+        }
 
         $outputList = DB::connection("mysql_sb")->select("
             select
@@ -689,8 +841,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -717,8 +868,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -745,8 +895,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 ) output ON output.kode_numbering = ys.id_year_sequence
                 left join (
                     select
@@ -773,8 +922,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectPck."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -800,8 +948,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftPck."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -827,8 +974,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectPck."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
@@ -859,8 +1005,8 @@ class SewingToolsController extends Controller
         $wsFilterYs = "";
         $wsFilterOutput = "";
         if ($request->ws) {
-            $wsFilterYs = " and msb.ws = '".$request->ws."'";
-            $wsFilterOutput = " and act_costing.kpno = '".$request->ws."'";
+            $wsFilterYs = " and msb.id_act_cost = '".$request->ws."'";
+            $wsFilterOutput = " and act_costing.id = '".$request->ws."'";
         }
 
         $styleFilterYs = "";
@@ -870,11 +1016,11 @@ class SewingToolsController extends Controller
             $styleFilterOutput = " and act_costing.styleno = '".$request->style."'";
         }
 
-        $styleFilterYs = "";
-        $styleFilterOutput = "";
+        $colorFilterYs = "";
+        $colorFilterOutput = "";
         if ($request->color) {
-            $styleFilterYs = " and msb.color = '".$request->color."'";
-            $styleFilterOutput = " and so_det.color = '".$request->color."'";
+            $colorFilterYs = " and msb.color = '".$request->color."'";
+            $colorFilterOutput = " and so_det.color = '".$request->color."'";
         }
 
         $sizeFilterYs = "";
@@ -882,8 +1028,8 @@ class SewingToolsController extends Controller
         if ($request->size && count($request->size) > 0) {
             $sizeList = addQuotesAround(implode("\n", $request->size));
 
-            $sizeFilterYs = " and msb.color in (".$sizeList.")";
-            $sizeFilterOutput = " and so_det.color in (".$sizeList.")";
+            $sizeFilterYs = " and msb.id_so_det in (".$sizeList.")";
+            $sizeFilterOutput = " and so_det.id in (".$sizeList.")";
         }
 
         $kodeFilterYs = "";
@@ -898,8 +1044,12 @@ class SewingToolsController extends Controller
         $additionalFilter = "";
 
         $tglLoading = "";
-        if ($request->tanggal_loading) {
-            $tglLoading = " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) = '".$request->tanggal_loading."'";
+        if ($request->tanggal_loading_awal) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) >= '".$request->tanggal_loading_awal."'";
+        }
+
+        if ($request->tanggal_loading_akhir) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
         }
 
         $lineLoading = "";
@@ -908,8 +1058,13 @@ class SewingToolsController extends Controller
         }
 
         $tglPlan = "";
-        if ($request->tanggal_plan) {
-            $tglPlan = " and master_plan.tgl_plan = '".$request->tanggal_plan."'";
+        if ($request->tanggal_plan_awal || $request->tanggal_plan_akhir) {
+            if ($request->tanggal_plan_awal) {
+                $tglPlan .= " and master_plan.tgl_plan >= '".$request->tanggal_plan_awal."'";
+            }
+            if ($request->tanggal_plan_akhir) {
+                $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
+            }
             $additionalFilter .= "output.kode_numbering is not null";
         }
 
@@ -917,20 +1072,28 @@ class SewingToolsController extends Controller
         $tglOutput = "";
         $tglDefect = "";
         $tglReject = "";
-        if ($request->tanggal_output) {
-            $tglOutput = " and output_rfts.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglDefect = " and output_defects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglReject = " and output_rejects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
+        if ($request->tanggal_output_awal || $request->tanggal_output_akhir) {
+            $tglAwalOutput = $request->tanggal_output_awal ? $request->tanggal_output_awal : date("Y-m-d");
+            $tglAkhirOutput = $request->tanggal_output_akhir ? $request->tanggal_output_akhir : date("Y-m-d");
+
+            $tglOutput = " and output_rfts.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglDefect = " and output_defects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglReject = " and output_rejects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+
             $additionalFilter .= " and output.tgl is not null";
         }
 
         $tglOutputPck = "";
         $tglDefectPck = "";
         $tglRejectPck = "";
-        if ($request->tanggal_packing) {
-            $tglOutputPck = " and output_rfts.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglDefectPck = " and output_defects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglRejectPck = " and output_rejects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
+        if ($request->tanggal_packing_awal || $request->tanggal_packing_akhir) {
+            $tglAwalPacking = $request->tanggal_packing_awal ? $request->tanggal_packing_awal : date("Y-m-d");
+            $tglAkhirPacking = $request->tanggal_packing_akhir ? $request->tanggal_packing_akhir : date("Y-m-d");
+
+            $tglOutputPck = " and output_rfts.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglDefectPck = " and output_defects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglRejectPck = " and output_rejects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+
             $additionalFilter .= " and output_packing.tgl is not null";
         }
 
@@ -1055,7 +1218,7 @@ class SewingToolsController extends Controller
         $filterYs = $buyerFilterYs."
                     ".$wsFilterYs."
                     ".$styleFilterYs."
-                    ".$styleFilterYs."
+                    ".$colorFilterYs."
                     ".$sizeFilterYs."
                     ".$kodeFilterYs;
 
@@ -1065,8 +1228,10 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$defectOutput."
                     ".$allocationOutput."
                     ".$missmatchDefect."
@@ -1077,6 +1242,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -1088,6 +1254,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$lineOutput."
@@ -1101,6 +1268,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -1114,6 +1282,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -1125,6 +1294,7 @@ class SewingToolsController extends Controller
                     ".$buyerFilterOutput."
                     ".$wsFilterOutput."
                     ".$styleFilterOutput."
+                    ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
@@ -1135,10 +1305,138 @@ class SewingToolsController extends Controller
 
         // Callback
         $callbackFilterYs = "";
-        $callbackFilterOutput = "";
         if (!trim(str_replace("\n", "", $filterYs)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterRejectOutput)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
             $callbackFilterYs = " and DATE(ys.updated_at) > CURRENT_DATE()";
+        }
+
+        $callbackFilterOutput = "";
+        if (!trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRejectOutput))) {
             $callbackFilterOutput = " and master_plan.tgl_plan > CURRENT_DATE()";
+        }
+
+        $callbackFilterPacking = "";
+        if (!trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
+            $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
+        }
+
+        $outputQuery = DB::connection("mysql_sb")->select("
+            SELECT
+                DISTINCT kode_numbering
+            FROM (
+                -- Output defects
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output RFT
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output rejects
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectOutput}
+                    {$callbackFilterOutput}
+
+                UNION ALL
+
+                -- Output defects packing
+                SELECT
+                    output_defects.kode_numbering
+                FROM output_defects_packing AS output_defects
+                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_defects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+                WHERE
+                    output_defects.id IS NOT NULL
+                    {$filterDefectPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output RFT packing
+                SELECT
+                    output_rfts.kode_numbering
+                FROM output_rfts_packing AS output_rfts
+                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rfts.created_by
+                WHERE
+                    output_rfts.id IS NOT NULL
+                    AND output_rfts.status = 'NORMAL'
+                    {$filterRftPck}
+                    {$callbackFilterPacking}
+
+                UNION ALL
+
+                -- Output rejects packing
+                SELECT
+                    output_rejects.kode_numbering
+                FROM output_rejects_packing AS output_rejects
+                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
+                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+                WHERE
+                    output_rejects.reject_status = 'mati'
+                    {$filterRejectPck}
+                    {$callbackFilterPacking}
+            ) AS kode_list
+        ");
+
+        $kodeList = "'none'";
+        if (count($outputQuery) > 0) {
+            $kodeList = addQuotesAround(implode("\n", array_column($outputQuery, 'kode_numbering')));
         }
 
         $outputList ="
@@ -1205,8 +1503,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1233,8 +1530,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1261,8 +1557,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectOutput."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 ) output ON output.kode_numbering = ys.id_year_sequence
                 left join (
                     select
@@ -1289,8 +1584,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        ".$filterDefectPck."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1316,8 +1610,7 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        ".$filterRftPck."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1343,8 +1636,7 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        ".$filterRejectPck."
-                        ".$callbackFilterOutput."
+                        and kode_numbering in (".$kodeList.")
                 ) output_packing ON output_packing.kode_numbering = output.kode_numbering
             left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
             left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)

@@ -183,8 +183,13 @@ class TrackOrderOutput extends Component
                     (
                         SELECT
                             master_plan.id_ws,
-                            rfts.master_plan_id,
-                            userpassword.username sewing_line
+                            userpassword.username sewing_line,
+                            coalesce( date( rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                            max( rfts.updated_at ) last_rft,
+                            count( rfts.id ) rft,
+                            master_plan.id master_plan_id,
+                            master_plan.id_ws master_plan_id_ws
+                            ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                         FROM
                             output_rfts".$this->outputType." rfts
                             INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
@@ -200,6 +205,7 @@ class TrackOrderOutput extends Component
                             ". ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
                         GROUP BY
                             master_plan.id_ws,
+                            master_plan.color,
                             DATE ( rfts.updated_at ),
                             COALESCE ( userpassword.username, master_plan.sewing_line )
                             ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
@@ -208,8 +214,8 @@ class TrackOrderOutput extends Component
                     $join->on("rfts.master_plan_id", "=", "master_plan.id");
                 });
                 if ($this->groupBy == "size") $dailyOrderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
-                // if ($this->dateFromFilter) $dailyOrderGroupSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
-                // if ($this->dateToFilter) $dailyOrderGroupSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
+                if ($this->dateFromFilter) $dailyOrderGroupSql->where('rfts.tanggal', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
+                if ($this->dateToFilter) $dailyOrderGroupSql->where('rfts.tanggal', '<=', $this->dateToFilter);
                 if ($this->colorFilter) $dailyOrderGroupSql->where('master_plan.color', $this->colorFilter);
                 if ($this->lineFilter) $dailyOrderGroupSql->where('rfts.sewing_line', $this->lineFilter);
                 if ($this->groupBy == "size" && $this->sizeFilter) $dailyOrderGroupSql->where('so_det.size', $this->sizeFilter);
@@ -263,6 +269,7 @@ class TrackOrderOutput extends Component
                             ". ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
                         GROUP BY
                             master_plan.id_ws,
+                            master_plan.color,
                             DATE ( rfts.updated_at ),
                             COALESCE ( userpassword.username, master_plan.sewing_line )
                             ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
