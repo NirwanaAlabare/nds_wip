@@ -74,6 +74,7 @@ class TrolleyStockerController extends Controller
                             LEFT JOIN trolley_stocker ON trolley_stocker.stocker_id = stocker_input.id
                         WHERE
                             trolley_stocker.id is not null AND
+                            stocker_input.id is not null AND
                             trolley_stocker.`status` = "active"
                         GROUP BY
                             stocker_input.form_cut_id,
@@ -139,7 +140,8 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $request->trolley_id)->
                 where('trolley_stocker.status', "active")->
                 // where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio');
+                groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+                orderBy('trolley_stocker.updated_at', 'desc');
 
             return DataTables::eloquent($trolley)->
                 filterColumn('id', function($query, $keyword) {
@@ -212,7 +214,8 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $id)->
                 where('trolley_stocker.status', "active")->
                 // where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio');
+                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+                orderBy('trolley_stocker.updated_at', 'desc');
 
             return DataTables::eloquent($trolley)->
                 filterColumn('id', function($query, $keyword) {
@@ -635,6 +638,7 @@ class TrolleyStockerController extends Controller
             where('trolley_stocker.status', 'active')->
             where('stocker_input.status', "!=", "line")->
             groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+            orderBy('trolley_stocker.updated_at', 'desc')->
             get();
 
         return view('dc.trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleys' => $trolleys, 'trolleyStocks' => $trolleyStocks]);

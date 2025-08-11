@@ -218,7 +218,6 @@
             columnDefs: [
                 {
                     targets: [0],
-                    className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
@@ -242,7 +241,7 @@
                     }
                 },
                 {
-                    targets: [2,9],
+                    targets: "_all",
                     className: "text-nowrap"
                 },
             ]
