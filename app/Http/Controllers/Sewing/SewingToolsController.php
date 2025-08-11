@@ -380,8 +380,12 @@ class SewingToolsController extends Controller
         $additionalFilter = "";
 
         $tglLoading = "";
-        if ($request->tanggal_loading) {
-            $tglLoading = " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) = '".$request->tanggal_loading."'";
+        if ($request->tanggal_loading_awal) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) >= '".$request->tanggal_loading_awal."'";
+        }
+
+        if ($request->tanggal_loading_akhir) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
         }
 
         $lineLoading = "";
@@ -390,8 +394,13 @@ class SewingToolsController extends Controller
         }
 
         $tglPlan = "";
-        if ($request->tanggal_plan) {
-            $tglPlan = " and master_plan.tgl_plan = '".$request->tanggal_plan."'";
+        if ($request->tanggal_plan_awal || $request->tanggal_plan_akhir) {
+            if ($request->tanggal_plan_awal) {
+                $tglPlan .= " and master_plan.tgl_plan >= '".$request->tanggal_plan_awal."'";
+            }
+            if ($request->tanggal_plan_akhir) {
+                $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
+            }
             $additionalFilter .= "output.kode_numbering is not null";
         }
 
@@ -399,20 +408,28 @@ class SewingToolsController extends Controller
         $tglOutput = "";
         $tglDefect = "";
         $tglReject = "";
-        if ($request->tanggal_output) {
-            $tglOutput = " and output_rfts.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglDefect = " and output_defects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglReject = " and output_rejects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
+        if ($request->tanggal_output_awal || $request->tanggal_output_akhir) {
+            $tglAwalOutput = $request->tanggal_output_awal ? $request->tanggal_output_awal : date("Y-m-d");
+            $tglAkhirOutput = $request->tanggal_output_akhir ? $request->tanggal_output_akhir : date("Y-m-d");
+
+            $tglOutput = " and output_rfts.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglDefect = " and output_defects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglReject = " and output_rejects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+
             $additionalFilter .= " and output.tgl is not null";
         }
 
         $tglOutputPck = "";
         $tglDefectPck = "";
         $tglRejectPck = "";
-        if ($request->tanggal_packing) {
-            $tglOutputPck = " and output_rfts.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglDefectPck = " and output_defects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglRejectPck = " and output_rejects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
+        if ($request->tanggal_packing_awal || $request->tanggal_packing_akhir) {
+            $tglAwalPacking = $request->tanggal_packing_awal ? $request->tanggal_packing_awal : date("Y-m-d");
+            $tglAkhirPacking = $request->tanggal_packing_akhir ? $request->tanggal_packing_akhir : date("Y-m-d");
+
+            $tglOutputPck = " and output_rfts.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglDefectPck = " and output_defects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglRejectPck = " and output_rejects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+
             $additionalFilter .= " and output_packing.tgl is not null";
         }
 
@@ -1027,8 +1044,12 @@ class SewingToolsController extends Controller
         $additionalFilter = "";
 
         $tglLoading = "";
-        if ($request->tanggal_loading) {
-            $tglLoading = " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) = '".$request->tanggal_loading."'";
+        if ($request->tanggal_loading_awal) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) >= '".$request->tanggal_loading_awal."'";
+        }
+
+        if ($request->tanggal_loading_akhir) {
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
         }
 
         $lineLoading = "";
@@ -1037,8 +1058,13 @@ class SewingToolsController extends Controller
         }
 
         $tglPlan = "";
-        if ($request->tanggal_plan) {
-            $tglPlan = " and master_plan.tgl_plan = '".$request->tanggal_plan."'";
+        if ($request->tanggal_plan_awal || $request->tanggal_plan_akhir) {
+            if ($request->tanggal_plan_awal) {
+                $tglPlan .= " and master_plan.tgl_plan >= '".$request->tanggal_plan_awal."'";
+            }
+            if ($request->tanggal_plan_akhir) {
+                $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
+            }
             $additionalFilter .= "output.kode_numbering is not null";
         }
 
@@ -1046,20 +1072,28 @@ class SewingToolsController extends Controller
         $tglOutput = "";
         $tglDefect = "";
         $tglReject = "";
-        if ($request->tanggal_output) {
-            $tglOutput = " and output_rfts.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglDefect = " and output_defects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
-            $tglReject = " and output_rejects.updated_at between '".$request->tanggal_output." 00:00:00' and '".$request->tanggal_output." 23:59:59'";
+        if ($request->tanggal_output_awal || $request->tanggal_output_akhir) {
+            $tglAwalOutput = $request->tanggal_output_awal ? $request->tanggal_output_awal : date("Y-m-d");
+            $tglAkhirOutput = $request->tanggal_output_akhir ? $request->tanggal_output_akhir : date("Y-m-d");
+
+            $tglOutput = " and output_rfts.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglDefect = " and output_defects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+            $tglReject = " and output_rejects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+
             $additionalFilter .= " and output.tgl is not null";
         }
 
         $tglOutputPck = "";
         $tglDefectPck = "";
         $tglRejectPck = "";
-        if ($request->tanggal_packing) {
-            $tglOutputPck = " and output_rfts.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglDefectPck = " and output_defects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
-            $tglRejectPck = " and output_rejects.updated_at between '".$request->tanggal_packing." 00:00:00' and '".$request->tanggal_packing." 23:59:59'";
+        if ($request->tanggal_packing_awal || $request->tanggal_packing_akhir) {
+            $tglAwalPacking = $request->tanggal_packing_awal ? $request->tanggal_packing_awal : date("Y-m-d");
+            $tglAkhirPacking = $request->tanggal_packing_akhir ? $request->tanggal_packing_akhir : date("Y-m-d");
+
+            $tglOutputPck = " and output_rfts.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglDefectPck = " and output_defects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+            $tglRejectPck = " and output_rejects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+
             $additionalFilter .= " and output_packing.tgl is not null";
         }
 
