@@ -217,7 +217,8 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $id                     = $get_header[0]->id;
         $status_proses_form     = $get_header[0]->status_proses_form;
         $start_form_fix         = $get_header[0]->start_form_fix;
-        $finish_form_fix         = $get_header[0]->finish_form_fix;
+        $finish_form_fix        = $get_header[0]->finish_form_fix;
+        $no_mesin               = $get_header[0]->no_mesin;
 
         $buyer                  = $get_header[0]->buyer;
         $ws                     = $get_header[0]->kpno;
@@ -282,6 +283,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
                 "user" => $user,
                 "no_form" => $no_form,
                 "no_invoice" => $no_invoice,
+                "no_mesin" => $no_mesin,
                 "id" => $id,
                 "status_proses_form" => $status_proses_form,
                 "start_form_fix" => $start_form_fix,

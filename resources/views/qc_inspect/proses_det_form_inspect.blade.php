@@ -144,7 +144,7 @@
                 <div class="col-md-4">
                     <label for="txtno_mesin"><small><b>No. Mesin :</b></small></label>
                     <input type="text" id="txtno_mesin" name="txtno_mesin"
-                        class="form-control form-control-sm border-primary" value="{{ $user }}" readonly>
+                        class="form-control form-control-sm border-primary" value="{{ $no_mesin }}" readonly>
                 </div>
                 <div class="col-md-4">
                     <label for="txtnik"><small><b>NIK :</b></small></label>
