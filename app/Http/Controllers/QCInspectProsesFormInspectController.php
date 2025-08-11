@@ -774,10 +774,10 @@ SELECT
     'LENGTH' as dim,
     IFNULL(bintex_length_act, 0) as bintex,
     IFNULL(act_length_fix, 0) as actual,
-    ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2) as selisih,
+    ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length_act, 0), 2) as selisih,
     '- 3' as max_selisih,
     'YARD' as unit,
-    IF(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0) > -3, 'PASS', 'HOLD') as result
+    IF(IFNULL(act_length_fix, 0) - IFNULL(bintex_length_act, 0) > -3, 'PASS', 'HOLD') as result
 FROM
     qc_inspect_form a
 WHERE

@@ -1232,6 +1232,27 @@
                 return;
             }
 
+            // ✅ Validate defect fields if defect selected
+            if (cbo_defect && cbo_defect !== "") {
+                // Check if all fields are empty or zero
+                const isAllEmptyOrZero =
+                    (!txtup_to_3 || txtup_to_3 === "" || txtup_to_3 === "0") &&
+                    (!txt3_6 || txt3_6 === "" || txt3_6 === "0") &&
+                    (!txt6_9 || txt6_9 === "" || txt6_9 === "0") &&
+                    (!txtovr_9 || txtovr_9 === "" || txtovr_9 === "0");
+
+                if (isAllEmptyOrZero) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Peringatan',
+                        text: 'Isi setidaknya satu kolom panjang cacat (UP TO 3, 3-6, 6-9, OVER 9) dan pastikan nilainya bukan 0.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
+            }
+
             // Send data only if confirmed
             $.ajax({
                 type: "POST",
