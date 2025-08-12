@@ -335,7 +335,7 @@ class SewingToolsController extends Controller
         $buyerFilterOutput = "";
         if ($request->buyer) {
             $buyerFilterYs = " and msb.buyer = '".$request->buyer."'";
-            $buyerFilterOutput = " and act_costing.buyer = '".$request->buyer."'";
+            $buyerFilterOutput = " and mastersupplier.Supplier = '".$request->buyer."'";
         }
 
         $wsFilterYs = "";
@@ -999,7 +999,7 @@ class SewingToolsController extends Controller
         $buyerFilterOutput = "";
         if ($request->buyer) {
             $buyerFilterYs = " and msb.buyer = '".$request->buyer."'";
-            $buyerFilterOutput = " and act_costing.buyer = '".$request->buyer."'";
+            $buyerFilterOutput = " and mastersupplier.Supplier = '".$request->buyer."'";
         }
 
         $wsFilterYs = "";
