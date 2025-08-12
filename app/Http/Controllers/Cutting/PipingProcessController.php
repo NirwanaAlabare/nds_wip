@@ -328,11 +328,11 @@ class PipingProcessController extends Controller
         $pipingLoading = PipingLoading::where("piping_process_id", $id)->first();
 
         if (!$pipingLoading || (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
-            $destroyPipingProcess = PipingProcess::find($id)->first();
+            $destroyPipingProcess = PipingProcess::find($id)->delete();
 
             if ($destroyPipingProcess) {
-                $destroyPipingProcessDetail = PipingProcessDetail::where("piping_process_id", $id)->first();
-                $destroyPipingLoading = PipingLoading::where("piping_process_id", $id)->first();
+                $destroyPipingProcessDetail = PipingProcessDetail::where("piping_process_id", $id)->delete();
+                $destroyPipingLoading = PipingLoading::where("piping_process_id", $id)->delete();
 
                 return array(
                     'status' => 200,
@@ -354,7 +354,7 @@ class PipingProcessController extends Controller
 
         return array(
             'status' => 400,
-            'message' => 'Piping Process sudah diloading',
+            'message' => 'Tidak dapat dihapus. Piping Process sudah diloading.',
             'redirect' => '',
             'table' => 'datatable',
             'additional' => [],
