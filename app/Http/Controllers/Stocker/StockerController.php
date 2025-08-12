@@ -1439,8 +1439,9 @@ class StockerController extends Controller
             where("stocker_input.group_stocker", $request['group_stocker'][$index])->
             groupBy("form_cut_piece.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
+            orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
-            orderBy("stocker_input.ratio", "asc")->
+            orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
             get();
 
         // generate pdf
@@ -1649,7 +1650,7 @@ class StockerController extends Controller
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
-            orderBy("stocker_input.ratio", "asc")->
+            orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
             get();
 
         // generate pdf
@@ -1862,6 +1863,7 @@ class StockerController extends Controller
             where("stocker_input.form_piece_id", $request['form_cut_id'])->
             groupBy("form_cut_piece.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
+            orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
             get();
@@ -1873,7 +1875,7 @@ class StockerController extends Controller
 
         $fileName = 'stocker-' . $request['form_cut_id'] . '.pdf';
 
-        return $pdf->download(str_replace("/", "_", $fileName));;
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     public function printStockerAllSizeAdd(Request $request)
