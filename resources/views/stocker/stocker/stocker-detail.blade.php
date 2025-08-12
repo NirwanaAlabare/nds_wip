@@ -48,9 +48,6 @@
                 </div>
             </div>
             <div class="d-flex justify-content-end gap-3 mb-3">
-                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#separate-qty-modal">
-                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Separate
-                </button>
                 <button type="button" class="btn btn-success btn-sm" onclick="countStockerUpdate()">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> No. Stocker
                 </button>
@@ -59,6 +56,9 @@
                 </button>
                 <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#size-qty-modal">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Size Qty
+                </button>
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#separate-qty-modal">
+                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Separate Qty
                 </button>
             </div>
             <form action="#" method="post" id="stocker-form">
@@ -843,7 +843,7 @@
 
     {{-- Separate Stocker Qty --}}
     <div class="modal" tabindex="-1" id="separate-qty-modal">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-sb">
                     <h5 class="modal-title"><i class="fa-solid fa-expand"></i> Separate Qty</h5>
@@ -886,12 +886,12 @@
 
                                     @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
                                     @php
-                                        $indexSeparate += $dataRatioSeparate->count();
+                                        $indexSeparate += $dataRatio->count();
                                     @endphp
 
                                     {{-- Change initial group --}}
                                     @php
-                                        $currentBeforeSeparate += $currentTotal;
+                                        $currentBeforeSeparate += $currentTotalSeparate;
 
                                         $currentGroupSeparate = $detail->group_roll;
                                         $currentGroupStockerSeparate = $detail->group_stocker;
@@ -913,7 +913,7 @@
 
                                         @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
                                         @php
-                                            $indexSeparate += $dataRatioSeparate->count();
+                                            $indexSeparate += $dataRatio->count();
                                         @endphp
                                     @endif
                                 @else
@@ -937,7 +937,7 @@
 
                                         @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
                                         @php
-                                            $indexSeparate += $dataRatioSeparate->count();
+                                            $indexSeparate += $dataRatio->count();
                                         @endphp
                                     @endif
                                 @endif
@@ -967,7 +967,7 @@
 
                                     @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
                                     @php
-                                        $indexSeparate += $dataRatioSeparate->count();
+                                        $indexSeparate += $dataRatio->count();
                                     @endphp
 
                                     {{-- Change initial group --}}
@@ -994,7 +994,7 @@
 
                                         @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty])
                                         @php
-                                            $indexSeparate += $dataRatioSeparate->count();
+                                            $indexSeparate += $dataRatio->count();
                                         @endphp
                                     @endif
                                 @else
@@ -2323,8 +2323,8 @@
                         if (res.status == 200) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Pemisahan Stocker Berhasil disimpan.',
-                                html: res.message,
+                                title: res.message,
+                                html: res.data ? res.data.join(" Berhasil dipisahkan. <br> ") : "",
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',

@@ -23,6 +23,8 @@ use App\Models\YearSequence;
 use App\Models\StockerAdditional;
 use App\Models\StockerAdditionalDetail;
 use App\Models\DCIn;
+use App\Models\StockerSeparate;
+use App\Models\StockerSeparateDetail;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Reject;
@@ -448,9 +450,11 @@ class StockerController extends Controller
             $dataStockerAdditional = null;
         }
 
+        $dataStockerSeparate = StockerSeparate::where("form_cut_id", $dataSpreading->form_cut_id)->orderBy("updated_at", "desc")->get();
+
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataPartForm" => $dataPartForm, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
+        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataStockerSeparate" => $dataStockerSeparate, "dataPartForm" => $dataPartForm, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     public function showPcs($formCutId = 0)
@@ -566,7 +570,9 @@ class StockerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("stocker.stocker.stocker-piece-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataDetail" => $dataDetail, "dataStocker" => $dataStocker, "dataPartForm" => $dataPartForm, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
+        $dataStockerSeparate = StockerSeparate::where("form_piece_id", $formCutId)->orderBy("updated_at", "desc")->get();
+
+        return view("stocker.stocker.stocker-piece-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataDetail" => $dataDetail, "dataStocker" => $dataStocker, "dataPartForm" => $dataPartForm, "dataStockerSeparate" => $dataStockerSeparate, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**
@@ -623,58 +629,146 @@ class StockerController extends Controller
         }
 
         $storeItemArr = [];
-        for ($i = 0; $i < $ratio; $i++) {
-            $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
-                part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
-                form_cut_id = '" . $request['form_cut_id'] . "' AND
-                so_det_id = '" . $request['so_det_id'][$index] . "' AND
-                color = '" . $request['color'] . "' AND
-                panel = '" . $request['panel'] . "' AND
-                shade = '" . $request['group'][$index] . "' AND
-                " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                ratio = " . ($i + 1) . "
-            ")->first();
+        $lastRatio = null;
 
-            $ratio = $i + 1;
-            $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
-            $cumRangeAwal = $cumRangeAkhir + 1;
-            $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+        // Check Separate Stocker
+        $stockerSeparate = StockerSeparate::where("form_cut_id", $request['form_cut_id'])->
+            where("so_det_id", $request['so_det_id'][$index])->
+            whereRaw("group_roll = '".$request['group'][$index]."' ".($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? " and group_stocker = '" . $request['group_stocker'][$index] . "'" : ""))->
+            orderBy("updated_at", "desc")->
+            first();
 
-            if (!$checkStocker) {
-                array_push($storeItemArr, [
-                    'id_qr_stocker' => $stockerId,
-                    'act_costing_ws' => $request["no_ws"],
-                    'part_detail_id' => $request['part_detail_id'][$index],
-                    'form_cut_id' => $request['form_cut_id'],
-                    'so_det_id' => $request['so_det_id'][$index],
-                    'color' => $request['color'],
-                    'panel' => $request['panel'],
-                    'shade' => $request['group'][$index],
-                    'group_stocker' => $request['group_stocker'][$index],
-                    'ratio' => $i + 1,
-                    'size' => $request["size"][$index],
-                    'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
-                    'qty_ply_mod' => (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null),
-                    'qty_cut' => $request['qty_cut'][$index],
-                    'notes' => $request['note'],
-                    'range_awal' => $cumRangeAwal,
-                    'range_akhir' => (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
-                    'created_by' => Auth::user()->id,
-                    'created_by_username' => Auth::user()->username,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now()
-                ]);
-            } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index])) {
-                $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
-                $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
-                $checkStocker->range_awal = $cumRangeAwal;
-                $checkStocker->range_akhir = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
-                $checkStocker->save();
+        if ($stockerSeparate) {
+            $stockerSeparateDetails = $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get();
+
+            if ($stockerSeparateDetails->count() > 0) {
+                foreach ($stockerSeparateDetails as $i => $stockerSeparateDetail) {
+                    $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_cut_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                        ratio = " . ($i + 1) . "
+                    ")->first();
+
+                    $ratio = $i + 1;
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
+                    $cumRangeAwal = $stockerSeparateDetail->range_awal;
+                    $cumRangeAkhir = $stockerSeparateDetail->range_akhir;
+
+                    if (!$checkStocker) {
+                        array_push($storeItemArr, [
+                            'id_qr_stocker' => $stockerId,
+                            'act_costing_ws' => $request["no_ws"],
+                            'part_detail_id' => $request['part_detail_id'][$index],
+                            'form_cut_id' => $request['form_cut_id'],
+                            'so_det_id' => $request['so_det_id'][$index],
+                            'color' => $request['color'],
+                            'panel' => $request['panel'],
+                            'shade' => $request['group'][$index],
+                            'group_stocker' => $request['group_stocker'][$index],
+                            'ratio' => $i + 1,
+                            'size' => $request["size"][$index],
+                            'qty_ply' => $stockerSeparateDetail->qty,
+                            'qty_ply_mod' => null,
+                            'qty_cut' => $stockerSeparateDetail->qty,
+                            'notes' => 'Separated Stocker',
+                            'range_awal' => $cumRangeAwal,
+                            'range_akhir' => $cumRangeAkhir,
+                            'created_by' => Auth::user()->id,
+                            'created_by_username' => Auth::user()->username,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now()
+                        ]);
+                    } else if ($checkStocker && $checkStocker->qty_ply != $stockerSeparateDetail->qty) {
+                        $checkStocker->qty_ply = $stockerSeparateDetail->qty;
+                        $checkStocker->qty_ply_mod = null;
+                        $checkStocker->qty_cut = $stockerSeparateDetail->qty;
+                        $checkStocker->range_awal = $cumRangeAwal;
+                        $checkStocker->range_akhir = $cumRangeAkhir;
+                        $checkStocker->notes = "Separated Stocker";
+                        $checkStocker->cancel = 'n';
+                        $checkStocker->save();
+                    }
+
+                    $lastRatio = $i+1;
+                }
+            }
+        } else {
+            for ($i = 0; $i < $ratio; $i++) {
+                $checkStocker = Stocker::select("id","id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
+                    part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                    form_cut_id = '" . $request['form_cut_id'] . "' AND
+                    so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    color = '" . $request['color'] . "' AND
+                    panel = '" . $request['panel'] . "' AND
+                    shade = '" . $request['group'][$index] . "' AND
+                    " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                    ratio = " . ($i + 1) . "
+                ")->first();
+
+                $ratio = $i + 1;
+                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
+                $cumRangeAwal = $cumRangeAkhir + 1;
+                $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+
+                if (!$checkStocker) {
+                    array_push($storeItemArr, [
+                        'id_qr_stocker' => $stockerId,
+                        'act_costing_ws' => $request["no_ws"],
+                        'part_detail_id' => $request['part_detail_id'][$index],
+                        'form_cut_id' => $request['form_cut_id'],
+                        'so_det_id' => $request['so_det_id'][$index],
+                        'color' => $request['color'],
+                        'panel' => $request['panel'],
+                        'shade' => $request['group'][$index],
+                        'group_stocker' => $request['group_stocker'][$index],
+                        'ratio' => $i + 1,
+                        'size' => $request["size"][$index],
+                        'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
+                        'qty_ply_mod' => (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null),
+                        'qty_cut' => $request['qty_cut'][$index],
+                        'notes' => $request['note'],
+                        'range_awal' => $cumRangeAwal,
+                        'range_akhir' => (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                        'created_by' => Auth::user()->id,
+                        'created_by_username' => Auth::user()->username,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now()
+                    ]);
+                } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index])) {
+                    $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+                    $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
+                    $checkStocker->range_awal = $cumRangeAwal;
+                    $checkStocker->range_akhir = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
+                    $checkStocker->cancel = 'n';
+                    $checkStocker->save();
+                }
+
+                $lastRatio = $i+1;
             }
         }
 
         if (count($storeItemArr) > 0) {
             $storeItem = Stocker::insert($storeItemArr);
+        }
+
+        if ($lastRatio > 0) {
+            $deleteStocker = Stocker::whereRaw("
+                    part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                    form_cut_id = '" . $request['form_cut_id'] . "' AND
+                    so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    color = '" . $request['color'] . "' AND
+                    panel = '" . $request['panel'] . "' AND
+                    shade = '" . $request['group'][$index] . "' AND
+                    " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                    ratio > " . ($lastRatio) . "
+                ")->update([
+                    "cancel" => "y",
+                ]);
         }
 
         $dataStockers = Stocker::selectRaw("
@@ -734,6 +828,17 @@ class StockerController extends Controller
 
         $storeItemArr = [];
         for ($i = 0; $i < count($request['part_detail_id']); $i++) {
+            $lastRatio = null;
+
+            // Check Separate Stocker
+            $stockerSeparate = StockerSeparate::where("form_cut_id", $request['form_cut_id'])->
+                where("so_det_id", $request['so_det_id'][$i])->
+                whereRaw("group_roll = '".$request['group'][$i]."' ".($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? " and group_stocker = '" . $request['group_stocker'][$i] . "'" : ""))->
+                orderBy("updated_at", "desc")->
+                first();
+
+            $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
+
             if ($request['part_detail_id'][$i] == $partDetailId) {
                 $modifySizeQty = ModifySizeQty::where("form_cut_id", $formData->id)->where("so_det_id", $request['so_det_id'][$i])->first();
 
@@ -750,56 +855,132 @@ class StockerController extends Controller
                     $ratio += 1;
                 }
 
-                for ($j = 0; $j < $ratio; $j++) {
-                    $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
-                        part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
-                        form_cut_id = '" . $request['form_cut_id'] . "' AND
-                        so_det_id = '" . $request['so_det_id'][$i] . "' AND
-                        color = '" . $request['color'] . "' AND
-                        panel = '" . $request['panel'] . "' AND
-                        shade = '" . $request['group'][$i] . "' AND
-                        " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
-                    ")->first();
+                if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
+                    foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                        $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
+                            part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
+                            form_cut_id = '" . $request['form_cut_id'] . "' AND
+                            so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            color = '" . $request['color'] . "' AND
+                            panel = '" . $request['panel'] . "' AND
+                            shade = '" . $request['group'][$i] . "' AND
+                            " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
+                            ratio = " . ($j + 1) . "
+                        ")->first();
 
-                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
-                    $cumRangeAwal = $cumRangeAkhir + 1;
-                    $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+                        $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
+                        $cumRangeAwal = $stockerSeparateDetail->range_awal;
+                        $cumRangeAkhir = $stockerSeparateDetail->range_akhir;
 
-                    if (!$checkStocker) {
-                        array_push($storeItemArr, [
-                            'id_qr_stocker' => $stockerId,
-                            'act_costing_ws' => $request["no_ws"],
-                            'part_detail_id' => $request['part_detail_id'][$i],
-                            'form_cut_id' => $request['form_cut_id'],
-                            'so_det_id' => $request['so_det_id'][$i],
-                            'color' => $request['color'],
-                            'panel' => $request['panel'],
-                            'shade' => $request['group'][$i],
-                            'group_stocker' => $request['group_stocker'][$i],
-                            'ratio' => ($j + 1),
-                            'size' => $request["size"][$i],
-                            'qty_ply' => ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]),
-                            'qty_ply_mod' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null),
-                            'qty_cut' => $request['qty_cut'][$i],
-                            'notes' => $request['note'],
-                            'range_awal' => $cumRangeAwal,
-                            'range_akhir' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
-                            'created_by' => Auth::user()->id,
-                            'created_by_username' => Auth::user()->username,
-                            'created_at' => Carbon::now(),
-                            'updated_at' => Carbon::now(),
-                        ]);
-                    } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i])) {
-                        $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
-                        $checkStocker->qty_ply_mod = (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null);
-                        $checkStocker->range_awal = $cumRangeAwal;
-                        $checkStocker->range_akhir = (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
-                        $checkStocker->save();
-                    } else if ($checkStocker && $checkStocker->notes != $request['note']) {
-                        $checkStocker->notes = $request['note'];
-                        $checkStocker->save();
+                        if (!$checkStocker) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$i],
+                                'form_cut_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$i],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$i],
+                                'group_stocker' => $request['group_stocker'][$i],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$i],
+                                'qty_ply' => $stockerSeparateDetail->qty,
+                                'qty_ply_mod' => null,
+                                'qty_cut' => $stockerSeparateDetail->qty,
+                                'notes' => $request['note']." (Separated Stocker)",
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => $cumRangeAkhir,
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        } else if ($checkStocker && $checkStocker->qty_ply != $stockerSeparateDetail->qty) {
+                            $checkStocker->qty_ply = $stockerSeparateDetail->qty;
+                            $checkStocker->qty_ply_mod = null;
+                            $checkStocker->range_awal = $cumRangeAwal;
+                            $checkStocker->range_akhir = $cumRangeAkhir;
+                            $checkStocker->notes = $request['note']." (Separated Stocker)";
+                            $checkStocker->save();
+
+                        } else if ($checkStocker && $checkStocker->notes != $request['note']) {
+                            $checkStocker->notes = $request['note']." (Separated Stocker)";
+                            $checkStocker->save();
+
+                        }
                     }
+
+                    $lastRatio = $j + 1;
+                } else {
+                    for ($j = 0; $j < $ratio; $j++) {
+                        $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
+                            part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
+                            form_cut_id = '" . $request['form_cut_id'] . "' AND
+                            so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            color = '" . $request['color'] . "' AND
+                            panel = '" . $request['panel'] . "' AND
+                            shade = '" . $request['group'][$i] . "' AND
+                            " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
+                            ratio = " . ($j + 1) . "
+                        ")->first();
+
+                        $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
+                        $cumRangeAwal = $cumRangeAkhir + 1;
+                        $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+
+                        if (!$checkStocker) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$i],
+                                'form_cut_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$i],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$i],
+                                'group_stocker' => $request['group_stocker'][$i],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$i],
+                                'qty_ply' => ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]),
+                                'qty_ply_mod' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null),
+                                'qty_cut' => $request['qty_cut'][$i],
+                                'notes' => $request['note'],
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i])) {
+                            $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+                            $checkStocker->qty_ply_mod = (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null);
+                            $checkStocker->range_awal = $cumRangeAwal;
+                            $checkStocker->range_akhir = (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
+                            $checkStocker->save();
+                        } else if ($checkStocker && $checkStocker->notes != $request['note']) {
+                            $checkStocker->notes = $request['note'];
+                            $checkStocker->save();
+                        }
+
+                        $lastRatio = $j + 1;
+                    }
+                }
+
+                if ($lastRatio > 0) {
+                    $deleteStocker = Stocker::whereRaw("
+                            part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
+                            form_cut_id = '" . $request['form_cut_id'] . "' AND
+                            so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            color = '" . $request['color'] . "' AND
+                            panel = '" . $request['panel'] . "' AND
+                            shade = '" . $request['group'][$i] . "' AND
+                            " . ($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "") . "
+                            ratio > " . ($lastRatio) . "
+                        ")->update([
+                            "cancel" => "y",
+                        ]);
                 }
             }
         }
@@ -882,55 +1063,138 @@ class StockerController extends Controller
                 $ratio += 1;
             }
 
-            for ($j = 0; $j < $ratio; $j++) {
-                $checkStocker = Stocker::whereRaw("
-                    part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
-                    form_cut_id = '" . $request['form_cut_id'] . "' AND
-                    so_det_id = '" . $request['so_det_id'][$index] . "' AND
-                    color = '" . $request['color'] . "' AND
-                    panel = '" . $request['panel'] . "' AND
-                    shade = '" . $request['group'][$index] . "' AND
-                    " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
-                    ratio = " . ($j + 1) . "
-                ")->first();
+            $lastRatio = null;
 
-                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
-                $cumRangeAwal = $cumRangeAkhir + 1;
-                $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+            // Check Separate Stocker
+            $stockerSeparate = StockerSeparate::where("form_cut_id", $request['form_cut_id'])->
+                where("so_det_id", $request['so_det_id'][$index])->
+                whereRaw("group_roll = '".$request['group'][$index]."' ".($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? " and group_stocker = '" . $request['group_stocker'][$index] . "'" : ""))->
+                orderBy("updated_at", "desc")->
+                first();
 
-                if (!$checkStocker) {
-                    if ($request['qty_cut'][$index] > 0 || $modifySizeQty) {
-                        array_push($storeItemArr, [
-                            'id_qr_stocker' => $stockerId,
-                            'act_costing_ws' => $request["no_ws"],
-                            'part_detail_id' => $request['part_detail_id'][$index],
-                            'form_cut_id' => $request['form_cut_id'],
-                            'so_det_id' => $request['so_det_id'][$index],
-                            'color' => $request['color'],
-                            'panel' => $request['panel'],
-                            'shade' => $request['group'][$index],
-                            'group_stocker' => $request['group_stocker'][$index],
-                            'ratio' => ($j + 1),
-                            'size' => $request["size"][$index],
-                            'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
-                            'qty_ply_mod' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null),
-                            'qty_cut' => $request['qty_cut'][$index],
-                            'notes' => $request['note'],
-                            'range_awal' => $cumRangeAwal,
-                            'range_akhir' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
-                            'created_by' => Auth::user()->id,
-                            'created_by_username' => Auth::user()->username,
-                            'created_at' => Carbon::now(),
-                            'updated_at' => Carbon::now(),
-                        ]);
+            $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
+
+            if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
+                foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                    $checkStocker = Stocker::whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_cut_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
+                        ratio = " . ($j + 1) . "
+                    ")->first();
+
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
+                    $cumRangeAwal = $stockerSeparateDetail->range_awal;
+                    $cumRangeAkhir = $stockerSeparateDetail->range_akhir;
+
+                    if (!$checkStocker) {
+                        if ($request['qty_cut'][$index] > 0 || $modifySizeQty) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$index],
+                                'form_cut_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$index],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$index],
+                                'group_stocker' => $request['group_stocker'][$index],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$index],
+                                'qty_ply' => $stockerSeparateDetail->qty,
+                                'qty_ply_mod' => null,
+                                'qty_cut' => $stockerSeparateDetail->qty,
+                                'notes' => $request['note']." (Separated Stocker)",
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => $cumRangeAkhir,
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) )) {
+                        $checkStocker->qty_ply = $stockerSeparateDetail->qty;
+                        $checkStocker->qty_ply_mod = null;
+                        $checkStocker->range_awal = $cumRangeAwal;
+                        $checkStocker->range_akhir = $cumRangeAkhir;
+                        $checkStocker->save();
                     }
-                } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) )) {
-                    $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
-                    $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
-                    $checkStocker->range_awal = $cumRangeAwal;
-                    $checkStocker->range_akhir = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
-                    $checkStocker->save();
+
+                    $lastRatio = $j + 1;
                 }
+            } else {
+                for ($j = 0; $j < $ratio; $j++) {
+                    $checkStocker = Stocker::whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_cut_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
+                        ratio = " . ($j + 1) . "
+                    ")->first();
+
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
+                    $cumRangeAwal = $cumRangeAkhir + 1;
+                    $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+
+                    if (!$checkStocker) {
+                        if ($request['qty_cut'][$index] > 0 || $modifySizeQty) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$index],
+                                'form_cut_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$index],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$index],
+                                'group_stocker' => $request['group_stocker'][$index],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$index],
+                                'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
+                                'qty_ply_mod' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null),
+                                'qty_cut' => $request['qty_cut'][$index],
+                                'notes' => $request['note'],
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) )) {
+                        $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+                        $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
+                        $checkStocker->range_awal = $cumRangeAwal;
+                        $checkStocker->range_akhir = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
+                        $checkStocker->save();
+                    }
+
+                    $lastRatio = $j + 1;
+                }
+            }
+
+            if ($lastRatio > 0) {
+                $deleteStocker = Stocker::whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_cut_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                        ratio > " . ($lastRatio) . "
+                    ")->update([
+                        "cancel" => "y",
+                    ]);
             }
 
             $i += $j;
@@ -1000,57 +1264,143 @@ class StockerController extends Controller
         $ratio = $request['ratio'][$index];
 
         $storeItemArr = [];
-        for ($i = 0; $i < $ratio; $i++) {
-            $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
-                part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
-                form_piece_id = '" . $request['form_cut_id'] . "' AND
-                so_det_id = '" . $request['so_det_id'][$index] . "' AND
-                color = '" . $request['color'] . "' AND
-                panel = '" . $request['panel'] . "' AND
-                shade = '" . $request['group'][$index] . "' AND
-                " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                ratio = " . ($i + 1) . "
-            ")->first();
+        $lastRatio = null;
 
-            $ratio = $i + 1;
-            $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
-            $cumRangeAwal = $cumRangeAkhir + 1;
-            $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+        $stockerSeparate = StockerSeparate::where("form_piece_id", $request['form_cut_id'])->
+            where("so_det_id", $request['so_det_id'][$index])->
+            whereRaw("group_roll = '".$request['group'][$index]."' ".($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? " and group_stocker = '" . $request['group_stocker'][$index] . "'" : ""))->
+            orderBy("updated_at", "desc")->
+            first();
 
-            if (!$checkStocker) {
-                array_push($storeItemArr, [
-                    'id_qr_stocker' => $stockerId,
-                    'act_costing_ws' => $request["no_ws"],
-                    'part_detail_id' => $request['part_detail_id'][$index],
-                    'form_piece_id' => $request['form_cut_id'],
-                    'so_det_id' => $request['so_det_id'][$index],
-                    'color' => $request['color'],
-                    'panel' => $request['panel'],
-                    'shade' => $request['group'][$index],
-                    'group_stocker' => $request['group_stocker'][$index],
-                    'ratio' => $i + 1,
-                    'size' => $request["size"][$index],
-                    'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
-                    'qty_cut' => $request['qty_cut'][$index],
-                    'notes' => $request['note'],
-                    'range_awal' => $cumRangeAwal,
-                    'range_akhir' => $cumRangeAkhir,
-                    'created_by' => Auth::user()->id,
-                    'created_by_username' => Auth::user()->username,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now()
-                ]);
-            } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index])) {
-                $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
-                $checkStocker->qty_ply_mod = null;
-                $checkStocker->range_awal = $cumRangeAwal;
-                $checkStocker->range_akhir = $cumRangeAkhir;
-                $checkStocker->save();
+        if ($stockerSeparate) {
+            $stockerSeparateDetails = $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get();
+
+            if ($stockerSeparateDetails->count() > 0) {
+                foreach ($stockerSeparateDetails as $i => $stockerSeparateDetail) {
+                    $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_piece_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                        ratio = " . ($i + 1) . "
+                    ")->first();
+
+                    $ratio = $i + 1;
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
+                    $cumRangeAwal = $stockerSeparateDetail->range_awal;
+                    $cumRangeAkhir = $stockerSeparateDetail->range_akhir;
+
+                    if (!$checkStocker) {
+                        array_push($storeItemArr, [
+                            'id_qr_stocker' => $stockerId,
+                            'act_costing_ws' => $request["no_ws"],
+                            'part_detail_id' => $request['part_detail_id'][$index],
+                            'form_piece_id' => $request['form_cut_id'],
+                            'so_det_id' => $request['so_det_id'][$index],
+                            'color' => $request['color'],
+                            'panel' => $request['panel'],
+                            'shade' => $request['group'][$index],
+                            'group_stocker' => $request['group_stocker'][$index],
+                            'ratio' => $i + 1,
+                            'size' => $request["size"][$index],
+                            'qty_ply' => $stockerSeparateDetail->qty,
+                            'qty_ply_mod' => null,
+                            'qty_cut' => $stockerSeparateDetail->qty,
+                            'notes' => 'Separated Stocker',
+                            'range_awal' => $cumRangeAwal,
+                            'range_akhir' => $cumRangeAkhir,
+                            'created_by' => Auth::user()->id,
+                            'created_by_username' => Auth::user()->username,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now()
+                        ]);
+                    } else if ($checkStocker && $checkStocker->qty_ply != $stockerSeparateDetail->qty) {
+                        $checkStocker->qty_ply = $stockerSeparateDetail->qty;
+                        $checkStocker->qty_ply_mod = null;
+                        $checkStocker->qty_cut = $stockerSeparateDetail->qty;
+                        $checkStocker->range_awal = $cumRangeAwal;
+                        $checkStocker->range_akhir = $cumRangeAkhir;
+                        $checkStocker->notes = "Separated Stocker";
+                        $checkStocker->cancel = 'n';
+                        $checkStocker->save();
+                    }
+
+                    $lastRatio = $i+1;
+                }
+            }
+        } else {
+            for ($i = 0; $i < $ratio; $i++) {
+                $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
+                    part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                    form_piece_id = '" . $request['form_cut_id'] . "' AND
+                    so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    color = '" . $request['color'] . "' AND
+                    panel = '" . $request['panel'] . "' AND
+                    shade = '" . $request['group'][$index] . "' AND
+                    " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                    ratio = " . ($i + 1) . "
+                ")->first();
+
+                $ratio = $i + 1;
+                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
+                $cumRangeAwal = $cumRangeAkhir + 1;
+                $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+
+                if (!$checkStocker) {
+                    array_push($storeItemArr, [
+                        'id_qr_stocker' => $stockerId,
+                        'act_costing_ws' => $request["no_ws"],
+                        'part_detail_id' => $request['part_detail_id'][$index],
+                        'form_piece_id' => $request['form_cut_id'],
+                        'so_det_id' => $request['so_det_id'][$index],
+                        'color' => $request['color'],
+                        'panel' => $request['panel'],
+                        'shade' => $request['group'][$index],
+                        'group_stocker' => $request['group_stocker'][$index],
+                        'ratio' => $i + 1,
+                        'size' => $request["size"][$index],
+                        'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
+                        'qty_cut' => $request['qty_cut'][$index],
+                        'notes' => $request['note'],
+                        'range_awal' => $cumRangeAwal,
+                        'range_akhir' => $cumRangeAkhir,
+                        'created_by' => Auth::user()->id,
+                        'created_by_username' => Auth::user()->username,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now()
+                    ]);
+                } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index])) {
+                    $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+                    $checkStocker->qty_ply_mod = null;
+                    $checkStocker->range_awal = $cumRangeAwal;
+                    $checkStocker->range_akhir = $cumRangeAkhir;
+                    $checkStocker->save();
+                }
+
+                $lastRatio = $i+1;
             }
         }
 
         if (count($storeItemArr) > 0) {
             $storeItem = Stocker::insert($storeItemArr);
+        }
+
+        if ($lastRatio > 0) {
+            $deleteStocker = Stocker::whereRaw("
+                    part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                    form_piece_id = '" . $request['form_cut_id'] . "' AND
+                    so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                    color = '" . $request['color'] . "' AND
+                    panel = '" . $request['panel'] . "' AND
+                    shade = '" . $request['group'][$index] . "' AND
+                    " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                    ratio > " . ($lastRatio) . "
+                ")->update([
+                    "cancel" => "y",
+                ]);
         }
 
         $dataStockers = Stocker::selectRaw("
@@ -1109,6 +1459,18 @@ class StockerController extends Controller
 
         $storeItemArr = [];
         for ($i = 0; $i < count($request['part_detail_id']); $i++) {
+            $lastRatio = null;
+
+            // Check Separate Stocker
+            $stockerSeparate = StockerSeparate::where("form_piece_id", $request['form_cut_id'])->
+                where("so_det_id", $request['so_det_id'][$i])->
+                where("group_roll", $request['group'][$i])->
+                whereRaw("group_roll = '".$request['group'][$i]."' ".($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? " and group_stocker = '" . $request['group_stocker'][$i] . "'" : ""))->
+                orderBy("updated_at", "desc")->
+                first();
+
+            $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
+
             if ($request['part_detail_id'][$i] == $partDetailId) {
                 $stockerCount = Stocker::lastId()+1;
 
@@ -1120,56 +1482,132 @@ class StockerController extends Controller
 
                 $ratio = $request['ratio'][$i];
 
-                for ($j = 0; $j < $ratio; $j++) {
-                    $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
-                        part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
-                        form_piece_id = '" . $request['form_cut_id'] . "' AND
-                        so_det_id = '" . $request['so_det_id'][$i] . "' AND
-                        color = '" . $request['color'] . "' AND
-                        panel = '" . $request['panel'] . "' AND
-                        shade = '" . $request['group'][$i] . "' AND
-                        " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
-                    ")->first();
+                if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
+                    foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                        $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
+                            part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
+                            form_piece_id = '" . $request['form_cut_id'] . "' AND
+                            so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            color = '" . $request['color'] . "' AND
+                            panel = '" . $request['panel'] . "' AND
+                            shade = '" . $request['group'][$i] . "' AND
+                            " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
+                            ratio = " . ($j + 1) . "
+                        ")->first();
 
-                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
-                    $cumRangeAwal = $cumRangeAkhir + 1;
-                    $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+                        $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
+                        $cumRangeAwal = $stockerSeparateDetail->range_awal;
+                        $cumRangeAkhir = $stockerSeparateDetail->range_akhir;
 
-                    if (!$checkStocker) {
-                        array_push($storeItemArr, [
-                            'id_qr_stocker' => $stockerId,
-                            'act_costing_ws' => $request["no_ws"],
-                            'part_detail_id' => $request['part_detail_id'][$i],
-                            'form_piece_id' => $request['form_cut_id'],
-                            'so_det_id' => $request['so_det_id'][$i],
-                            'color' => $request['color'],
-                            'panel' => $request['panel'],
-                            'shade' => $request['group'][$i],
-                            'group_stocker' => $request['group_stocker'][$i],
-                            'ratio' => ($j + 1),
-                            'size' => $request["size"][$i],
-                            'qty_ply' => ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]),
-                            'qty_ply_mod' => null,
-                            'qty_cut' => $request['qty_cut'][$i],
-                            'notes' => $request['note'],
-                            'range_awal' => $cumRangeAwal,
-                            'range_akhir' => $cumRangeAkhir,
-                            'created_by' => Auth::user()->id,
-                            'created_by_username' => Auth::user()->username,
-                            'created_at' => Carbon::now(),
-                            'updated_at' => Carbon::now(),
-                        ]);
-                    } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i])) {
-                        $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
-                        $checkStocker->qty_ply_mod = null;
-                        $checkStocker->range_awal = $cumRangeAwal;
-                        $checkStocker->range_akhir = $cumRangeAkhir;
-                        $checkStocker->save();
-                    } else if ($checkStocker && $checkStocker->notes != $request['note']) {
-                        $checkStocker->notes = $request['note'];
-                        $checkStocker->save();
+                        if (!$checkStocker) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$i],
+                                'form_piece_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$i],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$i],
+                                'group_stocker' => $request['group_stocker'][$i],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$i],
+                                'qty_ply' => $stockerSeparateDetail->qty,
+                                'qty_ply_mod' => null,
+                                'qty_cut' => $stockerSeparateDetail->qty,
+                                'notes' => $request['note']." (Separated Stocker)",
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => $cumRangeAkhir,
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        } else if ($checkStocker && $checkStocker->qty_ply != $stockerSeparateDetail->qty) {
+                            $checkStocker->qty_ply = $stockerSeparateDetail->qty;
+                            $checkStocker->qty_ply_mod = null;
+                            $checkStocker->range_awal = $cumRangeAwal;
+                            $checkStocker->range_akhir = $cumRangeAkhir;
+                            $checkStocker->notes = $request['note']." (Separated Stocker)";
+                            $checkStocker->save();
+
+                        } else if ($checkStocker && $checkStocker->notes != $request['note']) {
+                            $checkStocker->notes = $request['note']." (Separated Stocker)";
+                            $checkStocker->save();
+
+                        }
                     }
+
+                    $lastRatio = $j + 1;
+                } else {
+                    for ($j = 0; $j < $ratio; $j++) {
+                        $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
+                            part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
+                            form_piece_id = '" . $request['form_cut_id'] . "' AND
+                            so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            color = '" . $request['color'] . "' AND
+                            panel = '" . $request['panel'] . "' AND
+                            shade = '" . $request['group'][$i] . "' AND
+                            " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
+                            ratio = " . ($j + 1) . "
+                        ")->first();
+
+                        $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
+                        $cumRangeAwal = $cumRangeAkhir + 1;
+                        $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+
+                        if (!$checkStocker) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$i],
+                                'form_piece_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$i],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$i],
+                                'group_stocker' => $request['group_stocker'][$i],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$i],
+                                'qty_ply' => ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]),
+                                'qty_ply_mod' => null,
+                                'qty_cut' => $request['qty_cut'][$i],
+                                'notes' => $request['note'],
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => $cumRangeAkhir,
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i])) {
+                            $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+                            $checkStocker->qty_ply_mod = null;
+                            $checkStocker->range_awal = $cumRangeAwal;
+                            $checkStocker->range_akhir = $cumRangeAkhir;
+                            $checkStocker->save();
+                        } else if ($checkStocker && $checkStocker->notes != $request['note']) {
+                            $checkStocker->notes = $request['note'];
+                            $checkStocker->save();
+                        }
+
+                        $lastRatio = $j + 1;
+                    }
+                }
+
+                if ($lastRatio > 0) {
+                    $deleteStocker = Stocker::whereRaw("
+                            part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
+                            form_piece_id = '" . $request['form_cut_id'] . "' AND
+                            so_det_id = '" . $request['so_det_id'][$i] . "' AND
+                            color = '" . $request['color'] . "' AND
+                            panel = '" . $request['panel'] . "' AND
+                            shade = '" . $request['group'][$i] . "' AND
+                            " . ($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "") . "
+                            ratio > " . ($lastRatio) . "
+                        ")->update([
+                            "cancel" => "y",
+                        ]);
                 }
             }
         }
@@ -1250,55 +1688,140 @@ class StockerController extends Controller
                 $ratio += 1;
             }
 
-            for ($j = 0; $j < $ratio; $j++) {
-                $checkStocker = Stocker::whereRaw("
-                    part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
-                    form_piece_id = '" . $request['form_cut_id'] . "' AND
-                    so_det_id = '" . $request['so_det_id'][$index] . "' AND
-                    color = '" . $request['color'] . "' AND
-                    panel = '" . $request['panel'] . "' AND
-                    shade = '" . $request['group'][$index] . "' AND
-                    " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
-                    ratio = " . ($j + 1) . "
-                ")->first();
+            $lastRatio = null;
 
-                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
-                $cumRangeAwal = $cumRangeAkhir + 1;
-                $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+            // Check Separate Stocker
+            $stockerSeparate = StockerSeparate::where("form_piece_id", $request['form_cut_id'])->
+                where("so_det_id", $request['so_det_id'][$index])->
+                whereRaw("group_roll = '".$request['group'][$index]."' ".($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? " and group_stocker = '" . $request['group_stocker'][$index] . "'" : ""))->
+                orderBy("updated_at", "desc")->
+                first();
 
-                if (!$checkStocker) {
-                    if ($request['qty_cut'][$index] > 0) {
-                        array_push($storeItemArr, [
-                            'id_qr_stocker' => $stockerId,
-                            'act_costing_ws' => $request["no_ws"],
-                            'part_detail_id' => $request['part_detail_id'][$index],
-                            'form_piece_id' => $request['form_cut_id'],
-                            'so_det_id' => $request['so_det_id'][$index],
-                            'color' => $request['color'],
-                            'panel' => $request['panel'],
-                            'shade' => $request['group'][$index],
-                            'group_stocker' => $request['group_stocker'][$index],
-                            'ratio' => ($j + 1),
-                            'size' => $request["size"][$index],
-                            'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
-                            'qty_ply_mod' => null,
-                            'qty_cut' => $request['qty_cut'][$index],
-                            'notes' => $request['note'],
-                            'range_awal' => $cumRangeAwal,
-                            'range_akhir' => $cumRangeAkhir,
-                            'created_by' => Auth::user()->id,
-                            'created_by_username' => Auth::user()->username,
-                            'created_at' => Carbon::now(),
-                            'updated_at' => Carbon::now(),
-                        ]);
+            $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
+
+            if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
+                foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                    $checkStocker = Stocker::whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_piece_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
+                        ratio = " . ($j + 1) . "
+                    ")->first();
+
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
+                    $cumRangeAwal = $stockerSeparateDetail->range_awal;
+                    $cumRangeAkhir = $stockerSeparateDetail->range_akhir;
+
+                    if (!$checkStocker) {
+                        if ($request['qty_cut'][$index] > 0) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$index],
+                                'form_piece_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$index],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$index],
+                                'group_stocker' => $request['group_stocker'][$index],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$index],
+                                'qty_ply' => $stockerSeparateDetail->qty,
+                                'qty_ply_mod' => null,
+                                'qty_cut' => $stockerSeparateDetail->qty,
+                                'notes' => $request['note']." (Separated Stocker)",
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => $cumRangeAkhir,
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    } else if ($checkStocker && $checkStocker->qty_ply != $stockerSeparateDetail->qty) {
+                        $checkStocker->qty_ply = $stockerSeparateDetail->qty;
+                        $checkStocker->qty_ply_mod = null;
+                        $checkStocker->qty_cut = $stockerSeparateDetail->qty;
+                        $checkStocker->range_awal = $cumRangeAwal;
+                        $checkStocker->range_akhir = $cumRangeAkhir;
+                        $checkStocker->save();
                     }
-                } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (min($request['group_stocker'])) && $cumRangeAkhir ))) {
-                    $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
-                    $checkStocker->qty_ply_mod = null;
-                    $checkStocker->range_awal = $cumRangeAwal;
-                    $checkStocker->range_akhir = $cumRangeAkhir;
-                    $checkStocker->save();
+
+                    $lastRatio = $j + 1;
                 }
+            } else {
+                for ($j = 0; $j < $ratio; $j++) {
+                    $checkStocker = Stocker::whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_piece_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
+                        ratio = " . ($j + 1) . "
+                    ")->first();
+
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
+                    $cumRangeAwal = $cumRangeAkhir + 1;
+                    $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+
+                    if (!$checkStocker) {
+                        if ($request['qty_cut'][$index] > 0) {
+                            array_push($storeItemArr, [
+                                'id_qr_stocker' => $stockerId,
+                                'act_costing_ws' => $request["no_ws"],
+                                'part_detail_id' => $request['part_detail_id'][$index],
+                                'form_piece_id' => $request['form_cut_id'],
+                                'so_det_id' => $request['so_det_id'][$index],
+                                'color' => $request['color'],
+                                'panel' => $request['panel'],
+                                'shade' => $request['group'][$index],
+                                'group_stocker' => $request['group_stocker'][$index],
+                                'ratio' => ($j + 1),
+                                'size' => $request["size"][$index],
+                                'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
+                                'qty_ply_mod' => null,
+                                'qty_cut' => $request['qty_cut'][$index],
+                                'notes' => $request['note'],
+                                'range_awal' => $cumRangeAwal,
+                                'range_akhir' => $cumRangeAkhir,
+                                'created_by' => Auth::user()->id,
+                                'created_by_username' => Auth::user()->username,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (min($request['group_stocker'])) && $cumRangeAkhir ))) {
+                        $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+                        $checkStocker->qty_ply_mod = null;
+                        $checkStocker->qty_cut = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+                        $checkStocker->range_awal = $cumRangeAwal;
+                        $checkStocker->range_akhir = $cumRangeAkhir;
+                        $checkStocker->save();
+                    }
+
+                    $lastRatio = $j+1;
+                }
+            }
+
+            if ($lastRatio > 0) {
+                $deleteStocker = Stocker::whereRaw("
+                        part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
+                        form_piece_id = '" . $request['form_cut_id'] . "' AND
+                        so_det_id = '" . $request['so_det_id'][$index] . "' AND
+                        color = '" . $request['color'] . "' AND
+                        panel = '" . $request['panel'] . "' AND
+                        shade = '" . $request['group'][$index] . "' AND
+                        " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                        ratio > " . ($lastRatio) . "
+                    ")->update([
+                        "cancel" => "y",
+                    ]);
             }
 
             $i += $j;
@@ -1375,7 +1898,7 @@ class StockerController extends Controller
             }
 
             for ($j = 0; $j < $ratio; $j++) {
-                $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
+                $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
                     form_cut_id = '" . $request['form_cut_id'] . "' AND
                     so_det_id = '" . $request['so_det_id_add'][$i] . "' AND
                     color = '" . $request['color_add'] . "' AND
@@ -5568,19 +6091,65 @@ class StockerController extends Controller
         ]);
 
         if ($validatedRequest) {
-            for ($i = 0; $i < count($request["separate_qty"]); $i++) {
-                if (count($request["separate_qty"][$j])) {
-                    SeparateStocker::create([
-                        "form_cut_id" => $validatedRequest["form_cut_id"],
-                        "form_cut_id" => $validatedRequest["form_cut_id"],
-                    ]);
+            $result = [];
+            for ($i = 0; $i < count($request["so_det_id"]); $i++) {
+                if (count($request["separate_qty"][$i]) > 1) {
+                    if ($request["type"] && $request["type"] == "piece") {
+                        $storeSeparateStocker = StockerSeparate::create([
+                            "form_piece_id" => $validatedRequest["form_cut_id"],
+                            "no_form" => $validatedRequest["no_form"],
+                            "so_det_id" => $request["so_det_id"][$i],
+                            "group_roll" => $request["group"][$i],
+                            "group_stocker" => $request["group_stocker"][$i],
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                        ]);
+                    } else {
+                        $storeSeparateStocker = StockerSeparate::create([
+                            "form_cut_id" => $validatedRequest["form_cut_id"],
+                            "no_form" => $validatedRequest["no_form"],
+                            "so_det_id" => $request["so_det_id"][$i],
+                            "group_roll" => $request["group"][$i],
+                            "group_stocker" => $request["group_stocker"][$i],
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                        ]);
+                    }
 
-                    for ($j = 0; $i < count($request["separate_qty"][$j]); $j++) {
+                    $rangeAwal = $request["range_awal"][$i];
+                    if ($storeSeparateStocker) {
+                        for ($j = 0; $j < count($request["separate_qty"][$i]); $j++) {
+                            if ($storeSeparateStocker->id) {
+                                $storeSeparateStockerDetail = StockerSeparateDetail::create([
+                                    "separate_id" => $storeSeparateStocker->id,
+                                    "urutan" => $j+1,
+                                    "qty" => $request["separate_qty"][$i][$j],
+                                    "range_awal" => $rangeAwal,
+                                    "range_akhir" => $rangeAwal + ($request["separate_qty"][$i][$j] - 1),
+                                ]);
 
+                                if ($storeSeparateStockerDetail) {
+                                    $rangeAwal = $rangeAwal + ($request["separate_qty"][$i][$j] - 1) + 1;
+                                }
+
+                                array_push($result, $request["so_det_id"][$i]);
+                            }
+                        }
                     }
                 }
             }
+
+            return array(
+                "status" => 200,
+                "message" => "Proses Selesai",
+                "data" => $result
+            );
         }
+
+        return array(
+            "status" => 400,
+            "message" => "Proses Gagal"
+        );
     }
 
     // public function printMonthCountChecked(Request $request) {

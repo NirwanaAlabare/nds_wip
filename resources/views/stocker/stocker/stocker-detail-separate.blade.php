@@ -4,6 +4,7 @@
             <th>Size</th>
             <th>Ratio</th>
             <th>Qty Cut</th>
+            <th>Separated</th>
             <th>Range Awal</th>
             <th>Range Akhir</th>
             <th>Separate Qty</th>
@@ -26,10 +27,11 @@
                         $stockerThis = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where('ratio', '>', '0')->first() : null;
                         $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortBy([['no_cut', 'desc'],['range_akhir', 'desc']])->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
 
-                        // dd($stockerBefore);
-
                         $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
                         $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
+
+                        $separatedStocker = $dataStockerSeparate ? $dataStockerSeparate->where("so_det_id", $ratio->so_det_id)->where("group_roll", $currentGroup)->where("group_stocker", $currentGroupStocker)->first() : null;
+                        $separatedStockerDetails = $separatedStocker ? $separatedStocker->stockerSeparateDetails : null;
                 @endphp
                 <tr>
                     <input type="hidden" name="so_det_id[{{ $indexSeparate }}]" id="so_det_id_{{ $indexSeparate }}" value="{{ $ratio->so_det_id }}">
@@ -44,6 +46,7 @@
                     <td>{{ $ratio->size_dest }}</td>
                     <td>{{ $ratio->ratio }}</td>
                     <td>{{ (intval($ratio->ratio) * intval($currentTotal)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($currentTotal))."".(($qty - (intval($ratio->ratio) * intval($currentTotal))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentTotal))) : ($qty - (intval($ratio->ratio) * intval($currentTotal)))).")" : $qty }}</td>
+                    <td>{{ $separatedStockerDetails ? $separatedStockerDetails->implode("qty", " | ") : "-" }}</td>
                     <td>{{ $rangeAwal }}</td>
                     <td>{{ $rangeAkhir }}</td>
                     <td>
