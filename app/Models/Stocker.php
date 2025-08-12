@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Scopes\InactiveStocker;
 
 class Stocker extends Model
 {
@@ -12,6 +13,13 @@ class Stocker extends Model
     protected $table = 'stocker_input';
 
     protected $guarded = [];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope(new InactiveStocker);
+    }
 
     public static function lastId(): string
     {
