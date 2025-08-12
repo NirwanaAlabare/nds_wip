@@ -1328,6 +1328,29 @@ order by buyer asc");
                                 stocker_ws_additional_detail.id
                         UNION ALL
                             SELECT
+                                form_cut_reject_detail.so_det_id AS id_so_det,
+                                master_sb_ws.ws,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                form_cut_reject.panel,
+                                1 AS ratio,
+                                SUM(form_cut_reject_detail.qty) qty,
+                                NULL AS difference_qty,
+                                SUM(form_cut_reject_detail.qty) qty
+                            FROM
+                                form_cut_reject_detail
+                                LEFT JOIN form_cut_reject ON form_cut_reject.id = form_cut_reject_detail.form_id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                            WHERE
+                                master_sb_ws.id_so_det IS NOT NULL AND
+                                form_cut_reject_detail.qty > 0 AND
+                                form_cut_reject.id is not null
+                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                            GROUP BY
+                                form_cut_reject.panel,
+                                form_cut_reject_detail.so_det_id
+                        UNION ALL
+                            SELECT
                                 form_cut_piece_detail_size.so_det_id AS id_so_det,
                                 master_sb_ws.ws,
                                 master_sb_ws.color,
