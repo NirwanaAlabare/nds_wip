@@ -1041,8 +1041,6 @@ class StockerController extends Controller
 
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
-        $stockerCount = Stocker::lastId();
-
         $partDetail = collect($request['part_detail_id']);
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker'])->keys();
@@ -1065,6 +1063,8 @@ class StockerController extends Controller
 
             $lastRatio = null;
 
+            $stockerCount = Stocker::lastId();
+
             // Check Separate Stocker
             $stockerSeparate = StockerSeparate::where("form_cut_id", $request['form_cut_id'])->
                 where("so_det_id", $request['so_det_id'][$index])->
@@ -1075,6 +1075,7 @@ class StockerController extends Controller
             $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
 
             if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
+
                 foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
                     $checkStocker = Stocker::whereRaw("
                         part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
