@@ -78,6 +78,18 @@ class TrackCuttingOutput extends Component
             ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
             ->value("tanggal");
 
+        $formRejectFirstDate = DB::table("form_cut_reject")
+            ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+            ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
+            ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal)")
+            ->value("tanggal");
+
+        $formRejectLastDate = DB::table("form_cut_reject")
+            ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+            ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
+            ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) DESC")
+            ->value("tanggal");
+
         $formPcsFirstDate = DB::table("form_cut_piece")
             ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
             ->where("form_cut_piece.act_costing_id", $this->selectedOrder)
@@ -93,6 +105,8 @@ class TrackCuttingOutput extends Component
         $dates = collect([
             $formCutFirstDate,
             $formCutLastDate,
+            $formRejectFirstDate,
+            $formRejectLastDate,
             $formPcsFirstDate,
             $formPcsLastDate
         ])->filter(); // remove nulls
@@ -197,7 +211,32 @@ class TrackCuttingOutput extends Component
                 marker_input.panel,
                 form_cut_input.no_meja,
                 marker_input_detail.so_det_id
-            UNION
+        UNION
+            SELECT
+                '-' id_meja,
+                '-' meja,
+                COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tanggal,
+                form_cut_reject.act_costing_id,
+                form_cut_reject.act_costing_ws ws,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                form_cut_reject.panel,
+                form_cut_reject_detail.so_det_id,
+                form_cut_reject_detail.size
+            FROM
+                `form_cut_reject`
+                LEFT JOIN `form_cut_reject_detail` ON `form_cut_reject_detail`.`form_id` = `form_cut_reject`.`id`
+            WHERE
+                form_cut_reject_detail.`qty` > 0
+                AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '".$this->dateFromFilter."'
+                AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) <= '".$this->dateToFilter."' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+            GROUP BY
+                form_cut_reject.act_costing_id,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                form_cut_reject.panel,
+                form_cut_reject_detail.so_det_id
+        UNION
             SELECT
                 '-' id_meja,
                 '-' meja,
@@ -297,6 +336,38 @@ class TrackCuttingOutput extends Component
                 marker_input.panel,
                 form_cut_input.no_meja,
                 marker_input_detail.so_det_id
+        UNION
+            SELECT
+                null id_meja,
+                '-' meja,
+                '-' id_marker,
+                form_cut_reject.no_form,
+                COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tanggal,
+                form_cut_reject.act_costing_id,
+                form_cut_reject.act_costing_ws ws,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                form_cut_reject.panel
+                ".($this->groupBy == 'size' ? ", form_cut_reject_detail.so_det_id, CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size" : '')."
+            FROM
+                `form_cut_reject`
+                LEFT JOIN `form_cut_reject_detail` ON `form_cut_reject_detail`.`form_id` = `form_cut_reject`.`id`
+                LEFT JOIN `master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
+            WHERE
+                form_cut_reject_detail.`qty` > 0
+                AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '".$this->dateFromFilter."'
+                AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) <= '".$this->dateToFilter."' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                ".($this->colorFilter ? "AND form_cut_reject.color = '".$this->colorFilter."'" : "")."
+                ".($this->panelFilter ? "AND form_cut_reject.panel = '".$this->panelFilter."'" : "")."
+                ".($this->mejaFilter ? "AND '-' = '".$this->mejaFilter."'" : "")."
+                ".($this->sizeFilter ? "AND master_sb_ws.size = '".$this->sizeFilter."'" : "")."
+                ".($this->selectedOrder ? "AND form_cut_reject.act_costing_id = '".$this->selectedOrder."'" : "")."
+            GROUP BY
+                form_cut_reject.act_costing_id,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                form_cut_reject.panel,
+                form_cut_reject_detail.so_det_id
         UNION
             SELECT
                 null id_meja,
@@ -423,7 +494,46 @@ class TrackCuttingOutput extends Component
                             marker_input.id,
                             marker_input_detail.so_det_id,
                             form_cut.id
-                        union
+                    union
+                        SELECT
+                            '-' as kode,
+                            form_cut_reject.no_form,
+                            null as id_meja,
+                            '-' as meja,
+                            COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tgl_form_cut,
+                            form_cut_reject.buyer,
+                            form_cut_reject.act_costing_id,
+                            form_cut_reject.act_costing_ws,
+                            form_cut_reject.style,
+                            form_cut_reject.color,
+                            form_cut_reject.panel,
+                            '-' cons_ws,
+                            'PCS' unit,
+                            form_cut_reject_detail.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            1 as ratio,
+                            COALESCE('REJECT') notes,
+                            SUM(form_cut_reject_detail.qty) marker_gelar,
+                            SUM(form_cut_reject_detail.qty) spreading_gelar,
+                            SUM(form_cut_reject_detail.qty) form_gelar,
+                            null diff
+                        FROM
+                            `form_cut_reject`
+                            LEFT JOIN `form_cut_reject_detail` ON `form_cut_reject_detail`.`form_id` = `form_cut_reject`.`id`
+                            LEFT JOIN `master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
+                        WHERE
+                            form_cut_reject_detail.`qty` > 0
+                            AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '".$this->dateFromFilter."'
+                            AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) <= '".$this->dateToFilter."' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                            ".($this->colorFilter ? "AND form_cut_reject.color = '".$this->colorFilter."'" : "")."
+                            ".($this->panelFilter ? "AND form_cut_reject.panel = '".$this->panelFilter."'" : "")."
+                            ".($this->mejaFilter ? "AND '-' = '".$this->mejaFilter."'" : "")."
+                            ".($this->sizeFilter ? "AND master_sb_ws.size = '".$this->sizeFilter."'" : "")."
+                            ".($this->selectedOrder ? "AND form_cut_reject.act_costing_id = '".$this->selectedOrder."'" : "")."
+                        GROUP BY
+                            form_cut_reject.id,
+                            form_cut_reject_detail.so_det_id
+                    union
                         SELECT
                             '-' as kode,
                             form_cut_piece.no_form,

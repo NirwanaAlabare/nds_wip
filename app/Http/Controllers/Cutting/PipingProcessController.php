@@ -9,6 +9,7 @@ use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\Cutting\PipingProcess;
 use App\Models\Cutting\PipingProcessDetail;
+use App\Models\Cutting\PipingLoading;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
@@ -326,11 +327,12 @@ class PipingProcessController extends Controller
     public function destroy($id = 0) {
         $pipingLoading = PipingLoading::where("piping_process_id", $id)->first();
 
-        if ($pipingLoading) {
+        if (!$pipingLoading || (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
             $destroyPipingProcess = PipingProcess::find($id)->delete();
 
             if ($destroyPipingProcess) {
                 $destroyPipingProcessDetail = PipingProcessDetail::where("piping_process_id", $id)->delete();
+                $destroyPipingLoading = PipingLoading::where("piping_process_id", $id)->delete();
 
                 return array(
                     'status' => 200,
@@ -352,7 +354,7 @@ class PipingProcessController extends Controller
 
         return array(
             'status' => 400,
-            'message' => 'Piping Process sudah diloading',
+            'message' => 'Tidak dapat dihapus. Piping Process sudah diloading.',
             'redirect' => '',
             'table' => 'datatable',
             'additional' => [],
@@ -422,7 +424,7 @@ class PipingProcessController extends Controller
 
     public function takePiping($id = 0) {
         if ($id) {
-            $pipingProcess = PipingProcess::where("kode_piping", $request->kode_piping)->first();
+            $pipingProcess = PipingProcess::where("kode_piping", $id)->first();
 
             return $pipingProcess;
         }
