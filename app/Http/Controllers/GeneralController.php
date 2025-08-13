@@ -893,17 +893,32 @@ class GeneralController extends Controller
             $kodeNumbering = "'no_filter'";
         }
 
+        if ($request->department) {
+            $department = $request->department == "packing" ? "_packing" : "";
+        } else {
+            $department = "";
+        }
+
         $kodeNumberingOutput = collect(
             DB::connection("mysql_sb")->select("
-                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line FROM (
-                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
+                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing" ? "'packing' as type" : "'qc' as type")." FROM (
+                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
                     UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
                     UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
                 ) output
-                left join user_sb_wip on user_sb_wip.id = output.created_by
-                left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                ".
+                (
+                    $department && $department == "_packing" ?
+                    "
+                        left join userpassword on userpassword.username = output.created_by
+                    " :
+                    "
+                        left join user_sb_wip on user_sb_wip.id = output.created_by
+                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    "
+                )."
                 left join so_det on so_det.id = output.so_det_id
                 left join so on so.id = so_det.id_so
                 left join act_costing on act_costing.id = so.id_cost
