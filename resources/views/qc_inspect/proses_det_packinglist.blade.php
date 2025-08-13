@@ -976,7 +976,7 @@
                     data: 'no_lot'
                 },
                 {
-                    data: 'no_roll'
+                    data: 'no_roll_buyer'
                 },
                 {
                     data: 'point_max_point',

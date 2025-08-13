@@ -142,81 +142,66 @@
                     $supplier = $data->supplier ?? '-';
                     $type_pch = $data->type_pch ?? '-';
                 @endphp
-                <table
-                    style="width: 100%; margin-top: 10px; border-collapse: collapse; table-layout: auto; line-height: 1.8;">
-
+                <table style="width: 100%; border-collapse: collapse; table-layout: fixed; line-height: 1.8;">
                     <tbody>
                         <tr>
-                            <td style="font-weight: bold;">Tgl. BPB</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($tgl_dok) > 25 ? '9px' : '11px' }};">
+                            <td style="font-weight: bold; width: 15%;">Tgl. BPB</td>
+                            <td style="width: 2%;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($tgl_dok) > 25 ? '9px' : '11px' }};">
                                 {{ $tgl_dok }}
                             </td>
-
-                            <td style="font-weight: bold;">Buyer</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($buyer) > 25 ? '9px' : '11px' }};">
+                            <td
+                                style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
+                                Buyer
+                            </td>
+                            <td style="width: 2%; text-align: center;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($buyer) > 25 ? '9px' : '11px' }};">
                                 {{ $buyer }}
                             </td>
-
-                            <td style="font-weight: bold;">Jml. Lot</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($jml_lot) > 25 ? '9px' : '11px' }};">
-                                {{ $jml_lot }}
-                            </td>
                         </tr>
-
                         <tr>
-                            <td style="font-weight: bold;">No. PL</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($no_invoice) > 25 ? '9px' : '11px' }};">
+                            <td style="font-weight: bold; width: 15%;">No. PL</td>
+                            <td style="width: 2%;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($no_invoice) > 25 ? '9px' : '11px' }};">
                                 {{ $no_invoice }}
                             </td>
-
-                            <td style="font-weight: bold;">Style</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($style) > 25 ? '9px' : '11px' }};">
+                            <td
+                                style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
+                                Style
+                            </td>
+                            <td style="width: 2%; text-align: center;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($style) > 25 ? '9px' : '11px' }};">
                                 {{ $style }}
                             </td>
-
-                            <td style="font-weight: bold;">Group Inspect</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($group_inspect) > 25 ? '9px' : '11px' }};">
-                                {{ $group_inspect }}
-                            </td>
                         </tr>
-
                         <tr>
-                            <td style="font-weight: bold;">Supplier</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($supplier) > 25 ? '9px' : '11px' }};">
+                            <td style="font-weight: bold; width: 15%;">Supplier</td>
+                            <td style="width: 2%;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($supplier) > 25 ? '9px' : '11px' }};">
                                 {{ $supplier }}
                             </td>
-
-                            <td style="font-weight: bold;">Color</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($color) > 25 ? '9px' : '11px' }};">
+                            <td
+                                style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
+                                Color
+                            </td>
+                            <td style="width: 2%; text-align: center;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($color) > 25 ? '9px' : '11px' }};">
                                 {{ $color }}
                             </td>
-
-                            <td style="font-weight: bold;">% Inspect</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($cek_inspect) > 25 ? '9px' : '11px' }};">
-                                {{ $cek_inspect }} %
-                            </td>
                         </tr>
-
                         <tr>
-                            <td style="font-weight: bold;">Note</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($type_pch) > 25 ? '9px' : '11px' }};">
-                                {{ $type_pch }}
-                            </td>
-
-                            <td style="font-weight: bold;">ID Item</td>
-                            <td>:</td>
-                            <td style="font-size: {{ strlen($id_item) > 25 ? '9px' : '11px' }};">
+                            <td style="font-weight: bold; width: 15%;">ID Item</td>
+                            <td style="width: 2%;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($id_item) > 25 ? '9px' : '11px' }};">
                                 {{ $id_item }}
+                            </td>
+                            <td
+                                style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
+                                % Inspect
+                            </td>
+                            <td style="width: 2%; text-align: center;">:</td>
+                            <td style="width: 33%; font-size: {{ strlen($cek_inspect) > 25 ? '9px' : '11px' }};">
+                                {{ $cek_inspect }}
                             </td>
                         </tr>
 
@@ -235,16 +220,21 @@
 
                 <table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">
                     <colgroup>
-                        <col style="width: 20%;">
-                        <col style="width: 20%;">
-                        <col style="width: 20%;">
-                        <col style="width: 20%;">
-                        <col style="width: 20%;">
+                        <col style="width: 10%;"> <!-- Lot -->
+                        <col style="width: 10%;"> <!-- Jumlah Form -->
+                        <col style="width: 10%;"> <!-- Actual Point -->
+                        <col style="width: 10%;"> <!-- Max Point -->
+                        <col style="width: 15%;"> <!-- Visual Inspection Result -->
+                        <col style="width: 10%;"> <!-- Max Width Short Roll -->
+                        <col style="width: 10%;"> <!-- Max Length Short Roll -->
+                        <col style="width: 10%;"> <!-- Founding Issue -->
+                        <col style="width: 10%;"> <!-- Blanket Result -->
+                        <col style="width: 15%;"> <!-- Final Result -->
                     </colgroup>
 
                     <thead>
                         <tr>
-                            <th colspan="5"
+                            <th colspan="10"
                                 style="border: 1px solid #000; padding: 8px; font-weight: bold; text-align: center; background-color: #f0f0f0;">
                                 Lot Inspection Report
                             </th>
@@ -254,7 +244,12 @@
                             <th style="border: 1px solid #000; padding: 6px;">Jumlah Form</th>
                             <th style="border: 1px solid #000; padding: 6px;">Actual Point</th>
                             <th style="border: 1px solid #000; padding: 6px;">Max Point</th>
-                            <th style="border: 1px solid #000; padding: 6px;">Result</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Visual Inspection Result</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Max Width Short Roll</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Max Length Short Roll</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Founding Issue</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Blanket Result</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Final Result</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -270,15 +265,22 @@
                                     {{ $rep->shipment }}</td>
                                 <td style="border: 1px solid #000; padding: 6px; text-align: center;">
                                     {{ $rep->result }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->max_width_short_roll }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->max_length_short_roll }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->list_founding_issue }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->result_blanket }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $rep->final_result }}</td>
                             </tr>
                         @endforeach
                     </tbody>
 
                 </table>
-                <div style="height: 10px;"></div>
-
-
-
+                {{-- <div style="height: 10px;"></div> --}}
                 @foreach ($data_header_form as $index => $dhf)
                     <div class="form-section page-break">
                         <table
@@ -299,9 +301,9 @@
                                     <td style="width: 3%; padding: 4px;">:</td>
                                     <td style="width: 20%; padding: 4px;">{{ $dhf->barcode }}</td>
 
-                                    <td style="width: 10%; font-weight: bold; padding: 4px;">Width</td>
+                                    <td style="width: 10%; font-weight: bold; padding: 4px;">W Bintex</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 14%; padding: 4px;">{{ $dhf->width }}"</td>
+                                    <td style="width: 14%; padding: 4px;">{{ $dhf->weight_bintex }}</td>
                                 </tr>
 
                                 <tr>
@@ -312,11 +314,11 @@
 
                                     <td style="width: 15%; font-weight: bold; padding: 4px;">No Roll</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 20%; padding: 4px;">{{ $dhf->no_roll }}</td>
+                                    <td style="width: 20%; padding: 4px;">{{ $dhf->no_roll_buyer }}</td>
 
-                                    <td style="width: 10%; font-weight: bold; padding: 4px;">Gramage</td>
+                                    <td style="width: 10%; font-weight: bold; padding: 4px;">W Act</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 11%; padding: 4px;">{{ $dhf->gramage }}</td>
+                                    <td style="width: 11%; padding: 4px;">{{ $dhf->weight_act }}</td>
                                 </tr>
 
                                 <tr>
@@ -324,13 +326,13 @@
                                     <td style="width: 3%; padding: 4px;">:</td>
                                     <td style="width: 20%; padding: 4px;">{{ $dhf->no_mesin }}</td>
 
-                                    <td style="width: 10%; font-weight: bold; padding: 4px;">Weight</td>
+                                    <td style="width: 10%; font-weight: bold; padding: 4px;">No. Lot</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 15%; padding: 4px;">{{ $dhf->weight }}</td>
+                                    <td style="width: 15%; padding: 4px;">{{ $dhf->no_lot }}</td>
 
-                                    <td style="width: 8%; font-weight: bold; padding: 4px;">Inspect</td>
+                                    <td style="width: 8%; font-weight: bold; padding: 4px;">Gramage</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 10%; padding: 4px;">Ke-{{ $dhf->proses }}</td>
+                                    <td style="width: 10%; padding: 4px;">Ke-{{ $dhf->gramage }}</td>
                                 </tr>
 
                                 <tr>
@@ -338,13 +340,13 @@
                                     <td style="width: 3%; padding: 4px;">:</td>
                                     <td style="padding: 4px;">{{ $dhf->operator }}</td>
 
-                                    <td style="width: 10%; font-weight: bold; padding: 4px;">No. Lot</td>
+                                    <td style="width: 10%; font-weight: bold; padding: 4px;">Inspect</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 15%; padding: 4px;">{{ $dhf->no_lot }}</td>
+                                    <td style="width: 15%; padding: 4px;">{{ $dhf->proses }}</td>
 
-                                    <td style="width: 8%; font-weight: bold; padding: 4px;">&nbsp;</td>
-                                    <td style="width: 3%; padding: 4px;">&nbsp;</td>
-                                    <td style="width: 10%; padding: 4px;">&nbsp;</td>
+                                    <td style="width: 8%; font-weight: bold; padding: 4px;">Final Result</td>
+                                    <td style="width: 3%; padding: 4px;">:</td>
+                                    <td style="width: 10%; padding: 4px;">{{ $dhf->final_result }}</td>
                                 </tr>
 
                                 <!-- Nested Result Visual Inspection Table Row -->
@@ -414,21 +416,32 @@
                                                     </tr>
                                                 @endforelse
                                             </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="2"
+                                                        style="border: 1px solid #000; padding: 6px; text-align: right;">
+                                                        Total</th>
+                                                    <th
+                                                        style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                    </th>
+                                                    <th
+                                                        style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                    </th>
+                                                    <th
+                                                        style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                    </th>
+                                                    <th
+                                                        style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                    </th>
+                                                    <th
+                                                        style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                        {{ $result_summary_visual_inspect_grouped[$dhf->no_form][0]->avg_width_sum ?? '-' }}
+                                                    </th>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td style="width: 15%; font-weight: bold; padding: 4px;">Bintex Length</td>
-                                    <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="padding: 4px;">{{ $dhf->bintex }}</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td style="width: 15%; font-weight: bold; padding: 4px;">Actual Length</td>
-                                    <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="padding: 4px;">{{ $dhf->length }}</td>
-                                </tr>
-
                                 <!-- Nested Result Summary Table Row -->
                                 <tr>
                                     <td colspan="9" style="padding: 0; border: none;">
@@ -508,26 +521,153 @@
                                     </td>
                                 </tr>
 
+                                <tr>
+                                    <td style="width: 15%; font-weight: bold; padding: 4px;">Founding Issue</td>
+                                    <td style="width: 3%; padding: 4px;">:</td>
+                                    <td colspan="7" style="padding: 4px;">{{ $dhf->founding_issue }}</td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="9" style="padding: 0; border: none;">
+                                        <table
+                                            style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">
+                                            <!-- Define column widths -->
+                                            <colgroup>
+                                                <col style="width: 15%;">
+                                                <col style="width: 25%;">
+                                                <col style="width: 10%;">
+                                                <col style="width: 10%;">
+                                                <col style="width: 10%;">
+                                                <col style="width: 10%;">
+                                                <col style="width: 20%;">
+                                            </colgroup>
+
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="7"
+                                                        style="border: 1px solid #000; padding: 8px; font-weight: bold; text-align: center; background-color: #f0f0f0;">
+                                                        Short Roll
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th style="border: 1px solid #000; padding: 6px;"></th>
+                                                    <th style="border: 1px solid #000; padding: 6px;">Bintex</th>
+                                                    <th style="border: 1px solid #000; padding: 6px;">Actual</th>
+                                                    <th style="border: 1px solid #000; padding: 6px;">Selisih</th>
+                                                    <th style="border: 1px solid #000; padding: 6px;">Max Selisih</th>
+                                                    <th style="border: 1px solid #000; padding: 6px;">Unit</th>
+                                                    <th style="border: 1px solid #000; padding: 6px;">Result</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse ($short_roll_grouped[$dhf->no_form] ?? [] as $srg)
+                                                    <tr>
+                                                        <td
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            {{ $srg->dim }}</td>
+                                                        <td
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            {{ $srg->bintex }}</td>
+                                                        <td
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            {{ $srg->actual }}</td>
+                                                        <td
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            {{ $srg->selisih }}</td>
+                                                        <td
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            {{ $srg->max_selisih }}</td>
+                                                        <td
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            {{ $srg->unit }}</td>
+                                                        <td
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            {{ $srg->result }}</td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="7"
+                                                            style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                            No data available.
+                                                        </td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                     <div style="height: 10px;"></div>
                 @endforeach
+                <table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 55%;"> <!-- Gambar lebih lebar -->
+                        <col style="width: 15%;">
+                        <col style="width: 15%;">
+                        <col style="width: 10%;">
+                    </colgroup>
 
+                    <thead>
+                        <tr>
+                            <th colspan="5"
+                                style="border: 1px solid #000; padding: 8px; font-weight: bold; text-align: center; background-color: #f0f0f0;">
+                                Blanket Report
+                            </th>
+                        </tr>
+                        <tr>
+                            <th style="border: 1px solid #000; padding: 6px;">Lot</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Gambar</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Rate</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Result</th>
+                            <th style="border: 1px solid #000; padding: 6px;">Tgl. Update</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($data_blanket as $db)
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $db->no_lot }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    <img src="{{ storage_path('app/public/gambar_blanket/' . $db->photo) }}"
+                                        alt="Photo"
+                                        style="width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+                                </td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $db->rate }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $db->result }}</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                    {{ $db->tgl_update_fix }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5"
+                                    style="border: 1px solid #000; padding: 6px; text-align: center; font-style: italic; color: #666;">
+                                    No data available.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+
+
+                </table>
             </div>
 
             <table style="width: 100%; margin-top: 40px; table-layout: fixed;">
                 <tr>
                     <!-- SPV Signature -->
                     <td style="width: 50%; text-align: center;">
-                        SPV<br><br><br>
+                        SPV<br><br><br><br>
                         ___________________________<br>
                         <span style="font-size: 12px;"></span>
                     </td>
 
                     <!-- QA Manager Signature -->
                     <td style="width: 50%; text-align: center;">
-                        QA Manager<br><br><br>
+                        QA Manager<br><br><br><br>
                         ___________________________<br>
                         <span style="font-size: 12px;"></span>
                     </td>

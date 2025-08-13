@@ -1122,6 +1122,7 @@ class StockerController extends Controller
                         $checkStocker->qty_ply_mod = null;
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
+                        $checkStocker->notes = $request['note']." (Separated Stocker)";
                         $checkStocker->save();
                     }
 

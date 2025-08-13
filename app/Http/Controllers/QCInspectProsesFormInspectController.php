@@ -39,7 +39,7 @@ qc.group_inspect,
 a.type_pch,
 qc.proses,
 qc.barcode,
-b.no_roll,
+b.no_roll_buyer,
 qc.status_proses_form,
 c.individu,
 qc.pass_with_condition,
@@ -174,7 +174,7 @@ qc.enroll_id,
 qc.operator,
 qc.nik,
 qc.barcode,
-b.no_roll,
+b.no_roll_buyer,
 mi.itemdesc,
 a.supplier,
 DATE_FORMAT(start_form, '%d-%m-%Y %H:%i:%s') AS start_form_fix,
@@ -236,7 +236,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $nik                    = $get_header[0]->nik        ?? '';
 
         $barcode                = $get_header[0]->barcode    ?? '';
-        $no_roll                = $get_header[0]->no_roll    ?? '';
+        $no_roll                = $get_header[0]->no_roll_buyer    ?? '';
         $itemdesc               = $get_header[0]->itemdesc   ?? '';
         $supplier               = $get_header[0]->supplier   ?? '';
 
@@ -420,7 +420,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         SELECT
             no_barcode,
             supplier,
-            no_roll,
+            no_roll_buyer,
             mi.color,
             mi.itemdesc
         FROM whs_lokasi_inmaterial a
