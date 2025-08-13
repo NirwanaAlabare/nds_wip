@@ -330,53 +330,65 @@
 
         function resetRedundantStocker() {
             Swal.fire({
-                title: 'Please Wait...',
-                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
-                didOpen: () => {
-                    Swal.showLoading();
-
-                    let estimatedTime = 0;
-                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
-                    estimatedTimeInterval = setInterval(() => {
-                        estimatedTime++;
-                        estimatedTimeElement.textContent = estimatedTime;
-                    }, 1000);
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                type: "post",
-                url: "{{ route('reset-redundant-stocker') }}",
-                processData: false,
-                contentType: false,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Redundant Stocker.pdf";
-                        link.click();
-                    }
-
-                    window.location.reload();
-                },
-                error: function(jqXHR) {
-                    console.log(jqXHR);
-
+                title: 'Fix Redundant Stocker',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data stocker?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
                     Swal.fire({
-                        icon:'error',
-                        title: 'Error',
-                        html: 'Terjadi kesalahan.',
+                        title: 'Please Wait...',
+                        html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
+
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('reset-redundant-stocker') }}",
+                        processData: false,
+                        contentType: false,
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Redundant Stocker.pdf";
+                                link.click();
+                            }
+
+                            window.location.reload();
+                        },
+                        error: function(jqXHR) {
+                            console.log(jqXHR);
+
+                            Swal.fire({
+                                icon:'error',
+                                title: 'Error',
+                                html: 'Terjadi kesalahan.',
+                            });
+                        }
                     });
                 }
-            });
+            })
         }
 
         function openImportStockerManual(){
