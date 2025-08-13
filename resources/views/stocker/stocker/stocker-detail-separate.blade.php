@@ -30,22 +30,22 @@
                         $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
                         $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
 
-                        $separatedStocker = $dataStockerSeparate ? $dataStockerSeparate->where("so_det_id", $ratio->so_det_id)->where("group_roll", $currentGroup)->where("group_stocker", $currentGroupStocker)->first() : null;
+                        $separatedStocker = $dataStockerSeparate ? $dataStockerSeparate->where("so_det_id", $ratio->so_det_id)->where("group_roll", $currentGroupSeparate)->where("group_stocker", $currentGroupStockerSeparate)->first() : null;
                         $separatedStockerDetails = $separatedStocker ? $separatedStocker->stockerSeparateDetails : null;
                 @endphp
                 <tr>
                     <input type="hidden" name="so_det_id[{{ $indexSeparate }}]" id="so_det_id_{{ $indexSeparate }}" value="{{ $ratio->so_det_id }}">
                     <input type="hidden" name="size[{{ $indexSeparate }}]" id="size_{{ $indexSeparate }}" value="{{ $ratio->size }}">
-                    <input type="hidden" name="group[{{ $indexSeparate }}]" id="group_{{ $indexSeparate }}" value="{{ $currentGroup }}">
-                    <input type="hidden" name="group_stocker[{{ $indexSeparate }}]" id="group_stocker_{{ $indexSeparate }}" value="{{ $currentGroupStocker }}">
-                    <input type="hidden" name="qty_ply_group[{{ $indexSeparate }}]" id="qty_ply_group_{{ $indexSeparate }}" value="{{ $currentTotal }}">
+                    <input type="hidden" name="group[{{ $indexSeparate }}]" id="group_{{ $indexSeparate }}" value="{{ $currentGroupSeparate }}">
+                    <input type="hidden" name="group_stocker[{{ $indexSeparate }}]" id="group_stocker_{{ $indexSeparate }}" value="{{ $currentGroupStockerSeparate }}">
+                    <input type="hidden" name="qty_ply_group[{{ $indexSeparate }}]" id="qty_ply_group_{{ $indexSeparate }}" value="{{ $currentTotalSeparate }}">
                     <input type="hidden" name="qty_cut[{{ $indexSeparate }}]" id="qty_cut_{{ $indexSeparate }}" value="{{ $qty }}">
                     <input type="hidden" name="range_awal[{{ $indexSeparate }}]" id="range_awal_{{ $indexSeparate }}" value="{{ $rangeAwal }}">
                     <input type="hidden" name="range_akhir[{{ $indexSeparate }}]" id="range_akhir_{{ $indexSeparate }}" value="{{ $rangeAkhir }}">
 
                     <td>{{ $ratio->size_dest }}</td>
                     <td>{{ $ratio->ratio }}</td>
-                    <td>{{ (intval($ratio->ratio) * intval($currentTotal)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($currentTotal))."".(($qty - (intval($ratio->ratio) * intval($currentTotal))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentTotal))) : ($qty - (intval($ratio->ratio) * intval($currentTotal)))).")" : $qty }}</td>
+                    <td>{{ (intval($ratio->ratio) * intval($currentTotalSeparate)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($currentTotalSeparate))."".(($qty - (intval($ratio->ratio) * intval($currentTotalSeparate))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentTotalSeparate))) : ($qty - (intval($ratio->ratio) * intval($currentTotalSeparate)))).")" : $qty }}</td>
                     <td>{{ $separatedStockerDetails ? $separatedStockerDetails->implode("qty", " | ") : "-" }}</td>
                     <td>{{ $rangeAwal }}</td>
                     <td>{{ $rangeAkhir }}</td>

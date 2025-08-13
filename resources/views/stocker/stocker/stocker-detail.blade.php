@@ -48,6 +48,9 @@
                 </div>
             </div>
             <div class="d-flex justify-content-end gap-3 mb-3">
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#separate-qty-modal">
+                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Separate Qty
+                </button>
                 <button type="button" class="btn btn-success btn-sm" onclick="countStockerUpdate()">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> No. Stocker
                 </button>
@@ -56,9 +59,6 @@
                 </button>
                 <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#size-qty-modal">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Size Qty
-                </button>
-                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#separate-qty-modal">
-                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Separate Qty
                 </button>
             </div>
             <form action="#" method="post" id="stocker-form">
