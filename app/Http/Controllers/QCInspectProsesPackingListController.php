@@ -552,7 +552,7 @@ qc.group_inspect,
 a.type_pch,
 qc.proses,
 qc.barcode,
-b.no_roll,
+b.no_roll_buyer,
 qc.status_proses_form,
 c.individu,
 qc.pass_with_condition,
@@ -1259,10 +1259,12 @@ where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo' l
         SUM(`6_9`) * 3 AS sum_6_9,
         SUM(over_9) * 4 AS sum_over_9,
 				c.shipment,
-				b.pass_with_condition
+				b.pass_with_condition,
+				d.founding_issue
     FROM qc_inspect_form_det a
     INNER JOIN qc_inspect_form b ON a.no_form = b.no_form
     LEFT JOIN qc_inspect_master_group_inspect c ON b.group_inspect = c.id
+		left join qc_inspect_master_founding_issue d on b.founding_issue = d.id
     WHERE id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
     group by a.no_form
 ),
@@ -1288,7 +1290,8 @@ c AS (
 				sum_over_9,
         (sum_up_to_3 + sum_3_6 + sum_6_9 + sum_over_9) AS tot_point,
 				shipment,
-				a.pass_with_condition
+				a.pass_with_condition,
+				a.founding_issue
     FROM a
     group by a.no_form
 ),
@@ -1305,14 +1308,48 @@ c.tot_point,
 round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
 shipment,
 if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= shipment,'PASS','REJECT') result,
-c.pass_with_condition
+c.pass_with_condition,
+c.founding_issue
 FROM c
 INNER JOIN b ON c.no_form = b.no_form
 GROUP BY c.no_form
-)
-
+),
+sr_w AS (
 SELECT
-no_lot,
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    MIN(ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2)) as max_width_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+GROUP BY  no_lot
+),
+sr_l AS (
+SELECT
+		id_item,
+		id_jo,
+		no_invoice,
+		no_lot,
+    'LENGTH' as dim,
+    MIN(ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length, 0), 2)) as max_length_short_roll
+FROM
+    qc_inspect_form a
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+		GROUP BY  no_lot
+),
+e as (
+select * from qc_inspect_form_blanket
+WHERE
+		id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+group by no_lot
+),
+main as (
+SELECT
+d.no_lot,
 count(no_form) tot_form,
 ROUND(SUM(act_point) / count(no_form)) act_point_total,
 shipment,
@@ -1321,9 +1358,33 @@ CASE
 		WHEN ROUND(SUM(act_point) / count(no_form)) >= shipment and pass_with_condition = 'N' then 'REJECT'
 		WHEN ROUND(SUM(act_point) / count(no_form)) >= shipment and pass_with_condition = 'Y' then 'PASS WITH CONDITION'
 		WHEN ROUND(SUM(act_point) / count(no_form)) <= shipment and pass_with_condition = 'N' then 'PASS'
-END as result
+END as result,
+max_width_short_roll,
+max_length_short_roll,
+GROUP_CONCAT(DISTINCT(d.founding_issue)) list_founding_issue,
+e.result as result_blanket
 FROM d
-GROUP BY no_lot");
+left join sr_w on d.no_lot = sr_w.no_lot
+left join sr_l on d.no_lot = sr_l.no_lot
+left join e on d.no_lot = e.no_lot
+GROUP BY d.no_lot
+)
+
+SELECT
+main.*,
+CASE
+        WHEN main.result_blanket is null then '-'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'PASS' THEN 'PASS'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'PASS' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS' THEN 'PASS WITH CONDITION'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'REJECT' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+        WHEN main.result_blanket = 'REJECT' AND main.result = 'PASS WITH CONDITION' THEN 'REJECT'
+        WHEN main.result_blanket = 'PASS WITH CONDITION' AND main.result = 'PASS WITH CONDITION' THEN 'PASS WITH CONDITION'
+end as final_result
+from main");
 
 
 
@@ -1333,17 +1394,21 @@ a.tgl_form,
 a.created_by,
 a.operator,
 a.barcode,
-no_roll,
-concat(a.weight, ' ', act_unit_weight) weight,
+no_roll_buyer,
+concat(a.weight, ' ', unit_weight) weight_bintex,
+concat(a.act_weight, ' ', act_unit_weight) weight_act,
 a.width,
 gramage,
 proses,
 a.no_lot,
 a.no_mesin,
 concat(bintex_length, ' ', upper(unit_bintex)) bintex,
-concat(act_length_fix, ' ', upper(unit_act_length)) length
+concat(act_length_fix, ' ', upper(unit_act_length)) length,
+a.final_result,
+c.founding_issue
 from qc_inspect_form a
 left join whs_lokasi_inmaterial b on a.barcode = b.no_barcode
+left join qc_inspect_master_founding_issue c on a.founding_issue = c.id
 where no_invoice = '$no_inv' and a.id_item = '$id_item' and a.id_jo = '$id_jo'
 order by a.no_lot asc, no_form asc
 ");
@@ -1363,14 +1428,30 @@ order by a.no_lot asc, no_form asc
             a.over_9,
             CONCAT(a.full_width_act, ' -> ', a.cuttable_width_act) AS width
         FROM qc_inspect_form_det a
-        INNER JOIN qc_inspect_master_lenght b ON a.id_length = b.id
-        INNER JOIN qc_inspect_master_defect c ON a.id_defect = c.id
+        left JOIN qc_inspect_master_lenght b ON a.id_length = b.id
+        left JOIN qc_inspect_master_defect c ON a.id_defect = c.id
         WHERE a.no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+        order by length asc
     ", $form_numbers);
 
             // Group the result by no_form
             $inspection_results_grouped = collect($visual_inspection)->groupBy('no_form');
         }
+
+        $result_summary_visual_inspect = [];
+        if (!empty($form_numbers)) {
+            $result_summary_visual_inspect = DB::connection('mysql_sb')->select("
+        SELECT
+            no_form,
+            ROUND(SUM(cuttable_width_act) / COUNT(CASE WHEN cuttable_width_act > 0 THEN 1 END),2) AS avg_width_sum
+        FROM qc_inspect_form_det
+        WHERE no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
+        GROUP BY no_form
+    ", $form_numbers);
+
+            $result_summary_visual_inspect_grouped = collect($result_summary_visual_inspect)->groupBy('no_form');
+        }
+
 
         $data_summary = [];
         if (!empty($form_numbers)) {
@@ -1420,7 +1501,7 @@ sum_up_to_3,
 sum_3_6,
 sum_6_9,
 sum_over_9,
-avg_width,
+round(avg_width,2) avg_width,
 c.tot_point,
 round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
 individu,
@@ -1434,7 +1515,56 @@ GROUP BY c.no_form
             $data_summary_grouped = collect($data_summary)->groupBy('no_form');
         }
 
+        $short_roll = [];
 
+        if (!empty($form_numbers)) {
+            $placeholders = implode(',', array_fill(0, count($form_numbers), '?'));
+
+            $short_roll = DB::connection('mysql_sb')->select("
+        SELECT
+            a.no_form,
+            'WIDTH' as dim,
+            IFNULL(bintex_width, 0) as bintex,
+            IFNULL(act_width, 0) as actual,
+            ROUND(IFNULL(act_width, 0) - IFNULL(bintex_width, 0), 2) as selisih,
+            '- 3' as max_selisih,
+            'INCH' as unit,
+            IF(IFNULL(act_width, 0) - IFNULL(bintex_width, 0) > -3, 'PASS', 'HOLD') as result
+        FROM
+            qc_inspect_form a
+        WHERE
+            a.no_form IN ($placeholders)
+
+        UNION ALL
+
+        SELECT
+            a.no_form,
+            'LENGTH' as dim,
+            IFNULL(bintex_length_act, 0) as bintex,
+            IFNULL(act_length_fix, 0) as actual,
+            ROUND(IFNULL(act_length_fix, 0) - IFNULL(bintex_length_act, 0), 2) as selisih,
+            '- 3' as max_selisih,
+            'YARD' as unit,
+            IF(IFNULL(act_length_fix, 0) - IFNULL(bintex_length_act, 0) > -3, 'PASS', 'HOLD') as result
+        FROM
+            qc_inspect_form a
+        WHERE
+            a.no_form IN ($placeholders)
+    ", array_merge($form_numbers, $form_numbers));
+
+            // Group the result by no_form
+            $short_roll_grouped = collect($short_roll)->groupBy('no_form');
+        }
+
+        $data_blanket = DB::connection('mysql_sb')->select("SELECT
+no_lot,
+photo,
+rate,
+result,
+DATE_FORMAT(updated_at, '%d-%M-%Y %H:%i:%s') AS tgl_update_fix
+from qc_inspect_form_blanket where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
+order by no_lot asc
+");
 
         // Generate PDF from the view
         $pdf = PDF::loadView('qc_inspect.pdf_qc_inspect', [
@@ -1445,6 +1575,9 @@ GROUP BY c.no_form
             'cek_inspect' => $cek_inspect,
             'group_inspect' => $group_inspect,
             'data_lot_report' => $data_lot_report,
+            'short_roll_grouped' => $short_roll_grouped,
+            'result_summary_visual_inspect_grouped' => $result_summary_visual_inspect_grouped,
+            'data_blanket' => $data_blanket,
         ])->setPaper('a4', 'portrait');
 
         // Set filename and return download

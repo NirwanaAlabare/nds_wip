@@ -1043,7 +1043,7 @@
                         html: `
                     <p><b>Barcode:</b> ${response.data.barcode}</p>
                     <p><b>Supplier:</b> ${response.data.supplier}</p>
-                    <p><b>No. Roll:</b> ${response.data.no_roll}</p>
+                    <p><b>No. Roll:</b> ${response.data.no_roll_buyer}</p>
                     <p><b>Color:</b> ${response.data.color}</p>
                     <p><b>Deskripsi:</b> ${response.data.itemdesc}</p>
                     <hr>
