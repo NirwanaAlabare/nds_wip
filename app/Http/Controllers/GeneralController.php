@@ -52,24 +52,69 @@ class GeneralController extends Controller
 
     public function getNoFormCut(Request $request)
     {
-        $formCuts = FormCutInput::selectRaw('form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) as total_stocker')
-            ->leftJoin('stocker_input', 'stocker_input.form_cut_id', '=', 'form_cut_input.id')
-            ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
-            ->groupBy('form_cut_input.id')
-            ->havingRaw('COUNT(stocker_input.id) > 0')
-            ->orderBy('form_cut_input.updated_at', 'desc')
-            ->get();
+        $formCuts = collect(
+            DB::select("
+                    SELECT
+                        form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) total_stocker, 'normal' type
+                    FROM
+                        form_cut_input
+                        LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
+                    WHERE
+                        DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
+                    GROUP BY
+                        form_cut_input.id
+                    HAVING
+                        COUNT(stocker_input.id) > 0
+                UNION ALL
+                    SELECT
+                        form_cut_reject.id as form_cut_id, form_cut_reject.no_form, COUNT(stocker_input.id) total_stocker, 'reject' type
+                    FROM
+                        form_cut_reject
+                        LEFT JOIN stocker_input ON stocker_input.form_reject_id = form_cut_reject.id
+                    WHERE
+                        DATE(form_cut_reject.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
+                    GROUP BY
+                        form_cut_reject.id
+                    HAVING
+                        COUNT(stocker_input.id) > 0
+                UNION ALL
+                    SELECT
+                        form_cut_piece.id as form_cut_id, form_cut_piece.no_form, COUNT(stocker_input.id) total_stocker, 'piece' type
+                    FROM
+                        form_cut_piece
+                        LEFT JOIN stocker_input ON stocker_input.form_piece_id = form_cut_piece.id
+                    WHERE
+                        DATE(form_cut_piece.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
+                    GROUP BY
+                        form_cut_piece.id
+                    HAVING
+                        COUNT(stocker_input.id) > 0
+                ORDER BY
+                    form_cut_id ASC
+            "));
 
         return $formCuts ? json_encode($formCuts) : null;
     }
 
     public function getFormGroup(Request $request)
     {
-        $groups = Stocker::selectRaw('form_cut_input.id form_cut_id, stocker_input.group_stocker, stocker_input.shade')
-            ->leftJoin('form_cut_input', 'form_cut_input.id',  '=', 'stocker_input.form_cut_id' )
-            ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
-            ->where('form_cut_input.id', $request->form_cut_id)
-            ->groupBy('form_cut_input.id', 'stocker_input.group_stocker', 'stocker_input.shade')
+        $formType = 'stocker_input.form_cut_id';
+        switch ($request->form_type) {
+            case 'reject' :
+                $formType = 'stocker_input.form_reject_id';
+                break;
+            case 'piece' :
+                $formType = 'stocker_input.form_piece_id';
+                break;
+            default :
+                $formType = 'stocker_input.form_cut_id';
+                break;
+        }
+
+        $groups = Stocker::selectRaw($formType.' form_cut_id, stocker_input.group_stocker, stocker_input.shade')
+            ->whereRaw('DATE(stocker_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
+            ->whereRaw($formType.' = "'.$request->form_cut_id.'"')
+            ->groupByRaw($formType.', stocker_input.group_stocker, stocker_input.shade')
             ->orderBy('stocker_input.group_stocker', 'asc')
             ->get();
 
@@ -78,12 +123,24 @@ class GeneralController extends Controller
 
     public function getFormStocker(Request $request)
     {
-        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, form_cut_input.id form_cut_id, stocker_input.group_stocker, stocker_input.size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
-            ->leftJoin('form_cut_input', 'form_cut_input.id',  '=', 'stocker_input.form_cut_id' )
-            ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
-            ->where('form_cut_input.id', $request->form_cut_id)
+        $formType = 'stocker_input.form_cut_id';
+        switch ($request->form_type) {
+            case 'reject' :
+                $formType = 'stocker_input.form_reject_id';
+                break;
+            case 'piece' :
+                $formType = 'stocker_input.form_piece_id';
+                break;
+            default :
+                $formType = 'stocker_input.form_cut_id';
+                break;
+        }
+
+        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, '.$formType.' form_cut_id, stocker_input.group_stocker, stocker_input.size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
+            ->whereRaw('DATE(stocker_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
+            ->whereRaw($formType.' = "'.$request->form_cut_id.'"')
             ->where('stocker_input.group_stocker', $request->form_group)
-            ->groupBy('form_cut_input.id', 'stocker_input.group_stocker', 'stocker_input.so_det_id', 'stocker_input.ratio')
+            ->groupByRaw($formType.', stocker_input.group_stocker, stocker_input.so_det_id, stocker_input.ratio')
             ->orderBy('stocker_input.so_det_id', 'asc')
             ->get();
 

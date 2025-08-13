@@ -112,9 +112,13 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">No. Form</label>
-                        <select name="no_form" id="no_form" class="form-control select2bs4form" style="width: 100%;"  onchange="getFormGroupList();getFormStockerList();">
+                        <select name="no_form" id="no_form" class="form-control select2bs4form" style="width: 100%;"  onchange="getFormGroupList();getFormStockerList();setFormType();">
                             <option value="">Pilih Form</option>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Form Type</label>
+                        <input type="text" class="form-control" id="form_type" id="form_type" readonly>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Group</label>
@@ -202,9 +206,11 @@
                         $('#no_form').empty();
                         $('#no_form').append('<option value="">Pilih Form</option>');
                         $.each(response, function (key, value) {
-                            $('#no_form').append('<option value="' + value.form_cut_id + '">' + value.no_form + '</option>');
+                            $('#no_form').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
                         });
                     }
+
+                    document.getElementById("form_type").value = "";
 
                     document.getElementById("loading").classList.add("d-none");
                 },
@@ -216,6 +222,11 @@
             });
         }
 
+        function setFormType() {
+            const formType = $('#no_form option:selected').attr('data-type');
+            $('#form_type').val(formType);
+        }
+
         function getFormGroupList() {
             document.getElementById("loading").classList.remove("d-none");
 
@@ -223,7 +234,9 @@
                 type: "get",
                 url: "{{ route('get-form-group') }}",
                 data: {
-                    form_cut_id: $("#no_form").val()
+                    form_cut_id: $("#no_form").val(),
+                    form_group: $('#form_group').val() ? $('#form_group').val() : null,
+                    form_type: $('#no_form option:selected').attr('data-type')
                 },
                 dataType: "json",
                 success: function (response) {
@@ -231,7 +244,7 @@
                         $('#form_group').empty();
                         $('#form_group').append('<option value="">Pilih Form Group</option>');
                         $.each(response, function (key, value) {
-                            $('#form_group').append('<option value="' + value.group_stocker + '">' + value.group_stocker + " - " + value.shade + '</option>');
+                            $('#form_group').append('<option value="' + (value.group_stocker ? value.group_stocker : "") + '">' + (value.group_stocker ? value.group_stocker : '/') + " - " + (value.shade ? value.shade : '/') + '</option>');
                         });
 
                         document.getElementById("loading").classList.add("d-none");
@@ -253,7 +266,8 @@
                 url: "{{ route('get-form-stocker') }}",
                 data: {
                     form_cut_id: $('#no_form').val(),
-                    form_group: $('#form_group').val()
+                    form_group:$('#form_group').val() ? $('#form_group').val() : null,
+                    form_type: $('#no_form option:selected').attr('data-type')
                 },
                 dataType: "json",
                 success: function (response) {
@@ -261,7 +275,7 @@
                         $('#form_stocker').empty();
                         $('#form_stocker').append('<option value="">Pilih Form Stocker</option>');
                         $.each(response, function (key, value) {
-                            $('#form_stocker').append('<option value="' + value.stocker_ids + '">' + value.id_qr_stocker + ' || Size \'' + value.size + '\' || Ratio ' + value.ratio + '</option>');
+                            $('#form_stocker').append('<option value="' + value.stocker_ids + '">' + value.id_qr_stocker + ' || Size \'' + value.size + '\' || Ratio ' + (value.ratio ? value.ratio : null) + '</option>');
                         });
                     }
 
@@ -297,8 +311,9 @@
                 url: "{{ route('reset-stocker-form') }}",
                 data: {
                     form_cut_id: $('#no_form').val(),
+                    form_type: $('#no_form option:selected').attr('data-type'),
                     no_form: $('#no_form option:selected').text(),
-                    form_group: $('#form_group').val(),
+                    form_group: $('#form_group').val() ? $('#form_group').val() : null,
                     form_stocker: $('#form_stocker').val()
                 },
                 dataType: "json",

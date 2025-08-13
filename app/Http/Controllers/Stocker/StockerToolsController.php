@@ -36,31 +36,44 @@ class StockerToolsController extends Controller
             "no_form" => "required",
         ]);
 
+        $formType = 'form_cut_id';
+        switch ($request->form_type) {
+            case 'reject' :
+                $formType = 'form_reject_id';
+                break;
+            case 'piece' :
+                $formType = 'form_piece_id';
+                break;
+            default :
+                $formType = 'form_cut_id';
+                break;
+        }
+
         if ($request->form_group) {
             if ($request->form_stocker && count(explode(",", $request->form_stocker)) > 0) {
                 $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) {
-                    $join->on("stocker_input.form_cut_id", "=", "year_sequence.form_cut_id");
+                    $join->on("stocker_input.".$formType."", "=", "year_sequence.".$formType."");
                     $join->on("stocker_input.so_det_id", "=", "year_sequence.so_det_id");
                     $join->on("stocker_input.range_awal", "<=", "year_sequence.number");
                     $join->on("stocker_input.range_akhir", ">=", "year_sequence.number");
                 })->
-                where('year_sequence.form_cut_id', $validatedRequest['form_cut_id'])->
+                where('year_sequence.'.$formType.'', $validatedRequest['form_cut_id'])->
                 where('stocker_input.group_stocker', $request->form_group)->
                 whereIn('stocker_input.id', explode(",", $request->form_stocker))->
                 count();
             } else {
                 $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) {
-                    $join->on("stocker_input.form_cut_id", "=", "year_sequence.form_cut_id");
+                    $join->on("stocker_input.".$formType."", "=", "year_sequence.".$formType."");
                     $join->on("stocker_input.so_det_id", "=", "year_sequence.so_det_id");
                     $join->on("stocker_input.range_awal", "<=", "year_sequence.number");
                     $join->on("stocker_input.range_akhir", ">=", "year_sequence.number");
                 })->
-                where('year_sequence.form_cut_id', $validatedRequest['form_cut_id'])->
+                where('year_sequence.'.$formType.'', $validatedRequest['form_cut_id'])->
                 where('stocker_input.group_stocker', $request->form_group)->
                 count();
             }
         } else {
-            $checkYearSequence = YearSequence::where('form_cut_id', $validatedRequest['form_cut_id'])->count();
+            $checkYearSequence = YearSequence::where($formType, $validatedRequest['form_cut_id'])->count();
         }
 
         if ($checkYearSequence > 0) {
@@ -77,12 +90,12 @@ class StockerToolsController extends Controller
             // Delete related stocker input
             if ($request->form_group) {
                 if ($request->form_stocker && count(explode(",", $request->form_stocker)) > 0) {
-                    $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->where('group_stocker', $request->form_group)->whereIn('id', explode(",", $request->form_stocker))->get();
+                    $stockers = Stocker::where($formType, $validatedRequest['form_cut_id'])->where('group_stocker', $request->form_group)->whereIn('id', explode(",", $request->form_stocker))->get();
                 } else {
-                    $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->where('group_stocker', $request->form_group)->get();
+                    $stockers = Stocker::where($formType, $validatedRequest['form_cut_id'])->where('group_stocker', $request->form_group)->get();
                 }
             } else {
-                $stockers = Stocker::where('form_cut_id', $validatedRequest['form_cut_id'])->get();
+                $stockers = Stocker::where($formType, $validatedRequest['form_cut_id'])->get();
             }
             $stockerIdQrs = $stockers->pluck('id_qr_stocker')->toArray();
             $stockerIds = $stockers->pluck('id')->toArray();
@@ -100,7 +113,7 @@ class StockerToolsController extends Controller
                 DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
             ]);
 
-            if (!($request->form_stocker && count(explode(",", $request->form_stocker)) > 0)) {
+            if ($request->form_stocker && count(explode(",", $request->form_stocker)) > 0) {
                 $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
             }
             $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
