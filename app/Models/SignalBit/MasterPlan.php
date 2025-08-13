@@ -15,6 +15,8 @@ class MasterPlan extends Model
 
     protected $guarded = [];
 
+    protected $primaryKey = 'id';
+
     public $timestamps = false;
 
     public function userPassword()

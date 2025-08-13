@@ -24,6 +24,7 @@ use App\Models\FormCutPieceDetail;
 use App\Models\FormCutReject;
 use App\Models\ScannedItem;
 use App\Models\LoadingLinePlan;
+use App\Models\SignalBit\MasterPlan;
 use App\Models\Hris\MasterEmployee;
 use PDF;
 
@@ -910,5 +911,81 @@ class GeneralController extends Controller
         );
 
         return Datatables::of($kodeNumberingOutput)->toJson();
+    }
+
+    public function getMasterPlan(Request $request) {
+        $masterPlanSql = MasterPlan::selectRaw('
+                master_plan.id,
+                master_plan.tgl_plan as tanggal,
+                master_plan.id_ws as id_ws,
+                act_costing.kpno as no_ws,
+                act_costing.styleno as style,
+                master_plan.color as color,
+                master_plan.cancel
+            ')->
+            leftJoin('act_costing', 'act_costing.id', '=', 'master_plan.id_ws');
+
+            // Date Filter
+            if ($request->tanggal) {
+                $masterPlanSql->whereRaw('master_plan.tgl_plan = "'.$request->tanggal.'"');
+            } else {
+                $masterPlanSql->whereRaw('YEAR(master_plan.tgl_plan) = "'.date('Y').'"');
+            }
+
+            // Line Filter
+            if ($request->line) {
+                $masterPlanSql->where('master_plan.sewing_line', $request->line);
+            }
+
+            $masterPlan = $masterPlanSql->
+                orderBy('master_plan.tgl_plan', 'desc')->
+                orderBy('act_costing.kpno', 'asc')->
+                get();
+
+        return $masterPlan;
+    }
+
+    public function getMasterPlanDetail($id = 0) {
+        $masterPlan = MasterPlan::selectRaw('
+                master_plan.id,
+                master_plan.tgl_plan as tanggal,
+                master_plan.id_ws as id_ws,
+                act_costing.kpno as no_ws,
+                act_costing.styleno as style,
+                master_plan.color as color,
+                master_plan.cancel,
+                master_plan.jam_kerja,
+                master_plan.smv,
+                master_plan.man_power,
+                master_plan.plan_target
+            ')->
+            leftJoin('act_costing', 'act_costing.id', '=', 'master_plan.id_ws')->
+            where('master_plan.id', $id)->
+            orderBy('master_plan.tgl_plan', 'desc')->
+            orderBy('act_costing.kpno', 'asc')->
+            first();
+
+        return $masterPlan;
+    }
+
+    public function getMasterPlanOutput(Request $request) {
+        $output = collect(
+            DB::connection("mysql_sb")->select("
+                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line FROM (
+                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
+                    UNION
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE master_plan_id = '".$request->id."'
+                    UNION
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and master_plan_id = '".$request->id."'
+                ) output
+                left join user_sb_wip on user_sb_wip.id = output.created_by
+                left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                left join so_det on so_det.id = output.so_det_id
+                left join so on so.id = so_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+            ")
+        );
+
+        return Datatables::of($output)->toJson();
     }
 }

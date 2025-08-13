@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Sewing;
 
 use App\Http\Controllers\Controller;
+use App\Models\SignalBit\ActCosting;
 use App\Models\SignalBit\SoDet;
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\Rft;
@@ -14,6 +15,7 @@ use App\Models\SignalBit\DefectPacking;
 use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\Undo;
+use App\Models\SignalBit\UserLine;
 use App\Models\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -1802,5 +1804,99 @@ class SewingToolsController extends Controller
                 return $result;
             }
         }
+    }
+
+    public function lineMigration() {
+        $lines = UserLine::select('line_id', "username")->where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
+
+        return view("sewing.tools.line-migration", [
+            "page" => "dashboard-sewing-eff",
+            "lines" => $lines,
+        ]);
+    }
+
+    public function lineMigrationSubmit(Request $request) {
+        $validatedRequest = $request->validate([
+            'tanggal_from' => 'required',
+            'line_from' => 'required',
+            'master_plan_from' => 'required',
+            'line_to' => 'required'
+        ]);
+
+        if ($validatedRequest) {
+            $tanggalFrom = $request->tanggal_from;
+            $lineFrom = $request->line_from;
+            $masterPlanFrom = $request->master_plan_from;
+            $lineTo = $request->line_to;
+
+            $masterPlan = MasterPlan::where('id', $masterPlanFrom)->first();
+
+            if ($masterPlan) {
+                $newMasterPlan = MasterPlan::create([
+                    "id_ws" => $masterPlan->id_ws,
+                    "color" => $masterPlan->color,
+                    "tgl_plan" => $masterPlan->tgl_plan,
+                    "jam_kerja" => $masterPlan->jam_kerja,
+                    "smv" => $masterPlan->smv,
+                    "man_power" => $masterPlan->man_power,
+                    "plan_target" => $masterPlan->plan_target,
+                    "sewing_line" => $lineTo,
+                ]);
+
+                if ($newMasterPlan) {
+                    $lineId = UserLine::where('username', $lineTo)->value('line_id');
+
+                    // RFT
+                    $updateRft = DB::connection("mysql_sb")->table('output_rfts')->where('master_plan_id', $masterPlan->id)->update([
+                        "master_plan_id" => $newMasterPlan->id,
+                        "created_by" => $lineId,
+                    ]);
+
+                    // Defect & Rework
+                    $updateDefect = Defect::where('master_plan_id', $masterPlan->id)->get();
+                    foreach ($updateDefect as $defect) {
+                        $defect->timestamps = false;
+                        $defect->master_plan_id = $newMasterPlan->id;
+                        $defect->created_by = $lineId;
+                        $defect->save();
+
+                        DB::connection("mysql_sb")->table('output_reworks')->where('defect_id', $defect->id)->update([
+                            "created_by" => $lineId,
+                        ]);
+                    }
+
+                    // Reject
+                    $updateReject = DB::connection("mysql_sb")->table('output_rejects')->where('master_plan_id', $masterPlan->id)->update([
+                        "master_plan_id" => $newMasterPlan->id,
+                        "created_by" => $lineId,
+                    ]);
+
+                    $masterPlan->cancel = 'Y';
+                    $masterPlan->save();
+
+                    $orderInfo = ActCosting::where('id', $masterPlan->id_ws)->first();
+
+                    return array(
+                        "status" => "200",
+                        "message" => "Migrasi Line berhasil dari '".$lineFrom."' ke '".$lineTo."' <br> Master Plan ID : '".$masterPlan->id."' <br> Tanggal : ".$masterPlan->tgl_plan." <br> WS : ".$orderInfo->kpno." <br> Color : ".$masterPlan->color."",
+                    );
+                }
+
+                return array(
+                    "status" => "400",
+                    "message" => "Terjadi kesalahan.",
+                );
+            }
+
+            return array(
+                "status" => "400",
+                "message" => "Master Plan tidak ditemukan.",
+            );
+        }
+
+        return array(
+            "status" => "400",
+            "message" => "Harap tentukan line dan masterplan.",
+        );
     }
 }
