@@ -51,7 +51,7 @@ class StockerToolsController extends Controller
 
         if ($request->form_group) {
             if ($request->form_stocker && count(explode(",", $request->form_stocker)) > 0) {
-                $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) {
+                $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) use ($formType) {
                     $join->on("stocker_input.".$formType."", "=", "year_sequence.".$formType."");
                     $join->on("stocker_input.so_det_id", "=", "year_sequence.so_det_id");
                     $join->on("stocker_input.range_awal", "<=", "year_sequence.number");
@@ -62,7 +62,7 @@ class StockerToolsController extends Controller
                 whereIn('stocker_input.id', explode(",", $request->form_stocker))->
                 count();
             } else {
-                $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) {
+                $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) use ($formType) {
                     $join->on("stocker_input.".$formType."", "=", "year_sequence.".$formType."");
                     $join->on("stocker_input.so_det_id", "=", "year_sequence.so_det_id");
                     $join->on("stocker_input.range_awal", "<=", "year_sequence.number");
