@@ -14,7 +14,7 @@ use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\MasterPlan;
-use App\Models\YearSequence;
+use App\Models\Stocker\YearSequence;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use DB;

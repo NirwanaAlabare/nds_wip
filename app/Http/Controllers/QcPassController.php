@@ -694,7 +694,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -702,7 +702,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -714,7 +714,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function update($id)
@@ -782,7 +782,7 @@ UNION select no_form,no_roll,upto3, over3,over6,over9,width_fabric,ttl_poin,roun
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)

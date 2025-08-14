@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Stocker;
-use App\Models\StockerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
-use App\Models\Marker;
+use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerDetail;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Marker\Marker;
 use App\Models\MasterLokasi;
 use App\Models\UnitLokasi;
 use App\Models\InMaterialFabric;
@@ -16,7 +16,7 @@ use App\Models\Bpb;
 use App\Models\Tempbpb;
 use App\Models\InMaterialLokTemp;
 use Illuminate\Support\Facades\Auth;
-use App\Models\MarkerDetail;
+use App\Models\Marker\MarkerDetail;
 use App\Models\InMaterialLokasi;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -1034,7 +1034,7 @@ public function pdfinmaterial(Request $request, $id)
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -1042,7 +1042,7 @@ public function pdfinmaterial(Request $request, $id)
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -1054,7 +1054,7 @@ public function pdfinmaterial(Request $request, $id)
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function update($id)
@@ -1081,7 +1081,7 @@ public function pdfinmaterial(Request $request, $id)
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)

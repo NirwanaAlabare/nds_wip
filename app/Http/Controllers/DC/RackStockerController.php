@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
-use App\Models\Rack;
-use App\Models\RackDetail;
-use App\Models\RackDetailStocker;
-use App\Models\Stocker;
+use App\Models\Dc\Rack;
+use App\Models\Dc\RackDetail;
+use App\Models\Dc\RackDetailStocker;
+use App\Models\Stocker\Stocker;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -183,7 +183,7 @@ class RackStockerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
+     * @param  \App\Models\Dc\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
     public function show(RackDetailStocker $rackDetailStocker)
@@ -244,7 +244,7 @@ class RackStockerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
+     * @param  \App\Models\Dc\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
     public function edit(RackDetailStocker $rackDetailStocker)
@@ -256,7 +256,7 @@ class RackStockerController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
+     * @param  \App\Models\Dc\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, RackDetailStocker $rackDetailStocker)
@@ -267,7 +267,7 @@ class RackStockerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\RackDetailStocker  $rackDetailStocker
+     * @param  \App\Models\Dc\RackDetailStocker  $rackDetailStocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(RackDetailStocker $rackStocker, $id)

@@ -2,25 +2,25 @@
 
 namespace App\Services;
 
-use App\Models\Stocker;
-use App\Models\StockerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
-use App\Models\FormCutReject;
-use App\Models\FormCutPiece;
-use App\Models\FormCutPieceDetail;
-use App\Models\FormCutPieceDetailSize;
-use App\Models\Marker;
-use App\Models\MarkerDetail;
-use App\Models\Part;
-use App\Models\PartDetail;
-use App\Models\PartForm;
-use App\Models\ModifySizeQty;
-use App\Models\MonthCount;
-use App\Models\YearSequence;
-use App\Models\StockerAdditional;
-use App\Models\StockerAdditionalDetail;
+use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerDetail;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutReject;
+use App\Models\Cutting\FormCutPiece;
+use App\Models\Cutting\FormCutPieceDetail;
+use App\Models\Cutting\FormCutPieceDetailSize;
+use App\Models\Marker\Marker;
+use App\Models\Marker\MarkerDetail;
+use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\PartForm;
+use App\Models\Stocker\ModifySizeQty;
+use App\Models\Stocker\MonthCount;
+use App\Models\Stocker\YearSequence;
+use App\Models\Stocker\StockerAdditional;
+use App\Models\Stocker\StockerAdditionalDetail;
 use Illuminate\Http\Request;
 use DB;
 

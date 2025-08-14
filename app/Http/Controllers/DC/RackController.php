@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
-use App\Models\Rack;
-use App\Models\RackDetail;
+use App\Models\Dc\Rack;
+use App\Models\Dc\RackDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -125,7 +125,7 @@ class RackController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Rack  $rack
+     * @param  \App\Models\Dc\Rack  $rack
      * @return \Illuminate\Http\Response
      */
     public function show(Rack $rack)
@@ -136,7 +136,7 @@ class RackController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Rack  $rack
+     * @param  \App\Models\Dc\Rack  $rack
      * @return \Illuminate\Http\Response
      */
     public function edit(Rack $rack)
@@ -148,7 +148,7 @@ class RackController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Rack  $rack
+     * @param  \App\Models\Dc\Rack  $rack
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request)
@@ -235,7 +235,7 @@ class RackController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Rack  $rack
+     * @param  \App\Models\Dc\Rack  $rack
      * @return \Illuminate\Http\Response
      */
     public function destroy(Rack $rack, $id = 0)

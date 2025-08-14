@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Marker;
 
 use App\Http\Controllers\Controller;
-use App\Models\Marker;
-use App\Models\MarkerDetail;
+use App\Models\Marker\Marker;
+use App\Models\Marker\MarkerDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -349,7 +349,7 @@ class MarkerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Marker  $marker
+     * @param  \App\Models\Marker\Marker  $marker
      * @return \Illuminate\Http\Response
      */
     public function show(Request $request)
@@ -725,7 +725,7 @@ class MarkerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Marker  $marker
+     * @param  \App\Models\Marker\Marker  $marker
      * @return \Illuminate\Http\Response
      */
     public function edit(Marker $marker, $id)
@@ -739,7 +739,7 @@ class MarkerController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Marker  $marker
+     * @param  \App\Models\Marker\Marker  $marker
      * @return \Illuminate\Http\Response
      */
     public function update(Marker $marker, Request $request, $id)
@@ -972,7 +972,7 @@ class MarkerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Marker  $marker
+     * @param  \App\Models\Marker\Marker  $marker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Marker $marker)

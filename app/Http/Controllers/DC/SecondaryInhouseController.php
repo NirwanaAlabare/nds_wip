@@ -5,7 +5,7 @@ namespace App\Http\Controllers\DC;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\SecondaryInhouse;
+use App\Models\Dc\SecondaryInhouse;
 use App\Exports\DC\ExportSecondaryInHouse;
 use App\Exports\DC\ExportSecondaryInHouseDetail;
 use Yajra\DataTables\Facades\DataTables;

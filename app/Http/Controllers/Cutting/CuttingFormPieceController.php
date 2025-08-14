@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\FormCutPiece;
-use App\Models\FormCutPieceDetail;
-use App\Models\FormCutPieceDetailSize;
-use App\Models\PartDetail;
-use App\Models\ScannedItem;
-use App\Models\Part;
-use App\Models\PartForm;
-use App\Models\Stocker;
+use App\Models\Cutting\FormCutPiece;
+use App\Models\Cutting\FormCutPieceDetail;
+use App\Models\Cutting\FormCutPieceDetailSize;
+use App\Models\Part\PartDetail;
+use App\Models\Cutting\ScannedItem;
+use App\Models\Part\Part;
+use App\Models\Part\PartForm;
+use App\Models\Stocker\Stocker;
 use App\Models\Hris\MasterEmployee;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Cutting\ExportCuttingFormReject;
@@ -456,7 +456,7 @@ class CuttingFormPieceController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\FormCutPiece  $formCutPiece
+     * @param  \App\Models\Cutting\FormCutPiece  $formCutPiece
      * @return \Illuminate\Http\Response
      */
     public function show($id = 0)
@@ -486,7 +486,7 @@ class CuttingFormPieceController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\FormCutPiece  $formCutPiece
+     * @param  \App\Models\Cutting\FormCutPiece  $formCutPiece
      * @return \Illuminate\Http\Response
      */
     public function edit(FormCutPiece $formCutPiece, $id = 0)
@@ -500,7 +500,7 @@ class CuttingFormPieceController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\FormCutPiece  $formCutPiece
+     * @param  \App\Models\Cutting\FormCutPiece  $formCutPiece
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, FormCutPiece $formCutPiece)
@@ -592,7 +592,7 @@ class CuttingFormPieceController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\FormCutPiece  $formCutPiece
+     * @param  \App\Models\Cutting\FormCutPiece  $formCutPiece
      * @return \Illuminate\Http\Response
      */
     public function destroy(FormCutPiece $formCutPiece, $id)

@@ -16,7 +16,7 @@ use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\Undo;
 use App\Models\SignalBit\UserLine;
-use App\Models\YearSequence;
+use App\Models\Stocker\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;

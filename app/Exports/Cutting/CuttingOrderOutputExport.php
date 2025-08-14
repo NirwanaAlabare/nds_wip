@@ -2,7 +2,7 @@
 
 namespace App\Exports\Cutting;
 
-use App\Models\FormCutInput;
+use App\Models\Cutting\FormCutInput;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\FromView;
