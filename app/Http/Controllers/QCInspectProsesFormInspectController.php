@@ -43,7 +43,11 @@ b.no_roll_buyer,
 qc.status_proses_form,
 c.individu,
 qc.pass_with_condition,
-IF(qc.founding_issue IS NULL, 'PASS', 'HOLD') AS founding_issue_result,
+CASE
+    WHEN qc.status_proses_form = 'done'
+         THEN IF(qc.founding_issue IS NULL, 'PASS', 'HOLD')
+    ELSE NULL
+END AS founding_issue_result,
 qc.short_roll_result,
 qc.final_result
 from qc_inspect_form qc
@@ -444,7 +448,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
             'data' => [
                 'barcode'   => $row->no_barcode,
                 'supplier'  => $row->supplier,
-                'no_roll'   => $row->no_roll,
+                'no_roll'   => $row->no_roll_buyer,
                 'color'     => $row->color,
                 'itemdesc'  => $row->itemdesc,
             ]

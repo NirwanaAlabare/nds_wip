@@ -101,7 +101,7 @@
                             <!-- Title Cell -->
                             <td rowspan="4"
                                 style="width: 50%; border: 1px solid #000; text-align: center; vertical-align: middle; font-size: 18px; font-weight: bold;">
-                                FABRIC INSPECTION
+                                FABRIC INSPECTION REPORT
                             </td>
 
                             <!-- Kode Dok (with rowspan) -->
@@ -141,13 +141,15 @@
                     $jml_lot = $data->jml_lot ?? '-';
                     $supplier = $data->supplier ?? '-';
                     $type_pch = $data->type_pch ?? '-';
+                    $ws = $data->no_ws ?? '-';
                 @endphp
-                <table style="width: 100%; border-collapse: collapse; table-layout: fixed; line-height: 1.8;">
+                <table
+                    style="width: 100%; border-collapse: collapse; table-layout: fixed; line-height: 1.8; font-size: 11px;">
                     <tbody>
                         <tr>
                             <td style="font-weight: bold; width: 15%;">Tgl. BPB</td>
                             <td style="width: 2%;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($tgl_dok) > 25 ? '9px' : '11px' }};">
+                            <td style="width: 33%;">
                                 {{ $tgl_dok }}
                             </td>
                             <td
@@ -155,56 +157,70 @@
                                 Buyer
                             </td>
                             <td style="width: 2%; text-align: center;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($buyer) > 25 ? '9px' : '11px' }};">
+                            <td style="width: 33%;">
                                 {{ $buyer }}
                             </td>
                         </tr>
                         <tr>
                             <td style="font-weight: bold; width: 15%;">No. PL</td>
                             <td style="width: 2%;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($no_invoice) > 25 ? '9px' : '11px' }};">
+                            <td style="width: 33%;">
                                 {{ $no_invoice }}
+                            </td>
+                            <td
+                                style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
+                                Worksheet
+                            </td>
+                            <td style="width: 2%;">:</td>
+                            <td style="width: 33%;">
+                                {{ $ws }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; width: 15%;">Supplier</td>
+                            <td style="width: 2%;">:</td>
+                            <td style="width: 33%;">
+                                {{ $supplier }}
                             </td>
                             <td
                                 style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
                                 Style
                             </td>
                             <td style="width: 2%; text-align: center;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($style) > 25 ? '9px' : '11px' }};">
+                            <td style="width: 33%;">
                                 {{ $style }}
                             </td>
                         </tr>
                         <tr>
-                            <td style="font-weight: bold; width: 15%;">Supplier</td>
+                            <td style="font-weight: bold; width: 15%;">Group Inspect</td>
                             <td style="width: 2%;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($supplier) > 25 ? '9px' : '11px' }};">
-                                {{ $supplier }}
+                            <td style="width: 33%;">
+                                {{ $group_inspect }}
                             </td>
                             <td
                                 style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
                                 Color
                             </td>
                             <td style="width: 2%; text-align: center;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($color) > 25 ? '9px' : '11px' }};">
+                            <td style="width: 33%;">
                                 {{ $color }}
                             </td>
                         </tr>
                         <tr>
                             <td style="font-weight: bold; width: 15%;">ID Item</td>
                             <td style="width: 2%;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($id_item) > 25 ? '9px' : '11px' }};">
+                            <td style="width: 33%;">
                                 {{ $id_item }}
                             </td>
                             <td
                                 style="font-weight: bold; width: 15%; text-align: right; padding-right: 0; margin-right: -2px;">
-                                % Inspect
+                                Inspect
                             </td>
                             <td style="width: 2%; text-align: center;">:</td>
-                            <td style="width: 33%; font-size: {{ strlen($cek_inspect) > 25 ? '9px' : '11px' }};">
-                                {{ $cek_inspect }}
+                            <td style="width: 33%;">
+                                {{ $cek_inspect }} %
                             </td>
                         </tr>
-
                         <tr>
                             <td style="font-weight: bold;">Fabric</td>
                             <td>:</td>
@@ -214,7 +230,6 @@
                         </tr>
                     </tbody>
                 </table>
-
 
                 <div style="height: 20px;"></div>
 
@@ -309,8 +324,7 @@
                                 <tr>
                                     <td style="width: 15%; font-weight: bold; padding: 4px;">Date</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 20%; padding: 4px;">
-                                        {{ \Carbon\Carbon::parse($dhf->tgl_form)->format('d-m-Y') }}</td>
+                                    <td style="width: 20%; padding: 4px;">{{ $dhf->start_form_fix }}</td>
 
                                     <td style="width: 15%; font-weight: bold; padding: 4px;">No Roll</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
@@ -332,7 +346,7 @@
 
                                     <td style="width: 8%; font-weight: bold; padding: 4px;">Gramage</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 10%; padding: 4px;">Ke-{{ $dhf->gramage }}</td>
+                                    <td style="width: 10%; padding: 4px;">{{ $dhf->gramage }}</td>
                                 </tr>
 
                                 <tr>
@@ -342,7 +356,7 @@
 
                                     <td style="width: 10%; font-weight: bold; padding: 4px;">Inspect</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
-                                    <td style="width: 15%; padding: 4px;">{{ $dhf->proses }}</td>
+                                    <td style="width: 15%; padding: 4px;">Ke - {{ $dhf->proses }}</td>
 
                                     <td style="width: 8%; font-weight: bold; padding: 4px;">Final Result</td>
                                     <td style="width: 3%; padding: 4px;">:</td>
@@ -423,15 +437,19 @@
                                                         Total</th>
                                                     <th
                                                         style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                        {{ $result_summary_visual_inspect_grouped[$dhf->no_form][0]->sum_up_to_3 ?? '-' }}
                                                     </th>
                                                     <th
                                                         style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                        {{ $result_summary_visual_inspect_grouped[$dhf->no_form][0]->sum_3_6 ?? '-' }}
                                                     </th>
                                                     <th
                                                         style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                        {{ $result_summary_visual_inspect_grouped[$dhf->no_form][0]->sum_6_9 ?? '-' }}
                                                     </th>
                                                     <th
                                                         style="border: 1px solid #000; padding: 6px; text-align: center;">
+                                                        {{ $result_summary_visual_inspect_grouped[$dhf->no_form][0]->sum_over_9 ?? '-' }}
                                                     </th>
                                                     <th
                                                         style="border: 1px solid #000; padding: 6px; text-align: center;">
@@ -603,12 +621,13 @@
                 @endforeach
                 <table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">
                     <colgroup>
-                        <col style="width: 20%;">
-                        <col style="width: 55%;"> <!-- Gambar lebih lebar -->
-                        <col style="width: 15%;">
-                        <col style="width: 15%;">
-                        <col style="width: 10%;">
+                        <col style="width: 3%;"> <!-- Lot -->
+                        <col style="width: 88%;"> <!-- Gambar (maximum) -->
+                        <col style="width: 3%;"> <!-- Rate -->
+                        <col style="width: 3%;"> <!-- Result -->
+                        <col style="width: 3%;"> <!-- Tgl. Update -->
                     </colgroup>
+
 
                     <thead>
                         <tr>
@@ -631,16 +650,25 @@
                                 <td style="border: 1px solid #000; padding: 6px; text-align: center;">
                                     {{ $db->no_lot }}</td>
                                 <td style="border: 1px solid #000; padding: 6px; text-align: center;">
-                                    <img src="{{ storage_path('app/public/gambar_blanket/' . $db->photo) }}"
-                                        alt="Photo"
-                                        style="width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+                                    <div style="width: 100%; overflow: hidden;">
+                                        <img src="{{ storage_path('app/public/gambar_blanket/' . $db->photo) }}"
+                                            alt="Photo"
+                                            style="width: 100%; height: auto; display: block; margin: 0 auto;">
+                                    </div>
                                 </td>
+
+
+
                                 <td style="border: 1px solid #000; padding: 6px; text-align: center;">
                                     {{ $db->rate }}</td>
                                 <td style="border: 1px solid #000; padding: 6px; text-align: center;">
                                     {{ $db->result }}</td>
                                 <td style="border: 1px solid #000; padding: 6px; text-align: center;">
-                                    {{ $db->tgl_update_fix }}</td>
+                                    {!! \Carbon\Carbon::parse($db->tgl_update_fix)->format('d-F-Y') !!}<br>
+                                    <span style="font-size: 10px;">
+                                        {!! \Carbon\Carbon::parse($db->tgl_update_fix)->format('H:i:s') !!}
+                                    </span>
+                                </td>
                             </tr>
                         @empty
                             <tr>
@@ -651,8 +679,6 @@
                             </tr>
                         @endforelse
                     </tbody>
-
-
                 </table>
             </div>
 
