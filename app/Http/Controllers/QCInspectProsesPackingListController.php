@@ -1565,7 +1565,13 @@ GROUP BY c.no_form
         $data_blanket = DB::connection('mysql_sb')->select("SELECT
 no_lot,
 photo,
-rate,
+    CASE rate
+        WHEN 0.5 THEN '1/2'
+        WHEN 2.5 THEN '2/3'
+        WHEN 3.5 THEN '3/4'
+        WHEN 4.5 THEN '4/5'
+        ELSE TRIM(TRAILING '.0' FROM rate) -- removes .0 for integers
+    END AS rate,
 result,
 DATE_FORMAT(updated_at, '%d-%M-%Y %H:%i:%s') AS tgl_update_fix
 from qc_inspect_form_blanket where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'
