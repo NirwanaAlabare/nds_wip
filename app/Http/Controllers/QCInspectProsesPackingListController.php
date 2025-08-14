@@ -1306,7 +1306,7 @@ sum_6_9,
 sum_over_9,
 avg_width,
 c.tot_point,
-round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)),2) AS act_point,
+((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
 shipment,
 if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= shipment,'PASS','REJECT') result,
 c.pass_with_condition,
@@ -1352,7 +1352,7 @@ main as (
 SELECT
 d.no_lot,
 count(no_form) tot_form,
-ROUND(SUM(act_point) / count(no_form)) act_point_total,
+ROUND(SUM(act_point) / count(no_form),2) act_point_total,
 shipment,
 max(pass_with_condition) pass_with_condition,
 CASE
