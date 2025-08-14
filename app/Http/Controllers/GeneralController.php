@@ -55,7 +55,7 @@ class GeneralController extends Controller
         $formCuts = collect(
             DB::select("
                     SELECT
-                        form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) total_stocker, 'normal' type
+                        form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) total_stocker, 'normal' type, form_cut_input.updated_at timestamp
                     FROM
                         form_cut_input
                         LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
@@ -67,7 +67,7 @@ class GeneralController extends Controller
                         COUNT(stocker_input.id) > 0
                 UNION ALL
                     SELECT
-                        form_cut_reject.id as form_cut_id, form_cut_reject.no_form, COUNT(stocker_input.id) total_stocker, 'reject' type
+                        form_cut_reject.id as form_cut_id, form_cut_reject.no_form, COUNT(stocker_input.id) total_stocker, 'reject' type, form_cut_reject.updated_at timestamp
                     FROM
                         form_cut_reject
                         LEFT JOIN stocker_input ON stocker_input.form_reject_id = form_cut_reject.id
@@ -79,7 +79,7 @@ class GeneralController extends Controller
                         COUNT(stocker_input.id) > 0
                 UNION ALL
                     SELECT
-                        form_cut_piece.id as form_cut_id, form_cut_piece.no_form, COUNT(stocker_input.id) total_stocker, 'piece' type
+                        form_cut_piece.id as form_cut_id, form_cut_piece.no_form, COUNT(stocker_input.id) total_stocker, 'piece' type, form_cut_piece.updated_at timestamp
                     FROM
                         form_cut_piece
                         LEFT JOIN stocker_input ON stocker_input.form_piece_id = form_cut_piece.id
@@ -90,7 +90,7 @@ class GeneralController extends Controller
                     HAVING
                         COUNT(stocker_input.id) > 0
                 ORDER BY
-                    form_cut_id ASC
+                    timestamp ASC
             "));
 
         return $formCuts ? json_encode($formCuts) : null;
