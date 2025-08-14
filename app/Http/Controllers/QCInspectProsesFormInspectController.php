@@ -240,7 +240,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $nik                    = $get_header[0]->nik        ?? '';
 
         $barcode                = $get_header[0]->barcode    ?? '';
-        $no_roll                = $get_header[0]->no_roll_buyer    ?? '';
+        $no_roll_buyer                = $get_header[0]->no_roll_buyer    ?? '';
         $itemdesc               = $get_header[0]->itemdesc   ?? '';
         $supplier               = $get_header[0]->supplier   ?? '';
 
@@ -306,7 +306,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
                 "enroll_id" => $enroll_id,
                 "nik" => $nik,
                 "barcode" => $barcode,
-                "no_roll" => $no_roll,
+                "no_roll_buyer" => $no_roll_buyer,
                 "itemdesc" => $itemdesc,
                 "supplier" => $supplier,
                 "weight" => $weight,
@@ -448,7 +448,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
             'data' => [
                 'barcode'   => $row->no_barcode,
                 'supplier'  => $row->supplier,
-                'no_roll'   => $row->no_roll_buyer,
+                'no_roll_buyer'   => $row->no_roll_buyer,
                 'color'     => $row->color,
                 'itemdesc'  => $row->itemdesc,
             ]
