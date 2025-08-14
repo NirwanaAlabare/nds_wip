@@ -295,7 +295,8 @@
                                         <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-success" type="button" id="getqr" onclick="scan_qr()">Get</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="initScan()">Scan</button>
                                     </div>
                                 </div>
                             </div>
@@ -474,7 +475,8 @@
                                         <input type="text" class="form-control form-control-sm border-input" name="editqrstocker" id="editqrstocker" autocomplete="off" enterkeyhint="go" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="editscanqr" onclick="edit_scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-success" type="button" id="getqr" onclick="edit_scan_qr()">Get</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="editscanqr" onclick="initScanEdit()">Scan</button>
                                     </div>
                                 </div>
                             </div>
@@ -1042,7 +1044,7 @@
 
                     document.getElementById('editqrstocker').value = decodedText;
 
-                    scan_qr();
+                    edit_scan_qr();
 
                     edithtml5QrcodeScanner.clear();
 
