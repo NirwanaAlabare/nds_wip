@@ -221,7 +221,7 @@
                 <div class="col-md-3">
                     <label for="txtno_roll"><small><b>No. Roll :</b></small></label>
                     <input type="text" id="txtno_roll" name="txtno_roll"
-                        class="form-control form-control-sm border-primary" value="{{ $no_roll }}" readonly>
+                        class="form-control form-control-sm border-primary" value="{{ $no_roll_buyer }}" readonly>
                 </div>
                 <div class="col-md-3">
                     <label for="txtbarcode"><small><b>Barcode :</b></small></label>
