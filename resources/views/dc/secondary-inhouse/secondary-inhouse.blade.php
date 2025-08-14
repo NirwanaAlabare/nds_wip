@@ -30,7 +30,8 @@
                                         <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-success" type="button" id="getqr" onclick="scan_qr()">Get</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="initScan()">Scan</button>
                                     </div>
                                 </div>
                             </div>
