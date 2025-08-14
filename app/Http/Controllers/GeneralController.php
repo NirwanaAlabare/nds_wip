@@ -24,6 +24,7 @@ use App\Models\FormCutPieceDetail;
 use App\Models\FormCutReject;
 use App\Models\ScannedItem;
 use App\Models\LoadingLinePlan;
+use App\Models\SignalBit\MasterPlan;
 use App\Models\Hris\MasterEmployee;
 use PDF;
 
@@ -51,24 +52,69 @@ class GeneralController extends Controller
 
     public function getNoFormCut(Request $request)
     {
-        $formCuts = FormCutInput::selectRaw('form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) as total_stocker')
-            ->leftJoin('stocker_input', 'stocker_input.form_cut_id', '=', 'form_cut_input.id')
-            ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
-            ->groupBy('form_cut_input.id')
-            ->havingRaw('COUNT(stocker_input.id) > 0')
-            ->orderBy('form_cut_input.updated_at', 'desc')
-            ->get();
+        $formCuts = collect(
+            DB::select("
+                    SELECT
+                        form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) total_stocker, 'normal' type, form_cut_input.updated_at timestamp
+                    FROM
+                        form_cut_input
+                        LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
+                    WHERE
+                        DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
+                    GROUP BY
+                        form_cut_input.id
+                    HAVING
+                        COUNT(stocker_input.id) > 0
+                UNION ALL
+                    SELECT
+                        form_cut_reject.id as form_cut_id, form_cut_reject.no_form, COUNT(stocker_input.id) total_stocker, 'reject' type, form_cut_reject.updated_at timestamp
+                    FROM
+                        form_cut_reject
+                        LEFT JOIN stocker_input ON stocker_input.form_reject_id = form_cut_reject.id
+                    WHERE
+                        DATE(form_cut_reject.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
+                    GROUP BY
+                        form_cut_reject.id
+                    HAVING
+                        COUNT(stocker_input.id) > 0
+                UNION ALL
+                    SELECT
+                        form_cut_piece.id as form_cut_id, form_cut_piece.no_form, COUNT(stocker_input.id) total_stocker, 'piece' type, form_cut_piece.updated_at timestamp
+                    FROM
+                        form_cut_piece
+                        LEFT JOIN stocker_input ON stocker_input.form_piece_id = form_cut_piece.id
+                    WHERE
+                        DATE(form_cut_piece.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
+                    GROUP BY
+                        form_cut_piece.id
+                    HAVING
+                        COUNT(stocker_input.id) > 0
+                ORDER BY
+                    timestamp ASC
+            "));
 
         return $formCuts ? json_encode($formCuts) : null;
     }
 
     public function getFormGroup(Request $request)
     {
-        $groups = Stocker::selectRaw('form_cut_input.id form_cut_id, stocker_input.group_stocker, stocker_input.shade')
-            ->leftJoin('form_cut_input', 'form_cut_input.id',  '=', 'stocker_input.form_cut_id' )
-            ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
-            ->where('form_cut_input.id', $request->form_cut_id)
-            ->groupBy('form_cut_input.id', 'stocker_input.group_stocker', 'stocker_input.shade')
+        $formType = 'stocker_input.form_cut_id';
+        switch ($request->form_type) {
+            case 'reject' :
+                $formType = 'stocker_input.form_reject_id';
+                break;
+            case 'piece' :
+                $formType = 'stocker_input.form_piece_id';
+                break;
+            default :
+                $formType = 'stocker_input.form_cut_id';
+                break;
+        }
+
+        $groups = Stocker::selectRaw($formType.' form_cut_id, stocker_input.group_stocker, stocker_input.shade')
+            ->whereRaw('DATE(stocker_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
+            ->whereRaw($formType.' = "'.$request->form_cut_id.'"')
+            ->groupByRaw($formType.', stocker_input.group_stocker, stocker_input.shade')
             ->orderBy('stocker_input.group_stocker', 'asc')
             ->get();
 
@@ -77,12 +123,24 @@ class GeneralController extends Controller
 
     public function getFormStocker(Request $request)
     {
-        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, form_cut_input.id form_cut_id, stocker_input.group_stocker, stocker_input.size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
-            ->leftJoin('form_cut_input', 'form_cut_input.id',  '=', 'stocker_input.form_cut_id' )
-            ->whereRaw('DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
-            ->where('form_cut_input.id', $request->form_cut_id)
+        $formType = 'stocker_input.form_cut_id';
+        switch ($request->form_type) {
+            case 'reject' :
+                $formType = 'stocker_input.form_reject_id';
+                break;
+            case 'piece' :
+                $formType = 'stocker_input.form_piece_id';
+                break;
+            default :
+                $formType = 'stocker_input.form_cut_id';
+                break;
+        }
+
+        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, '.$formType.' form_cut_id, stocker_input.group_stocker, stocker_input.size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
+            ->whereRaw('DATE(stocker_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
+            ->whereRaw($formType.' = "'.$request->form_cut_id.'"')
             ->where('stocker_input.group_stocker', $request->form_group)
-            ->groupBy('form_cut_input.id', 'stocker_input.group_stocker', 'stocker_input.so_det_id', 'stocker_input.ratio')
+            ->groupByRaw($formType.', stocker_input.group_stocker, stocker_input.so_det_id, stocker_input.ratio')
             ->orderBy('stocker_input.so_det_id', 'asc')
             ->get();
 
@@ -892,14 +950,105 @@ class GeneralController extends Controller
             $kodeNumbering = "'no_filter'";
         }
 
+        if ($request->department) {
+            $department = $request->department == "packing" ? "_packing" : "";
+        } else {
+            $department = "";
+        }
+
         $kodeNumberingOutput = collect(
             DB::connection("mysql_sb")->select("
+                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing" ? "'PACKING' as type" : "'QC' as type")." FROM (
+                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
+                    UNION
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
+                    UNION
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                ) output
+                ".
+                (
+                    $department && $department == "_packing" ?
+                    "
+                        left join userpassword on userpassword.username = output.created_by
+                    " :
+                    "
+                        left join user_sb_wip on user_sb_wip.id = output.created_by
+                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    "
+                )."
+                left join so_det on so_det.id = output.so_det_id
+                left join so on so.id = so_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+            ")
+        );
+
+        return Datatables::of($kodeNumberingOutput)->toJson();
+    }
+
+    public function getMasterPlan(Request $request) {
+        $masterPlanSql = MasterPlan::selectRaw('
+                master_plan.id,
+                master_plan.tgl_plan as tanggal,
+                master_plan.id_ws as id_ws,
+                act_costing.kpno as no_ws,
+                act_costing.styleno as style,
+                master_plan.color as color,
+                master_plan.cancel
+            ')->
+            leftJoin('act_costing', 'act_costing.id', '=', 'master_plan.id_ws');
+
+            // Date Filter
+            if ($request->tanggal) {
+                $masterPlanSql->whereRaw('master_plan.tgl_plan = "'.$request->tanggal.'"');
+            } else {
+                $masterPlanSql->whereRaw('YEAR(master_plan.tgl_plan) = "'.date('Y').'"');
+            }
+
+            // Line Filter
+            if ($request->line) {
+                $masterPlanSql->where('master_plan.sewing_line', $request->line);
+            }
+
+            $masterPlan = $masterPlanSql->
+                orderBy('master_plan.tgl_plan', 'desc')->
+                orderBy('act_costing.kpno', 'asc')->
+                get();
+
+        return $masterPlan;
+    }
+
+    public function getMasterPlanDetail($id = 0) {
+        $masterPlan = MasterPlan::selectRaw('
+                master_plan.id,
+                master_plan.tgl_plan as tanggal,
+                master_plan.id_ws as id_ws,
+                act_costing.kpno as no_ws,
+                act_costing.styleno as style,
+                master_plan.color as color,
+                master_plan.cancel,
+                master_plan.jam_kerja,
+                master_plan.smv,
+                master_plan.man_power,
+                master_plan.plan_target
+            ')->
+            leftJoin('act_costing', 'act_costing.id', '=', 'master_plan.id_ws')->
+            where('master_plan.id', $id)->
+            orderBy('master_plan.tgl_plan', 'desc')->
+            orderBy('act_costing.kpno', 'asc')->
+            first();
+
+        return $masterPlan;
+    }
+
+    public function getMasterPlanOutput(Request $request) {
+        $output = collect(
+            DB::connection("mysql_sb")->select("
                 SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line FROM (
-                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
+                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
                     UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE master_plan_id = '".$request->id."'
                     UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and master_plan_id = '".$request->id."'
                 ) output
                 left join user_sb_wip on user_sb_wip.id = output.created_by
                 left join userpassword on userpassword.line_id = user_sb_wip.line_id
@@ -909,6 +1058,6 @@ class GeneralController extends Controller
             ")
         );
 
-        return Datatables::of($kodeNumberingOutput)->toJson();
+        return Datatables::of($output)->toJson();
     }
 }

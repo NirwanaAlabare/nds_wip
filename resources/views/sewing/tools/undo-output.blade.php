@@ -19,6 +19,13 @@
             </h5>
         </div>
         <div class="card-body">
+            <div class="form-group mt-3">
+                <label class='form-label'>Department</label>
+                <select class="form-select" name="department" id="department">
+                    <option value="qc">QC</option>
+                    <option value="packing">PACKING</option>
+                </select>
+            </div>
             <label class="form-label">Kode Numbering :</label>
             <textarea class="form-control" name="kode_numbering" id="kode_numbering" cols="30" rows="10"></textarea>
             <div class="form-text">Contoh : <br>&nbsp;&nbsp;&nbsp;<b> {{ date("Y") }}_1_1</b><br>&nbsp;&nbsp;&nbsp;<b> {{ date("Y") }}_1_2</b><br>&nbsp;&nbsp;&nbsp;<b> {{ date("Y") }}_1_3</b></div>
@@ -40,6 +47,7 @@
                     <thead>
                         <tr>
                             <th>Kode</th>
+                            <th>Type</th>
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
@@ -91,10 +99,12 @@
                 scrollY: '400px',
                 data: function(d) {
                     d.kode_numbering = $('#kode_numbering').val();
+                    d.department = $('#department').val();
                 },
             },
             columns: [
                 { data: "kode_numbering" },
+                { data: "type" },
                 { data: "ws" },
                 { data: "style" },
                 { data: "color" },
@@ -135,7 +145,8 @@
                         url: "{{ route('undo-output-submit') }}",
                         type: "post",
                         data: {
-                            kode_numbering: $("#kode_numbering").val()
+                            kode_numbering: $("#kode_numbering").val(),
+                            department: $("#department").val()
                         },
                         dataType: "json",
                         success: function (res) {

@@ -2488,153 +2488,164 @@ order by buyer asc");
             ) b on a.ws = b.ws and a.color = b.color and a.size = b.size and a.styleno_prod = b.styleno_prod and a.reff_no = b.reff_no
             LEFT JOIN (
 				SELECT
-                    ws,
-                    color,
-                    size,
-                    SUM(qty_cut_new) as qty_cut_new
-                FROM
-                (
-                    SELECT
-                        ws,
-                        color,
-                        size,
-                        MIN(qty_cut) qty_cut_new
-                    FROM
-                        (
-                        SELECT
-                            ws,
-                            color,
-                            size,
-                            panel,
-                            SUM( qty_cut ) qty_cut
-                        FROM
-                            (
-                                SELECT
-                                    marker_input_detail.so_det_id AS id_so_det,
-                                    master_sb_ws.ws,
-                                    master_sb_ws.color,
-                                    master_sb_ws.size,
-                                    marker_input.panel,
-                                    marker_input_detail.ratio,
-                                    form_detail.total_lembar,
-                                    modify_size_qty.difference_qty,
-                                    CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM( marker_input_detail.ratio * form_detail.total_lembar ) END AS qty_cut
-                                FROM
-                                    laravel_nds.form_cut_input
-                                    LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_lembar FROM laravel_nds.form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
-                                    LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
-                                    LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-                                    LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
-                                    LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
-                                WHERE
-                                    form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-                                    AND ( marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-                                    $cond_ws_nds $cond_color_nds $cond_size_nds
-                                GROUP BY
-                                    form_cut_input.id,
-                                    marker_input.panel,
-                                    marker_input_detail.id
-                            UNION ALL
-                                SELECT
-                                    stocker_ws_additional_detail.so_det_id AS id_so_det,
-                                    master_sb_ws.ws,
-                                    master_sb_ws.color,
-                                    master_sb_ws.size,
-                                    stocker_ws_additional.panel,
-                                    stocker_ws_additional_detail.ratio,
-                                    form_detail.total_lembar,
-                                    modify_size_qty.difference_qty,
-                                    CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_detail.total_lembar) END AS qty_cut
-                                FROM
-                                    laravel_nds.form_cut_input
-                                    LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_lembar FROM laravel_nds.form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
-                                    LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-                                    LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-                                    LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
-                                    LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
-                                WHERE
-                                    form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-                                    AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-                                    $cond_ws_nds $cond_color_nds $cond_size_nds
-                                GROUP BY
-                                    form_cut_input.id,
-                                    stocker_ws_additional.panel,
-                                    stocker_ws_additional_detail.id
-                            UNION ALL
-                                SELECT
-                                    form_cut_piece_detail_size.so_det_id AS id_so_det,
-                                    master_sb_ws.ws,
-                                    master_sb_ws.color,
-                                    master_sb_ws.size,
-                                    form_cut_piece.panel,
-                                    1 AS ratio,
-                                    SUM(form_cut_piece_detail_size.qty) qty,
-                                    NULL AS difference_qty,
-                                    SUM(form_cut_piece_detail_size.qty) qty
-                                FROM
-                                    form_cut_piece_detail_size
-                                    LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.id = form_cut_piece_detail_size.form_detail_id
-                                    LEFT JOIN form_cut_piece ON form_cut_piece.id = form_cut_piece_detail.form_id
-                                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
-                                WHERE
-                                    master_sb_ws.id_so_det IS NOT NULL
-                                    $cond_ws_nds $cond_color_nds $cond_size_nds
-                                GROUP BY
-                                    form_cut_piece.panel,
-                                    form_cut_piece_detail_size.so_det_id
-                            ) cutting
-                        GROUP BY
-                            ws,
-                            color,
-                            size,
-                            panel
-                        ) cutting
-                    GROUP BY
-                        ws,
-                        color,
-                        size
-                UNION ALL
-                    SELECT
-                        ws,
-                        color,
-                        size,
-                        MIN( qty_cut ) qty_cut
-                    FROM
-                        (
-                        SELECT
-                            master_sb_ws.ws,
-                            master_sb_ws.color,
-                            form_cut_reject.panel,
-                            master_sb_ws.size,
-                            SUM( form_cut_reject_detail.qty ) AS qty_cut
-                        FROM
-                            form_cut_reject_detail
-                            LEFT JOIN form_cut_reject ON form_cut_reject.id = form_cut_reject_detail.form_id
-                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
-                        WHERE
-                            master_sb_ws.id_so_det IS NOT NULL $cond_ws_nds $cond_color_nds $cond_size_nds
-                        GROUP BY
-                            form_cut_reject.panel,
-                            master_sb_ws.ws,
-                            master_sb_ws.color,
-                            master_sb_ws.size
-                        ) form_reject
-                    WHERE
-                        ws IS NOT NULL $cond_ws_global $cond_color_global $cond_size_global
-                    GROUP BY
-                        ws,
-                        color,
-                        size
-                ) cut
-                GROUP BY
-                    ws,
-                    color,
-                    size
+					ws,
+					color,
+					size,
+					MIN(qty_cut) qty_cut_new
+				FROM
+					(
+					SELECT
+						ws,
+						color,
+						size,
+						panel,
+						SUM( qty_cut ) qty_cut
+					FROM
+						(
+							SELECT
+								marker_input_detail.so_det_id AS id_so_det,
+								master_sb_ws.ws,
+								master_sb_ws.color,
+								master_sb_ws.size,
+								marker_input.panel,
+								marker_input_detail.ratio,
+								form_detail.total_lembar,
+								modify_size_qty.difference_qty,
+								CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM( marker_input_detail.ratio * form_detail.total_lembar ) END AS qty_cut
+							FROM
+								laravel_nds.form_cut_input
+								LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_lembar FROM laravel_nds.form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
+								LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+								LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id
+								LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+								LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = marker_input_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+								LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
+							WHERE
+								form_cut_input.STATUS = 'SELESAI PENGERJAAN'
+								AND ( marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
+								$cond_ws_nds $cond_color_nds $cond_size_nds
+							GROUP BY
+								form_cut_input.id,
+								marker_input.panel,
+								marker_input_detail.id
+                        UNION ALL
+                            SELECT
+                                stocker_ws_additional_detail.so_det_id AS id_so_det,
+                                master_sb_ws.ws,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                stocker_ws_additional.panel,
+                                stocker_ws_additional_detail.ratio,
+                                form_detail.total_lembar,
+                                modify_size_qty.difference_qty,
+                                CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_detail.total_lembar) END AS qty_cut
+                            FROM
+                                laravel_nds.form_cut_input
+                                LEFT JOIN (select form_cut_id, SUM(lembar_gelaran) total_lembar FROM laravel_nds.form_cut_input_detail GROUP BY form_cut_id) form_detail ON form_detail.form_cut_id = form_cut_input.id
+                                LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                                LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                                LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+                                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                                LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                            WHERE
+                                form_cut_input.STATUS = 'SELESAI PENGERJAAN'
+                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
+                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                            GROUP BY
+                                form_cut_input.id,
+                                stocker_ws_additional.panel,
+                                stocker_ws_additional_detail.id
+                        UNION ALL
+                            SELECT
+                                form_cut_reject_detail.so_det_id AS id_so_det,
+                                master_sb_ws.ws,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                form_cut_reject.panel,
+                                1 AS ratio,
+                                SUM(form_cut_reject_detail.qty) qty,
+                                NULL AS difference_qty,
+                                SUM(form_cut_reject_detail.qty) qty
+                            FROM
+                                form_cut_reject_detail
+                                LEFT JOIN form_cut_reject ON form_cut_reject.id = form_cut_reject_detail.form_id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                            WHERE
+                                master_sb_ws.id_so_det IS NOT NULL AND
+                                form_cut_reject_detail.qty > 0 AND
+                                form_cut_reject.id is not null
+                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                            GROUP BY
+                                form_cut_reject.panel,
+                                form_cut_reject_detail.so_det_id
+                        UNION ALL
+                            SELECT
+                                form_cut_piece_detail_size.so_det_id AS id_so_det,
+                                master_sb_ws.ws,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                form_cut_piece.panel,
+                                1 AS ratio,
+                                SUM(form_cut_piece_detail_size.qty) qty,
+                                NULL AS difference_qty,
+                                SUM(form_cut_piece_detail_size.qty) qty
+                            FROM
+                                form_cut_piece_detail_size
+                                LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.id = form_cut_piece_detail_size.form_detail_id
+                                LEFT JOIN form_cut_piece ON form_cut_piece.id = form_cut_piece_detail.form_id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                            WHERE
+                                master_sb_ws.id_so_det IS NOT NULL
+                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                            GROUP BY
+                                form_cut_piece.panel,
+                                form_cut_piece_detail_size.so_det_id
+						) cutting
+					GROUP BY
+						ws,
+						color,
+						size,
+						panel
+					) cutting
+				GROUP BY
+					ws,
+					color,
+					size
+			 UNION ALL
+				SELECT
+					ws,
+					color,
+					size,
+					MIN( qty_cut ) qty_cut
+				FROM
+					(
+					SELECT
+						master_sb_ws.ws,
+						master_sb_ws.color,
+						form_cut_reject.panel,
+						master_sb_ws.size,
+						SUM( form_cut_reject_detail.qty ) AS qty_cut
+					FROM
+						form_cut_reject_detail
+						LEFT JOIN form_cut_reject ON form_cut_reject.id = form_cut_reject_detail.form_id
+						LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+					WHERE
+						master_sb_ws.id_so_det IS NOT NULL $cond_ws_nds $cond_color_nds $cond_size_nds
+					GROUP BY
+						form_cut_reject.panel,
+						master_sb_ws.ws,
+						master_sb_ws.color,
+						master_sb_ws.size
+					) form_reject
+				WHERE
+					ws IS NOT NULL $cond_ws_global $cond_color_global $cond_size_global
+				GROUP BY
+					ws,
+					color,
+					size
 			) c ON a.ws = c.ws
-		AND a.color = c.color
-		AND a.size = c.size
+            AND a.color = c.color
+            AND a.size = c.size
             GROUP BY
                             ws, color, size, tgl_shipment
             )
