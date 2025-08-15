@@ -5945,7 +5945,7 @@ class StockerController extends Controller
         if ($validatedRequest) {
             $result = [];
             for ($i = 0; $i < count($request["so_det_id"]); $i++) {
-                if (count($request["separate_qty"][$i]) > 1) {
+                if (count($request["separate_qty"][$i]) > 0 && $request["ratio"][$i] != count($request["separate_qty"][$i])) {
                     if ($request["type"] && $request["type"] == "piece") {
                         $storeSeparateStocker = StockerSeparate::create([
                             "form_piece_id" => $validatedRequest["form_cut_id"],

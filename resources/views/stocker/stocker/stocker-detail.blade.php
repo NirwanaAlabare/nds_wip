@@ -2245,8 +2245,9 @@
             let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
             let targetQty = parseInt(wrapper.dataset.qty);
 
-            if (wrapper.children.length > 1) {
-                wrapper.removeChild(wrapper.lastChild);
+            let lastInput = Array.from(wrapper.querySelectorAll('input')).pop();
+            if (lastInput) {
+                wrapper.removeChild(lastInput);
                 redistributeEvenly(wrapper, targetQty);
             }
         }
