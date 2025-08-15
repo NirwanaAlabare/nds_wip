@@ -14,7 +14,9 @@ use App\Models\Auth\User;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\CuttingChartUpdated;
 use App\Events\CuttingChartUpdatedAll;
+use App\Exports\ExportTrackStocker;
 use DB;
+use Excel;
 
 class DashboardController extends Controller
 {

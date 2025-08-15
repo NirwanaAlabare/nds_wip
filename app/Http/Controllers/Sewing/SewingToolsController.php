@@ -817,7 +817,7 @@ class SewingToolsController extends Controller
                         ".$filterYs."
                         ".$callbackFilterYs."
                 ) as ys
-                inner join (
+                left join (
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -1479,7 +1479,7 @@ class SewingToolsController extends Controller
                         ".$filterYs."
                         ".$callbackFilterYs."
                 ) as ys
-                inner join (
+                left join (
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -1821,7 +1821,7 @@ class SewingToolsController extends Controller
                                     Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject',]);
                                 }
 
-                                array_push($result, "REJECT '".$defect->kode_numbering."' -> DELETED");
+                                array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
                             }
 
                             break;

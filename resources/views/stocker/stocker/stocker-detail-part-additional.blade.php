@@ -47,7 +47,7 @@
                                         $qtyBeforeAdditional = intval($ratio->ratio) * intval($currentBeforeAdditional);
 
                                         if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
-                                            $modifyThisStocker = $modifySizeQtyStocker->where("so_det_id", $ratio->so_det_id)->first();
+                                            $modifyThisStocker = $modifySizeQtyStocker->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
 
                                             if ($modifyThisStocker) {
                                                 $qtyAdditional = $qtyAdditional + $modifyThisStocker->difference_qty;
@@ -66,6 +66,7 @@
                                         <input type="hidden" name="ratio_add[{{ $indexAdditional }}]" id="ratio_add_{{ $indexAdditional }}" value="{{ $ratio->ratio }}">
                                         <input type="hidden" name="so_det_id_add[{{ $indexAdditional }}]" id="so_det_id_add_{{ $indexAdditional }}" value="{{ $ratio->so_det_id }}">
                                         <input type="hidden" name="size_add[{{ $indexAdditional }}]" id="size_add_{{ $indexAdditional }}" value="{{ $ratio->size }}">
+                                        <input type="hidden" name="dest_add[{{ $indexAdditional }}]" id="dest_add_{{ $indexAdditional }}" value="{{ $ratio->dest }}">
                                         <input type="hidden" name="group_add[{{ $indexAdditional }}]" id="group_add_{{ $indexAdditional }}" value="{{ $currentGroupAdditional }}">
                                         <input type="hidden" name="group_stocker_add[{{ $indexAdditional }}]" id="group_stocker_add_{{ $indexAdditional }}" value="{{ $currentGroupStockerAdditional }}">
                                         <input type="hidden" name="qty_ply_group_add[{{ $indexAdditional }}]" id="qty_ply_group_add_{{ $indexAdditional }}" value="{{ $currentTotalAdditional }}">

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Scopes\InactiveStocker;
+use DB;
 
 class Stocker extends Model
 {
@@ -23,7 +24,7 @@ class Stocker extends Model
 
     public static function lastId(): string
     {
-        $max = self::selectRaw("MAX(CAST(SUBSTRING_INDEX(id_qr_stocker, '-', -1) AS UNSIGNED)) as max_id")->value('max_id');
+        $max = DB::table("stocker_input")->selectRaw("MAX(CAST(SUBSTRING_INDEX(id_qr_stocker, '-', -1) AS UNSIGNED)) as max_id")->value('max_id');
 
         return $max;
     }
