@@ -44,7 +44,13 @@
                     <td>{{ $rangeAkhir }}</td>
                     <td>
                         <div id="separate_qty_wrapper_{{ $indexSeparate }}"  class="d-flex flex-wrap gap-1"  data-qty="{{ $qty }}">
-                            <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty }}" onkeyup="validateSeparateSum({{ $indexSeparate }})">
+                            @if ($separatedStockerDetails)
+                                @foreach ($separatedStockerDetails as $separatedStockerDetail)
+                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $separatedStockerDetail->qty }}" onkeyup="validateSeparateSum({{ $indexSeparate }})">
+                                @endforeach
+                            @else
+                                <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty }}" onkeyup="validateSeparateSum({{ $indexSeparate }})">
+                            @endif
                         </div>
                         <div class="mt-1">
                             <button type="button" class="btn btn-sm btn-outline-success" onclick="addSeparatePart({{ $indexSeparate }})">+</button>
