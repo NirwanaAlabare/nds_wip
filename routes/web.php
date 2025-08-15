@@ -626,6 +626,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/cut-plan-output/check-form', 'checkAllForms')->name('cut-plan-output-check-all-form');
         Route::post('/cut-plan-output/add-form', 'addCuttingPlanOutputForm')->name('add-cut-plan-output-form');
         Route::delete('/cut-plan-output/remove-form', 'removeCuttinPlanOutputForm')->name('remove-cut-plan-output-form');
+
+        Route::post('/export', 'exportCuttingPlan')->name('export-cutting-plan');
     });
 
     // CompletedForm

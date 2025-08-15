@@ -9,10 +9,12 @@ use App\Models\CutPlan;
 use App\Models\CutPlanOutput;
 use App\Models\CutPlanOutputForm;
 use App\Models\FormCutInput;
+use App\Exports\CuttingPlanExport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Excel;
 use DB;
 
 class CuttingPlanController extends Controller
@@ -251,6 +253,13 @@ class CuttingPlanController extends Controller
             ");
 
         return DataTables::of($data_spreading)->toJson();
+    }
+
+    public function exportCuttingPlan(Request $request) {
+        $from = $request->from;
+        $to = $request->to;
+
+        return Excel::download(new CuttingPlanExport($from, $to), 'cutting-plan.xlsx');
     }
 
     /**
