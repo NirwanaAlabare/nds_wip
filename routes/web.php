@@ -1058,11 +1058,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('sewing-transfer-output');
     });
 
-    // Sewing Input Output
-    Route::controller(SewingInputOutput::class)->prefix('input-output')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('sewing-input-output');
-    });
-
     // Dashboard List
     Route::controller(LineDashboardController::class)->prefix('line-dashboards')->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-dashboard');

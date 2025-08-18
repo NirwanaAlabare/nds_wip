@@ -27,6 +27,7 @@
                         $separatedStockerDetails = $separatedStocker ? $separatedStocker->stockerSeparateDetails : null;
                 @endphp
                 <tr>
+                    <input type="hidden" name="ratio[{{ $indexSeparate }}]" id="ratio_{{ $indexSeparate }}" value="{{ 1 }}">
                     <input type="hidden" name="so_det_id[{{ $indexSeparate }}]" id="so_det_id_{{ $indexSeparate }}" value="{{ $detail->so_det_id }}">
                     <input type="hidden" name="size[{{ $indexSeparate }}]" id="size_{{ $indexSeparate }}" value="{{ $detail->size }}">
                     <input type="hidden" name="group[{{ $indexSeparate }}]" id="group_{{ $indexSeparate }}" value="{{ $currentGroupSeparate }}">
