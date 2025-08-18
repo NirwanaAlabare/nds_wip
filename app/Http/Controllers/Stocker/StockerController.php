@@ -4885,7 +4885,7 @@ class StockerController extends Controller
                     master_sb_ws.size,
                     master_sb_ws.dest,
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
-                    COALESCE(form_cut_input.no_cut, form_cut_reject.no_cut, '-') no_cut,
+                    COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                     stocker_input.group_stocker,
                     stocker_input.shade,
                     stocker_input.ratio,
