@@ -164,6 +164,7 @@
                             <th>Tujuan</th>
                             <th>Tempat</th>
                             <th>Lokasi</th>
+                            <th>Range</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
@@ -174,7 +175,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="12"></th>
+                            <th colspan="13"></th>
                             <th>
                                 {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'> --}}
                                 ...
@@ -419,6 +420,7 @@
             'tujuan_filter',
             'tempat_filter',
             'lokasi_filter',
+            'range_filter',
             'qty_awal_filter',
             'qty_reject_filter',
             'qty_replace_filter',
@@ -451,10 +453,10 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(11).footer()).html("...");
                 $(api.column(12).footer()).html("...");
                 $(api.column(13).footer()).html("...");
                 $(api.column(14).footer()).html("...");
+                $(api.column(15).footer()).html("...");
 
                 // Legacy
                     // // converting to interger to find total
@@ -519,6 +521,7 @@
                         'tujuan': $('#tujuan_filter').val(),
                         'tempat': $('#tempat_filter').val(),
                         'lokasi': $('#lokasi_filter').val(),
+                        'range': $('#range_filter').val(),
                         'qty_awal': $('#qty_awal_filter').val(),
                         'qty_reject': $('#qty_reject_filter').val(),
                         'qty_replace': $('#qty_replace_filter').val(),
@@ -543,10 +546,10 @@
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(12).footer()).html(response[0]['qty_awal']);
-                            $(api.column(13).footer()).html(response[0]['qty_reject']);
-                            $(api.column(14).footer()).html(response[0]['qty_replace']);
-                            $(api.column(15).footer()).html(response[0]['qty_in']);
+                            $(api.column(13).footer()).html(response[0]['qty_awal']);
+                            $(api.column(14).footer()).html(response[0]['qty_reject']);
+                            $(api.column(15).footer()).html(response[0]['qty_replace']);
+                            $(api.column(16).footer()).html(response[0]['qty_in']);
                         }
                     },
                     error: function(request, status, error) {
@@ -587,6 +590,8 @@
                     d.dc_filter_tujuan = $('#dc_filter_tujuan').val();
                     d.dc_filter_tempat = $('#dc_filter_tempat').val();
                     d.dc_filter_lokasi = $('#dc_filter_lokasi').val();
+                    d.dc_filter_range = $('#dc_filter_lokasi').val();
+                    d.range_filter = $('#range_filter').val();
                     d.size_filter = $('#size_filter').val();
                 },
             },
@@ -626,6 +631,9 @@
                 },
                 {
                     data: 'lokasi',
+                },
+                {
+                    data: 'stocker_range',
                 },
                 {
                     data: 'qty_awal',

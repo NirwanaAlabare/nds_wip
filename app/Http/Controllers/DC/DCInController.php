@@ -94,6 +94,7 @@ class DCInController extends Controller
                     a.tempat,
                     a.created_at,
                     a.user,
+                    CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
                     COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                     COALESCE(msb.size, s.size) size,
                     mp.nama_part
