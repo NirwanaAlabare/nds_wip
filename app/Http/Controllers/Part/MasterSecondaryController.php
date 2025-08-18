@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Part;
 
 use App\Http\Controllers\Controller;
-use App\Models\MasterSecondary;
+use App\Models\Part\MasterSecondary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -95,7 +95,7 @@ class MasterSecondaryController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\MasterPart  $masterPart
+     * @param  \App\Models\Part\MasterPart  $masterPart
      * @return \Illuminate\Http\Response
      */
 

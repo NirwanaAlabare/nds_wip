@@ -2,14 +2,14 @@
 
 namespace App\Observers;
 
-use App\Models\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutInputDetailLap;
 
 class CuttingFormDetailLapObserver
 {
     /**
      * Handle the FormCutInputDetailLap "created" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutInputDetailLap  $formCutInputDetailLap
      * @return void
      */
     public function created(FormCutInputDetailLap $formCutInputDetailLap)
@@ -22,7 +22,7 @@ class CuttingFormDetailLapObserver
     /**
      * Handle the FormCutInputDetailLap "updated" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutInputDetailLap  $formCutInputDetailLap
      * @return void
      */
     public function updated(FormCutInputDetailLap $formCutInputDetailLap)
@@ -35,7 +35,7 @@ class CuttingFormDetailLapObserver
     /**
      * Handle the FormCutInputDetailLap "deleted" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutInputDetailLap  $formCutInputDetailLap
      * @return void
      */
     public function deleted(FormCutInputDetailLap $formCutInputDetailLap)
@@ -48,7 +48,7 @@ class CuttingFormDetailLapObserver
     /**
      * Handle the FormCutInputDetailLap "restored" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutInputDetailLap  $formCutInputDetailLap
      * @return void
      */
     public function restored(FormCutInputDetailLap $formCutInputDetailLap)
@@ -59,7 +59,7 @@ class CuttingFormDetailLapObserver
     /**
      * Handle the FormCutInputDetailLap "force deleted" event.
      *
-     * @param  \App\Models\FormCutInputDetailLap  $formCutInputDetailLap
+     * @param  \App\Models\Cutting\FormCutInputDetailLap  $formCutInputDetailLap
      * @return void
      */
     public function forceDeleted(FormCutInputDetailLap $formCutInputDetailLap)

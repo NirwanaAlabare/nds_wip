@@ -4,12 +4,12 @@ namespace App\Imports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use App\Models\Stocker;
-use App\Models\DCIn;
-use App\Models\SecondaryInhouse;
-use App\Models\SecondaryIn;
-use App\Models\LoadingLinePlan;
-use App\Models\LoadingLine;
+use App\Models\Stocker\Stocker;
+use App\Models\Dc\DCIn;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\LoadingLinePlan;
+use App\Models\Dc\LoadingLine;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\WithStartRow;

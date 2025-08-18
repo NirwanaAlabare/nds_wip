@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
-use App\Models\Trolley;
-use App\Models\TrolleyStocker;
-use App\Models\Stocker;
-use App\Models\LoadingLine;
-use App\Models\LoadingLinePlan;
+use App\Models\Dc\Trolley;
+use App\Models\Dc\TrolleyStocker;
+use App\Models\Stocker\Stocker;
+use App\Models\Dc\LoadingLine;
+use App\Models\Dc\LoadingLinePlan;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -509,7 +509,7 @@ class TrolleyStockerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\Dc\TrolleyStocker  $trolleyStocker
      * @return \Illuminate\Http\Response
      */
     public function show(TrolleyStocker $trolleyStocker)
@@ -520,7 +520,7 @@ class TrolleyStockerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\Dc\TrolleyStocker  $trolleyStocker
      * @return \Illuminate\Http\Response
      */
     public function edit(TrolleyStocker $trolleyStocker)
@@ -532,7 +532,7 @@ class TrolleyStockerController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\Dc\TrolleyStocker  $trolleyStocker
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, TrolleyStocker $trolleyStocker)
@@ -543,7 +543,7 @@ class TrolleyStockerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\TrolleyStocker  $trolleyStocker
+     * @param  \App\Models\Dc\TrolleyStocker  $trolleyStocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(TrolleyStocker $trolleyStocker, $id)

@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use App\Models\YearSequence;
+use App\Models\Stocker\YearSequence;
 use DB;
 
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {

@@ -4,11 +4,11 @@ namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\LoadingLinePlan;
+use App\Models\Dc\LoadingLinePlan;
 use App\Models\SignalBit\UserLine;
-use App\Models\TrolleyStocker;
-use App\Models\LoadingLine;
-use App\Models\Stocker;
+use App\Models\Dc\TrolleyStocker;
+use App\Models\Dc\LoadingLine;
+use App\Models\Stocker\Stocker;
 use App\Exports\ExportLaporanLoading;
 use App\Exports\DC\ExportLoadingLine;
 use Yajra\DataTables\Facades\DataTables;

@@ -3,23 +3,23 @@
 namespace App\Http\Controllers\Part;
 
 use App\Http\Controllers\Controller;
-use App\Models\MasterPart;
-use App\Models\MasterTujuan;
-use App\Models\MasterSecondary;
-use App\Models\Part;
-use App\Models\PartDetail;
-use App\Models\PartForm;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\Stocker;
-use App\Models\StockerDetail;
-use App\Models\DCIn;
-use App\Models\SecondaryIn;
-use App\Models\SecondaryInHouse;
-use App\Models\RackDetailStocker;
-use App\Models\TrolleyStocker;
-use App\Models\LoadingLine;
-use App\Models\ModifySizeQty;
+use App\Models\Part\MasterPart;
+use App\Models\Part\MasterTujuan;
+use App\Models\Part\MasterSecondary;
+use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\PartForm;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerDetail;
+use App\Models\Dc\DCIn;
+use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Dc\RackDetailStocker;
+use App\Models\Dc\TrolleyStocker;
+use App\Models\Dc\LoadingLine;
+use App\Models\Stocker\ModifySizeQty;
 use App\Services\StockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -317,7 +317,7 @@ class PartController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function show(Part $part)
@@ -328,7 +328,7 @@ class PartController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function edit(Part $part)
@@ -340,7 +340,7 @@ class PartController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Part $part, $id = 0)
@@ -351,7 +351,7 @@ class PartController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function destroy(Part $part, $id = 0)

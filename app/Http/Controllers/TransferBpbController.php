@@ -179,7 +179,7 @@ class TransferBpbController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \AppStocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -187,7 +187,7 @@ class TransferBpbController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \AppStocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -199,14 +199,14 @@ class TransferBpbController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \AppStocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \AppStocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)

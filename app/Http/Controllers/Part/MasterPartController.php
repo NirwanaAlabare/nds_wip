@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Part;
 
 use App\Http\Controllers\Controller;
-use App\Models\MasterPart;
+use App\Models\Part\MasterPart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -91,7 +91,7 @@ class MasterPartController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\MasterPart  $masterPart
+     * @param  \App\Models\Part\MasterPart  $masterPart
      * @return \Illuminate\Http\Response
      */
     public function show(MasterPart $masterPart)
@@ -102,7 +102,7 @@ class MasterPartController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\MasterPart  $masterPart
+     * @param  \App\Models\Part\MasterPart  $masterPart
      * @return \Illuminate\Http\Response
      */
     public function edit(MasterPart $masterPart)
@@ -114,7 +114,7 @@ class MasterPartController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\MasterPart  $masterPart
+     * @param  \App\Models\Part\MasterPart  $masterPart
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, MasterPart $masterPart, $id = 0)
@@ -152,7 +152,7 @@ class MasterPartController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\MasterPart  $masterPart
+     * @param  \App\Models\Part\MasterPart  $masterPart
      * @return \Illuminate\Http\Response
      */
     public function destroy(MasterPart $masterPart, $id = 0)

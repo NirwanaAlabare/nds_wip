@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
-use App\Models\Stocker;
-use App\Models\Part;
+use App\Models\Stocker\Stocker;
+use App\Models\Part\Part;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -100,7 +100,7 @@ class StockDcWipController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function show($partId = 0)
@@ -223,7 +223,7 @@ class StockDcWipController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function edit(Part $part)
@@ -235,7 +235,7 @@ class StockDcWipController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Part $part, $id = 0)
@@ -246,7 +246,7 @@ class StockDcWipController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Part  $part
+     * @param  \App\Models\Part\Part  $part
      * @return \Illuminate\Http\Response
      */
     public function destroy(Part $part, $id = 0)

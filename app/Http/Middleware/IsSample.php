@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-class IsMeja
+class IsSample
 {
     /**
      * Handle an incoming request.
