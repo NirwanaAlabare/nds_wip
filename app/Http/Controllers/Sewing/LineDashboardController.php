@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Sewing;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\SignalBit\UserPassword;
+use App\Models\SignalBit\UserLine;
 
 class LineDashboardController extends Controller
 {
     public function index() {
-        $lines = UserPassword::select('username')->
+        $lines = UserLine::select('username')->
             where('Groupp', 'SEWING')->
             whereRaw('Locked != 1')->
             orderBy('username', 'asc')->

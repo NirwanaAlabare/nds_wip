@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
-use App\Models\Trolley;
+use App\Models\Dc\Trolley;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,7 +116,7 @@ class TrolleyController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Trolley  $trolley
+     * @param  \App\Models\Dc\Trolley  $trolley
      * @return \Illuminate\Http\Response
      */
     public function show(Trolley $trolley)
@@ -127,7 +127,7 @@ class TrolleyController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Trolley  $trolley
+     * @param  \App\Models\Dc\Trolley  $trolley
      * @return \Illuminate\Http\Response
      */
     public function edit(Trolley $trolley)
@@ -139,7 +139,7 @@ class TrolleyController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Trolley  $trolley
+     * @param  \App\Models\Dc\Trolley  $trolley
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Trolley $trolley)
@@ -180,7 +180,7 @@ class TrolleyController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Trolley  $trolley
+     * @param  \App\Models\Dc\Trolley  $trolley
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)

@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\CutPlan;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
-use App\Models\MarkerDetail;
-use App\Models\Marker;
-use App\Models\Stocker;
-use App\Models\StockerDetail;
-use App\Models\PartForm;
+use App\Models\Cutting\CutPlan;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Marker\MarkerDetail;
+use App\Models\Marker\Marker;
+use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerDetail;
+use App\Models\Part\PartForm;
 use App\Models\Auth\User;
 use App\Exports\Cutting\ExportCuttingForm;
 use App\Services\StockerService;
@@ -417,7 +417,7 @@ class SpreadingController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\FormCutInput  $formCutInput
+     * @param  \App\Models\Cutting\FormCutInput  $formCutInput
      * @return \Illuminate\Http\Response
      */
     public function destroy(FormCutInput $formCutInput, $id, StockerService $stockerService)

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\ScannedItem;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\FormCutInputDetail;
 use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Redirect;

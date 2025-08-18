@@ -8,7 +8,7 @@ use App\Models\BppbDet;
 use App\Models\BppbHeader;
 use App\Models\BppbSB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\MarkerDetail;
+use App\Models\Marker\MarkerDetail;
 use App\Models\InMaterialLokasi;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -354,7 +354,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -362,7 +362,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -374,14 +374,14 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)

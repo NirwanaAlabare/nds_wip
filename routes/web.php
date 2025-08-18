@@ -1,23 +1,26 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
 
 // User
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ManageUserController;
-use App\Http\Controllers\ManageRoleController;
-use App\Http\Controllers\ManageAccessController;
-use App\Http\Controllers\ManageUserLineController;
+use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\User\ManageUserController;
+use App\Http\Controllers\User\ManageRoleController;
+use App\Http\Controllers\User\ManageAccessController;
+use App\Http\Controllers\User\ManageUserLineController;
 
 // Dashboard WIP Line
 use App\Http\Controllers\DashboardWipLineController;
 
 // General
-use App\Http\Controllers\GeneralController;
+use App\Http\Controllers\General\GeneralController;
+use App\Http\Controllers\General\DashboardController;
+
+// Track
+use App\Http\Controllers\General\TrackController;
 
 // Worksheet
-use App\Http\Controllers\WorksheetController;
+use App\Http\Controllers\General\WorksheetController;
 use App\Events\TestEvent;
 
 // Part
@@ -95,9 +98,6 @@ use App\Http\Controllers\Sewing\ReportEfficiencyController;
 use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
 use App\Http\Controllers\Sewing\ReportDetailOutputController;
 use App\Http\Controllers\Sewing\ReportMutasiOutputController;
-
-// Track
-use App\Http\Controllers\TrackController;
 
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\MasterLokasiController;
@@ -195,9 +195,9 @@ use App\Http\Controllers\MaintainBpbController;
 
 Auth::routes(['register' => false]);
 
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index']);
+Route::get('/', [App\Http\Controllers\General\HomeController::class, 'index']);
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', [App\Http\Controllers\General\HomeController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
     // User
@@ -1056,11 +1056,6 @@ Route::middleware('auth')->group(function () {
     // Transfer Output
     Route::controller(TransferOutputController::class)->prefix('transfer-output')->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('sewing-transfer-output');
-    });
-
-    // Sewing Input Output
-    Route::controller(SewingInputOutput::class)->prefix('input-output')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('sewing-input-output');
     });
 
     // Dashboard List

@@ -3,28 +3,28 @@
 namespace App\Http\Controllers\Stocker;
 
 use App\Http\Controllers\Controller;
-use App\Models\Stocker;
-use App\Models\StockerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
-use App\Models\FormCutReject;
-use App\Models\FormCutPiece;
-use App\Models\FormCutPieceDetail;
-use App\Models\FormCutPieceDetailSize;
-use App\Models\Marker;
-use App\Models\MarkerDetail;
-use App\Models\Part;
-use App\Models\PartDetail;
-use App\Models\PartForm;
-use App\Models\ModifySizeQty;
-use App\Models\MonthCount;
-use App\Models\YearSequence;
-use App\Models\StockerAdditional;
-use App\Models\StockerAdditionalDetail;
-use App\Models\DCIn;
-use App\Models\StockerSeparate;
-use App\Models\StockerSeparateDetail;
+use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerDetail;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutReject;
+use App\Models\Cutting\FormCutPiece;
+use App\Models\Cutting\FormCutPieceDetail;
+use App\Models\Cutting\FormCutPieceDetailSize;
+use App\Models\Marker\Marker;
+use App\Models\Marker\MarkerDetail;
+use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\PartForm;
+use App\Models\Stocker\ModifySizeQty;
+use App\Models\Stocker\MonthCount;
+use App\Models\Stocker\YearSequence;
+use App\Models\Stocker\StockerAdditional;
+use App\Models\Stocker\StockerAdditionalDetail;
+use App\Models\Dc\DCIn;
+use App\Models\Stocker\StockerSeparate;
+use App\Models\Stocker\StockerSeparateDetail;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Reject;
@@ -176,7 +176,7 @@ class StockerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function show($formCutId = 0)
@@ -580,7 +580,7 @@ class StockerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -592,7 +592,7 @@ class StockerController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Stocker $stocker)
@@ -603,7 +603,7 @@ class StockerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)
@@ -855,8 +855,9 @@ class StockerController extends Controller
                     $ratio += 1;
                 }
 
+                $j = 0;
                 if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
-                    foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                    foreach ($stockerSeparateDetails as $stockerSeparateDetail) {
                         $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
                             part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                             form_cut_id = '" . $request['form_cut_id'] . "' AND
@@ -911,9 +912,11 @@ class StockerController extends Controller
                             $checkStocker->save();
 
                         }
-                    }
 
-                    $lastRatio = $j + 1;
+                        $lastRatio = $j + 1;
+
+                        $j++;
+                    }
                 } else {
                     for ($j = 0; $j < $ratio; $j++) {
                         $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
@@ -1078,9 +1081,10 @@ class StockerController extends Controller
 
             $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
 
+            $j = 0;
             if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
 
-                foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                foreach ($stockerSeparateDetails as $stockerSeparateDetail) {
                     $checkStocker = Stocker::whereRaw("
                         part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
@@ -1133,6 +1137,8 @@ class StockerController extends Controller
                     }
 
                     $lastRatio = $j + 1;
+
+                    $j++;
                 }
             } else {
                 for ($j = 0; $j < $ratio; $j++) {
@@ -1490,8 +1496,9 @@ class StockerController extends Controller
 
                 $ratio = $request['ratio'][$i];
 
+                $j = 0;
                 if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
-                    foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                    foreach ($stockerSeparateDetails as $stockerSeparateDetail) {
                         $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
                             part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                             form_piece_id = '" . $request['form_cut_id'] . "' AND
@@ -1546,9 +1553,11 @@ class StockerController extends Controller
                             $checkStocker->save();
 
                         }
-                    }
 
-                    $lastRatio = $j + 1;
+                        $lastRatio = $j + 1;
+
+                        $j++;
+                    }
                 } else {
                     for ($j = 0; $j < $ratio; $j++) {
                         $checkStocker = Stocker::select("id", "id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
@@ -1680,11 +1689,13 @@ class StockerController extends Controller
 
         $formData = FormCutPiece::where("id", $request['form_cut_id'])->first();
 
-        $stockerCount = Stocker::lastId();
+        $stockerCount = Stocker::lastId() + 1;
 
         $partDetail = collect($request['part_detail_id']);
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker'])->keys();
+
+        // dd($stockerCount);
 
         $i = 0;
         $storeItemArr = [];
@@ -1711,8 +1722,9 @@ class StockerController extends Controller
 
             $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
 
+            $j = 0;
             if ($stockerSeparateDetails && $stockerSeparateDetails->count() > 0) {
-                foreach ($stockerSeparateDetails as $j => $stockerSeparateDetail) {
+                foreach ($stockerSeparateDetails as $stockerSeparateDetail) {
                     $checkStocker = Stocker::whereRaw("
                         part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                         form_piece_id = '" . $request['form_cut_id'] . "' AND
@@ -1765,6 +1777,8 @@ class StockerController extends Controller
                     }
 
                     $lastRatio = $j + 1;
+
+                    $j++;
                 }
             } else {
                 for ($j = 0; $j < $ratio; $j++) {
@@ -3251,9 +3265,10 @@ class StockerController extends Controller
             GROUP BY
                 `form_cut_piece`.`id`
             ORDER BY
+                `type` ASC,
                 `color` ASC,
                 `waktu_selesai` ASC,
-                `no_cut` ASC
+                CAST(`no_cut` AS UNSIGNED) ASC
         "));
 
         $rangeAwal = 0;
@@ -3283,22 +3298,29 @@ class StockerController extends Controller
             if ($formCut->type == "PIECE") {
                 // Adjust form data
                 $currentNumber++;
-                FormCutPiece::where("id", $formCut->id_form)->update([
+                DB::table("form_cut_piece")->where("id", $formCut->id_form)->update([
                     "no_cut" => $currentNumber
                 ]);
 
-                $stockerForm = Stocker::where("form_piece_id", $formCut->id_form)->orderBy("size", "asc")->orderBy("shade", "desc")->orderBy("group_stocker", "desc")->orderBy("so_det_id", "asc")->orderBy("part_detail_id", "asc")->get();
+                $stockerForm = Stocker::where("form_piece_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
                 $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
                 $currentStockerSize = "";
                 $currentStockerGroup = "initial";
 
                 foreach ($stockerForm as $key => $stocker) {
+
+                    $separate = StockerSeparateDetail::selectRaw("stocker_separate_detail.*")->leftJoin("stocker_separate", "stocker_separate.id", "=", "stocker_separate_detail.separate_id")->where("form_piece_id", $formCut->id_form)->where("so_det_id", $stocker->so_det_id)->where("group_stocker", $stocker->group_stocker)->where("group_roll", $stocker->shade)->where("urutan", $stocker->ratio)->first();
+
                     // Qty Ply
                     if ($stocker->group_stocker) {
                         $lembarGelaran = FormCutPieceDetailSize::selectRaw("form_cut_piece_detail_size.*")->leftJoin("form_cut_piece_detail", "form_cut_piece_detail.id", "=", "form_cut_piece_detail_size.form_detail_id")->where("form_id", $formCut->id_form)->where("so_det_id", $stocker->so_det_id)->where("group_stocker", $stocker->group_stocker)->sum("form_cut_piece_detail_size.qty");
                     } else {
                         $lembarGelaran = FormCutPieceDetailSize::selectRaw("form_cut_piece_detail_size.*")->leftJoin("form_cut_piece_detail", "form_cut_piece_detail.id", "=", "form_cut_piece_detail_size.form_detail_id")->where("form_id", $formCut->id_form)->where("so_det_id", $stocker->so_det_id)->where("group_roll", $stocker->shade)->sum("form_cut_piece_detail_size.qty");
+                    }
+
+                    if ($separate) {
+                        $lembarGelaran = $separate->qty;
                     }
 
                     if ($currentStockerPart == $stocker->part_detail_id) {
@@ -3371,6 +3393,12 @@ class StockerController extends Controller
                             if ($modifyThis) {
                                 $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
                             }
+                        }
+
+                        $separate = StockerSeparateDetail::selectRaw("stocker_separate_detail.*")->leftJoin("stocker_separate", "stocker_separate.id", "=", "stocker_separate_detail.separate_id")->where("form_cut_id", $formCut->id_form)->where("so_det_id", $stocker->so_det_id)->where("group_stocker", $stocker->group_stocker)->where("group_roll", $stocker->shade)->where("urutan", $stocker->ratio)->first();
+
+                        if ($separate) {
+                            $lembarGelaran = $separate->qty;
                         }
 
                         if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
