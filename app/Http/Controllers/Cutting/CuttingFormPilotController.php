@@ -700,14 +700,14 @@ class CuttingFormPilotController extends Controller
 
         $noForm = "$hari-$bulan-$urutan";
 
-        if ($id) {
-            $currentForm = FormCutInput::where("id", $id)->first();
+        if ($request->id) {
+            $currentForm = FormCutInput::where("id", $request->id)->first();
 
             $startTime = $request->startTime;
 
             $waktuMulai = (empty($startTime) ||!strtotime($startTime)) ? Carbon::now() : Carbon::parse($startTime);
 
-            $updateFormCutInput = FormCutInput::where("id", $id)->
+            $updateFormCutInput = FormCutInput::where("id", $request->id)->
                 update([
                     "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
                     "status" => "PENGERJAAN PILOT MARKER",
@@ -719,13 +719,13 @@ class CuttingFormPilotController extends Controller
                 ]);
 
             if ($updateFormCutInput) {
-                session(['currentManualForm' => $id]);
+                session(['currentManualForm' => $request->id]);
 
                 return array(
                     "status" => 200,
                     "message" => "alright",
                     "data" => $currentForm,
-                    "additional" => ['id' => $id, 'no_form' => $currentForm->no_form],
+                    "additional" => ['id' => $request->id, 'no_form' => $currentForm->no_form],
                 );
             }
         } else {
@@ -971,7 +971,7 @@ class CuttingFormPilotController extends Controller
         );
     }
 
-    public function getTimeRecord($noForm = 0)
+    public function getTimeRecord($noForm = 0, $id = 0)
     {
         $timeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where("form_cut_input_detail.form_cut_id", $id)->where("form_cut_input_detail.no_form_cut_input", $noForm)->where('form_cut_input_detail.status', '!=', 'not complete')->where('form_cut_input_detail.status', '!=', 'extension')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderByRaw('CAST(form_cut_input_detail.id as UNSIGNED) asc')->get();
 
@@ -1638,8 +1638,8 @@ class CuttingFormPilotController extends Controller
             ]);
         }
 
-        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
+        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
 
         return $updateFormCutInput;
     }

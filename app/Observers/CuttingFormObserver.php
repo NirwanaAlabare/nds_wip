@@ -14,8 +14,8 @@ class CuttingFormObserver
      */
     public function created(FormCutInput $formCutInput)
     {
-        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
         // dd(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
     }
 
@@ -27,8 +27,8 @@ class CuttingFormObserver
      */
     public function updated(FormCutInput $formCutInput)
     {
-        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
         // dd(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
     }
 
@@ -40,8 +40,8 @@ class CuttingFormObserver
      */
     public function deleted(FormCutInput $formCutInput)
     {
-        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
+        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
         // dd(date("Y-m-d"), $formCutInput && $formCutInput->alokasiMeja ? $formCutInput->alokasiMeja->username : null);
     }
 
