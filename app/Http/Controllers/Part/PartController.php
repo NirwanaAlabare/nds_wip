@@ -358,7 +358,9 @@ class PartController extends Controller
     {
         $countPartForm = PartForm::where("part_id", $id)->count();
 
-        if ($countPartForm < 1) {
+        if ($countPartForm < 1 || Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
+            $deletePartForm = PartForm::where("part_id", $id)->delete();
+
             $deletePart = Part::where("id", $id)->delete();
 
             if ($deletePart) {

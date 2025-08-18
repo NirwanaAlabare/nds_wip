@@ -1202,6 +1202,7 @@ from main
             a.supplier,
             ms.supplier buyer,
             ac.styleno,
+            c.no_ws,
             no_invoice,
             b.id_item,
             b.id_jo,
@@ -1305,7 +1306,7 @@ sum_6_9,
 sum_over_9,
 avg_width,
 c.tot_point,
-round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
+((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
 shipment,
 if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= shipment,'PASS','REJECT') result,
 c.pass_with_condition,
@@ -1351,7 +1352,7 @@ main as (
 SELECT
 d.no_lot,
 count(no_form) tot_form,
-ROUND(SUM(act_point) / count(no_form)) act_point_total,
+ROUND(SUM(act_point) / count(no_form),2) act_point_total,
 shipment,
 max(pass_with_condition) pass_with_condition,
 CASE
@@ -1392,6 +1393,7 @@ from main");
 a.no_form,
 a.tgl_form,
 a.created_by,
+DATE_FORMAT(a.start_form, '%d-%M-%Y')start_form_fix,
 a.operator,
 a.barcode,
 no_roll_buyer,
@@ -1443,6 +1445,10 @@ order by a.no_lot asc, no_form asc
             $result_summary_visual_inspect = DB::connection('mysql_sb')->select("
         SELECT
             no_form,
+            SUM(up_to_3) sum_up_to_3,
+            SUM(3_6) sum_3_6,
+            SUM(6_9) sum_6_9,
+            SUM(over_9) sum_over_9,
             ROUND(SUM(cuttable_width_act) / COUNT(CASE WHEN cuttable_width_act > 0 THEN 1 END),2) AS avg_width_sum
         FROM qc_inspect_form_det
         WHERE no_form IN (" . implode(',', array_fill(0, count($form_numbers), '?')) . ")
@@ -1503,7 +1509,7 @@ sum_6_9,
 sum_over_9,
 round(avg_width,2) avg_width,
 c.tot_point,
-round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) AS act_point,
+round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix)),2) AS act_point,
 individu,
 if(round((((c.tot_point * 36) * 100) / (b.avg_width * b.act_length_fix))) <= individu,'PASS','REJECT') result
 FROM c
@@ -1559,7 +1565,13 @@ GROUP BY c.no_form
         $data_blanket = DB::connection('mysql_sb')->select("SELECT
 no_lot,
 photo,
-rate,
+    CASE rate
+        WHEN 0.5 THEN '1/2'
+        WHEN 2.5 THEN '2/3'
+        WHEN 3.5 THEN '3/4'
+        WHEN 4.5 THEN '4/5'
+        ELSE TRIM(TRAILING '.0' FROM rate) -- removes .0 for integers
+    END AS rate,
 result,
 DATE_FORMAT(updated_at, '%d-%M-%Y %H:%i:%s') AS tgl_update_fix
 from qc_inspect_form_blanket where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_inv'

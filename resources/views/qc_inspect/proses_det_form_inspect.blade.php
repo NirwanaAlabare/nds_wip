@@ -221,7 +221,7 @@
                 <div class="col-md-3">
                     <label for="txtno_roll"><small><b>No. Roll :</b></small></label>
                     <input type="text" id="txtno_roll" name="txtno_roll"
-                        class="form-control form-control-sm border-primary" value="{{ $no_roll }}" readonly>
+                        class="form-control form-control-sm border-primary" value="{{ $no_roll_buyer }}" readonly>
                 </div>
                 <div class="col-md-3">
                     <label for="txtbarcode"><small><b>Barcode :</b></small></label>
@@ -743,7 +743,7 @@
             }
 
             // Round up to 2 decimal places
-            let roundedUp = Math.ceil(inchValue * 100) / 100;
+            let roundedUp = Math.round(inchValue * 100) / 100;
 
             $('#txtinch').val(roundedUp.toFixed(2));
         }
@@ -1178,7 +1178,7 @@
             let actual = unit === 'inch' ? fullWidth : (fullWidth / 2.54);
 
             // Round up to 2 decimal places
-            actual = Math.ceil(actual * 100) / 100;
+            actual = Math.round(actual * 100) / 100;
 
             document.getElementById('txtfull_width_act').value = actual.toFixed(2);
         }
@@ -1189,7 +1189,7 @@
             let actual = unit === 'inch' ? cuttableWidth : (cuttableWidth / 2.54);
 
             // Round up to 2 decimal places
-            actual = Math.ceil(actual * 100) / 100;
+            actual = Math.round(actual * 100) / 100;
 
             document.getElementById('txtcuttable_width_act').value = actual.toFixed(2);
         }
@@ -1492,9 +1492,9 @@
             let actual = unit === 'yard' ? bintexLength : (bintexLength / 0.9144);
 
             // Round up to 2 decimal places
-            actual = Math.ceil(actual * 100) / 100;
+            actual = Math.round(actual * 100) / 100;
 
-            document.getElementById('txtbintex_act').value = actual.toFixed(2);
+            document.getElementById('txtbintex_act').value = actual;
         }
 
         function updateActLengthFix() {
@@ -1503,7 +1503,7 @@
             let actual = unit === 'yard' ? actLength : (actLength / 0.9144);
 
             // Round up to 2 decimal places
-            actual = Math.ceil(actual * 100) / 100;
+            actual = Math.round(actual * 100) / 100;
 
             document.getElementById('txtact_length_fix').value = actual.toFixed(2);
         }

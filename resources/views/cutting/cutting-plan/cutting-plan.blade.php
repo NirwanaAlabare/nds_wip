@@ -145,17 +145,24 @@
                 <i class="fa fa-cog"></i>
                 Plan
             </a>
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="filterTable()">
+            <div class="d-flex justify-content-between">
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div class="mb-3">
+                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="filterTable()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -624,6 +631,47 @@
                     });
                 }
             })
+        }
+
+        async function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            await $.ajax({
+                url: "{{ route("export-cutting-plan") }}",
+                type: "post",
+                data: {
+                    from : $("#tgl-awal").val(),
+                    to : $("#tgl-akhir").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Cutting Plan "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+
+            Swal.close();
         }
     </script>
 @endsection

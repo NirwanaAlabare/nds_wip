@@ -26,6 +26,10 @@
     --dark-color: #2b2f3a;
 }
 
+.modal-header.bg-sb .btn-close {
+    filter: invert(1);
+}
+
 body {
     font-family: 'Roboto', 'Nunito', sans-serif;
     font-size: 15px;

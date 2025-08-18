@@ -43,7 +43,11 @@ b.no_roll_buyer,
 qc.status_proses_form,
 c.individu,
 qc.pass_with_condition,
-IF(qc.founding_issue IS NULL, 'PASS', 'HOLD') AS founding_issue_result,
+CASE
+    WHEN qc.status_proses_form = 'done'
+         THEN IF(qc.founding_issue IS NULL, 'PASS', 'HOLD')
+    ELSE NULL
+END AS founding_issue_result,
 qc.short_roll_result,
 qc.final_result
 from qc_inspect_form qc
@@ -236,7 +240,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
         $nik                    = $get_header[0]->nik        ?? '';
 
         $barcode                = $get_header[0]->barcode    ?? '';
-        $no_roll                = $get_header[0]->no_roll_buyer    ?? '';
+        $no_roll_buyer                = $get_header[0]->no_roll_buyer    ?? '';
         $itemdesc               = $get_header[0]->itemdesc   ?? '';
         $supplier               = $get_header[0]->supplier   ?? '';
 
@@ -302,7 +306,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
                 "enroll_id" => $enroll_id,
                 "nik" => $nik,
                 "barcode" => $barcode,
-                "no_roll" => $no_roll,
+                "no_roll_buyer" => $no_roll_buyer,
                 "itemdesc" => $itemdesc,
                 "supplier" => $supplier,
                 "weight" => $weight,
@@ -444,7 +448,7 @@ order by no_form desc, tgl_form desc, color asc", [$id]);
             'data' => [
                 'barcode'   => $row->no_barcode,
                 'supplier'  => $row->supplier,
-                'no_roll'   => $row->no_roll,
+                'no_roll_buyer'   => $row->no_roll_buyer,
                 'color'     => $row->color,
                 'itemdesc'  => $row->itemdesc,
             ]

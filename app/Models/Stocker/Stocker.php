@@ -15,6 +15,7 @@ use App\Models\Dc\SecondaryInHouse;
 use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\TrolleyStocker;
+use DB;
 
 class Stocker extends Model
 {
@@ -33,7 +34,7 @@ class Stocker extends Model
 
     public static function lastId(): string
     {
-        $max = self::selectRaw("MAX(CAST(SUBSTRING_INDEX(id_qr_stocker, '-', -1) AS UNSIGNED)) as max_id")->value('max_id');
+        $max = DB::table("stocker_input")->selectRaw("MAX(CAST(SUBSTRING_INDEX(id_qr_stocker, '-', -1) AS UNSIGNED)) as max_id")->value('max_id');
 
         return $max;
     }
