@@ -1689,8 +1689,6 @@ class StockerController extends Controller
 
         $formData = FormCutPiece::where("id", $request['form_cut_id'])->first();
 
-        $stockerCount = Stocker::lastId() + 1;
-
         $partDetail = collect($request['part_detail_id']);
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker'])->keys();
@@ -1712,6 +1710,8 @@ class StockerController extends Controller
             }
 
             $lastRatio = null;
+
+            $stockerCount = Stocker::lastId() + 1;
 
             // Check Separate Stocker
             $stockerSeparate = StockerSeparate::where("form_piece_id", $request['form_cut_id'])->
@@ -2038,8 +2038,6 @@ class StockerController extends Controller
 
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
-        $stockerCount = Stocker::lastId()+1;
-
         $partDetail = collect($request['part_detail_id_add']);
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker_add'])->keys();
@@ -2059,6 +2057,10 @@ class StockerController extends Controller
             if ($ratio < 1 && $modifySizeQty) {
                 $ratio += 1;
             }
+
+            $lastRatio = null;
+
+            $stockerCount = Stocker::lastId()+1;
 
             for ($j = 0; $j < $ratio; $j++) {
                 $checkStocker = Stocker::whereRaw("

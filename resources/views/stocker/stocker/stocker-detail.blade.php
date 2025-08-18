@@ -2235,7 +2235,7 @@
             input.type = "number";
             input.className = "form-control form-control-sm separate-part";
             input.name = `separate_qty[${index}][]`;
-            input.onkeyup = () => validateSeparateSum(index);
+            input.onkeyup = () => validateAndAdjust(index, input);
 
             wrapper.appendChild(input);
             redistributeEvenly(wrapper, targetQty);
@@ -2284,6 +2284,38 @@
             }
         }
 
+        function validateAndAdjust(index, changedInput) {
+            let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
+            let targetQty = parseInt(wrapper.dataset.qty);
+            let inputs = Array.from(wrapper.querySelectorAll(".separate-part"));
+
+            // current sum vs target
+            let sum = inputs.reduce((acc, inp) => acc + (parseInt(inp.value) || 0), 0);
+            let diff = targetQty - sum;
+
+            // start adjusting from the *next* input
+            let i = (inputs.indexOf(changedInput) + 1) % inputs.length;
+
+            // loop around until diff is eaten up
+            while (diff !== 0) {
+                let inp = inputs[i];
+                let current = parseInt(inp.value) || 0;
+                let newVal = current + diff;
+
+                if (newVal < 0) {
+                    inp.value = 0;
+                    diff = newVal; // leftover negative still to fix
+                } else {
+                    inp.value = newVal;
+                    diff = 0; // all good
+                }
+
+                i = (i + 1) % inputs.length;
+            }
+
+            validateSeparateSum(index);
+        }
+
         function validateAllSeparates() {
             let allValid = true;
 
@@ -2305,7 +2337,6 @@
 
             return allValid;
         }
-
 
         function submitSeparate() {
             if (!validateAllSeparates()) {
