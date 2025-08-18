@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Stocker;
-use App\Models\StockerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
-use App\Models\Marker;
+use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerDetail;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Marker\Marker;
 use App\Models\MasterLokasi;
 use App\Models\UnitLokasi;
 use App\Models\InMaterialFabric;
 use App\Models\InMaterialFabricDet;
 use Illuminate\Support\Facades\Auth;
-use App\Models\MarkerDetail;
+use App\Models\Marker\MarkerDetail;
 use App\Models\InMaterialLokasi;
 use App\Models\MutLokasiHeader;
 use App\Models\MutLokasi;
@@ -410,7 +410,7 @@ class MutLokasiController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -418,7 +418,7 @@ class MutLokasiController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -430,14 +430,14 @@ class MutLokasiController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)

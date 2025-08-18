@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetail;
 use App\Exports\ExportReportCutting;
 use App\Exports\ExportReportCuttingSinglePage;
 use App\Exports\ExportPemakaianKain;

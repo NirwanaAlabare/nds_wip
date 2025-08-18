@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\ScannedItem;
-use App\Models\FormCutInput;
-use App\Models\Marker;
-use App\Models\MarkerDetail;
-use App\Models\Part;
-use App\Models\PartForm;
-use App\Models\Stocker;
+use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Marker\Marker;
+use App\Models\Marker\MarkerDetail;
+use App\Models\Part\Part;
+use App\Models\Part\PartForm;
+use App\Models\Stocker\Stocker;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
 use Illuminate\Http\Request;

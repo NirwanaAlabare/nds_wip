@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-use App\Models\SecondaryInhouse;
-use App\Models\Stocker;
-use App\Models\Trolley;
-use App\Models\TrolleyStocker;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Stocker\Stocker;
+use App\Models\Dc\Trolley;
+use App\Models\Dc\TrolleyStocker;
 
 use App\Exports\DC\ExportDcIn;
 use App\Exports\DC\ExportDcInDetail;

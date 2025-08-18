@@ -2,14 +2,14 @@
 
 namespace App\Observers;
 
-use App\Models\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetail;
 
 class CuttingFormDetailObserver
 {
     /**
      * Handle the FormCutInputDetail "created" event.
      *
-     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @param  \App\Models\Cutting\FormCutInputDetail  $formCutInputDetail
      * @return void
      */
     public function created(FormCutInputDetail $formCutInputDetail)
@@ -22,7 +22,7 @@ class CuttingFormDetailObserver
     /**
      * Handle the FormCutInputDetail "updated" event.
      *
-     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @param  \App\Models\Cutting\FormCutInputDetail  $formCutInputDetail
      * @return void
      */
     public function updated(FormCutInputDetail $formCutInputDetail)
@@ -35,7 +35,7 @@ class CuttingFormDetailObserver
     /**
      * Handle the FormCutInputDetail "deleted" event.
      *
-     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @param  \App\Models\Cutting\FormCutInputDetail  $formCutInputDetail
      * @return void
      */
     public function deleted(FormCutInputDetail $formCutInputDetail)
@@ -48,7 +48,7 @@ class CuttingFormDetailObserver
     /**
      * Handle the FormCutInputDetail "restored" event.
      *
-     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @param  \App\Models\Cutting\FormCutInputDetail  $formCutInputDetail
      * @return void
      */
     public function restored(FormCutInputDetail $formCutInputDetail)
@@ -59,7 +59,7 @@ class CuttingFormDetailObserver
     /**
      * Handle the FormCutInputDetail "force deleted" event.
      *
-     * @param  \App\Models\FormCutInputDetail  $formCutInputDetail
+     * @param  \App\Models\Cutting\FormCutInputDetail  $formCutInputDetail
      * @return void
      */
     public function forceDeleted(FormCutInputDetail $formCutInputDetail)

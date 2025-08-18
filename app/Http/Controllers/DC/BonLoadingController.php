@@ -7,13 +7,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-use App\Models\LoadingLinePlan;
-use App\Models\LoadingLine;
-use App\Models\LoadingLineHistory;
-use App\Models\Trolley;
-use App\Models\TrolleyStocker;
-use App\Models\Stocker;
-use App\Models\YearSequence;
+use App\Models\Dc\LoadingLinePlan;
+use App\Models\Dc\LoadingLine;
+use App\Models\Dc\LoadingLineHistory;
+use App\Models\Dc\Trolley;
+use App\Models\Dc\TrolleyStocker;
+use App\Models\Stocker\Stocker;
+use App\Models\Stocker\YearSequence;
 use App\Models\SignalBit\UserLine;
 
 use Yajra\DataTables\Facades\DataTables;

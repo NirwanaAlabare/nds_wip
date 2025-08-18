@@ -5,7 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\ActCosting;
-use App\Models\FormCutInput;
+use App\Models\Cutting\FormCutInput;
 use DB;
 
 class TrackCuttingOutput extends Component
