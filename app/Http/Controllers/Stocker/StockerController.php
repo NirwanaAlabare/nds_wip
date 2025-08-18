@@ -4611,7 +4611,7 @@ class StockerController extends Controller
                     $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
 
                     $customPaper = array(0,0,275,175);
-                    $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stock', ["stockerData" => $stockerData, "range_awal" => $validatedRequest['range_awal_year_sequence'], "range_akhir" => $validatedRequest['range_akhir_year_sequence']])->setPaper($customPaper);
+                    $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stock', ["stockerData" => $stockerData, "year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence), "range_awal" => $validatedRequest['range_awal_year_sequence'], "range_akhir" => $validatedRequest['range_akhir_year_sequence']])->setPaper($customPaper);
 
                     $fileName = str_replace("/", "-", ('Stock Year Sequence.pdf'));
 
