@@ -2284,7 +2284,39 @@
             }
         }
 
+        function validateAllSeparates() {
+            let allValid = true;
+
+            document.querySelectorAll("[id^='separate_qty_wrapper_']").forEach(wrapper => {
+                let index = wrapper.id.replace("separate_qty_wrapper_", "");
+                validateSeparateSum(index);
+
+                let targetQty = parseInt(wrapper.dataset.qty);
+                let sum = 0;
+
+                wrapper.querySelectorAll(".separate-part").forEach(input => {
+                    sum += parseInt(input.value) || 0;
+                });
+
+                if (sum !== targetQty) {
+                    allValid = false;
+                }
+            });
+
+            return allValid;
+        }
+
+
         function submitSeparate() {
+            if (!validateAllSeparates()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal',
+                    text: 'Pastikan semua total jumlah sesuai dengan qty awal sebelum melanjutkan.',
+                });
+                return;
+            }
+
             Swal.fire({
                 icon: 'question',
                 title: 'Konfirmasi',
