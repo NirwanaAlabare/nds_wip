@@ -1187,7 +1187,7 @@ class DCInController extends Controller
                 tmp.tujuan > '' and
                 tmp.lokasi > '' and
                 tmp.tempat > '' and
-                (s.cancel is null or s.cancel != 'y')
+                (s.cancel is null or s.cancel != 'y') and
                 user = '$user'
             "
         );
