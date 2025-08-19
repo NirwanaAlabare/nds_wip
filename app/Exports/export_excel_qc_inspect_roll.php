@@ -29,7 +29,7 @@ WITH qc as (
 select
 *
 from qc_inspect_form
-where tgl_form >= ? and tgl_form <= ?),
+where tgl_form >= '$tgl_awal' and tgl_form <= '$tgl_akhir'),
 pos as (
 SELECT
     no_form,
@@ -81,11 +81,11 @@ case
 		ELSE '0'
 END AS w_act,
 case
-		when qc.unit_weight = 'KG' OR qc.unit_weight = 'KGM' THEN qc.weight * 2.205
+		when qc.unit_weight = 'KG' OR qc.unit_weight = 'KGM' THEN round(qc.weight * 2.205,2)
 		ELSE '0'
 END AS w_bintex_lbs,
 case
-		when qc.act_unit_weight = 'KG' OR qc.act_unit_weight = 'KGM' THEN qc.act_weight * 2.205
+		when qc.act_unit_weight = 'KG' OR qc.act_unit_weight = 'KGM' THEN round(qc.act_weight * 2.205,2)
 		ELSE '0'
 END AS w_act_lbs,
 
@@ -148,24 +148,24 @@ ROUND(qc.act_length_fix - qc.bintex_length_act,2) shortage_length_yard,
 
         CASE
             WHEN qc.unit_bintex = 'meter' THEN bintex_length
-            WHEN qc.unit_bintex = 'yard'  THEN bintex_length / 0.9144
+            WHEN qc.unit_bintex = 'yard'  THEN round(bintex_length / 0.9144,2)
         END as bintex_length_meter,
 
 				CASE
             WHEN qc.unit_act_length = 'meter' THEN act_length
-            WHEN qc.unit_act_length = 'yard'  THEN act_length / 0.9144
+            WHEN qc.unit_act_length = 'yard'  THEN round(act_length / 0.9144,2)
         END as bintex_act_length_meter,
 
 ROUND(
     (
         CASE
             WHEN qc.unit_act_length = 'meter' THEN act_length
-            WHEN qc.unit_act_length = 'yard'  THEN act_length / 0.9144
+            WHEN qc.unit_act_length = 'yard'  THEN round(act_length / 0.9144,2)
         END
         -
         CASE
             WHEN qc.unit_bintex = 'meter' THEN bintex_length
-            WHEN qc.unit_bintex = 'yard'  THEN bintex_length / 0.9144
+            WHEN qc.unit_bintex = 'yard'  THEN round(bintex_length / 0.9144,2)
         END
     ), 2
 ) AS shortage_length_meter,
