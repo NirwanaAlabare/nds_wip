@@ -29,7 +29,7 @@ WITH qc as (
 select
 *
 from qc_inspect_form
-where tgl_form >= '$tgl_awal' and tgl_form <= '$tgl_akhir'),
+where tgl_form >= ? and tgl_form <= ?),
 pos as (
 SELECT
     no_form,
