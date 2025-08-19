@@ -721,7 +721,7 @@
             $('#txtweight').on('input', function() {
                 const weightKg = parseFloat($(this).val());
                 if (!isNaN(weightKg)) {
-                    const weightLbs = (weightKg * 2.2).toFixed(2);
+                    const weightLbs = (weightKg * 2.205).toFixed(2);
                     $('#txtlbs').val(weightLbs);
                 } else {
                     $('#txtlbs').val('');
