@@ -75,15 +75,14 @@
 
     {{-- SECONDARY --}}
     <div class="row mb-3">
-        <div class="col-12 mb-3">
+        <div class="col-12">
             <div class="card h-100">
                 <div class="card-header bg-sb-secondary">
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <h5 class="card-title fw-bold">
-                                <i class="fa fa-list fa-sm"></i> Tambah Part Secondary
-                            </h5>
-                        </div>
+                    <h5 class="card-title fw-bold">
+                        <i class="fa fa-list fa-sm"></i> Tambah Part Secondary
+                    </h5>
+                    <div class='card-tools'>
+                        <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -226,14 +225,13 @@
     {{-- FORM --}}
     <div class="row mb-3">
         <div class="col-12 mb-3">
-            <div class="card card-primary h-100">
+            <div class="card collapsed-card card-primary h-100">
                 <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <h5 class="card-title fw-bold">
-                                <i class="fa-regular fa-hourglass-half"></i> Form Cut Pending :
-                            </h5>
-                        </div>
+                    <h5 class="card-title fw-bold">
+                        <i class="fa-regular fa-hourglass-half"></i> Form Cut Pending :
+                    </h5>
+                    <div class='card-tools'>
+                        <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -289,11 +287,14 @@
             </div>
         </div>
         <div class="col-12 mb-3">
-            <div class="card card-success h-100">
+            <div class="card collapsed-card card-success h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
                         <i class="fa fa-check"></i> Form Cut In :
                     </h5>
+                    <div class='card-tools'>
+                        <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row justify-content-between align-items-center mb-3">
