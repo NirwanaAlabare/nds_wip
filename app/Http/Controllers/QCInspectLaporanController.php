@@ -32,7 +32,7 @@ SELECT
     ROUND(COALESCE(MAX(CASE WHEN urut = 2 THEN cuttable_width_act END), 0),2) AS middle,
     ROUND(COALESCE(MAX(CASE WHEN urut = 3 THEN cuttable_width_act END), 0),2) AS back
 FROM (
-				SELECT
+		SELECT
         qd.no_form,
         cuttable_width_act,
         ROW_NUMBER() OVER (
@@ -105,10 +105,10 @@ ROUND((front + middle + back)
         (CASE WHEN back   <> 0 THEN 1 ELSE 0 END),
     0) - qc.bintex_width,2) AS shortage_width,
 
-qc.bintex_width * 2.54 bintex_width_cm,
-pos.front * 2.54 front_cm,
-pos.middle * 2.54 middle_cm,
-pos.back * 2.54 back_cm,
+round(qc.bintex_width * 2.54,2) bintex_width_cm,
+round(pos.front * 2.54,2) front_cm,
+round(pos.middle * 2.54,2) middle_cm,
+round(pos.back * 2.54,2) back_cm,
 
 ROUND((front + middle + back)
     /

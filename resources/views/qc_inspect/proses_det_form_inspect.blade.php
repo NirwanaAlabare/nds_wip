@@ -1175,7 +1175,7 @@
         function updateFullWidthAct() {
             const fullWidth = parseFloat(document.getElementById('txtfull_width').value) || 0;
             const unit = document.getElementById('unitFullWidth').value;
-            let actual = unit === 'inch' ? fullWidth : (fullWidth / 2.54);
+            let actual = unit === 'inch' ? fullWidth : (fullWidth * 0.393701);
 
             // Round up to 2 decimal places
             actual = Math.round(actual * 100) / 100;
@@ -1186,7 +1186,7 @@
         function updateCuttableWidthAct() {
             const cuttableWidth = parseFloat(document.getElementById('txtcuttable_width').value) || 0;
             const unit = document.getElementById('unitCuttableWidth').value;
-            let actual = unit === 'inch' ? cuttableWidth : (cuttableWidth / 2.54);
+            let actual = unit === 'inch' ? cuttableWidth : (cuttableWidth * 0.393701);
 
             // Round up to 2 decimal places
             actual = Math.round(actual * 100) / 100;
