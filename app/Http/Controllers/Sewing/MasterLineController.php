@@ -276,7 +276,7 @@ class MasterLineController extends Controller
         return array(
             "status" => 400,
             "message" => "Leader Line gagal disimpan.",
-            "additional" => $storeEmployeeLine,
+            "additional" => [],
         );
     }
 

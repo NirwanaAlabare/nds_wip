@@ -323,7 +323,7 @@ class SecondaryInhouseController extends Controller
         where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
         and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
-        return json_encode($cekdata[0]);
+        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 
 
