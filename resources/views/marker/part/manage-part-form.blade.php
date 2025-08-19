@@ -200,11 +200,6 @@
             theme: 'bootstrap4'
         })
 
-        //Reset Form
-        if (document.getElementById('store-cut-plan')) {
-            document.getElementById('store-cut-plan').reset();
-        }
-
         var id = document.getElementById("id").value;
         var ws = document.getElementById("ws").value;
         var panel = document.getElementById("panel").value;

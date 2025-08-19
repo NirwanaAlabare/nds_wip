@@ -795,10 +795,18 @@ class PartController extends Controller
         $exist = [];
 
         foreach ($request->partForms as $partForm) {
-            $isExist = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['form_id'])->count();
+            if ($partForm['type'] == "PIECE") {
+                $isExist = PartForm::where("part_id", $request->part_id)->where("form_pcs_id", $partForm['form_id'])->count();
+            } else {
+                $isExist = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['form_id'])->count();
+            }
 
             if ($isExist > 0) {
-                $removeCutPlan = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['form_id'])->delete();
+                if ($partForm['type'] == "PIECE") {
+                    $removeCutPlan = PartForm::where("part_id", $request->part_id)->where("form_pcs_id", $partForm['form_id'])->delete();
+                } else {
+                    $removeCutPlan = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['form_id'])->delete();
+                }
 
                 if ($removeCutPlan) {
                     array_push($success, ['no_form' => $partForm['no_form']]);
