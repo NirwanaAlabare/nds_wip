@@ -60,7 +60,7 @@ class CuttingPlanExport implements FromView, ShouldAutoSize
                     b.style,
                     panel,
                     b.color,
-                    a.status,
+                    (CASE WHEN a.status = 'SPREADING' THEN 'ANTRIAN SPREADING' ELSE a.status END) as status,
                     UPPER(users.name) nama_meja,
                     b.panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,

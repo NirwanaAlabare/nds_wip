@@ -33,7 +33,7 @@
             <td style="border: 1px solid #000;">{{ $d->color }} </td>
             <td style="border: 1px solid #000;">{{ $d->panel }} </td>
             <td style="border: 1px solid #000;">{{ $d->marker_details }} </td>
-            <td style="border: 1px solid #000;">{{ $d->total_lembar.`/`.$d->qty_ply }} </td>
+            <td style="border: 1px solid #000;">{{ $d->total_lembar }} </td>
             <td style="border: 1px solid #000;">{{ $d->qty_output }} </td>
             <td style="border: 1px solid #000;">{{ $d->qty_act }} </td>
             <td style="border: 1px solid #000;">{{ $d->id_marker }} </td>
