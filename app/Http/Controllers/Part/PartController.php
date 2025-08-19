@@ -11,6 +11,7 @@ use App\Models\Part\PartDetail;
 use App\Models\Part\PartForm;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutPiece;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerDetail;
 use App\Models\Dc\DCIn;

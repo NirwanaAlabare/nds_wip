@@ -386,7 +386,7 @@ class SecondaryInController extends Controller
             ]);
         }
 
-        return json_encode($cekdata[0]);
+        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 
     public function cek_data_stocker_in_edit(Request $request)
@@ -441,7 +441,7 @@ class SecondaryInController extends Controller
             where s.id_qr_stocker = '" . $request->txtqrstocker . "'
         ");
 
-        return json_encode($cekdata[0]);
+        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 
     // public function get_rak(Request $request)
