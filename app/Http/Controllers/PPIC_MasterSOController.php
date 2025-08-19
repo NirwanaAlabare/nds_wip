@@ -44,6 +44,7 @@ class PPIC_MasterSOController extends Controller
             $condition = "";
         } else if ($filter == 'ws-style') {
             $condition_tgl = "";
+            $condition = "";
             if (!empty($ws) && empty($style)) {
                 $condition = "where kpno = '$ws'";
             } else if (empty($ws) && !empty($style)) {
@@ -903,6 +904,7 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
         $tgl_akhir = $request->dateTo;
         $filter = $request->filter;
 
+        $condition = "";
         if ($filter == 'all') {
             $condition = "where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'";
         } else if ($filter == 'ws-style') {
