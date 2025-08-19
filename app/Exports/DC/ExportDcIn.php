@@ -57,6 +57,7 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
                 a.qty_awal,
                 a.qty_reject,
                 a.qty_replace,
+                CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
                 (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
                 a.tujuan,
                 a.lokasi,
@@ -102,7 +103,7 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:Q' . ($event->getConcernable()->rowCount+2),
+            'A1:R' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

@@ -150,7 +150,7 @@ class DataProduksiController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\DataProduksi  $dataProduksi
+     * @param  \App\Models\Summary\DataProduksi  $dataProduksi
      * @return \Illuminate\Http\Response
      */
     public function show(DataProduksi $dataProduksi)
@@ -161,7 +161,7 @@ class DataProduksiController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\DataProduksi  $dataProduksi
+     * @param  \App\Models\Summary\DataProduksi  $dataProduksi
      * @return \Illuminate\Http\Response
      */
     public function edit(DataProduksi $dataProduksi)
@@ -173,7 +173,7 @@ class DataProduksiController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\DataProduksi  $dataProduksi
+     * @param  \App\Models\Summary\DataProduksi  $dataProduksi
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateDataProduksiRequest $request)
@@ -263,7 +263,7 @@ class DataProduksiController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\DataProduksi  $dataProduksi
+     * @param  \App\Models\Summary\DataProduksi  $dataProduksi
      * @return \Illuminate\Http\Response
      */
     public function destroy()

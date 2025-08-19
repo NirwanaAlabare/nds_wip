@@ -34,6 +34,7 @@
                         $separatedStockerDetails = $separatedStocker ? $separatedStocker->stockerSeparateDetails : null;
                 @endphp
                 <tr>
+                    <input type="hidden" name="ratio[{{ $indexSeparate }}]" id="ratio_{{ $indexSeparate }}" value="{{ $ratio->ratio }}">
                     <input type="hidden" name="so_det_id[{{ $indexSeparate }}]" id="so_det_id_{{ $indexSeparate }}" value="{{ $ratio->so_det_id }}">
                     <input type="hidden" name="size[{{ $indexSeparate }}]" id="size_{{ $indexSeparate }}" value="{{ $ratio->size }}">
                     <input type="hidden" name="group[{{ $indexSeparate }}]" id="group_{{ $indexSeparate }}" value="{{ $currentGroupSeparate }}">
@@ -50,8 +51,16 @@
                     <td>{{ $rangeAwal }}</td>
                     <td>{{ $rangeAkhir }}</td>
                     <td>
-                        <div id="separate_qty_wrapper_{{ $indexSeparate }}"  class="d-flex flex-wrap gap-1"  data-qty="{{ $qty }}">
-                            <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty }}" onkeyup="validateSeparateSum({{ $indexSeparate }})">
+                        <div id="separate_qty_wrapper_{{ $indexSeparate }}" class="d-flex flex-wrap gap-1"  data-qty="{{ $qty }}">
+                            @if ($separatedStockerDetails)
+                                @foreach ($separatedStockerDetails as $separatedStockerDetail)
+                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $separatedStockerDetail->qty }}" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)">
+                                @endforeach
+                            @else
+                                @for ($i = 0; $i < $ratio->ratio; $i++)
+                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty/$ratio->ratio }}" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)">
+                                @endfor
+                            @endif
                         </div>
                         <div class="mt-1">
                             <button type="button" class="btn btn-sm btn-outline-success" onclick="addSeparatePart({{ $indexSeparate }})">+</button>

@@ -68,6 +68,20 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+            $("#date-from").val(oneWeeksBeforeFull).trigger("change");
+
+            window.addEventListener("focus", () => {
+                $('#cutting-piece-table').DataTable().ajax.reload(null, false);
+            });
+        });
+
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4',

@@ -36,7 +36,7 @@ class LapMutasiDetailController extends Controller
 
             $data_mutasi = DB::connection('mysql_sb')->select("select kode_lok,id_jo,no_ws,styleno,buyer,id_item,goods_code,itemdesc,satuan,round(sal_awal,2) sal_awal,round(qty_in,2) qty_in,ROUND(qty_out_sbl,2) qty_out_sbl,ROUND(qty_out,2) qty_out, round((sal_awal + qty_in - qty_out_sbl - qty_out),2) sal_akhir, CONCAT_WS('',kode_lok,id_jo,no_ws,styleno,buyer,id_item,goods_code,itemdesc,satuan) cari_item from (select concat(a.kode_lok,' FABRIC WAREHOUSE RACK') kode_lok,a.id_jo,no_ws,styleno,buyer,a.id_item,goods_code,itemdesc,a.satuan,sal_awal,qty_in,coalesce(qty_out_sbl,'0') qty_out_sbl,coalesce(qty_out,'0') qty_out from (select b.kode_lok,b.id_jo,b.no_ws,b.styleno,b.buyer,b.id_item,b.goods_code,b.itemdesc,b.satuan, sal_awal, qty_in from (
 select a.id_item,b.unit,a.goods_code,a.itemdesc from masteritem a inner join po_item b on b.id_gen = a.id_gen where matclass = 'Fabric' GROUP BY a.id_item,b.unit) a left join
-(select kode_lok,id_jo,no_ws,styleno,buyer,id_item,goods_code,itemdesc,satuan, sum(sal_awal) sal_awal,sum(qty_in) qty_in from (select a.kode_lok,a.id_jo,a.no_ws,jd.styleno,mb.supplier buyer,a.id_item,b.goods_code,b.itemdesc,a.satuan, sum(qty_sj) sal_awal,'0' qty_in from whs_lokasi_inmaterial a 
+(select kode_lok,id_jo,no_ws,styleno,buyer,id_item,goods_code,itemdesc,satuan, sum(sal_awal) sal_awal,sum(qty_in) qty_in from (select a.kode_lok,a.id_jo,a.no_ws,jd.styleno,mb.supplier buyer,a.id_item,b.goods_code,b.itemdesc,a.satuan, sum(qty_sj) sal_awal,'0' qty_in from whs_lokasi_inmaterial a
 inner join whs_inmaterial_fabric bpb on bpb.no_dok = a.no_dok
 inner join masteritem b on b.id_item = a.id_item
 inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo
@@ -46,8 +46,8 @@ select a.kode_lok,a.id_jo,a.no_ws,jd.styleno,mb.supplier buyer,a.id_item,b.goods
 inner join masteritem b on b.id_item = a.id_item
 inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo
 inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.qty > 0 and a.tgl_bpb < '" . $request->dateFrom . "' group by a.kode_lok, a.id_item, a.id_jo, a.unit
-UNION 
-select a.kode_lok,a.id_jo,a.no_ws,jd.styleno,mb.supplier buyer,a.id_item,b.goods_code,b.itemdesc,a.satuan,'0' sal_awal, round(sum(qty_sj),2) qty_in from whs_lokasi_inmaterial a 
+UNION
+select a.kode_lok,a.id_jo,a.no_ws,jd.styleno,mb.supplier buyer,a.id_item,b.goods_code,b.itemdesc,a.satuan,'0' sal_awal, round(sum(qty_sj),2) qty_in from whs_lokasi_inmaterial a
 inner join whs_inmaterial_fabric bpb on bpb.no_dok = a.no_dok
 inner join masteritem b on b.id_item = a.id_item
 inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo
@@ -90,15 +90,15 @@ select no_rak kode_lok,id_item,id_jo,satuan,round(sum(qty_out),2) qty_out from w
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -110,7 +110,7 @@ select no_rak kode_lok,id_item,id_jo,satuan,round(sum(qty_out),2) qty_out from w
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -118,7 +118,7 @@ select no_rak kode_lok,id_item,id_jo,satuan,round(sum(qty_out),2) qty_out from w
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)
@@ -126,7 +126,7 @@ select no_rak kode_lok,id_item,id_jo,satuan,round(sum(qty_out),2) qty_out from w
         //
     }
 
-  
 
-    
+
+
 }

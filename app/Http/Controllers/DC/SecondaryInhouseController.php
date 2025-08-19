@@ -5,7 +5,7 @@ namespace App\Http\Controllers\DC;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\SecondaryInhouse;
+use App\Models\Dc\SecondaryInhouse;
 use App\Exports\DC\ExportSecondaryInHouse;
 use App\Exports\DC\ExportSecondaryInHouseDetail;
 use Yajra\DataTables\Facades\DataTables;
@@ -323,7 +323,7 @@ class SecondaryInhouseController extends Controller
         where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
         and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
-        return json_encode($cekdata[0]);
+        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 
 

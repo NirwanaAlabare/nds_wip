@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Piping;
-use App\Models\Marker;
-use App\Models\ScannedItem;
+use App\Models\Cutting\Piping;
+use App\Models\Marker\Marker;
+use App\Models\Cutting\ScannedItem;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;

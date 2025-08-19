@@ -47,7 +47,7 @@ class LapMutasiBarcodeController extends Controller
                 UNION
                 select 'OB' id, a.id idnya, id_roll, no_rak, id_jo, id_item, no_lot, no_roll, 0 qty_out, qty_out qty_out_bfr, satuan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.tgl_bppb < '" . $request->dateFrom . "' and a.status = 'Y'
                 UNION
-                select 'OM' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, a.qty_mutasi qty_in, 0 qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '" . $request->dateFrom . "' and '" . $request->dateTo . "' and a.status = 'Y' 
+                select 'OM' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, a.qty_mutasi qty_in, 0 qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '" . $request->dateFrom . "' and '" . $request->dateTo . "' and a.status = 'Y'
                 UNION
                 select 'OMB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, a.qty_mutasi qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where tgl_mut < '" . $request->dateFrom . "' and a.status = 'Y'
                 UNION
@@ -84,15 +84,15 @@ return view("lap-mutasi-barcode.lap_mutasi_barcode", ["page" => "dashboard-wareh
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    
+
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -104,7 +104,7 @@ return view("lap-mutasi-barcode.lap_mutasi_barcode", ["page" => "dashboard-wareh
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -112,7 +112,7 @@ return view("lap-mutasi-barcode.lap_mutasi_barcode", ["page" => "dashboard-wareh
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)
@@ -122,5 +122,5 @@ return view("lap-mutasi-barcode.lap_mutasi_barcode", ["page" => "dashboard-wareh
 
 
 
-    
+
 }

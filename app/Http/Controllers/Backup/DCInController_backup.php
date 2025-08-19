@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiKaryawan;
-use App\Models\DCIn;
+use App\Models\Dc\DCIn;
 use App\Models\Tmp_Dc_in;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;

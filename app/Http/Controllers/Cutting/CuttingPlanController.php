@@ -5,14 +5,16 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Auth\User;
-use App\Models\CutPlan;
-use App\Models\CutPlanOutput;
-use App\Models\CutPlanOutputForm;
-use App\Models\FormCutInput;
+use App\Models\Cutting\CutPlan;
+use App\Models\Cutting\CutPlanOutput;
+use App\Models\Cutting\CutPlanOutputForm;
+use App\Models\Cutting\FormCutInput;
+use App\Exports\Cutting\CuttingPlanExport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Excel;
 use DB;
 
 class CuttingPlanController extends Controller
@@ -251,6 +253,13 @@ class CuttingPlanController extends Controller
             ");
 
         return DataTables::of($data_spreading)->toJson();
+    }
+
+    public function exportCuttingPlan(Request $request) {
+        $from = $request->from;
+        $to = $request->to;
+
+        return Excel::download(new CuttingPlanExport($from, $to), 'cutting-plan.xlsx');
     }
 
     /**

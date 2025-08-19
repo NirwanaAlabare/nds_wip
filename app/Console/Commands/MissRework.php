@@ -8,6 +8,7 @@ use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\RftPacking;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use DB;
 
 class MissRework extends Command

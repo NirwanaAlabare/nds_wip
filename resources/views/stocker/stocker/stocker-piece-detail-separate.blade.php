@@ -27,6 +27,7 @@
                         $separatedStockerDetails = $separatedStocker ? $separatedStocker->stockerSeparateDetails : null;
                 @endphp
                 <tr>
+                    <input type="hidden" name="ratio[{{ $indexSeparate }}]" id="ratio_{{ $indexSeparate }}" value="{{ 1 }}">
                     <input type="hidden" name="so_det_id[{{ $indexSeparate }}]" id="so_det_id_{{ $indexSeparate }}" value="{{ $detail->so_det_id }}">
                     <input type="hidden" name="size[{{ $indexSeparate }}]" id="size_{{ $indexSeparate }}" value="{{ $detail->size }}">
                     <input type="hidden" name="group[{{ $indexSeparate }}]" id="group_{{ $indexSeparate }}" value="{{ $currentGroupSeparate }}">
@@ -44,7 +45,13 @@
                     <td>{{ $rangeAkhir }}</td>
                     <td>
                         <div id="separate_qty_wrapper_{{ $indexSeparate }}"  class="d-flex flex-wrap gap-1"  data-qty="{{ $qty }}">
-                            <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty }}" onkeyup="validateSeparateSum({{ $indexSeparate }})">
+                            @if ($separatedStockerDetails)
+                                @foreach ($separatedStockerDetails as $separatedStockerDetail)
+                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $separatedStockerDetail->qty }}" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)">
+                                @endforeach
+                            @else
+                                <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty }}" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)">
+                            @endif
                         </div>
                         <div class="mt-1">
                             <button type="button" class="btn btn-sm btn-outline-success" onclick="addSeparatePart({{ $indexSeparate }})">+</button>

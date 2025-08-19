@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\FormCutReject;
-use App\Models\FormCutRejectDetail;
-use App\Models\PartDetail;
-use App\Models\Stocker;
+use App\Models\Cutting\FormCutReject;
+use App\Models\Cutting\FormCutRejectDetail;
+use App\Models\Part\PartDetail;
+use App\Models\Stocker\Stocker;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Cutting\ExportCuttingFormReject;
 use Illuminate\Http\Request;
@@ -173,7 +173,7 @@ class CuttingFormRejectController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\FormCutReject  $formCutReject
+     * @param  \App\Models\Cutting\FormCutReject  $formCutReject
      * @return \Illuminate\Http\Response
      */
     public function show($id = 0)
@@ -203,7 +203,7 @@ class CuttingFormRejectController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\FormCutReject  $formCutReject
+     * @param  \App\Models\Cutting\FormCutReject  $formCutReject
      * @return \Illuminate\Http\Response
      */
     public function edit(FormCutReject $formCutReject, $id = 0)
@@ -217,7 +217,7 @@ class CuttingFormRejectController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\FormCutReject  $formCutReject
+     * @param  \App\Models\Cutting\FormCutReject  $formCutReject
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, FormCutReject $formCutReject)
@@ -309,7 +309,7 @@ class CuttingFormRejectController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\FormCutReject  $formCutReject
+     * @param  \App\Models\Cutting\FormCutReject  $formCutReject
      * @return \Illuminate\Http\Response
      */
     public function destroy(FormCutReject $formCutReject, $id)

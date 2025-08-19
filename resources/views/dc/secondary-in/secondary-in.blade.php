@@ -66,6 +66,7 @@
                             <th>Tujuan Awal</th>
                             <th>Lokasi Awal</th>
                             <th>Lokasi Rak</th>
+                            <th>Range</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
@@ -76,7 +77,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="12"></th>
+                            <th colspan="13"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_awal'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace'> </th>
@@ -655,35 +656,35 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(12)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalAwal = api
-                    .column(12)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
                     .column(13)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalReplace = api
+                var sumTotalAwal = api
+                    .column(13)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReject = api
                     .column(14)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalIn = api
+                var sumTotalReplace = api
                     .column(15)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalIn = api
+                    .column(16)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -691,10 +692,10 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html(sumTotalAwal);
-                $(api.column(13).footer()).html(sumTotalReject);
-                $(api.column(14).footer()).html(sumTotalReplace);
-                $(api.column(15).footer()).html(sumTotalIn);
+                $(api.column(13).footer()).html(sumTotalAwal);
+                $(api.column(14).footer()).html(sumTotalReject);
+                $(api.column(15).footer()).html(sumTotalReplace);
+                $(api.column(16).footer()).html(sumTotalIn);
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -729,6 +730,7 @@
                     d.sec_filter_tujuan = $('#sec_filter_tujuan').val();
                     d.sec_filter_lokasi = $('#sec_filter_lokasi').val();
                     d.sec_filter_lokasi_rak = $('#sec_filter_lokasi_rak').val();
+                    d.range_filter = $('#range_filter').val();
                     d.size_filter = $('#size_filter').val();
                 },
             },
@@ -768,6 +770,9 @@
                 },
                 {
                     data: 'lokasi_rak',
+                },
+                {
+                    data: 'stocker_range',
                 },
                 {
                     data: 'qty_awal',

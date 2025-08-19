@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Marker;
-use App\Models\MarkerDetail;
-use App\Models\FormCutInput;
-use App\Models\FormCutInputDetail;
-use App\Models\FormCutInputDetailLap;
-use App\Models\FormCutInputDetailSambungan;
-use App\Models\FormCutInputLostTime;
-use App\Models\FormCutPiece;
-use App\Models\FormCutPieceDetail;
+use App\Models\Marker\Marker;
+use App\Models\Marker\MarkerDetail;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutInputDetailSambungan;
+use App\Models\Cutting\FormCutInputLostTime;
+use App\Models\Cutting\FormCutPiece;
+use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\FormCutPieceDetailSizes;
-use App\Models\ScannedItem;
-use App\Models\CutPlan;
-use App\Models\Part;
-use App\Models\PartForm;
+use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\CutPlan;
+use App\Models\Part\Part;
+use App\Models\Part\PartForm;
 use App\Models\Auth\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -1099,8 +1099,8 @@ class CuttingFormController extends Controller
             ]);
         }
 
-        app('App\Http\Controllers\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
+        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
 
         return $updateFormCutInput;
     }

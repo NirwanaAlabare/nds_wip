@@ -74,7 +74,7 @@ class MaintainBpbController extends Controller
                 left join masterpterms on masterpterms.id = po_header.id_terms
                 where status_maintain is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com is null  ".$where." || status_maintain is null and bpbno_int like '%GK%' and bpb.confirm='Y' and bpb.cancel='N' and bpb.bpbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' and po_header_draft.tipe_com IN ('REGULAR','BUYER','FOC') ".$where." group by bpb.bpbno_int
                 UNION
-                select id,bppb.bppbno_int, '-' pono, bppb.bppbdate, mastersupplier.Supplier , '' ,'' , bppb.curr,bppb.confirm_by,DATE_FORMAT(bppb.confirm_date,'%Y-%m-%d') confirm_date, sum(bppb.qty * bppb.price) as total, '','', bppb.dateinput, sum(bppb.qty) qty, bppb.price from bppb inner join mastersupplier on mastersupplier.Id_Supplier = bppb.id_supplier where bppbno_int like '%GK%' and confirm = 'Y' and cancel != 'Y' and  bppb.bppbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." and status_maintain is null and tipe_sup = 'S' group by bppbno_int) a LEFT JOIN tbl_closing_periode b on a.bpbdate BETWEEN b.tgl_awal AND b.tgl_akhir LEFT JOIN (select * from (select no_bpb, supplier from bpb_new where tgl_bpb between '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." and status != 'Cancel' GROUP BY no_bpb 
+                select id,bppb.bppbno_int, '-' pono, bppb.bppbdate, mastersupplier.Supplier , '' ,'' , bppb.curr,bppb.confirm_by,DATE_FORMAT(bppb.confirm_date,'%Y-%m-%d') confirm_date, sum(bppb.qty * bppb.price) as total, '','', bppb.dateinput, sum(bppb.qty) qty, bppb.price from bppb inner join mastersupplier on mastersupplier.Id_Supplier = bppb.id_supplier where bppbno_int like '%GK%' and confirm = 'Y' and cancel != 'Y' and  bppb.bppbdate between '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." and status_maintain is null and tipe_sup = 'S' group by bppbno_int) a LEFT JOIN tbl_closing_periode b on a.bpbdate BETWEEN b.tgl_awal AND b.tgl_akhir LEFT JOIN (select * from (select no_bpb, supplier from bpb_new where tgl_bpb between '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." and status != 'Cancel' GROUP BY no_bpb
                 UNION
                 select no_bppb, supplier from bppb_new where tgl_bppb between '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." and status != 'Cancel' GROUP BY no_bppb) a) c on c.no_bpb = a.bpbno_int ");
 
@@ -131,13 +131,13 @@ class MaintainBpbController extends Controller
 
     // Generate no dokumen otomatis
         $sql_trf = DB::connection('mysql_sb')->select("
-            SELECT CONCAT(kode,'/',bulan,tahun,'/',nomor) kode 
+            SELECT CONCAT(kode,'/',bulan,tahun,'/',nomor) kode
             FROM (
-                SELECT 
+                SELECT
                 'RVS/BPB' kode,
                 DATE_FORMAT(CURRENT_DATE(), '%m') bulan,
                 DATE_FORMAT(CURRENT_DATE(), '%y') tahun,
-                IF(MAX(no_maintain) IS NULL, '00001', LPAD(SUBSTR(MAX(SUBSTR(no_maintain,15)),1,5)+1,5,0)) nomor 
+                IF(MAX(no_maintain) IS NULL, '00001', LPAD(SUBSTR(MAX(SUBSTR(no_maintain,15)),1,5)+1,5,0)) nomor
                 FROM maintain_bpb_h
                 ) a
             ");
@@ -237,7 +237,7 @@ class MaintainBpbController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
@@ -245,7 +245,7 @@ class MaintainBpbController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function edit(Stocker $stocker)
@@ -257,14 +257,14 @@ class MaintainBpbController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Stocker  $stocker
+     * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
     public function destroy(Stocker $stocker)

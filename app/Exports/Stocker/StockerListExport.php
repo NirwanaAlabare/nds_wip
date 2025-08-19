@@ -186,7 +186,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         SELECT
                             ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
                             so_det_id,
-                            CONCAT( YEAR, '_', year_sequence ) year_sequence,
+                            CONCAT( `year`, '_', year_sequence ) year_sequence,
                             MIN( number ) range_numbering_awal,
                             MAX( number ) range_numbering_akhir,
                             MIN( year_sequence_number ) range_awal,

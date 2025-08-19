@@ -930,7 +930,7 @@
             input.type = "number";
             input.className = "form-control form-control-sm separate-part";
             input.name = `separate_qty[${index}][]`;
-            input.onkeyup = () => validateSeparateSum(index);
+            input.onkeyup = () => validateAndAdjust(index, input);
 
             wrapper.appendChild(input);
             redistributeEvenly(wrapper, targetQty);
@@ -940,8 +940,9 @@
             let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
             let targetQty = parseInt(wrapper.dataset.qty);
 
-            if (wrapper.children.length > 1) {
-                wrapper.removeChild(wrapper.lastChild);
+            let lastInput = Array.from(wrapper.querySelectorAll('input')).pop();
+            if (lastInput) {
+                wrapper.removeChild(lastInput);
                 redistributeEvenly(wrapper, targetQty);
             }
         }
@@ -978,7 +979,70 @@
             }
         }
 
+        function validateAndAdjust(index, changedInput) {
+            let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
+            let targetQty = parseInt(wrapper.dataset.qty);
+            let inputs = Array.from(wrapper.querySelectorAll(".separate-part"));
+
+            // current sum vs target
+            let sum = inputs.reduce((acc, inp) => acc + (parseInt(inp.value) || 0), 0);
+            let diff = targetQty - sum;
+
+            // start adjusting from the *next* input
+            let i = (inputs.indexOf(changedInput) + 1) % inputs.length;
+
+            // loop around until diff is eaten up
+            while (diff !== 0) {
+                let inp = inputs[i];
+                let current = parseInt(inp.value) || 0;
+                let newVal = current + diff;
+
+                if (newVal < 0) {
+                    inp.value = 0;
+                    diff = newVal; // leftover negative still to fix
+                } else {
+                    inp.value = newVal;
+                    diff = 0; // all good
+                }
+
+                i = (i + 1) % inputs.length;
+            }
+
+            validateSeparateSum(index);
+        }
+
+        function validateAllSeparates() {
+            let allValid = true;
+
+            document.querySelectorAll("[id^='separate_qty_wrapper_']").forEach(wrapper => {
+                let index = wrapper.id.replace("separate_qty_wrapper_", "");
+                validateSeparateSum(index);
+
+                let targetQty = parseInt(wrapper.dataset.qty);
+                let sum = 0;
+
+                wrapper.querySelectorAll(".separate-part").forEach(input => {
+                    sum += parseInt(input.value) || 0;
+                });
+
+                if (sum !== targetQty) {
+                    allValid = false;
+                }
+            });
+
+            return allValid;
+        }
+
         function submitSeparate() {
+            if (!validateAllSeparates()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal',
+                    text: 'Pastikan semua total jumlah sesuai dengan qty awal sebelum melanjutkan.',
+                });
+                return;
+            }
+
             Swal.fire({
                 icon: 'question',
                 title: 'Konfirmasi',

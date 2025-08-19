@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
-use App\Models\Stocker;
-use App\Models\DcIn;
-use App\Models\SecondaryInhouse;
-use App\Models\SecondaryIn;
-use App\Models\LoadingLine;
-use App\Models\LoadingLinePlan;
-use App\Models\YearSequence;
+use App\Models\Stocker\Stocker;
+use App\Models\Dc\DCIn;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\LoadingLine;
+use App\Models\Dc\LoadingLinePlan;
+use App\Models\Stocker\YearSequence;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

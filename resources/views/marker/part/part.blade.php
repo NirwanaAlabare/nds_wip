@@ -463,6 +463,8 @@
                 },
                 error: function (jqXHR) {
                     console.log(jqXHR);
+
+                    swal.close();
                 }
             });
         }

@@ -466,15 +466,15 @@
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-number' ? 'active' : '' }}">Number</a>
                             <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                                 <li>
-                                    <a href="{{ route('stocker-list') }}"
-                                        class="dropdown-item {{ $routeName == 'stocker-list' ? 'active' : '' }}">
-                                        Registration List <i class="fa-solid fa-list-ul"></i>
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('year-sequence') }}"
                                         class="dropdown-item {{ $routeName == 'year-sequence' ? 'active' : '' }}">
                                         Set Year Sequence <i class="fa-solid fa-list-ol"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stocker-list') }}"
+                                        class="dropdown-item {{ $routeName == 'stocker-list' ? 'active' : '' }}">
+                                        Registration List <i class="fa-solid fa-list-ul"></i>
                                     </a>
                                 </li>
                                 <li>

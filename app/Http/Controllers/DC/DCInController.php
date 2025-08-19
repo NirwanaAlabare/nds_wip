@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-use App\Models\SecondaryInhouse;
-use App\Models\Stocker;
-use App\Models\Trolley;
-use App\Models\TrolleyStocker;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Stocker\Stocker;
+use App\Models\Dc\Trolley;
+use App\Models\Dc\TrolleyStocker;
 
 use App\Exports\DC\ExportDcIn;
 use App\Exports\DC\ExportDcInDetail;
@@ -94,6 +94,7 @@ class DCInController extends Controller
                     a.tempat,
                     a.created_at,
                     a.user,
+                    CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
                     COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                     COALESCE(msb.size, s.size) size,
                     mp.nama_part
@@ -108,7 +109,7 @@ class DCInController extends Controller
                     left join part p on pd.part_id = p.id
                     left join master_part mp on mp.id = pd.master_part_id
                 where
-                    a.tgl_trans is not null
+                    a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                     ".$additionalQuery."
                 order by
                     a.tgl_trans desc
@@ -331,7 +332,7 @@ class DCInController extends Controller
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
             where
-                a.tgl_trans is not null
+                a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 ".$additionalQuery."
         ");
 
@@ -399,7 +400,7 @@ class DCInController extends Controller
                     left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
                     left join master_sb_ws m on s.so_det_id = m.id_so_det
                 where
-                    dc.tgl_trans is not null
+                    dc.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                     ".$additionalQuery."
                 group by
                     m.ws,m.buyer,m.styleno,m.color,dc.lokasi
@@ -430,7 +431,7 @@ class DCInController extends Controller
                 left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws m on s.so_det_id = m.id_so_det
             where
-                dc.tgl_trans is not null
+                dc.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 ".$additionalQuery."
             group by
                 m.ws,m.buyer,m.styleno,m.color,dc.lokasi
@@ -487,6 +488,7 @@ class DCInController extends Controller
                 left join master_secondary ms on pd.master_secondary_id = ms.id
             WHERE
                 a.id_qr_stocker = '$request->txtqrstocker'
+                and (a.cancel != 'y' or a.cancel IS NULL)
         ");
 
         return json_encode($data_header ? $data_header[0] : null);
@@ -619,6 +621,8 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
                 x.`user` = '".$user."' and
+                (y.cancel != 'y' or y.cancel IS NULL)
+                and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
                 ms.id is not null and
                 y.form_reject_id is null
@@ -651,6 +655,8 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
                 x.`user` = '".$user."' and
+                (y.cancel != 'y' or y.cancel IS NULL)
+                and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
                 ms.id is not null and
                 y.form_reject_id is not null
@@ -683,6 +689,8 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
                 x.`user` = '".$user."' and
+                (y.cancel != 'y' or y.cancel IS NULL)
+                and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
                 ms.id is not null and
                 (y.form_cut_id < 1 or y.form_cut_id is null) and
@@ -756,6 +764,7 @@ class DCInController extends Controller
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             where("id_qr_stocker", $request->txtqrstocker)->
+            whereRaw("(stocker_input.cancel is null or stocker_input.cancel != 'y')")->
             first();
 
         if ($thisStocker) {
@@ -791,7 +800,8 @@ class DCInController extends Controller
                 WHERE
                     a.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
                     a.color = '".$thisStocker->color."' AND
-                    COALESCE(f.no_cut, fp.no_cut) = '".$thisStocker->no_cut."'
+                    COALESCE(f.no_cut, fp.no_cut) = '".$thisStocker->no_cut."' AND
+                    (a.cancel IS NULL OR a.cancel != 'y')
             ");
 
             $user = Auth::user()->name;
@@ -893,7 +903,8 @@ class DCInController extends Controller
                 left join master_secondary ms on pd.master_secondary_id = ms.id
                 left join tmp_dc_in_input_new tmp on s.id_qr_stocker = tmp.id_qr_stocker
             where
-                s.id_qr_stocker= '$request->id_c'
+                s.id_qr_stocker= '$request->id_c' and
+                (s.cancel is null or s.cancel != 'y')
         ");
 
         return json_encode($data_tmp_dc_in[0]);
@@ -1177,6 +1188,7 @@ class DCInController extends Controller
                 tmp.tujuan > '' and
                 tmp.lokasi > '' and
                 tmp.tempat > '' and
+                (s.cancel is null or s.cancel != 'y') and
                 user = '$user'
             "
         );
