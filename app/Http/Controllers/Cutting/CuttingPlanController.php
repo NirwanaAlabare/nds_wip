@@ -9,6 +9,7 @@ use App\Models\Cutting\CutPlan;
 use App\Models\Cutting\CutPlanOutput;
 use App\Models\Cutting\CutPlanOutputForm;
 use App\Models\Cutting\FormCutInput;
+use App\Exports\Cutting\CuttingPlanExport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Yajra\DataTables\Facades\DataTables;

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\Cutting;
 
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use App\Models\CutPlan;
+use App\Models\Cutting\CutPlan;
 use DB;
 
 class CuttingPlanExport implements FromView, ShouldAutoSize
