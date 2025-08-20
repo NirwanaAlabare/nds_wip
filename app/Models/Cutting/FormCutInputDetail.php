@@ -30,4 +30,9 @@ class FormCutInputDetail extends Model
     {
         return $this->hasMany(FormCutInputDetailLap::class, 'form_cut_input_detail_id', 'id');
     }
+
+    public function formCutInputDetailSambungan()
+    {
+        return $this->hasMany(FormCutInputDetailSambungan::class, 'form_cut_input_detail_id', 'id');
+    }
 }

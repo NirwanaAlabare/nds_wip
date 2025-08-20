@@ -12,4 +12,9 @@ class FormCutInputDetailSambungan extends Model
     protected $table = "form_cut_input_detail_sambungan";
 
     protected $guarded = [];
+
+    public function formCutInputDetail()
+    {
+        return $this->belongsTo(FormCutInputDetail::class, 'form_cut_input_detail_id', 'id');
+    }
 }

@@ -637,6 +637,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
         Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
         Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
+        Route::post('/cutting/update-detail', 'updateDetail')->name('update-detail-form');
+        Route::post('/cutting/update-header', 'updateHeader')->name('update-header-form');
         Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
         Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
     });
