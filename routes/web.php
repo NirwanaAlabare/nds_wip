@@ -615,6 +615,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
         Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
 
+        Route::post('/check-all-form', 'checkAllForm')->name('check-all-form-cut-plan');
+        Route::post('/check-all-form-selected', 'checkAllFormSelected')->name('check-all-form-selected-cut-plan');
+
         Route::get('/cut-plan-output', 'cuttingPlanOutput')->name('cut-plan-output');
         Route::get('/cut-plan-output/show/{id?}', 'showCuttingPlanOutput')->name('detail-cut-plan-output');
         Route::get('/cut-plan-output/show-form', 'showCutPlanOutputForm')->name('cut-plan-output-form');

@@ -161,6 +161,7 @@
             document.getElementById('store-cut-plan').reset();
         }
 
+        // Tgl Plan
         document.getElementById("tgl_plan").addEventListener("change", function() {
             let todayDate = new Date();
             let selectedDate = new Date(this.value);
@@ -171,31 +172,30 @@
 
             datatableSelect.ajax.reload(() => {
                 $('#datatable-select').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                    if (formArr) {
+                        document.getElementById('selected-row-count-1').innerText = formArr.length;    
+                    }
                 });
             });
 
             datatableSelected.ajax.reload(() => {
                 $('#datatable-selected').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-2').innerText = $(
-                        '#datatable-selected').DataTable().rows('.selected').data().length;
+                    if (formSelectedArr) {
+                        document.getElementById('selected-row-count-2').innerText = formSelectedArr.length;    
+                    }
                 });
             });
         });
 
-        // document.getElementById("tgl_form").addEventListener("change", function () {
-        //     datatableSelect.ajax.reload(() => {
-        //         $('#datatable-select').DataTable().ajax.reload(() => {
-        //             document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
-        //         });
-        //     });
-        // });
+        // SELECT FORM
 
+        // Table Select Form
+        var formFilter = ["id", "tanggal_filter", "no_form_filter", "no_meja_filter", "style_filter", "color_filter", "panel_filter", "size_ratio_filter", "qty_ply_filter", "no_marker_filter", "no_ws_filter"];
         $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
         $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i != 7) {
+            if (i != 0 && i != 7) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+formFilter[i]+'" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatableSelect.column(i).search() !== this.value) {
@@ -206,9 +206,27 @@
                     }
                 });
             } else {
-                $(this).empty();
+               if (i == 0) {
+                    $(this).html(`
+                        <div class="form-check" style="scale: 1.5;translate: 50%;">
+                            <input class="form-check-input" type="checkbox" value="" id="checkAllForm"">
+                        </div>
+                    `);
+                } else {
+                    $(this).empty();
+                }
             }
         });
+
+        function dataTableFormReload() {
+            $('#datatable-select').DataTable().ajax.reload(() => {
+                if (formArr) {
+                    document.getElementById('selected-row-count-1').innerText = formArr.length;   
+                }
+
+                document.getElementById("loading").classList.add("d-none");
+            });
+        }
 
         let datatableSelect = $("#datatable-select").DataTable({
             ordering: false,
@@ -258,7 +276,13 @@
             columnDefs: [
                 {
                     targets: [0],
-                    visible: false,
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="form-check">
+                                <input class="form-check-input check-form" type="checkbox" onchange="checkForm(this)" id="form_`+meta.row+`">
+                            </div>
+                        `;
+                    }
                 },
                 {
                     targets: [9],
@@ -282,19 +306,91 @@
                     $('td', row).css('background-color', '#c5e0fa');
                     $('td', row).css('border', '0.15px solid #d0d0d0');
                 }
+
+                if (formArr.filter(item => item.id == data['id']).length > 0) {
+                    currentPageCheck++;
+
+                    $(row).find('input[type="checkbox"]').prop('checked', true);
+                }
+            },
+            drawCallback: function (settings) {
+                if (currentPageCheck == 0) {
+                    $('#checkAllForm').prop("checked", false);
+                } else {
+                    $('#checkAllForm').prop("checked", true);
+                }
+
+                currentPageCheck = 0;
+            },
+        });
+
+        // Check Select Form
+        var currentPageCheck = 0;
+        var formArr = [];
+
+        function checkForm(element) {
+            let data = $('#datatable-select').DataTable().row(element.closest('tr')).data();
+
+            if (data) {
+                if (element.checked) {
+                    formArr.push(data);
+                } else {
+                    formArr = formArr.filter(item => item.id != data.id);
+                }
+
+                document.getElementById('selected-row-count-1').innerText = formArr.length;   
             }
-        });
+        }
 
-        // Datatable row selection
-        datatableSelect.on('click', 'tbody tr', function(e) {
-            e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
-        });
+        $("#checkAllForm").on("change", function () {
+            document.getElementById("loading").classList.remove("d-none");
 
+            if (this.checked) {
+                $.ajax({
+                    url: '{{ route('check-all-form-cut-plan') }}',
+                    method: 'post',
+                    data: {
+                        tgl_plan : $('#tgl_plan').val(),
+                        tanggal_filter : $('#tanggal_filter').val(),
+                        no_form_filter : $('#no_form_filter').val(),
+                        no_meja_filter : $('#no_meja_filter').val(),
+                        style_filter : $('#style_filter').val(),
+                        color_filter : $('#color_filter').val(),
+                        panel_filter : $('#panel_filter').val(),
+                        qty_ply_filter : $('#qty_ply_filter').val(),
+                        no_marker_filter : $('#no_marker_filter').val(),
+                        no_ws_filter : $('#no_ws_filter').val()
+                    },
+                    success: function (res) {
+                        if (res) {
+                            formArr = res;
+
+                            dataTableFormReload();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                })
+            } else {
+                formArr = [];
+
+                dataTableFormReload();
+
+                document.getElementById("loading").classList.add("d-none");
+            }
+        })
+
+        // Submit Add to Plan
         function addToCutPlan(element) {
             let tglPlan = $("#tgl_plan").val();
-            let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
+            let selectedForm = formArr;
             let formCutPlan = [];
+
             for (let key in selectedForm) {
                 if (!isNaN(key)) {
                     formCutPlan.push({
@@ -374,6 +470,8 @@
                                 });
                             }
                         }
+
+                        formArr = [];
                     },
                     error: function(jqXHR) {
                         element.removeAttribute('disabled');
@@ -404,11 +502,17 @@
             }
         }
 
+
+
+        // SELECTED FORM
+
+        // Table Selected Form
+        var formSelectedFilter = ["id_selected", "tanggal_selected_filter", "no_form_selected_filter", "no_meja_selected_filter", "style_selected_filter", "color_selected_filter", "panel_selected_filter", "size_ratio_selected_filter", "qty_ply_selected_filter", "no_marker_selected_filter", "no_ws_selected_filter"];
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
         $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i != 7 && i != 11) {
+            if (i != 0 && i != 7 && i != 11) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+formSelectedFilter[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatableSelected.column(i).search() !== this.value) {
@@ -419,9 +523,27 @@
                     }
                 });
             } else {
-                $(this).empty();
+                if (i == 0) {
+                    $(this).html(`
+                        <div class="form-check" style="scale: 1.5;translate: 50%;">
+                            <input class="form-check-input" type="checkbox" value="" id="checkAllFormSelected">
+                        </div>
+                    `);
+                } else {
+                    $(this).empty();
+                }
             }
         });
+
+        function dataTableFormSelectedReload() {
+            $('#datatable-selected').DataTable().ajax.reload(() => {
+                if (formSelectedArr) {
+                    document.getElementById('selected-row-count-2').innerText = formSelectedArr.length;   
+                }
+
+                document.getElementById("loading").classList.add("d-none");
+            });
+        }
 
         let datatableSelected = $("#datatable-selected").DataTable({
             ordering: false,
@@ -474,7 +596,13 @@
             columnDefs: [
                 {
                     targets: [0],
-                    visible: false,
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="form-check">
+                                <input class="form-check-input check-form" type="checkbox" onchange="checkFormSelected(this)" id="form_selected_`+meta.row+`">
+                            </div>
+                        `;
+                    }
                 },
                 {
                     targets: [11],
@@ -527,14 +655,91 @@
                     $('td', row).css('background-color', '#c5e0fa');
                     $('td', row).css('border', '0.15px solid #d0d0d0');
                 }
+
+                if (formSelectedArr.filter(item => item.id == data['id']).length > 0) {
+                    currentPageCheckSelected++;
+
+                    $(row).find('input[type="checkbox"]').prop('checked', true);
+                }
+            },
+            drawCallback: function (settings) {
+                if (currentPageCheckSelected == 0) {
+                    $('#checkAllFormSelected').prop("checked", false);
+                } else {
+                    $('#checkAllFormSelected').prop("checked", true);
+                }
+
+                currentPageCheckSelected = 0;
             }
         });
 
+        // Check Form Selected
+        var currentPageCheckSelected = 0;
+        var formSelectedArr = [];
+
+        function checkFormSelected(element) {
+            let data = $('#datatable-selected').DataTable().row(element.closest('tr')).data();
+
+            if (data) {
+                if (element.checked) {
+                    formSelectedArr.push(data);
+                } else {
+                    formSelectedArr = formSelectedArr.filter(item => item.id != data.id);
+                }
+
+                document.getElementById('selected-row-count-1').innerText = formSelectedArr.length;   
+            }
+        }
+
+        $("#checkAllFormSelected").on("change", function () {
+            document.getElementById("loading").classList.remove("d-none");
+
+            if (this.checked) {
+                $.ajax({
+                    url: '{{ route('check-all-form-selected-cut-plan') }}',
+                    method: 'post',
+                    data: {
+                        tgl_plan : $('#tgl_plan').val(),
+                        tanggal_filter : $('#tanggal_selected_filter').val(),
+                        no_form_filter : $('#no_form_selected_filter').val(),
+                        no_meja_filter : $('#no_meja_selected_filter').val(),
+                        style_filter : $('#style_selected_filter').val(),
+                        color_filter : $('#color_selected_filter').val(),
+                        panel_filter : $('#panel_selected_filter').val(),
+                        qty_ply_filter : $('#qty_ply_selected_filter').val(),
+                        no_marker_filter : $('#no_marker_selected_filter').val(),
+                        no_ws_filter : $('#no_ws_selected_filter').val()
+                    },
+                    success: function (res) {
+                        if (res) {
+                            formSelectedArr = res;
+
+                            dataTableFormSelectedReload();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                })
+            } else {
+                formSelectedArr = [];
+
+                dataTableFormSelectedReload();
+
+                document.getElementById("loading").classList.add("d-none");
+            }
+        })
+
+        // Submit Remove from Cut Plan
         function removeCutPlan(element) {
             element.setAttribute('disabled', true);
 
             let tglPlan = $("#tgl_plan").val();
-            let selectedForm = $('#datatable-selected').DataTable().rows('.selected').data();
+            let selectedForm = formSelectedArr;
             let formCutPlan = [];
             for (let key in selectedForm) {
                 if (!isNaN(key)) {
@@ -626,6 +831,8 @@
                                         });
                                     }
                                 }
+
+                                formSelectedArr = [];
                             },
                             error: function(jqXHR) {
                                 element.removeAttribute('disabled');
@@ -659,11 +866,5 @@
                 });
             }
         }
-
-        // Datatable selected row selection
-        datatableSelected.on('click', 'tbody tr', function(e) {
-            e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-2').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
-        });
     </script>
 @endsection
