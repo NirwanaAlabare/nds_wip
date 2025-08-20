@@ -72,94 +72,118 @@
 
         function emptyOrderLoading() {
             Swal.fire({
-                title: 'Please Wait...',
-                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
-                didOpen: () => {
-                    Swal.showLoading();
+                title: 'Fix Empty Order Loading?',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data loading?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
 
-                    let estimatedTime = 0;
-                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
-                    estimatedTimeInterval = setInterval(() => {
-                        estimatedTime++;
-                        estimatedTimeElement.textContent = estimatedTime;
-                    }, 1000);
-                },
-                allowOutsideClick: false,
-            });
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
 
-            $.ajax({
-                type: "post",
-                url: "{{ route('empty-order-loading') }}",
-                dataType: "json",
-                success: function (response) {
-                    if (response.status == 200) {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'INFO',
-                            html: response.message,
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            html: 'Terjadi kesalahan',
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    }
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('empty-order-loading') }}",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'INFO',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: 'Terjadi kesalahan',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+                        }
+                    });
                 }
             });
         }
 
         function redundantLoadingPlan() {
             Swal.fire({
-                title: 'Please Wait...',
-                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
-                didOpen: () => {
-                    Swal.showLoading();
+                title: 'Fix Redundant Loading Plan?',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data loading?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
 
-                    let estimatedTime = 0;
-                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
-                    estimatedTimeInterval = setInterval(() => {
-                        estimatedTime++;
-                        estimatedTimeElement.textContent = estimatedTime;
-                    }, 1000);
-                },
-                allowOutsideClick: false,
-            });
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
 
-            $.ajax({
-                type: "post",
-                url: "{{ route('redundant-loading-plan') }}",
-                dataType: "json",
-                success: function (response) {
-                    if (response.status == 200) {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'INFO',
-                            html: response.message,
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            html: 'Terjadi kesalahan',
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#082149",
-                        });
-                    }
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('redundant-loading-plan') }}",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'INFO',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: 'Terjadi kesalahan',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+                        }
+                    });
                 }
             });
         }
