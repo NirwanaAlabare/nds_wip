@@ -11,7 +11,7 @@
                 <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" wire:model='date'>
             </div>
         </div>
-        <table class="table table-sm table-bordered" wire:poll>
+        <table class="table table-bordered" wire:poll>
             <thead>
                 <tr>
                     <th>Line</th>
