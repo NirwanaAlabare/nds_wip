@@ -931,6 +931,9 @@
             input.className = "form-control form-control-sm separate-part";
             input.name = `separate_qty[${index}][]`;
             input.onkeyup = () => validateAndAdjust(index, input);
+            input.onchange = () => validateAndAdjust(index, input);
+            input.oninput = () => validateAndAdjust(index, input);
+            input.setAttribute("min", 0);
 
             wrapper.appendChild(input);
             redistributeEvenly(wrapper, targetQty);
@@ -980,6 +983,10 @@
         }
 
         function validateAndAdjust(index, changedInput) {
+            if (changedInput.value < 0) {
+                changedInput.value = 0;
+            }
+
             let wrapper = document.getElementById(`separate_qty_wrapper_${index}`);
             let targetQty = parseInt(wrapper.dataset.qty);
             let inputs = Array.from(wrapper.querySelectorAll(".separate-part"));
