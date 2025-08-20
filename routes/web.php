@@ -179,6 +179,7 @@ use App\Http\Controllers\QCInspectDashboardController;
 use App\Http\Controllers\QCInspectMasterController;
 use App\Http\Controllers\QCInspectProsesPackingListController;
 use App\Http\Controllers\QCInspectProsesFormInspectController;
+use App\Http\Controllers\QCInspectLaporanController;
 
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
@@ -2098,6 +2099,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/qc_inspect_show_act_point', 'qc_inspect_show_act_point')->name('qc_inspect_show_act_point');
         Route::post('/finish_form_inspect', 'finish_form_inspect')->name('finish_form_inspect');
         Route::get('/show_calculate_width_length', 'show_calculate_width_length')->name('show_calculate_width_length');
+    });
+
+    // Laporan QC Inspect
+    Route::controller(QCInspectLaporanController::class)->prefix("proses-form-inspect")->middleware('warehouse')->group(function () {
+        Route::get('/qc_inspect_laporan_roll', 'qc_inspect_laporan_roll')->name('qc_inspect_laporan_roll');
+        Route::get('/export_excel_qc_inspect_roll', 'export_excel_qc_inspect_roll')->name('export_excel_qc_inspect_roll');
     });
 });
 
