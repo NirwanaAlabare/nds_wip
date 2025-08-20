@@ -387,23 +387,38 @@ class LoadingLineController extends Controller
             "target_loading" => "required",
         ]);
 
-        $storeLoadingPlan = LoadingLinePlan::create([
-            "line_id" => $validatedRequest['line_id'],
-            "kode" => $kodeLoadingPlan,
-            "act_costing_id" => $validatedRequest['ws_id'],
-            "act_costing_ws" => $validatedRequest['ws'],
-            "buyer" => $validatedRequest['buyer'],
-            "style" => $validatedRequest['style'],
-            "color" => $validatedRequest['color'],
-            "target_sewing" => $validatedRequest['target_sewing'],
-            "target_loading" => $validatedRequest['target_loading'],
-            "tanggal" => $validatedRequest['tanggal'],
-        ]);
+        $checkLoadingPlan = LoadingLinePlan::where("line_id", $validatedRequest['line_id'])->
+            where("act_costing_id",$validatedRequest['ws_id'])->
+            where("color",$validatedRequest['color'])->
+            where("tanggal",$validatedRequest['tanggal'])->
+            first();
 
-        if ($storeLoadingPlan) {
+        if (!$checkLoadingPlan) {
+            $storeLoadingPlan = LoadingLinePlan::create([
+                "line_id" => $validatedRequest['line_id'],
+                "kode" => $kodeLoadingPlan,
+                "act_costing_id" => $validatedRequest['ws_id'],
+                "act_costing_ws" => $validatedRequest['ws'],
+                "buyer" => $validatedRequest['buyer'],
+                "style" => $validatedRequest['style'],
+                "color" => $validatedRequest['color'],
+                "target_sewing" => $validatedRequest['target_sewing'],
+                "target_loading" => $validatedRequest['target_loading'],
+                "tanggal" => $validatedRequest['tanggal'],
+            ]);
+
+            if ($storeLoadingPlan) {
+                return array(
+                    "status" => 200,
+                    "message" => $kodeLoadingPlan,
+                    "redirect" => route("create-loading-plan"),
+                    "additional" => [],
+                );
+            }
+        } else {
             return array(
-                "status" => 200,
-                "message" => $kodeLoadingPlan,
+                "status" => 400,
+                "message" => "Plan LINE ".$validatedRequest['line_id']." - ".$validatedRequest['tanggal']." - ".$validatedRequest['ws']." - ".$validatedRequest['color']." sudah ada.",
                 "redirect" => route("create-loading-plan"),
                 "additional" => [],
             );
