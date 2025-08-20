@@ -66,6 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
     //         visible.blur();
     //     });
     // });
+
+    // Datetimepicker JQuery UI
+    $('input[type="datetime"]').each(function () {
+        $(this).datetimepicker({
+            dateFormat: 'yy-mm-dd',      // day-month-year
+            timeFormat: 'HH:mm:ss',      // 24-hour format with seconds
+            controlType: 'select',       // nice dropdowns for hours/min/sec
+            oneLine: true                // date + time in a single line
+        });
+    });
 });
 
 function unique(value, index, array) {

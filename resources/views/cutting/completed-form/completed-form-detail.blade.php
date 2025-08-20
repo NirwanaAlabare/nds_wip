@@ -44,13 +44,13 @@
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="start" id="start-time" value="{{ $formCutInputData->waktu_mulai }}" readonly>
+                                <input type="datetime" class="form-control form-control-sm" name="start" id="start-time" value="{{ $formCutInputData->waktu_mulai }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Finish</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai }}" readonly>
+                                <input type="datetime" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
@@ -128,7 +128,7 @@
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}">
                             </div>
                         </div>
                     </div>
@@ -174,6 +174,9 @@
                     <input type="hidden" name="total_ratio" id="total_ratio" value="{{ $totalRatio }}">
                     <input type="hidden" name="total_qty_cut" id="total_qty_cut" value="{{ $totalCutQty }}">
                     <input type="hidden" name="total_qty_cut_ply" id="total_qty_cut_ply" value="{{ $totalCutQtyPly }}">
+                    <div class="my-3">
+                        <button class="btn btn-sb-secondary btn-block fw-bold btn-sm" onclick="updateHeaderData()"><i class="fa fa-save"></i> SIMPAN</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -202,7 +205,25 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}" readonly>
+                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
+                                    onkeyup="
+                                        calculateSambungan();
+                                        calculateShortRoll();
+                                        calculatePemakaianLembar();
+                                        calculateTotalPemakaian();
+                                        calculateEstAmpar();
+                                        // calculateSisaKain();
+                                    "
+
+                                    onchange="
+                                        calculateSambungan();
+                                        calculateShortRoll();
+                                        calculatePemakaianLembar();
+                                        calculateTotalPemakaian();
+                                        calculateEstAmpar();
+                                        // calculateSisaKain();
+                                    "
+                                >
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -226,7 +247,25 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}" readonly>
+                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
+                                    onkeyup="
+                                        calculateSambungan();
+                                        calculateShortRoll();
+                                        calculatePemakaianLembar();
+                                        calculateTotalPemakaian();
+                                        calculateEstAmpar();
+                                        // calculateSisaKain();
+                                    "
+
+                                    onchange="
+                                        calculateSambungan();
+                                        calculateShortRoll();
+                                        calculatePemakaianLembar();
+                                        calculateTotalPemakaian();
+                                        calculateEstAmpar();
+                                        // calculateSisaKain();
+                                    "
+                                >
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -250,7 +289,7 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}" readonly>
+                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -327,6 +366,9 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="col-md-12">
+                            <button class="btn btn-sb-secondary btn-block fw-bold btn-sm" onclick="updateDetailData()"><i class="fa fa-save"></i> SIMPAN</button>
                         </div>
                     </div>
                 </div>
@@ -1471,8 +1513,10 @@
             document.getElementById("current_sisa_tidak_bisa").value = 0;
             document.getElementById("current_reject").value = 0;
             document.getElementById("current_sisa_kain").value = "";
+            document.getElementById("current_pemakaian_lembar").value = 0;
             document.getElementById("current_total_pemakaian_roll").value = 0;
             document.getElementById("current_short_roll").value = 0;
+            document.getElementById("current_short_roll_percentage").value = 0;
             document.getElementById("current_piping").value = 0;
 
             let inputGroupUnit = document.getElementsByClassName("input-group-unit");
@@ -1909,8 +1953,8 @@
 
         // -Calculate Sambungan-
         function calculateSambungan(sisaGelaranParam, unitSisaGelaranParam) {
-            let sisaGelaranVar = sisaGelaranParam > 0 ? Number(sisaGelaranParam) : (sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value));
-            let unitSisaGelaranVar = unitSisaGelaranParam ? unitSisaGelaranParam : (unitSisaGelaran ? unitSisaGelaran : document.getElementById("current_sisa_gelaran_unit").value);
+            let sisaGelaranVar = sisaGelaranParam > 0 ? Number(sisaGelaranParam) : (Number(document.getElementById("current_sisa_gelaran").value));
+            let unitSisaGelaranVar = unitSisaGelaranParam ? unitSisaGelaranParam : (document.getElementById("current_sisa_gelaran_unit").value);
             let qtyVar = Number(document.getElementById("current_qty").value);
             let unitQtyVar = document.getElementById("current_unit").value;
             let pActualVar = Number(document.getElementById('p_act').value);
@@ -1995,8 +2039,8 @@
             let dataObj = {
                 "id": $("#id").val(),
                 "p_act": $("#p_act").val(),
-                "unit_p_act": $("#unit_p_act").val(),
                 "comma_act": $("#comma_act").val(),
+                "l_act": $("#l_act").val(),
                 "no_form_cut_input": $("#no_form").val(),
                 "start": $("#start-time").val(),
                 "finish": $("#finish-time").val(),
@@ -2225,6 +2269,113 @@
                         showConfirmButton: true,
                         confirmButtonText: 'Oke',
                     });
+                }
+            });
+        }
+
+        // Update Header Data
+        function updateHeaderData() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            let dataObj = {
+                "id": $("#id").val(),
+                "no_form_cut_input": $("#no_form").val(),
+                "start": $("#start-time").val(),
+                "finish": $("#finish-time").val(),
+                "no_meja": $("#no_meja").val(),
+                "qty_ply": $("#qty_ply").val(),
+            }
+
+            return $.ajax({
+                url: '{{ route('update-header-form') }}',
+                type: 'post',
+                dataType: 'json',
+                data: dataObj,
+                success: async function(res) {
+                    if (res) {
+                        await clearSpreadingForm();
+
+                        await getSummary(true);
+
+                        await finishProcess();
+                    } else {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.log(jqXHR);
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    let i = 0;
+
+                    for (let key in res.errors) {
+                        message = res.errors[key];
+                        document.getElementById(key).classList.add('is-invalid');
+                        modified.push(
+                            [key, '.classList', '.remove(', "'is-invalid')"],
+                        )
+
+                        if (i == 0) {
+                            document.getElementById(key).focus();
+                            i++;
+                        }
+                    };
+                }
+            });
+        }
+
+        // Update Detail Data
+        function updateDetailData() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            let dataObj = {
+                "id": $("#id").val(),
+                "no_form_cut_input": $("#no_form").val(),
+                "p_act": $("#p_act").val(),
+                "comma_act": $("#comma_act").val(),
+                "l_act": $("#l_act").val(),
+            }
+
+            return $.ajax({
+                url: '{{ route('update-detail-form') }}',
+                type: 'post',
+                dataType: 'json',
+                data: dataObj,
+                success: async function(res) {
+                    if (res) {
+                        await clearSpreadingForm();
+
+                        await getSummary(true);
+
+                        await finishProcess();
+                    } else {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.log(jqXHR);
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    let i = 0;
+
+                    for (let key in res.errors) {
+                        message = res.errors[key];
+                        document.getElementById(key).classList.add('is-invalid');
+                        modified.push(
+                            [key, '.classList', '.remove(', "'is-invalid')"],
+                        )
+
+                        if (i == 0) {
+                            document.getElementById(key).focus();
+                            i++;
+                        }
+                    };
                 }
             });
         }

@@ -17,6 +17,7 @@ use App\Models\Auth\User;
 use App\Models\Stocker\ModifySizeQty;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerDetail;
+use App\Services\CuttingService;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use App\Services\StockerService;
@@ -218,7 +219,7 @@ class CompletedFormController extends Controller
         //
     }
 
-    public function updateCutting(Request $request, StockerService $stockerService) {
+    public function updateCutting(Request $request, CuttingService $cuttingService) {
         $validatedRequest = $request->validate([
             "id" => "required",
             "current_id" => "required",
@@ -363,6 +364,24 @@ class CompletedFormController extends Controller
                 update([
                     "no_meja" => $validatedRequest['no_meja']
                 ]);
+
+            // Form Recalculate
+            $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
+
+            if ($request->p_act != $formCutInput->p_act || $request->comma_act != $formCutInput->comma_p_act) {
+
+                if ($request->p_act && $request->p_act != $formCutInput->p_act) {
+                    $formCutInput->p_act = $request->p_act;
+                }
+
+                if ($request->comma_act && $request->comma_act != $formCutInput->comma_p_act) {
+                    $formCutInput->comma_p_act = $request->comma_act;
+                }
+
+                $formCutInput->save();
+
+                $cuttingService->recalculateForm($validatedRequest['id']);
+            }
 
             return array(
                 "status" => 200,
@@ -590,6 +609,91 @@ class CompletedFormController extends Controller
                         //     }
                         // }
                 }
+            }
+
+            return array(
+                "status" => 200,
+                "message" => "alright",
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore",
+        );
+    }
+
+    public function updateDetail(Request $request, CuttingService $cuttingService) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+            "no_form_cut_input" => "required",
+            "p_act" => "required",
+            "comma_act" => "required",
+            "l_act" => "required",
+        ]);
+
+        // Form Recalculate
+        $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
+
+        if ($formCutInput) {
+            if ($validatedRequest['p_act'] != $formCutInput->p_act || $validatedRequest['comma_act'] != $formCutInput->comma_p_act) {
+
+                if ($validatedRequest['p_act'] && $validatedRequest['p_act'] != $formCutInput->p_act) {
+                    $formCutInput->p_act = $validatedRequest['p_act'];
+                }
+
+                if ($validatedRequest['comma_act'] && $validatedRequest['comma_act'] != $formCutInput->comma_p_act) {
+                    $formCutInput->comma_p_act = $validatedRequest['comma_act'];
+                }
+
+                $formCutInput->save();
+
+                $cuttingService->recalculateForm($validatedRequest['id']);
+            }
+
+            return array(
+                "status" => 200,
+                "message" => "alright",
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore",
+        );
+    }
+
+    public function updateHeader(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+            "no_form_cut_input" => "required",
+            "no_meja" => "required",
+            "qty_ply" => "required"
+        ]);
+
+        // Form Recalculate
+        $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
+
+        if ($formCutInput) {
+            if ($validatedRequest['no_meja'] != $formCutInput->no_meja || $validatedRequest['qty_ply'] != $formCutInput->qty_ply || ($request->start && $request->start != $formCutInput->waktu_mulai) || ($request->finish && $request->finish != $formCutInput->waktu_selesai)) {
+
+                if ($validatedRequest['no_meja'] && $validatedRequest['no_meja'] != $formCutInput->no_meja) {
+                    $formCutInput->no_meja = $validatedRequest['no_meja'];
+                }
+
+                if ($validatedRequest['qty_ply'] && $validatedRequest['qty_ply'] != $formCutInput->no_meja) {
+                    $formCutInput->qty_ply = $validatedRequest['qty_ply'];
+                }
+
+                if ($request->start && $request->start != $formCutInput->waktu_mulai) {
+                    $formCutInput->waktu_mulai = $request->start;
+                }
+
+                if ($request->finish && $request->finish != $formCutInput->waktu_selesai) {
+                    $formCutInput->waktu_selesai = $request->finish;
+                }
+
+                $formCutInput->save();
             }
 
             return array(
