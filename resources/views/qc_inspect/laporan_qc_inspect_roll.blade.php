@@ -18,13 +18,14 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
                         <label class="form-label"><small><b>Tgl Awal</b></small></label>
-                        <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                            value="{{ $tgl_skrg_min_sebulan }}">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                            value="{{ request('tgl_awal', $tgl_skrg_min_sebulan) }}">
+
                     </div>
                     <div class="mb-3">
                         <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                            value="{{ date('Y-m-d') }}">
+                            value="{{ request('tgl_akhir', date('Y-m-d')) }}">
                     </div>
                     <div class="mb-3">
                         <button type="submit" class="btn btn-outline-primary btn-sm">
