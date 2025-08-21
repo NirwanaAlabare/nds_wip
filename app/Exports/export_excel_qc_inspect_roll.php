@@ -291,9 +291,11 @@ GROUP BY
                 $sheet = $event->sheet->getDelegate();
 
                 $highestRow = $sheet->getHighestRow();
-                $range = 'A1:BW' . $highestRow;
+                $highestColumn = $sheet->getHighestColumn(); // e.g., 'AZ'
 
-                // Apply border to whole data range
+                $range = 'A1:' . $highestColumn . $highestRow;
+
+                // Apply border to the whole data range
                 $sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
@@ -303,8 +305,9 @@ GROUP BY
                     ],
                 ]);
 
-                // Center align rows 2 to 4
-                $sheet->getStyle('A2:BW4')->applyFromArray([
+                // Center align rows 2 to 4 dynamically
+                $alignRange = 'A2:' . $highestColumn . '4';
+                $sheet->getStyle($alignRange)->applyFromArray([
                     'alignment' => [
                         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                         'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
