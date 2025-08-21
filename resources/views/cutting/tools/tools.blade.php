@@ -21,15 +21,6 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
-                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#fixRollQty">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Roll Qty</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormRatio">
                         <div class="card">
                             <div class="card-body">
@@ -52,6 +43,15 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Form Group</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#fixRollQty">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Roll Qty</h5>
                             </div>
                         </div>
                     </a>
