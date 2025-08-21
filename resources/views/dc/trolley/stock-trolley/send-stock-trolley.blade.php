@@ -102,7 +102,8 @@
                     <table class="table table table-bordered w-100" id="datatable-trolley-stock">
                         <thead>
                             <tr>
-                                <th class="d-none">Stocker IDs</th>
+                                <th class="d-none">ID</th>
+                                <th>Check</th>
                                 <th>No. Stocker</th>
                                 <th>No. WS</th>
                                 <th>No. Cut</th>
@@ -117,11 +118,22 @@
                         </thead>
                         <tbody>
                             @if ($trolleyStocks && $trolleyStocks->count() < 1)
-
+                                {{-- No Data --}}
                             @else
+                                @php
+                                    $i = 0;
+                                @endphp
                                 @foreach ($trolleyStocks as $trolleyStock)
                                     <tr>
-                                        <td class="d-none">{{ $trolleyStock->stocker_id }}</td>
+                                        <td class="d-none">
+                                            {{ $trolleyStock->stocker_id }}
+                                        </td>
+                                        <td>
+                                            <div class="form-check" style="scale: 1.5;translate: 50%;margin-top: 10px;">
+                                                <input class="form-check-input check-stock" type="checkbox" value="" ionchange="checkStock(this)" id="stock_{{ $i }}">
+                                            </div>
+                                        </div>
+                                        </td>
                                         <td>{{ $trolleyStock->id_qr_stocker }}</p></td>
                                         <td>{{ $trolleyStock->act_costing_ws }}</td>
                                         <td>{{ $trolleyStock->no_cut }}</td>
@@ -133,6 +145,9 @@
                                         <td>{{ $trolleyStock->rangeAwalAkhir }}</td>
                                         <td>{{ $trolleyStock->user }}</td>
                                     </tr>
+                                    @php
+                                        $i++;
+                                    @endphp
                                 @endforeach
                             @endif
                         </tbody>
@@ -176,22 +191,26 @@
 
             await $('#switch-destination').prop('checked', true);
 
+            initialSelected();
+
             document.getElementById("loading").classList.add("d-none");
         });
 
+        // Trolley ID
         var trolleyId = document.getElementById('trolley_id').value;
 
+        // Datatable
         let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable({
             ordering: false,
             columnDefs: [
                 {
-                    targets: [1],
+                    targets: [2],
                     render: (data, type, row, meta) => {
                         return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
                     }
                 },
                 {
-                    targets: [6],
+                    targets: [7],
                     render: (data, type, row, meta) => {
                         return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
                     }
@@ -203,9 +222,10 @@
             ]
         });
 
+        // Datatable thead filter
         $('#datatable-trolley-stock thead tr').clone(true).appendTo('#datatable-trolley-stock thead');
         $('#datatable-trolley-stock thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
+            if (i != 0 && i != 1) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -218,23 +238,94 @@
                     }
                 });
             } else {
-                $(this).html('');
+                if (i == 1) {
+                    $(this).html(`
+                        <div class="form-check" style="scale: 1.5;translate: 50%;">
+                            <input class="form-check-input" type="checkbox" value="" id="checkAllStock">
+                        </div>
+                    `);
+                } else {
+                    $(this).empty();
+                }
             }
         });
+
+        // Check Stocker
+        var stockArr = [];
+
+        // Check each
+        function checkStock(element) {
+            let data = $('#datatable-trolley-stock').DataTable().row(element.closest('tr')).data();
+
+            if (data) {
+                if (element.checked) {
+                    stockArr.push(data);
+                } else {
+                    stockArr = stockArr.filter(item => item.id != data.id);
+                }
+
+                updateSelectedSum();
+            }
+        }
+
+        // Check all
+        $("#checkAllStock").on("change", function () {
+            document.getElementById("loading").classList.remove("d-none");
+
+            // get elements
+            let checkStockElements = document.getElementsByClassName("check-stock");
+
+            // reset stock arr
+            stockArr = [];
+
+            // check each element
+            for (let i = 0; i < checkStockElements.length; i++) {
+                if (this.checked) {
+                    checkStockElements[i].checked = true;
+
+                    // push data
+                    let data = $('#datatable-trolley-stock').DataTable().row(checkStockElements[i].closest('tr')).data();
+                    stockArr.push(data);
+                } else {
+                    checkStockElements[i].checked = false;
+                }
+            }
+
+            updateSelectedSum();
+        });
+
+        // Update checked summary
+        function updateSelectedSum() {
+            let stockArrSum = stockArr.reduce((acc, row) => acc + Number(row[9]), 0);
+
+            document.getElementById('selected-row-count-1').innerText = stockArr.length+" (Total Qty : "+stockArrSum+")";
+
+            document.getElementById("loading").classList.add("d-none");
+        }
+
+        // Reset checked
+        function initialSelected() {
+            stockArr = [];
+
+            let checkStockElements = document.getElementsByClassName("check-stock");
+            for (let i = 0; i < checkStockElements.length; i++) {
+                checkStockElements[i].checked = false;
+            }
+        }
 
         // Datatable selected row selection
-        var totalQty = 0;
-        datatableTrolleyStock.on('click', 'tbody tr', async function(e) {
-            await e.currentTarget.classList.toggle('selected');
+        // var totalQty = 0;
+        // datatableTrolleyStock.on('click', 'tbody tr', async function(e) {
+        //     await e.currentTarget.classList.toggle('selected');
 
-            if (e.currentTarget.classList.contains('selected')) {
-                totalQty += parseInt(e.currentTarget.cells[8].innerText);
-            } else {
-                totalQty -= parseInt(e.currentTarget.cells[8].innerText);
-            }
+        //     if (e.currentTarget.classList.contains('selected')) {
+        //         totalQty += parseInt(e.currentTarget.cells[8].innerText);
+        //     } else {
+        //         totalQty -= parseInt(e.currentTarget.cells[8].innerText);
+        //     }
 
-            document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length+" (Total Qty : "+totalQty+")";
-        });
+        //     document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length+" (Total Qty : "+totalQty+")";
+        // });
 
         async function sendToLine(element) {
             if (!document.getElementById("no_bon").value) {
@@ -265,7 +356,7 @@
 
                 let tanggalLoading = `${year}-${month}-${day}`
 
-                let selectedStockerTable = $('#datatable-trolley-stock').DataTable().rows('.selected').data();
+                let selectedStockerTable = stockArr;
                 let selectedStocker = [];
 
                 for (let key in selectedStockerTable) {

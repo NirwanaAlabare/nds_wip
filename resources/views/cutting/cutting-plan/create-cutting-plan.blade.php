@@ -173,7 +173,7 @@
             datatableSelect.ajax.reload(() => {
                 $('#datatable-select').DataTable().ajax.reload(() => {
                     if (formArr) {
-                        document.getElementById('selected-row-count-1').innerText = formArr.length;    
+                        document.getElementById('selected-row-count-1').innerText = formArr.length;
                     }
                 });
             });
@@ -181,7 +181,7 @@
             datatableSelected.ajax.reload(() => {
                 $('#datatable-selected').DataTable().ajax.reload(() => {
                     if (formSelectedArr) {
-                        document.getElementById('selected-row-count-2').innerText = formSelectedArr.length;    
+                        document.getElementById('selected-row-count-2').innerText = formSelectedArr.length;
                     }
                 });
             });
@@ -206,7 +206,7 @@
                     }
                 });
             } else {
-               if (i == 0) {
+                if (i == 0) {
                     $(this).html(`
                         <div class="form-check" style="scale: 1.5;translate: 50%;">
                             <input class="form-check-input" type="checkbox" value="" id="checkAllForm"">
@@ -221,7 +221,7 @@
         function dataTableFormReload() {
             $('#datatable-select').DataTable().ajax.reload(() => {
                 if (formArr) {
-                    document.getElementById('selected-row-count-1').innerText = formArr.length;   
+                    document.getElementById('selected-row-count-1').innerText = formArr.length;
                 }
 
                 document.getElementById("loading").classList.add("d-none");
@@ -338,7 +338,7 @@
                     formArr = formArr.filter(item => item.id != data.id);
                 }
 
-                document.getElementById('selected-row-count-1').innerText = formArr.length;   
+                document.getElementById('selected-row-count-1').innerText = formArr.length;
             }
         }
 
@@ -538,7 +538,7 @@
         function dataTableFormSelectedReload() {
             $('#datatable-selected').DataTable().ajax.reload(() => {
                 if (formSelectedArr) {
-                    document.getElementById('selected-row-count-2').innerText = formSelectedArr.length;   
+                    document.getElementById('selected-row-count-2').innerText = formSelectedArr.length;
                 }
 
                 document.getElementById("loading").classList.add("d-none");
@@ -687,7 +687,7 @@
                     formSelectedArr = formSelectedArr.filter(item => item.id != data.id);
                 }
 
-                document.getElementById('selected-row-count-1').innerText = formSelectedArr.length;   
+                document.getElementById('selected-row-count-1').innerText = formSelectedArr.length;
             }
         }
 
