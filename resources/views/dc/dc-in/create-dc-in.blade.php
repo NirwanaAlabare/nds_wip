@@ -843,6 +843,7 @@
         }
 
         $('#datatable-scan').on('xhr.dt', function (e, settings, json, xhr) {
+            document.getElementById('check-all-stocker').checked = false;
             document.getElementById('checked-stocker-count').innerText = 0;
         });
 

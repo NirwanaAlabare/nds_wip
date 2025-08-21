@@ -278,7 +278,7 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         return `
-                            <div class="form-check">
+                            <div class="form-check" style="scale: 1.5;translate: 50%;">
                                 <input class="form-check-input check-form" type="checkbox" onchange="checkForm(this)" id="form_`+meta.row+`">
                             </div>
                         `;
@@ -598,7 +598,7 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         return `
-                            <div class="form-check">
+                            <div class="form-check" style="scale: 1.5;translate: 50%;">
                                 <input class="form-check-input check-form" type="checkbox" onchange="checkFormSelected(this)" id="form_selected_`+meta.row+`">
                             </div>
                         `;

@@ -394,7 +394,7 @@
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
                                 <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.group_stocker+`/`+row.ratio+`/`+row.so_det_id+`/`+(row.tipe == 'PIECE' ? 3 : (row.tipe == 'REJECT' ? 2 : 1))+`'     target='_blank'><i class='fa fa-search-plus'></i></a>
-                                <div class="form-check">
+                                <div class="form-check" style="scale: 1.5;translate: 50%;">
                                     <input class="form-check-input check-stock-number" type="checkbox" onchange="checkStockNumber(this)" id="stock_number_`+meta.row+`">
                                 </div>
                             </div>
