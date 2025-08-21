@@ -842,6 +842,10 @@
             }
         }
 
+        $('#datatable-scan').on('xhr.dt', function (e, settings, json, xhr) {
+            document.getElementById('checked-stocker-count').innerText = 0;
+        });
+
         async function checkAll(element) {
             let tmpDcStockCheck = document.getElementsByClassName('tmp_dc_stock_check');
 

@@ -656,14 +656,26 @@ table.sticky-table .fixed-column {
     box-shadow: none !important;
 }
 
+.modal-dialog.fullscreen-modal {
+    max-width: 100vw !important;
+    height: 100vw !important;
+    margin: 0 !important;
+}
+
+.modal-content.fullscreen-modal {
+    max-height: 100vh !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+}
+
 @media only screen and (max-width: 768px) {
     #reader {
         min-width: 100% !important;
     }
 
-    .modal-dialog-scrollable .modal-body {
+    /* .modal-dialog-scrollable .modal-body {
         max-height: 65vh !important;
-    }
+    } */
 
     .navbar-nav .nav-item {
         margin: 3px;

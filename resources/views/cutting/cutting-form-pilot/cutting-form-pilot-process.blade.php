@@ -2317,7 +2317,7 @@
                     }
                 }
 
-                let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
+                let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + pipingVar);
 
                 document.getElementById("current_sisa_kain").value = sisaKain.round(2);
             }

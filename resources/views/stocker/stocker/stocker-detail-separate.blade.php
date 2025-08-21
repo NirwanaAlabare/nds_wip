@@ -54,11 +54,11 @@
                         <div id="separate_qty_wrapper_{{ $indexSeparate }}" class="d-flex flex-wrap gap-1"  data-qty="{{ $qty }}">
                             @if ($separatedStockerDetails)
                                 @foreach ($separatedStockerDetails as $separatedStockerDetail)
-                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $separatedStockerDetail->qty }}" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)">
+                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $separatedStockerDetail->qty }}" oninput="validateAndAdjust({{ $indexSeparate }}, this)" onchange="validateAndAdjust({{ $indexSeparate }}, this)" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)" min="0">
                                 @endforeach
                             @else
                                 @for ($i = 0; $i < $ratio->ratio; $i++)
-                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty/$ratio->ratio }}" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)">
+                                    <input type="number" class="form-control form-control-sm separate-part" name="separate_qty[{{ $indexSeparate }}][]" value="{{ $qty/$ratio->ratio }}" oninput="validateAndAdjust({{ $indexSeparate }}, this)" onchange="validateAndAdjust({{ $indexSeparate }}, this)" onkeyup="validateAndAdjust({{ $indexSeparate }}, this)" min="0">
                                 @endfor
                             @endif
                         </div>

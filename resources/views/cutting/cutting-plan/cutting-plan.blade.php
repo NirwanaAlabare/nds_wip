@@ -59,8 +59,8 @@
     <form action="{{ route('update-cut-plan') }}" method="post" id="manage-cut-plan-form">
         @method('PUT')
         <div class="modal fade" id="manageCutPlanModal" tabindex="-1" role="dialog" aria-labelledby="manageCutPlanModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
+            <div class="modal-dialog fullscreen-modal modal-dialog-scrollable">
+                <div class="modal-content fullscreen-modal">
                     <div class="modal-header bg-sb text-light">
                         <h5 class="modal-title fs-5" id="manageCutPlanModalLabel"><i class="fa fa-edit"></i> Edit Cutting Plan</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -494,11 +494,11 @@
             columnDefs: [
                 {
                     targets: [0, 1, 2, 3, 5, 6],
-                    className: 'w-auto',
+                    className: 'w-auto limit',
                 },
                 {
                     targets: [4],
-                    className: 'd-none',
+                    className: 'd-none limit',
                 },
             ],
             rowCallback: function( row, data, index ) {

@@ -47,7 +47,7 @@ class DcToolsController extends Controller
         $success = [];
         $fails = [];
         foreach ($emptyOrder as $eo) {
-            $loadingLinePlan = LoadingLinePlan::where("act_costing_id", $eo->act_costing_ws)->where("color", $eo->color)->where("line_id", $eo->line_id)->where("tanggal", $eo->tanggal_loading)->first();
+            $loadingLinePlan = LoadingLinePlan::where("act_costing_id", $eo->act_costing_id)->where("color", $eo->color)->where("line_id", $eo->line_id)->where("tanggal", $eo->tanggal_loading)->first();
 
             if ($loadingLinePlan) {
                 if (strlen($eo->loading_line_ids) > 0) {
@@ -81,6 +81,45 @@ class DcToolsController extends Controller
                         array_push($fails, $eo->loading_line_ids);
                     }
                 }
+            }
+        }
+
+        return array(
+            'status' => 200,
+            'message' => 'Berhasil mengubah '.count($success).' data <br> Gagal mengubah '.count($fails).' data',
+        );
+    }
+
+    public function redundantLoadingPlan(Request $request) {
+        $year = $request->input('year');
+        $month = $request->input('month');
+        $date = $request->input('date');
+
+        $redundantPlan = collect(DB::select("select MAX(id) as id, act_costing_id, act_costing_ws, color, line_id, tanggal from loading_line_plan group by act_costing_id, color, line_id, tanggal having count(id) > 1"));
+
+        if ($redundantPlan->count() < 1) {
+            return array(
+                'status' => 200,
+                'message' => 'Tidak ada data yang perlu diubah',
+            );
+        }
+
+        $success = [];
+        $fails = [];
+        foreach ($redundantPlan as $rp) {
+            // Similar Loading Plan
+            $loadingLinePlan = LoadingLinePlan::where("id", "!=", $rp->id)->where("act_costing_id", $rp->act_costing_id)->where("color", $rp->color)->where("line_id", $rp->line_id)->where("tanggal", $rp->tanggal)->get();
+
+            foreach ($loadingLinePlan as $lp) {
+                // Update Similar Loading Plan to current ID
+                LoadingLine::where("loading_plan_id",  $lp->id)->update([
+                    "loading_plan_id" => $rp->id
+                ]);
+
+                // Delete Loading Plan
+                LoadingLinePlan::where("id", $lp->id)->delete();
+
+                array_push($success, $lp);
             }
         }
 

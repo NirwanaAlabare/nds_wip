@@ -161,6 +161,122 @@ class CuttingPlanController extends Controller
         return view('cutting.cutting-plan.create-cutting-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
     }
 
+    public function checkAllForm(Request $request) {
+        $additionalQuery = "";
+
+        $thisStoredCutPlan = CutPlan::select("form_cut_id")->groupBy("form_cut_id")->get();
+
+        if ($thisStoredCutPlan->count() > 0) {
+            $i = 0;
+            $additionalQuery .= " AND a.id NOT IN (";
+            foreach ($thisStoredCutPlan as $cutPlan) {
+                if ($i+1 == count($thisStoredCutPlan)) {
+                    $additionalQuery .= "'".$cutPlan->form_cut_id . "' ";
+                } else {
+                    $additionalQuery .= "'".$cutPlan->form_cut_id . "' , ";
+                }
+
+                $i++;
+            }
+            $additionalQuery .= ") ";
+        }
+
+        $keywordQuery = "";
+        if ($request->search) {
+            $keywordQuery = "
+                and (
+                    a.id_marker like '%" . $request->search . "%' OR
+                    a.no_meja like '%" . $request->search . "%' OR
+                    a.no_form like '%" . $request->search . "%' OR
+                    a.tgl_form_cut like '%" . $request->search . "%' OR
+                    b.act_costing_ws like '%" . $request->search . "%' OR
+                    panel like '%" . $request->search . "%' OR
+                    b.color like '%" . $request->search . "%' OR
+                    a.status like '%" . $request->search . "%' OR
+                    users.name like '%" . $request->search . "%'
+                )
+            ";
+        }
+
+
+        // Filter
+        $filterQuery = "";
+        if ($request->tanggal_filter) {
+            $filterQuery .= " AND a.tgl_form_cut LIKE '%".$request->tanggal_filter."%' ";
+        }
+        if ($request->no_form_filter) {
+            $filterQuery .= " AND a.no_form LIKE '%".$request->no_form_filter."%' ";
+        }
+        if ($request->no_meja_filter) {
+            $filterQuery .= " AND users.name LIKE '%".$request->no_meja_filter."%' ";
+        }
+        if ($request->style_filter) {
+            $filterQuery .= " AND b.style LIKE '%".$request->style_filter."%' ";
+        }
+        if ($request->color_filter) {
+            $filterQuery .= " AND b.color LIKE '%".$request->color_filter."%' ";
+        }
+        if ($request->panel_filter) {
+            $filterQuery .= " AND b.panel LIKE '%".$request->panel_filter."%' ";
+        }
+        if ($request->qty_ply_filter) {
+            $filterQuery .= " AND a.qty_ply LIKE '%".$request->qty_ply_filter."%' ";
+        }
+        if ($request->no_marker_filter) {
+            $filterQuery .= " AND a.id_marker LIKE '%".$request->no_marker_filter."%' ";
+        }
+        if ($request->no_ws_filter) {
+            $filterQuery .= " AND b.act_costin_ws LIKE '%".$request->no_ws_filter."%' ";
+        }
+
+        $data_spreading = DB::select("
+            SELECT
+                a.id,
+                a.no_meja,
+                a.id_marker,
+                a.no_form,
+                a.tgl_form_cut,
+                b.id marker_id,
+                b.act_costing_ws ws,
+                b.style,
+                b.panel,
+                b.color,
+                a.status,
+                UPPER(users.name) nama_meja,
+                b.panjang_marker,
+                UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                b.comma_marker,
+                UPPER(b.unit_comma_marker) unit_comma_marker,
+                b.lebar_marker,
+                UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                a.qty_ply,
+                b.gelar_qty,
+                b.po_marker,
+                b.urutan_marker,
+                b.cons_marker,
+                a.tipe_form_cut,
+                CONCAT(b.panel, ' - ', b.urutan_marker) panel,
+                GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
+            FROM `form_cut_input` a
+            left join marker_input b on a.id_marker = b.kode
+            left join marker_input_detail on b.id = marker_input_detail.marker_id
+            left join master_size_new on marker_input_detail.size = master_size_new.size
+            left join users on users.id = a.no_meja
+            where
+                a.status = 'SPREADING' and
+                b.cancel = 'N' and
+                marker_input_detail.ratio > 0 and
+                a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+                " . $filterQuery . "
+            GROUP BY a.id
+            ORDER BY b.cancel asc, a.tgl_form_cut desc, a.no_form desc
+        ");
+
+        return $data_spreading;
+    }
+
     public function getSelectedForm(Request $request, $noCutPlan = 0)
     {
         $additionalQuery = "";
@@ -253,6 +369,130 @@ class CuttingPlanController extends Controller
             ");
 
         return DataTables::of($data_spreading)->toJson();
+    }
+
+    public function checkAllFormSelected(Request $request) {
+        $additionalQuery = "";
+
+        $thisStoredCutPlan = CutPlan::select("form_cut_id")->where("tgl_plan", $request->tgl_plan)->get();
+
+        if ($thisStoredCutPlan->count() > 0) {
+            $additionalQuery .= " and (";
+
+            $i = 0;
+            $length = $thisStoredCutPlan->count();
+            foreach ($thisStoredCutPlan as $cutPlan) {
+                if ($i == 0) {
+                    $additionalQuery .= " a.id = '" . $cutPlan->form_cut_id . "' ";
+                } else {
+                    $additionalQuery .= " or a.id = '" . $cutPlan->form_cut_id . "' ";
+                }
+
+                $i++;
+            }
+
+            $additionalQuery .= " ) ";
+        } else {
+            $additionalQuery .= " and a.no_form = '0' ";
+        }
+
+        $keywordQuery = "";
+        if ($request->search) {
+            $keywordQuery = "
+                    and (
+                        a.id_marker like '%" . $request->search . "%' OR
+                        a.no_meja like '%" . $request->search . "%' OR
+                        a.no_form like '%" . $request->search . "%' OR
+                        a.tgl_form_cut like '%" . $request->search . "%' OR
+                        b.act_costing_ws like '%" . $request->search . "%' OR
+                        panel like '%" . $request->search . "%' OR
+                        b.color like '%" . $request->search . "%' OR
+                        a.status like '%" . $request->search . "%' OR
+                        users.name like '%" . $request->search . "%'
+                    )
+                ";
+        }
+
+        // Filter
+        $filterQuery = "";
+        if ($request->tanggal_filter) {
+            $filterQuery .= " AND a.tgl_form_cut LIKE '%".$request->tanggal_filter."%' ";
+        }
+        if ($request->no_form_filter) {
+            $filterQuery .= " AND a.no_form LIKE '%".$request->no_form_filter."%' ";
+        }
+        if ($request->no_meja_filter) {
+            $filterQuery .= " AND users.name LIKE '%".$request->no_meja_filter."%' ";
+        }
+        if ($request->style_filter) {
+            $filterQuery .= " AND b.style LIKE '%".$request->style_filter."%' ";
+        }
+        if ($request->color_filter) {
+            $filterQuery .= " AND b.color LIKE '%".$request->color_filter."%' ";
+        }
+        if ($request->panel_filter) {
+            $filterQuery .= " AND b.panel LIKE '%".$request->panel_filter."%' ";
+        }
+        if ($request->qty_ply_filter) {
+            $filterQuery .= " AND a.qty_ply LIKE '%".$request->qty_ply_filter."%' ";
+        }
+        if ($request->no_marker_filter) {
+            $filterQuery .= " AND a.id_marker LIKE '%".$request->no_marker_filter."%' ";
+        }
+        if ($request->no_ws_filter) {
+            $filterQuery .= " AND b.act_costin_ws LIKE '%".$request->no_ws_filter."%' ";
+        }
+
+        $data_spreading = DB::select("
+                SELECT
+                    a.id,
+                    a.no_meja,
+                    a.id_marker,
+                    a.no_form,
+                    a.tgl_form_cut,
+                    b.id marker_id,
+                    b.act_costing_ws ws,
+                    b.style,
+                    panel,
+                    b.color,
+                    a.status,
+                    UPPER(users.name) nama_meja,
+                    b.panjang_marker,
+                    UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                    b.comma_marker,
+                    UPPER(b.unit_comma_marker) unit_comma_marker,
+                    b.lebar_marker,
+                    UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                    a.qty_ply,
+                    b.gelar_qty,
+                    b.po_marker,
+                    b.urutan_marker,
+                    b.cons_marker,
+                    a.tipe_form_cut,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
+                    sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
+                    coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act,
+                    COALESCE(a2.total_lembar, a.total_lembar, '0') total_lembar
+                FROM `form_cut_input` a
+                left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
+                left join marker_input b on a.id_marker = b.kode
+                left join marker_input_detail on b.id = marker_input_detail.marker_id
+                left join master_size_new on marker_input_detail.size = master_size_new.size
+                left join users on users.id = a.no_meja
+                left join (select form_cut_id,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by form_cut_id) c on a.id = c.form_cut_id
+                where
+                    a.id is not null and
+                    marker_input_detail.ratio > 0 and
+                    a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
+                    " . $additionalQuery . "
+                    " . $keywordQuery . "
+                    " . $filterQuery . "
+                GROUP BY a.id
+                ORDER BY b.cancel desc, FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'), a.tgl_form_cut desc, panel asc
+            ");
+
+        return $data_spreading;
     }
 
     public function exportCuttingPlan(Request $request) {
@@ -551,7 +791,7 @@ class CuttingPlanController extends Controller
                 $markerInfo = $markerInfo . "</ul>";
                 return $markerInfo;
             })->addColumn('ratio_info', function ($row) {
-                $markerDetailData = $row->formCutInput && $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails : null;
+                $markerDetailData = $row->formCutInput && $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails->where("ratio", ">", "0") : null;
 
                 $markerDetailInfo = "
                         <table class='table table-bordered table w-auto'>

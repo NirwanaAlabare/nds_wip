@@ -615,6 +615,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
         Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
 
+        Route::post('/check-all-form', 'checkAllForm')->name('check-all-form-cut-plan');
+        Route::post('/check-all-form-selected', 'checkAllFormSelected')->name('check-all-form-selected-cut-plan');
+
         Route::get('/cut-plan-output', 'cuttingPlanOutput')->name('cut-plan-output');
         Route::get('/cut-plan-output/show/{id?}', 'showCuttingPlanOutput')->name('detail-cut-plan-output');
         Route::get('/cut-plan-output/show-form', 'showCutPlanOutputForm')->name('cut-plan-output-form');
@@ -637,6 +640,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
         Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
         Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
+        Route::post('/cutting/update-detail', 'updateDetail')->name('update-detail-form');
+        Route::post('/cutting/update-header', 'updateHeader')->name('update-header-form');
         Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
         Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
     });
@@ -988,6 +993,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('dc-tools');
         Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
+        Route::post('/redundant-loading-plan', 'redundantLoadingPlan')->name('redundant-loading-plan');
         Route::get('/modify-dc-qty', 'modifyDcQty')->middleware('role:superadmin')->name('modify-dc-qty');
         Route::get('/get-dc-qty', 'getDcQty')->middleware('role:superadmin')->name('get-dc-qty');
         Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');

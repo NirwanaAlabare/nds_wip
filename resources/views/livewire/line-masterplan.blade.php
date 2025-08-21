@@ -1,0 +1,149 @@
+<div>
+    <div class="loading-container-fullscreen" wire:loading wire:target='search, date, group, filter'>
+        <div class="loading-container">
+            <div class="loading"></div>
+        </div>
+    </div>
+    <div>
+        <div class="d-flex">
+            <div class="mb-3">
+                <label class="mb-1">Tanggal</label>
+                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" wire:model='date' id="date">
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered w-auto" id="datatable">
+                <thead>
+                    <tr>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Line</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">WS Number</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Style</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Style Production</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Color</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">SMV</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Jam Kerja</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Man Power</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Plan Target</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Target Efficiency</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Total Jam</td>
+                        <td class="bg-sb text-light fw-bold text-nowrap">Total Target Plan</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $currentLine = "";
+                    @endphp
+                    @if ($masterPlan->count() > 0)
+                        @foreach ($masterPlan as $mp)
+                            @php
+                                $thisLineRow = $lineRow->where("sewing_line", $mp->sewing_line)->first();
+                            @endphp
+                            <tr>
+                                {{-- @if ($currentLine != $mp->sewing_line)
+                                @endif --}}
+                                <td class="text-nowrap text-center align-middle">
+                                    <a href="{{ route('master-plan-detail')."/".$mp->sewing_line."/".$date }}" target="_blank">{{ ucfirst(str_replace("_", " ", $mp->sewing_line)) }}</a>
+                                </td>
+                                <td class="text-nowrap">{{ $mp->no_ws }}</td>
+                                <td class="text-nowrap">{{ $mp->style }}</td>
+                                <td class="text-nowrap">{{ $mp->style_production }}</td>
+                                <td class="text-nowrap">{{ $mp->color }}</td>
+                                <td class="text-nowrap">{{ curr($mp->smv) }}</td>
+                                <td class="text-nowrap">{{ curr($mp->jam_kerja) }}</td>
+                                <td class="text-nowrap">{{ num($mp->man_power) }}</td>
+                                <td class="text-nowrap">{{ num($mp->plan_target) }}</td>
+                                <td class="text-nowrap">{{ curr($mp->target_effy) }} %</td>
+
+                                <td class="text-nowrap text-center align-middle fw-bold {{ round($thisLineRow->total_jam) > 8 || round($thisLineRow->total_jam) < 8 ? "text-danger" : "text-success" }}">{{ $thisLineRow->total_jam }}</td>
+                                <td class="text-center align-middle fw-bold text-sb" >{{ $thisLineRow->total_target }}</td>
+                                {{-- @if ($currentLine != $mp->sewing_line)
+                                @endif --}}
+                            </tr>
+                            @php
+                                $currentLine = $mp->sewing_line;
+                            @endphp
+                        @endforeach
+                    @else
+                        <tr>
+                            <td class="text-nowrap text-center align-middle"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap"></td>
+                            <td class="text-nowrap text-center align-middle fw-bold"></td>
+                            <td class="text-center align-middle fw-bold text-sb"></td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            setFixedColumn();
+        });
+
+        $("#date").on("change", function () {
+            clearFixedColumn();
+        });
+
+        function clearFixedColumn() {
+            $('#datatable').DataTable().destroy();
+
+            console.log("clearFixedColumn");
+        }
+
+        async function setFixedColumn() {
+            setTimeout(function () {
+                // Initialize DataTable again
+                var datatable = $('#datatable').DataTable({
+                    fixedColumns: {
+                        start: 1,
+                        end: 2
+                    },
+                    paging: false,
+                    ordering: false,
+                    searching: false,
+                    scrollX: true,
+                    serverSide: false,
+                    rowsGroup: [
+                        0,
+                        10,
+                        11
+                    ]
+                });
+            }, 500);
+
+            setTimeout(function () {
+                $('#datatable').DataTable().columns.adjust();
+            }, 1000);
+        }
+
+        Livewire.on("clearFixedColumn", () => {
+            clearFixedColumn();
+        });
+
+        Livewire.on("initFixedColumn", () => {
+            setFixedColumn();
+
+            setTimeout(function () {
+                $('#datatable').DataTable().columns.adjust();
+            }, 1000);
+        });
+
+        // Run after any Livewire update
+        Livewire.hook('message.processed', () => {
+            setTimeout(() => {
+                setFixedColumn();
+            }, 0);
+        });
+    </script>
+@endpush

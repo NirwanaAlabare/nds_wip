@@ -635,7 +635,6 @@ class CuttingFormController extends Controller
                 create(
                     [
                         "form_cut_id" => $request->id,
-                        'status' => 'not complete',
                         "id_roll" => $request->current_id_roll,
                         "id_item" => $request->current_id_item,
                         "color_act" => $request->color_act,
@@ -788,7 +787,6 @@ class CuttingFormController extends Controller
                     [
                         "form_cut_id" => $validatedRequest['id'],
                         "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
-                        "status" => "extension",
                         "id_roll" => $validatedRequest['current_id_roll'],
                         "id_item" => $validatedRequest['current_id_item'],
                         "color_act" => $validatedRequest['color_act'],

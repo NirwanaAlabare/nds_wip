@@ -359,8 +359,10 @@ order by buyer asc");
 
         if (!empty($reff)) {
             $cond_reff = " and sd.reff_no = '" . $reff  . "'";
+            $cond_reff_nds = " and master_sb_ws.reff_no = '" . $reff  . "'";
         } else {
             $cond_reff = "";
+            $cond_reff_nds = "";
         }
         if (!empty($ws)) {
             $cond_ws = " and ac.kpno = '" . $ws  . "'";
@@ -1294,7 +1296,7 @@ order by buyer asc");
 							WHERE
 								form_cut_input.STATUS = 'SELESAI PENGERJAAN'
 								AND ( marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-								$cond_ws_nds $cond_color_nds $cond_size_nds
+                                AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
 							GROUP BY
 								form_cut_input.id,
 								marker_input.panel,
@@ -1321,7 +1323,7 @@ order by buyer asc");
                             WHERE
                                 form_cut_input.STATUS = 'SELESAI PENGERJAAN'
                                 AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                                AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
                             GROUP BY
                                 form_cut_input.id,
                                 stocker_ws_additional.panel,
@@ -1345,7 +1347,7 @@ order by buyer asc");
                                 master_sb_ws.id_so_det IS NOT NULL AND
                                 form_cut_reject_detail.qty > 0 AND
                                 form_cut_reject.id is not null
-                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                                AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
                             GROUP BY
                                 form_cut_reject.panel,
                                 form_cut_reject_detail.so_det_id
@@ -1367,7 +1369,7 @@ order by buyer asc");
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                             WHERE
                                 master_sb_ws.id_so_det IS NOT NULL
-                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                                AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
                             GROUP BY
                                 form_cut_piece.panel,
                                 form_cut_piece_detail_size.so_det_id
@@ -1378,38 +1380,6 @@ order by buyer asc");
 						size,
 						panel
 					) cutting
-				GROUP BY
-					ws,
-					color,
-					size
-			 UNION ALL
-				SELECT
-					ws,
-					color,
-					size,
-					MIN( qty_cut ) qty_cut
-				FROM
-					(
-					SELECT
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						form_cut_reject.panel,
-						master_sb_ws.size,
-						SUM( form_cut_reject_detail.qty ) AS qty_cut
-					FROM
-						form_cut_reject_detail
-						LEFT JOIN form_cut_reject ON form_cut_reject.id = form_cut_reject_detail.form_id
-						LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
-					WHERE
-						master_sb_ws.id_so_det IS NOT NULL $cond_ws_nds $cond_color_nds $cond_size_nds
-					GROUP BY
-						form_cut_reject.panel,
-						master_sb_ws.ws,
-						master_sb_ws.color,
-						master_sb_ws.size
-					) form_reject
-				WHERE
-					ws IS NOT NULL $cond_ws_global $cond_color_global $cond_size_global
 				GROUP BY
 					ws,
 					color,
@@ -1984,8 +1954,10 @@ order by buyer asc");
 
         if (!empty($reff)) {
             $cond_reff = " and sd.reff_no = '" . $reff  . "'";
+            $cond_reff_nds = " and master_sb_ws.reff_no = '" . $reff  . "'";
         } else {
             $cond_reff = "";
+            $cond_reff_nds = "";
         }
         if (!empty($ws)) {
             $cond_ws = " and ac.kpno = '" . $ws  . "'";
@@ -2400,7 +2372,7 @@ order by buyer asc");
                         signalbit_erp.act_costing ac ON so.id_cost = ac.id
                     INNER JOIN
                         signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        where ms.supplier = '$buyer'and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                             GROUP BY
                             ws, color, size,styleno_prod, reff_no, tgl_shipment
                             ORDER BY
@@ -2523,7 +2495,7 @@ order by buyer asc");
 							WHERE
 								form_cut_input.STATUS = 'SELESAI PENGERJAAN'
 								AND ( marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-								$cond_ws_nds $cond_color_nds $cond_size_nds
+							    AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
 							GROUP BY
 								form_cut_input.id,
 								marker_input.panel,
@@ -2550,7 +2522,7 @@ order by buyer asc");
                             WHERE
                                 form_cut_input.STATUS = 'SELESAI PENGERJAAN'
                                 AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                                AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
                             GROUP BY
                                 form_cut_input.id,
                                 stocker_ws_additional.panel,
@@ -2574,7 +2546,7 @@ order by buyer asc");
                                 master_sb_ws.id_so_det IS NOT NULL AND
                                 form_cut_reject_detail.qty > 0 AND
                                 form_cut_reject.id is not null
-                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                                AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
                             GROUP BY
                                 form_cut_reject.panel,
                                 form_cut_reject_detail.so_det_id
@@ -2596,7 +2568,7 @@ order by buyer asc");
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                             WHERE
                                 master_sb_ws.id_so_det IS NOT NULL
-                                $cond_ws_nds $cond_color_nds $cond_size_nds
+                                AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
                             GROUP BY
                                 form_cut_piece.panel,
                                 form_cut_piece_detail_size.so_det_id
@@ -2630,7 +2602,7 @@ order by buyer asc");
 						LEFT JOIN form_cut_reject ON form_cut_reject.id = form_cut_reject_detail.form_id
 						LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
 					WHERE
-						master_sb_ws.id_so_det IS NOT NULL $cond_ws_nds $cond_color_nds $cond_size_nds
+						master_sb_ws.id_so_det IS NOT NULL AND master_sb_ws.buyer = '".$buyer."' $cond_reff_nds $cond_ws_nds $cond_color_nds $cond_size_nds
 					GROUP BY
 						form_cut_reject.panel,
 						master_sb_ws.ws,
