@@ -726,8 +726,8 @@ INNER JOIN b ON c.no_form = b.no_form;
                             END
                     )
                 ) <= c.individu,
-                        'pass',
-                        'reject'
+                        'PASS',
+                        'REJECT'
                     ) AS result
                 FROM qc_inspect_form_det a
                 INNER JOIN qc_inspect_form b ON a.no_form = b.no_form

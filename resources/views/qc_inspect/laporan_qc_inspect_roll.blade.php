@@ -48,8 +48,8 @@
                             <th scope="col" class="text-center align-middle" rowspan="3">Tgl Inspect</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">Machine</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">Inspector</th>
-                            <th scope="col" class="text-center align-middle" rowspan="3">Nik</th>
-                            <th scope="col" class="text-center align-middle" rowspan="3">No Pl</th>
+                            <th scope="col" class="text-center align-middle" rowspan="3">NIK</th>
+                            <th scope="col" class="text-center align-middle" rowspan="3">No PL</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">No Form</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">Supplier</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">Worksheet</th>
