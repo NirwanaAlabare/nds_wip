@@ -13,8 +13,8 @@
                 <th rowspan="3">Tgl Inspect</th>
                 <th rowspan="3">Machine</th>
                 <th rowspan="3">Inspector</th>
-                <th rowspan="3">Nik</th>
-                <th rowspan="3">No Pl</th>
+                <th rowspan="3">NIK</th>
+                <th rowspan="3">No PL</th>
                 <th rowspan="3">No Form</th>
                 <th rowspan="3">Supplier</th>
                 <th rowspan="3">Worksheet</th>
