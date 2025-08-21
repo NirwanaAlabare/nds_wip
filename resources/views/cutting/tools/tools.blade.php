@@ -912,6 +912,8 @@
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',
                                 });
+
+                                clearModifyFormGroup();
                             } else {
                                 Swal.fire({
                                     icon: 'error',
@@ -939,6 +941,15 @@
                     });
                 }
             })
+        }
+
+        function clearModifyFormGroup() {
+            $('#no_form_modify_group').val("").trigger("change");
+            $('#no_form_modify_group').val("").trigger("change");
+            $('#no_form_modify_group').val("").trigger("change");
+            $('#form_group_modify_group').val("").trigger("change");
+            $('#form_group_modify_group').val("").trigger("change");
+            $('#form_group_new_modify_group').val("").trigger("change");
         }
     </script>
 @endsection
