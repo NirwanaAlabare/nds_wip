@@ -33,6 +33,8 @@ class TrackOrderOutput extends Component
 
     public $baseUrl;
 
+    public $search;
+
     public function mount()
     {
         $this->suppliers = null;
@@ -78,6 +80,10 @@ class TrackOrderOutput extends Component
         // }
     }
 
+    public function setSearch() {
+        $this->search = true;
+    }
+
     public function render()
     {
         ini_set("max_execution_time", 3600);
@@ -119,7 +125,7 @@ class TrackOrderOutput extends Component
             groupBy('kpno')->
             get();
 
-        // if ($this->selectedOrder) {
+        if ($this->search) {
             $orderFilterSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("
                     master_plan.tgl_plan tanggal,
@@ -290,14 +296,18 @@ class TrackOrderOutput extends Component
                     orderBy("act_costing.styleno", "asc")->
                     orderBy("master_plan.color", "asc")->
                     orderByRaw("COALESCE(rfts.created_by, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
-                $this->dailyOrderOutputs = $dailyOrderOutputSql->get();
+                $this->dailyOrderOutputs = $dailyOrderOutputSql->toSql();
+
+            dd($this->dailyOrderOutputs);
 
             if ($this->dailyOrderOutputs->sum("output") > 50000) {
                 $this->emit("alert", "Big Data. '".$this->dailyOrderOutputs->sum("output")."' data.");
             }
 
             \Log::info("Query Completed");
-        // }
+
+            $this->search = false;
+        }
 
         return view('livewire.track-order-output');
     }
