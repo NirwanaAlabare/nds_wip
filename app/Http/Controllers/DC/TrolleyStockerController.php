@@ -12,6 +12,7 @@ use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use DB;
@@ -689,6 +690,9 @@ class TrolleyStockerController extends Controller
                     );
                 }
 
+                // BatchId
+                $batchId = Str::uuid()->toString();
+
                 for ($i = 0; $i < count($stockerIds); $i++) {
                     $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
 
@@ -707,6 +711,7 @@ class TrolleyStockerController extends Controller
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
                                 "no_bon" => $request['no_bon'],
+                                "batch" => $batchId,
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
                                 "created_by" => Auth::user()->id,
@@ -740,6 +745,7 @@ class TrolleyStockerController extends Controller
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
                                 "no_bon" => $request['no_bon'],
+                                "batch" => $batchId,
                                 "created_at" => Carbon::now(),
                                 "updated_at" => Carbon::now(),
                                 "created_by" => Auth::user()->id,
@@ -751,24 +757,27 @@ class TrolleyStockerController extends Controller
                     }
                 }
 
+                // Store Loading Stock
                 $storeLoadingStock = LoadingLine::insert($loadingStockArr);
+                // Get Stored Loading Stock
+                $storedLoadingStock = LoadingLine::where('batch', $batchId)->pluck("stocker_id")->toArray();
 
-                if (count($loadingStockArr) > 0) {
-                    $updateStocker = Stocker::whereIn("id", $stockerIds)->
+                if (count($storedLoadingStock) > 0) {
+                    $updateStocker = Stocker::whereIn("id", $storedLoadingStock)->
                         update([
                             "status" => "line",
                             "latest_alokasi" => Carbon::now()
                         ]);
 
-                    $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $stockerIds)->
+                    $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $storedLoadingStock)->
                         update([
                             "status" => "not active"
                         ]);
 
                     if ($updateStocker) {
-                        array_push($success, ['stocker' => $stockerIds]);
+                        array_push($success, ['stocker' => $storedLoadingStock]);
                     } else {
-                        array_push($fail, ['stocker' => $stockerIds]);
+                        array_push($fail, ['stocker' => $storedLoadingStock]);
                     }
                 }
             }
@@ -786,7 +795,7 @@ class TrolleyStockerController extends Controller
                         "trolley_id" => $request->destination_trolley_id
                     ]);
 
-                if ($updateStocker) {
+                if ($updateStocker && $updateTrolleyStocker) {
                     array_push($success, ['stocker' => $stockerIds]);
                 } else {
                     array_push($fail, ['stocker' => $stockerIds]);
