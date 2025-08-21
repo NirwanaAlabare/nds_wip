@@ -296,9 +296,7 @@ class TrackOrderOutput extends Component
                     orderBy("act_costing.styleno", "asc")->
                     orderBy("master_plan.color", "asc")->
                     orderByRaw("COALESCE(rfts.created_by, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
-                $this->dailyOrderOutputs = $dailyOrderOutputSql->toSql();
-
-            dd($this->dailyOrderOutputs);
+                $this->dailyOrderOutputs = $dailyOrderOutputSql->get();
 
             if ($this->dailyOrderOutputs->sum("output") > 50000) {
                 $this->emit("alert", "Big Data. '".$this->dailyOrderOutputs->sum("output")."' data.");

@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='selectedSupplier, selectedOrder, groupBy, colorFilter, lineFilter, sizeFilter, clearFilter, outputType'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='setSearch, selectedSupplier, selectedOrder, groupBy, colorFilter, lineFilter, sizeFilter, clearFilter, outputType'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -19,7 +19,7 @@
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateTo" wire:model="dateToFilter" value="{{ $dateToFilter }}">
                 </div>
-                <button wire:click="setSearch"><i class="fa fa-search"></i></button>
+                <button class="btn btn-sb-secondary btn-sm" wire:click="setSearch"><i class="fa fa-search"></i></button>
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? $outputType : "SEWING"))) }}</span>
             </div>
         </div>
