@@ -644,4 +644,64 @@ class CuttingToolsController extends Controller
             "additional" => [],
         );
     }
+
+    public function updateFormGroup(Request $request) {
+        ini_set('max_execution_time', 3600);
+
+        $validatedRequest = $request->validate([
+            "form_cut_id" => "required",
+            "no_form" => "required",
+            "form_group" => "required",
+            "form_group_new" => "required",
+        ]);
+
+        $formTable = 'form_cut_input_detail';
+        $formType = 'form_cut_id';
+        switch ($request->form_type) {
+            case 'reject' :
+                $formTable = 'form_cut_reject';
+                $formType = 'form_reject_id';
+                break;
+            case 'piece' :
+                $formTable = 'form_cut_piece_detail';
+                $formType = 'form_piece_id';
+                break;
+            default :
+                $formTable = 'form_cut_input_detail';
+                $formType = 'form_cut_id';
+                break;
+        }
+
+        if ($validatedRequest['form_group']) {
+            if ($validatedRequest['form_group_new']) {
+                // Update Form Group
+                $updateFormGroup = DB::table($formTable)->where(($formTable == "form_cut_reject" ? "id" : ($formTable == "form_cut_piece_detail" ? "form_id" : $formTable == "form_cut_input_detail" ? "form_cut_id" : "")), $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
+                    ($formTable == "form_cut_reject" ? "group" : "group_roll") => $validatedRequest["form_group_new"]
+                ]);
+
+                // Update Stocker Group
+                $updateStockerGroup = DB::table("stocker_input")->where($formType, $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
+                    "shade" => $validatedRequest["form_group_new"]
+                ]);
+
+                if ($updateFormGroup && $updateStockerGroup) {
+                    return array(
+                        'status' => 200,
+                        'message' => 'Form Group <br> "'.$validatedRequest['no_form'].'" <br> "'.$validatedRequest['form_group'].'" <br> berhasil diubah ke <br> <b>"'.$validatedRequest['form_group_new'].'"</b>',
+                        'redirect' => '',
+                        'table' => '',
+                        'additional' => [],
+                    );
+                }
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Terjadi Kesalahan.',
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
+    }
 }

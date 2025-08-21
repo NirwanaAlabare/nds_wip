@@ -702,6 +702,9 @@ Route::middleware('auth')->group(function () {
 
         // fix form swap size
         Route::post('/update-form-swap', 'updateFormSwap')->name('update-form-swap');
+
+        // modify group
+        Route::post('/update-form-group', 'updateFormGroup')->name('update-form-group');
     });
 
     // Stocker :
