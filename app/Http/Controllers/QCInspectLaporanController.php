@@ -25,14 +25,29 @@ select
 *
 from qc_inspect_form
 where tgl_form >= '$tgl_awal' and tgl_form <= '$tgl_akhir'),
+pd as (
+SELECT
+    a.no_form,
+    SUM(up_to_3) * 1 +
+    SUM(`3_6`) * 2 +
+    SUM(`6_9`) * 3 +
+    SUM(over_9) * 4 AS sum_point_def
+FROM
+    qc_inspect_form_det a
+INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
+left JOIN qc_inspect_form c on a.no_form = c.no_form
+where tgl_form >= '$tgl_awal' and tgl_form <= '$tgl_akhir'
+GROUP BY
+     a.no_form
+),
 pos as (
 SELECT
     no_form,
-    ROUND(COALESCE(MAX(CASE WHEN urut = 1 THEN cuttable_width_act END), 0),2) AS front,
-    ROUND(COALESCE(MAX(CASE WHEN urut = 2 THEN cuttable_width_act END), 0),2) AS middle,
-    ROUND(COALESCE(MAX(CASE WHEN urut = 3 THEN cuttable_width_act END), 0),2) AS back
+    ROUND(COALESCE(MAX(CASE WHEN urut = 1 THEN cuttable_width_act END), 0),6) AS front,
+    ROUND(COALESCE(MAX(CASE WHEN urut = 2 THEN cuttable_width_act END), 0),6) AS middle,
+    ROUND(COALESCE(MAX(CASE WHEN urut = 3 THEN cuttable_width_act END), 0),6) AS back
 FROM (
-		SELECT
+				SELECT
         qd.no_form,
         cuttable_width_act,
         ROW_NUMBER() OVER (
@@ -85,9 +100,9 @@ case
 END AS w_act_lbs,
 
 qc.bintex_width,
-pos.front,
-pos.middle,
-pos.back,
+round(pos.front,2) front,
+round(pos.middle,2) middle,
+round(pos.back,2) back,
 ROUND((front + middle + back)
     /
     NULLIF(
@@ -118,14 +133,13 @@ ROUND((front + middle + back)
         (CASE WHEN back   <> 0 THEN 1 ELSE 0 END),
     0) * 2.54
 , 2) AS avg_width_cm,
-
 ROUND(((front + middle + back)
     /
     NULLIF(
         (CASE WHEN front  <> 0 THEN 1 ELSE 0 END) +
         (CASE WHEN middle <> 0 THEN 1 ELSE 0 END) +
         (CASE WHEN back   <> 0 THEN 1 ELSE 0 END),
-    0) * 2.54) - qc.bintex_width
+    0) * 2.54) - qc.bintex_width * 2.54
 , 2) AS shortage_width_cm,
 
 ROUND((((front + middle + back)
@@ -134,8 +148,7 @@ ROUND((((front + middle + back)
         (CASE WHEN front  <> 0 THEN 1 ELSE 0 END) +
         (CASE WHEN middle <> 0 THEN 1 ELSE 0 END) +
         (CASE WHEN back   <> 0 THEN 1 ELSE 0 END),
-    0) * 2.54) - qc.bintex_width) / qc.bintex_width * 100
-, 2) AS short_roll_percentage_width,
+    0) - qc.bintex_width) / qc.bintex_width * 100),2) AS short_roll_percentage_width,
 
 qc.bintex_length_act,
 qc.act_length_fix,
@@ -143,30 +156,53 @@ ROUND(qc.act_length_fix - qc.bintex_length_act,2) shortage_length_yard,
 
         CASE
             WHEN qc.unit_bintex = 'meter' THEN bintex_length
-            WHEN qc.unit_bintex = 'yard'  THEN round(bintex_length / 0.9144,2)
+            WHEN qc.unit_bintex = 'yard'  THEN round(bintex_length * 0.9144,2)
         END as bintex_length_meter,
 
 				CASE
             WHEN qc.unit_act_length = 'meter' THEN act_length
-            WHEN qc.unit_act_length = 'yard'  THEN round(act_length / 0.9144,2)
+            WHEN qc.unit_act_length = 'yard'  THEN round(act_length * 0.9144,2)
         END as bintex_act_length_meter,
 
 ROUND(
     (
         CASE
             WHEN qc.unit_act_length = 'meter' THEN act_length
-            WHEN qc.unit_act_length = 'yard'  THEN round(act_length / 0.9144,2)
+            WHEN qc.unit_act_length = 'yard'  THEN round(act_length * 0.9144,2)
         END
         -
         CASE
             WHEN qc.unit_bintex = 'meter' THEN bintex_length
-            WHEN qc.unit_bintex = 'yard'  THEN round(bintex_length / 0.9144,2)
+            WHEN qc.unit_bintex = 'yard'  THEN round(bintex_length * 0.9144,2)
         END
     ), 2
 ) AS shortage_length_meter,
-ROUND((qc.act_length_fix - qc.bintex_length_act) / qc.bintex_length_act * 100,2) short_roll_percentage_length
-
-
+ROUND((qc.act_length_fix - qc.bintex_length_act) / qc.bintex_length_act * 100,2) short_roll_percentage_length,
+coalesce(pd.sum_point_def,0) sum_point_def,
+ROUND(COALESCE((pd.sum_point_def * 36 * 100 ) / (qc.act_length_fix * (front + middle + back)
+    /
+    NULLIF(
+        (CASE WHEN front  <> 0 THEN 1 ELSE 0 END) +
+        (CASE WHEN middle <> 0 THEN 1 ELSE 0 END) +
+        (CASE WHEN back   <> 0 THEN 1 ELSE 0 END),
+    0)),0),2) as point_system,
+gi.individu,
+IF( ROUND(COALESCE((pd.sum_point_def * 36 * 100 ) / (qc.act_length_fix * (front + middle + back)
+    /
+    NULLIF(
+        (CASE WHEN front  <> 0 THEN 1 ELSE 0 END) +
+        (CASE WHEN middle <> 0 THEN 1 ELSE 0 END) +
+        (CASE WHEN back   <> 0 THEN 1 ELSE 0 END),
+    0)),0),2) <= gi.individu,'A','B') as grade,
+mfi.founding_issue,
+CASE
+    WHEN qc.status_proses_form = 'done'
+         THEN IF(qc.founding_issue IS NULL, 'PASS', 'HOLD')
+    ELSE NULL
+END AS founding_issue_result,
+UPPER(qc.result) result,
+qc.short_roll_result,
+qc.final_result
 from whs_lokasi_inmaterial a
 inner join qc on a.no_barcode = qc.barcode
 inner join whs_inmaterial_fabric_det b on a.no_dok = b.no_dok and a.id_item = b.id_item and a.id_jo = b.id_jo
@@ -176,6 +212,10 @@ inner join act_costing ac on so.id_cost = ac.id
 inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
 inner join masteritem mi on qc.id_item = mi.id_item
 left join pos on qc.no_form = pos.no_form
+left join pd on qc.no_form = pd.no_form
+left join qc_inspect_master_founding_issue mfi on qc.founding_issue = mfi.id
+left join qc_inspect_master_group_inspect gi on qc.group_inspect = gi.id
+WHERE qc.status_proses_form = 'done'
             ");
 
         // return DataTables::of($data_input)->toJson();

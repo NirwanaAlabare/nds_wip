@@ -80,6 +80,14 @@
                                 Defect Type
                             </th>
 
+                            {{-- Kolom Point Defect --}}
+                            <th scope="col" class="text-center align-middle" rowspan="3">Point Defect</th>
+                            {{-- Kolom Point System --}}
+                            <th scope="col" class="text-center align-middle" colspan="2">4 Point System</th>
+                            {{-- Kolom Decision Visual Inspection --}}
+                            <th scope="col" class="text-center align-middle" colspan="6">Decision Visual Inspection
+                            </th>
+
                         </tr>
 
                         <tr>
@@ -100,6 +108,17 @@
                                 {{ $group->point_defect }}</th>
                             @endforeach
                             </th>
+                            {{-- Kolom Point System --}}
+                            <th scope="col" rowspan="2" class="text-center align-middle">Point</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle">Standard</th>
+                            {{-- Kolom Decision Visual Inspection --}}
+                            <th scope="col" rowspan="2" class="text-center align-middle">Grade (Visual Defect
+                                Point)</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle">Founding Issue</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle">Visual Defect Result</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle">Short Roll Result</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle">Founding Issue Result</th>
+                            <th scope="col" rowspan="2" class="text-center align-middle">Final Result</th>
                         </tr>
 
                         <tr>
@@ -203,6 +222,18 @@
                                         {{ $defectData[$row->no_form][$def->id] ?? 0 }}
                                     </td>
                                 @endforeach
+                                <!-- Kolom Point Defect -->
+                                <td>{{ $row->sum_point_def }}</td>
+                                <!-- Kolom Point System -->
+                                <td>{{ $row->point_system }}</td>
+                                <td>{{ $row->individu }}</td>
+                                <!-- Kolom Decision Visual Inspection -->
+                                <td>{{ $row->grade }}</td>
+                                <td>{{ $row->founding_issue }}</td>
+                                <td>{{ $row->result }}</td>
+                                <td>{{ $row->short_roll_result }}</td>
+                                <td>{{ $row->founding_issue_result }}</td>
+                                <td>{{ $row->final_result }}</td>
                             </tr>
                         @endforeach
 

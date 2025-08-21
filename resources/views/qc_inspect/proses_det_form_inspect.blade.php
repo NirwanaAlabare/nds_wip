@@ -742,10 +742,10 @@
                 inchValue = width * 0.3937;
             }
 
-            // Round up to 2 decimal places
-            let roundedUp = Math.round(inchValue * 100) / 100;
+            // // Round up to 2 decimal places
+            // let roundedUp = Math.round(inchValue * 100) / 100;
 
-            $('#txtinch').val(roundedUp.toFixed(2));
+            $('#txtinch').val(inchValue.toFixed(2));
         }
 
 
@@ -1177,8 +1177,8 @@
             const unit = document.getElementById('unitFullWidth').value;
             let actual = unit === 'inch' ? fullWidth : (fullWidth * 0.393701);
 
-            // Round up to 2 decimal places
-            actual = Math.round(actual * 100) / 100;
+            // // Round up to 2 decimal places
+            // actual = Math.round(actual * 100) / 100;
 
             document.getElementById('txtfull_width_act').value = actual.toFixed(2);
         }
@@ -1188,10 +1188,10 @@
             const unit = document.getElementById('unitCuttableWidth').value;
             let actual = unit === 'inch' ? cuttableWidth : (cuttableWidth * 0.393701);
 
-            // Round up to 2 decimal places
-            actual = Math.round(actual * 100) / 100;
+            // // Round up to 2 decimal places
+            // actual = Math.round(actual * 100) / 100;
 
-            document.getElementById('txtcuttable_width_act').value = actual.toFixed(2);
+            document.getElementById('txtcuttable_width_act').value = actual.toFixed(6);
         }
 
         // Attach event listeners
