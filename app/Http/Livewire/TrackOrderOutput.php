@@ -33,6 +33,8 @@ class TrackOrderOutput extends Component
 
     public $baseUrl;
 
+    public $search;
+
     public function mount()
     {
         $this->suppliers = null;
@@ -54,6 +56,8 @@ class TrackOrderOutput extends Component
 
         $this->groupBy = "size";
         $this->baseUrl = url('/');
+
+        $this->search = false;
     }
 
     public function clearFilter()
@@ -61,6 +65,7 @@ class TrackOrderOutput extends Component
         $this->colorFilter = null;
         $this->lineFilter = null;
         $this->sizeFilter = null;
+        $this->search = false;
     }
 
     public function updatedSelectedOrder()
@@ -76,6 +81,10 @@ class TrackOrderOutput extends Component
         //     $this->dateFromFilter = date("Y-m-d");
         //     $this->dateToFilter = date("Y-m-d");
         // }
+    }
+
+    public function setSearch() {
+        $this->search = true;
     }
 
     public function render()
@@ -113,13 +122,13 @@ class TrackOrderOutput extends Component
             where('cost_date', '>=', '2023-01-01')->
             where('type_ws', 'STD');
             if ($this->selectedSupplier) $orderSql->where('id_buyer', $this->selectedSupplier);
+
         $this->orders = $orderSql->
             orderBy('cost_date', 'desc')->
             orderBy('kpno', 'asc')->
             groupBy('kpno')->
             get();
 
-        // if ($this->selectedOrder) {
             $orderFilterSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("
                     master_plan.tgl_plan tanggal,
@@ -168,6 +177,9 @@ class TrackOrderOutput extends Component
 
             $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
             $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
+
+        if ($this->search) {
+            $this->search = false;
 
             $dailyOrderGroupSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("
@@ -297,7 +309,7 @@ class TrackOrderOutput extends Component
             }
 
             \Log::info("Query Completed");
-        // }
+        }
 
         return view('livewire.track-order-output');
     }

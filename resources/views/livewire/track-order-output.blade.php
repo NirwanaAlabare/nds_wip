@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='selectedSupplier, selectedOrder, groupBy, colorFilter, lineFilter, sizeFilter, clearFilter, outputType'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='setSearch, selectedSupplier, selectedOrder, groupBy, colorFilter, lineFilter, sizeFilter, clearFilter, outputType'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -19,6 +19,7 @@
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateTo" wire:model="dateToFilter" value="{{ $dateToFilter }}">
                 </div>
+                <button class="btn btn-sb-secondary btn-sm" wire:click="setSearch"><i class="fa fa-search"></i></button>
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? $outputType : "SEWING"))) }}</span>
             </div>
         </div>
@@ -67,9 +68,11 @@
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
                             foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
+                                if ($dailyDate && is_object($dailyDate->first())) {
                                 ?>
-                                    <th>{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
+                                    <th>{{ date_format(date_create(($dailyDate->first()->tanggal)), "d-m-Y") }}</th>
                                 <?php
+                                }
                             }
                     ?>
                     <th class="text-center">TOTAL</th>
@@ -87,6 +90,7 @@
                         $totalOutput = null;
 
                         foreach ($dailyOrderGroup as $dailyGroup) {
+                            if ($dailyGroup && is_object($dailyGroup)) {
                             ?>
                                 <tr>
                                     @if ($dailyGroup->ws != $currentWs)
@@ -134,19 +138,21 @@
                                         @php
                                             $thisOutput = 0;
 
-                                            if ($groupBy == 'size') {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
-                                            } else {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
-                                            }
+                                            if ($dailyDate && is_object($dailyDate->first())) {
+                                                if ($groupBy == 'size') {
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
+                                                } else {
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
+                                                }
 
-                                            if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
-                                                $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
-                                            } else {
-                                                $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
-                                            }
+                                                if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
+                                                    $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
+                                                } else {
+                                                    $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
+                                                }
 
-                                            $thisRowOutput += $thisOutput;
+                                                $thisRowOutput += $thisOutput;
+                                            }
                                         @endphp
 
                                         <td class="text-end text-nowrap">
@@ -161,6 +167,7 @@
                                     @endphp
                                 </tr>
                             <?php
+                            }
                         }
                     } else {
                         ?>

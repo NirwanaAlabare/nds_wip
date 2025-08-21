@@ -130,7 +130,7 @@
                                         </td>
                                         <td>
                                             <div class="form-check" style="scale: 1.5;translate: 50%;margin-top: 10px;">
-                                                <input class="form-check-input check-stock" type="checkbox" value="" ionchange="checkStock(this)" id="stock_{{ $i }}">
+                                                <input class="form-check-input check-stock" type="checkbox" value="" onchange="checkStock(this)" id="stock_{{ $i }}">
                                             </div>
                                         </div>
                                         </td>
