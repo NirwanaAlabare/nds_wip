@@ -572,7 +572,7 @@ up_to_3,
 3_6,
 6_9,
 over_9,
-concat(full_width_act, ' -> ' , cuttable_width_act) hasil,
+concat(full_width_act, ' -> ' , round(cuttable_width_act,2)) hasil,
 full_width_act,
 cuttable_width_act,
 qc.status_proses_form
@@ -719,13 +719,11 @@ INNER JOIN b ON c.no_form = b.no_form;
                             SUM(over_9) * 4
                         ) * 36 * 100
                     ) / (
-                        AVG(a.cuttable_width_act) *
-                        AVG(
+                        a.cuttable_width_act *
                             CASE
                                 WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
                                 ELSE b.act_length
                             END
-                        )
                     )
                 ) <= c.individu,
                         'pass',
