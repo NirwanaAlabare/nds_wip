@@ -260,7 +260,7 @@ FROM
     qc_inspect_form_det a
 INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
 left JOIN qc_inspect_form c on a.no_form = c.no_form
-where tgl_form >= '$this->from' and tgl_form <= '$this->to'
+where date(finish_form) >= '$this->from' and date(finish_form) <= '$this->to'
 GROUP BY
     id_defect, a.no_form
 ");
