@@ -25,6 +25,7 @@ use App\Models\Stocker\StockerSeparate;
 use App\Models\Stocker\StockerSeparateDetail;
 use Illuminate\Http\Request;
 use DB;
+use PDF;
 
 class StockerService
 {
@@ -349,5 +350,23 @@ class StockerService
         }
 
         return $sizeRangeAkhir;
+    }
+
+    public function printYearSequence($year, $yearSequence, $rangeAwal, $rangeAkhir) {
+        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, master_sb_ws.color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+            where("year", $year)->
+            where("year_sequence", $yearSequence)->
+            where("year_sequence_number", ">=", $rangeAwal)->
+            where("year_sequence_number", "<=", $rangeAkhir)->
+            orderBy("year_sequence", "asc")->
+            orderBy("year_sequence_number", "asc")->
+            get()->
+            toArray();
+
+        $customPaper = array(0, 0, 35.35, 110.90);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence-1-new', ["data" => $yearSequence])->setPaper($customPaper);
+
+        $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
     }
 }
