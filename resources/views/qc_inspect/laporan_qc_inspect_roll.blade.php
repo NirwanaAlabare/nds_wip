@@ -17,13 +17,13 @@
             <form method="GET" action="{{ route('qc_inspect_laporan_roll') }}">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
-                        <label class="form-label"><small><b>Tgl Awal</b></small></label>
+                        <label class="form-label"><small><b>Tgl Selesai Awal</b></small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
                             value="{{ request('tgl_awal', $tgl_skrg_min_sebulan) }}">
 
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><small><b>Tgl Akhir</b></small></label>
+                        <label class="form-label"><small><b>Tgl Selesai Akhir</b></small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                             value="{{ request('tgl_akhir', date('Y-m-d')) }}">
                     </div>
@@ -46,7 +46,9 @@
                     <thead class="bg-sb">
                         <tr>
                             <th scope="col" class="text-center align-middle" rowspan="3">Tgl Bpb</th>
-                            <th scope="col" class="text-center align-middle" rowspan="3">Tgl Inspect</th>
+                            <th scope="col" class="text-center align-middle" rowspan="3">Tgl Form</th>
+                            <th scope="col" class="text-center align-middle" rowspan="3">Tgl Mulai Inspect</th>
+                            <th scope="col" class="text-center align-middle" rowspan="3">Tgl Selesai Inspect</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">Machine</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">Inspector</th>
                             <th scope="col" class="text-center align-middle" rowspan="3">NIK</th>
@@ -167,6 +169,8 @@
                             <tr>
                                 <td>{{ $row->tgl_dok }}</td>
                                 <td>{{ $row->tgl_form }}</td>
+                                <td>{{ $row->tgl_start }}</td>
+                                <td>{{ $row->tgl_finish }}</td>
                                 <td>{{ $row->no_mesin }}</td>
                                 <td>{{ $row->operator }}</td>
                                 <td>{{ $row->nik }}</td>
@@ -241,6 +245,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="tableInfo" class="mt-2 text-muted"></div>
             <div id="pagination" class="mt-2"></div>
         </div>
     </div>
@@ -340,7 +345,9 @@
                 });
 
                 renderPagination(filteredRows.length);
+                renderTableInfo(filteredRows.length, start + 1, Math.min(end, filteredRows.length));
             }
+
 
             function renderPagination(totalRows) {
                 pagination.innerHTML = "";
@@ -359,6 +366,12 @@
                     pagination.appendChild(btn);
                 }
             }
+
+            function renderTableInfo(totalFiltered, startIndex, endIndex) {
+                const infoDiv = document.getElementById("tableInfo");
+                infoDiv.textContent = `Showing ${startIndex} to ${endIndex} of ${totalFiltered} entries`;
+            }
+
 
             // ✅ When user types or deletes
             searchInput.addEventListener("input", () => {

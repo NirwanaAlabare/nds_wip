@@ -10,7 +10,9 @@
             </tr>
             <tr>
                 <th rowspan="3">Tgl Bpb</th>
-                <th rowspan="3">Tgl Inspect</th>
+                <th rowspan="3">Tgl Form</th>
+                <th rowspan="3">Tgl Mulai Inspect</th>
+                <th rowspan="3">Tgl Selesai Inspect</th>
                 <th rowspan="3">Machine</th>
                 <th rowspan="3">Inspector</th>
                 <th rowspan="3">NIK</th>
@@ -101,6 +103,8 @@
                 <tr>
                     <td>{{ $row->tgl_dok }}</td>
                     <td>{{ $row->tgl_form }}</td>
+                    <td>{{ $row->tgl_start }}</td>
+                    <td>{{ $row->tgl_finish }}</td>
                     <td>{{ $row->no_mesin }}</td>
                     <td>{{ $row->operator }}</td>
                     <td>{{ $row->nik }}</td>
