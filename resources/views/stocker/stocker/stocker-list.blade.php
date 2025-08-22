@@ -34,7 +34,7 @@
                 <div class="d-flex justify-content-end align-items-end gap-3">
                     {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
                     <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa-regular fa-file-excel"></i></button>
-                    <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-solid fa-print"></i> Print Number Stock</button>
+                    <button class="btn btn-sb btn-sm" id="print-stock-number" data-bs-toggle="modal" data-bs-target="#printStockNumber"><i class="fa-solid fa-print"></i> Print Number Stock</button>
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-solid fa-print"></i> Print Label</button>
                     <button class="btn btn-primary btn-sm d-none" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-solid fa-print"></i> Print New Label</button>
                 </div>
@@ -213,6 +213,28 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Batal</button>
                     <button class="btn btn-success" onclick="printNewYearSequence()"><i class="fa-solid fa-file-export fa-sm"></i> Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Stocker List --}}
+    <div class="modal fade" id="printStockNumber" tabindex="-1" aria-labelledby="printStockNumberLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="printStockNumberLabel">Print Numbering Stock</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-sb w-50 fw-bold" onclick="printStockNumber();">
+                            Print Numbering Stock
+                        </button>
+                        <button class="btn btn-sb-secondary w-50 fw-bold" onclick="printStockNumber(true);">
+                            Print Numbering Stock <br> + QR Labels
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1125,7 +1147,7 @@
             }
         }
 
-        async function printYearSequenceAjax(method, qty, year, yearSequence, rangeAwal, rangeAkhir) {
+        async function printYearSequenceAjax(method, qty, year, yearSequence, rangeAwal, rangeAkhir, name = "numbers") {
             return $.ajax({
                         url: '{{ route('print-year-sequence') }}',
                         type: 'post',
@@ -1148,11 +1170,9 @@
                                 var blob = new Blob([res], {type: 'application/pdf'});
                                 var link = document.createElement('a');
                                 link.href = window.URL.createObjectURL(blob);
-                                link.download = "Numbers.pdf";
+                                link.download = "QR Label "+name+".pdf";
                                 link.click();
                             }
-
-                            window.location.reload();
 
                             generating = false;
                         },
@@ -1235,7 +1255,7 @@
             }
         }
 
-        async function printStockNumber() {
+        async function printStockNumber(withLabels = false) {
             document.getElementById('loading').classList.remove('d-none');
 
             if (stockNumberArr.length > 0) {
@@ -1270,6 +1290,10 @@
                             }
                         })
 
+                        if (withLabels) {
+                            await printStockNumberYearSequence(stockNumberArrChunk);
+                        }
+
                         i += chunkSize;
 
                         if (i >= stockNumberArr.length) {
@@ -1278,6 +1302,38 @@
                     }
                 }
                 while (i < stockNumberArr.length);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Harap pilih stocker',
+                    allowOutsideClick: false,
+                });
+
+                document.getElementById('loading').classList.add('d-none');
+            }
+        }
+
+        async function printStockNumberYearSequence(stockNumbers) {
+            document.getElementById('loading').classList.remove('d-none');
+
+            if (stockNumbers.length > 0) {
+                for (let i = 0; i < stockNumbers.length; i++) {
+                    let yearSequenceSplit = stockNumbers[i]["year_sequence"].split('_');
+                    let year = yearSequenceSplit[0];
+                    let yearSequence = yearSequenceSplit[1];
+
+                    let rangeSplit = stockNumbers[i]["numbering_range"].split(' - ');
+                    let rangeAwal = Number(rangeSplit[0]);
+                    let rangeAkhir = Number(rangeSplit[1]);
+
+                    let method = "range";
+                    let qty = rangeAkhir - rangeAwal + 1;
+
+                    await printYearSequenceAjax(method, qty, year, yearSequence, rangeAwal, rangeAkhir, stockNumbers[i]["id_qr_stocker"]);
+                }
+
+                document.getElementById('loading').classList.remove('d-none');
             } else {
                 Swal.fire({
                     icon: 'error',

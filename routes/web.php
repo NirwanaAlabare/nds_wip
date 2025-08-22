@@ -702,6 +702,9 @@ Route::middleware('auth')->group(function () {
 
         // fix form swap size
         Route::post('/update-form-swap', 'updateFormSwap')->name('update-form-swap');
+
+        // modify group
+        Route::post('/update-form-group', 'updateFormGroup')->name('update-form-group');
     });
 
     // Stocker :
@@ -1234,6 +1237,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
         Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
         Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
+        Route::post('/miss-reject', 'missReject')->name("sewing-miss-reject");
 
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
         Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");

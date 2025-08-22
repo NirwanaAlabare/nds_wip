@@ -21,15 +21,6 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
-                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#fixRollQty">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Roll Qty</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormRatio">
                         <div class="card">
                             <div class="card-body">
@@ -48,10 +39,19 @@
                     </a>
                 </div>
                 <div class="col-md-4">
-                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormSwap">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormGroup">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Swap Size Form</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Form Group</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#fixRollQty">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Roll Qty</h5>
                             </div>
                         </div>
                     </a>
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <!-- Reset Stocker -->
+    <!-- Fix Roll Qty -->
     <div class="modal fade" id="fixRollQty" tabindex="-1" aria-labelledby="fixRollQtyLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
@@ -314,6 +314,46 @@
             </div>
         </div>
     </div>
+
+    {{-- Modify Form Group --}}
+    <div class="modal fade" id="modifyFormGroup" tabindex="-1" aria-labelledby="modifyFormGroupLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="modifyFormGroupLabel">Modify Form Group</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">No. Form</label>
+                        <select name="no_form_modify_group" id="no_form_modify_group" class="form-control select2bs4formgroup" style="width: 100%;"  onchange="getFormGroupList();setFormType();">
+                            <option value="">Pilih Form</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Form Type</label>
+                        <input type="text" class="form-control" id="form_type_modify_group" id="form_type_modify_group" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Group</label>
+                        <select name="form_group_modify_group" id="form_group_modify_group" class="form-control select2bs4formgroup" style="width: 100%;">
+                            <option value="">Pilih Form Group</option>
+                        </select>
+                    </div>
+                    <hr class="border-top mt-3" style="border: 1px solid black;">
+                    <h6 class="text-sb fw-bold text-center">UPDATE</h6>
+                    <div>
+                        <label class="form-label">New Group</label>
+                        <input type="text" name="form_group_new_modify_group" id="form_group_new_modify_group" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="modifyFormGroup()"><i class="fa fa-save"></i> Ubah</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -345,9 +385,15 @@
             theme: 'bootstrap4',
             dropdownParent: $('#modifyFormSwap')
         });
+        $('.select2bs4formgroup').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#modifyFormGroup')
+        });
 
         $(document).ready(function () {
             document.getElementById("modify-form-marker").reset();
+
+            getFormList();
         });
 
         document.getElementById("fix_roll_id").addEventListener("onkeydown", (event) => {
@@ -763,6 +809,147 @@
                     document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = 0;
                 }
             }
+        }
+
+        function getFormList() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "get",
+                url: "{{ route('get-no-form-cut') }}",
+                dataType: "json",
+                success: function (response) {
+                    if (response) {
+                        $('#no_form_modify_group').empty();
+                        $('#no_form_modify_group').append('<option value="">Pilih Form</option>');
+                        $.each(response, function (key, value) {
+                            $('#no_form_modify_group').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
+                        });
+                    }
+
+                    document.getElementById("form_type_modify_group").value = "";
+
+                    document.getElementById("loading").classList.add("d-none");
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+
+                    document.getElementById("loading").classList.add("d-none");
+                }
+            });
+        }
+
+        function setFormType() {
+            const formType = $('#no_form_modify_group option:selected').attr('data-type');
+            $('#form_type_modify_group').val(formType);
+        }
+
+        function getFormGroupList() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "get",
+                url: "{{ route('get-form-group') }}",
+                data: {
+                    form_cut_id: $("#no_form_modify_group").val(),
+                    form_group: $('#form_group_modify_group').val() ? $('#form_group_modify_group').val() : null,
+                    form_type: $('#no_form_modify_group option:selected').attr('data-type')
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response) {
+                        $('#form_group_modify_group').empty();
+                        $('#form_group_modify_group').append('<option value="">Pilih Form Group</option>');
+                        $.each(response, function (key, value) {
+                            $('#form_group_modify_group').append('<option value="' + (value.group_stocker ? value.group_stocker : "") + '">' + (value.group_stocker ? value.group_stocker : '/') + " - " + (value.shade ? value.shade : '/') + '</option>');
+                        });
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+
+                    document.getElementById("loading").classList.add("d-none");
+                }
+            });
+        }
+
+        function modifyFormGroup() {
+            Swal.fire({
+                title: 'Update Form Group?',
+                html: 'Yakin akan mengubah data group form <br> '+$('#no_form_modify_group option:selected').text()+' / '+$('#form_group_modify_group option:selected').text()+' <br> ke <br> '+$('#form_group_new_modify_group').val()+'?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route("update-form-group") }}",
+                        data: {
+                            form_cut_id: $('#no_form_modify_group').val(),
+                            form_type: $('#no_form_modify_group option:selected').attr('data-type'),
+                            no_form: $('#no_form_modify_group option:selected').text(),
+                            form_group: $('#form_group_modify_group').val() ? $('#form_group_modify_group').val() : null,
+                            form_group_new: $('#form_group_new_modify_group').val() ? $('#form_group_new_modify_group').val() : null,
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            console.log(response);
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+
+                                clearModifyFormGroup();
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        }, error (jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            console.error(jqXHR);
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: "Terjadi Kesalahan.",
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    });
+                }
+            })
+        }
+
+        function clearModifyFormGroup() {
+            $('#no_form_modify_group').val("").trigger("change");
+            $('#no_form_modify_group').val("").trigger("change");
+            $('#no_form_modify_group').val("").trigger("change");
+            $('#form_group_modify_group').val("").trigger("change");
+            $('#form_group_modify_group').val("").trigger("change");
+            $('#form_group_new_modify_group').val("").trigger("change");
         }
     </script>
 @endsection
