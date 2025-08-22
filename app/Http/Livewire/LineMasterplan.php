@@ -13,15 +13,19 @@ class LineMasterplan extends Component
     public $lineRow;
     public $baseUrl;
 
+    public $search;
+
     public function mount()
     {
         $this->date = date('Y-m-d');
         $this->baseUrl = url('/');
+
+        $this->search = "";
     }
 
     public function render()
     {
-        $this->masterPlan =MasterPlan::selectRaw("
+        $this->masterPlan = MasterPlan::selectRaw("
                 master_plan.id,
                 master_plan.tgl_plan,
                 master_plan.sewing_line,
@@ -43,8 +47,26 @@ class LineMasterplan extends Component
             })->
             where("tgl_plan", $this->date)->
             where("master_plan.cancel", "N")->
+            whereRaw("(
+                master_plan.tgl_plan LIKE '%".$this->search."%'
+                OR
+                REPLACE(master_plan.sewing_line, '_', ' ') LIKE '%".$this->search."%'
+                OR
+                REPLACE(master_plan.sewing_line, '_', '') LIKE '%".$this->search."%'
+                OR
+                master_plan.sewing_line LIKE '%".$this->search."%'
+                OR
+                act_costing.kpno LIKE '%".$this->search."%'
+                OR
+                act_costing.styleno LIKE '%".$this->search."%'
+                OR
+                so_det.styleno_prod LIKE '%".$this->search."%'
+                OR
+                master_plan.color LIKE '%".$this->search."%'
+            )")->
             orderBy("sewing_line", "asc")->
             get();
+
         $this->lineRow = MasterPlan::selectRaw("sewing_line, COUNT(id) total_row, GROUP_CONCAT(jam_kerja), SUM(jam_kerja) total_jam, SUM(plan_target) total_target")->where("tgl_plan", $this->date)->where("cancel", "N")->groupBy("sewing_line", "tgl_plan")->get();
 
         return view('livewire.line-masterplan');
