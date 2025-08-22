@@ -11,6 +11,11 @@
                 <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" wire:model='date' id="date">
             </div>
             <div class="mb-3">
+                <button class="btn btn-primary btn-sm" onclick="openImport()"><i class="fa fa-upload"></i> Upload</button>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end">
+            <div class="mb-3">
                 <div class="d-flex align-items-center gap-1">
                     <label class="mb-0">Search: </label>
                     <input type="text" class="form-control form-control-sm" wire:model.lazy="search" id="search">
@@ -89,6 +94,31 @@
             </table>
         </div>
     </div>
+    <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form method="post" action="{{ route('import-master-plan') }}" enctype="multipart/form-data" onsubmit="submitImport(this, event)">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title" id="exampleModalLabel">Import Master Plan</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ csrf_field() }}
+                        <label class="drop-container" id="dropcontainer">
+                            <input type="file" name="file" required="required">
+                        </label>
+                        <a href="{{ asset('example/contoh-import-master-plan.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                        <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Import</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 @push('scripts')
@@ -155,5 +185,52 @@
                 setFixedColumn();
             }, 0);
         });
+
+        function openImport(){
+            $('#importExcel').modal('show');
+        }
+
+        function submitImport(e, evt) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            evt.preventDefault();
+
+            clearModified();
+
+            $.ajax({
+                url: e.getAttribute('action'),
+                type: e.getAttribute('method'),
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res.status == 200) {
+                        console.log(res);
+
+                        e.reset();
+
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Master Plan berhasil diupload',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timer: 5000,
+                            timerProgressBar: true
+                        })
+
+                        $('#importExcel').modal('hide');
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
+                }
+            });
+        }
     </script>
 @endpush

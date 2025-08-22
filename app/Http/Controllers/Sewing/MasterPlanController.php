@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Sewing;
 use App\Http\Controllers\Controller;
 use App\Models\SignalBit\ActCosting;
 use App\Models\SignalBit\MasterPlan;
+use App\Imports\ImportMasterPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Yajra\DataTables\Facades\DataTables;
-use DB;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
+use DB;
 
 class MasterPlanController extends Controller
 {
@@ -318,6 +320,28 @@ class MasterPlanController extends Controller
             'redirect' => '',
             'table' => '',
             'additional' => [],
+        );
+    }
+
+    public function importMasterPlan(Request $request)
+    {
+        // validasi
+        $this->validate($request, [
+            'file' => 'required|mimes:csv,xls,xlsx'
+        ]);
+
+        $file = $request->file('file');
+
+        $nama_file = rand().$file->getClientOriginalName();
+
+        $file->move('file_upload',$nama_file);
+
+        Excel::import(new ImportMasterPlan, public_path('/file_upload/'.$nama_file));
+
+        return array(
+            "status" => 200,
+            "message" => 'Data Berhasil Di Upload',
+            "additional" => [],
         );
     }
 }
