@@ -504,6 +504,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('form-cut-piping');
         Route::get('/create', 'create')->name('create-piping');
         Route::post('/store', 'store')->name('store-piping');
+        Route::get('/edit/{id?}', 'edit')->name('edit-piping');
+        Route::post('/update', 'update')->name('update-piping');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-piping');
 
         Route::get('/get-marker-piping', 'getMarkerPiping')->name('get-marker-piping');
     });

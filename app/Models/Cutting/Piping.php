@@ -12,4 +12,9 @@ class Piping extends Model
     protected $table = 'form_cut_piping';
 
     protected $guarded = [];
+
+    public function scannedItem()
+    {
+        return $this->belongsTo(ScannedItem::class, 'id_roll', 'id_roll');
+    }
 }
