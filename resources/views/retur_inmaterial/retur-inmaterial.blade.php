@@ -16,7 +16,7 @@
 @section('content')
 <div class="card card-sb card-outline">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0">Data Retur Penerimaan Bahan Baku</h5>
+        <h5 class="card-title fw-bold mb-0">Data Penerimaan Retur Bahan Baku</h5>
     </div>
     <div class="card-body">
         <div class="d-flex align-items-end gap-3 mb-3">
@@ -110,12 +110,12 @@
         </div>
     </div>
 </div>
-        <div class="d-flex justify-content-between">
+        <!-- <div class="d-flex justify-content-between">
             <div class="ml-auto">
                 <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search Data..." onkeyup="carigrdok()">
-        </div>
+        </div> -->
         <div class="table-responsive">
             <table id="datatable" class="table table-bordered table-striped w-100 text-nowrap">
                 <thead>
@@ -141,7 +141,7 @@
 </div>
 
 <div class="modal fade" id="modal-appv-material">
-    <form action="{{ route('approve-material-retur') }}" method="post" onsubmit="submitForm(this, event)">
+    <form action="{{ route('cancel-retur-material') }}" method="post" onsubmit="submitForm(this, event)">
          @method('GET')
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -154,7 +154,7 @@
                 <div class="modal-body">
                     <!--  -->
                     <div class="form-group row">
-                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Approve Receive material Number :</label>
+                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Cancel BPB Number :</label>
                         <br>
                         <div class="col-sm-3">
                         </div>
@@ -166,8 +166,8 @@
                     <!--  -->
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                    <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approve</button>
+                    <button type="button" class="btn btn-sb" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                    <button type="submit" class="btn btn-danger toastsDefaultDanger"><i class="fa fa-trash" aria-hidden="true"></i> Cancel</button>
                 </div>
             </div>
         </div>
@@ -423,10 +423,13 @@ $('.select2type').select2({
 <script>
     let datatable = $("#datatable").DataTable({
         ordering: false,
-        processing: true,
-        serverSide: true,
-        paging: false,
-        searching: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -492,7 +495,11 @@ $('.select2type').select2({
             {
                 targets: [8],
                 render: (data, type, row, meta) => {
-                 if (row.qty_balance == 0) {
+                 if (row.status == 'Cancel') {
+                    return `<div class='d-flex gap-1 justify-content-center'>
+                    -
+                    </div>`;
+                }else if (row.qty_balance == 0) {
                     return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-retur-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" style='color:green;'></i></a>
                     </div>`;
@@ -515,11 +522,13 @@ $('.select2type').select2({
                         return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-trash"></i></button>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance == 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>

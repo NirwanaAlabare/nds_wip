@@ -1387,6 +1387,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/import-excel-material', 'import_excel')->name('import-excel-material');
         Route::get('/get-qty-upload', 'getqtyupload')->name('get-qty-upload');
         Route::post('/save-upload-lokasi', 'saveuploadlokasi')->name('save-upload-lokasi');
+        Route::get('/cancel-retur-material', 'CancelReturMaterial')->name('cancel-retur-material');
     });
 
     //permintaan

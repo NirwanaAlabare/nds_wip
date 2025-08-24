@@ -375,7 +375,8 @@
             serverSide: true,
          processing: true,
          ordering: false,
-         scrollX: '400px',
+         scrollX: true,
+         autoWidth: false,
          scrollY: true,
          pageLength: 10,
             ajax: {

@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
+                    <table id="datatable" class="table table-bordered table-striped table-head-fixed text-nowrap">
                         <thead>
                             <tr>
                                 <th class="text-center">Lokasi</th>
@@ -302,13 +302,14 @@
     <script>
 
         let datatable = $("#datatable").DataTable({
-           serverSide: true,
-           processing: true,
-           ordering: false,
-           scrollX: '400px',
-           scrollY: true,
-           pageLength: 10,
-           ajax: {
+         serverSide: true,
+         processing: true,
+         ordering: false,
+         scrollX: true,
+         autoWidth: false,
+         scrollY: true,
+         pageLength: 10,
+         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },

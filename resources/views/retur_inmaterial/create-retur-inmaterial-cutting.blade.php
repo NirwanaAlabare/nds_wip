@@ -228,13 +228,13 @@
     </div>
     <div class="card-body">
         <div class="form-group row">
-            <div class="d-flex justify-content-between">
+           <!--  <div class="d-flex justify-content-between">
                 <div class="ml-auto">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                 </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
-            </div>
-            <div class="table-responsive"style="max-height: 500px">
+            </div> -->
+            <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-head-fixed table-striped w-100 text-nowrap">
                     <thead>
                         <tr>
@@ -511,9 +511,12 @@ function get_supplier() {
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
-            serverSide: true,
+            serverSide: false,
             paging: false,
-            searching: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route("get-list-bppb") }}',
                 data: function (d) {
