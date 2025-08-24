@@ -1420,7 +1420,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-out-manual', 'saveoutmanual')->name('save-out-manual');
         Route::post('/save-out-scan', 'saveoutscan')->name('save-out-scan');
         Route::post('/store', 'store')->name('store-outmaterial-fabric');
-        Route::get('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
+        Route::post('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
         Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
         Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
         Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
