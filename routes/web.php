@@ -504,6 +504,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('form-cut-piping');
         Route::get('/create', 'create')->name('create-piping');
         Route::post('/store', 'store')->name('store-piping');
+        Route::get('/edit/{id?}', 'edit')->name('edit-piping');
+        Route::post('/update', 'update')->name('update-piping');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-piping');
 
         Route::get('/get-marker-piping', 'getMarkerPiping')->name('get-marker-piping');
     });
@@ -1237,6 +1240,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
         Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
         Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
+        Route::post('/miss-reject', 'missReject')->name("sewing-miss-reject");
 
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
         Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");

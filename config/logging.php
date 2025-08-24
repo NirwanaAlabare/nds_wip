@@ -130,6 +130,12 @@ return [
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
 
+        'missRejectOutput' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/missRejectOutput/missRejectOutput.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
         'missMasterPlanOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/missMasterPlanOutput/missMasterPlanOutput.log'),

@@ -37,7 +37,7 @@
                 <table id="datatable" class="table table-bordered table-hover table w-100">
                     <thead>
                         <tr>
-                            <th class="d-none">Action</th>
+                            <th>Action</th>
                             <th>Tanggal</th>
                             <th>No. WS</th>
                             <th>Style</th>
@@ -189,11 +189,11 @@
             columnDefs: [
                 {
                     targets: [0],
-                    className: "d-none",
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"consPipingModal\");' disabled><i class='fa fa-edit'></i></button>";
+                        let btnEdit = "<a href='{{ route('edit-piping') }}/"+data+"' class='btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
+                        let btnDelete = `<a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-piping') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`;
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnDelete + `</div>`;
                     }
                 },
                 {

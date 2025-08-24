@@ -31,7 +31,7 @@ WITH qc as (
 select
 *
 from qc_inspect_form
-where tgl_form >= '$this->from' and tgl_form <= '$this->to'),
+where date(finish_form) >= '$this->from' and date(finish_form) <= '$this->to'),
 pd as (
 SELECT
     a.no_form,
@@ -43,7 +43,7 @@ FROM
     qc_inspect_form_det a
 INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
 left JOIN qc_inspect_form c on a.no_form = c.no_form
-where tgl_form >= '$this->from' and tgl_form <= '$this->to'
+where date(finish_form) >= '$this->from' and date(finish_form) <= '$this->to'
 GROUP BY
      a.no_form
 ),
@@ -70,7 +70,9 @@ GROUP BY no_form
 
 SELECT
 DATE_FORMAT(tgl_dok, '%d-%m-%Y') tgl_dok,
-DATE_FORMAT(qc.start_form, '%d-%m-%Y') tgl_form,
+DATE_FORMAT(qc.tgl_form, '%d-%m-%Y') tgl_form,
+DATE_FORMAT(qc.start_form, '%d-%m-%Y') tgl_start,
+DATE_FORMAT(qc.finish_form, '%d-%m-%Y') tgl_finish,
 qc.no_mesin,
 qc.operator,
 qc.nik,
@@ -258,7 +260,7 @@ FROM
     qc_inspect_form_det a
 INNER JOIN qc_inspect_master_defect b on a.id_defect = b.id
 left JOIN qc_inspect_form c on a.no_form = c.no_form
-where tgl_form >= '$this->from' and tgl_form <= '$this->to'
+where date(finish_form) >= '$this->from' and date(finish_form) <= '$this->to'
 GROUP BY
     id_defect, a.no_form
 ");

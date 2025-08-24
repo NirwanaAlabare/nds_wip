@@ -39,7 +39,7 @@
                     foreach ($orderGroup as $group) {
                         ?>
                             <tr>
-                                @if ($group->ws != $currentWs)
+                                {{-- @if ($group->ws != $currentWs)
                                     <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count() }}">{{ $group->ws }}</td>
 
                                     @php
@@ -72,7 +72,12 @@
                                     @php
                                         $currentLine = $group->sewing_line;
                                     @endphp
-                                @endif
+                                @endif --}}
+                                <td style="text-align: left;vertical-align: top;" >{{ $group->ws }}</td>
+                                <td style="text-align: left;vertical-align: top;" >{{ $group->style }}</td>
+                                <td style="text-align: left;vertical-align: top;" >{{ $group->color }}</td>
+                                <td style="text-align: left;vertical-align: top;" >{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
+
                                 @if ($groupBy == "size")
                                     <td style="text-align: left;vertical-align: top;">{{ $group->size }}</td>
                                 @endif

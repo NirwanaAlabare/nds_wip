@@ -5,10 +5,16 @@
         </div>
     </div>
     <div>
-        <div class="d-flex">
+        <div class="d-flex justify-content-between align-items-end">
             <div class="mb-3">
                 <label class="mb-1">Tanggal</label>
                 <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" wire:model='date' id="date">
+            </div>
+            <div class="mb-3">
+                <div class="d-flex align-items-center gap-1">
+                    <label class="mb-0">Search: </label>
+                    <input type="text" class="form-control form-control-sm" wire:model.lazy="search" id="search">
+                </div>
             </div>
         </div>
         <div class="table-responsive">
@@ -91,7 +97,11 @@
             setFixedColumn();
         });
 
-        $("#date").on("change", function () {
+        $("#search").on("change", function () {
+            clearFixedColumn();
+        });
+
+         $("#date").on("change", function () {
             clearFixedColumn();
         });
 

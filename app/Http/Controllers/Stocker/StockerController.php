@@ -5007,6 +5007,10 @@ class StockerController extends Controller
         );
     }
 
+    public function printStockNumberYearSequence(Request $request) {
+
+    }
+
     public function deleteYearSequence(Request $request) {
         ini_set("max_execution_time", 36000);
 
@@ -5237,7 +5241,7 @@ class StockerController extends Controller
 
         $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
 
-        return $pdf->download(str_replace("/", "_", $fileName));;
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     public function getStocker(Request $request) {
