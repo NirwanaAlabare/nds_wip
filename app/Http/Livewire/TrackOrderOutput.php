@@ -75,10 +75,15 @@ class TrackOrderOutput extends Component
 
         if ($firstPlan) {
             $this->dateFromFilter = $firstPlan->tgl_plan;
-            $this->dateToFilter = $lastPlan->tgl_plan;
         }
         // else {
         //     $this->dateFromFilter = date("Y-m-d");
+        // }
+
+        if ($lastPlan) {
+            $this->dateToFilter = $lastPlan->tgl_plan;
+        }
+        // else {
         //     $this->dateToFilter = date("Y-m-d");
         // }
     }

@@ -44,11 +44,11 @@
         <th style="border: 1px solid black;">Status Sewing</th>
         <th style="border: 1px solid black;">Defect Sewing</th>
         <th style="border: 1px solid black;">Alokasi Sewing</th>
-        <th style="border: 1px solid black;">Tanggal Packing</th>
-        <th style="border: 1px solid black;">Line Packing</th>
-        <th style="border: 1px solid black;">Status Packing</th>
-        <th style="border: 1px solid black;">Defect Packing</th>
-        <th style="border: 1px solid black;">Alokasi Packing</th>
+        <th style="border: 1px solid black;">Tanggal Finishing</th>
+        <th style="border: 1px solid black;">Line Finishing</th>
+        <th style="border: 1px solid black;">Status Finishing</th>
+        <th style="border: 1px solid black;">Defect Finishing</th>
+        <th style="border: 1px solid black;">Alokasi Finishing</th>
     </tr>
     @foreach ($data as $d)
         <tr>

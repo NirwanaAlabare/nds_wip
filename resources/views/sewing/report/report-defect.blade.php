@@ -34,7 +34,7 @@
                         <label class="form-label">Department</label>
                         <select class="form-select" name="department" id="department" onchange="reportDefectDatatableReload(); updateFilterOption();">
                             <option value="" selected>END-LINE</option>
-                            <option value="_packing">PACKING-LINE</option>
+                            <option value="_packing">FINISHING-LINE</option>
                         </select>
                     </div>
                     <div>

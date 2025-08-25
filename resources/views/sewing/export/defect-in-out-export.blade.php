@@ -2,7 +2,7 @@
     <tr>
         <td style="text-align: center;">Dari : {{ $dateFrom }}</td>
         <td style="text-align: center;">Sampai : {{ $dateTo }}</td>
-        <td style="text-align: center;">{{ $outputType == "qcf" ? "QC FINISHING" : $outputType }}</td>
+        <td style="text-align: center;">{{ $outputType == "qcf" ? "QC FINISHING" : ($outputType == "packing" ? "FINISHING" : strtoupper($outputType)) }}</td>
     </tr>
     <tr></tr>
     <tr>

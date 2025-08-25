@@ -18,8 +18,8 @@
         <th style="font-weight: 800;">Defect</th>
         <th style="font-weight: 800;">Qty Output</th>
         <th style="font-weight: 800;">WIP Steam</th>
-        <th style="font-weight: 800;">Qty Packing Line</th>
-        <th style="font-weight: 800;">WIP Packing</th>
+        <th style="font-weight: 800;">Qty QC Finishing Line</th>
+        <th style="font-weight: 800;">WIP QC Finishing</th>
         <th style="font-weight: 800;">Qty Transfer Garment</th>
     </tr>
     @php

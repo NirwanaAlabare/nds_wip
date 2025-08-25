@@ -9,7 +9,7 @@
                 $subtitle = "FINISH-LINE";
                 break;
             case "_packing" :
-                $subtitle = "PACKING-LINE";
+                $subtitle = "FINISHING-LINE";
                 break;
             default :
                 $subtitle = "END-LINE";

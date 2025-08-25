@@ -1,6 +1,6 @@
 <table>
     <tr>
-        <th colspan="14" style="font-weight: 800;">Defect Rate {{ $department == "_packing" ? "Packing" : "QC"}} {{ $dateFrom." s/d ".$dateTo }}</th>
+        <th colspan="14" style="font-weight: 800;">Defect Rate {{ $department == "_packing" ? "Finishing" : "QC"}} {{ $dateFrom." s/d ".$dateTo }}</th>
     </tr>
     <tr>
         <th style="font-weight: 800;">Worksheet : {{ $ws }}</th>

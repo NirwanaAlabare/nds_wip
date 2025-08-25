@@ -15,7 +15,7 @@
                 $subtitle = "FINISH-LINE";
                 break;
             case "_packing" :
-                $subtitle = "PACKING-LINE";
+                $subtitle = "FINISHING-LINE";
                 break;
             default :
                 $subtitle = "END-LINE";
@@ -813,7 +813,7 @@
                         <label class="fw-bold mb-1">Department</label>
                         <select class="form-select" id="qc-type" wire:model="qcType">
                             <option value="">End-line</option>
-                            <option value="_packing">Packing-line</option>
+                            <option value="_packing">Finishing-line</option>
                         </select>
                     </div>
                     <div class="mb-3">

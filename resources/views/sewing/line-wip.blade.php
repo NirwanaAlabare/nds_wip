@@ -67,8 +67,8 @@
                                 <th>Defect</th>
                                 <th>Qty Output</th>
                                 <th>WIP Steam</th>
-                                <th>Qty Packing Line</th>
-                                <th>WIP Packing</th>
+                                <th>Qty QC Finishing Line</th>
+                                <th>WIP QC Finishing</th>
                                 <th>Qty Transfer Garment</th>
                             </tr>
                         </thead>

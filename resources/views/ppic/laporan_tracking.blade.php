@@ -67,7 +67,7 @@
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qc Output</th>
-                            <th>Packing Line Output</th>
+                            <th>Qc Finishing Output</th>
                             <th>Qty Trf Garment</th>
                             <th>Qty Packing In</th>
                             <th>Qty Packing Out</th>

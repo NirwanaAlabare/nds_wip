@@ -23,7 +23,7 @@
                 <label class='form-label'>Department</label>
                 <select class="form-select" name="department" id="department">
                     <option value="qc">QC</option>
-                    <option value="packing">PACKING</option>
+                    <option value="packing">FINISHING</option>
                 </select>
             </div>
             <label class="form-label">Kode Numbering :</label>

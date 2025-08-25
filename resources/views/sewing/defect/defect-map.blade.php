@@ -101,7 +101,7 @@
                 <div>
                     <select class="form-select" name="department" id="department" onchange="showDefectMap()">
                         <option value="" selected>END-LINE</option>
-                        <option value="_packing">PACKING-LINE</option>
+                        <option value="_packing">FINISHING-LINE</option>
                     </select>
                 </div>
                 <button class="btn btn-danger" onclick="exportToPDF()"><i class="fa fa-file-pdf"></i></button>
