@@ -147,5 +147,11 @@ return [
             'path' => storage_path('logs/missUserOutput/missUserOutput.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
+
+        'deleteStockerAbout' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/stockerAbout/deleteStockerAbout.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
     ],
 ];
