@@ -99,7 +99,7 @@
             <form method="post" action="{{ route('import-master-plan') }}" enctype="multipart/form-data" onsubmit="submitImport(this, event)">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h5 class="modal-title" id="exampleModalLabel">Import Master Plan</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Upload Master Plan</h5>
                         <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -220,7 +220,9 @@
                             confirmButtonText: 'Oke',
                             timer: 5000,
                             timerProgressBar: true
-                        })
+                        }).then(() => {
+                            location.reload();
+                        });
 
                         $('#importExcel').modal('hide');
                     }
