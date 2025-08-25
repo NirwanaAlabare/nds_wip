@@ -243,16 +243,16 @@ onsubmit="submitForm(this, event)">
         </div>
 
         <div class="col-md-12">
-                <div class="form-group">
-                    <label><small>PO Actual Subcont</small></label>
-                    <select class="form-control select2bs4" id="txt_po_sub" name="txt_po_sub" style="width: 100%;">
-                        <option selected="selected" value="">Pilih PO Subcont</option>
-                        @foreach ($no_po as $po)
-                        <option value="{{ $po->pono }}">
-                            {{ $po->pono }}
-                        </option>
-                        @endforeach
-                    </select>
+            <div class="form-group">
+                <label><small>PO Actual Subcont</small></label>
+                <select class="form-control select2bs4" id="txt_po_sub" name="txt_po_sub" style="width: 100%;">
+                    <option selected="selected" value="">Pilih PO Subcont</option>
+                    @foreach ($no_po as $po)
+                    <option value="{{ $po->pono }}">
+                        {{ $po->pono }}
+                    </option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
@@ -282,58 +282,57 @@ onsubmit="submitForm(this, event)">
     </div>
     <div class="card-body">
         <div class="form-group row">
-            <div class="d-flex justify-content-between">
+            <!-- <div class="d-flex justify-content-between">
                 <div class="ml-auto">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                 </div>
                 <input type="text" id="cari_item" name="cari_item" autocomplete="off"
                 placeholder="Search Item..." onkeyup="cariitem()">
-            </div>
-            <div class="table-responsive"style="max-height: 500px">
-                <table id="datatable"
-                class="table table-bordered table-head-fixed table-striped w-100 text-nowrap">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Barang</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Produk</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">PO Unit</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty GR</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">GR Unit</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Reject</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Reject Unit</th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                        <th class="text-center" style="font-size: 0.6rem;"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="mb-1">
-        <div class="form-group">
-            <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i>
-            Simpan</button>
-            <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
-                <i class="fas fa-arrow-circle-left"></i> Kembali</a>
+            </div> -->
+            <div class="table-responsive">
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Produk</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">PO Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty GR</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">GR Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Reject</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Reject Unit</th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
         </div>
+        <div class="mb-1">
+            <div class="form-group">
+                <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i>
+                Simpan</button>
+                <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
+                    <i class="fas fa-arrow-circle-left"></i> Kembali</a>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 </div>
 </form>
 @endsection
@@ -373,9 +372,13 @@ onsubmit="submitForm(this, event)">
         $('#p_unit').val("yard").trigger('change');
 
         //Reset Form
-        if (document.getElementById('store-inmaterial')) {
-            document.getElementById('store-inmaterial').reset();
-        }
+        window.onload = function() {
+            const form = document.getElementById('store-inmaterial');
+            if (form) {
+                form.reset();
+            }
+        };
+
 
         $('#ws_id').on('change', async function(e) {
             await updateColorList();
@@ -554,9 +557,12 @@ onsubmit="submitForm(this, event)">
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
-            serverSide: true,
+            serverSide: false,
             paging: false,
-            searching: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('get-detail-list') }}',
                 data: function(d) {

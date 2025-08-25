@@ -285,18 +285,18 @@ public function showdetaillok(Request $request)
 {
         // $det_lokasi = DB::connection('mysql_sb')->table('whs_lokasi_inmaterial')->select('no_roll','no_lot','ROUND(qty_sj,2) qty_sj','ROUND(qty_aktual,2) qty_aktual','kode_lok')->where('status', '=', 'Y')->where('no_dok', '=', $request->no_dok)->where('no_ws', '=', $request->no_ws)->where('id_jo', '=', $request->id_jo)->where('id_item', '=', $request->id_item)->get();
     $det_lokasi = DB::connection('mysql_sb')->select("
-        select no_roll,no_lot,ROUND(qty_sj,2) qty_sj,ROUND(qty_aktual,2) qty_aktual,kode_lok from whs_lokasi_inmaterial where status = 'Y' and ROUND(qty_aktual - COALESCE(qty_mutasi,0) ,2) > 0 and no_dok = '" . $request->no_dok . "' and no_ws = '" . $request->no_ws . "' and id_jo = '" . $request->id_jo . "' and id_item = '" . $request->id_item . "' ");
+        select no_barcode, no_roll_buyer, no_roll,no_lot,ROUND(qty_sj,2) qty_sj,ROUND(qty_aktual,2) qty_aktual,kode_lok from whs_lokasi_inmaterial where status = 'Y' and ROUND(qty_aktual - COALESCE(qty_mutasi,0) ,2) > 0 and no_dok = '" . $request->no_dok . "' and no_ws = '" . $request->no_ws . "' and id_jo = '" . $request->id_jo . "' and id_item = '" . $request->id_item . "' ");
 
-    $html = '<div class="table-responsive" style="max-height: 200px">
+    $html = '<div class="table-responsive" style="max-height: 250px">
     <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100 text-nowrap">
     <thead>
     <tr>
-    <th class="text-center" style="font-size: 0.6rem;width: 5%;">No Roll</th>
+    <th class="text-center" style="font-size: 0.6rem;width: 18%;">No Barcode</th>
+    <th class="text-center" style="font-size: 0.6rem;width: 15%;">No Roll</th>
+    <th class="text-center" style="font-size: 0.6rem;width: 15%;">No Roll Buyer</th>
     <th class="text-center" style="font-size: 0.6rem;width: 29%;">Lot</th>
-    <th class="text-center" style="font-size: 0.6rem;width: 18%;">Qty BPB</th>
-    <th class="text-center" style="font-size: 0.6rem;width: 18%;">Qty Aktual</th>
+    <th class="text-center" style="font-size: 0.6rem;width: 18%;">Qty</th>
     <th class="text-center" style="font-size: 0.6rem;width: 30%;">Lokasi</th>
-    <th hidden></th>
     </tr>
     </thead>
     <tbody>';
@@ -306,17 +306,17 @@ public function showdetaillok(Request $request)
         $jml_qty_sj += $detlok->qty_sj;
         $jml_qty_ak += $detlok->qty_aktual;
         $html .= ' <tr>
-        <td class="text-center">' . $detlok->no_roll . '</td>
+        <td class="text-center">' . $detlok->no_barcode . '</td>
+        <td class="text-left">' . $detlok->no_roll . '</td>
+        <td class="text-left">' . $detlok->no_roll_buyer . '</td>
         <td class="text-left">' . $detlok->no_lot . '</td>
-        <td class="text-right">' . $detlok->qty_sj . '</td>
         <td class="text-right">' . $detlok->qty_aktual . '</td>
         <td class="text-left">' . $detlok->kode_lok . '</td>
         </tr>';
     }
 
     $html .= ' <tr>
-    <td colspan="2" class="text-center"><b>Total</b></td>
-    <td class="text-right">' . $jml_qty_sj . '</td>
+    <td colspan="4" class="text-center"><b>Total</b></td>
     <td class="text-right">' . $jml_qty_ak . '</td>
     <td class="text-left"></td>
     </tr>';
@@ -403,6 +403,71 @@ public function approvematerial(Request $request)
             'status' => 200,
             'message' => 'Cancel BPB berhasil.',
             'redirect' => url('/in-material'),
+        ]);
+
+    } catch (\Exception $e) {
+        DB::connection('mysql_sb')->rollBack();
+
+        return response()->json([
+            'status' => 500,
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+        ]);
+    }
+}
+
+
+public function CancelReturMaterial(Request $request)
+{
+    $noDok = $request->input('txt_nodok'); // inputan dari form
+    $timestamp = Carbon::now();
+
+    try {
+        DB::connection('mysql_sb')->beginTransaction();
+
+        // 1. Update status jadi 'Cancel' di header
+        DB::connection('mysql_sb')->table('whs_inmaterial_fabric')
+        ->where('no_dok', $noDok)
+        ->update([
+            'status' => 'Cancel',
+        ]);
+
+        // 2. Update detail jadi 'N', qty_good = 0
+        DB::connection('mysql_sb')->table('whs_inmaterial_fabric_det')
+        ->where('no_dok', $noDok)
+        ->update([
+            'status' => 'N',
+            'qty_good' => 0,
+        ]);
+
+        // 3. Update bpb: qty_temp = qty, qty = 0, cancel = 'Y'
+        DB::connection('mysql_sb')->table('bpb')
+        ->where('bpbno_int', $noDok)
+        ->update([
+            'qty_temp' => DB::raw('qty'),
+            'qty' => 0,
+            'cancel' => 'Y',
+            'cancel_by' => Auth::user()->name,
+            'cancel_date' => $timestamp,
+        ]);
+
+        // 4. Insert ke whs_lokasi_inmaterial_cancel
+        DB::connection('mysql_sb')->insert("
+            INSERT INTO whs_lokasi_inmaterial_cancel
+            SELECT * FROM whs_lokasi_inmaterial
+            WHERE no_dok = ?
+            ", [$noDok]);
+
+        // 5. Delete dari whs_lokasi_inmaterial
+        DB::connection('mysql_sb')->table('whs_lokasi_inmaterial')
+        ->where('no_dok', $noDok)
+        ->delete();
+
+        DB::connection('mysql_sb')->commit();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Cancel BPB berhasil.',
+            'redirect' => url('/retur-inmaterial'),
         ]);
 
     } catch (\Exception $e) {

@@ -1392,6 +1392,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/import-excel-material', 'import_excel')->name('import-excel-material');
         Route::get('/get-qty-upload', 'getqtyupload')->name('get-qty-upload');
         Route::post('/save-upload-lokasi', 'saveuploadlokasi')->name('save-upload-lokasi');
+        Route::get('/cancel-retur-material', 'CancelReturMaterial')->name('cancel-retur-material');
     });
 
     //permintaan
@@ -1420,7 +1421,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-out-manual', 'saveoutmanual')->name('save-out-manual');
         Route::post('/save-out-scan', 'saveoutscan')->name('save-out-scan');
         Route::post('/store', 'store')->name('store-outmaterial-fabric');
-        Route::get('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
+        Route::post('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
         Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
         Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
         Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
