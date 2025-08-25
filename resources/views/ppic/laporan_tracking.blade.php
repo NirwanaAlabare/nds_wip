@@ -132,13 +132,13 @@
             let selectWsElement = document.getElementById('cbows');
 
             $.ajax({
-                url: "{{ route("get-orders") }}",
+                url: "{{ route('get-orders') }}",
                 method: "get",
                 data: {
                     buyer: $("#cbobuyer").val()
                 },
                 dataType: "json",
-                success: function (response) {
+                success: function(response) {
                     document.getElementById("loading").classList.add('d-none');
 
                     if (response.length > 0) {
@@ -159,7 +159,7 @@
                         }
                     }
                 },
-                error: function (jqXHR) {
+                error: function(jqXHR) {
                     document.getElementById("loading").classList.add('d-none');
 
                     console.log(jqXHR);

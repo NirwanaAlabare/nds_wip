@@ -19,7 +19,7 @@
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Size</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qc Output</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Packing Line Output</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">QC Finishing Output</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty Trf Garment</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty Packing In</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty Packing Out</th>

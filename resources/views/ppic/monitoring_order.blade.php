@@ -665,7 +665,7 @@
                             color: '#FFF574'
                         },
                         {
-                            category: 'Packing Line',
+                            category: 'QC Finishing',
                             actual: totalFinalOutputRftsPacking,
                             expected: totalQtyPo,
                             color: '#96E5D1'
@@ -737,7 +737,7 @@
                         "Qty PO", "Cutting", "Blc Cutting",
                         "Loading", "Blc Loading",
                         "Sewing", "Blc Sewing",
-                        "Packing Line", "Blc Packing Line",
+                        "QC Finishing", "Blc QC Finishing",
                         "Packing Scan", "Blc Packing Scan",
                         "Shipment", "Blc Shipment",
                     ];
