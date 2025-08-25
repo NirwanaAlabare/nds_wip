@@ -104,7 +104,7 @@ class OutMaterialController extends Controller
         $no_req = DB::connection('mysql_sb')->select("
             select a.bppbno isi,concat(a.bppbno,'|',ac.kpno,'|',ac.styleno,'|',mb.supplier) tampil from bppb_req a inner join jo_det s on a.id_jo=s.id_jo inner join so on s.id_so=so.id inner join act_costing ac on so.id_cost=ac.id inner join mastersupplier mb on ac.id_buyer=mb.id_supplier and a.cancel='N' and bppbdate >= '2023-01-01' where bppbno like 'RQ-F%' and qty_out < 1 group by bppbno order by bppbdate desc");
 
-       $no_po = DB::connection('mysql_sb')->select("select pono from po_header where podate >= '2024-01-01' and app = 'A'");
+        $no_po = DB::connection('mysql_sb')->select("select pono from po_header where podate >= '2024-01-01' and app = 'A'");
 
         return view('outmaterial.create-outmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-warehouse']);
     }
@@ -121,9 +121,9 @@ class OutMaterialController extends Controller
 
         $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
         $det_data = DB::connection('mysql_sb')->select("select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
-(select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
+            (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
 
-         $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->where('Supplier', '!=', $kode_gr[0]->supplier)->get();
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->where('Supplier', '!=', $kode_gr[0]->supplier)->get();
         $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->where('nama_pilihan', '!=', $kode_gr[0]->type_bc)->get();
         $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('nama_pilihan', '!=', $kode_gr[0]->type_pch)->where('status', '=', 'Active')->get();
         $gr_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Type_penerimaan')->where('nama_pilihan', '!=', $kode_gr[0]->type_dok)->where('status', '=', 'Active')->get();
@@ -140,11 +140,11 @@ class OutMaterialController extends Controller
 
         $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
         $det_data = DB::connection('mysql_sb')->select("select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
-(select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
+            (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
 
         $jml_det = DB::connection('mysql_sb')->select("select COUNT(no_dok) jml_dok from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
 
-         $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->where('Supplier', '!=', $kode_gr[0]->supplier)->get();
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->where('Supplier', '!=', $kode_gr[0]->supplier)->get();
         $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->where('nama_pilihan', '!=', $kode_gr[0]->type_bc)->get();
         $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('nama_pilihan', '!=', $kode_gr[0]->type_pch)->where('status', '=', 'Active')->get();
         $gr_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Type_penerimaan')->where('nama_pilihan', '!=', $kode_gr[0]->type_dok)->where('status', '=', 'Active')->get();
@@ -158,14 +158,14 @@ class OutMaterialController extends Controller
     public function getPOList(Request $request)
     {
         $nomorpo = DB::connection('mysql_sb')->select("
-                select pono isi, pono tampil, ms.supplier
-  from po_header ph
-  inner join po_item pi on ph.id = pi.id_po
-  inner join jo_det jd on pi.id_jo = jd.id_jo
-  inner join so on jd.id_so = so.id
-  inner join act_costing ac on so.id_cost = ac.id
-    inner join mastersupplier ms on ms.id_supplier = ph.id_supplier
-  where app = 'A' and podate >= '2022-10-01' and jenis = 'M' and ms.Supplier = '" . $request->txt_supp . "' group by ph.id
+            select pono isi, pono tampil, ms.supplier
+            from po_header ph
+            inner join po_item pi on ph.id = pi.id_po
+            inner join jo_det jd on pi.id_jo = jd.id_jo
+            inner join so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            inner join mastersupplier ms on ms.id_supplier = ph.id_supplier
+            where app = 'A' and podate >= '2022-10-01' and jenis = 'M' and ms.Supplier = '" . $request->txt_supp . "' group by ph.id
             ");
 
         $html = "<option value=''>Pilih PO</option>";
@@ -181,7 +181,7 @@ class OutMaterialController extends Controller
     public function getWSList(Request $request)
     {
         $nomorws = DB::connection('mysql_sb')->select("
-                select ac.kpno,ms.supplier from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier where ms.Supplier = '" . $request->txt_supp . "' GROUP BY ac.kpno
+            select ac.kpno,ms.supplier from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier where ms.Supplier = '" . $request->txt_supp . "' GROUP BY ac.kpno
             ");
 
         $html = "<option value=''>Pilih WS</option>";
@@ -207,19 +207,19 @@ class OutMaterialController extends Controller
         }
 
         $html = '<div class="table-responsive"style="max-height: 200px">
-            <table id="datatable_list" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 5%;">No</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 20%;">Lot</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 15%;">Qty BPB</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 15%;">Qty Aktual</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 30%;">Lokasi</th>
-                        <th hidden></th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 15%;">No Roll</th>
-                    </tr>
-                </thead>
-                <tbody>';
+        <table id="datatable_list" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
+        <thead>
+        <tr>
+        <th class="text-center" style="font-size: 0.6rem;width: 5%;">No</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 20%;">Lot</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 15%;">Qty BPB</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 15%;">Qty Aktual</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 30%;">Lokasi</th>
+        <th hidden></th>
+        <th class="text-center" style="font-size: 0.6rem;width: 15%;">No Roll</th>
+        </tr>
+        </thead>
+        <tbody>';
         $pilih_lokasi = '';
         foreach ($lokasi as $lok) {
             if ($lok->kode_lok == $kode_lok) {
@@ -231,21 +231,21 @@ class OutMaterialController extends Controller
         $y = $nomor;
         for ( $x = 1; $x <= $request->jml_baris; $x++) {
             $html .= ' <tr>
-                        <td>' . $y . '</td>
-                        <td ><input style="width:100%;align:center;" class="form-control" type="text" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$request->lot.'" / readonly></td>
-                        <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_sj'.$x.'" name="qty_sj['.$x.']" value="" onkeyup="sum_qty_sj()" /></td>
-                        <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_ak'.$x.'" name="qty_ak['.$x.']" value="" onkeyup="sum_qty_aktual()"/></td>
-                        <td ><select class="form-control select2lok" id="selectlok'.$x.'" name="selectlok['.$x.']" style="width: 100%;">
-                                '.$pilih_lokasi.'
-                             </select></td>
-                        <td style="display:none"><input class="form-control-sm" type="text" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$y.'" /></td>
-                        <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="roll_buyer'.$x.'" name="roll_buyer['.$x.']" value="" /></td>
-                       </tr>';
-                       $y++;
+            <td>' . $y . '</td>
+            <td ><input style="width:100%;align:center;" class="form-control" type="text" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$request->lot.'" / readonly></td>
+            <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_sj'.$x.'" name="qty_sj['.$x.']" value="" onkeyup="sum_qty_sj()" /></td>
+            <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_ak'.$x.'" name="qty_ak['.$x.']" value="" onkeyup="sum_qty_aktual()"/></td>
+            <td ><select class="form-control select2lok" id="selectlok'.$x.'" name="selectlok['.$x.']" style="width: 100%;">
+            '.$pilih_lokasi.'
+            </select></td>
+            <td style="display:none"><input class="form-control-sm" type="text" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$y.'" /></td>
+            <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="roll_buyer'.$x.'" name="roll_buyer['.$x.']" value="" /></td>
+            </tr>';
+            $y++;
         }
 
         $html .= '</tbody>
-            </table>
+        </table>
         </div>';
 
         return $html;
@@ -256,8 +256,8 @@ class OutMaterialController extends Controller
     {
 
         $det_item = DB::connection('mysql_sb')->select("select * from (select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no,roll_no,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from (select * from whs_sa_fabric where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "') a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "' GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.qty_sisa > 0
-        UNION
-        select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_sisa,satuan from (select a.no_barcode id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, sum(a.qty_aktual) qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(sum(a.qty_aktual) - COALESCE(a.qty_mutasi,0) - COALESCE(c.qty_out,0)) qty_sisa from ( select * from whs_lokasi_inmaterial where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "') a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "' GROUP BY id_roll) c on c.id_roll = a.no_barcode GROUP BY a.no_barcode) a where a.qty_sisa > 0");
+            UNION
+            select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_sisa,satuan from (select a.no_barcode id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, sum(a.qty_aktual) qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(sum(a.qty_aktual) - COALESCE(a.qty_mutasi,0) - COALESCE(c.qty_out,0)) qty_sisa from ( select * from whs_lokasi_inmaterial where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "') a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "' GROUP BY id_roll) c on c.id_roll = a.no_barcode GROUP BY a.no_barcode) a where a.qty_sisa > 0");
 
         // $det_item = DB::connection('mysql_sb')->select("select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no, roll_no, qty_sisa, unit from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc from bpb_roll br inner join
         //         bpb_roll_h brh on br.id_h=brh.id
@@ -269,49 +269,49 @@ class OutMaterialController extends Controller
         //         select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_aktual,satuan from (select a.id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, a.qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where a.id_jo='" . $request->id_jo . "' and a.id_item='" . $request->id_item . "') a where a.qty_sisa > 0");
 
         $html = '<div class="table-responsive" style="max-height: 300px">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 3%;">Check</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Barcode</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">Lokasi</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">No Lot</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Roll</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Stok</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Satuan</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Qty Out</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Qty Sisa</th>
-                        <th hidden></th>
-                        <th hidden></th>
-                        <th hidden></th>
-                        <th hidden></th>
-                    </tr>
-                </thead>
-                <tbody>';
-            $jml_qty_sj = 0;
-            $jml_qty_ak = 0;
-            $x = 1;
+        <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
+        <thead>
+        <tr>
+        <th class="text-center" style="font-size: 0.6rem;width: 3%;">Check</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Barcode</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 10%;">Lokasi</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 13%;">No Lot</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Roll</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Stok</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Satuan</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Qty Out</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Qty Sisa</th>
+        <th hidden></th>
+        <th hidden></th>
+        <th hidden></th>
+        <th hidden></th>
+        </tr>
+        </thead>
+        <tbody>';
+        $jml_qty_sj = 0;
+        $jml_qty_ak = 0;
+        $x = 1;
         foreach ($det_item as $detitem) {
             $html .= ' <tr>
-                        <td ><input type="checkbox" id="pil_item'.$x.'" name="pil_item['.$x.']" class="flat" value="1" onchange="enableinput()"></td>
-                        <td >'.$detitem->id_roll.'</td>
-                        <td >'.$detitem->raknya.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
-                        <td >'.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
-                        <td >'.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
-                        <td class="text-right">'.$detitem->qty_sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->qty_sisa.'" / readonly></td>
-                       <td >'.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
-                        <td><input style="width:90px;text-align:right;" class="form-control" type="text" id="qty_out'.$x.'" name="qty_out['.$x.']" value="" onkeyup="sum_qty_item(this.value)" / disabled></td>
-                        <td ><input style="width:80px;text-align:right;" class="form-control" type="text" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="" / disabled></td>
-                        <td hidden> <input type="hidden" id="id_roll'.$x.'" name="id_roll['.$x.']" value="'.$detitem->id_roll.'" / readonly></td>
-                        <td hidden> <input type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
-                        <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
-                        <td hidden> <input type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
-                       </tr>';
-                       $x++;
+            <td ><input type="checkbox" id="pil_item'.$x.'" name="pil_item['.$x.']" class="flat" value="1" onchange="enableinput()"></td>
+            <td >'.$detitem->id_roll.'</td>
+            <td >'.$detitem->raknya.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
+            <td >'.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
+            <td >'.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
+            <td class="text-right">'.$detitem->qty_sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->qty_sisa.'" / readonly></td>
+            <td >'.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
+            <td><input style="width:90px;text-align:right;" class="form-control" type="text" id="qty_out'.$x.'" name="qty_out['.$x.']" value="" onkeyup="sum_qty_item(this.value)" / disabled></td>
+            <td ><input style="width:80px;text-align:right;" class="form-control" type="text" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="" / disabled></td>
+            <td hidden> <input type="hidden" id="id_roll'.$x.'" name="id_roll['.$x.']" value="'.$detitem->id_roll.'" / readonly></td>
+            <td hidden> <input type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+            <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
+            <td hidden> <input type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
+            </tr>';
+            $x++;
         }
 
         $html .= '</tbody>
-            </table>
+        </table>
         </div>';
 
         return $html;
@@ -344,8 +344,8 @@ class OutMaterialController extends Controller
 //                 order by br.id) a where qty_sisa > 0");
 
         $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select no_barcode id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,(qty_aktual - COALESCE(c.qty_out,0)) sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial left join (select id_roll,sum(qty_out) qty_out,no_rak from whs_bppb_det GROUP BY id_roll) c on c.id_roll = whs_lokasi_inmaterial.no_barcode and c.no_rak = whs_lokasi_inmaterial.kode_lok where (qty_aktual - COALESCE(c.qty_out,0)) > 0 and no_barcode in (" . $request->id_barcode . ")
-        UNION
-        select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit,kode_rak,no_ws from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc, b.goods_code, a.no_ws,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.id_roll in (" . $request->id_barcode . ") and a.qty_sisa > 0) a");
+            UNION
+            select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit,kode_rak,no_ws from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc, b.goods_code, a.no_ws,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.id_roll in (" . $request->id_barcode . ") and a.qty_sisa > 0) a");
 
 //     $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
 // UNION
@@ -355,54 +355,54 @@ class OutMaterialController extends Controller
 //             inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!=''
 //             order by br.id) a where qty_sisa > 0) a");
         foreach ($sum_item as $sumitem) {
-        $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
+            $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
         }
 
         $html .= '<div class="table-responsive" style="max-height: 300px">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Barcode</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">Lokasi</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Roll</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">No Lot</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">ID Item</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 14%;">Nama Barang</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Stok</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Satuan</th>
-                        <th hidden>Qty Out</th>
-                        <th hidden>Qty Sisa</th>
-                        <th hidden></th>
-                        <th hidden></th>
-                        <th hidden></th>
-                    </tr>
-                </thead>
-                <tbody>';
-            $jml_qty_sj = 0;
-            $jml_qty_ak = 0;
-            $x = 1;
+        <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
+        <thead>
+        <tr>
+        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Barcode</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 10%;">Lokasi</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Roll</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 11%;">No Lot</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 11%;">ID Item</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 14%;">Nama Barang</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Stok</th>
+        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Satuan</th>
+        <th hidden>Qty Out</th>
+        <th hidden>Qty Sisa</th>
+        <th hidden></th>
+        <th hidden></th>
+        <th hidden></th>
+        </tr>
+        </thead>
+        <tbody>';
+        $jml_qty_sj = 0;
+        $jml_qty_ak = 0;
+        $x = 1;
         foreach ($det_item as $detitem) {
             $html .= ' <tr>
-                        <td> '.$detitem->id_roll.'</td>
-                        <td> '.$detitem->kode_rak.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
-                        <td> '.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
-                        <td> '.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
-                        <td> '.$detitem->id_item.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
-                        <td> '.$detitem->itemdesc.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
-                        <td> '.$detitem->sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
-                        <td> '.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
-                        <td hidden><input style="width:100px;text-align:right;" class="form-control" type="hidden" id="qty_out'.$x.'" name="qty_out['.$x.']" value="'.$detitem->sisa.'" onkeyup="sum_qty_barcode(this.value)" /></td>
-                        <td hidden><input style="width:100px;text-align:right;" class="form-control" type="hidden" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="0" /></td>
-                        <td style="display:none"><input style="width:100%;align:center;" class="form-control" type="text" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
-                        <td hidden> <input type="hidden" id="id_roll'.$x.'" name="id_roll['.$x.']" value="'.$detitem->id_roll.'" / readonly></td>
-                        <td hidden> <input type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
-                        <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
-                       </tr>';
-                       $x++;
+            <td> '.$detitem->id_roll.'</td>
+            <td> '.$detitem->kode_rak.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
+            <td> '.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
+            <td> '.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
+            <td> '.$detitem->id_item.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+            <td> '.$detitem->itemdesc.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
+            <td> '.$detitem->sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
+            <td> '.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
+            <td hidden><input style="width:100px;text-align:right;" class="form-control" type="hidden" id="qty_out'.$x.'" name="qty_out['.$x.']" value="'.$detitem->sisa.'" onkeyup="sum_qty_barcode(this.value)" /></td>
+            <td hidden><input style="width:100px;text-align:right;" class="form-control" type="hidden" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="0" /></td>
+            <td style="display:none"><input style="width:100%;align:center;" class="form-control" type="text" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
+            <td hidden> <input type="hidden" id="id_roll'.$x.'" name="id_roll['.$x.']" value="'.$detitem->id_roll.'" / readonly></td>
+            <td hidden> <input type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+            <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
+            </tr>';
+            $x++;
         }
 
         $html .= '</tbody>
-            </table>
+        </table>
         </div>';
 
         return $html;
@@ -424,31 +424,31 @@ class OutMaterialController extends Controller
     public function getDetailList(Request $request)
     {
         $user = Auth::user()->name;
-                $data_detail = DB::connection('mysql_sb')->select("select no_req,jo_no ,id_supplier,qtyreq,qty_sdh_out,qty_sisa_out,id_item,goods_code,itemdesc,id_jo,qty_in,qty_out,(qty_in - qty_out) qty_sisa,unit,kpno,styleno,buyer,round((qty_in - qty_out),2) qtyitem_sisa,Coalesce(qty_input,0) qty_input from (select breq.bppbno no_req,jod.jo_no,breq.id_supplier,breq.qty qtyreq,breq.qty_out qty_sdh_out,breq.qty - breq.qty_out qty_sisa_out,mi.id_item,mi.goods_code,
-                concat(mi.itemdesc,' ',mi.color,' ',mi.size,' ',mi.add_info) itemdesc,
-                tbl_in.id_jo,tbl_in.qty_in,
-                ifnull(tbl_out.qty_out,0) qty_out,
-                tbl_in.unit,
-                ac.kpno,ac.styleno,mbuyer.supplier buyer
-                from bppb_req breq
-                inner join masteritem mi on mi.id_item=breq.id_item inner join
-                (select id_item,id_jo,sum(qty_in) qty_in,unit from ( select 'S' id, id_item,id_jo,sum(qty) qty_in,unit from whs_sa_fabric group by id_item,id_jo
-               UNION
-               select 'T' id, id_item,id_jo,sum(qty_sj - COALESCE(qty_mutasi,0)) qty_in,satuan from whs_lokasi_inmaterial where qty_mutasi is null group by id_item,id_jo) a group by id_item,id_jo) as tbl_in
-                on mi.id_item=tbl_in.id_item and breq.id_jo=tbl_in.id_jo
-                left join
-                (select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det
-                    group by id_item,id_jo) as tbl_out
-                on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo
-                INNER JOIN
-                (select jo_no,id_so,id_jo from jo_det a inner join jo s on a.id_jo=s.id
-                    group by id_jo)  jod on breq.id_jo=jod.id_jo
-                inner join
-                (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on
-                so.id=sod.id_so group by so.id) so on jod.id_so=so.id
-                inner join act_costing ac on so.id_cost=ac.id
-                inner join mastersupplier mbuyer on ac.id_buyer=mbuyer.id_supplier
-                where breq.bppbno='".$request->no_req."') a left join (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) b on b.iditem = a.id_item");
+        $data_detail = DB::connection('mysql_sb')->select("select no_req,jo_no ,id_supplier,qtyreq,qty_sdh_out,qty_sisa_out,id_item,goods_code,itemdesc,id_jo,qty_in,qty_out,(qty_in - qty_out) qty_sisa,unit,kpno,styleno,buyer,round((qty_in - qty_out),2) qtyitem_sisa,Coalesce(qty_input,0) qty_input from (select breq.bppbno no_req,jod.jo_no,breq.id_supplier,breq.qty qtyreq,breq.qty_out qty_sdh_out,breq.qty - breq.qty_out qty_sisa_out,mi.id_item,mi.goods_code,
+            concat(mi.itemdesc,' ',mi.color,' ',mi.size,' ',mi.add_info) itemdesc,
+            tbl_in.id_jo,tbl_in.qty_in,
+            ifnull(tbl_out.qty_out,0) qty_out,
+            tbl_in.unit,
+            ac.kpno,ac.styleno,mbuyer.supplier buyer
+            from bppb_req breq
+            inner join masteritem mi on mi.id_item=breq.id_item inner join
+            (select id_item,id_jo,sum(qty_in) qty_in,unit from ( select 'S' id, id_item,id_jo,sum(qty) qty_in,unit from whs_sa_fabric group by id_item,id_jo
+            UNION
+            select 'T' id, id_item,id_jo,sum(qty_sj - COALESCE(qty_mutasi,0)) qty_in,satuan from whs_lokasi_inmaterial where qty_mutasi is null group by id_item,id_jo) a group by id_item,id_jo) as tbl_in
+            on mi.id_item=tbl_in.id_item and breq.id_jo=tbl_in.id_jo
+            left join
+            (select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det
+            group by id_item,id_jo) as tbl_out
+            on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo
+            INNER JOIN
+            (select jo_no,id_so,id_jo from jo_det a inner join jo s on a.id_jo=s.id
+            group by id_jo)  jod on breq.id_jo=jod.id_jo
+            inner join
+            (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on
+            so.id=sod.id_so group by so.id) so on jod.id_so=so.id
+            inner join act_costing ac on so.id_cost=ac.id
+            inner join mastersupplier mbuyer on ac.id_buyer=mbuyer.id_supplier
+            where breq.bppbno='".$request->no_req."') a left join (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) b on b.iditem = a.id_item");
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -461,8 +461,8 @@ class OutMaterialController extends Controller
     public function getListbarcode(Request $request)
     {
         $listbarcode = DB::connection('mysql_sb')->select("select id_roll isi, concat_ws('',id_roll,' - ' ,itemdesc, ' - ', no_ws) tampil,concat(id_roll,' - ', itemdesc) tampil2 from (select bppbno,id_roll,itemdesc,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,no_ws from (select breq.bppbno,a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc, b.goods_code, a.no_ws,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(a.qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item inner join (select bppbno,id_item,id_jo from bppb_req where bppbno = '" . $request->noreq . "' ) breq on a.id_item = breq.id_item and a.id_jo = breq.id_jo left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null and a.id_item = '" . $request->id_item . "' and a.id_jo = '" . $request->id_jo . "' GROUP BY a.no_barcode) a) a where a.qty_sisa > 0
-  UNION
-  select no_barcode,tampil,tampil2 from (select a.no_barcode, concat(a.no_barcode,' - ' ,a.item_desc, ' - ', a.no_ws) tampil,concat(a.no_barcode,' - ', a.item_desc) tampil2 ,a.qty_aktual, COALESCE(c.qty_out,0) qty_out,(sum(a.qty_aktual) - COALESCE(a.qty_mutasi,0) - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join bppb_req b on b.id_item = a.id_item inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id and a.no_ws = ac.kpno left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where b.bppbno = '" . $request->noreq . "' and a.id_item = '" . $request->id_item . "' and a.id_jo = '" . $request->id_jo . "' group by a.no_barcode) a where a.qty_sisa > 0");
+          UNION
+          select no_barcode,tampil,tampil2 from (select a.no_barcode, concat(a.no_barcode,' - ' ,a.item_desc, ' - ', a.no_ws) tampil,concat(a.no_barcode,' - ', a.item_desc) tampil2 ,a.qty_aktual, COALESCE(c.qty_out,0) qty_out,(sum(a.qty_aktual) - COALESCE(a.qty_mutasi,0) - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join bppb_req b on b.id_item = a.id_item inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id and a.no_ws = ac.kpno left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where b.bppbno = '" . $request->noreq . "' and a.id_item = '" . $request->id_item . "' and a.id_jo = '" . $request->id_jo . "' group by a.no_barcode) a where a.qty_sisa > 0");
 
 
 //   UNION
@@ -503,29 +503,80 @@ class OutMaterialController extends Controller
 
     public function approveOutMaterial(Request $request)
     {
-            $timestamp = Carbon::now();
-            $updateBppbnew = BppbHeader::where('no_bppb', $request['txt_nodok'])->update([
-                'status' => 'Approved',
-                'approved_by' => Auth::user()->name,
-                'approved_date' => $timestamp,
-            ]);
+        $timestamp = Carbon::now();
 
-            $updateBppbSB = BppbSB::where('bppbno_int', $request['txt_nodok'])->update([
-                'confirm' => 'Y',
-                'confirm_by' => Auth::user()->name,
-                'confirm_date' => $timestamp,
-            ]);
+    // Update detail tabel lain
+        DB::update("
+            UPDATE bppb 
+            SET qty_old = qty, qty = 0, cancel = 'Y' 
+            WHERE bppbno_int = ?
+            ", [$request['txt_nodok']]);
 
-        $massage = 'Approved Data Successfully';
+        if ($request->type === 'cancel_with_mr') {
+            DB::update("
+                UPDATE bppb_req 
+                SET qty_old = qty, qty = 0, cancel = 'Y', qty_out = 0 
+                WHERE bppbno = (
+                SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
+                )
+                ", [$request['txt_nodok']]);
+        } else{
+            DB::update("
+                UPDATE bppb_req 
+                SET qty_out = null
+                WHERE bppbno = (
+                SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
+                )
+                ", [$request['txt_nodok']]);
+        }
 
-            return array(
-                "status" => 200,
-                "message" => $massage,
-                "additional" => [],
-                "redirect" => url('/out-material')
-            );
+        DB::update("
+            UPDATE whs_bppb_h 
+            SET status = 'Cancel' 
+            WHERE no_bppb = ?
+            ", [$request['txt_nodok']]);
 
+        DB::update("
+            UPDATE whs_bppb_det 
+            SET qty_stok = qty_out, qty_out = 0, status = 'N' 
+            WHERE no_bppb = ?
+            ", [$request['txt_nodok']]);
+
+        return [
+            "status"     => 200,
+            "message"    => "Cancel Data Successfully",
+            "additional" => [],
+            "redirect"   => url('/out-material')
+        ];
     }
+
+
+
+    // public function approveOutMaterial(Request $request)
+    // {
+    //         $timestamp = Carbon::now();
+    //         $updateBppbnew = BppbHeader::where('no_bppb', $request['txt_nodok'])->update([
+    //             'status' => 'Approved',
+    //             'approved_by' => Auth::user()->name,
+    //             'approved_date' => $timestamp,
+    //         ]);
+
+    //         $updateBppbSB = BppbSB::where('bppbno_int', $request['txt_nodok'])->update([
+    //             'confirm' => 'Y',
+    //             'confirm_by' => Auth::user()->name,
+    //             'confirm_date' => $timestamp,
+    //         ]);
+
+    //     $massage = 'Approved Data Successfully';
+
+    //         return array(
+    //             "status" => 200,
+    //             "message" => $massage,
+    //             "additional" => [],
+    //             "redirect" => url('/out-material')
+    //         );
+
+    // }
 
     public function deletescantemp(Request $request)
     {
@@ -547,33 +598,33 @@ class OutMaterialController extends Controller
 
         $id = $request['txt_idgr'];
 
-            $updateInMaterial = InMaterialFabric::where('id', $request['txt_idgr'])->update([
-                'tgl_dok' => $request['txt_tgl_gr'],
-                'tgl_shipp' => $request['txt_tgl_ship'],
-                'type_bc' => $request['txt_type_bc'],
-                'type_pch' => $request['txt_type_pch'],
-                'ori_dok' => $request['txt_oridok'],
-                'no_invoice' => $request['txt_invdok'],
-                'deskripsi' => $request['txt_notes'],
-            ]);
+        $updateInMaterial = InMaterialFabric::where('id', $request['txt_idgr'])->update([
+            'tgl_dok' => $request['txt_tgl_gr'],
+            'tgl_shipp' => $request['txt_tgl_ship'],
+            'type_bc' => $request['txt_type_bc'],
+            'type_pch' => $request['txt_type_pch'],
+            'ori_dok' => $request['txt_oridok'],
+            'no_invoice' => $request['txt_invdok'],
+            'deskripsi' => $request['txt_notes'],
+        ]);
 
         for ($i = 1; $i <= intval($request['txt_jmldet']); $i++) {
             if ($request["qty_good"][$i] > 0 || $request["qty_reject"][$i] > 0) {
                 $updateInMaterialDet = InMaterialFabricDet::where('id', $request["id_det"][$i])->update([
-                'qty_good' => $request["qty_good"][$i],
-                'qty_reject' => $request["qty_reject"][$i],
-            ]);
+                    'qty_good' => $request["qty_good"][$i],
+                    'qty_reject' => $request["qty_reject"][$i],
+                ]);
             }
-            }
+        }
 
         $massage = 'Edit Data Successfully';
 
-            return array(
-                "status" => 200,
-                "message" => $massage,
-                "additional" => [],
-                "redirect" => url('/in-material')
-            );
+        return array(
+            "status" => 200,
+            "message" => $massage,
+            "additional" => [],
+            "redirect" => url('/in-material')
+        );
 
     }
 

@@ -83,7 +83,7 @@ inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y
 (select id_roll,no_rak,sum(qty_out) qty_out from whs_bppb_det where no_rak = '" . $request->kode_lok . "' and status = 'Y' GROUP BY id_roll) b on a.no_barcode = b.id_roll where round(qty - COALESCE(qty_out,0),2) > 0 GROUP BY no_barcode order by no_lot,no_roll asc");
 
         $html = '<div class="table-responsive">
-            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100">
+            <table id="tableshow" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center" style="font-size: 0.6rem;">No Barcode</th>

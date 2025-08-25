@@ -126,13 +126,13 @@
         </div>
     </div>
 </div>
-        <div class="d-flex justify-content-between">
+       <!--  <div class="d-flex justify-content-between">
             <div class="ml-auto">
                 <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search GR Document..." onkeyup="carigrdok()">
-        </div>
-        <div class="table-responsive" style="max-height: 400px">
+        </div> -->
+        <div class="table-responsive">
             <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
                 <thead>
                     <tr>
@@ -444,10 +444,13 @@ $('.select2type').select2({
 <script>
     let datatable = $("#datatable").DataTable({
         ordering: false,
-        processing: true,
-        serverSide: true,
-        paging: false,
-        searching: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

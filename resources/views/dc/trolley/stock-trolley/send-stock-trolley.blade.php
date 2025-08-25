@@ -269,26 +269,52 @@
         }
 
         // Check all
+        // $("#checkAllStock").on("change", function () {
+        //     document.getElementById("loading").classList.remove("d-none");
+
+        //     // get elements
+        //     let checkStockElements = document.getElementsByClassName("check-stock");
+
+        //     // reset stock arr
+        //     stockArr = [];
+
+        //     // check each element
+        //     for (let i = 0; i < checkStockElements.length; i++) {
+        //         if (this.checked) {
+        //             checkStockElements[i].checked = true;
+
+        //             // push data
+        //             let data = $('#datatable-trolley-stock').DataTable().row(checkStockElements[i].closest('tr')).data();
+        //             stockArr.push(data);
+        //         } else {
+        //             checkStockElements[i].checked = false;
+        //         }
+        //     }
+
+        //     updateSelectedSum();
+        // });
         $("#checkAllStock").on("change", function () {
             document.getElementById("loading").classList.remove("d-none");
 
-            // get elements
-            let checkStockElements = document.getElementsByClassName("check-stock");
+            let table = $('#datatable-trolley-stock').DataTable();
 
             // reset stock arr
             stockArr = [];
 
-            // check each element
-            for (let i = 0; i < checkStockElements.length; i++) {
-                if (this.checked) {
-                    checkStockElements[i].checked = true;
-
-                    // push data
-                    let data = $('#datatable-trolley-stock').DataTable().row(checkStockElements[i].closest('tr')).data();
-                    stockArr.push(data);
-                } else {
-                    checkStockElements[i].checked = false;
-                }
+            if (this.checked) {
+                // check ALL checkboxes from filtered rows (across all pages)
+                table.rows({ search: 'applied' }).nodes().to$()
+                    .find('.check-stock')
+                    .prop('checked', true)
+                    .each(function () {
+                        let data = table.row($(this).closest('tr')).data();
+                        stockArr.push(data);
+                    });
+            } else {
+                // uncheck ALL checkboxes
+                table.rows({ search: 'applied' }).nodes().to$()
+                    .find('.check-stock')
+                    .prop('checked', false);
             }
 
             updateSelectedSum();

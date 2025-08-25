@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cutting\FormCutInputDetail;
 use Illuminate\Http\Request;
 use App\Models\Cutting\Piping;
 use App\Models\Marker\Marker;
@@ -145,6 +146,134 @@ class PipingController extends Controller
             "message" => "Terjadi Kesalahan",
             "additional" => [],
         );
+    }
+
+    public function edit($id = 0) {
+        if ($id) {
+            $piping = Piping::selectRaw("form_cut_piping.*, master_sb_ws.buyer")->leftJoin("master_sb_ws", "form_cut_piping.act_costing_id", "=", "master_sb_ws.id_act_cost")->where("form_cut_piping.id", $id)->first();
+
+            if ($piping) {
+                return view('cutting.piping.edit-piping', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "form-cut-piping", "piping" => $piping]);
+            }
+        }
+    }
+
+    public function update(Request $request) {
+        $validatedRequest = $request->validate([
+            "edit_id" => "required",
+            "edit_tanggal" => "required",
+            "edit_id_roll" => "required",
+            "edit_id_item" => "required",
+            "edit_lot" => "required",
+            "edit_roll" => "required",
+            "edit_roll_buyer" => "required",
+            "edit_detail_item" => "required",
+            "edit_ws_id" => "required",
+            "edit_ws" => "required",
+            "edit_color" => "required",
+            "edit_panel" => "required",
+            "edit_buyer" => "required",
+            "edit_style" => "required",
+            "edit_cons_piping" => "required",
+            "edit_qty_item" => "required",
+            "edit_unit" => "required",
+            "edit_piping" => "required",
+            "edit_qty_sisa" => "required",
+            "edit_short_roll" => "required",
+            "edit_operator" => "required"
+        ]);
+
+        $piping = Piping::where("id", $validatedRequest["edit_id"])->first();
+
+        if ($piping) {
+            $qty = $validatedRequest['edit_qty_sisa'];
+
+            $formCutDetail = FormCutInputDetail::where("id_roll", $validatedRequest["edit_id_roll"])->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
+
+            if ($formCutDetail) {
+                $formCut = $formCutDetail->formCutInput;
+                $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
+                $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
+
+                $formCutDetail->shortRoll = $shortRoll;
+                $formCutDetail->save();
+            } else {
+                $updateScannedItem = ScannedItem::where("id_roll", $validatedRequest["edit_id_roll"])->update([
+                    "qty" => $qty
+                ]);
+            }
+
+            $piping->id_roll = $validatedRequest["edit_id_roll"];
+            $piping->act_costing_id = $validatedRequest["edit_ws_id"];
+            $piping->act_costing_ws = $validatedRequest["edit_ws"];
+            $piping->style = $validatedRequest["edit_style"];
+            $piping->color = $validatedRequest["edit_color"];
+            $piping->panel = $validatedRequest["edit_panel"];
+            $piping->cons_piping = $validatedRequest["edit_cons_piping"];
+            $piping->qty = $validatedRequest["edit_qty_item"];
+            $piping->piping = $validatedRequest["edit_piping"];
+            $piping->qty_sisa = $validatedRequest["edit_qty_sisa"];
+            $piping->short_roll = $validatedRequest["edit_short_roll"];
+            $piping->unit = $validatedRequest["edit_unit"];
+            $piping->operator = $validatedRequest["edit_operator"];
+            $piping->tanggal_piping = $validatedRequest["edit_tanggal"];
+            $piping->save();
+
+            return array(
+                "status" => 200,
+                "message" => "Data Piping berhasil diubah.",
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi Kesalahan",
+            "additional" => [],
+        );
+    }
+
+    public function destroy($id = 0) {
+        if ($id) {
+            $piping = Piping::where("id", $id)->first();
+
+            if ($piping) {
+                $qty = $piping->qty;
+
+                $formCutDetail = FormCutInputDetail::where("id_roll", $piping->id_roll)->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
+
+                if ($formCutDetail) {
+                    $formCut = $formCutDetail->formCutInput;
+                    $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
+                    $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                    $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
+
+                    $formCutDetail->qty = $qty;
+                    $formCutDetail->shortRoll = $shortRoll;
+                    $formCutDetail->save();
+                } else {
+                    $updateScannedItem = ScannedItem::where("id_roll", $piping->id_roll)->update([
+                        "qty" => $qty
+                    ]);
+                }
+
+                $piping->delete();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Data Piping berhasil diubah.",
+                    'table' => 'datatable',
+                    "additional" => [],
+                );
+            }
+
+            return array(
+                "status" => 400,
+                "message" => "Terjadi Kesalahan",
+                "additional" => [],
+            );
+        }
     }
 
     public function getMarkerPiping(Request $request) {
