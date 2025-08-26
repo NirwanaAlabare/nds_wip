@@ -34,6 +34,7 @@
                                 <label><small>No Dokumen</small></label>
                                 @foreach ($notrans as $notrs)
                                 <input type="text" class="form-control " id="txt_no_dokumen" name="txt_no_dokumen" value="{{ $notrs->no_transaksi }}" readonly>
+                                <input type="hidden" class="form-control " id="txt_no_dokumen_hide" name="txt_no_dokumen_hide" value="{{ $notrs->no_transaksi_awal }}" readonly>
                                 @endforeach
                             </div>
                         </div>
@@ -81,19 +82,37 @@
                         </div>
                     </div>
 
-                    <div class="col-6 col-md-2">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Scan</small></label>
-                                <input type="text" class="form-control " id="txt_barcode" name="txt_barcode" value="" autofocus onchange="getdatabarcode()">
-                                <input type="hidden" class="form-control " id="txt_qty_barcode" name="txt_qty_barcode" value="">
-                                <input type="hidden" class="form-control " id="txt_item_barcode" name="txt_item_barcode" value="" readonly>
-                                <input type="hidden" class="form-control " id="txt_iditem_barcode" name="txt_iditem_barcode" value="" readonly>
-                                <input type="hidden" class="form-control " id="txt_jo_barcode" name="txt_jo_barcode" value="" readonly>
-                                <input type="hidden" class="form-control " id="txt_lok_barcode" name="txt_lok_barcode" value="" readonly>
-                                <input type="hidden" class="form-control " id="txt_lot_barcode" name="txt_lot_barcode" value="" readonly>
-                                <input type="hidden" class="form-control " id="txt_roll_barcode" name="txt_roll_barcode" value="" readonly>
-                                <input type="hidden" class="form-control " id="txt_unit_barcode" name="txt_unit_barcode" value="" readonly>
+                                <input type="text" class="form-control" id="txt_barcode" name="txt_barcode" 
+                                value="" autofocus onchange="getdatabarcode()">
+                                <input type="hidden" id="txt_qty_barcode" name="txt_qty_barcode">
+                                <input type="hidden" id="txt_item_barcode" name="txt_item_barcode" readonly>
+                                <input type="hidden" id="txt_iditem_barcode" name="txt_iditem_barcode" readonly>
+                                <input type="hidden" id="txt_jo_barcode" name="txt_jo_barcode" readonly>
+                                <input type="hidden" id="txt_lok_barcode" name="txt_lok_barcode" readonly>
+                                <input type="hidden" id="txt_lot_barcode" name="txt_lot_barcode" readonly>
+                                <input type="hidden" id="txt_roll_barcode" name="txt_roll_barcode" readonly>
+                                <input type="hidden" id="txt_unit_barcode" name="txt_unit_barcode" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                    </div>
+
+                    <div class="col-8 col-md-5">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Multi Barcode</small></label>
+                                <div class="d-flex align-items-start">
+                                    <textarea id="txt_barcodes" class="form-control me-2" rows="5"
+                                    placeholder="Scan/masukkan banyak barcode (1 baris 1 barcode)"></textarea>
+                                    <button type="button" id="btnSendBarcode" class="btn btn-primary d-flex align-items-center">
+                                        <i class="fas fa-paper-plane me-1"></i> Send
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -584,161 +603,279 @@
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <!-- Page specific script -->
 <script type="text/javascript">
-    function getdatabarcode() {
-        return $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: '{{ route('get-data-barcodeso') }}',
-            type: 'get',
-            data: {
-                no_barcode: $('#txt_barcode').val(),
-            },
-            dataType: 'json',
-            success: function(res) {
-                console.log(res);
-                if (res.barcode_so == null) {
-                    // console.log(res);
-                    var txt_lokasi_h = $('#txt_lokasi_h').val();
-                    if (txt_lokasi_h == res.kode_lok) {
-                        document.getElementById('txt_qty_barcode').value = res.qty;
-                        document.getElementById('txt_item_barcode').value = res.itemdesc;
-                        document.getElementById('txt_iditem_barcode').value = res.id_item;
-                        document.getElementById('txt_jo_barcode').value = res.id_jo;
-                        document.getElementById('txt_lok_barcode').value = res.kode_lok;
-                        document.getElementById('txt_lot_barcode').value = res.no_lot;
-                        document.getElementById('txt_roll_barcode').value = res.no_roll;
-                        document.getElementById('txt_unit_barcode').value = res.unit;
-                        savedatabarcode();
-                    }else{
-                       Swal.fire({
-                        icon: 'info',
-                        title: 'Peringatan!!',
-                        text: 'Data Barcode Berada di Rak '+ res.kode_lok,
-                        showCancelButton: false,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Oke',
-                    }).then(async (result) => {
-                        document.getElementById('txt_qty_barcode').value = res.qty;
-                        document.getElementById('txt_item_barcode').value = res.itemdesc;
-                        document.getElementById('txt_iditem_barcode').value = res.id_item;
-                        document.getElementById('txt_jo_barcode').value = res.id_jo;
-                        document.getElementById('txt_lok_barcode').value = res.kode_lok;
-                        document.getElementById('txt_lot_barcode').value = res.no_lot;
-                        document.getElementById('txt_roll_barcode').value = res.no_roll;
-                        document.getElementById('txt_unit_barcode').value = res.unit;
-                        savedatabarcode();
+//     function getdatabarcode() {
+//         return $.ajax({
+//             headers: {
+//                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+//             },
+//             url: '{{ route('get-data-barcodeso') }}',
+//             type: 'get',
+//             data: {
+//                 no_barcode: $('#txt_barcode').val(),
+//             },
+//             dataType: 'json',
+//             success: function(res) {
+//                 console.log(res);
+//                 if (res.barcode_so == null) {
+//                     // console.log(res);
+//                     var txt_lokasi_h = $('#txt_lokasi_h').val();
+//                     if (txt_lokasi_h == res.kode_lok) {
+//                         document.getElementById('txt_qty_barcode').value = res.qty;
+//                         document.getElementById('txt_item_barcode').value = res.itemdesc;
+//                         document.getElementById('txt_iditem_barcode').value = res.id_item;
+//                         document.getElementById('txt_jo_barcode').value = res.id_jo;
+//                         document.getElementById('txt_lok_barcode').value = res.kode_lok;
+//                         document.getElementById('txt_lot_barcode').value = res.no_lot;
+//                         document.getElementById('txt_roll_barcode').value = res.no_roll;
+//                         document.getElementById('txt_unit_barcode').value = res.unit;
+//                         savedatabarcode();
+//                     }else{
+//                        Swal.fire({
+//                         icon: 'info',
+//                         title: 'Peringatan!!',
+//                         text: 'Data Barcode Berada di Rak '+ res.kode_lok,
+//                         showCancelButton: false,
+//                         showConfirmButton: true,
+//                         confirmButtonText: 'Oke',
+//                     }).then(async (result) => {
+//                         document.getElementById('txt_qty_barcode').value = res.qty;
+//                         document.getElementById('txt_item_barcode').value = res.itemdesc;
+//                         document.getElementById('txt_iditem_barcode').value = res.id_item;
+//                         document.getElementById('txt_jo_barcode').value = res.id_jo;
+//                         document.getElementById('txt_lok_barcode').value = res.kode_lok;
+//                         document.getElementById('txt_lot_barcode').value = res.no_lot;
+//                         document.getElementById('txt_roll_barcode').value = res.no_roll;
+//                         document.getElementById('txt_unit_barcode').value = res.unit;
+//                         savedatabarcode();
+//                     });
+//                 }
+//             }else if (res.barcode_so != null) {
+//                Swal.fire({
+//                 icon: 'error',
+//                 title: 'Gagal',
+//                 text: 'Barcode Sudah diinput!',
+//                 showCancelButton: false,
+//                 showConfirmButton: true,
+//                 confirmButtonText: 'Oke',
+//             }).then(async (result) => {
+//                 document.getElementById('txt_qty_barcode').value = '';
+//                 document.getElementById('txt_barcode').value = '';
+//                 document.getElementById('txt_barcode').focus();
+//                 document.getElementById('txt_item_barcode').value = '';
+//                 document.getElementById('txt_iditem_barcode').value = '';
+//                 document.getElementById('txt_jo_barcode').value = '';
+//                 document.getElementById('txt_lok_barcode').value = '';
+//                 document.getElementById('txt_lot_barcode').value = '';
+//                 document.getElementById('txt_roll_barcode').value = '';
+//                 document.getElementById('txt_unit_barcode').value = '';
+//             });
+//         }else{
+//             Swal.fire({
+//                 icon: 'error',
+//                 title: 'Gagal',
+//                 text: 'Data Barcode Tidak Tersedia!',
+//                 showCancelButton: false,
+//                 showConfirmButton: true,
+//                 confirmButtonText: 'Oke',
+//             }).then(async (result) => {
+//                 document.getElementById('txt_qty_barcode').value = '';
+//                 document.getElementById('txt_barcode').value = '';
+//                 document.getElementById('txt_item_barcode').value = '';
+//                 document.getElementById('txt_iditem_barcode').value = '';
+//                 document.getElementById('txt_jo_barcode').value = '';
+//                 document.getElementById('txt_lok_barcode').value = '';
+//                 document.getElementById('txt_lot_barcode').value = '';
+//                 document.getElementById('txt_roll_barcode').value = '';
+//                 document.getElementById('txt_unit_barcode').value = '';
+//                 document.getElementById('txt_barcode').focus();
+//             });
+
+//         }
+//     },
+// });
+// }
+
+// === fungsi ambil data barcode dari server
+// === ambil data barcode dari server
+// === ambil data barcode
+function getdatabarcode(no_barcode = null) {
+    let barcode = no_barcode ?? $('#txt_barcode').val();
+    let no_transaksi = $('#txt_no_dokumen_hide').val();
+
+    if (!barcode) return Promise.resolve({ status: 'skip' });
+
+    return $.ajax({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        url: '{{ route("get-data-barcodeso") }}',
+        type: 'get',
+        data: { no_barcode: barcode, no_transaksi: no_transaksi },
+        dataType: 'json'
+    }).then(function (res) {
+        if (!res || res.length === 0) {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Data Barcode ' + barcode + ' Tidak Tersedia!' }).then(()=>{
+
+            resetBarcodeInputs();
+            });
+            return { status: 'notfound', barcode };
+        }
+
+        res = res[0];
+
+        if (res.barcode_so == null) {
+            return { status: 'ok', barcode, rawData: res }; // kembalikan data untuk disimpan
+        } else {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Barcode ' + barcode + ' Sudah diinput!' });
+            resetBarcodeInputs();
+            return { status: 'duplicate', barcode };
+        }
+    }).catch(function (xhr, status, error) {
+        console.error("AJAX Error:", status, error);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal koneksi ke server!' });
+        resetBarcodeInputs();
+        return { status: 'error', barcode, msg: error };
+    });
+}
+
+// === save data barcode (terima parameter data)
+function savedatabarcode(data) {
+    return $.ajax({
+        url: '{{ route("simpan-scan-barcode-so") }}',
+        type: 'GET',
+        dataType: 'json',
+        data: data,
+        success: function(res) {
+            if (res?.status == 200) {
+                dataTableReload();
+                datatable3.ajax.reload();
+                datatable4.ajax.reload();
+                resetBarcodeInputs();
+
+            }
+        }
+    });
+}
+
+// === isi hidden input
+function isiHiddenField(res) {
+    $('#txt_qty_barcode').val(res.qty);
+    $('#txt_item_barcode').val(res.itemdesc);
+    $('#txt_iditem_barcode').val(res.id_item);
+    $('#txt_jo_barcode').val(res.id_jo);
+    $('#txt_lok_barcode').val(res.kode_lok);
+    $('#txt_lot_barcode').val(res.no_lot);
+    $('#txt_roll_barcode').val(res.no_roll);
+    $('#txt_unit_barcode').val(res.unit);
+}
+
+// === reset input
+function resetBarcodeInputs() {
+    $('#txt_qty_barcode, #txt_item_barcode, #txt_iditem_barcode, #txt_jo_barcode, #txt_lok_barcode, #txt_lot_barcode, #txt_roll_barcode, #txt_unit_barcode').val('');
+    $('#txt_barcode').val('').focus();
+}
+
+// === batch via textarea
+$('#btnSendBarcode').on('click', function () {
+    let barcodes = $('#txt_barcodes').val().trim().split("\n").map(b => b.trim()).filter(b => b.length > 0);
+    if (!barcodes.length) {
+        Swal.fire({ icon: 'warning', title: 'Kosong', text: 'Tidak ada barcode untuk diproses!' });
+        return;
+    }
+
+    let uniqueBarcodes = [...new Set(barcodes)];
+    let duplicatesInBatch = barcodes.filter((item, idx) => barcodes.indexOf(item) !== idx);
+
+    (async () => {
+        // Tampilkan loading
+        Swal.fire({
+            title: 'Sedang memproses...',
+            html: 'Tunggu sebentar, jangan tutup halaman.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        let results = [];
+
+        for (let bc of uniqueBarcodes) {
+            let res = await getdatabarcode(bc);
+
+            if (res.status === 'ok' && res.rawData) {
+                let d = res.rawData;
+                await savedatabarcode({
+                    lokasi_scan: $('#txt_lokasi_h').val(),
+                    no_barcode: d.no_barcode,
+                    qty: d.qty,
+                    id_item: d.id_item,
+                    id_jo: d.id_jo,
+                    lokasi_so: d.kode_lok,
+                    no_lot: d.no_lot,
+                    no_roll: d.no_roll,
+                    unit: d.unit
+                });
+                results.push({ status: 'success', barcode: bc });
+            } else {
+                results.push(res);
+            }
+        }
+
+        // Tutup loading
+        Swal.close();
+
+        // Ringkasan hasil
+        let success = results.filter(r => r.status === 'success').map(r => r.barcode);
+        let duplicate = results.filter(r => r.status === 'duplicate').map(r => r.barcode);
+        let notfound = results.filter(r => r.status === 'notfound').map(r => r.barcode);
+        let errors = results.filter(r => r.status === 'error').map(r => r.barcode);
+
+        let msg = "";
+        if (success.length) msg += "✅ Berhasil: " + success.join(", ") + "<br>";
+        if (duplicate.length) msg += "❌ Duplikat: " + duplicate.join(", ") + "<br>";
+        if (notfound.length) msg += "❌ Tidak ditemukan: " + notfound.join(", ") + "<br>";
+        if (errors.length) msg += "❌ Error: " + errors.join(", ") + "<br>";
+
+        Swal.fire({ icon: 'info', title: 'Hasil Proses', html: msg });
+        $('#txt_barcodes').val('');
+    })();
+});
+
+
+// === scan satu-satu
+// === Samsung keyboard "Next" trigger Enter
+$('#txt_barcode').on('keydown', function(e) {
+    // Samsung keyboard kadang mengirim Tab (keyCode 9) saat tombol Next ditekan
+    // alert(e.key + ' ' + e.keyCode);
+    if (e.key === "Tab" || e.keyCode === 9 || e.key === "Enter" || e.keyCode === 13 || e.key === "Shift" || e.keyCode === 16) {
+        // alert(e.key + ' ' + e.keyCode);
+        e.preventDefault(); // cegah pindah fokus
+        let val_code = $('#txt_barcode').val();
+        let code = $(this).val().trim();
+        // alert(val_code);
+        if (code) {
+            // alert(e.key + ' ' + e.keyCode);
+            getdatabarcode(code).then(res => {
+                if (res.status === 'ok' && res.rawData) {
+                    let d = res.rawData;
+                    savedatabarcode({
+                        lokasi_scan: $('#txt_lokasi_h').val(),
+                        no_barcode: d.no_barcode,
+                        qty: d.qty,
+                        id_item: d.id_item,
+                        id_jo: d.id_jo,
+                        lokasi_so: d.kode_lok,
+                        no_lot: d.no_lot,
+                        no_roll: d.no_roll,
+                        unit: d.unit
                     });
                 }
-            }else if (res.barcode_so != null) {
-               Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Barcode Sudah diinput!',
-                showCancelButton: false,
-                showConfirmButton: true,
-                confirmButtonText: 'Oke',
-            }).then(async (result) => {
-                document.getElementById('txt_qty_barcode').value = '';
-                document.getElementById('txt_barcode').value = '';
-                document.getElementById('txt_barcode').focus();
-                document.getElementById('txt_item_barcode').value = '';
-                document.getElementById('txt_iditem_barcode').value = '';
-                document.getElementById('txt_jo_barcode').value = '';
-                document.getElementById('txt_lok_barcode').value = '';
-                document.getElementById('txt_lot_barcode').value = '';
-                document.getElementById('txt_roll_barcode').value = '';
-                document.getElementById('txt_unit_barcode').value = '';
             });
-        }else{
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Data Barcode Tidak Tersedia!',
-                showCancelButton: false,
-                showConfirmButton: true,
-                confirmButtonText: 'Oke',
-            }).then(async (result) => {
-                document.getElementById('txt_qty_barcode').value = '';
-                document.getElementById('txt_barcode').value = '';
-                document.getElementById('txt_item_barcode').value = '';
-                document.getElementById('txt_iditem_barcode').value = '';
-                document.getElementById('txt_jo_barcode').value = '';
-                document.getElementById('txt_lok_barcode').value = '';
-                document.getElementById('txt_lot_barcode').value = '';
-                document.getElementById('txt_roll_barcode').value = '';
-                document.getElementById('txt_unit_barcode').value = '';
-                document.getElementById('txt_barcode').focus();
-            });
-
         }
-    },
+    }
 });
-}
+
+
 </script>
 <script type="text/javascript">
-    function savedatabarcode() {
-        var lokasi_scan = document.getElementById('txt_lokasi_h').value;
-        var no_barcode = document.getElementById('txt_barcode').value;
-        var qty = document.getElementById('txt_qty_barcode').value;
-        var id_item = document.getElementById('txt_iditem_barcode').value;
-        var id_jo = document.getElementById('txt_jo_barcode').value;
-        var lokasi_so = document.getElementById('txt_lok_barcode').value;
-        var no_lot = document.getElementById('txt_lot_barcode').value;
-        var no_roll = document.getElementById('txt_roll_barcode').value;
-        var unit = document.getElementById('txt_unit_barcode').value;
-
-                // clearModified();
-
-                return $.ajax({
-                    url: '{{ route('simpan-scan-barcode-so') }}',
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        lokasi_scan: lokasi_scan,
-                        no_barcode: no_barcode,
-                        qty: qty,
-                        id_item: id_item,
-                        id_jo: id_jo,
-                        lokasi_so: lokasi_so,
-                        no_lot: no_lot,
-                        no_roll: no_roll,
-                        unit: unit,
-                    },
-                    success: function(res) {
-                        if (res) {
-                            if (res.status == 200) {
-                                // Swal.fire({
-                                //     icon: 'success',
-                                //     title: 'Berhasil',
-                                //     text: 'Data Berhasil Disimpan',
-                                //     showCancelButton: false,
-                                //     showConfirmButton: true,
-                                //     confirmButtonText: 'Oke',
-                                //     timer: 1500,
-                                //     timerProgressBar: true
-                                // }).then(async (result) => {
-                                    dataTableReload();
-                                    document.getElementById('txt_qty_barcode').value = '';
-                                    document.getElementById('txt_barcode').value = '';
-                                    document.getElementById('txt_barcode').focus();
-                                    document.getElementById('txt_item_barcode').value = '';
-                                    document.getElementById('txt_iditem_barcode').value = '';
-                                    document.getElementById('txt_jo_barcode').value = '';
-                                    document.getElementById('txt_lok_barcode').value = '';
-                                    document.getElementById('txt_lot_barcode').value = '';
-                                    document.getElementById('txt_roll_barcode').value = '';
-                                    document.getElementById('txt_unit_barcode').value = '';
-                                    datatable3.ajax.reload();
-                                // });
-
-                            }
-                        }
-                    }
-                });
-            }
-
-
             function savedataopname() {
                 var txt_qty_scan = document.getElementById('txt_qty_scan').value;
                 var txt_no_dokumen = document.getElementById('txt_no_dokumen').value;

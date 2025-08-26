@@ -89,6 +89,14 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="12" style="text-align:right; font-size: 14pz;">TOTAL :</th>
+                            <th></th> <!-- qty_so -->
+                            <th></th> <!-- qty -->
+                            <th colspan="3"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -111,14 +119,15 @@
     </script>
     <script>
         let datatable = $("#datatable").DataTable({
-            ordering: false,
+            ordering: true,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            deferLoading: 0,
             ajax: {
                 url: '{{ route('detail-stok-opname') }}',
                 data: function(d) {
@@ -127,70 +136,52 @@
                     d.dateTo = $('#to').val();
                 },
             },
-            columns: [{
-                data: 'tipe_item'
-            },
-            {
-                data: 'no_dokumen'
-            },
-            {
-                data: 'tgl_dokumen'
-            },
-            {
-                data: 'no_barcode'
-            },
-            {
-                data: 'lokasi_scan'
-            },
-            {
-                data: 'lokasi_aktual'
-            },
-            {
-                data: 'id_jo'
-            },
-            {
-                data: 'id_item'
-            },
-            {
-                data: 'goods_code'
-            },
-            {
-                data: 'itemdesc'
-            },
-            {
-                data: 'no_lot'
-            },
-            {
-                data: 'no_roll'
-            },
-            {
-                data: 'qty_so'
-            },
-            {
-                data: 'qty'
-            },
-            {
-                data: 'unit'
-            },
-            {
-                data: 'created_by'
-            },
-            {
-                data: 'created_at'
-            }
+            columns: [
+            { data: 'tipe_item' },
+            { data: 'no_dokumen' },
+            { data: 'tgl_dokumen' },
+            { data: 'no_barcode' },
+            { data: 'lokasi_scan' },
+            { data: 'lokasi_aktual' },
+            { data: 'id_jo' },
+            { data: 'id_item' },
+            { data: 'goods_code' },
+            { data: 'itemdesc' },
+            { data: 'no_lot' },
+            { data: 'no_roll' },
+            { data: 'qty_so' },
+            { data: 'qty' },
+            { data: 'unit' },
+            { data: 'created_by' },
+            { data: 'created_at' }
             ],
             columnDefs: [
-            // {
-            //     targets: [25],
-            //     className: "d-none",
-            //     render: (data, type, row, meta) => data ? data : "-"
-            // },
             {
                 targets: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
                 render: (data, type, row, meta) => data ? data : "-"
-            }
-            ]
-        });
+            },
+            {
+            targets: [12,13], // qty_so dan qty
+            render: $.fn.dataTable.render.number(',', '.', 0, '') // number format
+        }
+        ],
+        footerCallback: function(row, data, start, end, display) {
+            let api = this.api();
+
+        // Total kolom qty_so (index 12) dan qty (index 13)
+        let intVal = function(i) {
+            return typeof i === 'string' ? i.replace(/[\$,]/g, '')*1 : typeof i === 'number' ? i : 0;
+        };
+
+        let totalQtySO = api.column(12).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+        let totalQty = api.column(13).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+        // Tampilkan di footer
+        $(api.column(12).footer()).html(totalQtySO.toLocaleString());
+        $(api.column(13).footer()).html(totalQty.toLocaleString());
+    }
+});
+
 
         function dataTableReload() {
             datatable.ajax.reload();

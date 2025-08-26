@@ -25,7 +25,7 @@
                     <div class="col-md-12">
                         <div class="form-group row">
 
-                            <div class="col-md-3">
+                            <div class="col-md-3 md-3">
                                 <div class="mb-1">
                                     <div class="form-group">
                                         <label>Tipe Item</label>
@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-striped table-head-fixed text-nowrap">
+                    <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
                         <thead>
                             <tr>
                                 <th class="text-center">Lokasi</th>
@@ -104,8 +104,26 @@
                         </thead>
                         <tbody>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                <th colspan="4" style="display: none;"></th>
+                                <th colspan="2" style="text-align:center">TOTAL</th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
+
+                <div class="mb-1">
+                <div class="form-group">
+                    <a href="{{ route('list-data-stok') }}" class="btn btn-danger float-end mt-2">
+                    <i class="fas fa-arrow-circle-left"></i> Kembali</a>
+                </div>
+            </div>
+
             </div>
         </div>
     </form>
@@ -168,6 +186,13 @@
         })
 
     </script>
+
+    <script>
+$(document).ready(function() {
+    getdatanomor();
+    dataTableReload();
+});
+</script>
 
     <script type="text/javascript">
         $('.select2pchtype').select2({
@@ -301,93 +326,74 @@
 
     <script>
 
-        let datatable = $("#datatable").DataTable({
-         serverSide: true,
-         processing: true,
-         ordering: false,
-         scrollX: true,
-         autoWidth: false,
-         scrollY: true,
-         pageLength: 10,
-         ajax: {
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: '{{ route('data-rak') }}',
-            dataType: 'json',
-            dataSrc: 'data',
-            data: function(d) {
-                d.tgl_filter = $('#tgl_filter').val();
-                d.item_so = $('#item_so').val();
-            },
-        },
-        columns: [{
-            data: 'kode_lok'
-        },
-        {
-            data: 'id_jo'
-        },
-        {
-            data: 'kpno'
-        },
-        {
-            data: 'styleno'
-        },
-        {
-            data: 'buyer'
-        },
-        {
-            data: 'id_item'
-        },
-        {
-            data: 'itemdesc'
-        },
-        {
-            data: 'ttl_roll'
-        },
-        {
-            data: 'qty'
-        },
-        {
-            data: 'unit'
+        function number_format(number, decimals = 0, dec_point = '.', thousands_sep = ',') {
+            number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+            let n = !isFinite(+number) ? 0 : +number,
+            prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+            sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+            dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+            s = '';
+
+            s = (prec ? n.toFixed(prec) : Math.round(n).toString()).split('.');
+            if (s[0].length > 3) {
+                s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+            }
+            if ((s[1] || '').length < prec) {
+                s[1] = s[1] || '';
+                s[1] += new Array(prec - s[1].length + 1).join('0');
+            }
+            return s.join(dec);
         }
 
-        ],
-        columnDefs: [
-        {
-            targets: [4],
-            className: "d-none",
-        },
-        {
-            targets: [0],
-            render: (data, type, row, meta) => data ? data : "-"
-        },
-        {
-            targets: [1],
-            className: "d-none",
-        },
-        {
-            targets: [2],
-            className: "d-none",
-        },
-        {
-            targets: [3],
-            className: "d-none",
-        }
-        // {
-        //     targets: [3],
-        //     render: (data, type, row, meta) => data ? data : "-"
-        // },
-        // {
-        //     targets: [5],
-        //     render: (data, type, row, meta) => data ? data : "-"
-        // },
-        // {
-        //     targets: [7],
-        //     render: (data, type, row, meta) => data ? data : "-"
-        // }
-        ]
-    });
+        let datatable = $("#datatable").DataTable({
+            serverSide: false,
+            processing: true,
+            ordering: false,
+            scrollX: true,
+            autoWidth: false,
+            scrollY: true,
+            pageLength: 10,
+            deferLoading: 0,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('data-rak') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.tgl_filter = $('#tgl_filter').val();
+                    d.item_so = $('#item_so').val();
+                },
+            },
+            columns: [
+            { data: 'kode_lok', render: (data) => data ? data : "-" },
+            { data: 'id_jo' },
+            { data: 'kpno' },
+            { data: 'styleno' },
+            { data: 'buyer' },
+            { data: 'id_item' },
+            { data: 'itemdesc' },
+            { data: 'ttl_roll', render: (data) => parseFloat(data || 0).toFixed(2) },
+            { data: 'qty', render: (data) => parseFloat(data || 0).toFixed(2) },
+            { data: 'unit' }
+            ],
+            columnDefs: [
+            { targets: [1,2,3,4], className: "d-none" }
+            ],
+            footerCallback: function ( row, data, start, end, display ) {
+                var api = this.api();
+
+                var totalRoll = api.column(7, { page: 'all' }).data()
+                .reduce((a, b) => a + (parseFloat(b) || 0), 0);
+
+                var totalQty = api.column(8, { page: 'all' }).data()
+                .reduce((a, b) => a + (parseFloat(b) || 0), 0);
+
+                $(api.column(7).footer()).html(number_format(totalRoll, 2, '.', ','));
+                $(api.column(8).footer()).html(number_format(totalQty, 2, '.', ','));
+            }
+        });
 
         async function dataTableReload() {
             datatable.ajax.reload();
@@ -454,7 +460,7 @@
                                 showConfirmButton: true,
                                 allowOutsideClick: false
                             }).then(async (result) => {
-                                window.location.reload()
+                                window.location.href = "{{ url('so/list-data-stok') }}";
                             });
 
                         }
@@ -490,7 +496,7 @@
                                 showConfirmButton: true,
                                 allowOutsideClick: false
                             }).then(async (result) => {
-                                window.location.reload()
+                               window.location.href = "{{ url('so/list-data-stok') }}";
                             });
 
                         }
@@ -532,7 +538,7 @@
                             showConfirmButton: true,
                             allowOutsideClick: false
                         }).then(async (result) => {
-                            window.location.reload()
+                            window.location.href = "{{ url('so/list-data-stok') }}";
                         });
 
                     }
