@@ -128,38 +128,6 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_piece.id,
                 form_cut_piece_detail.group_stocker,
                 form_cut_piece_detail_size.id
-            UNION
-            SELECT
-                COALESCE(DATE(form_cut_reject.updated_at), DATE(form_cut_reject.created_at), DATE(form_cut_reject.tanggal)) tanggal,
-                '-' meja,
-                form_cut_reject.act_costing_ws worksheet,
-                form_cut_reject.buyer,
-                form_cut_reject.style,
-                form_cut_reject.color,
-                master_sb_ws.id_so_det,
-                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE form_cut_reject_detail.size END) size,
-                form_cut_reject.group `group_roll`,
-                '-' lot,
-                '-' no_cut,
-                form_cut_reject.no_form,
-                '-' no_marker,
-                form_cut_reject.panel,
-                '-' max_group,
-                '-' group_stocker,
-                null,
-                null,
-                SUM(form_cut_reject_detail.qty) as qty
-            FROM
-                form_cut_reject
-                LEFT JOIN form_cut_reject_detail on form_cut_reject_detail.form_id = form_cut_reject.id
-                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
-            WHERE
-                COALESCE(DATE(form_cut_reject.updated_at), DATE(form_cut_reject.created_at), DATE(form_cut_reject.tanggal)) between '".$this->dateFrom."' and '".$this->dateTo."' and
-                form_cut_reject_detail.qty > 0
-            GROUP BY
-                form_cut_reject.id,
-                form_cut_reject.group,
-                form_cut_reject_detail.id
             ORDER BY
                 tanggal desc,
                 meja,
