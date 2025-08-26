@@ -178,7 +178,7 @@ class StockOpnameController extends Controller
 
         ");
 }else{
- $data_rak = DB::connection('mysql_sb')->select("select '' kode_lok, '' id_jo, '' kpno, '' styleno, '' buyer, '' id_item, '' itemdesc, '' ttl_roll, '' qty, '' unit");
+   $data_rak = DB::connection('mysql_sb')->select("select '' kode_lok, '' id_jo, '' kpno, '' styleno, '' buyer, '' id_item, '' itemdesc, '' ttl_roll, '' qty, '' unit");
 }
          // dd($data_rak);
 
@@ -267,7 +267,7 @@ public function getListpartialso(Request $request)
         having sum(qty_sa) != '0' or sum(qty_in) != '0' or sum(qty_out) != '0' or sum(qty_sa) + sum(qty_in) - sum(qty_out) != '0'
         order by id_item asc");
 }else{
- $data_rak = DB::connection('mysql_sb')->select("select '' data");
+   $data_rak = DB::connection('mysql_sb')->select("select '' data");
 }
 // dd($data_rak);
 
@@ -289,13 +289,13 @@ public function getListpartialsoreplace(Request $request)
 
         $data_rak = DB::connection('mysql_sb')->select("select distinct id_item data from whs_saldo_stockopname where no_transaksi = '".$request->no_dok_cs."' order by id asc");
     }else{
-     $data_rak = DB::connection('mysql_sb')->select("select '' data");
- }
+       $data_rak = DB::connection('mysql_sb')->select("select '' data");
+   }
 // dd($data_rak);
 
- $html = "";
+   $html = "";
 
- foreach ($data_rak as $data) {
+   foreach ($data_rak as $data) {
     $html .= " <option value='" . $data->data . "'>" . $data->data . "</option> ";
 }
 
@@ -802,6 +802,98 @@ public function simpanbarcodeso(Request $request)
 
 }
 
+
+
+public function SimpanBarcodeForce(Request $request)
+{
+    $request->validate([
+        'no_barcode' => 'required|string',
+        'lokasi_scan' => 'nullable|string',
+        'no_transaksi' => 'nullable|string',
+    ]);
+
+    $barcode = $request->input('no_barcode');
+    $lokasi_scan = $request->input('lokasi_scan');
+    $no_transaksi = $request->input('no_transaksi');
+
+    try {
+
+        $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_so_detail_temp_cancel where no_barcode = '" . $barcode . "'");
+
+        $cek_barcode = DB::connection('mysql_sb')->select("select * from (select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty, unit from whs_sa_fabric where no_barcode = '" . $barcode . "'
+            UNION
+            select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan from whs_lokasi_inmaterial where status = 'Y' AND no_barcode = '" . $barcode . "') a limit 1");
+        $no_barcode = $cek_barcode ? $cek_barcode[0]->no_barcode : 0;
+        $kode_lok = $cek_barcode ? $cek_barcode[0]->kode_lok : 0;
+        $id_item = $cek_barcode ? $cek_barcode[0]->id_item : 0;
+        $id_jo = $cek_barcode ? $cek_barcode[0]->id_jo : 0;
+        $no_lot = $cek_barcode ? $cek_barcode[0]->no_lot : 0;
+        $no_roll = $cek_barcode ? $cek_barcode[0]->no_roll : 0;
+        $qty = $cek_barcode ? $cek_barcode[0]->qty : 0;
+        $unit = $cek_barcode ? $cek_barcode[0]->unit : 0;
+
+        $cek_trans = DB::connection('mysql_sb')->select("select tgl_filter, status from whs_saldo_stockopname where no_transaksi = '".$no_transaksi."' limit 1");
+        $tgl_filter = $cek_trans ? $cek_trans[0]->tgl_filter : 0;
+        $status_so = $cek_trans ? $cek_trans[0]->status : 0;
+
+        if ($qty > 0) {
+            $SoDetailTempStore = SoDetailTemp::create([
+                'no_barcode' => $no_barcode,
+                'lokasi_scan' => $lokasi_scan,
+                'lokasi_aktual' => $kode_lok,
+                'id_item' => $id_item,
+                'id_jo' => $id_jo,
+                'no_lot' => $no_lot,
+                'no_roll' => $no_roll,
+                'qty' => $qty,
+                'qty_old' => 0,
+                'unit' => $unit,
+                'created_by' => Auth::user()->name,
+                'status_data' => 'Tambahan',
+            ]);
+
+
+            $SoCopySaldoStore = SoCopySaldo::create([
+                'no_transaksi' => $no_transaksi,
+                'tipe_item' => 'Fabric',
+                'tgl_filter' => $tgl_filter,
+                'no_barcode' => $no_barcode,
+                'kode_lok' => $kode_lok,
+                'id_jo' => $id_jo,
+                'id_item' => $id_item,
+                'no_lot' => $no_lot,
+                'no_roll' => $no_roll,
+                'qty' => $qty,
+                'unit' => $unit,
+                'status' => $status_so,
+                'created_at' => now(),
+                'updated_at' => now(),
+                'status_data' => 'Tambahan',
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Barcode berhasil disimpan sebagai force'
+            ]);
+
+        }else{
+
+            return response()->json([
+                'status' => 500,
+                'message' => 'Gagal menyimpan barcode'
+            ]);
+
+        }
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 500,
+            'message' => 'Gagal menyimpan barcode: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+
 public function editbarcodeso(Request $request)
 {
     $validatedRequest = $request->validate([
@@ -1142,49 +1234,49 @@ public function export_excel_detailso(Request $request)
     public function GetdetailOpname(Request $request)
     {
 
-    $det_item = DB::connection('mysql_sb')->select("select kode_lok, kpno no_ws, no_barcode, a.id_item, b.itemdesc, no_lot, no_roll, unit, qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) c on a.id_jo = c.id_jo where no_transaksi = '" . $request->no_transaksi . "' ORDER BY kode_lok, no_barcode asc");
+        $det_item = DB::connection('mysql_sb')->select("select kode_lok, kpno no_ws, no_barcode, a.id_item, b.itemdesc, no_lot, no_roll, unit, qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) c on a.id_jo = c.id_jo where no_transaksi = '" . $request->no_transaksi . "' ORDER BY kode_lok, no_barcode asc");
 
         $html = '<table id="tableshow" class="table table-bordered table-striped w-100">
         <thead>
-            <tr>
-                <th class="font-size: 0.6rem;">Lokasi</th>
-                <th class="font-size: 0.6rem;">No WS</th>
-                <th class="font-size: 0.6rem;">No Barcode</th>
-                <th class="font-size: 0.6rem;">ID Item</th>
-                <th class="font-size: 0.6rem;">Item Name</th>
-                <th class="font-size: 0.6rem;">No Lot</th>
-                <th class="font-size: 0.6rem;">No Roll</th>
-                <th class="font-size: 0.6rem;">Unit</th>
-                <th class="font-size: 0.6rem;">Qty</th>
-            </tr>
+        <tr>
+        <th class="font-size: 0.6rem;">Lokasi</th>
+        <th class="font-size: 0.6rem;">No WS</th>
+        <th class="font-size: 0.6rem;">No Barcode</th>
+        <th class="font-size: 0.6rem;">ID Item</th>
+        <th class="font-size: 0.6rem;">Item Name</th>
+        <th class="font-size: 0.6rem;">No Lot</th>
+        <th class="font-size: 0.6rem;">No Roll</th>
+        <th class="font-size: 0.6rem;">Unit</th>
+        <th class="font-size: 0.6rem;">Qty</th>
+        </tr>
         </thead>
         <tbody>';
-            $jml_qty_sj = 0;
-            $jml_qty_ak = 0;
-            $x = 1;
+        $jml_qty_sj = 0;
+        $jml_qty_ak = 0;
+        $x = 1;
         foreach ($det_item as $detitem) {
             $html .= ' <tr>
-                        <td> '.$detitem->kode_lok.'</td>
-                        <td> '.$detitem->no_ws.'</td>
-                        <td> '.$detitem->no_barcode.'</td>
-                        <td> '.$detitem->id_item.'</td>
-                        <td> '.$detitem->itemdesc.'</td>
-                        <td> '.$detitem->no_lot.'</td>
-                        <td> '.$detitem->no_roll.'</td>
-                        <td> '.$detitem->unit.'</td>
-                        <td> '.$detitem->qty.'</td>
-                       </tr>';
-                       $x++;
+            <td> '.$detitem->kode_lok.'</td>
+            <td> '.$detitem->no_ws.'</td>
+            <td> '.$detitem->no_barcode.'</td>
+            <td> '.$detitem->id_item.'</td>
+            <td> '.$detitem->itemdesc.'</td>
+            <td> '.$detitem->no_lot.'</td>
+            <td> '.$detitem->no_roll.'</td>
+            <td> '.$detitem->unit.'</td>
+            <td> '.$detitem->qty.'</td>
+            </tr>';
+            $x++;
         }
 
         $html .= '</tbody>
         <tfoot>
         <tr>
-            <th colspan="8" class="text-right">TOTAL</th>
-            <th class="text-right"></th>
+        <th colspan="8" class="text-right">TOTAL</th>
+        <th class="text-right"></th>
         </tr>
-    </tfoot>
-            </table>';
+        </tfoot>
+        </table>';
 
         return $html;
     }

@@ -1362,6 +1362,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
         Route::get('/list-scan-barcode2', 'listscanbarcode2')->name('list-scan-barcode-so2');
         Route::get('/list-scan-barcode3', 'listscanbarcode3')->name('list-scan-barcode-so3');
+        Route::post('/simpan-barcode-force', 'SimpanBarcodeForce')->name('simpan-barcode-force');
     });
 
     // stock opname

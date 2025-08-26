@@ -1,3 +1,4 @@
+
 @extends('layouts.index')
 
 @section('custom-link')
@@ -15,49 +16,47 @@
 <form action="{{ route('export_excel_pemasukan') }}" method="get">
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Detail Stock Opname</h5>
+            <h5 class="card-title fw-bold mb-0">
+                <i class="fas fa-file-alt fa-sm"></i> Detail Stock Opname
+            </h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-1 mb-3">
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label>Tipe Item</label>
-                        <select class="form-control select2supp" id="item_so" name="item_so" style="width: 100%;">
-                            <option selected="selected" value="">Select item</option>
-                            @foreach ($item_so as $item)
-                            <option value="{{ $item->nama_pilihan }}">{{ $item->nama_pilihan }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+            <div class="row g-3 align-items-end">
+
+                <!-- Tipe Item -->
+                <div class="col-12 col-md-3">
+                    <label for="item_so" class="form-label">Tipe Item</label>
+                    <select class="form-control select2supp" id="item_so" name="item_so" style="width: 100%;">
+                        <option value="" selected>Select item</option>
+                        @foreach ($item_so as $item)
+                        <option value="{{ $item->nama_pilihan }}">{{ $item->nama_pilihan }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label">From</label>
-                        <input type="date" class="form-control form-control" id="from" name="from"
-                        value="{{ date('Y-m-d') }}">
-                    </div>
+
+                <!-- From Date -->
+                <div class="col-6 col-md-2">
+                    <label for="from" class="form-label">From</label>
+                    <input type="date" class="form-control" id="from" name="from" value="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label">To</label>
-                        <input type="date" class="form-control form-control" id="to" name="to"
-                        value="{{ date('Y-m-d') }}">
-                    </div>
+
+                <!-- To Date -->
+                <div class="col-6 col-md-2">
+                    <label for="to" class="form-label">To</label>
+                    <input type="date" class="form-control" id="to" name="to" value="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        {{-- <button class="btn btn-primary btn" onclick="export_excel()">Search</button> --}}
-                        <input type='button' class='btn btn-primary btn' onclick="dataTableReload();" value="Search">
-                        <a onclick="export_excel()" class="btn btn-success position-relative btn">
-                            <i class="fas fa-file-excel"></i>
-                            Export
-                        </a>
-                        <!-- <button type='submit' name='submit' class='btn btn-success btn-sm'>
-                            <i class="fas fa-file-excel"></i> Export</button> -->
-                        </div>
-                    </div>
+
+                <!-- Buttons -->
+                <div class="col-12 col-md-5 d-flex gap-2">
+                    <input type="button" class="btn btn-primary" onclick="dataTableReload();" value="Search">
+                    <a href="javascript:void(0);" onclick="export_excel()" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Export
+                    </a>
                 </div>
-            </form>
+
+            </div>
+        
+
     <!-- <div class="d-flex justify-content-between">
             <div class="ml-auto">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -101,6 +100,7 @@
             </div>
         </div>
     </div>
+</form>
     @endsection
 
     @section('custom-script')
