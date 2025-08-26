@@ -698,9 +698,11 @@
 // === fungsi ambil data barcode dari server
 // === ambil data barcode dari server
 // === ambil data barcode
+// === ambil data barcode dari server
 function getdatabarcode(no_barcode = null) {
     let barcode = no_barcode ?? $('#txt_barcode').val();
     let no_transaksi = $('#txt_no_dokumen_hide').val();
+    let txt_lokasi_h = $('#txt_lokasi_h').val();
 
     if (!barcode) return Promise.resolve({ status: 'skip' });
 
@@ -712,17 +714,20 @@ function getdatabarcode(no_barcode = null) {
         dataType: 'json'
     }).then(function (res) {
         if (!res || res.length === 0) {
-            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Data Barcode ' + barcode + ' Tidak Tersedia!' }).then(()=>{
-
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Data Barcode ' + barcode + ' Tidak Tersedia!' });
             resetBarcodeInputs();
-            });
             return { status: 'notfound', barcode };
         }
 
         res = res[0];
+        let rak_lain = false;
+        let lokasi_rak = res.kode_lok;
 
-        if (res.barcode_so == null) {
-            return { status: 'ok', barcode, rawData: res }; // kembalikan data untuk disimpan
+        if (res.barcode_so == null && txt_lokasi_h == res.kode_lok) {
+            return { status: 'ok', barcode, rawData: res, rak_lain: false, lokasi_rak: lokasi_rak };
+        } else if (res.barcode_so == null && txt_lokasi_h != res.kode_lok) {
+            rak_lain = true;
+            return { status: 'ok', barcode, rawData: res, rak_lain: true, lokasi_rak: lokasi_rak };
         } else {
             Swal.fire({ icon: 'error', title: 'Gagal', text: 'Barcode ' + barcode + ' Sudah diinput!' });
             resetBarcodeInputs();
@@ -736,7 +741,7 @@ function getdatabarcode(no_barcode = null) {
     });
 }
 
-// === save data barcode (terima parameter data)
+// === save data barcode
 function savedatabarcode(data) {
     return $.ajax({
         url: '{{ route("simpan-scan-barcode-so") }}',
@@ -749,22 +754,9 @@ function savedatabarcode(data) {
                 datatable3.ajax.reload();
                 datatable4.ajax.reload();
                 resetBarcodeInputs();
-
             }
         }
     });
-}
-
-// === isi hidden input
-function isiHiddenField(res) {
-    $('#txt_qty_barcode').val(res.qty);
-    $('#txt_item_barcode').val(res.itemdesc);
-    $('#txt_iditem_barcode').val(res.id_item);
-    $('#txt_jo_barcode').val(res.id_jo);
-    $('#txt_lok_barcode').val(res.kode_lok);
-    $('#txt_lot_barcode').val(res.no_lot);
-    $('#txt_roll_barcode').val(res.no_roll);
-    $('#txt_unit_barcode').val(res.unit);
 }
 
 // === reset input
@@ -782,17 +774,13 @@ $('#btnSendBarcode').on('click', function () {
     }
 
     let uniqueBarcodes = [...new Set(barcodes)];
-    let duplicatesInBatch = barcodes.filter((item, idx) => barcodes.indexOf(item) !== idx);
 
     (async () => {
-        // Tampilkan loading
         Swal.fire({
             title: 'Sedang memproses...',
             html: 'Tunggu sebentar, jangan tutup halaman.',
             allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+            didOpen: () => Swal.showLoading()
         });
 
         let results = [];
@@ -813,23 +801,23 @@ $('#btnSendBarcode').on('click', function () {
                     no_roll: d.no_roll,
                     unit: d.unit
                 });
-                results.push({ status: 'success', barcode: bc });
+                results.push({ status: 'success', barcode: bc, rak_lain: res.rak_lain, lokasi_rak: res.lokasi_rak });
             } else {
                 results.push(res);
             }
         }
 
-        // Tutup loading
         Swal.close();
 
-        // Ringkasan hasil
-        let success = results.filter(r => r.status === 'success').map(r => r.barcode);
+        let success = results.filter(r => r.status === 'success' && !r.rak_lain).map(r => r.barcode);
+        let rakLain = results.filter(r => r.status === 'success' && r.rak_lain).map(r => r.barcode + " (Rak: " + r.lokasi_rak + ")");
         let duplicate = results.filter(r => r.status === 'duplicate').map(r => r.barcode);
         let notfound = results.filter(r => r.status === 'notfound').map(r => r.barcode);
         let errors = results.filter(r => r.status === 'error').map(r => r.barcode);
 
         let msg = "";
         if (success.length) msg += "✅ Berhasil: " + success.join(", ") + "<br>";
+        if (rakLain.length) msg += "⚠️ Berhasil tapi di rak lain: " + rakLain.join(", ") + "<br>";
         if (duplicate.length) msg += "❌ Duplikat: " + duplicate.join(", ") + "<br>";
         if (notfound.length) msg += "❌ Tidak ditemukan: " + notfound.join(", ") + "<br>";
         if (errors.length) msg += "❌ Error: " + errors.join(", ") + "<br>";
@@ -839,39 +827,46 @@ $('#btnSendBarcode').on('click', function () {
     })();
 });
 
-
 // === scan satu-satu
-// === Samsung keyboard "Next" trigger Enter
 $('#txt_barcode').on('keydown', function(e) {
-    // Samsung keyboard kadang mengirim Tab (keyCode 9) saat tombol Next ditekan
-    // alert(e.key + ' ' + e.keyCode);
-    if (e.key === "Tab" || e.keyCode === 9 || e.key === "Enter" || e.keyCode === 13 || e.key === "Shift" || e.keyCode === 16) {
-        // alert(e.key + ' ' + e.keyCode);
-        e.preventDefault(); // cegah pindah fokus
-        let val_code = $('#txt_barcode').val();
+    if (["Tab","Enter"].includes(e.key) || [9,13].includes(e.keyCode)) {
+        e.preventDefault();
         let code = $(this).val().trim();
-        // alert(val_code);
-        if (code) {
-            // alert(e.key + ' ' + e.keyCode);
-            getdatabarcode(code).then(res => {
-                if (res.status === 'ok' && res.rawData) {
-                    let d = res.rawData;
-                    savedatabarcode({
-                        lokasi_scan: $('#txt_lokasi_h').val(),
-                        no_barcode: d.no_barcode,
-                        qty: d.qty,
-                        id_item: d.id_item,
-                        id_jo: d.id_jo,
-                        lokasi_so: d.kode_lok,
-                        no_lot: d.no_lot,
-                        no_roll: d.no_roll,
-                        unit: d.unit
+        if (!code) return;
+
+        getdatabarcode(code).then(res => {
+            if (res.status === 'ok' && res.rawData) {
+                let d = res.rawData;
+                savedatabarcode({
+                    lokasi_scan: $('#txt_lokasi_h').val(),
+                    no_barcode: d.no_barcode,
+                    qty: d.qty,
+                    id_item: d.id_item,
+                    id_jo: d.id_jo,
+                    lokasi_so: d.kode_lok,
+                    no_lot: d.no_lot,
+                    no_roll: d.no_roll,
+                    unit: d.unit
+                });
+
+                if (res.rak_lain) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Info',
+                        text: 'Barcode ' + code + ' berada di rak ' + d.kode_lok
                     });
                 }
-            });
-        }
+            } else if(res.status === 'duplicate') {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Barcode ' + code + ' Sudah diinput!' });
+                resetBarcodeInputs();
+            } else if(res.status === 'notfound') {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Data Barcode ' + code + ' Tidak Tersedia!' });
+                resetBarcodeInputs();
+            }
+        });
     }
 });
+
 
 
 </script>
