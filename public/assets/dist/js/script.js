@@ -291,7 +291,8 @@ function submitForm(e, evt) {
 
                 Swal.fire({
                     icon: 'success',
-                    title: res.message,
+                    title: "Berhasil",
+                    html: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
@@ -335,7 +336,8 @@ function submitForm(e, evt) {
             } else if (res.status == 900) {
                 Swal.fire({
                     icon: 'success',
-                    title: res.message,
+                    title: "Berhasil",
+                    html: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke'
@@ -365,7 +367,8 @@ function submitForm(e, evt) {
 
                 Swal.fire({
                     icon: 'success',
-                    title: res.message,
+                    title: "Berhasil",
+                    html: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
@@ -397,6 +400,8 @@ function submitForm(e, evt) {
 
                 Swal.fire({
                     icon: 'success',
+                    title: "Berhasil",
+                    html: res.message,
                     title: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,
@@ -440,6 +445,8 @@ function submitForm(e, evt) {
 
                 Swal.fire({
                     icon: 'success',
+                    title: "Berhasil",
+                    html: res.message,
                     title: res.message,
                     html: failMessage + successMessage,
                     showCancelButton: false,

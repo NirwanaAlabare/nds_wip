@@ -69,31 +69,38 @@
             <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
                 <div>
                     <label class="form-label">Dari </label>
-                    <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}" onchange="updateFilterOption();">
+                    <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date('Y-m-d') }}"
+                        onchange="updateFilterOption();">
                 </div>
                 <div>
                     <label class="form-label">Sampai </label>
-                    <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}" onchange="updateFilterOption();">
+                    <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date('Y-m-d') }}"
+                        onchange="updateFilterOption();">
                 </div>
                 <div>
                     <label class="form-label">Defect Type</label>
-                    <select class="form-select form-select-sm select2bs4" name="defect_types[]" id="defect_types" multiple="multiple">
+                    <select class="form-select form-select-sm select2bs4" name="defect_types[]" id="defect_types"
+                        multiple="multiple">
                         <option value="">Pilih Defect Type</option>
                         @foreach ($defectTypes as $defectType)
-                            <option value="{{ $defectType->id }}">{{ $defectType->id." - ".$defectType->defect_type }}</option>
+                            <option value="{{ $defectType->id }}">{{ $defectType->id . ' - ' . $defectType->defect_type }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="form-label">Defect Area</label>
-                    <select class="form-select form-select-sm select2bs4" name="defect_areas[]" id="defect_areas" multiple="multiple">
+                    <select class="form-select form-select-sm select2bs4" name="defect_areas[]" id="defect_areas"
+                        multiple="multiple">
                         <option value="">Pilih Defect Area</option>
                         @foreach ($defectAreas as $defectArea)
-                            <option value="{{ $defectArea->id }}">{{ $defectArea->id." - ".$defectArea->defect_area }}</option>
+                            <option value="{{ $defectArea->id }}">{{ $defectArea->id . ' - ' . $defectArea->defect_area }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
-                <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
+                <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i
+                        class="fa fa-filter"></i></button>
                 <button class="btn btn-primary" onclick="showDefectMap()"><i class="fa fa-search"></i></button>
                 {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button> --}}
             </div>
@@ -101,7 +108,7 @@
                 <div>
                     <select class="form-select" name="department" id="department" onchange="showDefectMap()">
                         <option value="" selected>END-LINE</option>
-                        <option value="_packing">PACKING-LINE</option>
+                        <option value="_packing">FINISHING-LINE</option>
                     </select>
                 </div>
                 <button class="btn btn-danger" onclick="exportToPDF()"><i class="fa fa-file-pdf"></i></button>
@@ -186,15 +193,18 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i class="fa-solid fa-broom"></i></button>
-                    <button type="button" class="btn btn-success" onclick="showDefectMap()">Simpan <i class="fa-solid fa-check"></i></button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i
+                            class="fa-solid fa-broom"></i></button>
+                    <button type="button" class="btn btn-success" onclick="showDefectMap()">Simpan <i
+                            class="fa-solid fa-check"></i></button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Report Defect -->
-    <div class="modal fade" id="reportDefectModal" tabindex="-1" aria-labelledby="reportDefectModalLabel" aria-hidden="true">
+    <div class="modal fade" id="reportDefectModal" tabindex="-1" aria-labelledby="reportDefectModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-sb">
@@ -210,7 +220,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
+                    <button type="button" class="btn btn-success" onclick="exportExcel(this)"><i
+                            class="fa fa-file-excel"></i> Export</button>
                 </div>
             </div>
         </div>
@@ -218,7 +229,7 @@
 @endsection
 
 @section('custom-script')
-<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
@@ -236,7 +247,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             updateFilterOption();
         });
 
@@ -256,14 +267,13 @@
 
         $('.select2bs4report').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#reportDefectModal",)
+            dropdownParent: $("#reportDefectModal", )
         });
 
         function rainbowStop(h) {
             let f = (n, k = (n + h * 12) % 12) => 0.5 - 0.5 * Math.max(Math.min(k - 3, 9 - k, 1), -1);
             let rgb2hex = (r, g, b) =>
-                "#" +
-                [r, g, b]
+                "#" + [r, g, b]
                 .map(x =>
                     Math.round(x * 255)
                     .toString(16)
@@ -282,8 +292,8 @@
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {
-                    dateFrom : $('#dateFrom').val(),
-                    dateTo : $('#dateTo').val()
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val()
                 },
                 success: function(response) {
                     document.getElementById('loading').classList.add('d-none');
@@ -294,7 +304,8 @@
                             let lines = response.lines;
                             $('#sewing_line').empty();
                             $.each(lines, function(index, value) {
-                                $('#sewing_line').append('<option value="'+value+'">'+value+'</option>');
+                                $('#sewing_line').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // suppliers option
@@ -302,7 +313,8 @@
                             let suppliers = response.suppliers;
                             $('#buyer').empty();
                             $.each(suppliers, function(index, value) {
-                                $('#buyer').append('<option value="'+value+'">'+value+'</option>');
+                                $('#buyer').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // orders option
@@ -310,7 +322,8 @@
                             let orders = response.orders;
                             $('#ws').empty();
                             $.each(orders, function(index, value) {
-                                $('#ws').append('<option value="'+value+'">'+value+'</option>');
+                                $('#ws').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // styles option
@@ -318,7 +331,8 @@
                             let styles = response.styles;
                             $('#style').empty();
                             $.each(styles, function(index, value) {
-                                $('#style').append('<option value="'+value+'">'+value+'</option>');
+                                $('#style').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // colors option
@@ -326,7 +340,8 @@
                             let colors = response.colors;
                             $('#color').empty();
                             $.each(colors, function(index, value) {
-                                $('#color').append('<option value="'+value+'">'+value+'</option>');
+                                $('#color').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // sizes option
@@ -334,7 +349,8 @@
                             let sizes = response.sizes;
                             $('#size').empty();
                             $.each(sizes, function(index, value) {
-                                $('#size').append('<option value="'+value+'">'+value+'</option>');
+                                $('#size').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                     }
@@ -358,21 +374,22 @@
                     dateTo: $('#dateTo').val(),
                     defect_types: $('#defect_types').val(),
                     defect_areas: $('#defect_areas').val(),
-                    defect_status : $('#defect_status').val(),
-                    sewing_line : $('#sewing_line').val(),
-                    buyer : $('#buyer').val(),
-                    ws : $('#ws').val(),
-                    style : $('#style').val(),
-                    color : $('#color').val(),
-                    size : $('#size').val(),
-                    department : $('#department').val(),
+                    defect_status: $('#defect_status').val(),
+                    sewing_line: $('#sewing_line').val(),
+                    buyer: $('#buyer').val(),
+                    ws: $('#ws').val(),
+                    style: $('#style').val(),
+                    color: $('#color').val(),
+                    size: $('#size').val(),
+                    department: $('#department').val(),
                 },
                 dataType: "json",
-                success: async function (response) {
+                success: async function(response) {
                     await placeDefectPoint(response);
 
                     // After image loaded
-                    let defectAreaImagePoints = document.getElementsByClassName("all-defect-area-img-point");
+                    let defectAreaImagePoints = document.getElementsByClassName(
+                    "all-defect-area-img-point");
                     for (let i = 0; i < defectAreaImagePoints.length; i++) {
                         // Get the parent
                         const parent = defectAreaImagePoints[i].parentElement;
@@ -385,10 +402,12 @@
 
                             let rect = image.getBoundingClientRect();
                             // Image point
-                            defectAreaImagePoints[i].style.width = 0.03 * rect.width+'px';
+                            defectAreaImagePoints[i].style.width = 0.03 * rect.width + 'px';
                             defectAreaImagePoints[i].style.height = defectAreaImagePoints[i].style.width;
-                            defectAreaImagePoints[i].style.left = (defectAreaImagePoints[i].offsetLeft - (0.015 * rect.width))+'px';
-                            defectAreaImagePoints[i].style.top = (defectAreaImagePoints[i].offsetTop - (0.015 * rect.width))+'px';
+                            defectAreaImagePoints[i].style.left = (defectAreaImagePoints[i].offsetLeft - (
+                                0.015 * rect.width)) + 'px';
+                            defectAreaImagePoints[i].style.top = (defectAreaImagePoints[i].offsetTop - (
+                                0.015 * rect.width)) + 'px';
                         } else {
                             console.log("❌ Image not loaded or failed");
                         }
@@ -499,7 +518,10 @@
 
         async function placeDefectPoint(data) {
             let dataGroup = Object.entries(
-                objectGroupBy(data, ({ styleno, gambar }) => `${styleno}||${gambar}`)
+                objectGroupBy(data, ({
+                    styleno,
+                    gambar
+                }) => `${styleno}||${gambar}`)
             ).map(([key, items]) => {
                 const [styleno, gambar] = key.split('||');
                 return {
@@ -512,7 +534,9 @@
             let parentElement = document.getElementById("defect-map-images");
             parentElement.innerHTML = '';
 
-            var colorList = ['#e31010', '#104fe3', '#ebcd0c', '#830ceb', '#12e02a', '#ed790c', '#f54980', '#10ded7', '#854008', '#bdbdbd'];
+            var colorList = ['#e31010', '#104fe3', '#ebcd0c', '#830ceb', '#12e02a', '#ed790c', '#f54980', '#10ded7',
+                '#854008', '#bdbdbd'
+            ];
 
             for (const item of dataGroup) {
                 // Title
@@ -532,13 +556,17 @@
 
                 let defectAreaImage = new Image();
                 defectAreaImage.classList.add("all-defect-area-img");
-                defectAreaImage.src = '/proxy/?url=http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' + item.gambar;
+                defectAreaImage.src = '/proxy/?url=http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' + item
+                    .gambar;
 
                 defectAreaImageContainer.appendChild(defectAreaImage);
 
                 // List
                 let defectTypeGroup = Object.entries(
-                    objectGroupBy(item.items, ({ defect_type, defect_type_id }) => `${defect_type}||${defect_type_id}`)
+                    objectGroupBy(item.items, ({
+                        defect_type,
+                        defect_type_id
+                    }) => `${defect_type}||${defect_type_id}`)
                 ).map(([key, items]) => {
                     const [defect_type, defect_type_id] = key.split('||');
                     return {
@@ -588,25 +616,33 @@
 
                 // Wait for the image to load
                 await new Promise(resolve => {
-                    defectAreaImage.onload = function () {
+                    defectAreaImage.onload = function() {
                         let rect = defectAreaImage.getBoundingClientRect();
                         console.log("Image dimensions:", rect.width, rect.height, defectAreaImage);
 
                         // For Defect Items
-                        for(let i = 0; i < item.items.length; i++) {
-                            let defectTypeIndexes = defectTypeGroup.map((type, index) => { return type.defect_type_id == item.items[i].defect_type_id ? index : -1; }).filter(index => index >= 0);
+                        for (let i = 0; i < item.items.length; i++) {
+                            let defectTypeIndexes = defectTypeGroup.map((type, index) => {
+                                return type.defect_type_id == item.items[i].defect_type_id ? index :
+                                    -1;
+                            }).filter(index => index >= 0);
 
                             if (defectTypeIndexes.length > 0 && defectTypeIndexes[0] <= 9) {
                                 let defectAreaImagePoint = document.createElement('div');
                                 defectAreaImagePoint.classList.add("all-defect-area-img-point");
 
-                                defectAreaImagePoint.setAttribute('defect_type', item.items[i].defect_type_id);
-                                defectAreaImagePoint.style.background = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
-                                defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
+                                defectAreaImagePoint.setAttribute('defect_type', item.items[i]
+                                    .defect_type_id);
+                                defectAreaImagePoint.style.background = defectTypeIndexes[0] > 9 ?
+                                    '#bdbdbd' : colorList[defectTypeIndexes[0]];
+                                defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 9 ?
+                                    '#bdbdbd' : colorList[defectTypeIndexes[0]];
                                 defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
                                 defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
-                                defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
-                                defectAreaImagePoint.style.top = `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
+                                defectAreaImagePoint.style.left =
+                                    `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
+                                defectAreaImagePoint.style.top =
+                                    `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
 
                                 defectAreaImageContainer.appendChild(defectAreaImagePoint);
                             }
@@ -638,65 +674,80 @@
             filters.classList.add('gap-3');
 
             if ($('#dateFrom').val()) {
-                filters.innerHTML += "<div class='text-sb'>From : <b>"+$('#dateFrom').val()+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>From : <b>" + $('#dateFrom').val() + "</b> <br></div>";
             }
 
             if ($('#dateTo').val()) {
-                filters.innerHTML += "<div class='text-sb'>To : <b>"+$('#dateTo').val()+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>To : <b>" + $('#dateTo').val() + "</b> <br></div>";
             }
 
-            filters.innerHTML += "<div class='text-sb'>Department : <b>"+($('#department').val() ? $('#department option:selected').text() : 'END-LINE')+"</b> <br></div>";
+            filters.innerHTML += "<div class='text-sb'>Department : <b>" + ($('#department').val() ? $(
+                '#department option:selected').text() : 'END-LINE') + "</b> <br></div>";
 
-            let defect_types = $('#defect_types option:selected').map(function () {
+            let defect_types = $('#defect_types option:selected').map(function() {
                 return $(this).text();
             }).get()
             if (defect_types.length > 0) {
-                filters.innerHTML += "<div class='text-sb'>Filter defect types : <b>"+defect_types.join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter defect types : <b>" + defect_types.join(', ') +
+                    "</b> <br></div>";
             }
 
-            let defect_areas = $('#defect_areas option:selected').map(function () {
+            let defect_areas = $('#defect_areas option:selected').map(function() {
                 return $(this).text();
             }).get()
             if (defect_areas.length > 0) {
-                filters.innerHTML += "<div class='text-sb'>Filter defect areas : <b>"+defect_areas.join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter defect areas : <b>" + defect_areas.join(', ') +
+                    "</b> <br></div>";
             }
 
             if (Array.isArray($('#defect_status').val()) && $('#defect_status').val().length) {
-                filters.innerHTML += "<div class='text-sb'>Filter defect status : <b>"+($('#defect_status').val()).join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter defect status : <b>" + ($('#defect_status').val())
+                    .join(', ') + "</b> <br></div>";
             }
 
             if (Array.isArray($('#sewing_line').val()) && $('#sewing_line').val().length) {
-                filters.innerHTML += "<div class='text-sb'>Filter sewing line : <b>"+($('#sewing_line').val()).join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter sewing line : <b>" + ($('#sewing_line').val()).join(
+                    ', ') + "</b> <br></div>";
             }
 
             if (Array.isArray($('#buyer').val()) && $('#buyer').val().length) {
-                filters.innerHTML += "<div class='text-sb'>Filter buyer : <b>"+($('#buyer').val()).join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter buyer : <b>" + ($('#buyer').val()).join(', ') +
+                    "</b> <br></div>";
             }
 
             if (Array.isArray($('#ws').val()) && $('#ws').val().length) {
-                filters.innerHTML += "<div class='text-sb'>Filter ws : <b>"+($('#ws').val()).join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter ws : <b>" + ($('#ws').val()).join(', ') +
+                    "</b> <br></div>";
             }
 
             if (Array.isArray($('#style').val()) && $('#style').val().length) {
-                filters.innerHTML += "<div class='text-sb'>Filter style : <b>"+($('#style').val()).join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter style : <b>" + ($('#style').val()).join(', ') +
+                    "</b> <br></div>";
             }
 
             if (Array.isArray($('#color').val()) && $('#color').val().length) {
-                filters.innerHTML += "<div class='text-sb'>Filter color : <b>"+($('#color').val()).join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter color : <b>" + ($('#color').val()).join(', ') +
+                    "</b> <br></div>";
             }
 
             if (Array.isArray($('#size').val()) && $('#size').val().length) {
-                filters.innerHTML += "<div class='text-sb'>Filter size : <b>"+($('#size').val()).join(', ')+"</b> <br></div>";
+                filters.innerHTML += "<div class='text-sb'>Filter size : <b>" + ($('#size').val()).join(', ') +
+                    "</b> <br></div>";
             }
 
             filters.innerHTML += '</div>';
 
             document.getElementById("defect-map-images").prepend(filters);
 
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
 
             const element = document.getElementById('defect-map-images');
-            const canvas = await html2canvas(element, { useCORS: true, allowTaint: true });
+            const canvas = await html2canvas(element, {
+                useCORS: true,
+                allowTaint: true
+            });
             const imgData = canvas.toDataURL('image/png');
 
             const imgWidth = canvas.width;
@@ -704,8 +755,14 @@
             const aspectRatio = imgWidth / imgHeight;
 
             // A4 standard sizes
-            const a4Portrait = { width: 210, height: 297 };
-            const a4Landscape = { width: 297, height: 210 };
+            const a4Portrait = {
+                width: 210,
+                height: 297
+            };
+            const a4Landscape = {
+                width: 297,
+                height: 210
+            };
 
             // Choose orientation based on aspect ratio
             const isLandscape = aspectRatio > 1;

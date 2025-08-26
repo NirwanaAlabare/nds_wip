@@ -28,7 +28,7 @@
                             <label>Department</label>
                             <select class="form-select form-select-sm" name="type" id="type">
                                 <option value="qc" selected>QC</option>
-                                <option value="packing">PACKING</option>
+                                <option value="packing">FINISHING</option>
                             </select>
                         </div>
                     </div>
@@ -198,7 +198,7 @@
                                 },
                             },
                             subtitle: {
-                                text: [dari+' / '+sampai, 'Total Defect : '+totalDefect.toLocaleString(), type.toUpperCase()],
+                                text: [dari+' / '+sampai, 'Total Defect : '+totalDefect.toLocaleString(), (type && type == 'packing' ? 'FINISHING' : type.toUpperCase())],
                                 align: 'center',
                                 style: {
                                     fontSize:  '13px',

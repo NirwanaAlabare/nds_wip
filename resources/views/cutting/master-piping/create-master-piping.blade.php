@@ -187,10 +187,10 @@
                             }
 
                             $("#act_costing_id").val(res[res.length-1].id_act_cost).trigger("change");
-
-                            document.getElementById('loading').classList.add('d-none');
                         }
                     }
+
+                    document.getElementById('loading').classList.add('d-none');
                 },
             });
         }

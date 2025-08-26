@@ -9,7 +9,7 @@
             <th rowspan="2">No. WS</th>
             <th rowspan="2">Buyer</th>
             <th rowspan="2">Style</th>
-            <th colspan="6" style="background: #bce4ff;text-align: center;">Output Packing</th>
+            <th colspan="6" style="background: #bce4ff;text-align: center;">Output Finishing</th>
         </tr>
         <tr>
             <th style="background: #bce4ff;">Color</th>

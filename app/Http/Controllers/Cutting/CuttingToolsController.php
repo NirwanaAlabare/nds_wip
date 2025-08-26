@@ -54,7 +54,7 @@ class CuttingToolsController extends Controller
         where('scanned_item.id_roll', $id)->
         first();
 
-        if ($scannedItem && $scannedItem->buyer) {
+        if ($scannedItem) {
             return json_encode($scannedItem);
         }
 

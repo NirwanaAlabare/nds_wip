@@ -113,9 +113,7 @@ class StockerToolsController extends Controller
                 DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
             ]);
 
-            if ($request->form_stocker && count(explode(",", $request->form_stocker)) > 0) {
-                $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
-            }
+            $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
             $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();

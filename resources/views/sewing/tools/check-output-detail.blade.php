@@ -136,18 +136,18 @@
                 </div>
                 <div class="col-md-12">
                     <hr style="border: 0.1px solid #5a5a5a;">
-                    <h6 class="text-sb fw-bold">PACKING</h6>
+                    <h6 class="text-sb fw-bold">FINISHING</h6>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Packing Awal</label>
+                    <label class="form-label">Tanggal Finishing Awal</label>
                     <input type="date" class="form-control" name="tanggal_packing_awal" id="tanggal_packing_awal">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Tanggal Packing Akhir</label>
+                    <label class="form-label">Tanggal Finishing Akhir</label>
                     <input type="date" class="form-control" name="tanggal_packing_akhir" id="tanggal_packing_akhir">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Output Packing</label>
+                    <label class="form-label">Output Finishing</label>
                     <select class="form-select select2bs4" name="line_packing" id="line_packing">
                         <option value=""></option>
                         @foreach ($lines as $line)
@@ -223,7 +223,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="back_date_packing">
                                 <label class="form-check-label" for="back_date_packing">
-                                    Back-date input (Packing)
+                                    Back-date input (Finishing)
                                 </label>
                             </div>
                         </div>
@@ -231,7 +231,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="missmatch_code_packing">
                                 <label class="form-check-label" for="missmatch_code_packing">
-                                    Missmatch Code (Packing)
+                                    Missmatch Code (Finishing)
                                 </label>
                             </div>
                         </div>
@@ -286,11 +286,11 @@
                             <th>Status Sewing</th>
                             <th>Defect Sewing</th>
                             <th>Alokasi Sewing</th>
-                            <th>Tanggal Packing</th>
-                            <th>Line Packing</th>
-                            <th>Status Packing</th>
-                            <th>Defect Packing</th>
-                            <th>Alokasi Packing</th>
+                            <th>Tanggal Finishing</th>
+                            <th>Line Finishing</th>
+                            <th>Status Finishing</th>
+                            <th>Defect Finishing</th>
+                            <th>Alokasi Finishing</th>
                         </tr>
                     </thead>
                     <tbody>

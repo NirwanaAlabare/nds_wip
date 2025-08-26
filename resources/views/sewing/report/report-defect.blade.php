@@ -23,33 +23,40 @@
                 <div class="d-flex align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari </label>
-                        <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
+                        <input type="date" class="form-control" id="dateFrom" name="dateFrom"
+                            value="{{ date('Y-m-d') }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
                     <span class="mb-2"> - </span>
                     <div>
                         <label class="form-label">Sampai </label>
-                        <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date("Y-m-d") }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
+                        <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date('Y-m-d') }}"
+                            onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
                     <div>
                         <label class="form-label">Department</label>
-                        <select class="form-select" name="department" id="department" onchange="reportDefectDatatableReload(); updateFilterOption();">
+                        <select class="form-select" name="department" id="department"
+                            onchange="reportDefectDatatableReload(); updateFilterOption();">
                             <option value="" selected>END-LINE</option>
-                            <option value="_packing">PACKING-LINE</option>
+                            <option value="_packing">FINISHING-LINE</option>
                         </select>
                     </div>
                     <div>
                         <label class="form-label">No. WS</label>
-                        <select class="form-select select2bs4base" name="base_ws" id="base_ws" onchange="updateDateFrom();">
+                        <select class="form-select select2bs4base" name="base_ws" id="base_ws"
+                            onchange="updateDateFrom();">
                             <option value="">SEMUA</option>
                             @foreach ($orders as $order)
                                 <option value="{{ $order }}">{{ $order }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <button class="btn btn-primary" onclick="reportDefectDatatableReload(); updateFilterOption();"><i class="fa fa-search"></i></button>
-                    <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
+                    <button class="btn btn-primary" onclick="reportDefectDatatableReload(); updateFilterOption();"><i
+                            class="fa fa-search"></i></button>
+                    <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i
+                            class="fa fa-filter"></i></button>
                 </div>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal">Export <i class="fa fa-file-excel"></i></button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal">Export <i
+                        class="fa fa-file-excel"></i></button>
             </div>
             <div class="table-responsive mt-3">
                 <table class="table table-bordered table" id="report-defect-table">
@@ -129,7 +136,8 @@
                         <select class="select2bs4filter" name="sewing_line[]" multiple="multiple" id="sewing_line">
                             <option value="">SEMUA</option>
                             @foreach ($lines as $line)
-                                <option value="{{ $line }}">{{ strtoupper(str_replace("_", " ", $line)) }}</option>
+                                <option value="{{ $line }}">{{ strtoupper(str_replace('_', ' ', $line)) }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -183,7 +191,8 @@
                         <select class="select2bs4filter" name="external_type[]" multiple="multiple" id="external_type">
                             <option value="">SEMUA</option>
                             @foreach ($externalTypes as $externalType)
-                                <option value="{{ $externalType }}">{{ ($externalType ? strtoupper($externalType) : "SEWING") }}</option>
+                                <option value="{{ $externalType }}">
+                                    {{ $externalType ? strtoupper($externalType) : 'SEWING' }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -198,15 +207,18 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i class="fa-solid fa-broom"></i></button>
-                    <button type="button" class="btn btn-success" onclick="reportDefectDatatableReload()">Simpan <i class="fa-solid fa-check"></i></button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Bersihkan <i
+                            class="fa-solid fa-broom"></i></button>
+                    <button type="button" class="btn btn-success" onclick="reportDefectDatatableReload()">Simpan <i
+                            class="fa-solid fa-check"></i></button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Report Defect -->
-    <div class="modal fade" id="reportDefectModal" tabindex="-1" aria-labelledby="reportDefectModalLabel" aria-hidden="true">
+    <div class="modal fade" id="reportDefectModal" tabindex="-1" aria-labelledby="reportDefectModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-sb">
@@ -223,16 +235,16 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
+                    <button type="button" class="btn btn-success" onclick="exportExcel(this)"><i
+                            class="fa fa-file-excel"></i> Export</button>
                 </div>
             </div>
         </div>
     </div>
-
 @endsection
 
 @section('custom-script')
-<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
@@ -244,7 +256,7 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             updateFilterOption();
         });
 
@@ -276,7 +288,7 @@
 
         $('.select2bs4report').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#reportDefectModal",)
+            dropdownParent: $("#reportDefectModal", )
         });
 
         $('#report-defect-table').DataTable({
@@ -284,7 +296,7 @@
             serverSide: true,
             ajax: {
                 url: '{!! route('report-defect') !!}',
-                data: function (d) {
+                data: function(d) {
                     d.dateFrom = $('#dateFrom').val();
                     d.dateTo = $('#dateTo').val();
                     d.defect_types = $('#defect_types').val();
@@ -303,53 +315,109 @@
                     d.department = $('#department').val();
                 }
             },
-            columns: [
-                {data: 'kode_numbering',name: 'kode_numbering'},
-                {data: 'buyer',name: 'buyer'},
-                {data: 'ws',name: 'ws'},
-                {data: 'style',name: 'style'},
-                {data: 'color',name: 'color'},
-                {data: 'size',name: 'size'},
-                {data: 'dest',name: 'dest'},
-                {data: 'sewing_line',name: 'sewing_line'},
-                {data: 'defect_type',name: 'defect_type'},
-                {data: 'defect_area',name: 'defect_area'},
-                {data: 'defect_status',name: 'defect_status'},
-                {data: 'rework_id',name: 'rework_id'},
-                {data: 'external_id',name: 'external_id'},
-                {data: 'external_type',name: 'external_type'},
-                {data: 'external_status',name: 'external_status'},
-                {data: 'external_in',name: 'external_in'},
-                {data: 'external_out',name: 'external_out'},
-                {data: 'created_at',name: 'created_at'},
-                {data: 'updated_at',name: 'updated_at'}
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'kode_numbering',
+                    name: 'kode_numbering'
+                },
                 {
+                    data: 'buyer',
+                    name: 'buyer'
+                },
+                {
+                    data: 'ws',
+                    name: 'ws'
+                },
+                {
+                    data: 'style',
+                    name: 'style'
+                },
+                {
+                    data: 'color',
+                    name: 'color'
+                },
+                {
+                    data: 'size',
+                    name: 'size'
+                },
+                {
+                    data: 'dest',
+                    name: 'dest'
+                },
+                {
+                    data: 'sewing_line',
+                    name: 'sewing_line'
+                },
+                {
+                    data: 'defect_type',
+                    name: 'defect_type'
+                },
+                {
+                    data: 'defect_area',
+                    name: 'defect_area'
+                },
+                {
+                    data: 'defect_status',
+                    name: 'defect_status'
+                },
+                {
+                    data: 'rework_id',
+                    name: 'rework_id'
+                },
+                {
+                    data: 'external_id',
+                    name: 'external_id'
+                },
+                {
+                    data: 'external_type',
+                    name: 'external_type'
+                },
+                {
+                    data: 'external_status',
+                    name: 'external_status'
+                },
+                {
+                    data: 'external_in',
+                    name: 'external_in'
+                },
+                {
+                    data: 'external_out',
+                    name: 'external_out'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'updated_at',
+                    name: 'updated_at'
+                }
+            ],
+            columnDefs: [{
                     className: "text-nowrap",
                     targets: "_all"
                 },
                 {
                     targets: [0],
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         return data ? data : "-";
                     }
                 },
                 {
                     targets: [11, 12, 13, 14, 15, 16],
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         return data ? data : "-";
                     }
                 },
                 {
                     targets: [17, 18],
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         return formatDateTime(data);
                     },
                 }
             ],
             footerCallback: async function(row, data, start, end, display) {
-                var api = this.api(),data;
+                var api = this.api(),
+                    data;
 
                 $(api.column(16).footer()).html('Total');
                 $(api.column(17).footer()).html("...");
@@ -359,22 +427,22 @@
                     dataType: 'json',
                     dataSrc: 'data',
                     data: {
-                        dateFrom : $('#dateFrom').val(),
-                        dateTo : $('#dateTo').val(),
-                        defect_types : $('#defect_types').val(),
-                        defect_areas : $('#defect_areas').val(),
-                        defect_status : $('#defect_status').val(),
-                        sewing_line : $('#sewing_line').val(),
-                        buyer : $('#buyer').val(),
-                        ws : $('#ws').val(),
-                        base_ws : $('#base_ws').val(),
-                        style : $('#style').val(),
-                        color : $('#color').val(),
-                        size : $('#size').val(),
-                        external_type : $('#external_type').val(),
-                        external_in : $('#external_in').val(),
-                        external_out : $('#external_out').val(),
-                        department : $('#department').val()
+                        dateFrom: $('#dateFrom').val(),
+                        dateTo: $('#dateTo').val(),
+                        defect_types: $('#defect_types').val(),
+                        defect_areas: $('#defect_areas').val(),
+                        defect_status: $('#defect_status').val(),
+                        sewing_line: $('#sewing_line').val(),
+                        buyer: $('#buyer').val(),
+                        ws: $('#ws').val(),
+                        base_ws: $('#base_ws').val(),
+                        style: $('#style').val(),
+                        color: $('#color').val(),
+                        size: $('#size').val(),
+                        external_type: $('#external_type').val(),
+                        external_in: $('#external_in').val(),
+                        external_out: $('#external_out').val(),
+                        department: $('#department').val()
                     },
                     success: function(response) {
                         console.log(response);
@@ -405,9 +473,9 @@
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {
-                    dateFrom : $('#dateFrom').val(),
-                    dateTo : $('#dateTo').val(),
-                    department : $('#department').val()
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val(),
+                    department: $('#department').val()
                 },
                 success: async function(response) {
                     document.getElementById('loading').classList.add('d-none');
@@ -421,7 +489,8 @@
                             let lines = response.lines;
                             $('#sewing_line').empty();
                             $.each(lines, function(index, value) {
-                                $('#sewing_line').append('<option value="'+value+'">'+value+'</option>');
+                                $('#sewing_line').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // suppliers option
@@ -429,7 +498,8 @@
                             let suppliers = response.suppliers;
                             $('#buyer').empty();
                             $.each(suppliers, function(index, value) {
-                                $('#buyer').append('<option value="'+value+'">'+value+'</option>');
+                                $('#buyer').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // orders option
@@ -439,8 +509,10 @@
                             $('#base_ws').empty();
                             $('#base_ws').append('<option value="">SEMUA</option>');
                             $.each(orders, function(index, value) {
-                                $('#ws').append('<option value="'+value+'">'+value+'</option>');
-                                $('#base_ws').append('<option value="'+value+'">'+value+'</option>');
+                                $('#ws').append('<option value="' + value + '">' + value +
+                                    '</option>');
+                                $('#base_ws').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                             $('#base_ws').val(baseWs).trigger('change');
                         }
@@ -449,7 +521,8 @@
                             let styles = response.styles;
                             $('#style').empty();
                             $.each(styles, function(index, value) {
-                                $('#style').append('<option value="'+value+'">'+value+'</option>');
+                                $('#style').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // colors option
@@ -457,7 +530,8 @@
                             let colors = response.colors;
                             $('#color').empty();
                             $.each(colors, function(index, value) {
-                                $('#color').append('<option value="'+value+'">'+value+'</option>');
+                                $('#color').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                         // sizes option
@@ -465,7 +539,8 @@
                             let sizes = response.sizes;
                             $('#size').empty();
                             $.each(sizes, function(index, value) {
-                                $('#size').append('<option value="'+value+'">'+value+'</option>');
+                                $('#size').append('<option value="' + value + '">' + value +
+                                    '</option>');
                             });
                         }
                     }
@@ -526,16 +601,21 @@
 
             Swal.fire({
                 title: 'Please Wait...',
-                html: `Exporting Data... <br><br> Total Defect : `+(document.getElementById("total_data").innerHTML)+` <br> <div class="progress mt-3"><div class="progress-bar bg-sb" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>`,
+                html: `Exporting Data... <br><br> Total Defect : ` + (document.getElementById("total_data")
+                        .innerHTML) +
+                    ` <br> <div class="progress mt-3"><div class="progress-bar bg-sb" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>`,
                 didOpen: () => {
                     Swal.showLoading();
 
                     let divider = 0
-                    if ($("#report_type").val().includes("defect_rate") && !$("#report_type").val().includes("top_defect")) {
+                    if ($("#report_type").val().includes("defect_rate") && !$("#report_type").val().includes(
+                            "top_defect")) {
                         divider = 560;
-                    } else if (!$("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
+                    } else if (!$("#report_type").val().includes("defect_rate") && $("#report_type").val()
+                        .includes("top_defect")) {
                         divider = 230;
-                    } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
+                    } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val()
+                        .includes("top_defect")) {
                         divider = 130;
                     }
 
@@ -543,8 +623,8 @@
                         divider -= 75;
                     }
 
-                    let times = Number(document.getElementById("total_data").innerText)/divider;
-                    let cumulative = Number(100/times).round(2);
+                    let times = Number(document.getElementById("total_data").innerText) / divider;
+                    let cumulative = Number(100 / times).round(2);
                     let percent = 0;
                     const progress = Swal.getPopup().querySelector("div.progress-bar");
 
@@ -559,12 +639,12 @@
             });
 
             $.ajax({
-                url: "{{ route("report-defect-export") }}",
+                url: "{{ route('report-defect-export') }}",
                 type: 'post',
                 data: {
-                    dateFrom : $("#dateFrom").val(),
-                    dateTo : $("#dateTo").val(),
-                    sewingLine : $("#sewing_line").val(),
+                    dateFrom: $("#dateFrom").val(),
+                    dateTo: $("#dateTo").val(),
+                    sewingLine: $("#sewing_line").val(),
                     buyer: $("#buyer").val(),
                     ws: $("#ws").val(),
                     base_ws: $("#base_ws").val(),
@@ -573,7 +653,9 @@
                     types: $("#report_type").val(),
                     department: $("#department").val()
                 },
-                xhrFields: { responseType : 'blob' },
+                xhrFields: {
+                    responseType: 'blob'
+                },
                 success: async function(res) {
                     elm.removeAttribute('disabled');
                     elm.innerText = "Export ";
@@ -601,9 +683,11 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Output Defect Rate "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
+                    link.download = "Output Defect Rate " + $("#dateFrom").val() + " - " + $("#dateTo").val() +
+                        ".xlsx";
                     link.click();
-                }, error: function (jqXHR) {
+                },
+                error: function(jqXHR) {
                     elm.removeAttribute('disabled');
                     elm.innerText = "Export ";
                     let icon = document.createElement('i');
@@ -615,7 +699,7 @@
                     let message = '';
                     console.log(res.message);
                     for (let key in res.errors) {
-                        message += res.errors[key]+' ';
+                        message += res.errors[key] + ' ';
                         document.getElementById(key).classList.add('is-invalid');
                     };
                     iziToast.error({
@@ -628,9 +712,3 @@
         }
     </script>
 @endsection
-
-
-
-
-
-

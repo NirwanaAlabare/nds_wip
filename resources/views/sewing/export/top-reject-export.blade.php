@@ -1,6 +1,6 @@
 <table>
     <tr>
-        <td style="text-align: start; font-weight: 800;" colspan="3">Reject {{ $department == "_packing" ? "Packing" : "QC" }} {{ $dateFrom." s/d ".$dateTo }}</td>
+        <td style="text-align: start; font-weight: 800;" colspan="3">Reject {{ $department == "_packing" ? "Finishing" : "QC" }} {{ $dateFrom." s/d ".$dateTo }}</td>
     </tr>
     <tr>
         <td style="text-align: start; font-weight: 800;" colspan="3">WS : {{ $ws }}</td>

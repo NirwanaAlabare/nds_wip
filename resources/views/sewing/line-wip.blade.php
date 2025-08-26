@@ -1,4 +1,4 @@
-@extends('layouts.index', ["containerFluid" => true])
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -15,7 +15,7 @@
             position: absolute;
             top: 50px !important;
             /* background: #FFFFCC;
-            border: 1px solid black; */
+                border: 1px solid black; */
             border-radius: 3px;
             font-weight: bold;
         }
@@ -31,20 +31,24 @@
                     <div class="d-flex gap-3 align-items-end mb-3">
                         <div>
                             <label class="form-label">Tanggal Awal</label>
-                            <input type="date" class="form-control form-control-sm" id="tanggal_awal" value="{{ date('Y-m-d') }}">
+                            <input type="date" class="form-control form-control-sm" id="tanggal_awal"
+                                value="{{ date('Y-m-d') }}">
                         </div>
                         <span> - </span>
                         <div>
                             <label class="form-label">Tanggal Akhir</label>
-                            <input type="date" class="form-control form-control-sm" id="tanggal_akhir" value="{{ date('Y-m-d') }}">
+                            <input type="date" class="form-control form-control-sm" id="tanggal_akhir"
+                                value="{{ date('Y-m-d') }}">
                         </div>
-                        <button class="btn btn-sm btn-primary" onclick="lineWipTableReload()"><i class="fa fa-search"></i></button>
+                        <button class="btn btn-sm btn-primary" onclick="lineWipTableReload()"><i
+                                class="fa fa-search"></i></button>
                     </div>
                     <div class="d-flex gap-3 align-items-end mb-3">
                         <select class="form-select select2bs4" name="line_id" id="line_id">
                             <option value="">Pilih Line</option>
                             @foreach ($lines as $line)
-                                <option value="{{ $line->line_id }}" data-line="{{ $line->username }}">{{ $line->FullName }}</option>
+                                <option value="{{ $line->line_id }}" data-line="{{ $line->username }}">{{ $line->FullName }}
+                                </option>
                             @endforeach
                         </select>
                         <button class="btn btn-success" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
@@ -67,8 +71,8 @@
                                 <th>Defect</th>
                                 <th>Qty Output</th>
                                 <th>WIP Steam</th>
-                                <th>Qty Packing Line</th>
-                                <th>WIP Packing</th>
+                                <th>Qty QC Finishing</th>
+                                <th>WIP QC Finishing</th>
                                 <th>Qty Transfer Garment</th>
                             </tr>
                         </thead>
@@ -138,7 +142,8 @@
         $('#line_wip_table thead tr:eq(1) th').each(function(i) {
             if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+filters[i]+'"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="' +
+                    filters[i] + '"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (lineWipTable.column(i).search() !== this.value) {
@@ -174,8 +179,7 @@
                     d.line = $('#line_id').find(":selected").attr("data-line");
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'nama_line'
                 },
                 {
@@ -221,8 +225,7 @@
                     data: 'total_transfer_garment'
                 },
             ],
-            columnDefs: [
-                {
+            columnDefs: [{
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
@@ -240,21 +243,26 @@
                     targets: [7],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return ((row.loading_qty ? Number(row.loading_qty) : 0) -  ((row.reject ? Number(row.reject) : 0) + (row.defect ? Number(row.defect) : 0) + (row.output ? Number(row.output) : 0))).toLocaleString("ID-id");
+                        return ((row.loading_qty ? Number(row.loading_qty) : 0) - ((row.reject ? Number(row
+                            .reject) : 0) + (row.defect ? Number(row.defect) : 0) + (row
+                            .output ? Number(row.output) : 0))).toLocaleString("ID-id");
                     }
                 },
                 {
                     targets: [11],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return ((row.output ? Number(row.output) : 0) -  (row.output_packing ? Number(row.output_packing) : 0)).toLocaleString("ID-id");
+                        return ((row.output ? Number(row.output) : 0) - (row.output_packing ? Number(row
+                            .output_packing) : 0)).toLocaleString("ID-id");
                     }
                 },
                 {
                     targets: [13],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return ((row.output_packing ? Number(row.output_packing) : 0) - (row.total_transfer_garment ? Number(row.total_transfer_garment) : 0)).toLocaleString("ID-id");
+                        return ((row.output_packing ? Number(row.output_packing) : 0) - (row
+                                .total_transfer_garment ? Number(row.total_transfer_garment) : 0))
+                            .toLocaleString("ID-id");
                     }
                 },
                 // Text No Wrap
@@ -264,7 +272,8 @@
                 }
             ],
             footerCallback: async function(row, data, start, end, display) {
-                var api = this.api(),data;
+                var api = this.api(),
+                    data;
 
                 $(api.column(0).footer()).html('Total');
                 $(api.column(6).footer()).html("...");
@@ -292,7 +301,7 @@
                         'styleFilter': $('#style_filter').val(),
                         'colorFilter': $('#color_filter').val(),
                         'sizeFilter': $('#size_filter').val(),
-                        'search' : $('#line_wip_table_filter input').val()
+                        'search': $('#line_wip_table_filter input').val()
                     },
                     success: function(response) {
                         console.log(response);
@@ -300,15 +309,28 @@
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(6).footer()).html((response['total_loading']).toLocaleString("ID-id"));
-                            $(api.column(7).footer()).html((Number(response['total_loading']) - (Number(response['total_reject']) + Number(response['total_defect']) + Number(response['total_output']))).toLocaleString("ID-id"));
-                            $(api.column(8).footer()).html((response['total_reject']).toLocaleString("ID-id"));
-                            $(api.column(9).footer()).html((response['total_defect']).toLocaleString("ID-id"));
-                            $(api.column(10).footer()).html((response['total_output']).toLocaleString("ID-id"));
-                            $(api.column(11).footer()).html((Number(response['total_output']) - Number(response['total_output_packing'])).toLocaleString("ID-id"));
-                            $(api.column(12).footer()).html((response['total_output_packing']).toLocaleString("ID-id"));
-                            $(api.column(13).footer()).html((Number(response['total_output_packing']) - Number(response['total_transfer_garment'])).toLocaleString("ID-id"));
-                            $(api.column(14).footer()).html((response['total_transfer_garment']).toLocaleString("ID-id"));
+                            $(api.column(6).footer()).html((response['total_loading'])
+                                .toLocaleString("ID-id"));
+                            $(api.column(7).footer()).html((Number(response['total_loading']) - (
+                                    Number(response['total_reject']) + Number(response[
+                                        'total_defect']) + Number(response['total_output'])
+                                    )).toLocaleString("ID-id"));
+                            $(api.column(8).footer()).html((response['total_reject'])
+                                .toLocaleString("ID-id"));
+                            $(api.column(9).footer()).html((response['total_defect'])
+                                .toLocaleString("ID-id"));
+                            $(api.column(10).footer()).html((response['total_output'])
+                                .toLocaleString("ID-id"));
+                            $(api.column(11).footer()).html((Number(response['total_output']) -
+                                Number(response['total_output_packing'])).toLocaleString(
+                                "ID-id"));
+                            $(api.column(12).footer()).html((response['total_output_packing'])
+                                .toLocaleString("ID-id"));
+                            $(api.column(13).footer()).html((Number(response[
+                                'total_output_packing']) - Number(response[
+                                'total_transfer_garment'])).toLocaleString("ID-id"));
+                            $(api.column(14).footer()).html((response['total_transfer_garment'])
+                                .toLocaleString("ID-id"));
                         }
                     },
                     error: function(jqXHR) {
@@ -329,24 +351,24 @@
             });
 
             $.ajax({
-                url: "{{ route("export-excel-line-wip") }}",
+                url: "{{ route('export-excel-line-wip') }}",
                 type: "get",
                 data: {
-                    tanggal_awal : $('#tanggal_awal').val(),
-                    tanggal_akhir : $('#tanggal_akhir').val(),
-                    line_id : $('#line_id').val(),
-                    line : $('#line_id').find(":selected").attr("data-line"),
-                    lineNameFilter : $('#line_filter').val(),
-                    tanggalFilter : $('#tanggal_filter').val(),
-                    wsFilter : $('#ws_filter').val(),
-                    styleFilter : $('#style_filter').val(),
-                    colorFilter : $('#color_filter').val(),
-                    sizeFilter : $('#size_filter').val()
+                    tanggal_awal: $('#tanggal_awal').val(),
+                    tanggal_akhir: $('#tanggal_akhir').val(),
+                    line_id: $('#line_id').val(),
+                    line: $('#line_id').find(":selected").attr("data-line"),
+                    lineNameFilter: $('#line_filter').val(),
+                    tanggalFilter: $('#tanggal_filter').val(),
+                    wsFilter: $('#ws_filter').val(),
+                    styleFilter: $('#style_filter').val(),
+                    colorFilter: $('#color_filter').val(),
+                    sizeFilter: $('#size_filter').val()
                 },
                 xhrFields: {
                     responseType: 'blob'
                 },
-                success: function (response) {
+                success: function(response) {
                     swal.close();
                     Swal.fire({
                         title: 'Data Sudah Di Export!',
@@ -357,10 +379,11 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Sewing Line WIP " + $('#tanggal_awal').val() + " - " + $('#tanggal_akhir').val() + " "+ ($('#line').val() ? $('#line').val() : '') +".xlsx";
+                    link.download = "Sewing Line WIP " + $('#tanggal_awal').val() + " - " + $('#tanggal_akhir')
+                        .val() + " " + ($('#line').val() ? $('#line').val() : '') + ".xlsx";
                     link.click();
                 },
-                error: function (jqXHR) {
+                error: function(jqXHR) {
                     console.error(jqXHR);
                 }
             });

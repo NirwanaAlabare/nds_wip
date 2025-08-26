@@ -542,7 +542,7 @@ Route::middleware('auth')->group(function () {
         // Item Forms
         Route::get('/item/{id?}', 'item')->name('item-piping');
         Route::get('/item/forms/{id?}', 'itemForms')->name('item-forms-piping');
-        Route::get('/item/piping/{id?}/{idForm?}', 'itemPiping')->name('item-piping-piping');
+        Route::get('/item/piping/{id?}/{idForm?}/{type?}', 'itemPiping')->name('item-piping-piping');
     });
 
     // Piping Loading
@@ -1026,6 +1026,7 @@ Route::middleware('auth')->group(function () {
         Route::put('update', 'update')->name('update-master-plan');
         Route::post('store', 'store')->name('store-master-plan');
         Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-plan');
+        Route::post('/import-master-plan', 'importMasterPlan')->name('import-master-plan');
     });
 
     Route::controller(MasterDefectController::class)->prefix("master-defect")->middleware('role:sewing')->group(function () {

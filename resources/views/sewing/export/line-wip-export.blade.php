@@ -1,9 +1,9 @@
 <table>
     <tr>
-        <th colspan="16">{{ ($line ? strtoupper(str_replace("_", " ", $line)) : 'Line') }} WIP</th>
+        <th colspan="16">{{ $line ? strtoupper(str_replace('_', ' ', $line)) : 'Line' }} WIP</th>
     </tr>
     <tr>
-        <th colspan="16">{{ $dateFrom." - ".$dateTo }}</th>
+        <th colspan="16">{{ $dateFrom . ' - ' . $dateTo }}</th>
     </tr>
     <tr>
         <th style="font-weight: 800;">Line</th>
@@ -18,8 +18,8 @@
         <th style="font-weight: 800;">Defect</th>
         <th style="font-weight: 800;">Qty Output</th>
         <th style="font-weight: 800;">WIP Steam</th>
-        <th style="font-weight: 800;">Qty Packing Line</th>
-        <th style="font-weight: 800;">WIP Packing</th>
+        <th style="font-weight: 800;">Qty QC Finishing Line</th>
+        <th style="font-weight: 800;">WIP QC Finishing</th>
         <th style="font-weight: 800;">Qty Transfer Garment</th>
     </tr>
     @php
@@ -35,20 +35,52 @@
     @endphp
     @foreach ($data as $d)
         @php
-            $reject = $dataReject->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
-            $defect = $dataDefect->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
-            $output = $dataOutput->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
-            $outputPacking = $dataOutputPacking->where("line_id", $d->line_id)->where("id_ws", $d->id_ws)->where("color", $d->color)->where("size", $d->size)->first();
+            $reject = $dataReject
+                ->where('line_id', $d->line_id)
+                ->where('id_ws', $d->id_ws)
+                ->where('color', $d->color)
+                ->where('size', $d->size)
+                ->first();
+            $defect = $dataDefect
+                ->where('line_id', $d->line_id)
+                ->where('id_ws', $d->id_ws)
+                ->where('color', $d->color)
+                ->where('size', $d->size)
+                ->first();
+            $output = $dataOutput
+                ->where('line_id', $d->line_id)
+                ->where('id_ws', $d->id_ws)
+                ->where('color', $d->color)
+                ->where('size', $d->size)
+                ->first();
+            $outputPacking = $dataOutputPacking
+                ->where('line_id', $d->line_id)
+                ->where('id_ws', $d->id_ws)
+                ->where('color', $d->color)
+                ->where('size', $d->size)
+                ->first();
 
-            $totalLoading += ($d->loading_qty ? $d->loading_qty : 0);
-            $totalWipSewing += ($d->loading_qty ? $d->loading_qty : 0) - (($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) + ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) + ($output ? ($output->total_output ? $output->total_output : 0) : 0));
+            $totalLoading += $d->loading_qty ? $d->loading_qty : 0;
+            $totalWipSewing +=
+                ($d->loading_qty ? $d->loading_qty : 0) -
+                (($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) +
+                    ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) +
+                    ($output ? ($output->total_output ? $output->total_output : 0) : 0));
             $totalReject += $reject ? ($reject->total_output ? $reject->total_output : 0) : 0;
             $totalDefect += $defect ? ($defect->total_output ? $defect->total_output : 0) : 0;
             $totalOutput += $output ? ($output->total_output ? $output->total_output : 0) : 0;
-            $totalWipSteam += ($output ? ($output->total_output ? $output->total_output : 0) : 0) - ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0);
-            $totalOutputPacking += $outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0;
-            $totalWipPacking += ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) - ($d->total_transfer_garment ? $d->total_transfer_garment : 0);
-            $totalTransferGarment += ($d->total_transfer_garment ? $d->total_transfer_garment : 0);
+            $totalWipSteam +=
+                ($output ? ($output->total_output ? $output->total_output : 0) : 0) -
+                ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0);
+            $totalOutputPacking += $outputPacking
+                ? ($outputPacking->total_output
+                    ? $outputPacking->total_output
+                    : 0)
+                : 0;
+            $totalWipPacking +=
+                ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) -
+                ($d->total_transfer_garment ? $d->total_transfer_garment : 0);
+            $totalTransferGarment += $d->total_transfer_garment ? $d->total_transfer_garment : 0;
         @endphp
         <tr>
             <td>{{ $d->nama_line }}</td>
@@ -57,15 +89,18 @@
             <td>{{ $d->styleno }}</td>
             <td>{{ $d->color }}</td>
             <td>{{ $d->size }}</td>
-            <td>{{ ($d->loading_qty ? $d->loading_qty : 0) }}</td>
-            <td>{{ ($d->loading_qty ? $d->loading_qty : 0) - (($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) + ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) + ($output ? ($output->total_output ? $output->total_output : 0) : 0)) }}</td>
-            <td>{{ ($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) }}</td>
-            <td>{{ ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) }}</td>
-            <td>{{ ($output ? ($output->total_output ? $output->total_output : 0) : 0) }}</td>
-            <td>{{ ($output ? ($output->total_output ? $output->total_output : 0) : 0) - ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) }}</td>
-            <td>{{ ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) }}</td>
-            <td>{{ ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) - ($d->total_transfer_garment ? $d->total_transfer_garment : 0) }}</td>
-            <td>{{ ($d->total_transfer_garment ? $d->total_transfer_garment : 0) }}</td>
+            <td>{{ $d->loading_qty ? $d->loading_qty : 0 }}</td>
+            <td>{{ ($d->loading_qty ? $d->loading_qty : 0) - (($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) + ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) + ($output ? ($output->total_output ? $output->total_output : 0) : 0)) }}
+            </td>
+            <td>{{ $reject ? ($reject->total_output ? $reject->total_output : 0) : 0 }}</td>
+            <td>{{ $defect ? ($defect->total_output ? $defect->total_output : 0) : 0 }}</td>
+            <td>{{ $output ? ($output->total_output ? $output->total_output : 0) : 0 }}</td>
+            <td>{{ ($output ? ($output->total_output ? $output->total_output : 0) : 0) - ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) }}
+            </td>
+            <td>{{ $outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0 }}</td>
+            <td>{{ ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) - ($d->total_transfer_garment ? $d->total_transfer_garment : 0) }}
+            </td>
+            <td>{{ $d->total_transfer_garment ? $d->total_transfer_garment : 0 }}</td>
         </tr>
     @endforeach
     <tr>
