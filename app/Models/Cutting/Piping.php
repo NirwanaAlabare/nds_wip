@@ -13,6 +13,15 @@ class Piping extends Model
 
     protected $guarded = [];
 
+    protected static function booted()
+    {
+        static::created(function ($piping) {
+            $piping->update([
+                'no_form' => 'PF-' . $piping->id
+            ]);
+        });
+    }
+
     public function scannedItem()
     {
         return $this->belongsTo(ScannedItem::class, 'id_roll', 'id_roll');

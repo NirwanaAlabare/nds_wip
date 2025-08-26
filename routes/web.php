@@ -542,7 +542,7 @@ Route::middleware('auth')->group(function () {
         // Item Forms
         Route::get('/item/{id?}', 'item')->name('item-piping');
         Route::get('/item/forms/{id?}', 'itemForms')->name('item-forms-piping');
-        Route::get('/item/piping/{id?}/{idForm?}', 'itemPiping')->name('item-piping-piping');
+        Route::get('/item/piping/{id?}/{idForm?}/{type?}', 'itemPiping')->name('item-piping-piping');
     });
 
     // Piping Loading

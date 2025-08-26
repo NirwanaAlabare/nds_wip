@@ -1214,6 +1214,7 @@
                             if (response && response.length > 0) {
                                 for (let i = 0; i < response.length ;i++) {
                                     let option = document.createElement("option");
+                                    option.setAttribute("data-type", response[i].type);
                                     option.setAttribute("value", response[i].id);
                                     option.innerText = response[i].no_form;
 
@@ -1239,13 +1240,15 @@
                 document.getElementById("loading").classList.remove("d-none");
 
                 let id  = document.getElementById("id_rolls_"+index).value;
-                let idForm  = document.getElementById("id_form_rolls_"+index).value;
+                let idFormElement  = document.getElementById("id_form_rolls_"+index);
+                let idForm = idFormElement.value;
+                let type  = idFormElement.options[idFormElement.selectedIndex].getAttribute("data-type");
 
                 let totalRollQty = document.getElementById("total_qty");
                 let totalRollUnit = document.getElementById("total_unit");
 
                 $.ajax({
-                    url: "{{ route("item-piping-piping") }}/"+id+"/"+idForm,
+                    url: "{{ route("item-piping-piping") }}/"+id+"/"+idForm+"/"+type,
                     type: "get",
                     // dataType: "json",
                     success: async function (response) {

@@ -38,6 +38,7 @@
                     <thead>
                         <tr>
                             <th>Action</th>
+                            <th>No. Form</th>
                             <th>Tanggal</th>
                             <th>No. WS</th>
                             <th>Style</th>
@@ -133,6 +134,9 @@
             columns: [
                 {
                     data: 'id'
+                },
+                {
+                    data: 'no_form'
                 },
                 {
                     data: 'tanggal_piping'

@@ -18,6 +18,7 @@ class PipingController extends Controller
         if ($request->ajax()) {
             $data = Piping::selectRaw("
                 form_cut_piping.id,
+                form_cut_piping.no_form,
                 form_cut_piping.tanggal_piping,
                 form_cut_piping.act_costing_id,
                 form_cut_piping.act_costing_ws,
@@ -135,7 +136,7 @@ class PipingController extends Controller
 
                 return array(
                     "status" => 200,
-                    "message" => "Data Piping berhasil direkam.",
+                    "message" => "Data Piping berhasil direkam. <br> '".$storePiping->no_form."'",
                     "additional" => [],
                 );
             }

@@ -86,6 +86,7 @@
                                 <option value="{{ strtoupper("sewing") }}">{{ strtoupper("sewing") }}</option>
                                 <option value="{{ strtoupper("mending") }}">{{ strtoupper("mending") }}</option>
                                 <option value="{{ strtoupper("spotcleaning") }}">{{ strtoupper("spotcleaning") }}</option>
+                                <option value="{{ strtoupper("qcreject") }}">{{ strtoupper("qc reject") }}</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -135,6 +136,7 @@
                                 <option value="{{ strtoupper("sewing") }}">{{ strtoupper("sewing") }}</option>
                                 <option value="{{ strtoupper("mending") }}">{{ strtoupper("mending") }}</option>
                                 <option value="{{ strtoupper("spotcleaning") }}">{{ strtoupper("spotcleaning") }}</option>
+                                <option value="{{ strtoupper("qcreject") }}">{{ strtoupper("qc reject") }}</option>
                             </select>
                         </div>
                         <div class="mb-3">
