@@ -315,9 +315,7 @@
         });
 
         async function dataTableReload() {
-            return datatable.ajax.reload(() => {
-                document.getElementById('jumlah_data').value = datatable.data().count();
-            });
+            return datatable.ajax.reload();
         }
     </script>
 
