@@ -75,8 +75,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     a.waktu_mulai,
                     a.waktu_selesai,
                     b.id,
-                    DATE_FORMAT(b.updated_at, '%M') bulan,
-                    DATE_FORMAT(b.updated_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT(b.created_at, '%M') bulan,
+                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
                     b.no_form_cut_input,
                     UPPER(meja.name) nama_meja,
                     mrk.act_costing_ws,
@@ -145,7 +145,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
-                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and b.group_stocker = c.group_stocker and (c.status = 'extension' OR c.status = 'extension complete')
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
                     left join users meja on meja.id = a.no_meja
                     left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
@@ -156,8 +156,6 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     AND a.status = 'SELESAI PENGERJAAN'
                     and b.status != 'not complete'
                     and b.id_item is not null
-                    AND a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                    AND b.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)
                     ".$additionalQuery."
                 group by
                     b.id

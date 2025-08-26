@@ -726,6 +726,31 @@ class RollController extends Controller
                 AND form_cut_piece_detail.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_piece`.`id`
+
+            UNION
+
+            SELECT
+                form_cut_piping.id id_form,
+                'PIPING' no_form_cut_input,
+                '-',
+                id_roll,
+                MAX( qty ) qty,
+                unit,
+                SUM( piping ) total_pemakaian_roll,
+                SUM( qty - (piping + qty_sisa) ) short_roll,
+                qty_sisa sisa_kain,
+                '-' status_form,
+                '-' status,
+                COALESCE ( form_cut_piping.created_at, form_cut_piping.updated_at ) updated_at,
+                'PIPING' as tipe
+            FROM
+                `form_cut_piping`
+            WHERE
+                `id_roll` = '".$request->id."'
+                AND ( id_roll IS NOT NULL AND id_roll != '' )
+                AND form_cut_piping.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
+            GROUP BY
+                `form_cut_piping`.`id`
         ");
 
         return DataTables::of($forms)->toJson();
