@@ -79,7 +79,7 @@ class StockOpnameController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $dataMutlokas = DB::connection('mysql_sb')->select("select a.no_transaksi, a.tipe_item, tgl_filter, a.status, copy_user, a.created_at from whs_saldo_stockopname a INNER JOIN whs_log_copysaldo b on b.no_transaksi = a.no_transaksi where DATE_FORMAT(a.created_at, '%Y-%m-%d') BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' GROUP BY a.no_transaksi order by b.id asc");
+            $dataMutlokas = DB::connection('mysql_sb')->select("select *,FORMAT(qty,2) qty_show,FORMAT(qty_so,2) qty_so_show,FORMAT(qty_sisa,2) qty_sisa_show from (select a.*,COALESCE(qty_scan,0) qty_so, round(a.qty - COALESCE(qty_scan,0),2) qty_sisa from(select a.id,a.status,a.no_transaksi,a.tipe_item,a.tgl_filter tgl_saldo,a.kode_lok,a.id_jo,a.id_item,b.goods_code,b.itemdesc,round(sum(a.qty),2) qty,a.unit ,copy_user, a.created_at from whs_saldo_stockopname a inner join masteritem b on b.id_item = a.id_item INNER JOIN (select no_transaksi, copy_user from whs_log_copysaldo GROUP BY no_transaksi) c on c.no_transaksi = a.no_transaksi where DATE_FORMAT(a.created_at, '%Y-%m-%d') BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' group by a.no_transaksi) a left join (select no_transaksi notr,lokasi_aktual,id_jo,id_item,sum(qty) qty_scan,COUNT(no_barcode) qty_roll_scan from whs_so_h a INNER JOIN whs_so_detail b on b.no_dokumen = a.no_dokumen GROUP BY no_transaksi) b on b.notr = a.no_transaksi) a");
 
 
             return DataTables::of($dataMutlokas)->toJson();

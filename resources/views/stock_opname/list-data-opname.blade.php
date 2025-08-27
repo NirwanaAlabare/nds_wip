@@ -69,6 +69,9 @@
                             <th class="text-center">No transaksi</th>
                             <th class="text-center">Tipe Item</th>
                             <th class="text-center">Tgl Stok</th>
+                            <th class="text-center">Qty Item</th>
+                            <th class="text-center">Qty SO</th>
+                            <th class="text-center">Sisa</th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Created By</th>
                             <th class="text-center">Created Date</th>
@@ -91,6 +94,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+            <div class="d-flex mb-3">
+                <input type="hidden" class="form-control " id="txt_no_dokumen" name="txt_no_dokumen" value="" readonly>
+                <a onclick="export_excel_barcode()" class="btn btn-success shadow-sm">
+                    <i class="fas fa-file-excel me-2"></i>
+                    Export
+                </a>
+            </div>
             <div id="table_modal"></div>
         </div>
     </div>
@@ -198,7 +208,16 @@
                 data: 'tipe_item'
             },
             {
-                data: 'tgl_filter'
+                data: 'tgl_saldo'
+            },
+            {
+                data: 'qty_show'
+            },
+            {
+                data: 'qty_so_show'
+            },
+            {
+                data: 'qty_sisa_show'
             },
             {
                 data: 'status'
@@ -215,30 +234,269 @@
 
             ],
             columnDefs: [{
-                targets: [6],
+                targets: [9],
                 render: (data, type, row, meta) => {
                     console.log(row);
-                    if (row.status != 'CANCEL') {
+                    // if (row.status != 'CANCEL') {
+                    //     return `<div class='d-flex gap-1 justify-content-center'>
+                    //     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_transaksi + `")'><i class="fa-solid fa-trash"></i></button>
+                    //     <button type='button' class='btn btn-sm btn-info' onclick='showdata("` + data + `")'><i class="fa-solid fa-circle-info"></i></button>
+                    // <a href="{{ route('show-detail-so') }}/`+row.id+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
+                    //     </div>`;
+                    // }else{
+                    //     return `<div class='d-flex gap-1 justify-content-center'> -
+                    //     </div>`;
+                    // }
+
+                    if (row.status == 'OPEN') {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                        <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_transaksi + `")'><i class="fa-solid fa-trash"></i></button>
+                        <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
+                        <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='draftdata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
+                        <button type='button' class='btn btn-sm btn-info' onclick='showdata("` + data + `")'><i class="fa-solid fa-circle-info"></i></button>
+                        </div>`;
+                    }else if (row.status == 'DRAFT') {
+                        return `<div class='d-flex gap-1 justify-content-center'>
+                        <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
+                        <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='finaldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
+                        <button type='button' class='btn btn-sm btn-info' onclick='showdata("` + data + `")'><i class="fa-solid fa-circle-info"></i></button>
+                        </div>`;
+                    }else if (row.status == 'FINAL') {
+                        return `<div class='d-flex gap-1 justify-content-center'>
                         <button type='button' class='btn btn-sm btn-info' onclick='showdata("` + data + `")'><i class="fa-solid fa-circle-info"></i></button>
                         </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'> -
+                        return `<div class='d-flex gap-1 justify-content-center'>
+                        -
                         </div>`;
+
                     }
+
                 }
             }
 
             ]
         });
 
-        function dataTableReload() {
-            datatable.ajax.reload();
+function dataTableReload() {
+    datatable.ajax.reload();
+}
+
+
+function canceldata($no_transaksi,$id){
+
+    let no_transaksi  = $no_transaksi;
+    let id  = $id;
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Cancel Transaksi " + no_transaksi,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Cancel it!",
+      cancelButtonText: "Close"
+  }).then((result) => {
+      if (result.isConfirmed) {
+
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("cancel-report-so") }}',
+            type: 'get',
+            data: {
+                no_transaksi: no_transaksi,
+            },
+            success: function (res) {
+                Swal.fire({
+                    title: "Cancelled!",
+                    text: "Data has been Cancelled.",
+                    icon: "success"
+                }).then(async (result) => {
+                    window.location.reload()
+                });
+            }
+        });
+
+    }
+});
+}
+
+function draftdata($no_transaksi,$id){
+
+    let no_transaksi  = $no_transaksi;
+    let id  = $id;
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Draft Transaksi " + no_transaksi,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Draft it!",
+      cancelButtonText: "Close"
+  }).then((result) => {
+      if (result.isConfirmed) {
+
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("draft-report-so") }}',
+            type: 'get',
+            data: {
+                no_transaksi: no_transaksi,
+            },
+            success: function (res) {
+                Swal.fire({
+                    title: "Changed!",
+                    text: "Status Data has been Changed.",
+                    icon: "success"
+                }).then(async (result) => {
+                    window.location.reload()
+                });
+            }
+        });
+
+    }
+});
+}
+
+
+function finaldata($no_transaksi,$id){
+
+    let no_transaksi  = $no_transaksi;
+    let id  = $id;
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Final Transaksi " + no_transaksi,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Final it!",
+      cancelButtonText: "Close"
+  }).then((result) => {
+      if (result.isConfirmed) {
+
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("final-report-so") }}',
+            type: 'get',
+            data: {
+                no_transaksi: no_transaksi,
+            },
+            success: function (res) {
+                Swal.fire({
+                    title: "Changed!",
+                    text: "Status Data has been Changed.",
+                    icon: "success"
+                }).then(async (result) => {
+                    window.location.reload()
+                });
+            }
+        });
+
+    }
+});
+}
+
+function export_excel() {
+    let itemso = document.getElementById("item_so").value;
+    let from = document.getElementById("from").value;
+    let to = document.getElementById("to").value;
+
+    Swal.fire({
+        title: 'Please Wait,',
+        html: 'Exporting Data...',
+        didOpen: () => {
+            Swal.showLoading()
+        },
+        allowOutsideClick: false,
+    });
+
+    $.ajax({
+        type: "get",
+        url: '{{ route('export_excel_laporan_so') }}',
+        data: {
+            itemso: itemso,
+            from: from,
+            to: to
+        },
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(response) {
+            {
+                swal.close();
+                Swal.fire({
+                    title: 'Data Berhasil Di Export!',
+                    icon: "success",
+                    showConfirmButton: true,
+                    allowOutsideClick: false
+                });
+                var blob = new Blob([response]);
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "Laporan Stock Opname  " + itemso + ".xlsx";
+                link.click();
+
+            }
+        },
+    });
+}
+
+
+function export_excel_barcode() {
+            let no_transaksi = document.getElementById("txt_no_dokumen").value;
+            let itemso = 'Fabric';
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_laporan_so_detail_barcode') }}',
+                data: {
+                    no_transaksi: no_transaksi,
+                    itemso: itemso
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Berhasil Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan Stock Opname Detail Barcode " + itemso + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
         }
-    </script>
-    <script type="text/javascript">
-        function approve_mutlok($nodok){
+
+</script>
+<script type="text/javascript">
+    function approve_mutlok($nodok){
         // alert($id);
         let nodok  = $nodok;
 
@@ -247,38 +505,39 @@
     }
 
     function number_format(number, decimals = 0, dec_point = '.', thousands_sep = ',') {
-            number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
-            let n = !isFinite(+number) ? 0 : +number,
-            prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
-            sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
-            dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
-            s = '';
+        number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+        let n = !isFinite(+number) ? 0 : +number,
+        prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+        sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+        dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+        s = '';
 
-            s = (prec ? n.toFixed(prec) : Math.round(n).toString()).split('.');
-            if (s[0].length > 3) {
-                s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
-            }
-            if ((s[1] || '').length < prec) {
-                s[1] = s[1] || '';
-                s[1] += new Array(prec - s[1].length + 1).join('0');
-            }
-            return s.join(dec);
+        s = (prec ? n.toFixed(prec) : Math.round(n).toString()).split('.');
+        if (s[0].length > 3) {
+            s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
         }
+        if ((s[1] || '').length < prec) {
+            s[1] = s[1] || '';
+            s[1] += new Array(prec - s[1].length + 1).join('0');
+        }
+        return s.join(dec);
+    }
 
 
     function showdata(data) {
-    return $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: '{{ route("get-detail-opname") }}',
-        type: 'get',
-        data: { no_transaksi: data },
-        success: function (res) {
-            if (res) {
-                $('#modal_tblroll').modal('show');
-                $('#modal_title1').html('DETAIL ' + data);
-                document.getElementById('table_modal').innerHTML = res;
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("get-detail-opname") }}',
+            type: 'get',
+            data: { no_transaksi: data },
+            success: function (res) {
+                if (res) {
+                    $('#modal_tblroll').modal('show');
+                    $('#txt_no_dokumen').val(data);
+                    $('#modal_title1').html('DETAIL ' + data);
+                    document.getElementById('table_modal').innerHTML = res;
 
                 // destroy DataTable lama
                 if ($.fn.DataTable.isDataTable("#tableshow")) {
@@ -314,10 +573,10 @@
                                 return parseFloat(a) + parseFloat(b);
                             }, 0);
 
-                        $(this.api().column(8).footer())
+                            $(this.api().column(8).footer())
                             .html(number_format(total, 2, '.', ','));
-                    }
-                });
+                        }
+                    });
 
                 // event untuk filter per kolom
                 table.columns().every(function () {
@@ -334,7 +593,7 @@
             }
         }
     });
-}
+    }
 
 
 // fix header setelah modal benar-benar tampil
