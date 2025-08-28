@@ -103,134 +103,129 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
 
 
     public function approvepengeluaranall(Request $request)
-    {
-            $timestamp = Carbon::now();
+{
+    $timestamp = Carbon::now();
 
-            for ($i = 0; $i < $request['jumlah_data']; $i++) {
-            $check = isset($request['chek_id'][$i]) ? $request['chek_id'][$i] : 0;
-            if ($check > 0) {
-                // dd($request['id_bpb'][$i]);
-                $updateBppbnew = BppbHeader::where('no_bppb', $request['id_bpb'][$i])->update([
+    DB::beginTransaction();
+    try {
+
+        foreach ($request->id_bpb as $i => $id_bpb) {
+            $check = $request->chek_id[$i] ?? 0;
+            if ($check <= 0) continue;
+
+            // Update status BPPB
+            BppbHeader::where('no_bppb', $id_bpb)->update([
                 'status' => 'Approved',
                 'approved_by' => Auth::user()->name,
                 'approved_date' => $timestamp,
             ]);
 
-            $updateBppbSB = BppbSB::where('bppbno_int', $request['id_bpb'][$i])->update([
+            BppbSB::where('bppbno_int', $id_bpb)->update([
                 'confirm' => 'Y',
                 'confirm_by' => Auth::user()->name,
                 'confirm_date' => $timestamp,
             ]);
 
-            $cekdata = DB::connection('mysql_sb')->select("select bppbno,bppbno_int,bppbdate,curr,id_supplier,supplier,mattype,n_code_category,matclass,curr,COALESCE(tax,0) tax,username,dateinput,(dpp + (dpp * (COALESCE(tax,0)/100))) total,dpp,(dpp * (COALESCE(tax,0)/100)) ppn from (select bppbno, bppbno_int, bppb.bppbdate, bppb.id_supplier, supplier, mattype, n_code_category,
-        if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass, bppb.curr,bppb.username, bppb.dateinput,
-        SUM(((qty) * price)) as dpp,bpbno_ro
-        from bppb
-        inner join masteritem mi on bppb.id_item = mi.id_item
-        inner join mastersupplier ms on bppb.id_supplier = ms.id_supplier
-        where bppbno_int IN ('".$request['id_bpb'][$i]."') group by bppbno_int) a left join
-        (select bpbno,pono from bpb GROUP BY bpbno) b on b.bpbno = a.bpbno_ro
-        left JOIN
-        (select pono,tax from po_header GROUP BY pono) c on c.pono = b.pono");
+            // Ambil data BPPB
+            $cekdata = DB::connection('mysql_sb')->select("
+                SELECT a.*, COALESCE(c.tax,0) as tax, (a.dpp + (a.dpp * (COALESCE(c.tax,0)/100))) as total, 
+                       (a.dpp * (COALESCE(c.tax,0)/100)) as ppn
+                FROM (
+                    SELECT bppbno, bppbno_int, bppb.bppbdate, bppb.id_supplier, supplier, mattype, n_code_category,
+                           IF(matclass LIKE '%ACCESORIES%', 'ACCESORIES', mi.matclass) as matclass, 
+                           bppb.curr, bppb.username, bppb.dateinput, SUM(qty * price) as dpp, bpbno_ro
+                    FROM bppb
+                    INNER JOIN masteritem mi ON bppb.id_item = mi.id_item
+                    INNER JOIN mastersupplier ms ON bppb.id_supplier = ms.id_supplier
+                    WHERE bppbno_int = ?
+                    GROUP BY bppbno_int
+                ) a
+                LEFT JOIN (
+                    SELECT bpbno, pono FROM bpb GROUP BY bpbno
+                ) b ON b.bpbno = a.bpbno_ro
+                LEFT JOIN (
+                    SELECT pono, tax FROM po_header GROUP BY pono
+                ) c ON c.pono = b.pono
+            ", [$id_bpb]);
 
+            if (!$cekdata) continue; // skip jika tidak ada data
 
-            $no_bpb         = $cekdata[0]->bppbno_int;
-            $supp           = $cekdata[0]->supplier;
-            $id_supplier    = $cekdata[0]->id_supplier;
-            $mattype        = $cekdata[0]->mattype;
-            $matclass1      = $cekdata[0]->matclass;
-            $n_code_category = $cekdata[0]->n_code_category;
-            $tax            = $cekdata[0]->tax;
-            $curr           = $cekdata[0]->curr;
-            $username       = $cekdata[0]->username;
-            $curr           = $cekdata[0]->curr;
-            $total          = $cekdata[0]->total;
-            $dpp            = $cekdata[0]->dpp;
-            $ppn            = $cekdata[0]->ppn;
-            $tgl_bpb        = $cekdata[0]->bppbdate;
-            $dateinput      = $cekdata[0]->dateinput;
-            $matclass       = '';
-            $rate           = 0;
-            $idr_dpp        = 0;
-            $idr_ppn        = 0;
-            $idr_total      = 0;
-            $cust_ctg       = '';
-            $kata1          = '';
+            $data = $cekdata[0];
 
-            if ($mattype == 'C') {
-                if ($matclass1 == 'CMT' || $matclass1 == 'PRINTING' || $matclass1 == 'EMBRODEIRY' || $matclass1 == 'WASHING' || $matclass1 == 'PAINTING' || $matclass1 == 'HEATSEAL') {
-                            $matclass = $matclass1;
-                } else {
-                            $matclass = 'OTHER';
-                }
-            } else {
-                        $matclass = $matclass1;
-            }
+            $no_bpb = $data->bppbno_int;
+            $supp = $data->supplier;
+            $id_supplier = $data->id_supplier;
+            $mattype = $data->mattype;
+            $matclass1 = $data->matclass;
+            $n_code_category = $data->n_code_category;
+            $tax = $data->tax;
+            $curr = $data->curr;
+            $username = $data->username;
+            $total = $data->total;
+            $dpp = $data->dpp;
+            $ppn = $data->ppn;
+            $tgl_bpb = $data->bppbdate;
+            $dateinput = $data->dateinput;
 
+            // Tentukan matclass
+            $matclass = ($mattype == 'C') ? 
+                        (in_array($matclass1, ['CMT','PRINTING','EMBRODEIRY','WASHING','PAINTING','HEATSEAL']) ? $matclass1 : 'OTHER') 
+                        : $matclass1;
+
+            // Rate kurs
+            $rate = 1;
             if ($curr != 'IDR') {
-                $sqlrate = DB::connection('mysql_sb')->select("select ROUND(rate,2) as rate , tanggal  FROM masterrate where tanggal = '".$tgl_bpb."' and v_codecurr = 'PAJAK'");
-
-                $rate   = $sqlrate[0]->rate ? $sqlrate[0]->rate : 1;
-
-            } else {
-                $rate = 1;
+                $sqlrate = DB::connection('mysql_sb')->select("
+                    SELECT ROUND(rate,2) as rate FROM masterrate 
+                    WHERE tanggal = ? AND v_codecurr = 'PAJAK' 
+                    LIMIT 1
+                ", [$tgl_bpb]);
+                $rate = $sqlrate ? $sqlrate[0]->rate : 1;
             }
 
-                $idr_dpp = $dpp * $rate;
-                $idr_ppn = $ppn * $rate;
-                $idr_total = $total * $rate;
+            $idr_dpp = $dpp * $rate;
+            $idr_ppn = $ppn * $rate;
+            $idr_total = $total * $rate;
 
-            if ($id_supplier == '342' || $id_supplier == '20' || $id_supplier == '19' || $id_supplier == '692' || $id_supplier == '17' || $id_supplier == '18') {
-                $cust_ctg = 'Related';
-            } else {
-                $cust_ctg = 'Third';
-            }
+            // Customer category
+            $cust_ctg = in_array($id_supplier, ['342','20','19','692','17','18']) ? 'Related' : 'Third';
 
-
+            // Tentukan kata1
             if ($mattype != 'N') {
-                if ($matclass == 'FABRIC') {
-                    $kata1 = "RETURN PEMBELIAN KAIN";
-                } elseif ($matclass == 'ACCESORIES') {
-                    $kata1 = "RETURN PEMBELIAN AKSESORIS";
-                } elseif ($matclass == 'CMT') {
-                    $kata1 = "RETURN BIAYA MAKLOON PAKAIAN JADI";
-                } elseif ($matclass == 'PRINTING') {
-                    $kata1 = "RETURN BIAYA MAKLOON PRINTING";
-                } elseif ($matclass == 'EMBRODEIRY') {
-                    $kata1 = "RETURN BIAYA MAKLOON EMBRODEIRY";
-                } elseif ($matclass == 'WASHING') {
-                    $kata1 = "RETURN BIAYA MAKLOON WASHING";
-                } elseif ($matclass == 'PAINTING') {
-                    $kata1 = "RETURN BIAYA MAKLOON PAINTING";
-                } elseif ($matclass == 'HEATSEAL') {
-                    $kata1 = "RETURN BIAYA MAKLOON HEATSEAL";
-                } else {
-                    $kata1 = "RETURN BIAYA MAKLOON LAINNYA";
+                switch ($matclass) {
+                    case 'FABRIC': $kata1 = "RETURN PEMBELIAN KAIN"; break;
+                    case 'ACCESORIES': $kata1 = "RETURN PEMBELIAN AKSESORIS"; break;
+                    case 'CMT': $kata1 = "RETURN BIAYA MAKLOON PAKAIAN JADI"; break;
+                    case 'PRINTING': $kata1 = "RETURN BIAYA MAKLOON PRINTING"; break;
+                    case 'EMBRODEIRY': $kata1 = "RETURN BIAYA MAKLOON EMBRODEIRY"; break;
+                    case 'WASHING': $kata1 = "RETURN BIAYA MAKLOON WASHING"; break;
+                    case 'PAINTING': $kata1 = "RETURN BIAYA MAKLOON PAINTING"; break;
+                    case 'HEATSEAL': $kata1 = "RETURN BIAYA MAKLOON HEATSEAL"; break;
+                    default: $kata1 = "RETURN BIAYA MAKLOON LAINNYA"; break;
                 }
-        } else {
-                if ($n_code_category == '1') {
-                    $kata1 = "RETURN PEMBELIAN PERSEDIAAN ATK";
-                } elseif ($n_code_category == '2') {
-                    $kata1 = "RETURN PEMBELIAN PERSEDIAAN UMUM";
-                } elseif ($n_code_category == '3') {
-                    $kata1 = "RETURN BIAYA PERSEDIAAN SPAREPARTS";
-                } elseif ($n_code_category == '4') {
-                    $kata1 = "RETURN BIAYA MESIN";
-                } else {
-                    $kata1 = "";
+            } else {
+                switch ($n_code_category) {
+                    case '1': $kata1 = "RETURN PEMBELIAN PERSEDIAAN ATK"; break;
+                    case '2': $kata1 = "RETURN PEMBELIAN PERSEDIAAN UMUM"; break;
+                    case '3': $kata1 = "RETURN BIAYA PERSEDIAAN SPAREPARTS"; break;
+                    case '4': $kata1 = "RETURN BIAYA MESIN"; break;
+                    default: $kata1 = ""; break;
                 }
-        }
+            }
 
-            $kata2 = "DARI";
+            $description = $kata1 . " " . $no_bpb . " DARI " . $supp;
 
-            $description = $kata1 . " " . $no_bpb . " " . $kata2 . " " . $supp;
+            // Ambil COA credit
+            $sqlcoa = DB::connection('mysql_sb')->select("
+                SELECT no_coa, nama_coa FROM mastercoa_v2 
+                WHERE cus_ctg LIKE ? AND mattype LIKE ? AND matclass LIKE ? AND n_code_category LIKE ? AND inv_type LIKE '%bpb_credit%' 
+                LIMIT 1
+            ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
 
-            $sqlcoa = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where cus_ctg like '%".$cust_ctg."%' and mattype like '%".$mattype."%' and matclass like '%".$matclass."%' and n_code_category like '%".$n_code_category."%' and inv_type like '%bpb_credit%' Limit 1");
+            $no_coa_cre = $sqlcoa ? $sqlcoa[0]->no_coa : '-';
+            $nama_coa_cre = $sqlcoa ? $sqlcoa[0]->nama_coa : '-';
 
-            $no_coa_cre   = $sqlcoa[0]->no_coa ? $sqlcoa[0]->no_coa : '-';
-            $nama_coa_cre   = $sqlcoa[0]->nama_coa ? $sqlcoa[0]->nama_coa : '-';
-
-            $jurnalcredit = Journal::create([
+            Journal::create([
                 'no_journal' => $no_bpb,
                 'tgl_journal' => $tgl_bpb,
                 'type_journal' => 'AP - BPB RETURN',
@@ -245,9 +240,9 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'curr' => $curr,
                 'rate' => $rate,
                 'debit' => $total,
-                'credit' => '0',
+                'credit' => 0,
                 'debit_idr' => $idr_total,
-                'credit_idr' => '0',
+                'credit_idr' => 0,
                 'status' => 'Approved',
                 'keterangan' => $description,
                 'create_by' => $username,
@@ -258,12 +253,17 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'cancel_date' => '',
             ]);
 
-            $sqlcoa2 = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where cus_ctg like '%".$cust_ctg."%' and mattype like '%".$mattype."%' and matclass like '%".$matclass."%' and n_code_category like '%".$n_code_category."%' and inv_type like '%bpb_debit%' Limit 1");
+            // Ambil COA debit
+            $sqlcoa2 = DB::connection('mysql_sb')->select("
+                SELECT no_coa, nama_coa FROM mastercoa_v2 
+                WHERE cus_ctg LIKE ? AND mattype LIKE ? AND matclass LIKE ? AND n_code_category LIKE ? AND inv_type LIKE '%bpb_debit%' 
+                LIMIT 1
+            ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
 
-            $no_coa_deb   = $sqlcoa2[0]->no_coa ? $sqlcoa2[0]->no_coa : '-';
-            $nama_coa_deb   = $sqlcoa2[0]->nama_coa ? $sqlcoa2[0]->nama_coa : '-';
+            $no_coa_deb = $sqlcoa2 ? $sqlcoa2[0]->no_coa : '-';
+            $nama_coa_deb = $sqlcoa2 ? $sqlcoa2[0]->nama_coa : '-';
 
-            $jurnaldebit = Journal::create([
+            Journal::create([
                 'no_journal' => $no_bpb,
                 'tgl_journal' => $tgl_bpb,
                 'type_journal' => 'AP - BPB RETURN',
@@ -277,9 +277,9 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'no_ws' => '-',
                 'curr' => $curr,
                 'rate' => $rate,
-                'debit' => '0',
+                'debit' => 0,
                 'credit' => $dpp,
-                'debit_idr' => '0',
+                'debit_idr' => 0,
                 'credit_idr' => $idr_dpp,
                 'status' => 'Approved',
                 'keterangan' => $description,
@@ -291,14 +291,15 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'cancel_date' => '',
             ]);
 
+            // Jurnal PPN
             if ($tax >= 1) {
+                $sqlcoa_ppn = DB::connection('mysql_sb')->select("
+                    SELECT no_coa, nama_coa FROM mastercoa_v2 WHERE inv_type LIKE '%PPN MASUKAN%' LIMIT 1
+                ");
+                $no_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->no_coa : '-';
+                $nama_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->nama_coa : '-';
 
-                $sqlcoa2 = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where inv_type like '%PPN MASUKAN%' Limit 1");
-
-                $no_coa_ppn   = $sqlcoa2[0]->no_coa ? $sqlcoa2[0]->no_coa : '-';
-                $nama_coa_ppn   = $sqlcoa2[0]->nama_coa ? $sqlcoa2[0]->nama_coa : '-';
-
-                $jurnalppn = Journal::create([
+                Journal::create([
                     'no_journal' => $no_bpb,
                     'tgl_journal' => $tgl_bpb,
                     'type_journal' => 'AP - BPB RETURN',
@@ -312,9 +313,9 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'no_ws' => '-',
                     'curr' => $curr,
                     'rate' => $rate,
-                    'debit' => '0',
+                    'debit' => 0,
                     'credit' => $ppn,
-                    'debit_idr' => '0',
+                    'debit_idr' => 0,
                     'credit_idr' => $idr_ppn,
                     'status' => 'Approved',
                     'keterangan' => $description,
@@ -326,21 +327,26 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'cancel_date' => '',
                 ]);
             }
+        }
 
+        DB::commit();
 
-            }
-            }
+        return response()->json([
+            "status" => 200,
+            "message" => "Approved Data Successfully",
+            "additional" => [],
+        ]);
 
-        $massage = 'Approved Data Successfully';
-
-            return array(
-                "status" => 200,
-                "message" => $massage,
-                "additional" => [],
-                // "redirect" => url('/konfirmasi-pemasukan')
-            );
-
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            "status" => 500,
+            "message" => "Failed to approve: " . $e->getMessage(),
+            "additional" => [],
+        ]);
     }
+}
+
 
 
     /**

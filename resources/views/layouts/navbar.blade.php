@@ -887,15 +887,27 @@
                             class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
+                                <a href="{{ route('list-data-stok') }}" class="dropdown-item">
+                                    List Item
+                                </a>
+                            </li>
+                            <!-- <li>
                                 <a href="{{ route('data-rak') }}" class="dropdown-item">
                                     Data Item
                                 </a>
-                            </li>
+                            </li> -->
                             <li>
                                 <a href="{{ route('list-stok-opname') }}" class="dropdown-item">
                                     Stock Opname
                                 </a>
                             </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle">Report</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
 
                             <li>
                                 <a href="{{ route('detail-stok-opname') }}" class="dropdown-item">

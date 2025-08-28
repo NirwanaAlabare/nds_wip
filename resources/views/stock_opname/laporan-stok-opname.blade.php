@@ -52,20 +52,11 @@
                             <i class="fas fa-file-excel"></i>
                             Export
                         </a>
-                        <!-- <button type='submit' name='submit' class='btn btn-success btn-sm'>
-                            <i class="fas fa-file-excel"></i> Export</button> -->
-                        </div>
                     </div>
                 </div>
-            </form>
-    <!-- <div class="d-flex justify-content-between">
-            <div class="ml-auto">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
             </div>
-                <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Data..." onkeyup="caridata()">
-            </div> -->
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped table-head-fixed w-100 text-nowrap">
                     <thead>
                         <tr>
                             <th>No Transaksi</th>
@@ -89,176 +80,137 @@
             </div>
         </div>
     </div>
-    @endsection
+</form>
+@endsection
 
-    @section('custom-script')
-    <!-- DataTables  & Plugins -->
-    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+@section('custom-script')
+<!-- DataTables  & Plugins -->
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
-    <!-- Select2 -->
-    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script type="text/javascript">
-        $('.select2supp').select2({
-            theme: 'bootstrap4'
-        })
-    </script>
-    <script>
-        let datatable = $("#datatable").DataTable({
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            paging: false,
-            searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
-            ajax: {
-                url: '{{ route('laporan-stok-opname') }}',
-                data: function(d) {
-                    d.itemSO = $('#item_so').val();
-                    d.dateFrom = $('#from').val();
-                    d.dateTo = $('#to').val();
-                },
+<!-- Select2 -->
+<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script type="text/javascript">
+    $('.select2supp').select2({
+        theme: 'bootstrap4'
+    })
+</script>
+<script>
+    let datatable = $("#datatable").DataTable({
+        ordering: true,
+        processing: true,
+        serverSide: false,
+        paging: true,
+        searching: true,
+        scrollY: '300px',
+        scrollX: '300px',
+        scrollCollapse: true,
+        deferLoading: 0,
+        ajax: {
+            url: '{{ route('laporan-stok-opname') }}',
+            data: function(d) {
+                d.itemSO = $('#item_so').val();
+                d.dateFrom = $('#from').val();
+                d.dateTo = $('#to').val();
             },
-            columns: [{
-                data: 'no_transaksi'
-            },
-            {
-                data: 'tipe_item'
-            },
-            {
-                data: 'tgl_saldo'
-            },
-            {
-                data: 'kode_lok'
-            },
-            {
-                data: 'id_jo'
-            },
-            {
-                data: 'id_item'
-            },
-            {
-                data: 'goods_code'
-            },
-            {
-                data: 'itemdesc'
-            },
-            {
-                data: 'qty_show'
-            },
-            {
-                data: 'qty_so_show'
-            },
-            {
-                data: 'qty_sisa_show'
-            },
-            {
-                data: 'status'
-            },
-            {
-                data: 'id'
-            }
-            ],
-            columnDefs: [
-            {
-                targets: [3,4,5,6,7],
-                className: "d-none",
-                render: (data, type, row, meta) => data ? data : "-"
-            },
-            {
-                targets: [12],
-                render: (data, type, row, meta) => {
-                    if (row.status == 'OPEN') {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+        },
+        columns: [{
+            data: 'no_transaksi'
+        },
+        {
+            data: 'tipe_item'
+        },
+        {
+            data: 'tgl_saldo'
+        },
+        {
+            data: 'kode_lok'
+        },
+        {
+            data: 'id_jo'
+        },
+        {
+            data: 'id_item'
+        },
+        {
+            data: 'goods_code'
+        },
+        {
+            data: 'itemdesc'
+        },
+        {
+            data: 'qty_show'
+        },
+        {
+            data: 'qty_so_show'
+        },
+        {
+            data: 'qty_sisa_show'
+        },
+        {
+            data: 'status'
+        },
+        {
+            data: 'id'
+        }
+        ],
+        columnDefs: [
+        {
+            targets: [3,4,5,6,7],
+            className: "d-none",
+            render: (data, type, row, meta) => data ? data : "-"
+        },
+        {
+            targets: [12],
+            render: (data, type, row, meta) => {
+                if (row.status == 'OPEN') {
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
                     <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='draftdata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
                     <a href="{{ route('show-detail-so') }}/`+data+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
                     </div>`;
-                    }else if (row.status == 'DRAFT') {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                }else if (row.status == 'DRAFT') {
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='finaldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
                     <a href="{{ route('show-detail-so') }}/`+data+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
                     </div>`;
-                    }else if (row.status == 'FINAL') {
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                }else if (row.status == 'FINAL') {
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('show-detail-so') }}/`+data+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
                     </div>`;
-                    }else{
-                        return `<div class='d-flex gap-1 justify-content-center'>
+                }else{
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     -
                     </div>`;
 
-                    }
-
                 }
-            },
-
-            ]
-        });
-
-        function dataTableReload() {
-            datatable.ajax.reload();
-        }
-
-        function canceldata($no_transaksi,$id){
-
-            let no_transaksi  = $no_transaksi;
-            let id  = $id;
-
-            Swal.fire({
-              title: "Are you sure?",
-              text: "Cancel Transaksi " + no_transaksi,
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonColor: "#3085d6",
-              cancelButtonColor: "#d33",
-              confirmButtonText: "Yes, Cancel it!",
-              cancelButtonText: "Close"
-          }).then((result) => {
-              if (result.isConfirmed) {
-
-                return $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '{{ route("cancel-report-so") }}',
-                    type: 'get',
-                    data: {
-                        no_transaksi: no_transaksi,
-                    },
-                    success: function (res) {
-                        Swal.fire({
-                            title: "Cancelled!",
-                            text: "Data has been Cancelled.",
-                            icon: "success"
-                        }).then(async (result) => {
-                            window.location.reload()
-                        });
-                    }
-                });
 
             }
-        });
-      }
+        },
 
-      function draftdata($no_transaksi,$id){
+        ]
+    });
+
+    function dataTableReload() {
+        datatable.ajax.reload();
+    }
+
+    function canceldata($no_transaksi,$id){
 
         let no_transaksi  = $no_transaksi;
         let id  = $id;
 
         Swal.fire({
           title: "Are you sure?",
-          text: "Draft Transaksi " + no_transaksi,
+          text: "Cancel Transaksi " + no_transaksi,
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "#3085d6",
           cancelButtonColor: "#d33",
-          confirmButtonText: "Yes, Draft it!",
+          confirmButtonText: "Yes, Cancel it!",
           cancelButtonText: "Close"
       }).then((result) => {
           if (result.isConfirmed) {
@@ -267,15 +219,15 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route("draft-report-so") }}',
+                url: '{{ route("cancel-report-so") }}',
                 type: 'get',
                 data: {
                     no_transaksi: no_transaksi,
                 },
                 success: function (res) {
                     Swal.fire({
-                        title: "Changed!",
-                        text: "Status Data has been Changed.",
+                        title: "Cancelled!",
+                        text: "Data has been Cancelled.",
                         icon: "success"
                     }).then(async (result) => {
                         window.location.reload()
@@ -287,8 +239,49 @@
     });
   }
 
+  function draftdata($no_transaksi,$id){
 
-  function finaldata($no_transaksi,$id){
+    let no_transaksi  = $no_transaksi;
+    let id  = $id;
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Draft Transaksi " + no_transaksi,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Draft it!",
+      cancelButtonText: "Close"
+  }).then((result) => {
+      if (result.isConfirmed) {
+
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("draft-report-so") }}',
+            type: 'get',
+            data: {
+                no_transaksi: no_transaksi,
+            },
+            success: function (res) {
+                Swal.fire({
+                    title: "Changed!",
+                    text: "Status Data has been Changed.",
+                    icon: "success"
+                }).then(async (result) => {
+                    window.location.reload()
+                });
+            }
+        });
+
+    }
+});
+}
+
+
+function finaldata($no_transaksi,$id){
 
     let no_transaksi  = $no_transaksi;
     let id  = $id;

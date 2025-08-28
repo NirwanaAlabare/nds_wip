@@ -113,8 +113,8 @@
                             <th>Blc Loading</th>
                             <th>Sewing</th>
                             <th>Blc Sewing</th>
-                            <th>Finishing</th>
-                            <th>Blc Finishing</th>
+                            <th>QC Finishing</th>
+                            <th>Blc QC Finishing</th>
                             <th>Packing Scan</th>
                             <th>Blc Packing Scan</th>
                             <th>Shipment</th>

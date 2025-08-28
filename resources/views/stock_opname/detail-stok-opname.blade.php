@@ -1,3 +1,4 @@
+
 @extends('layouts.index')
 
 @section('custom-link')
@@ -15,49 +16,47 @@
 <form action="{{ route('export_excel_pemasukan') }}" method="get">
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Detail Stock Opname</h5>
+            <h5 class="card-title fw-bold mb-0">
+                <i class="fas fa-file-alt fa-sm"></i> Detail Stock Opname
+            </h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-1 mb-3">
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label>Tipe Item</label>
-                        <select class="form-control select2supp" id="item_so" name="item_so" style="width: 100%;">
-                            <option selected="selected" value="">Select item</option>
-                            @foreach ($item_so as $item)
-                            <option value="{{ $item->nama_pilihan }}">{{ $item->nama_pilihan }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+            <div class="row g-3 align-items-end">
+
+                <!-- Tipe Item -->
+                <div class="col-12 col-md-3">
+                    <label for="item_so" class="form-label">Tipe Item</label>
+                    <select class="form-control select2supp" id="item_so" name="item_so" style="width: 100%;">
+                        <option value="" selected>Select item</option>
+                        @foreach ($item_so as $item)
+                        <option value="{{ $item->nama_pilihan }}">{{ $item->nama_pilihan }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label">From</label>
-                        <input type="date" class="form-control form-control" id="from" name="from"
-                        value="{{ date('Y-m-d') }}">
-                    </div>
+
+                <!-- From Date -->
+                <div class="col-6 col-md-2">
+                    <label for="from" class="form-label">From</label>
+                    <input type="date" class="form-control" id="from" name="from" value="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label">To</label>
-                        <input type="date" class="form-control form-control" id="to" name="to"
-                        value="{{ date('Y-m-d') }}">
-                    </div>
+
+                <!-- To Date -->
+                <div class="col-6 col-md-2">
+                    <label for="to" class="form-label">To</label>
+                    <input type="date" class="form-control" id="to" name="to" value="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        {{-- <button class="btn btn-primary btn" onclick="export_excel()">Search</button> --}}
-                        <input type='button' class='btn btn-primary btn' onclick="dataTableReload();" value="Search">
-                        <a onclick="export_excel()" class="btn btn-success position-relative btn">
-                            <i class="fas fa-file-excel"></i>
-                            Export
-                        </a>
-                        <!-- <button type='submit' name='submit' class='btn btn-success btn-sm'>
-                            <i class="fas fa-file-excel"></i> Export</button> -->
-                        </div>
-                    </div>
+
+                <!-- Buttons -->
+                <div class="col-12 col-md-5 d-flex gap-2">
+                    <input type="button" class="btn btn-primary" onclick="dataTableReload();" value="Search">
+                    <a href="javascript:void(0);" onclick="export_excel()" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Export
+                    </a>
                 </div>
-            </form>
+
+            </div>
+        
+
     <!-- <div class="d-flex justify-content-between">
             <div class="ml-auto">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -89,10 +88,19 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="12" style="text-align:right; font-size: 14pz;">TOTAL :</th>
+                            <th></th> <!-- qty_so -->
+                            <th></th> <!-- qty -->
+                            <th colspan="3"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
     </div>
+</form>
     @endsection
 
     @section('custom-script')
@@ -111,14 +119,15 @@
     </script>
     <script>
         let datatable = $("#datatable").DataTable({
-            ordering: false,
+            ordering: true,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            deferLoading: 0,
             ajax: {
                 url: '{{ route('detail-stok-opname') }}',
                 data: function(d) {
@@ -127,70 +136,52 @@
                     d.dateTo = $('#to').val();
                 },
             },
-            columns: [{
-                data: 'tipe_item'
-            },
-            {
-                data: 'no_dokumen'
-            },
-            {
-                data: 'tgl_dokumen'
-            },
-            {
-                data: 'no_barcode'
-            },
-            {
-                data: 'lokasi_scan'
-            },
-            {
-                data: 'lokasi_aktual'
-            },
-            {
-                data: 'id_jo'
-            },
-            {
-                data: 'id_item'
-            },
-            {
-                data: 'goods_code'
-            },
-            {
-                data: 'itemdesc'
-            },
-            {
-                data: 'no_lot'
-            },
-            {
-                data: 'no_roll'
-            },
-            {
-                data: 'qty_so'
-            },
-            {
-                data: 'qty'
-            },
-            {
-                data: 'unit'
-            },
-            {
-                data: 'created_by'
-            },
-            {
-                data: 'created_at'
-            }
+            columns: [
+            { data: 'tipe_item' },
+            { data: 'no_dokumen' },
+            { data: 'tgl_dokumen' },
+            { data: 'no_barcode' },
+            { data: 'lokasi_scan' },
+            { data: 'lokasi_aktual' },
+            { data: 'id_jo' },
+            { data: 'id_item' },
+            { data: 'goods_code' },
+            { data: 'itemdesc' },
+            { data: 'no_lot' },
+            { data: 'no_roll' },
+            { data: 'qty_so' },
+            { data: 'qty' },
+            { data: 'unit' },
+            { data: 'created_by' },
+            { data: 'created_at' }
             ],
             columnDefs: [
-            // {
-            //     targets: [25],
-            //     className: "d-none",
-            //     render: (data, type, row, meta) => data ? data : "-"
-            // },
             {
                 targets: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
                 render: (data, type, row, meta) => data ? data : "-"
-            }
-            ]
-        });
+            },
+            {
+            targets: [12,13], // qty_so dan qty
+            render: $.fn.dataTable.render.number(',', '.', 0, '') // number format
+        }
+        ],
+        footerCallback: function(row, data, start, end, display) {
+            let api = this.api();
+
+        // Total kolom qty_so (index 12) dan qty (index 13)
+        let intVal = function(i) {
+            return typeof i === 'string' ? i.replace(/[\$,]/g, '')*1 : typeof i === 'number' ? i : 0;
+        };
+
+        let totalQtySO = api.column(12).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+        let totalQty = api.column(13).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+        // Tampilkan di footer
+        $(api.column(12).footer()).html(totalQtySO.toLocaleString());
+        $(api.column(13).footer()).html(totalQty.toLocaleString());
+    }
+});
+
 
         function dataTableReload() {
             datatable.ajax.reload();

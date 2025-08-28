@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\Piping;
 use App\Models\Cutting\PipingProcess;
 use App\Models\Cutting\PipingProcessDetail;
 use App\Models\Cutting\PipingLoading;
@@ -383,25 +384,92 @@ class PipingProcessController extends Controller
             form_cut_input_detail.unit
         ")->
         where("form_cut_input_detail.id_roll", $id)->
+        whereRaw("form_cut_input_detail.unit LIKE '%METER%'")->
         groupBy("form_cut_input_detail.id_roll")->
         having("piping", ">", 0)->
         first();
+
+        if (!$piping) {
+            $piping = Piping::selectRaw("
+                form_cut_piping.id as form_cut_id,
+                form_cut_piping.no_form as no_form_cut_input,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                '-' color_act,
+                '-' group_roll,
+                scanned_item.lot,
+                COALESCE(scanned_item.roll_buyer, scanned_item.roll) no_roll,
+                SUM(form_cut_piping.piping) piping,
+                form_cut_piping.unit
+            ")->
+            leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_piping.id_roll")->
+            where("form_cut_piping.id_roll", $id)->
+            whereRaw("form_cut_piping.unit LIKE '%METER%'")->
+            groupBy("form_cut_piping.id_roll")->
+            having("piping", ">", 0)->
+            first();
+        }
 
         return $piping;
     }
 
     public function itemForms($id = 0) {
-        $forms = FormCutInput::select("form_cut_input.id", "form_cut_input.no_form")->
-            leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
-            where("form_cut_input_detail.id_roll", $id)->
-            groupBy("form_cut_input.id")->
-            get();
+        $forms = collect(DB::select("
+            SELECT
+                `form_cut_input`.`id`,
+                `form_cut_input`.`no_form`,
+                'normal' as type
+            FROM
+                `form_cut_input`
+                LEFT JOIN `form_cut_input_detail` ON `form_cut_input_detail`.`form_cut_id` = `form_cut_input`.`id`
+            WHERE
+                `form_cut_input_detail`.`id_roll` = '".$id."'
+                AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 2 YEAR )
+                AND form_cut_input_detail.piping > 0
+                AND form_cut_input_detail.unit LIKE '%METER%'
+            GROUP BY
+                `form_cut_input`.`id`
+            UNION
+            SELECT
+                form_cut_piping.id,
+                form_cut_piping.no_form,
+                'piping' as type
+            FROM
+                form_cut_piping
+            WHERE
+                `form_cut_piping`.`id_roll` = '".$id."'
+                AND form_cut_piping.tanggal_piping >= DATE ( NOW()- INTERVAL 2 YEAR )
+                AND form_cut_piping.piping > 0
+                AND form_cut_piping.unit LIKE '%METER%'
+            GROUP BY
+                `form_cut_piping`.`id`
+        "));
 
         return $forms;
     }
 
-    public function itemPiping($id = 0, $idForm = 0) {
-        $piping = FormCutInput::selectRaw("
+    public function itemPiping($id = 0, $idForm = 0, $type = null) {
+        if ($type == "piping") {
+            $piping = Piping::selectRaw("
+                form_cut_piping.id as form_cut_id,
+                form_cut_piping.no_form as no_form_cut_input,
+                scanned_item.id_item,
+                form_cut_piping.color as color_act,
+                '-' group_roll,
+                scanned_item.lot,
+                COALESCE(scanned_item.roll_buyer, scanned_item.roll) no_roll,
+                SUM(form_cut_piping.piping) piping,
+                form_cut_piping.unit
+            ")->
+            leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_piping.id_roll")->
+            where("form_cut_piping.id_roll", $id)->
+            where("form_cut_piping.id", $idForm)->
+            whereRaw("form_cut_piping.unit LIKE '%METER%'")->
+            groupBy("form_cut_piping.id_roll", "form_cut_piping.id")->
+            having("piping", ">", 0)->
+            first();
+        } else {
+            $piping = FormCutInput::selectRaw("
                 form_cut_input_detail.form_cut_id,
                 form_cut_input_detail.no_form_cut_input,
                 form_cut_input_detail.id_item,
@@ -415,9 +483,11 @@ class PipingProcessController extends Controller
             leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
             where("form_cut_input_detail.id_roll", $id)->
             where("form_cut_input.id", $idForm)->
+            whereRaw("form_cut_input_detail.unit LIKE '%METER%'")->
             groupBy("form_cut_input_detail.id_roll", "form_cut_input.id")->
             having("piping", ">", 0)->
             first();
+        }
 
         return $piping;
     }

@@ -542,7 +542,7 @@ Route::middleware('auth')->group(function () {
         // Item Forms
         Route::get('/item/{id?}', 'item')->name('item-piping');
         Route::get('/item/forms/{id?}', 'itemForms')->name('item-forms-piping');
-        Route::get('/item/piping/{id?}/{idForm?}', 'itemPiping')->name('item-piping-piping');
+        Route::get('/item/piping/{id?}/{idForm?}/{type?}', 'itemPiping')->name('item-piping-piping');
     });
 
     // Piping Loading
@@ -1326,7 +1326,10 @@ Route::middleware('auth')->group(function () {
     Route::controller(StockOpnameController::class)->prefix("so")->group(function () {
         // get worksheet
         Route::get('stock_opname/', 'index')->name('stock_opname');
+        Route::get('/list-data-stok', 'ListDataStok')->name('list-data-stok');
+        Route::get('/cancel-data-opname', 'cancelopname')->name('cancel-data-opname');
         Route::get('/datarak', 'datarak')->name('data-rak');
+        Route::get('/get-detail-opname', 'GetdetailOpname')->name('get-detail-opname');
         Route::get('/copysaldostok', 'copysaldostok')->name('copy-saldo-stokopname');
         Route::get('/copysaldostokpartial', 'copysaldostokpartial')->name('copy-saldo-stokopname-partial');
         Route::get('/replacesaldostok', 'replacesaldostok')->name('replace-saldo-stokopname');
@@ -1359,6 +1362,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
         Route::get('/list-scan-barcode2', 'listscanbarcode2')->name('list-scan-barcode-so2');
         Route::get('/list-scan-barcode3', 'listscanbarcode3')->name('list-scan-barcode-so3');
+        Route::post('/simpan-barcode-force', 'SimpanBarcodeForce')->name('simpan-barcode-force');
     });
 
     // stock opname
@@ -1553,6 +1557,7 @@ Route::middleware('auth')->group(function () {
     //laporan mutasi barcode
     Route::controller(LapMutasiBarcodeController::class)->prefix("lap-mutasi-barcode")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('lap-mutasi-barcode');
+        Route::post('/copy_saldo_mutasi_barcode', 'CopySaldo')->name('copy-saldo-mutasi-barcode');
         // export excel
         Route::get('/export_excel_mut_barcode', 'export_excel_mut_barcode')->name('export_excel_mut_barcode');
         // Route::get('/export', 'export')->name('export');

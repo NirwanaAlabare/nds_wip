@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\FormCutRejectDetail;
+use App\Models\Dc\DCIn;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\TrolleyStocker;
+use App\Models\Dc\LoadingLine;
 use App\Models\Part\PartDetail;
 use App\Models\Stocker\Stocker;
 use Maatwebsite\Excel\Facades\Excel;
@@ -342,7 +347,26 @@ class CuttingFormRejectController extends Controller
             $deleteFormCutReject = FormCutReject::where("id", $id)->delete();
 
             if ($deleteFormCutReject) {
+
+                // Detail
                 $deleteFormCutRejectDetail = FormCutRejectDetail::where("form_id", $id)->delete();
+
+                // Stocker
+                $stockers = Stocker::where("form_reject_id", $id)->get();
+                if ($stockers) {
+                    $stockerIds = $stockers->pluck("id")->toArray();
+                    $stockerIdQrs = $stockers->pluck("id_qr_stocker")->toArray();
+
+                    $deleteLoadingLine = LoadingLine::whereIn("stocker_id", $stockerIds)->delete();
+                    $deleteTrolleyStock = TrolleyStocker::whereIn("stocker_id", $stockerIds)->delete();
+                    $deleteDc = DCIn::whereIn("id_qr_stocker", $stockerIdQrs)->delete();
+                    $deleteSecInhouse = SecondaryInhouse::whereIn("id_qr_stocker", $stockerIdQrs)->delete();
+                    $deleteSecIn = SecondaryIn::whereIn("id_qr_stocker", $stockerIdQrs)->delete();
+
+                    $deleteStocker = Stocker::where("form_reject_id", $id)->delete();
+
+                    \Log::channel("deleteStockerAbout")->info(["Delete Stockerabout", $stockerIds, $stockerIdQrs, "Loading Line", $deleteLoadingLine, "Trolley Stock", $deleteTrolleyStock, "Sec IN", $deleteSecIn, "Sec Inhouse", $deleteSecInhouse, "DC", $deleteDc, "Stocker", $deleteStocker]);
+                }
 
                 return array(
                     "status" => 200,

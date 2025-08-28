@@ -868,14 +868,14 @@ class GeneralController extends Controller
 
                 $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
 
-                if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
-                    $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+                if (($item[0]->unit != "PCS" || $item[0]->unit != "PCE")) {
+                    $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
                     $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
                     $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
                 } else {
-                    $newItemQtyStok = $newItem[0]->qty_stok;
-                    $newItemQty = $newItem[0]->qty;
-                    $newItemUnit = $newItem[0]->unit;
+                    $itemQtyStok = $item[0]->qty;
+                    $itemQty = $item[0]->qty;
+                    $itemUnit = $item[0]->unit;
                 }
 
                 if ($scannedItemUpdate) {
