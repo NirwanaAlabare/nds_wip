@@ -2118,6 +2118,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(QCInspectLaporanController::class)->prefix("proses-form-inspect")->middleware('warehouse')->group(function () {
         Route::get('/qc_inspect_laporan_roll', 'qc_inspect_laporan_roll')->name('qc_inspect_laporan_roll');
         Route::get('/export_excel_qc_inspect_roll', 'export_excel_qc_inspect_roll')->name('export_excel_qc_inspect_roll');
+        Route::get('/qc_inspect_laporan_lot', 'qc_inspect_laporan_lot')->name('qc_inspect_laporan_lot');
+        Route::get('/export_excel_qc_inspect_lot', 'export_excel_qc_inspect_lot')->name('export_excel_qc_inspect_lot');
     });
 });
 

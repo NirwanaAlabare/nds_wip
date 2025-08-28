@@ -281,23 +281,36 @@
                     responseType: 'blob'
                 },
                 success: function(response) {
-                    {
-                        swal.close();
-                        Swal.fire({
-                            title: 'Data Sudah Di Export!',
-                            icon: "success",
-                            showConfirmButton: true,
-                            allowOutsideClick: false
-                        });
-                        var blob = new Blob([response]);
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Laporan QC Inspect Roll " + from + " sampai " +
-                            to + ".xlsx";
-                        link.click();
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Data Sudah Di Export!',
+                        icon: "success",
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
 
-                    }
+                    var blob = new Blob([response]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Laporan QC Inspect Roll " + from + " sampai " + to + ".xlsx";
+                    link.click();
                 },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Gagal Mengekspor Data',
+                        text: 'Terjadi kesalahan saat mengekspor. Silakan coba lagi.',
+                        icon: 'error',
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    console.error("Export failed:", {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
+                }
             });
         }
     </script>

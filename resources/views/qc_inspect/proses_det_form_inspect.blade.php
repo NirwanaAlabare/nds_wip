@@ -1694,37 +1694,43 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Replace with your actual finish route
-                    $.ajax({
-                        type: 'POST',
-                        url: '{{ route('finish_form_inspect') }}',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            id: $('#id').val(),
-                            txtno_form: $('#txtno_form').val(),
-                            final_result: final_result,
-                            short_roll_result: short_roll_result,
-                        },
-                        success: function(response) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Selesai!',
-                                text: response.message || 'Data berhasil disimpan.'
-                            }).then(() => {
-                                location.reload(); // Do final reload
-                            });
-                        },
-                        error: function(xhr) {
-                            console.error('Finish Error:', xhr.responseText);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: 'Gagal menyimpan data.'
-                            });
-                        }
-                    });
+                    // Run the calculation
+                    calculate_act_point();
+
+                    // Wait 500 milliseconds before sending AJAX
+                    setTimeout(() => {
+                        $.ajax({
+                            type: 'POST',
+                            url: '{{ route('finish_form_inspect') }}',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                id: $('#id').val(),
+                                txtno_form: $('#txtno_form').val(),
+                                final_result: final_result,
+                                short_roll_result: short_roll_result,
+                            },
+                            success: function(response) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Selesai!',
+                                    text: response.message || 'Data berhasil disimpan.'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            },
+                            error: function(xhr) {
+                                console.error('Finish Error:', xhr.responseText);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Gagal menyimpan data.'
+                                });
+                            }
+                        });
+                    }, 2000); // Adjust delay if needed
                 }
             });
+
         }
 
 

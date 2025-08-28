@@ -1202,6 +1202,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Report Inspection Roll
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc_inspect_laporan_lot') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-laporan-lot' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Report Inspection Lot
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
