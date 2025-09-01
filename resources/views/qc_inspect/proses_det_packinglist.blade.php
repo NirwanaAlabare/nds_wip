@@ -545,7 +545,7 @@
                         searchable: false,
                         render: function(data, type, row) {
                             let html = `
-        <div class="text-center align-middle visual-input">
+                    <div class="text-center align-middle visual-input">
             <input
                 type="button"
                 class="btn btn-primary btn-sm"
@@ -580,6 +580,15 @@
                 class="btn btn-warning btn-sm ms-2"
                 value="Blanket"
                 onclick="show_list_blanket('${data.id_item}', '${data.id_jo}', '${data.no_invoice}', '${data.no_lot}')">`;
+
+                            // ✅ Add your new "Print" button here
+                            html +=
+                                `
+        <input
+            type="button"
+            class="btn btn-info btn-sm ms-2"
+            value="Print Sticker"
+onclick="print_inspection('${data.id_item}', '${data.id_jo}', '${data.no_invoice}', '${data.no_lot}', '${data.final_result}')">`;
 
                             html += `</div>`;
                             return html;
@@ -1417,6 +1426,15 @@
             $('#passCheckbox').prop('checked', isPassWithCondition);
 
             updateResult();
+        }
+
+
+        const printStickerPackingListUrl = "{{ route('print_sticker_packing_list') }}";
+
+        function print_inspection(id_item, id_jo, no_invoice, no_lot, final_result) {
+            const url =
+                `${printStickerPackingListUrl}?id_item=${encodeURIComponent(id_item)}&id_jo=${encodeURIComponent(id_jo)}&no_invoice=${encodeURIComponent(no_invoice)}&no_lot=${encodeURIComponent(no_lot)}&final_result=${encodeURIComponent(final_result)}`;
+            window.open(url, '_blank');
         }
     </script>
 @endsection

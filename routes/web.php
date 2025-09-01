@@ -179,6 +179,7 @@ use App\Http\Controllers\QCInspectDashboardController;
 use App\Http\Controllers\QCInspectMasterController;
 use App\Http\Controllers\QCInspectProsesPackingListController;
 use App\Http\Controllers\QCInspectProsesFormInspectController;
+use App\Http\Controllers\QCInspectProsesFabricRelaxationController;
 use App\Http\Controllers\QCInspectLaporanController;
 
 //maintain-bpb
@@ -2099,6 +2100,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_modal_defect_packing_list', 'show_modal_defect_packing_list')->name('show_modal_defect_packing_list');
         Route::post('/delete_modal_defect_packing_list', 'delete_modal_defect_packing_list')->name('delete_modal_defect_packing_list');
         Route::get('/export_pdf_list_defect/{id_lok_in_material?}', 'export_pdf_list_defect')->name('export_pdf_list_defect');
+        Route::get('/print_sticker_packing_list', 'print_sticker_packing_list')->name('print_sticker_packing_list');
     });
 
     // Proses Form Inspect
@@ -2117,6 +2119,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/qc_inspect_show_act_point', 'qc_inspect_show_act_point')->name('qc_inspect_show_act_point');
         Route::post('/finish_form_inspect', 'finish_form_inspect')->name('finish_form_inspect');
         Route::get('/show_calculate_width_length', 'show_calculate_width_length')->name('show_calculate_width_length');
+    });
+
+    // Proses Form Inspect
+    Route::controller(QCInspectProsesFabricRelaxationController::class)->prefix("proses-fabric-relaxation")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('qc_inspect_proses_fabric_relaxation');
+        Route::get('/input_fabric_relaxation', 'input_fabric_relaxation')->name('input_fabric_relaxation');
     });
 
     // Laporan QC Inspect

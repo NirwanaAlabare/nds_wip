@@ -268,9 +268,9 @@
         </button>
 
             ${data.status_pdf === 'Y' ? `
-                                                                                                                            <a class="btn btn-outline-danger position-relative btn-sm"
-                                                                                                                            href="{{ route('export_qc_inspect') }}/${data.id_lok_in_material}" title="PDF" target="_blank">PDF
-                                                                                                                            </a>` : ''}
+    <a class="btn btn-outline-danger position-relative btn-sm"
+    href="{{ route('export_qc_inspect') }}/${data.id_lok_in_material}" title="PDF" target="_blank">PDF
+    </a>` : ''}
         `;
                     }
                 },

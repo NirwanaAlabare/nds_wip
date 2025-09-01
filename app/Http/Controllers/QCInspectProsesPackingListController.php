@@ -8,6 +8,7 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use PDF;
+use PhpParser\Node\Stmt\Else_;
 
 class QCInspectProsesPackingListController extends Controller
 {
@@ -1910,6 +1911,80 @@ order by no_lot asc
             'data_header' => $data_header,
             'data_list' => $data_list,
         ])->setPaper('a4', 'portrait');
+
+        // Set filename and return download
+        $fileName = 'pdf.pdf';
+        return $pdf->download(str_replace("/", "_", $fileName));
+    }
+
+    public function print_sticker_packing_list(Request $request)
+    {
+        // Fetch header data using raw SQL query
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $no_invoice = $request->no_invoice;
+        $no_lot = $request->no_lot;
+        $final_result = $request->final_result;
+
+        $data_hold = DB::connection('mysql_sb')->select("
+        select count(barcode) tot_hold from qc_inspect_form where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_invoice' and no_lot = '$no_lot' and final_result = 'HOLD'
+    ");
+
+        $cek_hold = $data_hold[0]->tot_hold;
+        if ($cek_hold == 0) {
+            $cond = "WHEN bpb.final_result_lot = 'PASS' AND qc.final_result IS NULL THEN 'PASS'";
+        } else {
+            $cond = "WHEN bpb.final_result_lot = 'PASS' AND qc.final_result IS NULL THEN 'HOLD'";
+        }
+
+        $data_header = DB::connection('mysql_sb')->select("
+with bpb as (
+SELECT
+c.id_item, no_barcode, '$final_result' as final_result_lot from whs_inmaterial_fabric a
+inner join whs_inmaterial_fabric_det b on a.no_dok = b.no_dok
+inner join whs_lokasi_inmaterial c on b.id_item = c.id_item and b.id_jo = c.id_jo
+where c.id_item = '$id_item' and c.id_jo = '$id_jo' and no_invoice = '$no_invoice' and no_lot = '$no_lot' and c.status = 'Y'
+order by no_barcode asc
+),
+qc as (
+SELECT
+barcode,
+final_result
+from qc_inspect_form
+where id_item = '$id_item' and id_jo = '$id_jo' and no_invoice = '$no_invoice' and no_lot = '$no_lot'
+)
+
+select
+id_item,
+bpb.no_barcode,
+qc.barcode,
+bpb.final_result_lot,
+qc.final_result as final_result_inspect,
+CASE
+WHEN bpb.final_result_lot = 'PASS' AND qc.final_result IS NULL THEN 'PASS'
+WHEN bpb.final_result_lot = 'REJECT' AND qc.final_result IS NULL THEN 'REJECT'
+WHEN bpb.final_result_lot = 'PWC' AND qc.final_result IS NULL THEN 'PWC'
+WHEN bpb.final_result_lot = 'PASS' AND qc.final_result = 'PASS' THEN 'PASS'
+WHEN bpb.final_result_lot = 'PASS' AND qc.final_result = 'REJECT' THEN 'REJECT'
+WHEN bpb.final_result_lot = 'PASS' AND qc.final_result = 'HOLD' THEN 'HOLD'
+$cond
+WHEN bpb.final_result_lot = 'REJECT' AND qc.final_result = 'REJECT' THEN 'REJECT'
+WHEN bpb.final_result_lot = 'REJECT' AND qc.final_result = 'PASS' THEN 'PASS'
+WHEN bpb.final_result_lot = 'PASS WITH CONDITION' AND qc.final_result = 'REJECT' THEN 'PWC'
+WHEN bpb.final_result_lot = 'PASS WITH CONDITION' AND qc.final_result = 'PASS' THEN 'PASS'
+END AS result_sticker
+
+from bpb
+left join qc on bpb.no_barcode = qc.barcode
+    ");
+
+        // Generate PDF from the view
+        $pdf = PDF::loadView('qc_inspect.pdf_qc_inspect_print_sticker', [
+            'data_header' => $data_header,
+        ])->setPaper([0, 0, 113.39, 85.04]);
+
+
+
 
         // Set filename and return download
         $fileName = 'pdf.pdf';

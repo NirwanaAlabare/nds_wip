@@ -719,7 +719,10 @@ INNER JOIN b ON c.no_form = b.no_form;
                             SUM(over_9) * 4
                         ) * 36 * 100
                     ) / (
-                        a.cuttable_width_act *
+                        AVG(CASE
+            WHEN cuttable_width_act > 0 THEN cuttable_width_act
+            ELSE NULL
+        END)*
                             CASE
                                 WHEN b.unit_act_length = 'meter' THEN b.act_length / 0.9144
                                 ELSE b.act_length

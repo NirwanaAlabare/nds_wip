@@ -203,7 +203,10 @@ CASE
          THEN IF(qc.founding_issue IS NULL, 'PASS', 'HOLD')
     ELSE NULL
 END AS founding_issue_result,
-UPPER(qc.result) result,
+CASE
+		WHEN qc.result = 'REJECT' AND qc.pass_with_condition = 'Y' THEN 'PASS WITH CONDITION'
+		ELSE UPPER(qc.result)
+		END as result,
 qc.short_roll_result,
 qc.final_result
 from whs_lokasi_inmaterial a

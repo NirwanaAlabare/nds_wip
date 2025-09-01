@@ -1201,6 +1201,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Form Inspect
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc_inspect_proses_fabric_relaxation') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-proses-fabric-relaxation' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Fabric Relaxation
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
