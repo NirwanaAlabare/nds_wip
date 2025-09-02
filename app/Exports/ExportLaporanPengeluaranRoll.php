@@ -64,7 +64,7 @@ left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_j
 left join (select bppbno as no_req,idws_act from bppb_req group by no_req) br on a.no_req = br.no_req 
 left join so on tmpjod.id_so=so.id 
 left join act_costing ac on so.id_cost=ac.id  
-where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $this->from . "' and '" . $this->to . "' and matclass= 'FABRIC' GROUP BY b.id order by a.no_bppb) a
+where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $this->from . "' and '" . $this->to . "' GROUP BY b.id order by a.no_bppb) a
 UNION
 select * , CONCAT_WS('',no_bppb,tgl_bppb,no_req,tujuan,no_barcode,no_roll,no_lot,qty_out,unit,id_item,id_jo,ws,goods_code,itemdesc,color,size,remark,username,confirm_by)cari_data from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb,'' no_req,'Mutasi Lokasi' tujuan,c.no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,c.id_jo,ac.kpno ws,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by
 from whs_mut_lokasi_h a 
