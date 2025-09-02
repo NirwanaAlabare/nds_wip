@@ -52,7 +52,7 @@ left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_j
 left join (select bppbno as no_req,idws_act from bppb_req group by no_req) br on a.no_req = br.no_req
 left join so on tmpjod.id_so=so.id
 left join act_costing ac on so.id_cost=ac.id
-where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel'  " . $additionalQuery . " and matclass= 'FABRIC' GROUP BY b.id_jo,b.id_item,b.no_bppb order by a.no_bppb) a");
+where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel'  " . $additionalQuery . " GROUP BY b.id_jo,b.id_item,b.no_bppb order by a.no_bppb) a");
 
 
 
