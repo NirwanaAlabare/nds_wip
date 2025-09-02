@@ -1973,4 +1973,117 @@ class SewingToolsController extends Controller
             "message" => "Harap tentukan line dan masterplan.",
         );
     }
+
+    public function modifyOutput(Request $request) {
+        $lines = UserLine::select('line_id', "username")->where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
+
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        return view("sewing.tools.modify-output", ["lines" => $lines, "orders" => $orders]);
+    }
+
+    public function modifyOutputAction(Request $request) {
+        switch ($request->type) {
+            case 'rft_' :
+                // Take Rft
+                $rfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept." as output_rfts")
+                    ->select("output_rfts.*")
+                    ->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id");
+                    if ($request->dept == "_packing") {
+                        $rfts->leftJoin("userpassword", "userpassword.username", "=", "output_rfts.created_by");
+                    } else {
+                        $rfts->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id");
+                    }
+                    $rfts->where("output_rfts.status", "NORMAL")
+                    ->where("userpassword.username", $request->line)
+                    ->where("master_plan.id", $request->master_plan_id)
+                    ->where("output_rfts.so_det_id", $request->so_det_id)
+                    ->take($request->qty);
+
+                $rftIds = $rfts->pluck("id")->toArray();
+
+                if (count($rftIds) > 0) {
+                    // Check So Det
+                    $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                        ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                        ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                        ->where("so_det.id", $request->mod_so_det_id)
+                        ->first();
+
+                    if ($modSoDet) {
+                        // Check Master Plan
+                        $modMasterPlan = MasterPlan::select("master_plan.id")
+                            ->where("tgl_plan", $request->tanggal)
+                            ->where("id_ws", $modSoDet->id_ws)
+                            ->where("color", $modSoDet->color)
+                            ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                            ->first();
+
+                        if ($modMasterPlan) {
+                            $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update([
+                                "so_det_id"       => $modSoDet->id,
+                                "master_plan_id"  => $modMasterPlan->id,
+                            ]);
+
+                            if ($updateRfts) {
+                                return [
+                                    "status"  => 200,
+                                    "message" => $updateRfts." RFT berhasil di ubah.",
+                                ];
+                            }
+                        } else {
+                            return [
+                                "status"  => 400,
+                                "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+                            ];
+                        }
+                    } else {
+                        return [
+                            "status"  => 400,
+                            "message" => "Size tujuan tidak ditemukan.",
+                        ];
+                    }
+                }
+
+                break;
+
+            default:
+                return [
+                    "status"  => 400,
+                    "message" => "Terjadi kesalahan.",
+                ];
+        }
+    }
+
+    public function getMasterPlan(Request $request) {
+        // Master Plan for From
+        $fromMasterPlanSql = MasterPlan::selectRaw('
+                master_plan.id,
+                master_plan.tgl_plan as tanggal,
+                master_plan.id_ws as id_ws,
+                act_costing.kpno as no_ws,
+                act_costing.styleno as style,
+                master_plan.color as color,
+                master_plan.cancel
+            ')->
+            leftJoin('act_costing', 'act_costing.id', '=', 'master_plan.id_ws');
+            // where('master_plan.cancel', '!=', 'Y');
+
+        // Date Filter
+        if ($request->date) {
+            $fromMasterPlanSql->whereRaw('master_plan.tgl_plan = "'.$request->date.'"');
+        } else {
+            $fromMasterPlanSql->whereRaw('YEAR(master_plan.tgl_plan) = "'.date('Y').'"');
+        }
+        // Line Filter
+        if ($request->line) {
+            $fromMasterPlanSql->where('master_plan.sewing_line', $request->line);
+        }
+        $fromMasterPlans = $fromMasterPlanSql->
+            orderBy('master_plan.tgl_plan', 'desc')->
+            orderBy('act_costing.kpno', 'asc')->
+            get();
+
+        return $fromMasterPlans;
+    }
 }

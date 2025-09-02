@@ -93,6 +93,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-output') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Modify Output</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

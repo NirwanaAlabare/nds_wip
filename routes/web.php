@@ -259,6 +259,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-master-plan', 'getMasterPlan')->name('get-master-plan');
         Route::get('/get-master-plan-detail/{id?}', 'getMasterPlanDetail')->name('get-master-plan-detail');
         Route::get('/get-master-plan-output', 'getMasterPlanOutput')->name('get-master-plan-output');
+        Route::get('/get-master-plan-output-size', 'getMasterPlanOutputSize')->name('get-master-plan-output-size');
     });
 
     // Worksheet
@@ -1253,6 +1254,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
+
+        Route::get('/modify-output', 'modifyOutput')->name("modify-output");
+        Route::post('/modify-output/action', 'modifyOutputAction')->name("modify-output-action");
     });
 
     // Mutasi Mesin
