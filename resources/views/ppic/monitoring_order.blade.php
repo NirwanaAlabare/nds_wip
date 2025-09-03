@@ -228,7 +228,8 @@
                             const expectedValue = goals[0].value;
                             const difference = expectedValue - val; // Calculate the difference
                             // Format the difference with parentheses and a sign
-                            const formattedDifference = difference >= 0 ? `(-${difference})` : `(${difference})`;
+                            const formattedDifference = Number(difference) > 0 ? `(-${difference})` : `(${difference*-1})`;
+                            console.log(formattedDifference, difference, val, expectedValue, Number(difference) >= 0);
                             return `${val} ${formattedDifference} / ${expectedValue}`; // Format the output
                         }
                         return val;

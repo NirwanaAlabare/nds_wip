@@ -506,14 +506,14 @@ class OutMaterialController extends Controller
         $timestamp = Carbon::now();
 
     // Update detail tabel lain
-        DB::update("
+        DB::connection('mysql_sb')->update("
             UPDATE bppb 
             SET qty_old = qty, qty = 0, cancel = 'Y' 
             WHERE bppbno_int = ?
             ", [$request['txt_nodok']]);
 
         if ($request->type === 'cancel_with_mr') {
-            DB::update("
+            DB::connection('mysql_sb')->update("
                 UPDATE bppb_req 
                 SET qty_old = qty, qty = 0, cancel = 'Y', qty_out = 0 
                 WHERE bppbno = (
@@ -521,7 +521,7 @@ class OutMaterialController extends Controller
                 )
                 ", [$request['txt_nodok']]);
         } else{
-            DB::update("
+            DB::connection('mysql_sb')->update("
                 UPDATE bppb_req 
                 SET qty_out = null
                 WHERE bppbno = (
@@ -530,13 +530,13 @@ class OutMaterialController extends Controller
                 ", [$request['txt_nodok']]);
         }
 
-        DB::update("
+        DB::connection('mysql_sb')->update("
             UPDATE whs_bppb_h 
             SET status = 'Cancel' 
             WHERE no_bppb = ?
             ", [$request['txt_nodok']]);
 
-        DB::update("
+        DB::connection('mysql_sb')->update("
             UPDATE whs_bppb_det 
             SET qty_stok = qty_out, qty_out = 0, status = 'N' 
             WHERE no_bppb = ?
