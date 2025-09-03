@@ -82,6 +82,7 @@ use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\UndoOutputController;
 use App\Http\Controllers\Sewing\ReportDefectController;
+use App\Http\Controllers\Sewing\ReportRejectController;
 use App\Http\Controllers\Sewing\SewingToolsController;
 
 // Production
@@ -1170,12 +1171,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
         Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
-        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from");
+        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from-defect");
 
         Route::get('/defect-map', 'defectMap')->name("defect-map");
         Route::get('/defect-map/data', 'defectMapData')->name("defect-map-data");
 
         Route::post('/report-defect-export', 'reportDefectExport')->name("report-defect-export");
+    });
+
+    // Report Reject
+    Route::controller(ReportRejectController::class)->prefix('report-reject')->middleware('role:sewing')->group(function () {
+        Route::get('/index', 'index')->name("report-reject");
+        Route::get('/filter', 'filter')->name("filter-reject");
+        Route::get('/total', 'total')->name("total-reject");
+        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from-reject");
+
+        Route::get('/top', 'top')->name("top-reject");
+
+        Route::post('/report-reject-export', 'reportRejectExport')->name("report-reject-export");
     });
 
     // Report Efficiency New

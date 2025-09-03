@@ -596,6 +596,12 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('report-reject') }}"
+                                        class="dropdown-item {{ $routeName == 'report-reject' ? 'active' : '' }}">
+                                        Report Reject <i class="fa-solid fa-file-circle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('defect-map') }}"
                                         class="dropdown-item {{ $routeName == 'defect-map' ? 'active' : '' }}">
                                         Defect Map <i class="fa-solid fa-map-pin"></i>
