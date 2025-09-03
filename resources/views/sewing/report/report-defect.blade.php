@@ -19,23 +19,20 @@
             </h5>
         </div>
         <div class="card-body" id="report-defect-card">
-            <div class="d-flex justify-content-between align-items-end gap-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
                 <div class="d-flex align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari </label>
-                        <input type="date" class="form-control" id="dateFrom" name="dateFrom"
-                            value="{{ date('Y-m-d') }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
+                        <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date('Y-m-d') }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
                     <span class="mb-2"> - </span>
                     <div>
                         <label class="form-label">Sampai </label>
-                        <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date('Y-m-d') }}"
-                            onchange="reportDefectDatatableReload(); updateFilterOption();">
+                        <input type="date" class="form-control" id="dateTo" name="dateTo" value="{{ date('Y-m-d') }}" onchange="reportDefectDatatableReload(); updateFilterOption();">
                     </div>
                     <div>
                         <label class="form-label">Department</label>
-                        <select class="form-select" name="department" id="department"
-                            onchange="reportDefectDatatableReload(); updateFilterOption();">
+                        <select class="form-select" name="department" id="department" onchange="reportDefectDatatableReload(); updateFilterOption();">
                             <option value="" selected>END-LINE</option>
                             <option value="_packing">FINISHING-LINE</option>
                         </select>
@@ -50,13 +47,10 @@
                             @endforeach
                         </select>
                     </div>
-                    <button class="btn btn-primary" onclick="reportDefectDatatableReload(); updateFilterOption();"><i
-                            class="fa fa-search"></i></button>
-                    <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i
-                            class="fa fa-filter"></i></button>
+                    <button class="btn btn-primary" onclick="reportDefectDatatableReload(); updateFilterOption();"><i class="fa fa-search"></i></button>
+                    <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 </div>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal">Export <i
-                        class="fa fa-file-excel"></i></button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button>
             </div>
             <div class="table-responsive mt-3">
                 <table class="table table-bordered table" id="report-defect-table">
@@ -563,7 +557,7 @@
 
             try {
                 const response = await $.ajax({
-                    url: '{{ route('update-date-from') }}',
+                    url: '{{ route('update-date-from-defect') }}',
                     dataType: 'json',
                     data: {
                         base_ws: baseWs,

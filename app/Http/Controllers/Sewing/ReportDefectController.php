@@ -921,6 +921,14 @@ class ReportDefectController extends Controller
     }
 
     public function defectRate(Request $request) {
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+        $buyer = $request->buyer;
+        $ws = $request->ws;
+        $style = $request->style;
+        $color = $request->color;
+        $sewingLine = $request->sewingLine;
+
         $defectRateQuery = "
             SELECT
                 output.tgl_output,
@@ -1083,7 +1091,7 @@ class ReportDefectController extends Controller
 
         $defectRates = collect(DB::connection("mysql_sb")->select($defectRateQuery));
 
-        return views('sewing.defect.defect-rate', [
+        return view('sewing.defect.defect-rate', [
             'defectRates' => $defectRates,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
