@@ -450,7 +450,7 @@
                 currentOutputs.forEach(item => {
                     let option = document.createElement("option");
                     option.value = item.so_det_id;
-                    option.innerText = item.so_det_id+item.color+item.size+(item.dest && item.dest != "-" ? item.dest : "");
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
 
                     selectSize.appendChild(option);
 
