@@ -203,7 +203,7 @@
                         <div class="mb-3">
                             <label class="form-label">Cons</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="edit_cons" name="edit_cons" readonly>
+                                <input type="number" class="form-control" id="edit_cons" name="edit_cons" step="0.001">
                                 <input type="text" class="form-control" id="edit_unit" name="edit_unit" readonly>
                             </div>
                         </div>

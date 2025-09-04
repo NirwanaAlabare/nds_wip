@@ -443,7 +443,8 @@ class ReportCuttingController extends Controller
                     ) roll ON req.id_roll = roll.id_roll
                 "));
 
-                $balanceRoll = $rolls ? $row->roll_out - $rolls->count() : $row->roll_out;
+                $rollCutting = $rolls ? $rolls->where("total_pemakaian_roll", ">", 0)->count() : '0';
+                $balanceRoll = $rolls ? $row->roll_out - $rollCutting : $row->roll_out;
                 $balancePakai = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
 
                 $rollData->push(collect([
@@ -462,7 +463,7 @@ class ReportCuttingController extends Controller
                     'no_out' => $row->no_out,
                     'roll_out' => $row->roll_out,
                     'qty_out' => $row->qty_out,
-                    'total_roll_cutting' => $rolls->count(),
+                    'total_roll_cutting' => $rollCutting,
                     'total_pakai_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2) ) : 0,
                     'total_qty_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("qty") * 1.09361 , 2) : round($rolls->sum("qty"), 2) ) : 0,
                     'total_short_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_short_roll") * 1.0361, 2) : round($rolls->sum("total_short_roll"), 2) ) : 0,

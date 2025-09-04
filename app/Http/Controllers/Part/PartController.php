@@ -632,6 +632,13 @@ class PartController extends Controller
                     ]);
                 }
 
+                // Phase 3
+                if ($request->edit_cons && $request->edit_cons != $partDetail->edit_cons) {
+                    $updatePartDetail = $partDetail->update([
+                        "cons" => $request->edit_cons
+                    ]);
+                }
+
                 return array(
                     'status' => '201',
                     'table' => 'datatable_list_part',
