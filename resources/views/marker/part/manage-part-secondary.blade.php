@@ -190,6 +190,17 @@
                             <input type="text" class="form-control" id="edit_nama_part" name="edit_nama_part" readonly>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Ubah Part</label>
+                            <select class="form-select select2bs4edit" name="edit_master_part_id" id="edit_master_part_id">
+                                <option selected="selected" value="">Pilih Part</option>
+                                @foreach ($data_part as $datapart)
+                                    <option value="{{ $datapart->id }}">
+                                        {{ $datapart->nama_part . ' - ' . $datapart->bag }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Cons</label>
                             <div class="input-group">
                                 <input type="number" class="form-control" id="edit_cons" name="edit_cons" readonly>
@@ -351,6 +362,12 @@
         //Initialize Select2 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4'
+        })
+
+        //Initialize Select2 Edit Elements
+        $('.select2bs4edit').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#editPartSecondaryModal')
         })
 
         cleardata();

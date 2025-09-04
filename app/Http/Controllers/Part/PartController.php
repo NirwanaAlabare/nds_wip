@@ -611,17 +611,27 @@ class PartController extends Controller
             "edit_proses" => "required",
         ]);
 
+        // Phase 1
         $checkDc = DcIn::leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
             where("part_detail_id", $validatedRequest['edit_id'])->
             count();
 
-        if ($checkDc < 1) {
+        if ($checkDc < 1 || Auth::user()->roles->whereIn("nama_role", ["superadmin"])) {
             $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
                 update([
                     'master_secondary_id' => $validatedRequest['edit_proses'],
                 ]);
 
             if ($update_part) {
+
+                // Phase 2
+                $partDetail = PartDetail::where("id", $validatedRequest['edit_id'])->first();
+                if ($request->edit_master_part_id && $request->edit_master_part_id != $partDetail->master_part_id) {
+                    $updatePartDetail = $partDetail->update([
+                        "master_part_id" => $request->edit_master_part_id
+                    ]);
+                }
+
                 return array(
                     'status' => '201',
                     'table' => 'datatable_list_part',
@@ -936,6 +946,7 @@ class PartController extends Controller
             SELECT
                 pd.id,
                 CONCAT(nama_part, ' - ', bag) nama_part,
+                master_part_id,
                 master_secondary_id,
                 ms.tujuan,
                 ms.proses,
