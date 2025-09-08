@@ -19,7 +19,7 @@
             </h5>
         </div>
         <div class="card-body" id="report-defect-card">
-            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+            <div class="d-flex flex-wrap justify-content-start align-items-end gap-3">
                 <div class="d-flex align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari </label>
