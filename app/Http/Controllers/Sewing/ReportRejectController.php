@@ -23,7 +23,7 @@ class ReportRejectController extends Controller
 
         $defectTypeFilters = "";
         if ($request->defect_types) {
-            $defectTypeFilters = "AND output_defect_types.id in (".addQuotesAround(implode("\r", $request->defect_types)).")";
+            $defectTypeFilters = "AND output_defect_types.id is not null AND output_defect_types.id in (".addQuotesAround(implode("\r", $request->defect_types)).")";
         }
 
         $reject = RejectIn::selectRaw("
@@ -61,7 +61,7 @@ class ReportRejectController extends Controller
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
             leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
             leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
-            leftJoin(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null ".$defectTypeFilters." group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+            join(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null ".$defectTypeFilters." group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
             leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
             // Conditional
             whereBetween("output_reject_in.created_at", [$dateFrom." 00:00:00", $dateTo." 23:59:59"])->
@@ -176,7 +176,7 @@ class ReportRejectController extends Controller
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
             leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
             leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
-            leftJoin(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+            join(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
             leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
             // Conditional
             whereBetween("output_reject_in.created_at", [$dateFrom." 00:00:00", $dateTo." 23:59:59"])->
@@ -255,7 +255,7 @@ class ReportRejectController extends Controller
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
             leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
             leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
-            leftJoin(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null ".$defectTypeFilters." group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+            join(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null ".$defectTypeFilters." group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
             leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
             // Conditional
             whereBetween("output_reject_in.created_at", [$dateFrom." 00:00:00", $dateTo." 23:59:59"])->
@@ -346,7 +346,7 @@ class ReportRejectController extends Controller
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
             leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
             leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
-            leftJoin(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null ".$defectTypeFilters." group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+            join(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null ".$defectTypeFilters." group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
             leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
             // Conditional
             whereBetween("output_reject_in.created_at", [$dateFrom." 00:00:00", $dateTo." 23:59:59"])->
