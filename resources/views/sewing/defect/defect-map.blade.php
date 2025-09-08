@@ -66,7 +66,7 @@
             </h5>
         </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div class="d-flex flex-wrap justify-content-start align-items-end gap-3 mb-4">
                 <div>
                     <label class="form-label">Dari </label>
                     <input type="date" class="form-control" id="dateFrom" name="dateFrom" value="{{ date('Y-m-d') }}"
