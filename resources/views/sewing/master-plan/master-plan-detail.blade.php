@@ -182,7 +182,7 @@
                                     <td class="text-nowrap">{{ $mp->style }}</td>
                                     <td class="text-nowrap">{{ $mp->style_production }}</td>
                                     <td class="text-nowrap">{{ $mp->color }}</td>
-                                    <td class="text-nowrap">{{ curr($mp->smv) }}</td>
+                                    <td class="text-nowrap">{{ num($mp->smv, 3) }}</td>
                                     <td class="text-nowrap">{{ curr($mp->jam_kerja) }}</td>
                                     <td class="text-nowrap">{{ num($mp->man_power) }}</td>
                                     <td class="text-nowrap">{{ num($mp->plan_target) }}</td>

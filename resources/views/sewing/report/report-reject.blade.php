@@ -15,7 +15,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title">
-                <i class="fa-solid fa-file-circle-exclamation"></i> Report Reject
+                <i class="fa-solid fa-file-circle-xmark"></i> Report Reject
             </h5>
         </div>
         <div class="card-body" id="report-reject-card">

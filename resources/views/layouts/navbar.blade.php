@@ -598,7 +598,7 @@
                                 <li>
                                     <a href="{{ route('report-reject') }}"
                                         class="dropdown-item {{ $routeName == 'report-reject' ? 'active' : '' }}">
-                                        Report Reject <i class="fa-solid fa-file-circle-exclamation"></i>
+                                        Report Reject <i class="fa-solid fa-file-circle-xmark"></i>
                                     </a>
                                 </li>
                                 <li>
