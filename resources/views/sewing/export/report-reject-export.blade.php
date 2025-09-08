@@ -17,29 +17,39 @@
     </tr>
     <tr></tr>
     <tr>
-        <th>Tanggal</th>
-        <th>Department</th>
-        <th>Line</th>
-        <th>Worksheet</th>
-        <th>Buyer</th>
-        <th>Style</th>
-        <th>Color</th>
-        <th>Size</th>
-        <th>Defect Name</th>
-        <th>Qty</th>
+        <th style="border: 1px solid black; font-weight: 800">Tanggal</th>
+        <th style="border: 1px solid black; font-weight: 800">Department</th>
+        <th style="border: 1px solid black; font-weight: 800">Line</th>
+        <th style="border: 1px solid black; font-weight: 800">Worksheet</th>
+        <th style="border: 1px solid black; font-weight: 800">Buyer</th>
+        <th style="border: 1px solid black; font-weight: 800">Style</th>
+        <th style="border: 1px solid black; font-weight: 800">Color</th>
+        <th style="border: 1px solid black; font-weight: 800">Size</th>
+        <th style="border: 1px solid black; font-weight: 800">Defect Name</th>
+        <th style="border: 1px solid black; font-weight: 800">Qty</th>
     </tr>
+    @php
+        $totalReject = 0;
+    @endphp
     @foreach ($rejectData as $reject)
         <tr>
-            <td>{{ $reject->tanggal }}</td>
-            <td>{{ $reject->output_type }}</td>
-            <td>{{ $reject->sewing_line }}</td>
-            <td>{{ $reject->no_ws }}</td>
-            <td>{{ $reject->buyer }}</td>
-            <td>{{ $reject->style }}</td>
-            <td>{{ $reject->color }}</td>
-            <td>{{ $reject->size }}</td>
-            <td>{{ $reject->defect_types_check }}</td>
-            <td>{{ $reject->qty }}</td>
+            <td style="border: 1px solid black;">{{ $reject->tanggal }}</td>
+            <td style="border: 1px solid black;">{{ $reject->output_type }}</td>
+            <td style="border: 1px solid black;">{{ $reject->sewing_line }}</td>
+            <td style="border: 1px solid black;">{{ $reject->no_ws }}</td>
+            <td style="border: 1px solid black;">{{ $reject->buyer }}</td>
+            <td style="border: 1px solid black;">{{ $reject->style }}</td>
+            <td style="border: 1px solid black;">{{ $reject->color }}</td>
+            <td style="border: 1px solid black;">{{ $reject->size }}</td>
+            <td style="border: 1px solid black;">{{ $reject->defect_types_check }}</td>
+            <td style="border: 1px solid black;">{{ $reject->total_reject }}</td>
         </tr>
+        @php
+            $totalReject += $reject->total_reject;
+        @endphp
     @endforeach
+    <tr>
+        <td style="border: 1px solid black; font-weight: 800" colspan="9">Total</td>
+        <td style="border: 1px solid black; font-weight: 800">{{ $totalReject }}</td>
+    </tr>
 </table>

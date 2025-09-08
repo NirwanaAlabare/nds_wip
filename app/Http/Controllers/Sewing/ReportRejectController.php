@@ -358,7 +358,7 @@ class ReportRejectController extends Controller
                     ".($request->department && $request->department != "all" ? "AND output_reject_in.output_type = '".$request->department."'" : "")."
                 )
             ")->
-            groupByRaw("DATE(output_reject_in.created_at), reject_detail.defect_types_check");
+            groupByRaw("reject_detail.defect_types_check");
 
         if ($request->defect_status && count($request->defect_status) > 0) {
             $reject->whereIn("output_reject_in.status", $request->defect_status);

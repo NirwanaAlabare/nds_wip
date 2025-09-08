@@ -263,33 +263,10 @@
                     horizontal: false,
                     dataLabels: {
                         position: 'top',
-                    },
-                    colors: {
-                        ranges: [
-                            {
-                                from: 500,
-                                to: 99999,
-                                color: '#333'
-                            },{
-                                from: 60,
-                                to: 499,
-                                color: '#d33141'
-                            },{
-                                from: 30,
-                                to: 59,
-                                color: '#ff971f'
-                            },{
-                                from: 0,
-                                to: 15,
-                                color: '#12be60'
-                            }
-                        ],
-                        backgroundBarColors: [],
-                        backgroundBarOpacity: 1,
-                        backgroundBarRadius: 0,
-                    },
+                    }
                 }
             },
+            colors: ['#d33141'],
             dataLabels: {
                 enabled: true,
                 style: {
@@ -374,16 +351,17 @@
 
                     chart.updateOptions({
                         title: {
+                            text: 'Total Reject : ' + totalReject.toLocaleString(),
                             align: 'center',
                             style: {
-                                fontSize:  '18px',
-                                fontWeight:  'bold',
+                                // fontSize:  '18px',
+                                // fontWeight:  'bold',
+                                fontSize:  '15px',
                                 fontFamily:  undefined,
                                 color:  '#263238'
                             },
                         },
                         subtitle: {
-                            text: ['Total Reject : '+totalReject.toLocaleString()],
                             align: 'center',
                             style: {
                                 fontSize:  '13px',
@@ -397,32 +375,9 @@
                                 dataLabels: {
                                     position: 'top',
                                 },
-                                colors: {
-                                    ranges: [
-                                        {
-                                            from: 500,
-                                            to: 99999,
-                                            color: '#333'
-                                        },{
-                                            from: 60,
-                                            to: 499,
-                                            color: '#d33141'
-                                        },{
-                                            from: 30,
-                                            to: 59,
-                                            color: '#ff971f'
-                                        },{
-                                            from: 0,
-                                            to: 15,
-                                            color: '#12be60'
-                                        }
-                                    ],
-                                    backgroundBarColors: [],
-                                    backgroundBarOpacity: 1,
-                                    backgroundBarRadius: 0,
-                                },
                             }
                         },
+                        colors: ['#d33141'],
                     });
                 }, error: function (jqXHR) {
                     let res = jqXHR.responseJSON;
