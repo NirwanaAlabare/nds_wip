@@ -136,239 +136,239 @@
 @endsection
 
 @section('custom-script')
-<!-- DataTables & Plugins -->
-<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <!-- DataTables & Plugins -->
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
-<!-- Select2 -->
-<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script>
-    $('.select2').select2()
-    $('.select2bs4').select2({
-        theme: 'bootstrap4',
-    })
-</script>
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script>
+        $('.select2').select2()
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+        })
+    </script>
 
-<script>
-    $(document).ready(function () {
-        getMasterPlan();
-    });
+    <script>
+        $(document).ready(function () {
+            getMasterPlan();
+        });
 
-    let datatable = $("#datatable").DataTable({
-        ordering: false,
-        processing: true,
-        serverSide: true,
-        paging: false,
-        ajax: {
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        let datatable = $("#datatable").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("get-master-plan-output") }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.id = $('#master_plan_from').val();
+                },
             },
-            url: '{{ route("get-master-plan-output") }}',
-            dataType: 'json',
-            dataSrc: 'data',
-            data: function(d) {
-                d.id = $('#master_plan_from').val();
-            },
-        },
-        columns: [
-            {
-                data: 'updated_at'
-            },
-            {
-                data: 'kode_numbering'
-            },
-            {
-                data: 'size'
-            },
-            {
-                data: 'status'
-            },
-            {
-                data: 'defect'
-            },
-            {
-                data: 'allocation'
-            },
-        ],
-        columnDefs: [
-            {
-                targets: "_all",
-                className: "text-nowrap"
-            },
-            {
-                targets: [3, 4, 5],
-                render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
-            }
-        ]
-    });
+            columns: [
+                {
+                    data: 'updated_at'
+                },
+                {
+                    data: 'kode_numbering'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'status'
+                },
+                {
+                    data: 'defect'
+                },
+                {
+                    data: 'allocation'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    targets: [3, 4, 5],
+                    render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
+                }
+            ]
+        });
 
-    function dataTableReload() {
-        datatable.ajax.reload();
-    }
+        function dataTableReload() {
+            datatable.ajax.reload();
+        }
 
-    function migrateLine() {
-        Swal.fire({
-            icon: 'question',
-            title: 'Migrate Line?',
-            showCancelButton: true,
-            showConfirmButton: true,
-            confirmButtonText: 'Migrate',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#238380',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById("loading").classList.remove("d-none");
+        function migrateLine() {
+            Swal.fire({
+                icon: 'question',
+                title: 'Migrate Line?',
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Migrate',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#238380',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("loading").classList.remove("d-none");
 
-                $.ajax({
-                    type: "post",
-                    url: "{{ route('line-migration-submit') }}",
-                    data: {
-                        tanggal_from: document.getElementById("tanggal_from").value,
-                        line_from: document.getElementById("line_from").value,
-                        master_plan_from: document.getElementById("master_plan_from").value,
-                        line_to: document.getElementById("line_to").value,
-                    },
-                    dataType: "json",
-                    success: function (response) {
-                        document.getElementById("loading").classList.add("d-none");
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('line-migration-submit') }}",
+                        data: {
+                            tanggal_from: document.getElementById("tanggal_from").value,
+                            line_from: document.getElementById("line_from").value,
+                            master_plan_from: document.getElementById("master_plan_from").value,
+                            line_to: document.getElementById("line_to").value,
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            document.getElementById("loading").classList.add("d-none");
 
-                        if (response.status == 200) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                html: response.message,
-                                confirmButtonText: 'OK'
-                            }).then(() => {
-                                clearForm();
-                                dataTableReload();
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: response.message,
-                                confirmButtonText: 'OK'
-                            });
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    html: response.message,
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    clearForm();
+                                    dataTableReload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message,
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            let res = xhr.responseJSON;
+                            let message = '';
+                            for (let key in res.errors) {
+                                message += '<b>'+res.errors[key]+'</b> <br>';
+
+                                iziToast.error({
+                                    title: 'Error',
+                                    message: '<b>'+res.errors[key]+'</b> <br>',
+                                    position: 'topCenter',
+                                    timeout: 5000,
+                                });
+                            };
                         }
+                    });
+                } else {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+            });
+        }
+
+        $('#tanggal_from').on('change', function() {
+            getMasterPlan();
+        });
+
+        $('#line_from').on('change', function() {
+            getMasterPlan();
+        });
+
+        function getMasterPlan() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            let tanggal = $('#tanggal_from').val();
+            let line = $('#line_from').val();
+
+            if (tanggal && line) {
+                $.ajax({
+                    url: "{{ route('get-master-plan') }}",
+                    type: 'GET',
+                    data: {
+                        tanggal: tanggal,
+                        line: line
                     },
-                    error: function (xhr, status, error) {
+                    success: function(data) {
                         document.getElementById("loading").classList.add("d-none");
 
-                        let res = xhr.responseJSON;
-                        let message = '';
-                        for (let key in res.errors) {
-                            message += '<b>'+res.errors[key]+'</b> <br>';
+                        console.log(data);
+                        $('#master_plan_from').empty().append('<option value="">Pilih Master Plan</option>');
+                        $.each(data, function(index, item) {
+                            $('#master_plan_from').append('<option value="' + item.id + '">' + item.no_ws + ' - ' + item.style + ' - ' + item.color + ' ' + (item.cancel == 'Y' ? '<b>CANCELLED</b>' : '') + '</option>');
+                        });
+                    }, error: function(xhr, status, error) {
+                        document.getElementById("loading").classList.add("d-none");
 
-                            iziToast.error({
-                                title: 'Error',
-                                message: '<b>'+res.errors[key]+'</b> <br>',
-                                position: 'topCenter',
-                                timeout: 5000,
-                            });
-                        };
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal memuat Master Plan.',
+                            confirmButtonText: 'OK'
+                        });
                     }
                 });
             } else {
-                document.getElementById("loading").classList.remove("d-none");
+                document.getElementById("loading").classList.add("d-none");
             }
+        }
+
+        $('#master_plan_from').on('change', function() {
+            getMasterPlanDetail($(this).val());
+
+            dataTableReload();
         });
-    }
 
-    $('#tanggal_from').on('change', function() {
-        getMasterPlan();
-    });
+        function getMasterPlanDetail(id) {
+            if (id) {
+                document.getElementById("loading").classList.remove("d-none");
 
-    $('#line_from').on('change', function() {
-        getMasterPlan();
-    });
+                $.ajax({
+                    url: "{{ route('get-master-plan-detail') }}/" + id,
+                    type: 'GET',
+                    success: function(data) {
+                        document.getElementById("loading").classList.add("d-none");
 
-    function getMasterPlan() {
-        document.getElementById("loading").classList.remove("d-none");
+                        $('#tanggal_plan').val(data.tanggal);
+                        $('#no_ws').val(data.no_ws);
+                        $('#style').val(data.style);
+                        $('#color').val(data.color);
+                        $('#jam_kerja').val(data.jam_kerja);
+                        $('#smv').val(data.smv);
+                        $('#man_power').val(data.man_power)
+                        $('#target').val(data.plan_target)
+                    },
+                    error: function(xhr, status, error) {
+                        document.getElementById("loading").classList.add("d-none");
 
-        let tanggal = $('#tanggal_from').val();
-        let line = $('#line_from').val();
-
-        if (tanggal && line) {
-            $.ajax({
-                url: "{{ route('get-master-plan') }}",
-                type: 'GET',
-                data: {
-                    tanggal: tanggal,
-                    line: line
-                },
-                success: function(data) {
-                    document.getElementById("loading").classList.add("d-none");
-
-                    console.log(data);
-                    $('#master_plan_from').empty().append('<option value="">Pilih Master Plan</option>');
-                    $.each(data, function(index, item) {
-                        $('#master_plan_from').append('<option value="' + item.id + '">' + item.no_ws + ' - ' + item.style + ' - ' + item.color + ' ' + (item.cancel == 'Y' ? '<b>CANCELLED</b>' : '') + '</option>');
-                    });
-                }, error: function(xhr, status, error) {
-                    document.getElementById("loading").classList.add("d-none");
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Gagal memuat Master Plan.',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
-        } else {
-            document.getElementById("loading").classList.add("d-none");
+                        console.error('Error fetching master plan detail:', error);
+                    }
+                });
+            }
         }
-    }
 
-    $('#master_plan_from').on('change', function() {
-        getMasterPlanDetail($(this).val());
-
-        dataTableReload();
-    });
-
-    function getMasterPlanDetail(id) {
-        if (id) {
-            document.getElementById("loading").classList.remove("d-none");
-
-            $.ajax({
-                url: "{{ route('get-master-plan-detail') }}/" + id,
-                type: 'GET',
-                success: function(data) {
-                    document.getElementById("loading").classList.add("d-none");
-
-                    $('#tanggal_plan').val(data.tanggal);
-                    $('#no_ws').val(data.no_ws);
-                    $('#style').val(data.style);
-                    $('#color').val(data.color);
-                    $('#jam_kerja').val(data.jam_kerja);
-                    $('#smv').val(data.smv);
-                    $('#man_power').val(data.man_power)
-                    $('#target').val(data.plan_target)
-                },
-                error: function(xhr, status, error) {
-                    document.getElementById("loading").classList.add("d-none");
-
-                    console.error('Error fetching master plan detail:', error);
-                }
-            });
+        function clearForm() {
+            $('#tanggal_from').val('').trigger('change');
+            $('#line_from').val('').trigger('change');
+            $('#master_plan_from').empty().append('<option value="">Pilih Master Plan</option>').trigger('change');
+            $('#line_to').val('').trigger('change');
+            $('#tanggal_plan').val('');
+            $('#no_ws').val('');
+            $('#style').val('');
+            $('#color').val('');
+            $('#jam_kerja').val('');
+            $('#smv').val('');
+            $('#man_power').val('');
+            $('#target').val('');
         }
-    }
-
-    function clearForm() {
-        $('#tanggal_from').val('').trigger('change');
-        $('#line_from').val('').trigger('change');
-        $('#master_plan_from').empty().append('<option value="">Pilih Master Plan</option>').trigger('change');
-        $('#line_to').val('').trigger('change');
-        $('#tanggal_plan').val('');
-        $('#no_ws').val('');
-        $('#style').val('');
-        $('#color').val('');
-        $('#jam_kerja').val('');
-        $('#smv').val('');
-        $('#man_power').val('');
-        $('#target').val('');
-    }
-</script>
+    </script>
 @endsection

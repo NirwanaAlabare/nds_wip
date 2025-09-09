@@ -1173,7 +1173,11 @@ class CuttingFormController extends Controller
 
                 // $unlocker->unlock_token = ($unlocker->unlock_token ? $unlocker->id."".Carbon::now()->format('ymd')."".substr($unlocker->unlock_token, -1)+1 : $unlocker->id."".Carbon::now()->format('Ymd')."1");
                 // $unlocker->save();
+            } else {
+                return response()->json(['message' => 'Unauthorized: User is not admin or superadmin'], 401);
             }
+        } else {
+            return response()->json(['message' => 'Unauthorized: Invalid credentials'], 401);
         }
     }
 }

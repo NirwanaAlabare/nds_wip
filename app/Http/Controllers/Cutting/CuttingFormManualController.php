@@ -800,6 +800,7 @@ class CuttingFormManualController extends Controller
                             'po_marker' => $request->po ? $request->po : '-',
                             'urutan_marker' => $validatedRequest['urutan_marker'],
                             'tipe_marker' => $validatedRequest['tipe_marker'],
+                            'notes' => $request->marker_notes,
                             'cancel' => 'N',
                         ]);
                 }
@@ -820,6 +821,7 @@ class CuttingFormManualController extends Controller
                     'po_marker' => $request->po ? $request->po : '-',
                     'urutan_marker' => $validatedRequest['urutan_marker'],
                     'tipe_marker' => $validatedRequest['tipe_marker'],
+                    'notes' => $request->marker_notes,
                     'cancel' => 'N',
                     'created_by' => Auth::user()->id,
                     'created_by_username' => Auth::user()->username

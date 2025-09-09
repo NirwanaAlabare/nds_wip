@@ -1061,4 +1061,46 @@ class GeneralController extends Controller
 
         return Datatables::of($output)->toJson();
     }
+
+    public function getMasterPlanOutputSize(Request $request) {
+        $output = collect(
+            DB::connection("mysql_sb")->select("
+                SELECT
+                    sewing_line,
+                    id_ws,
+                    ws,
+                    style,
+                    color,
+                    size,
+                    dest,
+                    so_det_id,
+                    master_plan_id,
+                    CONCAT(master_plan_id, ws, style, color, size) as grouping,
+                    SUM(CASE WHEN status = 'RFT' THEN 1 ELSE 0 END) rft,
+                    SUM(CASE WHEN status = 'defect' THEN 1 ELSE 0 END) defect,
+                    SUM(CASE WHEN status = 'reworked' THEN 1 ELSE 0 END) rework,
+                    SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) reject
+                FROM
+                (
+                    SELECT output.*, act_costing.id as id_ws, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, so_det.dest, userpassword.username as sewing_line FROM (
+                        select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
+                        UNION
+                        select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE master_plan_id = '".$request->id."'
+                        UNION
+                        select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and master_plan_id = '".$request->id."'
+                    ) output
+                    left join user_sb_wip on user_sb_wip.id = output.created_by
+                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    left join so_det on so_det.id = output.so_det_id
+                    left join so on so.id = so_det.id_so
+                    left join act_costing on act_costing.id = so.id_cost
+                ) as output
+                GROUP BY
+                    master_plan_id,
+                    so_det_id
+            ")
+        );
+
+        return $output;
+    }
 }

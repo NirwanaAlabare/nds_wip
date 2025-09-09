@@ -2121,6 +2121,7 @@
                             password: $("#unlock_form_password").val()
                         },
                         success: function (res) {
+                            console.log(res);
                             document.getElementById("loading").classList.add('d-none');
 
                             if (res) {

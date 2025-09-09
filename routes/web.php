@@ -82,6 +82,7 @@ use App\Http\Controllers\Sewing\LineDashboardController;
 use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\UndoOutputController;
 use App\Http\Controllers\Sewing\ReportDefectController;
+use App\Http\Controllers\Sewing\ReportRejectController;
 use App\Http\Controllers\Sewing\SewingToolsController;
 
 // Production
@@ -259,6 +260,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-master-plan', 'getMasterPlan')->name('get-master-plan');
         Route::get('/get-master-plan-detail/{id?}', 'getMasterPlanDetail')->name('get-master-plan-detail');
         Route::get('/get-master-plan-output', 'getMasterPlanOutput')->name('get-master-plan-output');
+        Route::get('/get-master-plan-output-size', 'getMasterPlanOutputSize')->name('get-master-plan-output-size');
     });
 
     // Worksheet
@@ -1169,12 +1171,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name("report-defect");
         Route::get('/filter', 'filter')->name("filter-defect");
         Route::get('/total', 'total')->name("total-defect");
-        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from");
+        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from-defect");
 
         Route::get('/defect-map', 'defectMap')->name("defect-map");
         Route::get('/defect-map/data', 'defectMapData')->name("defect-map-data");
 
         Route::post('/report-defect-export', 'reportDefectExport')->name("report-defect-export");
+    });
+
+    // Report Reject
+    Route::controller(ReportRejectController::class)->prefix('report-reject')->middleware('role:sewing')->group(function () {
+        Route::get('/index', 'index')->name("report-reject");
+        Route::get('/filter', 'filter')->name("filter-reject");
+        Route::get('/total', 'total')->name("total-reject");
+        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from-reject");
+
+        Route::get('/top', 'top')->name("top-reject");
+
+        Route::post('/report-reject-export', 'reportRejectExport')->name("report-reject-export");
     });
 
     // Report Efficiency New
@@ -1253,6 +1267,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
+
+        Route::get('/modify-output', 'modifyOutput')->name("modify-output");
+        Route::post('/modify-output/action', 'modifyOutputAction')->name("modify-output-action");
     });
 
     // Mutasi Mesin

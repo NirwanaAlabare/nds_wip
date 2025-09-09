@@ -264,6 +264,14 @@ class CuttingToolsController extends Controller
                         "id_marker" => $markerCode
                     ]);
 
+                    if ($oldMarker->id) {
+                        $oldMarkerForm = FormCutInput::where("marker_id", $oldMarker->id)->count();
+
+                        if ($oldMarkerForm < 1) {
+                            $deleteOldMarker = Marker::where("id", $oldMarker->id)->delete();
+                        }
+                    }
+
                     return array(
                         "status" => 200,
                         "message" => "Ratio Form berhasil diubah.",
