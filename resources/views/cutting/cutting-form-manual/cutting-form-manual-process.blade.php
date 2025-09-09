@@ -182,7 +182,7 @@
                             <div class="col-12">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Catatan</b></small></label>
-                                    <textarea class="form-control" name="marker_notes" rows="2" readonly>{{ $formCutInputData->notes }}</textarea>
+                                    <textarea class="form-control" name="marker_notes" rows="2">{{ $formCutInputData->notes }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -2209,6 +2209,8 @@
                         },
                         success: function (res) {
                             document.getElementById("loading").classList.add('d-none');
+
+                            console.log(res);
 
                             if (res) {
                                 if (res.locked < 1) {
