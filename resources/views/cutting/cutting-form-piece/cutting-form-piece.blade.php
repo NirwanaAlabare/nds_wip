@@ -145,6 +145,13 @@
                     }
                 },
                 {
+                    targets: [7],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return '<div style="max-width: 300px; overflow: auto"><span>'+data+'</span></div>';
+                    }
+                },
+                {
                     targets: "_all",
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
@@ -152,6 +159,25 @@
                     }
                 }
             ]
+        });
+
+        $('#cutting-piece-table thead tr').clone(true).appendTo('#cutting-piece-table thead');
+        $('#cutting-piece-table thead tr:eq(1) th').each(function(i) {
+            if (i != 0) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (cuttingRejectTable.column(i).search() !== this.value) {
+                        cuttingRejectTable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
         });
 
         function cuttingPieceTableReload() {
