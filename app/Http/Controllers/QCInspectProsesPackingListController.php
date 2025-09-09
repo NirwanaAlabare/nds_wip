@@ -1961,6 +1961,7 @@ qc.barcode,
 bpb.final_result_lot,
 qc.final_result as final_result_inspect,
 CASE
+WHEN qc.barcode IS NULL THEN ''
 WHEN bpb.final_result_lot = 'PASS' AND qc.final_result IS NULL THEN 'PASS'
 WHEN bpb.final_result_lot = 'REJECT' AND qc.final_result IS NULL THEN 'REJECT'
 WHEN bpb.final_result_lot = 'PWC' AND qc.final_result IS NULL THEN 'PWC'

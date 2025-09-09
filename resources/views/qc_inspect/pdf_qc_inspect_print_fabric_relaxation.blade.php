@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <style>
         @page {
-            size: 40mm 30mm;
+            size: 40mm 20mm;
             margin: 0;
         }
 
@@ -35,14 +35,17 @@
             font-weight: bold;
             width: 25%;
             height: 5mm;
-            font-size: 9px;
+            font-size: 8px;
+            text-align: center;
+            /* Horizontal center */
+            vertical-align: middle;
         }
 
         .value {
             font-weight: bold;
             width: 25%;
-            height: 5mm;
-            font-size: 9px;
+            height: 2mm;
+            font-size: 7px;
             text-align: center;
         }
     </style>
@@ -54,15 +57,26 @@
         <div style="@if ($index !== count($data_header) - 1) page-break-after: always; @endif">
             <table>
                 <tr>
-                    <td class="label">ID Item</td>
-                    <td class="value">{{ $dh->id_item ?? 'null' }}</td>
-                    <td class="label">Barcode</td>
-                    <td class="value">{{ $dh->no_barcode ?? 'null' }}</td>
+                    <td class="value" colspan="4">{{ $dh->barcode ?? 'null' }}</td>
                 </tr>
                 <tr>
-                    <td colspan="4" style="height: 22mm; font-weight: bold; text-align: center; font-size: 28px;">
-                        {{ $dh->result_sticker ?? 'null' }}
-                    </td>
+                    <td class="label" colspan="4">Relaxation</td>
+                </tr>
+                <tr>
+                    <td class="value" colspan="2">Start</td>
+                    <td class="value" colspan="2">Finish</td>
+                </tr>
+                <tr>
+                    <td class="value">Date</td>
+                    <td class="value">Time</td>
+                    <td class="value">Date</td>
+                    <td class="value">Time</td>
+                </tr>
+                <tr>
+                    <td class="value">{{ $dh->start_date ?? 'null' }}</td>
+                    <td class="value">{{ $dh->start_time ?? 'null' }}</td>
+                    <td class="value">{{ $dh->finish_date ?? 'null' }}</td>
+                    <td class="value">{{ $dh->finish_time ?? 'null' }}</td>
                 </tr>
             </table>
         </div>

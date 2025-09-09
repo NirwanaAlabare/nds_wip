@@ -2125,6 +2125,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(QCInspectProsesFabricRelaxationController::class)->prefix("proses-fabric-relaxation")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('qc_inspect_proses_fabric_relaxation');
         Route::get('/input_fabric_relaxation', 'input_fabric_relaxation')->name('input_fabric_relaxation');
+        Route::post('/get_barcode_info_fabric_relaxation', 'get_barcode_info_fabric_relaxation')->name('get_barcode_info_fabric_relaxation');
+        Route::post('/save_form_fabric_relaxation', 'save_form_fabric_relaxation')->name('save_form_fabric_relaxation');
+        Route::get('/input_fabric_relaxation_det/{id?}', 'input_fabric_relaxation_det')->name('input_fabric_relaxation_det');
+        Route::post('/finish_form_fabric_relaxation', 'finish_form_fabric_relaxation')->name('finish_form_fabric_relaxation');
+        Route::get('/print_sticker_fabric_relaxation', 'print_sticker_fabric_relaxation')->name('print_sticker_fabric_relaxation');
     });
 
     // Laporan QC Inspect
