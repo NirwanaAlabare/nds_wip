@@ -48,7 +48,10 @@ time(start_form) start_time,
 DATE_FORMAT(finish_form, '%d-%m-%Y %H:%i:%s') AS finish_form_fix,
 DATE_FORMAT(finish_form, '%d-%m-%Y')finish_date,
 time(finish_form) finish_time,
-TIMESTAMPDIFF(DAY, start_form, finish_form) AS days_diff,
+DATE_ADD(finish_form, INTERVAL durasi_relax HOUR) finish_relax,
+DATE_FORMAT(DATE_ADD(finish_form, INTERVAL durasi_relax HOUR), '%d-%m-%Y') finish_relax_date,
+time(DATE_ADD(finish_form, INTERVAL durasi_relax HOUR)) finish_relax_time,
+TIMESTAMPDIFF(DAY, finish_form, DATE_ADD(finish_form, INTERVAL durasi_relax HOUR)) AS days_diff,
 case
 		when finish_form is null then 'Ongoing'
 		else 'Done'
@@ -266,7 +269,10 @@ time(start_form) start_time,
 DATE_FORMAT(finish_form, '%d-%m-%Y %H:%i:%s') AS finish_form_fix,
 DATE_FORMAT(finish_form, '%d-%m-%Y')finish_date,
 time(finish_form) finish_time,
-TIMESTAMPDIFF(DAY, start_form, finish_form) AS days_diff,
+DATE_ADD(finish_form, INTERVAL durasi_relax HOUR) finish_relax,
+DATE_FORMAT(DATE_ADD(finish_form, INTERVAL durasi_relax HOUR), '%d-%m-%Y') finish_relax_date,
+time(DATE_ADD(finish_form, INTERVAL durasi_relax HOUR)) finish_relax_time,
+TIMESTAMPDIFF(DAY, finish_form, DATE_ADD(finish_form, INTERVAL durasi_relax HOUR)) AS days_diff,
 case
 		when finish_form is null then 'Ongoing'
 		else 'Done'
@@ -302,6 +308,10 @@ where rl.id = ?", [$id]);
         $color                      = $get_header[0]->color;
         $itemdesc                   = $get_header[0]->itemdesc;
         $durasi_relax               = $get_header[0]->durasi_relax;
+        $finish_date               = $get_header[0]->finish_date;
+        $finish_time               = $get_header[0]->finish_time;
+        $finish_relax_date         = $get_header[0]->finish_relax_date;
+        $finish_relax_time         = $get_header[0]->finish_relax_time;
 
         return view(
             'qc_inspect.proses_input_fabric_relaxation_det',
@@ -329,7 +339,12 @@ where rl.id = ?", [$id]);
                 "no_lot"            => $no_lot,
                 "barcode"           => $barcode,
                 "itemdesc"          => $itemdesc,
-                "durasi_relax"      => $durasi_relax
+                "durasi_relax"      => $durasi_relax,
+                "finish_date"      => $finish_date,
+                "finish_time"      => $finish_time,
+                "finish_relax_date" => $finish_relax_date,
+                "finish_relax_time" => $finish_relax_time,
+
             ]
         );
     }
