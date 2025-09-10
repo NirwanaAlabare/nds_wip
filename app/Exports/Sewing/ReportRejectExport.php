@@ -69,7 +69,7 @@ class ReportRejectExport implements FromView, ShouldAutoSize, WithTitle
                 output_reject_in.created_at time_in,
                 output_reject_in.updated_at time_out,
                 master_plan.sewing_line sewing_line,
-                output_reject_in.output_type,
+                (CASE WHEN output_reject_in.output_type = 'packing' THEN 'finishing' ELSE output_reject_in.output_type END) as output_type,
                 output_reject_in.kode_numbering,
                 userpassword.username as sewing_line,
                 mastersupplier.Supplier as buyer,
