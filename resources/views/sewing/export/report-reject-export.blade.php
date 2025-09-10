@@ -4,7 +4,7 @@
         <td>Sampai : {{ $dateTo }}</td>
     </tr>
     <tr>
-        <td>Filter Defect Type : {{ $rejectData->pluck('defect_types_check')->unique()->implode(', ') }}</td>
+        <td>Filter Defect Type : {{ $this->defect_types ? $rejectData->pluck('defect_types_check')->unique()->implode(', ') : '-' }}</td>
         <td>Filter WS : {{ ($base_ws ? $base_ws : '-') }}</td>
         <td>Sub Filter WS : {{ ($ws ? $ws : '-') }}</td>
         <td>Filter Dept : {{ ($department ? $department : '-') }}</td>
