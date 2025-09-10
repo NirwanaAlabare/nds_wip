@@ -339,7 +339,7 @@
                     if (res && res.length > 0) {
                         res.forEach(element => {
                             totalReject += element.total_reject;
-                            dataArr.push({'x' : (element.defect_types_check ? element.defect_types_check : '-'), 'y' : element.total_reject});
+                            dataArr.push({'x' : autoBreak((element.defect_types_check ? element.defect_types_check : '-')), 'y' : element.total_reject});
                         });
                     }
 
