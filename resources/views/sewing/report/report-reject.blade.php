@@ -33,8 +33,9 @@
                     <div>
                         <label class="form-label">Department</label>
                         <select class="form-select" name="department" id="department" onchange="reportRejectDatatableReload(); updateFilterOption();">
-                            <option value="" selected>END-LINE</option>
-                            <option value="_packing">FINISHING-LINE</option>
+                            <option value="all" selected>ALL</option>
+                            <option value="qc">END-LINE</option>
+                            <option value="packing">FINISHING-LINE</option>
                         </select>
                     </div>
                     <div>
