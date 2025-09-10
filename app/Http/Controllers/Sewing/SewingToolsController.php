@@ -1784,7 +1784,7 @@ class SewingToolsController extends Controller
 
                                 if ($deleteRft) {
                                     if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft',]);
+                                        Undo::create(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
                                     }
 
                                     array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
@@ -1801,7 +1801,7 @@ class SewingToolsController extends Controller
 
                                 if ($deleteDefect) {
                                     if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect',]);
+                                        Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
                                     }
 
                                     array_push($result, "DEFECT '".$defect->kode_numbering."' -> DELETED");
@@ -1821,7 +1821,7 @@ class SewingToolsController extends Controller
 
                                     if ($deleteReject) {
                                         if ($department && $department != "_packing") {
-                                            Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'defect-reject',]);
+                                            Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'defect_id' => $defect->id, 'reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
                                         }
 
                                         DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
@@ -1840,11 +1840,13 @@ class SewingToolsController extends Controller
 
                             $rework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('defect_id', $defect->id)->first();
 
+                            $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('rework_id', $rework->id)->first();
+
                             $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
 
                             if ($deleteRework) {
                                 if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework',]);
+                                    Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'rft_id' => $rft->id, 'rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
                                 }
 
                                 DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
@@ -1858,21 +1860,21 @@ class SewingToolsController extends Controller
 
                             break;
                         case 'mati' :
-                            // Undo REWORK
+                            // Undo REJECT
                             $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $output->id)->first();
 
                             $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
 
                             if ($deleteReject) {
                                 if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject',]);
+                                    Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
                                 }
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
                             }
 
                             break;
-                    }
+                    }   
                 }
 
                 return $result;
