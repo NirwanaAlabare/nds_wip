@@ -60,8 +60,8 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-6 d-none">
-                        <a type="button" data-bs-toggle="modal" data-bs-target="#defectModal">
+                    <div class="col-md-6">
+                        <a type="button" data-bs-toggle="modal" data-bs-target="#defectModal" onclick="openDefectModal()">
                             <div class="card bg-defect">
                                 <div class="card-body">
                                     <h5 class="card-title text-light fw-bold">
@@ -75,8 +75,8 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-6 d-none">
-                        <a type="button" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                    <div class="col-md-6">
+                        <a type="button" data-bs-toggle="modal" data-bs-target="#reworkModal" onclick="openReworkModal()">
                             <div class="card bg-rework">
                                 <div class="card-body">
                                     <h5 class="card-title text-light fw-bold">
@@ -90,8 +90,8 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-6 d-none">
-                        <a type="button" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                    <div class="col-md-6">
+                        <a type="button" data-bs-toggle="modal" data-bs-target="#rejectModal" onclick="openRejectModal()">
                             <div class="card bg-reject">
                                 <div class="card-body">
                                     <h5 class="card-title text-light fw-bold">
@@ -197,15 +197,16 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-defect text-light">
-                    <h1 class="modal-title fs-5" id="defectModalLabel">RFT</h1>
+                    <h1 class="modal-title fs-5" id="defectModalLabel">DEFECT</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="row row-gap-3">
+                        <h6 class="text-center fw-bold">FROM : </h6>
                         <div class="col-md-4">
                             <label class="form-label">No. WS</label>
-                            <input type="hidden" class="form-control d-none" name="defect_act_costing_id" id="defect_act_costing_id" readonly>
-                            <input type="text" class="form-control" name="defect_act_costing_ws" id="defect_act_costing_ws" readonly>
+                            <input type="hidden" class="form-control d-none" name="defect_id_ws" id="defect_id_ws" readonly>
+                            <input type="text" class="form-control" name="defect_no_ws" id="defect_no_ws" readonly>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Style</label>
@@ -216,18 +217,58 @@
                             <input type="text" class="form-control" name="defect_color" id="defect_color" readonly>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Size</label>
-                            <input type="text" class="form-control" name="defect_size" id="defect_size" readonly>
-                        </div>
-                        <div class="col-md-4">
                             <label class="form-label">Total</label>
                             <input type="text" class="form-control" name="defect_total" id="defect_total" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Size</label>
+                            <select class="form-select select2bs4Defect" name="defect_size" id="defect_size">
+                                <option value="">Pilih Size</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Modify Qty</label>
+                            <input type="number" class="form-control" value="0" name="defect_qty" id="defect_qty">
+                        </div>
+                        <div class="col-md-12">
+                            <hr class="border-dark my-3">
+                            <h6 class="text-center fw-bold">MODIFY TO : </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No. WS</small></label>
+                            <select class="form-select select2bs4Defect" name="defect_mod_id_ws" id="defect_mod_id_ws">
+                                <option value="">Pilih WS</option>
+                                @foreach ($orders as $order)
+                                    <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Style</label>
+                            <select class="form-select select2bs4Defect" name="defect_mod_style" id="defect_mod_style">
+                                <option value="">Pilih Style</option>
+                                @foreach ($orders as $style)
+                                    <option value="{{ $style->id }}">{{ $style->styleno }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Color</label>
+                            <select class="form-select select2bs4Defect" name="defect_mod_color" id="defect_mod_color">
+                                <option value="">Pilih Color</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Size</label>
+                            <select class="form-select select2bs4Defect" name="defect_mod_size" id="defect_mod_size">
+                                <option value="">Pilih Size</option>
+                            </select>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
+                    <button type="button" class="btn btn-success" onclick="modifyOutput('defect_')">MODIFY</button>
                 </div>
             </div>
         </div>
@@ -238,15 +279,16 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-rework text-light">
-                    <h1 class="modal-title fs-5" id="reworkModalLabel">RFT</h1>
+                    <h1 class="modal-title fs-5" id="reworkModalLabel">REWORK</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="row row-gap-3">
+                        <h6 class="text-center fw-bold">FROM : </h6>
                         <div class="col-md-4">
                             <label class="form-label">No. WS</label>
-                            <input type="hidden" class="form-control d-none" name="rework_act_costing_id" id="rework_act_costing_id" readonly>
-                            <input type="text" class="form-control" name="rework_act_costing_ws" id="rework_act_costing_ws" readonly>
+                            <input type="hidden" class="form-control d-none" name="rework_id_ws" id="rework_id_ws" readonly>
+                            <input type="text" class="form-control" name="rework_no_ws" id="rework_no_ws" readonly>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Style</label>
@@ -257,18 +299,58 @@
                             <input type="text" class="form-control" name="rework_color" id="rework_color" readonly>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Size</label>
-                            <input type="text" class="form-control" name="rework_size" id="rework_size" readonly>
-                        </div>
-                        <div class="col-md-4">
                             <label class="form-label">Total</label>
                             <input type="text" class="form-control" name="rework_total" id="rework_total" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Size</label>
+                            <select class="form-select select2bs4Rework" name="rework_size" id="rework_size">
+                                <option value="">Pilih Size</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Modify Qty</label>
+                            <input type="number" class="form-control" value="0" name="rework_qty" id="rework_qty">
+                        </div>
+                        <div class="col-md-12">
+                            <hr class="border-dark my-3">
+                            <h6 class="text-center fw-bold">MODIFY TO : </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No. WS</small></label>
+                            <select class="form-select select2bs4Rework" name="rework_mod_id_ws" id="rework_mod_id_ws">
+                                <option value="">Pilih WS</option>
+                                @foreach ($orders as $order)
+                                    <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Style</label>
+                            <select class="form-select select2bs4Rework" name="rework_mod_style" id="rework_mod_style">
+                                <option value="">Pilih Style</option>
+                                @foreach ($orders as $style)
+                                    <option value="{{ $style->id }}">{{ $style->styleno }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Color</label>
+                            <select class="form-select select2bs4Rework" name="rework_mod_color" id="rework_mod_color">
+                                <option value="">Pilih Color</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Size</label>
+                            <select class="form-select select2bs4Rework" name="rework_mod_size" id="rework_mod_size">
+                                <option value="">Pilih Size</option>
+                            </select>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
+                    <button type="button" class="btn btn-success" onclick="modifyOutput('rework_')">MODIFY</button>
                 </div>
             </div>
         </div>
@@ -279,15 +361,16 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-reject text-light">
-                    <h1 class="modal-title fs-5" id="rejectModalLabel">RFT</h1>
+                    <h1 class="modal-title fs-5" id="rejectModalLabel">REJECT</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="row row-gap-3">
+                        <h6 class="text-center fw-bold">FROM : </h6>
                         <div class="col-md-4">
                             <label class="form-label">No. WS</label>
-                            <input type="hidden" class="form-control d-none" name="reject_act_costing_id" id="reject_act_costing_id" readonly>
-                            <input type="text" class="form-control" name="reject_act_costing_ws" id="reject_act_costing_ws" readonly>
+                            <input type="hidden" class="form-control d-none" name="reject_id_ws" id="reject_id_ws" readonly>
+                            <input type="text" class="form-control" name="reject_no_ws" id="reject_no_ws" readonly>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Style</label>
@@ -298,18 +381,58 @@
                             <input type="text" class="form-control" name="reject_color" id="reject_color" readonly>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Size</label>
-                            <input type="text" class="form-control" name="reject_size" id="reject_size" readonly>
-                        </div>
-                        <div class="col-md-4">
                             <label class="form-label">Total</label>
                             <input type="text" class="form-control" name="reject_total" id="reject_total" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Size</label>
+                            <select class="form-select select2bs4Reject" name="reject_size" id="reject_size">
+                                <option value="">Pilih Size</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Modify Qty</label>
+                            <input type="number" class="form-control" value="0" name="reject_qty" id="reject_qty">
+                        </div>
+                        <div class="col-md-12">
+                            <hr class="border-dark my-3">
+                            <h6 class="text-center fw-bold">MODIFY TO : </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No. WS</small></label>
+                            <select class="form-select select2bs4Reject" name="reject_mod_id_ws" id="reject_mod_id_ws">
+                                <option value="">Pilih WS</option>
+                                @foreach ($orders as $order)
+                                    <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Style</label>
+                            <select class="form-select select2bs4Reject" name="reject_mod_style" id="reject_mod_style">
+                                <option value="">Pilih Style</option>
+                                @foreach ($orders as $style)
+                                    <option value="{{ $style->id }}">{{ $style->styleno }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Color</label>
+                            <select class="form-select select2bs4Reject" name="reject_mod_color" id="reject_mod_color">
+                                <option value="">Pilih Color</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Size</label>
+                            <select class="form-select select2bs4Reject" name="reject_mod_size" id="reject_mod_size">
+                                <option value="">Pilih Size</option>
+                            </select>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
+                    <button type="button" class="btn btn-success" onclick="modifyOutput('reject_')">MODIFY</button>
                 </div>
             </div>
         </div>
@@ -334,6 +457,18 @@
             theme: 'bootstrap4',
             dropdownParent: $("#rftModal")
         })
+        $('.select2bs4Defect').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#defectModal")
+        })
+        $('.select2bs4Rework').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#reworkModal")
+        })
+        $('.select2bs4Reject').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#rejectModal")
+        })
 
         $(document).ready(function () {
             $("#tanggal").val("").trigger("change");
@@ -341,6 +476,9 @@
             $("#master_plan").val("").trigger("change");
 
             clearForm("rft_");
+            clearForm("defect_");
+            clearForm("rework_");
+            clearForm("reject_");
         });
 
         function clearForm(prefix) {
@@ -355,6 +493,8 @@
         function getMasterPlan() {
             if ($("#tanggal").val() && $("#line").val()) {
                 document.getElementById("loading").classList.remove("d-none");
+
+                document.getElementById("master_plan").innerHTML = "<option value=''>Select Master Plan</option>";
 
                 $.ajax({
                     type: "get",
@@ -433,6 +573,7 @@
             });
         }
 
+        // RFT
         function openRftModal() {
             let currentOutputs = outputs.filter((item) => {
                 return Number(item.rft) > 0
@@ -461,6 +602,94 @@
             }
         }
 
+        // Defect
+        function openDefectModal() {
+            let currentOutputs = outputs.filter((item) => {
+                return Number(item.defect) > 0
+            });
+
+            if (currentOutputs && currentOutputs.length > 0) {
+                document.getElementById("defect_id_ws").value = outputs[0]['id_ws'];
+                document.getElementById("defect_no_ws").value = outputs[0]['ws'];
+                document.getElementById("defect_style").value = outputs[0]['style'];
+                document.getElementById("defect_color").value = outputs[0]['color'];
+
+                let totalDefect = 0;
+                let selectSize = document.getElementById("defect_size");
+                selectSize.innerHTML = "<option value=''>Pilih Size</option>";
+                currentOutputs.forEach(item => {
+                    let option = document.createElement("option");
+                    option.value = item.so_det_id;
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
+
+                    selectSize.appendChild(option);
+
+                    totalDefect += Number(item.defect);
+                });
+
+                document.getElementById("defect_total").value = totalDefect;
+            }
+        }
+
+        // Rework
+        function openReworkModal() {
+            let currentOutputs = outputs.filter((item) => {
+                return Number(item.rework) > 0
+            });
+
+            if (currentOutputs && currentOutputs.length > 0) {
+                document.getElementById("rework_id_ws").value = outputs[0]['id_ws'];
+                document.getElementById("rework_no_ws").value = outputs[0]['ws'];
+                document.getElementById("rework_style").value = outputs[0]['style'];
+                document.getElementById("rework_color").value = outputs[0]['color'];
+
+                let totalRework = 0;
+                let selectSize = document.getElementById("rework_size");
+                selectSize.innerHTML = "<option value=''>Pilih Size</option>";
+                currentOutputs.forEach(item => {
+                    let option = document.createElement("option");
+                    option.value = item.so_det_id;
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
+
+                    selectSize.appendChild(option);
+
+                    totalRft += Number(item.rft);
+                });
+
+                document.getElementById("rework_total").value = totalRft;
+            }
+        }
+
+        // Reject
+        function openRejectModal() {
+            let currentOutputs = outputs.filter((item) => {
+                return Number(item.reject) > 0
+            });
+
+            if (currentOutputs && currentOutputs.length > 0) {
+                document.getElementById("reject_id_ws").value = outputs[0]['id_ws'];
+                document.getElementById("reject_no_ws").value = outputs[0]['ws'];
+                document.getElementById("reject_style").value = outputs[0]['style'];
+                document.getElementById("reject_color").value = outputs[0]['color'];
+
+                let totalReject = 0;
+                let selectSize = document.getElementById("reject_size");
+                selectSize.innerHTML = "<option value=''>Pilih Size</option>";
+                currentOutputs.forEach(item => {
+                    let option = document.createElement("option");
+                    option.value = item.so_det_id;
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
+
+                    selectSize.appendChild(option);
+
+                    totalReject += Number(item.reject);
+                });
+
+                document.getElementById("reject_total").value = totalReject;
+            }
+        }
+
+        // RFT
         $("#rft_mod_id_ws").on("change", async () => {
             await updateWs("ws", "rft_mod_");
             await updateColorList("rft_mod_");
@@ -469,6 +698,39 @@
         $("#rft_mod_style").on("change", async () => {
             await updateWs("style", "rft_mod_");
             await updateColorList("rft_mod_");
+        })
+
+        // DEFECT
+        $("#defect_mod_id_ws").on("change", async () => {
+            await updateWs("ws", "defect_mod_");
+            await updateColorList("defect_mod_");
+        })
+
+        $("#defect_mod_style").on("change", async () => {
+            await updateWs("style", "defect_mod_");
+            await updateColorList("defect_mod_");
+        })
+
+        // REJECT
+        $("#rework_mod_id_ws").on("change", async () => {
+            await updateWs("ws", "rework_mod_");
+            await updateColorList("rework_mod_");
+        })
+
+        $("#rework_mod_style").on("change", async () => {
+            await updateWs("style", "rework_mod_");
+            await updateColorList("rework_mod_");
+        })
+
+        // REJECT
+        $("#reject_mod_id_ws").on("change", async () => {
+            await updateWs("ws", "reject_mod_");
+            await updateColorList("reject_mod_");
+        })
+
+        $("#reject_mod_style").on("change", async () => {
+            await updateWs("style", "reject_mod_");
+            await updateColorList("reject_mod_");
         })
 
         // Update WS Select Option
@@ -516,8 +778,24 @@
             });
         }
 
+        // RFT
         $("#rft_mod_color").on("change", () => {
             updateSizeList("rft_mod_")
+        })
+
+        // DEFECT
+        $("#defect_mod_color").on("change", () => {
+            updateSizeList("defect_mod_")
+        })
+
+        // REWORK
+        $("#rework_mod_color").on("change", () => {
+            updateSizeList("rework_mod_")
+        })
+
+        // REJECT
+        $("#reject_mod_color").on("change", () => {
+            updateSizeList("reject_mod_")
         })
 
         // Update Color Select Option
@@ -555,8 +833,24 @@
             });
         }
 
+        // RFT
         $("#rft_size").on("change", () => {
             updateTotalQty("rft_");
+        })
+
+        // DEFECT
+        $("#defect_size").on("change", () => {
+            updateTotalQty("defect_");
+        })
+
+        // REWORK
+        $("#rework_size").on("change", () => {
+            updateTotalQty("rework_");
+        })
+
+        // REJECT
+        $("#reject_size").on("change", () => {
+            updateTotalQty("reject_");
         })
 
         function updateTotalQty(prefix) {
@@ -586,8 +880,24 @@
             }
         }
 
+        // RFT
         $("#rft_qty").on("keyup", () => {
             restrictQty("rft_");
+        })
+
+        // DEFECT
+        $("#defect_qty").on("keyup", () => {
+            restrictQty("defect_");
+        })
+
+        // REWORK
+        $("#rework_qty").on("keyup", () => {
+            restrictQty("rework_");
+        })
+
+        // REJECT
+        $("#reject_qty").on("keyup", () => {
+            restrictQty("reject_");
         })
 
         function restrictQty(prefix) {
