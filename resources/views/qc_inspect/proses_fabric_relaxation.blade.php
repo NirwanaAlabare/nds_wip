@@ -376,22 +376,28 @@
                     data: 'barcode'
                 },
                 {
-                    data: 'no_roll_buyer'
+                    data: 'no_roll_buyer',
+                    className: 'text-center'
                 },
                 {
-                    data: 'durasi_relax'
+                    data: 'durasi_relax',
+                    className: 'text-center'
                 },
                 {
-                    data: 'start_date'
+                    data: 'finish_date',
+                    className: 'text-center'
                 },
                 {
-                    data: 'start_time'
+                    data: 'finish_time',
+                    className: 'text-center'
                 },
                 {
-                    data: 'finish_date'
+                    data: 'finish_relax_date',
+                    className: 'text-center'
                 },
                 {
-                    data: 'finish_time'
+                    data: 'finish_relax_time',
+                    className: 'text-center'
                 },
                 {
                     data: 'days_diff',

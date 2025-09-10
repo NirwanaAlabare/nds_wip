@@ -292,6 +292,33 @@
                     </button>
                 </div>
             </div>
+
+            <div style="text-align: center; padding-top: 20px;">
+                <div style="display: inline-block; max-width: 600px; width: 100%;">
+                    <table class="table table-bordered table-striped table-sm" style="width: 100%; margin: 0 auto;">
+                        <thead class="table">
+                            <tr>
+                                <th colspan="2">Start</th>
+                                <th colspan="2">Finish</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>(Date)</strong></td>
+                                <td><strong>(Time)</strong></td>
+                                <td><strong>(Date)</strong></td>
+                                <td><strong>(Time)</strong></td>
+                            </tr>
+                            <tr>
+                                <td>{{ $finish_date }}</td>
+                                <td>{{ $finish_time }}</td>
+                                <td>{{ $finish_relax_date }}</td>
+                                <td>{{ $finish_relax_time }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
