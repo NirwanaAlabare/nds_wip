@@ -365,6 +365,18 @@
         function finish_form() {
             let id = $('#txtid').val();
 
+            const durasi_relax_raw = document.getElementById('txtdurasi_relax').value.trim();
+            const durasi_relax = parseFloat(durasi_relax_raw);
+
+            if (isNaN(durasi_relax) || durasi_relax <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Durasi Relax tidak valid',
+                    text: 'Silahkan isi durasi relax dengan angka lebih dari 0.',
+                });
+                return;
+            }
+
             // Build summary before save
             Swal.fire({
                 title: 'Perhatian!',
