@@ -279,7 +279,7 @@
                     <label for="txtdurasi_relax"><small><b>Durasi Relax:</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" id="txtdurasi_relax" name="txtdurasi_relax" value="{{ $durasi_relax }}"
-                            class="form-control border-primary" readonly>
+                            class="form-control border-primary">
                         <span class="input-group-text">jam</span>
                     </div>
                 </div>
@@ -298,8 +298,8 @@
                     <table class="table table-bordered table-striped table-sm" style="width: 100%; margin: 0 auto;">
                         <thead class="table">
                             <tr>
-                                <th colspan="2">Start</th>
-                                <th colspan="2">Finish</th>
+                                <th colspan="2">Start Relax</th>
+                                <th colspan="2">Finish Relax</th>
                             </tr>
                         </thead>
                         <tbody>
