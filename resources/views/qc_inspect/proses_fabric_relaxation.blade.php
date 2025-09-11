@@ -37,7 +37,8 @@
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <a href="{{ route('input_fabric_relaxation') }}" class="btn btn-outline-primary position-relative btn-sm">
+                <a href="{{ route('input_fabric_relaxation') }}" target="_blank"
+                    class="btn btn-outline-primary position-relative btn-sm">
                     <i class="fas fa-plus"></i>
                     New
                 </a>
@@ -67,12 +68,12 @@
                     </a>
                 </div>
 
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
-                </div>
+                </div> --}}
             </div>
             <div class="mb-2">
                 <span class="badge bg-info text-dark">
@@ -317,8 +318,8 @@
                     searchable: false,
                     className: 'text-center',
                     render: function(data, type, row) {
-                        // if ((data?.status_fix || '').toLowerCase() === 'done') {
-                        return `
+                        if ((data?.status_fix || '').toLowerCase() === 'done') {
+                            return `
                 <input
                     type="checkbox"
                     class="row-checkbox"
@@ -328,9 +329,9 @@
                     style="border: 2px solid #000; width: 18px; height: 18px;"
                 />
             `;
-                        // } else {
-                        //     return '';
-                        // }
+                        } else {
+                            return '';
+                        }
                     }
                 },
                 {

@@ -355,9 +355,11 @@
             if (!finishFormVal || finishFormVal.trim() === "") {
                 // Show button
                 $('#btnFinishContainer').show();
+                $('#txtdurasi_relax').prop('readonly', false);
             } else {
                 // Hide button
                 $('#btnFinishContainer').hide();
+                $('#txtdurasi_relax').prop('readonly', true);
             }
         });
 
@@ -397,7 +399,8 @@
                         url: '{{ route('finish_form_fabric_relaxation') }}',
                         data: {
                             _token: '{{ csrf_token() }}',
-                            id: id
+                            id: id,
+                            durasi_relax: durasi_relax,
                         },
                         success: function(response) {
                             Swal.fire({

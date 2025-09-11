@@ -355,9 +355,11 @@ where rl.id = ?", [$id]);
         $timestamp = Carbon::now();
 
         $id = $request->id;
+        $durasi_relax = $request->durasi_relax;
 
         $update = DB::connection('mysql_sb')->update("UPDATE qc_inspect_fabric_relaxation set
         finish_no_mesin = '$user',
+        durasi_relax = '$durasi_relax',
         finish_form = '$timestamp'
         WHERE id = '$id'
     ");
@@ -367,7 +369,8 @@ where rl.id = ?", [$id]);
             'status' => 'success',
             'message' => 'Form berhasil disimpan.',
             'data' => [
-                'id'    => $id
+                'id'    => $id,
+                'duras_relax'    => $durasi_relax
             ]
         ]);
     }

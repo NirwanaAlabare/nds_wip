@@ -413,7 +413,6 @@
                                 html: `
             <p><b>No Form       :</b> ${response.data.no_form}</p>
             <p><b>Barcode       :</b> ${response.data.barcode}</p>
-            <p><b>Durasi Relax :</b> ${response.data.durasi_relax} Jam</p>
             <hr>
             <p>Data berhasil disimpan.</p>
         `

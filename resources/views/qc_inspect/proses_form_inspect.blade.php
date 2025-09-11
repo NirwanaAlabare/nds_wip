@@ -42,12 +42,12 @@
                         Cari
                     </a>
                 </div>
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
-                </div>
+                </div> --}}
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered w-100 text-nowrap">
