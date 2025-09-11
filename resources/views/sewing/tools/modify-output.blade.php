@@ -195,7 +195,7 @@
 
     <!-- Defect Modal -->
     <div class="modal fade" id="defectModal" tabindex="-1" aria-labelledby="defectModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-defect text-light">
                     <h1 class="modal-title fs-5" id="defectModalLabel">DEFECT</h1>
@@ -278,7 +278,7 @@
 
     <!-- Rework Modal -->
     <div class="modal fade" id="reworkModal" tabindex="-1" aria-labelledby="reworkModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-rework text-light">
                     <h1 class="modal-title fs-5" id="reworkModalLabel">REWORK</h1>
@@ -361,7 +361,7 @@
 
     <!-- Reject Modal -->
     <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-reject text-light">
                     <h1 class="modal-title fs-5" id="rejectModalLabel">REJECT</h1>
