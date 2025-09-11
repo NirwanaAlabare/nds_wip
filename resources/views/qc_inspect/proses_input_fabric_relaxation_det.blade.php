@@ -298,8 +298,8 @@
                     <table class="table table-bordered table-striped table-sm" style="width: 100%; margin: 0 auto;">
                         <thead class="table">
                             <tr>
-                                <th colspan="2">Start</th>
-                                <th colspan="2">Finish</th>
+                                <th colspan="2">Start Relax</th>
+                                <th colspan="2">Finish Relax</th>
                             </tr>
                         </thead>
                         <tbody>
