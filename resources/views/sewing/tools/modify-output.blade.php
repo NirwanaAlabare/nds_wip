@@ -1,14 +1,14 @@
 @extends('layouts.index')
 
 @section('custom-link')
-<!-- DataTables -->
-<link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-<link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-<link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
 
-<!-- Select2 -->
-<link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-<link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 @endsection
 
 @section('content')
@@ -187,6 +187,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
                     <button type="button" class="btn btn-success" onclick="modifyOutput('rft_')">MODIFY</button>
+                    <button type="button" class="btn btn-dark" onclick="undoOutput('rft_')">UNDO</button>
                 </div>
             </div>
         </div>
@@ -269,6 +270,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
                     <button type="button" class="btn btn-success" onclick="modifyOutput('defect_')">MODIFY</button>
+                    <button type="button" class="btn btn-dark" onclick="undoOutput('defect_')">UNDO</button>
                 </div>
             </div>
         </div>
@@ -351,6 +353,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
                     <button type="button" class="btn btn-success" onclick="modifyOutput('rework_')">MODIFY</button>
+                    <button type="button" class="btn btn-dark" onclick="undoOutput('rework_')">UNDO</button>
                 </div>
             </div>
         </div>
@@ -433,6 +436,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">CANCEL</button>
                     <button type="button" class="btn btn-success" onclick="modifyOutput('reject_')">MODIFY</button>
+                    <button type="button" class="btn btn-dark" onclick="undoOutput('reject_')">UNDO</button>
                 </div>
             </div>
         </div>
@@ -964,6 +968,62 @@
                         qty: qty,
                         type: prefix,
                         dept: dept,
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (response.status == 200) {
+                            Swal.fire({
+                                icon: "success",
+                                html: response.message,
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                html: response.message,
+                            });
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: "warning",
+                    html: "Harap isi form dengan lengkap.",
+                });
+            }
+        }
+
+        function undoOutput(prefix) {
+            let dept = document.getElementById("dept").value;
+            let tanggal = document.getElementById("tanggal").value;
+            let line = document.getElementById("line").value;
+            let masterPlanId = document.getElementById("master_plan").value;
+            let soDetId = document.getElementById(prefix+"size").value;
+            let qty = document.getElementById(prefix+"qty").value;
+
+            if (tanggal && line && masterPlanId && soDetId && (qty > 0)) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    type: "post",
+                    url: "{{ route('modify-output-action') }}",
+                    data: {
+                        tanggal: tanggal,
+                        line: line,
+                        master_plan_id: masterPlanId,
+                        so_det_id: soDetId,
+                        qty: qty,
+                        type: prefix,
+                        dept: dept,
+                        action: "undo",
                     },
                     dataType: "json",
                     success: function (response) {
