@@ -1971,7 +1971,7 @@ class SewingToolsController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("sewing.tools.modify-output", ["lines" => $lines, "orders" => $orders]);
+        return view("sewing.tools.modify-output", ["lines" => $lines, "orders" => $orders, "page" => "dashboard-sewing-eff"]);
     }
 
     public function modifyOutputAction(Request $request) {
