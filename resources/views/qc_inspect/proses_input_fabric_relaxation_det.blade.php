@@ -279,7 +279,7 @@
                     <label for="txtdurasi_relax"><small><b>Durasi Relax:</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="number" id="txtdurasi_relax" name="txtdurasi_relax" value="{{ $durasi_relax }}"
-                            class="form-control border-primary" readonly>
+                            class="form-control border-primary">
                         <span class="input-group-text">jam</span>
                     </div>
                 </div>
