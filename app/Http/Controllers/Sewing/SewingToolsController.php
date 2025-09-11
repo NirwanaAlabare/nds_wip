@@ -1783,9 +1783,7 @@ class SewingToolsController extends Controller
                                 $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $rft->id)->delete();
 
                                 if ($deleteRft) {
-                                    if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                    }
+                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
 
                                     array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
                                 }
@@ -1800,9 +1798,7 @@ class SewingToolsController extends Controller
                                 $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->delete();
 
                                 if ($deleteDefect) {
-                                    if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                    }
+                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
 
                                     array_push($result, "DEFECT '".$defect->kode_numbering."' -> DELETED");
                                 }
@@ -1820,9 +1816,7 @@ class SewingToolsController extends Controller
                                     $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where("id", $reject->id)->delete();
 
                                     if ($deleteReject) {
-                                        if ($department && $department != "_packing") {
-                                            Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'defect_id' => $defect->id, 'reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                        }
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $defect->id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
 
                                         DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
                                             "defect_status" => "defect"
@@ -1845,9 +1839,7 @@ class SewingToolsController extends Controller
                             $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
 
                             if ($deleteRework) {
-                                if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'rft_id' => $rft->id, 'rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                }
+                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_rft_id' => $rft->id, 'output_rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
 
                                 DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
                                     "defect_status" => "defect"
@@ -1866,9 +1858,7 @@ class SewingToolsController extends Controller
                             $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
 
                             if ($deleteReject) {
-                                if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                }
+                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
                             }
@@ -2005,46 +1995,72 @@ class SewingToolsController extends Controller
                 $rftIds = $rfts->pluck("id")->toArray();
 
                 if (count($rftIds) > 0) {
-                    // Check So Det
-                    $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
-                        ->leftJoin("so", "so.id", "=", "so_det.id_so")
-                        ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
-                        ->where("so_det.id", $request->mod_so_det_id)
-                        ->first();
+                    // Undo
+                    if ($request->action == "undo") {
+                        // Log
+                        $undoArray = [];
+                        foreach ($rftIds as $rftId) {
+                            $rft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->where('id', $rftId)->first();
 
-                    if ($modSoDet) {
-                        // Check Master Plan
-                        $modMasterPlan = MasterPlan::select("master_plan.id")
-                            ->where("tgl_plan", $request->tanggal)
-                            ->where("id_ws", $modSoDet->id_ws)
-                            ->where("color", $modSoDet->color)
-                            ->where("sewing_line", $request->line)
-                            ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                            if ($rft) {
+                                array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
+                            }
+                        }
+
+                        DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+
+                        // Delete
+                        $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn('id', $rftIds)->delete();
+
+                        if ($deleteRft) {
+                            return [
+                                "status"  => 200,
+                                "message" => $deleteRft." berhasil di UNDO.",
+                            ];
+                        }
+                    // Modify
+                    } else {
+                        // Check So Det
+                        $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                            ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                            ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                            ->where("so_det.id", $request->mod_so_det_id)
                             ->first();
 
-                        if ($modMasterPlan) {
-                            $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update([
-                                "so_det_id"       => $modSoDet->id,
-                                "master_plan_id"  => $modMasterPlan->id,
-                            ]);
+                        if ($modSoDet) {
+                            // Check Master Plan
+                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                                ->where("tgl_plan", $request->tanggal)
+                                ->where("id_ws", $modSoDet->id_ws)
+                                ->where("color", $modSoDet->color)
+                                ->where("sewing_line", $request->line)
+                                ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                                ->first();
 
-                            if ($updateRfts) {
+                            if ($modMasterPlan) {
+                                $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update([
+                                    "so_det_id"       => $modSoDet->id,
+                                    "master_plan_id"  => $modMasterPlan->id,
+                                ]);
+
+                                if ($updateRfts) {
+                                    return [
+                                        "status"  => 200,
+                                        "message" => $updateRfts." RFT berhasil di ubah.",
+                                    ];
+                                }
+                            } else {
                                 return [
-                                    "status"  => 200,
-                                    "message" => $updateRfts." RFT berhasil di ubah.",
+                                    "status"  => 400,
+                                    "message" => "Master Plan untuk size tujuan tidak ditemukan.",
                                 ];
                             }
                         } else {
                             return [
                                 "status"  => 400,
-                                "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+                                "message" => "Size tujuan tidak ditemukan.",
                             ];
                         }
-                    } else {
-                        return [
-                            "status"  => 400,
-                            "message" => "Size tujuan tidak ditemukan.",
-                        ];
                     }
                 }
 
@@ -2069,46 +2085,72 @@ class SewingToolsController extends Controller
                 $defectIds = $defects->pluck("id")->toArray();
 
                 if (count($defectIds) > 0) {
-                    // Check So Det
-                    $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
-                        ->leftJoin("so", "so.id", "=", "so_det.id_so")
-                        ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
-                        ->where("so_det.id", $request->mod_so_det_id)
-                        ->first();
+                    // Undo
+                    if ($request->action == "undo") {
+                        // Log
+                        $undoArray = [];
+                        foreach ($defectIds as $defectId) {
+                            $defect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->where('id', $defectId)->first();
 
-                    if ($modSoDet) {
-                        // Check Master Plan
-                        $modMasterPlan = MasterPlan::select("master_plan.id")
-                            ->where("tgl_plan", $request->tanggal)
-                            ->where("id_ws", $modSoDet->id_ws)
-                            ->where("color", $modSoDet->color)
-                            ->where("sewing_line", $request->line)
-                            ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                            if ($defect) {
+                                array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
+                            }
+                        }
+
+                        DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+
+                        // Delete
+                        $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn('id', $defectIds)->delete();
+
+                        if ($deleteDefect) {
+                            return [
+                                "status"  => 200,
+                                "message" => $deleteDefect." berhasil di UNDO.",
+                            ];
+                        }
+                    // Modify
+                    } else {
+                        // Check So Det
+                        $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                            ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                            ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                            ->where("so_det.id", $request->mod_so_det_id)
                             ->first();
 
-                        if ($modMasterPlan) {
-                            $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
-                                "so_det_id"       => $modSoDet->id,
-                                "master_plan_id"  => $modMasterPlan->id,
-                            ]);
+                        if ($modSoDet) {
+                            // Check Master Plan
+                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                                ->where("tgl_plan", $request->tanggal)
+                                ->where("id_ws", $modSoDet->id_ws)
+                                ->where("color", $modSoDet->color)
+                                ->where("sewing_line", $request->line)
+                                ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                                ->first();
 
-                            if ($updateDefects) {
+                            if ($modMasterPlan) {
+                                $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+                                    "so_det_id"       => $modSoDet->id,
+                                    "master_plan_id"  => $modMasterPlan->id,
+                                ]);
+
+                                if ($updateDefects) {
+                                    return [
+                                        "status"  => 200,
+                                        "message" => $updateDefects." Defect berhasil di ubah.",
+                                    ];
+                                }
+                            } else {
                                 return [
-                                    "status"  => 200,
-                                    "message" => $updateDefects." Defect berhasil di ubah.",
+                                    "status"  => 400,
+                                    "message" => "Master Plan untuk size tujuan tidak ditemukan.",
                                 ];
                             }
                         } else {
                             return [
                                 "status"  => 400,
-                                "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+                                "message" => "Size tujuan tidak ditemukan.",
                             ];
                         }
-                    } else {
-                        return [
-                            "status"  => 400,
-                            "message" => "Size tujuan tidak ditemukan.",
-                        ];
                     }
                 }
 
@@ -2133,55 +2175,87 @@ class SewingToolsController extends Controller
                 $defectIds = $defects->pluck("id")->toArray();
 
                 if (count($defectIds) > 0) {
-                    // Check So Det
-                    $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
-                        ->leftJoin("so", "so.id", "=", "so_det.id_so")
-                        ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
-                        ->where("so_det.id", $request->mod_so_det_id)
-                        ->first();
+                    // Undo
+                    if ($request->action == "undo") {
+                        // Log
+                        $undoArray = [];
+                        foreach ($defectIds as $defectId) {
+                            $rework = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->selectRaw("output_reworks.*, output_rfts.id as rft_id, output_rfts.master_plan_id, output_rfts.so_det_id, output_rfts.kode_numbering")->leftJoin("output_rfts", "output_rfts.rework_id", "=", "output_reworks.id")->where('defect_id', $defectId)->first();
 
-                    if ($modSoDet) {
-                        // Check Master Plan
-                        $modMasterPlan = MasterPlan::select("master_plan.id")
-                            ->where("tgl_plan", $request->tanggal)
-                            ->where("id_ws", $modSoDet->id_ws)
-                            ->where("color", $modSoDet->color)
-                            ->where("sewing_line", $request->line)
-                            ->whereRaw("(cancel IS NULL or cancel = 'N')")
-                            ->first();
+                            if ($rework) {
+                                array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id]);
+                            }
+                        }
 
-                        if ($modMasterPlan) {
+                        DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+
+                        // Delete
+                        $reworkIds = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn('defect_id', $defectIds)->pluck("id")->toArray();
+                        $deleteReworks = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn('defect_id', $defectIds)->delete();
+                        $deleteRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn('rework_id', $reworkIds)->delete();
+
+                        if ($deleteReworks) {
                             $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
-                                "so_det_id"       => $modSoDet->id,
-                                "master_plan_id"  => $modMasterPlan->id,
+                                "defect_status" => "defect",
                             ]);
 
-                            if ($updateDefects) {
-                                $reworkIds = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn("defect_id", $defectIds)->pluck("id")->toArray();
+                            return [
+                                "status"  => 200,
+                                "message" => $deleteReworks." Rework berhasil di UNDO.",
+                            ];
+                        }
+                    // Modify
+                    } else {
+                        // Check So Det
+                        $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                            ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                            ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                            ->where("so_det.id", $request->mod_so_det_id)
+                            ->first();
 
-                                if ($reworkIds && count($reworkIds) > 0) {
-                                    $updateRft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("rework_id", $reworkIds)->update([
-                                        "so_det_id"       => $modSoDet->id,
-                                        "master_plan_id"  => $modMasterPlan->id,
-                                    ]);
+                        if ($modSoDet) {
+                            // Check Master Plan
+                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                                ->where("tgl_plan", $request->tanggal)
+                                ->where("id_ws", $modSoDet->id_ws)
+                                ->where("color", $modSoDet->color)
+                                ->where("sewing_line", $request->line)
+                                ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                                ->first();
+
+                            if ($modMasterPlan) {
+                                $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+                                    "so_det_id"       => $modSoDet->id,
+                                    "master_plan_id"  => $modMasterPlan->id,
+                                ]);
+
+                                if ($updateDefects) {
+                                    $reworkIds = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn("defect_id", $defectIds)->pluck("id")->toArray();
+
+                                    if ($reworkIds && count($reworkIds) > 0) {
+                                        $updateRft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("rework_id", $reworkIds)->update([
+                                            "so_det_id"       => $modSoDet->id,
+                                            "master_plan_id"  => $modMasterPlan->id,
+                                        ]);
+                                    }
+
+                                    return [
+                                        "status"  => 200,
+                                        "message" => $updateDefects." Rework berhasil di ubah.",
+                                    ];
                                 }
-
+                            } else {
                                 return [
-                                    "status"  => 200,
-                                    "message" => $updateDefects." Rework berhasil di ubah.",
+                                    "status"  => 400,
+                                    "message" => "Master Plan untuk size tujuan tidak ditemukan.",
                                 ];
                             }
                         } else {
                             return [
                                 "status"  => 400,
-                                "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+                                "message" => "Size tujuan tidak ditemukan.",
                             ];
                         }
-                    } else {
-                        return [
-                            "status"  => 400,
-                            "message" => "Size tujuan tidak ditemukan.",
-                        ];
                     }
                 }
 
@@ -2206,55 +2280,86 @@ class SewingToolsController extends Controller
                 $rejectIds = $rejects->pluck("id")->toArray();
 
                 if (count($rejectIds) > 0) {
-                    // Check So Det
-                    $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
-                        ->leftJoin("so", "so.id", "=", "so_det.id_so")
-                        ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
-                        ->where("so_det.id", $request->mod_so_det_id)
-                        ->first();
+                    // Undo
+                    if ($request->action == "undo") {
+                        // Log
+                        $undoArray = [];
+                        foreach ($rejectIds as $rejectId) {
+                            $reject = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->where('id', $rejectId)->first();
 
-                    if ($modSoDet) {
-                        // Check Master Plan
-                        $modMasterPlan = MasterPlan::select("master_plan.id")
-                            ->where("tgl_plan", $request->tanggal)
-                            ->where("id_ws", $modSoDet->id_ws)
-                            ->where("color", $modSoDet->color)
-                            ->where("sewing_line", $request->line)
-                            ->whereRaw("(cancel IS NULL or cancel = 'N')")
-                            ->first();
+                            if ($reject) {
+                                array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
+                            }
+                        }
 
-                        if ($modMasterPlan) {
-                            $updateRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->update([
-                                "so_det_id"       => $modSoDet->id,
-                                "master_plan_id"  => $modMasterPlan->id,
+                        DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+
+                        // Delete
+                        $defectIds = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereNotNull("defect_id")->whereIn('id', $rejectIds)->pluck("defect_id")->toArray();
+                        $deleteRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn('id', $rejectIds)->delete();
+
+                        if ($deleteRejects) {
+                            $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+                                "defect_status" => "defect",
                             ]);
 
-                            if ($updateRejects) {
-                                $defectIds = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->whereNotNull("defect_id")->pluck("defect_id")->toArray();
+                            return [
+                                "status"  => 200,
+                                "message" => $deleteRejects." Reject berhasil di UNDO.",
+                            ];
+                        }
+                    // Modify
+                    } else {
+                        // Check So Det
+                        $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                            ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                            ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                            ->where("so_det.id", $request->mod_so_det_id)
+                            ->first();
 
-                                if ($defectIds && count($defectIds) > 0) {
-                                    $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
-                                        "so_det_id"       => $modSoDet->id,
-                                        "master_plan_id"  => $modMasterPlan->id,
-                                    ]);
+                        if ($modSoDet) {
+                            // Check Master Plan
+                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                                ->where("tgl_plan", $request->tanggal)
+                                ->where("id_ws", $modSoDet->id_ws)
+                                ->where("color", $modSoDet->color)
+                                ->where("sewing_line", $request->line)
+                                ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                                ->first();
+
+                            if ($modMasterPlan) {
+                                $updateRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->update([
+                                    "so_det_id"       => $modSoDet->id,
+                                    "master_plan_id"  => $modMasterPlan->id,
+                                ]);
+
+                                if ($updateRejects) {
+                                    $defectIds = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->whereNotNull("defect_id")->pluck("defect_id")->toArray();
+
+                                    if ($defectIds && count($defectIds) > 0) {
+                                        $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+                                            "so_det_id"       => $modSoDet->id,
+                                            "master_plan_id"  => $modMasterPlan->id,
+                                        ]);
+                                    }
+
+                                    return [
+                                        "status"  => 200,
+                                        "message" => $updateRejects." Reject berhasil di ubah.",
+                                    ];
                                 }
-
+                            } else {
                                 return [
-                                    "status"  => 200,
-                                    "message" => $updateRejects." Reject berhasil di ubah.",
+                                    "status"  => 400,
+                                    "message" => "Master Plan untuk size tujuan tidak ditemukan.",
                                 ];
                             }
                         } else {
                             return [
                                 "status"  => 400,
-                                "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+                                "message" => "Size tujuan tidak ditemukan.",
                             ];
                         }
-                    } else {
-                        return [
-                            "status"  => 400,
-                            "message" => "Size tujuan tidak ditemukan.",
-                        ];
                     }
                 }
 
@@ -2349,7 +2454,7 @@ class SewingToolsController extends Controller
 
                                 if ($deleteRft) {
                                     if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                        Undo::create(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
                                     }
 
                                     array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
@@ -2366,7 +2471,7 @@ class SewingToolsController extends Controller
 
                                 if ($deleteDefect) {
                                     if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                        Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
                                     }
 
                                     array_push($result, "DEFECT '".$defect->kode_numbering."' -> DELETED");
@@ -2386,7 +2491,7 @@ class SewingToolsController extends Controller
 
                                     if ($deleteReject) {
                                         if ($department && $department != "_packing") {
-                                            Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'defect_id' => $defect->id, 'reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                            Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $defect->id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
                                         }
 
                                         DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
@@ -2411,7 +2516,7 @@ class SewingToolsController extends Controller
 
                             if ($deleteRework) {
                                 if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'rft_id' => $rft->id, 'rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                    Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_rft_id' => $rft->id, 'output_rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
                                 }
 
                                 DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
@@ -2432,7 +2537,7 @@ class SewingToolsController extends Controller
 
                             if ($deleteReject) {
                                 if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                    Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
                                 }
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
