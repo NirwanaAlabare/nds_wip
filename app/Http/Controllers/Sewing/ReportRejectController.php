@@ -388,7 +388,7 @@ class ReportRejectController extends Controller
             $reject->whereIn("so_det.size", $request->size);
         }
 
-        $rejectData = $reject->get();
+        $rejectData = $reject->orderBy(DB::raw("COUNT(output_reject_in.id)"), "desc")->get();
 
         return json_encode($rejectData);
     }
