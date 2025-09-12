@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Exports\ExportReportCutting;
 use App\Exports\ExportReportCuttingSinglePage;
@@ -390,7 +391,7 @@ class ReportCuttingController extends Controller
                         req.color,
                         COALESCE(roll.roll, req.no_roll) roll,
                         COALESCE(roll.qty, req.qty_out) qty,
-                        COALESCE(roll.sisa_kain, 0) - COALESCE(piping.piping, 0) as sisa_kain,
+                        (CASE WHEN roll.sisa_kain > 0 THEN COALESCE(roll.sisa_kain, 0) - COALESCE(piping.piping, 0) ELSE COALESCE(roll.qty, req.qty_out) END) as sisa_kain,
                         COALESCE(roll.unit, req.satuan) unit,
                         COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
                         COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
@@ -453,7 +454,7 @@ class ReportCuttingController extends Controller
                             ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
                         group by
                             id_roll
-                    ) piping on piping.id_roll = roll.id_roll
+                    ) piping on piping.id_roll = req.id_roll
                 "));
 
                 $rollCutting = $rolls ? $rolls->where("total_pemakaian_roll", ">", 0)->count() : '0';
@@ -502,20 +503,22 @@ class ReportCuttingController extends Controller
         foreach ($rollIdsArr as $rollId) {
             $rolls = collect(DB::select("
                 SELECT
-                    roll_use.id_roll,
-                    roll_use.id_item,
-                    roll_use.detail_item,
-                    roll_use.lot,
-                    roll_use.roll,
-                    roll_use.qty,
-                    roll_use.unit,
-                    roll_use.total_pemakaian_roll + COALESCE(piping.piping, 0) as total_pemakaian_roll,
+                    scanned_item.id_roll,
+                    scanned_item.id_item,
+                    scanned_item.detail_item,
+                    scanned_item.lot,
+                    scanned_item.roll,
+                    scanned_item.qty_in as qty,
+                    scanned_item.unit,
+                    COALESCE(roll_use.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
                     roll_use.total_sisa_kain_1,
-                    roll_use.total_sisa_kain - COALESCE(piping.piping, 0) as total_sisa_kain,
-                    roll_use.total_short_roll,
-                    roll_use.total_short_roll_percentage,
-                    roll_use.tanggal_return
-                FROM (
+                    (CASE WHEN roll_use.total_sisa_kain > 0 THEN COALESCE(roll_use.total_sisa_kain, 0) - COALESCE(piping.piping, 0) ELSE scanned_item.qty END) as total_sisa_kain,
+                    (CASE WHEN roll_use.total_short_roll > 0 THEN roll_use.total_short_roll ELSE piping.short_roll END) total_short_roll,
+                    (CASE WHEN roll_use.total_short_roll_percentage > 0 THEN roll_use.total_short_roll_percentage ELSE ((piping.short_roll/piping.qty)*100) END) total_short_roll_percentage,
+                    '".$rollId->tgl_dok."' tanggal_return
+                FROM
+                    scanned_item
+                LEFT JOIN (
                     SELECT
                         id_roll,
                         id_item,
@@ -565,12 +568,13 @@ class ReportCuttingController extends Controller
                     GROUP BY
                         `id_item`,
                         `id_roll`
-                ) roll_use
+                ) roll_use on roll_use.id_roll = scanned_item.id_roll
                 left join (
                     select
                         id_roll,
                         SUM(form_cut_piping.qty) qty,
-                        SUM(form_cut_piping.piping) piping
+                        SUM(form_cut_piping.piping) piping,
+                        SUM(short_roll) as short_roll
                     from
                         form_cut_piping
                     where
@@ -578,7 +582,12 @@ class ReportCuttingController extends Controller
                         AND `id_roll` = '".$rollId->id_roll."'
                     group by
                         id_roll
-                ) piping on piping.id_roll = roll_use.id_roll
+                ) piping on piping.id_roll = scanned_item.id_roll
+                where
+                    scanned_item.id_roll is not null
+                    AND scanned_item.`id_roll` = '".$rollId->id_roll."'
+                GROUP BY
+                    scanned_item.id_roll
             "));
 
             if ($rolls && $rolls->first()) {
@@ -668,17 +677,18 @@ class ReportCuttingController extends Controller
 
             $rollIdsStr = addQuotesAround($rollIds->implode("\n"));
 
-            $rolls = FormCutInputDetail::selectRaw("
+            $rolls = ScannedItem::selectRaw("
                     form_cut_input_detail.id_roll,
                     form_cut_input_detail.id_item,
                     form_cut_input_detail.detail_item,
                     form_cut_input_detail.lot,
-                    COALESCE(form_cut_input_detail.roll_buyer, roll) roll,
+                    COALESCE(form_cut_input_detail.roll_buyer, form_cut_input_detail.roll) roll,
                     MAX(form_cut_input_detail.qty) qty,
                     form_cut_input_detail.unit,
                     ROUND(SUM(form_cut_input_detail.total_pemakaian_roll) + COALESCE(piping.piping, 0), 2) total_pemakaian_roll,
                     ROUND(SUM(CASE WHEN form_cut_input_detail.short_roll < 0 THEN form_cut_input_detail.short_roll ELSE 0 END), 2) total_short_roll
                 ")->
+                leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->
                 leftJoin(DB::raw("
                     (
                         select
@@ -693,10 +703,11 @@ class ReportCuttingController extends Controller
                         group by
                             id_roll
                     ) piping
-                "), "piping.id_roll", "=", "form_cut_input_detail.id_roll")->
+                "), "piping.id_roll", "=", "scanned_item.id_roll")->
+                whereNotNull("scanned_item.id_roll")->
                 whereNotNull("form_cut_input_detail.id_roll")->
-                whereIn("form_cut_input_detail.id_roll", $rollIds)->
-                groupBy("form_cut_input_detail.id_item", "form_cut_input_detail.id_roll")->
+                whereIn("scanned_item.id_roll", $rollIds)->
+                groupBy("scanned_item.id_item", "scanned_item.id_roll")->
                 get();
 
             if ($rolls->count() > 0) {
