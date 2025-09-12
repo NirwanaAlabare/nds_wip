@@ -52,9 +52,9 @@ class ExportDetailPemakaianKain implements FromView, WithEvents, ShouldAutoSize 
                     req.color,
                     COALESCE(roll.roll, req.no_roll) roll,
                     COALESCE(roll.qty, req.qty_out) qty,
-                    COALESCE(roll.sisa_kain, 0) sisa_kain,
-                    COALESCE(roll.unit, req.satuan) unit,
-                    COALESCE(roll.total_pemakaian_roll, 0) total_pemakaian_roll,
+                    (CASE WHEN roll.sisa_kain > 0 THEN COALESCE(roll.sisa_kain, 0) - COALESCE(piping.piping, 0) ELSE COALESCE(roll.qty, req.qty_out) END) as sisa_kain,
+                    COALESCE(roll.unit, piping.unit, req.satuan) unit,
+                    COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
                     COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
                     COALESCE(roll.total_short_roll, 0) total_short_roll
                 FROM (
@@ -103,6 +103,19 @@ class ExportDetailPemakaianKain implements FromView, WithEvents, ShouldAutoSize 
                         `id_item`,
                         `id_roll`
                 ) roll ON req.id_roll = roll.id_roll
+                left join (
+                    select
+                        id_roll,
+                        SUM(form_cut_piping.qty) qty,
+                        SUM(form_cut_piping.piping) piping
+                    from
+                        form_cut_piping
+                    where
+                        id_roll IS NOT NULL
+                        ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                    group by
+                        id_roll
+                ) piping on piping.id_roll = req.id_roll
             "));
 
         $this->rowCount = $rolls->count();
