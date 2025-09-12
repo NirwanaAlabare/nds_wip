@@ -305,6 +305,7 @@ where rl.id = ?", [$id]);
         $no_roll_buyer              = $get_header[0]->no_roll_buyer;
         $no_lot                     = $get_header[0]->no_lot;
         $barcode                    = $get_header[0]->barcode;
+        $id_item                    = $get_header[0]->id_item;
         $color                      = $get_header[0]->color;
         $itemdesc                   = $get_header[0]->itemdesc;
         $durasi_relax               = $get_header[0]->durasi_relax;
@@ -338,6 +339,7 @@ where rl.id = ?", [$id]);
                 "no_roll_buyer"     => $no_roll_buyer,
                 "no_lot"            => $no_lot,
                 "barcode"           => $barcode,
+                "id_item"           => $id_item,
                 "itemdesc"          => $itemdesc,
                 "durasi_relax"      => $durasi_relax,
                 "finish_date"      => $finish_date,
@@ -392,10 +394,15 @@ where rl.id = ?", [$id]);
         // Raw SQL
         $sql = "SELECT
         barcode,
-        DATE_FORMAT(start_form, '%d-%m-%Y')start_date,
-        time(start_form) start_time,
-        DATE_FORMAT(finish_form, '%d-%m-%Y')finish_date,
-        time(finish_form) finish_time
+DATE_FORMAT(start_form, '%d-%m-%Y %H:%i:%s') AS start_form_fix,
+DATE_FORMAT(start_form, '%d-%m-%Y')start_date,
+time(start_form) start_time,
+DATE_FORMAT(finish_form, '%d-%m-%Y %H:%i:%s') AS finish_form_fix,
+DATE_FORMAT(finish_form, '%d-%m-%Y')finish_date,
+time(finish_form) finish_time,
+DATE_ADD(finish_form, INTERVAL durasi_relax HOUR) finish_relax,
+DATE_FORMAT(DATE_ADD(finish_form, INTERVAL durasi_relax HOUR), '%d-%m-%Y') finish_relax_date,
+time(DATE_ADD(finish_form, INTERVAL durasi_relax HOUR)) finish_relax_time
         FROM qc_inspect_fabric_relaxation WHERE id IN ($placeholders)";
 
         // Execute query with bindings

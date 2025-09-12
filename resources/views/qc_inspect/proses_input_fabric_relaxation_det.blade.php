@@ -263,8 +263,8 @@
                         class="form-control form-control-sm border-primary" readonly>
                 </div>
                 <div class="col-md-3">
-                    <label for="txtid_item"><small><b>Color :</b></small></label>
-                    <input type="text" id="txtid_item" name="txtid_item" value="{{ $color }}"
+                    <label for="txtid_item"><small><b>ID Item :</b></small></label>
+                    <input type="text" id="txtid_item" name="txtid_item" value="{{ $id_item }}"
                         class="form-control form-control-sm border-primary" readonly>
                 </div>
             </div>

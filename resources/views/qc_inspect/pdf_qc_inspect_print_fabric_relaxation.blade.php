@@ -73,10 +73,10 @@
                     <td class="value">Time</td>
                 </tr>
                 <tr>
-                    <td class="value">{{ $dh->start_date ?? 'null' }}</td>
-                    <td class="value">{{ $dh->start_time ?? 'null' }}</td>
                     <td class="value">{{ $dh->finish_date ?? 'null' }}</td>
                     <td class="value">{{ $dh->finish_time ?? 'null' }}</td>
+                    <td class="value">{{ $dh->finish_relax_date ?? 'null' }}</td>
+                    <td class="value">{{ $dh->finish_relax_time ?? 'null' }}</td>
                 </tr>
             </table>
         </div>
