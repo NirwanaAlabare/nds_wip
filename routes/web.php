@@ -182,6 +182,8 @@ use App\Http\Controllers\QCInspectProsesPackingListController;
 use App\Http\Controllers\QCInspectProsesFormInspectController;
 use App\Http\Controllers\QCInspectProsesFabricRelaxationController;
 use App\Http\Controllers\QCInspectLaporanController;
+use App\Http\Controllers\QCInspectPrintBintexShadeBandController;
+use App\Http\Controllers\QCInspectShadeBandController;
 
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
@@ -2155,6 +2157,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_qc_inspect_roll', 'export_excel_qc_inspect_roll')->name('export_excel_qc_inspect_roll');
         Route::get('/qc_inspect_laporan_lot', 'qc_inspect_laporan_lot')->name('qc_inspect_laporan_lot');
         Route::get('/export_excel_qc_inspect_lot', 'export_excel_qc_inspect_lot')->name('export_excel_qc_inspect_lot');
+    });
+
+    // Proses Print Bintex Shade Band
+    Route::controller(QCInspectPrintBintexShadeBandController::class)->prefix("proses-print-bintex-shade-band")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('qc_inspect_print_bintex_shade_band');
+        Route::get('/print_sticker_bintex_shade_band', 'print_sticker_bintex_shade_band')->name('print_sticker_bintex_shade_band');
+    });
+
+    // Proses Shade Band
+    Route::controller(QCInspectShadeBandController::class)->prefix("proses-shade-band")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('qc_inspect_shade_band');
     });
 });
 
