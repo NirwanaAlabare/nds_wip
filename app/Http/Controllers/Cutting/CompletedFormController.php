@@ -248,6 +248,7 @@ class CompletedFormController extends Controller
             "current_short_roll" => "required",
             "current_piping" => "required",
             "current_sambungan" => "required",
+            "current_berat_amparan" => "required",
             "p_act" => "required"
         ]);
 
@@ -280,6 +281,7 @@ class CompletedFormController extends Controller
                 "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
                 "short_roll" => $validatedRequest['current_short_roll'],
                 "piping" => $validatedRequest['current_piping'],
+                "berat_amparan" => $validatedRequest['current_berat_amparan'],
                 "edited" => 1,
                 "edited_by" => Auth::user()->id,
                 "edited_by_username" => Auth::user()->username,
@@ -308,6 +310,7 @@ class CompletedFormController extends Controller
                 $detailAfter->roll_buyer = $validatedRequest['current_roll_buyer'];
                 $detailAfter->qty = ($itemQty-$validatedRequest['current_total_pemakaian_roll']);
                 $detailAfter->short_roll = $detailAfter->total_pemakaian_roll-($itemQty-$validatedRequest['current_total_pemakaian_roll']);
+                $detailAfter->berat_amparan = $validatedRequest['current_berat_amparan'];
                 $detailAfter->edited = 1;
                 $detailAfter->edited_by = Auth::user()->id;
                 $detailAfter->edited_by_username = Auth::user()->username;
@@ -706,6 +709,18 @@ class CompletedFormController extends Controller
             "status" => 400,
             "message" => "nothing really matter anymore",
         );
+    }
+
+    public function recalculateForm($id, CuttingService $cuttingService)
+    {
+        if ($id) {
+            $cuttingService->recalculateForm($id);
+
+            return array(
+                "status" => 200,
+                "message" => "alright",
+            );
+        }
     }
 
     /**

@@ -50,6 +50,10 @@ class CuttingService
                         // Panjang Act
                         $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
 
+                        if ($formCutDetail->berat_amparan > 0) {
+                            $pAct = $formCutDetail->berat_amparan;
+                        }
+
                         // Normal
                         if ($formCutDetail->sambungan == 0) {
                             // Sambungan
@@ -134,7 +138,7 @@ class CuttingService
                     $consUpRateWsNoSr = (($consActualGelaranShortRolless - $consWs)/$consWs) * 100;
                     $consUpRateMarkerNoSr = (($consActualGelaranShortRolless - $consMarker)/$consMarker) * 100;
 
-                    $consAmpar = $formCut->gramasi * $pAct * $formCut->l_act / 1000;
+                    $consAmpar = $formCut->gramasi * ($formCut->p_act + ($formCut->comma_p_act/100)) * $formCut->l_act / 1000;
                     $estPiping = $consPiping * $totalQtyCut;
                     $estKain = $consMarker * $totalQtyCut;
 
