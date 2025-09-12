@@ -390,9 +390,9 @@ class ReportCuttingController extends Controller
                         req.color,
                         COALESCE(roll.roll, req.no_roll) roll,
                         COALESCE(roll.qty, req.qty_out) qty,
-                        COALESCE(roll.sisa_kain, 0) sisa_kain,
+                        COALESCE(roll.sisa_kain, 0) - COALESCE(piping.piping, 0) as sisa_kain,
                         COALESCE(roll.unit, req.satuan) unit,
-                        COALESCE(roll.total_pemakaian_roll, 0) total_pemakaian_roll,
+                        COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
                         COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
                         COALESCE(roll.total_short_roll, 0) total_short_roll
                     FROM (
@@ -441,6 +441,19 @@ class ReportCuttingController extends Controller
                             `id_item`,
                             `id_roll`
                     ) roll ON req.id_roll = roll.id_roll
+                    left join (
+                        select
+                            id_roll,
+                            SUM(form_cut_piping.qty) qty,
+                            SUM(form_cut_piping.piping) piping
+                        from
+                            form_cut_piping
+                        where
+                            id_roll IS NOT NULL
+                            ".($rollIds ? "and id_roll in (".$rollIds.")" : "")."
+                        group by
+                            id_roll
+                    ) piping on piping.id_roll = roll.id_roll
                 "));
 
                 $rollCutting = $rolls ? $rolls->where("total_pemakaian_roll", ">", 0)->count() : '0';
@@ -488,7 +501,21 @@ class ReportCuttingController extends Controller
         $rollData = collect();
         foreach ($rollIdsArr as $rollId) {
             $rolls = collect(DB::select("
-                SELECT * FROM (
+                SELECT
+                    roll_use.id_roll,
+                    roll_use.id_item,
+                    roll_use.detail_item,
+                    roll_use.lot,
+                    roll_use.roll,
+                    roll_use.qty,
+                    roll_use.unit,
+                    roll_use.total_pemakaian_roll + COALESCE(piping.piping, 0) as total_pemakaian_roll,
+                    roll_use.total_sisa_kain_1,
+                    roll_use.total_sisa_kain - COALESCE(piping.piping, 0) as total_sisa_kain,
+                    roll_use.total_short_roll,
+                    roll_use.total_short_roll_percentage,
+                    roll_use.tanggal_return
+                FROM (
                     SELECT
                         id_roll,
                         id_item,
@@ -539,6 +566,19 @@ class ReportCuttingController extends Controller
                         `id_item`,
                         `id_roll`
                 ) roll_use
+                left join (
+                    select
+                        id_roll,
+                        SUM(form_cut_piping.qty) qty,
+                        SUM(form_cut_piping.piping) piping
+                    from
+                        form_cut_piping
+                    where
+                        id_roll IS NOT NULL
+                        AND `id_roll` = '".$rollId->id_roll."'
+                    group by
+                        id_roll
+                ) piping on piping.id_roll = roll_use.id_roll
             "));
 
             if ($rolls && $rolls->first()) {
@@ -626,20 +666,37 @@ class ReportCuttingController extends Controller
 
             $rollIds = $rollIdsArr->pluck('id_roll');
 
+            $rollIdsStr = addQuotesAround($rollIds->implode("\n"));
+
             $rolls = FormCutInputDetail::selectRaw("
-                    id_roll,
-                    id_item,
-                    detail_item,
-                    lot,
-                    COALESCE(roll_buyer, roll) roll,
-                    MAX(qty) qty,
-                    unit,
-                    ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                    ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                    form_cut_input_detail.id_roll,
+                    form_cut_input_detail.id_item,
+                    form_cut_input_detail.detail_item,
+                    form_cut_input_detail.lot,
+                    COALESCE(form_cut_input_detail.roll_buyer, roll) roll,
+                    MAX(form_cut_input_detail.qty) qty,
+                    form_cut_input_detail.unit,
+                    ROUND(SUM(form_cut_input_detail.total_pemakaian_roll) + COALESCE(piping.piping, 0), 2) total_pemakaian_roll,
+                    ROUND(SUM(CASE WHEN form_cut_input_detail.short_roll < 0 THEN form_cut_input_detail.short_roll ELSE 0 END), 2) total_short_roll
                 ")->
-                whereNotNull("id_roll")->
-                whereIn("id_roll", $rollIds)->
-                groupBy("id_item", "id_roll")->
+                leftJoin(DB::raw("
+                    (
+                        select
+                            id_roll,
+                            SUM(form_cut_piping.qty) qty,
+                            SUM(form_cut_piping.piping) piping
+                        from
+                            form_cut_piping
+                        where
+                            id_roll IS NOT NULL
+                            ".($rollIdsStr ? "AND `id_roll` IN (".$rollIdsStr.")" : "")."
+                        group by
+                            id_roll
+                    ) piping
+                "), "piping.id_roll", "=", "form_cut_input_detail.id_roll")->
+                whereNotNull("form_cut_input_detail.id_roll")->
+                whereIn("form_cut_input_detail.id_roll", $rollIds)->
+                groupBy("form_cut_input_detail.id_item", "form_cut_input_detail.id_roll")->
                 get();
 
             if ($rolls->count() > 0) {
