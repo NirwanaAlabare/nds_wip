@@ -248,7 +248,7 @@ class CompletedFormController extends Controller
             "current_short_roll" => "required",
             "current_piping" => "required",
             "current_sambungan" => "required",
-            "current_berat_amparan" => "required",
+            "current_berat_amparan" => "nullable",
             "p_act" => "required"
         ]);
 
