@@ -414,6 +414,9 @@
             </div>
         </div>
         <div class="col-md-12">
+            <button class="btn btn-dark btn-block" onclick="recalculateForm()">Recalculate Form</button>
+        </div>
+        <div class="col-md-12">
             <div class="card card-sb" id="summary-card">
                 <div class="card-header">
                     <h3 class="card-title">Summary</h3>
@@ -2576,5 +2579,54 @@
 
             //     jumlahSambungan.value = 1;
             // }
+
+        function recalculateForm() {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Recalculate Form?',
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Recalculate',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                document.getElementById("loading").classList.remove('d-none');
+
+                $.ajax({
+                    url: '{{ route('recalculate-spreading-form') }}/' + id,
+                    type: 'post',
+                    dataType: 'json',
+                    success: function(res) {
+                        document.getElementById("loading").classList.add('d-none');
+
+                        console.log(res);
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Info',
+                            text: 'Recalculate Finished.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        }).then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function(jqXHR) {
+                        document.getElementById("loading").classList.add('d-none');
+
+                        console.error(jqXHR);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi Kesalahan.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                })
+            })
+        }
     </script>
 @endsection
