@@ -281,25 +281,41 @@
 
             let tglArr = [];
             let efficiencyArr = [];
+            let targetEffArr = [];
             let rftArr = [];
+            let targetRftArr = [];
 
             let dailyData = data.filter((item) => item.cumulative_mins_avail > 0 && item.output > 0);
 
             dailyData.forEach(item => {
                 tglArr.push(formatDateTick(item.tanggal));
                 efficiencyArr.push((item.mins_prod / item.cumulative_mins_avail * 100).round(2));
+                targetEffArr.push(item.target_eff.round(2));
                 rftArr.push((item.rft / item.output * 100).round(2));
+                targetRftArr.push(item.target_rft.round(2));
             });
 
             var options = {
                 series: [
                     {
                         name: "Efficiency",
+                        type: "line",
                         data: efficiencyArr
                     },
                     {
+                        name: "Target Efficiency",
+                        type: "line",
+                        data: targetEffArr
+                    },
+                    {
                         name: "RFT",
+                        type: "line",
                         data: rftArr
+                    },
+                    {
+                        name: "Target Rft",
+                        type: "line",
+                        data: targetRftArr
                     },
                 ],
                 chart: {
@@ -313,14 +329,28 @@
                         show: false
                     }
                 },
-                colors: ['#359cae', '#fd7f2a'],
+                colors: ['#006691', '#19b6fa', '#fc6703', '#fc9d5d'],
                 dataLabels: {
                     enabled: true,
                     style: {
                         fontSize: "14px",
                     }
                 },
+                // stroke: {
+                //     curve: 'smooth'
+                // },
+                plotOptions: {
+                    bar: {     // nice rounded corners
+                        columnWidth: "50%",   // adjust bar thickness
+                        dataLabels: {
+                            position: "top"
+                        }
+                    }
+                },
                 stroke: {
+                    width: [5, 2.5, 5, 2.5],     // line gets 2px, bar gets 0
+                    dashArray: [0, 4, 0, 4],
+                    colors: ['#006691', '#19b6fa', '#fc6703', '#fc9d5d'],
                     curve: 'smooth'
                 },
                 // title: {
@@ -378,24 +408,40 @@
         async function updateChart(data) {
             let tglArr = [];
             let efficiencyArr = [];
+            let targetEffArr = [];
             let rftArr = [];
+            let targetRftArr = [];
 
             let dailyData = data.filter((item) => item.cumulative_mins_avail > 0 && item.output > 0);
 
             dailyData.forEach(item => {
                 tglArr.push(formatDateTick(item.tanggal));
                 efficiencyArr.push((item.mins_prod / item.cumulative_mins_avail * 100).round(2));
+                targetEffArr.push(item.target_eff.round(2));
                 rftArr.push((item.rft / item.output * 100).round(2));
+                targetRftArr.push(item.target_rft.round(2));
             });
 
             await ApexCharts.exec('factory-daily-chart', 'updateSeries', [
                     {
-                        name: 'Efficiency',
+                        name: "Efficiency",
+                        type: "line",
                         data: efficiencyArr
                     },
                     {
-                        name: 'RFT',
+                        name: "Target Efficiency",
+                        type: "column",
+                        data: targetEffArr
+                    },
+                    {
+                        name: "RFT",
+                        type: "line",
                         data: rftArr
+                    },
+                    {
+                        name: "Target Rft",
+                        type: "column",
+                        data: targetRftArr
                     },
                 ], true);
 
