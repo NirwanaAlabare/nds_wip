@@ -95,7 +95,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     req.color,
                     COALESCE(roll.roll, req.no_roll) roll,
                     COALESCE(roll.qty, req.qty_out) qty,
-                    (CASE WHEN roll.sisa_kain > 0 THEN COALESCE(roll.sisa_kain, 0) - COALESCE(piping.piping, 0) ELSE COALESCE(roll.qty, req.qty_out) END) as sisa_kain,
+                    (CASE WHEN roll.sisa_kain > 0 THEN COALESCE(roll.sisa_kain, 0) - COALESCE(piping.piping, 0) ELSE COALESCE(roll.sisa_kain, req.qty_out) END) as sisa_kain,
                     COALESCE(roll.unit, piping.unit, req.satuan) unit,
                     COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
                     COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
