@@ -36,6 +36,13 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Shade Band</h5>
         </div>
         <div class="card-body">
+            <div class="mb-3">
+                <a href="{{ route('input_fabric_relaxation') }}" target="_blank"
+                    class="btn btn-outline-primary position-relative btn-sm">
+                    <i class="fas fa-plus"></i>
+                    New
+                </a>
+            </div>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>

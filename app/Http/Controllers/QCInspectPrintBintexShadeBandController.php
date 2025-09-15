@@ -109,7 +109,7 @@ order by c.no_dok asc,c.tgl_dok asc, a.id_item asc
         // Generate PDF from the view
         $pdf = PDF::loadView('qc_inspect.pdf_print_bintex_shade_band', [
             'data_header' => $data_header,
-        ])->setPaper([0, 0, 85.04, 56.69]);
+        ])->setPaper([0, 0, 113.39, 85.04]);
 
         // Set filename and return download
         $fileName = 'pdf.pdf';

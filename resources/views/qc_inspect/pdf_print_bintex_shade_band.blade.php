@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <style>
         @page {
-            size: 30mm 20mm;
+            size: 40mm 30mm;
             margin: 0;
         }
 
@@ -34,15 +34,15 @@
         .label {
             font-weight: bold;
             width: 25%;
-            height: 2.3mm;
-            font-size: 5px;
+            height: 3.9mm;
+            font-size: 8px;
         }
 
         .value {
             font-weight: bold;
             width: 25%;
-            height: 2.3mm;
-            font-size: 5px;
+            height: 3.9mm;
+            font-size: 8px;
             text-align: center;
         }
 
@@ -65,20 +65,41 @@
             text-align: center;
             margin-top: 1mm;
         }
+
+        .lot-wrap {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
     </style>
 
 </head>
 
 <body>
     @foreach ($data_header as $index => $dh)
+        @php
+            $lotText = $dh->no_lot ?? 'null';
+            $length = strlen($lotText);
+
+            if ($length <= 10) {
+                $lotFontSize = 'font-size: 8px;';
+            } elseif ($length <= 20) {
+                $lotFontSize = 'font-size: 6px;';
+            } else {
+                $lotFontSize = 'font-size: 5px;';
+            }
+        @endphp
+
         <div style="@if ($index !== count($data_header) - 1) page-break-after: always; @endif">
             <table>
                 <tr>
                     <td class="label">Lot :</td>
-                    <td class="value">{{ $dh->no_lot ?? 'null' }}</td>
+                    <td class="value lot-wrap" style="{{ $lotFontSize }}">
+                        {{ $lotText }}
+                    </td>
                     <td class="value" rowspan="6" style="text-align: center;">
                         <img src="data:image/png;base64,{{ $dh->barcode_base64 }}" alt="Barcode"
-                            style="width: 200%; height: 20px; transform: rotate(90deg);">
+                            style="width: 200%; height: 45px; transform: rotate(90deg);">
                     </td>
                 </tr>
                 <tr>

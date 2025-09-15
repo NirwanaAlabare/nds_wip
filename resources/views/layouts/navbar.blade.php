@@ -1219,12 +1219,12 @@
                                     <i class="fas fa-print fa-sm"></i> Print Bintex Shade Band
                                 </a>
                             </li>
-                            {{-- <li>
+                            <li>
                                 <a href="{{ route('qc_inspect_shade_band') }}"
                                     class="dropdown-item {{ $subPage == 'qc-inspect-proses-shade-band' ? 'active' : '' }}">
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Shade Band
                                 </a>
-                            </li> --}}
+                            </li>
                         </ul>
                     </li>
 
