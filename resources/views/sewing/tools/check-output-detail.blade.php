@@ -77,6 +77,9 @@
                     <label class="form-label">Line Loading</label>
                     <select class="form-select select2bs4" name="line_loading" id="line_loading">
                         <option value=""></option>
+                        @foreach ($lines as $line)
+                            <option value="{{ $line->username }}">{{ $line->username }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
