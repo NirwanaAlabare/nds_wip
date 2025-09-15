@@ -106,6 +106,7 @@ class ExportDetailPemakaianKain implements FromView, WithEvents, ShouldAutoSize 
                 left join (
                     select
                         id_roll,
+                        form_cut_piping.unit,
                         SUM(form_cut_piping.qty) qty,
                         SUM(form_cut_piping.piping) piping
                     from
