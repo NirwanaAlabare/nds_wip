@@ -329,7 +329,7 @@
                         show: false
                     }
                 },
-                colors: ['#006691', '#19b6fa', '#fc6703', '#fc9d5d'],
+                colors: ['#006691', '#7bdae8', '#fc6703', '#fc9d5d'],
                 dataLabels: {
                     enabled: true,
                     style: {
@@ -349,8 +349,8 @@
                 },
                 stroke: {
                     width: [5, 2.5, 5, 2.5],     // line gets 2px, bar gets 0
-                    dashArray: [0, 4, 0, 4],
-                    colors: ['#006691', '#19b6fa', '#fc6703', '#fc9d5d'],
+                    dashArray: [0, 6, 0, 6],
+                    colors: ['#006691', '#7bdae8', '#fc6703', '#fc9d5d'],
                     curve: 'smooth'
                 },
                 // title: {
@@ -430,7 +430,7 @@
                     },
                     {
                         name: "Target Efficiency",
-                        type: "column",
+                        type: "line",
                         data: targetEffArr
                     },
                     {
@@ -440,7 +440,7 @@
                     },
                     {
                         name: "Target Rft",
-                        type: "column",
+                        type: "line",
                         data: targetRftArr
                     },
                 ], true);
