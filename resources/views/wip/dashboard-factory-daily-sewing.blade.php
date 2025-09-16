@@ -313,7 +313,7 @@
                         data: rftArr
                     },
                     {
-                        name: "Target Rft",
+                        name: "Target RFT",
                         type: "line",
                         data: targetRftArr
                     },
@@ -439,7 +439,7 @@
                         data: rftArr
                     },
                     {
-                        name: "Target Rft",
+                        name: "Target RFT",
                         type: "line",
                         data: targetRftArr
                     },
