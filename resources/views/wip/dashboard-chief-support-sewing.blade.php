@@ -431,6 +431,7 @@
             //     var beforeFilter = yesterdayFilter.filter((item) => (item.tanggal < formatDate(yesterday ? yesterday.tanggal : new Date(new Date().setDate(new Date().getDate() - 2)))));
             //     var before = beforeFilter[beforeFilter.length-1];
             // }
+            let dateCandidates = [todayDate, yesterdayDate, beforeDate];
 
             // Sub Employee
             let subEmployeeContainer = document.createElement("div");
@@ -444,37 +445,50 @@
             let leadersElement = document.createElement("div");
             leadersElement.classList.add("row");
             leadersElement.classList.add("h-100");
-            data.leaderData.forEach(element => {
-                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
-                    let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
-                    let leaderElement = document.createElement("div");
-                    leaderElement.classList.add("col-2");
-                    leaderElement.classList.add("p-1");
-                    leaderElement.classList.add("border");
-                    leaderElement.classList.add("d-flex");
-                    leaderElement.classList.add("flex-column");
-                    let leaderImageContainer = document.createElement("div");
-                    leaderImageContainer.classList.add("m-auto");
-                    let leaderImageSubContainer = document.createElement("div");
-                    leaderImageSubContainer.classList.add("profile-frame");
-                    leaderImageSubContainer.style.width = "33px";
-                    leaderImageSubContainer.style.height = "33px";
-                    let leaderImageElement = document.createElement("img");
-                    leaderImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
-                    leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                    leaderImageElement.setAttribute("alt", "person")
-                    leaderImageElement.classList.add("img-fluid")
-                    // leaderImageElement.style.width = "50px";
-                    // leaderImageElement.style.height = "50px";
-                    leaderImageSubContainer.appendChild(leaderImageElement)
-                    leaderImageContainer.appendChild(leaderImageSubContainer)
-                    leaderElement.appendChild(leaderImageContainer);
-                    leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 9) : leaderName)+"</center></span>";
-                    leaderImageContainer.innerHTML += "<span class='text-dark fw-bold' style='font-size: 6.5px;'><center>LEADER</center></span>";
-                    leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                    leadersElement.appendChild(leaderElement);
-                }
-            });
+            let found = false;
+
+            if (data.name == 'KOSONG') {
+                console.log("Leader Data Kosong", data.leaderData);
+                console.log("Date Candidates Kosong", dateCandidates);
+            }
+
+            for (let i = 0; i < dateCandidates.length && !found; i++) {
+                let currentDate = dateCandidates[i];
+
+                data.leaderData.forEach(element => {
+                    if (element.tanggal >= currentDate) {
+                        let leaderName = element.leader_name ? element.leader_name.split(" ")[0] : 'KOSONG';
+                        let leaderElement = document.createElement("div");
+                        leaderElement.classList.add("col-2");
+                        leaderElement.classList.add("p-1");
+                        leaderElement.classList.add("border");
+                        leaderElement.classList.add("d-flex");
+                        leaderElement.classList.add("flex-column");
+                        let leaderImageContainer = document.createElement("div");
+                        leaderImageContainer.classList.add("m-auto");
+                        let leaderImageSubContainer = document.createElement("div");
+                        leaderImageSubContainer.classList.add("profile-frame");
+                        leaderImageSubContainer.style.width = "33px";
+                        leaderImageSubContainer.style.height = "33px";
+                        let leaderImageElement = document.createElement("img");
+                        leaderImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.leader_nik+"%20"+element.leader_name+".png"
+                        leaderImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                        leaderImageElement.setAttribute("alt", "person")
+                        leaderImageElement.classList.add("img-fluid")
+                        // leaderImageElement.style.width = "50px";
+                        // leaderImageElement.style.height = "50px";
+                        leaderImageSubContainer.appendChild(leaderImageElement)
+                        leaderImageContainer.appendChild(leaderImageSubContainer)
+                        leaderElement.appendChild(leaderImageContainer);
+                        leaderImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(leaderName.length > 10 ? leaderName.slice(0, 9) : leaderName)+"</center></span>";
+                        leaderImageContainer.innerHTML += "<span class='text-dark fw-bold' style='font-size: 6.5px;'><center>LEADER</center></span>";
+                        leaderImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
+                        leadersElement.appendChild(leaderElement);
+
+                        found = true;
+                    }
+                });
+            }
             leaderContainer.appendChild(leadersElement);
 
             let supportEmployeeContainer = document.createElement("div");
@@ -494,39 +508,15 @@
             // iesElement.classList.add("gap-1");
             iesElement.classList.add("h-100");
             iesElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-info mb-0">&nbsp;</p>';
-            data.ieData.forEach(element => {
-                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
-                    if (element.ie_name) {
-                        let ieName = element.ie_name ? element.ie_name.split(" ")[0] : 'KOSONG';
-                        let ieElement = document.createElement("div");
-                        ieElement.classList.add("w-100");
-                        ieElement.classList.add("p-1");
-                        // ieElement.classList.add("border");
-                        ieElement.classList.add("d-flex");
-                        ieElement.classList.add("flex-column");
-                        let ieImageContainer = document.createElement("div");
-                        ieImageContainer.classList.add("m-auto");
-                        let ieImageSubContainer = document.createElement("div");
-                        ieImageSubContainer.classList.add("profile-frame");
-                        ieImageSubContainer.style.width = "33px";
-                        ieImageSubContainer.style.height = "33px";
-                        let ieImageElement = document.createElement("img");
-                        ieImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.ie_nik+"%20"+element.ie_name+".png"
-                        ieImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        ieImageElement.setAttribute("alt", "person")
-                        ieImageElement.classList.add("img-fluid")
-                        // ieImageElement.style.width = "50px";
-                        // ieImageElement.style.height = "50px";
-                        ieImageSubContainer.appendChild(ieImageElement)
-                        ieImageContainer.appendChild(ieImageSubContainer)
-                        ieElement.appendChild(ieImageContainer);
-                        ieImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(ieName.length > 10 ? ieName.slice(0, 9) : ieName)+"</center></span>";
-                        ieImageContainer.innerHTML += "<span class='text-info fw-bold' style='font-size: 6.5px;'><center>IE</center></span>";
-                        // ieImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        iesElement.appendChild(ieElement);
-                    }
-                }
+            let ieSubElement = appendProfileCards({
+                dataList: data.ieData,
+                dateCandidates: [todayDate, yesterdayDate, beforeDate],
+                containerClass: "d-flex flex-wrap",
+                itemClass: "w-100 p-1 d-flex flex-column",
+                roleLabel: "IE",
+                showLine: false
             });
+            iesElement.appendChild(ieSubElement);
             ieContainer.appendChild(iesElement);
 
             // leaderqc
@@ -540,39 +530,15 @@
             // leaderqcsElement.classList.add("gap-1");
             leaderqcsElement.classList.add("h-100");
             leaderqcsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-danger mb-0">&nbsp;</p>';
-            data.leaderqcData.forEach(element => {
-                if (element.leaderqc_name) {
-                    if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
-                        let leaderqcName = element.leaderqc_name ? element.leaderqc_name.split(" ")[0] : 'KOSONG';
-                        let leaderqcElement = document.createElement("div");
-                        leaderqcElement.classList.add("w-100");
-                        leaderqcElement.classList.add("p-1");
-                        // leaderqcElement.classList.add("border");
-                        leaderqcElement.classList.add("d-flex");
-                        leaderqcElement.classList.add("flex-column");
-                        let leaderqcImageContainer = document.createElement("div");
-                        leaderqcImageContainer.classList.add("m-auto");
-                        let leaderqcImageSubContainer = document.createElement("div");
-                        leaderqcImageSubContainer.classList.add("profile-frame");
-                        leaderqcImageSubContainer.style.width = "33px";
-                        leaderqcImageSubContainer.style.height = "33px";
-                        let leaderqcImageElement = document.createElement("img");
-                        leaderqcImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.leaderqc_nik+"%20"+element.leaderqc_name+".png"
-                        leaderqcImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        leaderqcImageElement.setAttribute("alt", "person")
-                        leaderqcImageElement.classList.add("img-fluid")
-                        // leaderqcImageElement.style.width = "50px";
-                        // leaderqcImageElement.style.height = "50px";
-                        leaderqcImageSubContainer.appendChild(leaderqcImageElement)
-                        leaderqcImageContainer.appendChild(leaderqcImageSubContainer)
-                        leaderqcElement.appendChild(leaderqcImageContainer);
-                        leaderqcImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(leaderqcName.length > 10 ? leaderqcName.slice(0, 9) : leaderqcName)+"</center></span>";
-                        leaderqcImageContainer.innerHTML += "<span class='text-danger fw-bold' style='font-size: 6px;'><center>LEADER QC</center></span>";
-                        // leaderqcImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        leaderqcsElement.appendChild(leaderqcElement);
-                    }
-                }
+            let leaderqcSubElement = appendProfileCards({
+                dataList: data.leaderqcData,
+                dateCandidates: [todayDate, yesterdayDate, beforeDate],
+                containerClass: "d-flex flex-wrap",
+                itemClass: "w-100 p-1 d-flex flex-column",
+                roleLabel: "LEADERQC",
+                showLine: false
             });
+            leaderqcsElement.appendChild(leaderqcSubElement);
             leaderqcContainer.appendChild(leaderqcsElement);
 
             // mechanic
@@ -586,39 +552,15 @@
             // mechanicsElement.classList.add("gap-1");
             mechanicsElement.classList.add("h-100");
             mechanicsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-success mb-0">&nbsp;</p>';
-            data.mechanicData.forEach(element => {
-                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
-                    if (element.mechanic_name) {
-                        let mechanicName = element.mechanic_name ? element.mechanic_name.split(" ")[0] : 'KOSONG';
-                        let mechanicElement = document.createElement("div");
-                        mechanicElement.classList.add("w-100");
-                        mechanicElement.classList.add("p-1");
-                        // mechanicElement.classList.add("border");
-                        mechanicElement.classList.add("d-flex");
-                        mechanicElement.classList.add("flex-column");
-                        let mechanicImageContainer = document.createElement("div");
-                        mechanicImageContainer.classList.add("m-auto");
-                        let mechanicImageSubContainer = document.createElement("div");
-                        mechanicImageSubContainer.classList.add("profile-frame");
-                        mechanicImageSubContainer.style.width = "33px";
-                        mechanicImageSubContainer.style.height = "33px";
-                        let mechanicImageElement = document.createElement("img");
-                        mechanicImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.mechanic_nik+"%20"+element.mechanic_name+".png"
-                        mechanicImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        mechanicImageElement.setAttribute("alt", "person")
-                        mechanicImageElement.classList.add("img-fluid")
-                        // mechanicImageElement.style.width = "50px";
-                        // mechanicImageElement.style.height = "50px";
-                        mechanicImageSubContainer.appendChild(mechanicImageElement)
-                        mechanicImageContainer.appendChild(mechanicImageSubContainer)
-                        mechanicElement.appendChild(mechanicImageContainer);
-                        mechanicImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(mechanicName.length > 10 ? mechanicName.slice(0, 9) : mechanicName)+"</center></span>";
-                        mechanicImageContainer.innerHTML += "<span class='text-success fw-bold' style='font-size: 6.5px;'><center>MECHANIC</center></span>";
-                        // mechanicImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        mechanicsElement.appendChild(mechanicElement);
-                    }
-                }
+            let mechanicSubElement = appendProfileCards({
+                dataList: data.mechanicData,
+                dateCandidates: [todayDate, yesterdayDate, beforeDate],
+                containerClass: "d-flex flex-wrap",
+                itemClass: "w-100 p-1 d-flex flex-column",
+                roleLabel: "MECHANIC",
+                showLine: false
             });
+            mechanicsElement.appendChild(mechanicSubElement);
             mechanicContainer.appendChild(mechanicsElement);
 
             // technical
@@ -632,39 +574,15 @@
             // technicalsElement.classList.add("gap-1");
             technicalsElement.classList.add("h-100");
             technicalsElement.innerHTML = '<p style="font-size: 3px;" class="text-light fw-bold bg-primary mb-0">&nbsp;</p>';
-            data.technicalData.forEach(element => {
-                if (element.tanggal >= todayDate || element.tanggal >= yesterdayDate || element.tanggal >= beforeDate) {
-                    if (element.technical_name) {
-                        let technicalName = element.technical_name ? element.technical_name.split(" ")[0] : 'KOSONG';
-                        let technicalElement = document.createElement("div");
-                        technicalElement.classList.add("w-100");
-                        technicalElement.classList.add("p-1");
-                        // technicalElement.classList.add("border");
-                        technicalElement.classList.add("d-flex");
-                        technicalElement.classList.add("flex-column");
-                        let technicalImageContainer = document.createElement("div");
-                        technicalImageContainer.classList.add("m-auto");
-                        let technicalImageSubContainer = document.createElement("div");
-                        technicalImageSubContainer.classList.add("profile-frame");
-                        technicalImageSubContainer.style.width = "33px";
-                        technicalImageSubContainer.style.height = "33px";
-                        let technicalImageElement = document.createElement("img");
-                        technicalImageElement.src = "{{ asset('../public/storage/employee_profile') }}/"+element.technical_nik+"%20"+element.technical_name+".png"
-                        technicalImageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
-                        technicalImageElement.setAttribute("alt", "person")
-                        technicalImageElement.classList.add("img-fluid")
-                        // technicalImageElement.style.width = "50px";
-                        // technicalImageElement.style.height = "50px";
-                        technicalImageSubContainer.appendChild(technicalImageElement)
-                        technicalImageContainer.appendChild(technicalImageSubContainer)
-                        technicalElement.appendChild(technicalImageContainer);
-                        technicalImageContainer.innerHTML += "<span class='text-sb fw-bold' style='font-size: 7px;'><center>"+(technicalName.length > 10 ? technicalName.slice(0, 9) : technicalName)+"</center></span>";
-                        technicalImageContainer.innerHTML += "<span class='text-primary fw-bold' style='font-size: 6.5px;'><center>TECHNICAL</center></span>";
-                        // technicalImageContainer.innerHTML += "<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>"+element.sewing_line.replace(/_/g, " ").toUpperCase()+"</center></span>";
-                        technicalsElement.appendChild(technicalElement);
-                    }
-                }
+            let technicalSubElement = appendProfileCards({
+                dataList: data.technicalData,
+                dateCandidates: [todayDate, yesterdayDate, beforeDate],
+                containerClass: "d-flex flex-wrap",
+                itemClass: "w-100 p-1 d-flex flex-column",
+                roleLabel: "TECHNICAL",
+                showLine: false
             });
+            technicalsElement.appendChild(technicalSubElement);
             technicalContainer.appendChild(technicalsElement);
 
             subEmployeeContainer.appendChild(leaderContainer)
@@ -912,6 +830,65 @@
                 // }
 
             // initSparkle();
+        }
+
+        function appendProfileCards({
+            dataList,          // array of objects (leaderData, ieData, etc.)
+            dateCandidates,    // array of date thresholds [todayDate, yesterdayDate, ...]
+            containerClass,    // outer wrapper class (e.g. "row h-100")
+            itemClass,         // per-person wrapper class (e.g. "col-2 p-1 border d-flex flex-column")
+            roleLabel,         // string to display ("LEADER", "IE", etc.)
+            showLine = false   // whether to show sewing_line text
+        }) {
+            let container = document.createElement("div");
+            containerClass.split(" ").forEach(c => container.classList.add(c));
+
+            // cycle through dateCandidates until something is found
+            let found = false;
+            for (let i = 0; i < dateCandidates.length && !found; i++) {
+                let currentDate = dateCandidates[i];
+                container.innerHTML = ""; // reset on each new try
+
+                for (let element of dataList) {
+                    if (element.tanggal >= currentDate && element[`${roleLabel.toLowerCase()}_name`]) {
+                        let personName = element[`${roleLabel.toLowerCase()}_name`].split(" ")[0] || "KOSONG";
+                        let personNik  = element[`${roleLabel.toLowerCase()}_nik`];
+
+                        let item = document.createElement("div");
+                        itemClass.split(" ").forEach(c => item.classList.add(c));
+
+                        let imageContainer = document.createElement("div");
+                        imageContainer.classList.add("m-auto");
+
+                        let subContainer = document.createElement("div");
+                        subContainer.classList.add("profile-frame");
+                        subContainer.style.width = "33px";
+                        subContainer.style.height = "33px";
+
+                        let img = document.createElement("img");
+                        img.src = "{{ asset('../public/storage/employee_profile') }}/" + personNik + "%20" + element[`${roleLabel.toLowerCase()}_name`] + ".png";
+                        img.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
+                        img.setAttribute("alt", "person");
+                        img.classList.add("img-fluid");
+
+                        subContainer.appendChild(img);
+                        imageContainer.appendChild(subContainer);
+                        item.appendChild(imageContainer);
+
+                        // Add labels
+                        imageContainer.innerHTML += `<span class='text-sb fw-bold' style='font-size: 7px;'><center>${personName.length > 10 ? personName.slice(0, 9) : personName}</center></span>`;
+                        imageContainer.innerHTML += `<span class='fw-bold' style='font-size: 6.5px;'><center>${roleLabel}</center></span>`;
+                        if (showLine) {
+                            imageContainer.innerHTML += `<span class='text-sb-secondary fw-bold' style='font-size: 7px;'><center>${element.sewing_line.replace(/_/g, " ").toUpperCase()}</center></span>`;
+                        }
+
+                        container.appendChild(item);
+                        found = true;
+                    }
+                }
+            }
+
+            return container; // you append it yourself to the right parent
         }
 
         // Colorize Efficiency

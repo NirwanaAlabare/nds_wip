@@ -796,7 +796,7 @@ END jam) a))) target from (
         $efficiencyLine = DB::connection("mysql_sb")->select("
             select
                 output_employee_line.*,
-                output.sewing_line,
+                output_employee_line.line_name as sewing_line,
                 SUM(rft) rft,
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
@@ -805,7 +805,7 @@ END jam) a))) target from (
             from
                 output_employee_line
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
-                inner join (
+                left join (
                     SELECT
                         output.tgl_output,
                         output.tgl_plan,
@@ -849,6 +849,8 @@ END jam) a))) target from (
                         output.sewing_line,
                         output.tgl_output
                 ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            WHERE
+                tanggal between '".$year."-".$month."-01' AND '".$year."-".$month."-31'
             group by
                 tanggal,
                 line_id
