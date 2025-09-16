@@ -16,6 +16,7 @@ use App\Models\SignalBit\ReworkPacking;
 use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\Undo;
 use App\Models\SignalBit\UserLine;
+use App\Models\SignalBit\UserSbWip;
 use App\Models\Stocker\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -2029,7 +2030,7 @@ class SewingToolsController extends Controller
 
                         if ($modSoDet) {
                             // Check Master Plan
-                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                            $modMasterPlan = MasterPlan::select("master_plan.id", "master_plan.sewing_line")
                                 ->where("tgl_plan", $request->tanggal)
                                 ->where("id_ws", $modSoDet->id_ws)
                                 ->where("color", $modSoDet->color)
@@ -2037,10 +2038,16 @@ class SewingToolsController extends Controller
                                 ->whereRaw("(cancel IS NULL or cancel = 'N')")
                                 ->first();
 
+                            $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->orderBy("user_sb_wip.id", "desc")
+                                ->first();
+
                             if ($modMasterPlan) {
                                 $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update([
                                     "so_det_id"       => $modSoDet->id,
                                     "master_plan_id"  => $modMasterPlan->id,
+                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
                                 ]);
 
                                 if ($updateRfts) {
@@ -2127,10 +2134,16 @@ class SewingToolsController extends Controller
                                 ->whereRaw("(cancel IS NULL or cancel = 'N')")
                                 ->first();
 
+                            $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->orderBy("user_sb_wip.id", "desc")
+                                ->first();
+
                             if ($modMasterPlan) {
                                 $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
                                     "so_det_id"       => $modSoDet->id,
                                     "master_plan_id"  => $modMasterPlan->id,
+                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
                                 ]);
 
                                 if ($updateDefects) {
@@ -2223,10 +2236,16 @@ class SewingToolsController extends Controller
                                 ->whereRaw("(cancel IS NULL or cancel = 'N')")
                                 ->first();
 
+                            $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->orderBy("user_sb_wip.id", "desc")
+                                ->first();
+
                             if ($modMasterPlan) {
                                 $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
                                     "so_det_id"       => $modSoDet->id,
                                     "master_plan_id"  => $modMasterPlan->id,
+                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
                                 ]);
 
                                 if ($updateDefects) {
@@ -2327,10 +2346,16 @@ class SewingToolsController extends Controller
                                 ->whereRaw("(cancel IS NULL or cancel = 'N')")
                                 ->first();
 
+                            $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->orderBy("user_sb_wip.id", "desc")
+                                ->first();
+
                             if ($modMasterPlan) {
                                 $updateRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->update([
                                     "so_det_id"       => $modSoDet->id,
                                     "master_plan_id"  => $modMasterPlan->id,
+                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
                                 ]);
 
                                 if ($updateRejects) {
