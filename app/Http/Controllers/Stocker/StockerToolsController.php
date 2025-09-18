@@ -245,11 +245,19 @@ class StockerToolsController extends Controller
 
         $file->move('file_upload',$nama_file);
 
-        Excel::import(new ImportStockerManual, public_path('/file_upload/'.$nama_file));
+        $import = Excel::import(new ImportStockerManual, public_path('/file_upload/'.$nama_file));
+
+        if ($import) {
+            return array(
+                "status" => 200,
+                "message" => 'Data Berhasil Di Upload',
+                "additional" => [],
+            );
+        }
 
         return array(
-            "status" => 200,
-            "message" => 'Data Berhasil Di Upload',
+            "status" => 400,
+            "message" => 'Terjadi Kesalahan',
             "additional" => [],
         );
     }

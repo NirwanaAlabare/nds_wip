@@ -73,7 +73,7 @@ class ReportRejectController extends Controller
                     ".($request->department && $request->department != "all" ? "AND output_reject_in.output_type = '".$request->department."'" : "")."
                 )
             ")->
-            groupByRaw("DATE(output_reject_in.created_at), output_reject_in.so_det_id, reject_detail.defect_types_check");
+            groupByRaw("DATE(output_reject_in.created_at), output_reject_in.so_det_id, reject_detail.defect_types_check, output_reject_in.output_type");
 
         if ($request->ajax()) {
 

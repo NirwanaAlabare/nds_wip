@@ -796,7 +796,7 @@ END jam) a))) target from (
         $efficiencyLine = DB::connection("mysql_sb")->select("
             select
                 output_employee_line.*,
-                output.sewing_line,
+                output_employee_line.line_name as sewing_line,
                 SUM(rft) rft,
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
@@ -805,7 +805,7 @@ END jam) a))) target from (
             from
                 output_employee_line
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
-                inner join (
+                left join (
                     SELECT
                         output.tgl_output,
                         output.tgl_plan,
@@ -849,6 +849,8 @@ END jam) a))) target from (
                         output.sewing_line,
                         output.tgl_output
                 ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
+            WHERE
+                tanggal between '".$year."-".$month."-01' AND '".$year."-".$month."-31'
             group by
                 tanggal,
                 line_id
@@ -1447,7 +1449,9 @@ END jam) a))) target from (
                 SUM(output) output,
                 SUM(mins_prod) mins_prod,
                 SUM(mins_avail) mins_avail,
-                SUM(cumulative_mins_avail) cumulative_mins_avail
+                SUM(cumulative_mins_avail) cumulative_mins_avail,
+                AVG(target_eff) as target_eff,
+                97 as target_rft
             from
                 (
                     SELECT
@@ -1463,7 +1467,9 @@ END jam) a))) target from (
                         (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
                         (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
                         MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target,
+                        output.target_effy as target_eff,
+                        97 as target_rft
                     FROM
                         (
                             SELECT
@@ -1476,7 +1482,10 @@ END jam) a))) target from (
                                 master_plan.sewing_line,
                                 master_plan.man_power,
                                 master_plan.jam_kerja,
-                                master_plan.smv
+                                master_plan.smv,
+                                master_plan.plan_target,
+                                master_plan.target_effy,
+                                97 as target_rft
                             FROM
                                 output_rfts rfts
                                 inner join master_plan on master_plan.id = rfts.master_plan_id

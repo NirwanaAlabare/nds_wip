@@ -16,6 +16,8 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Carbon\Carbon;
 use DB;
+use DateTime;
+use Exception;
 
 class ImportStockerManual implements ToCollection, WithStartRow
 {
@@ -95,8 +97,33 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     ]);
 
                     if ($createStocker) {
-                        $excelDate = $row[13]; // e.g., 45778
-                        $convertedDate = Date::excelToDateTimeObject($excelDate);
+                        $rawValue = $row[13];
+                        $convertedDate = null;
+
+                        if (is_numeric($rawValue)) {
+                            // Treat as Excel serial date
+                            $convertedDate = Date::excelToDateTimeObject($rawValue);
+                        } else {
+                            // Try parsing as a normal date string
+                            $formats = ['d/m/Y', 'Y/m/d', 'Y-m-d', 'd-m-Y']; // add more if needed
+                            foreach ($formats as $format) {
+                                $dt = DateTime::createFromFormat($format, $rawValue);
+                                if ($dt !== false) {
+                                    $convertedDate = $dt;
+                                    break;
+                                }
+                            }
+
+                            // fallback if none of the formats matched
+                            if ($convertedDate === null) {
+                                try {
+                                    $convertedDate = new DateTime($rawValue); // let PHP guess
+                                } catch (Exception $e) {
+                                    // handle invalid date
+                                    echo "Could not parse date: $rawValue";
+                                }
+                            }
+                        }
 
                         // Optionally format with Carbon
                         $formattedDate = Carbon::instance($convertedDate)->format('Y-m-d');
@@ -207,7 +234,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                             }
                         }
                     } else {
-                        Log::info("Fail Import Stocker Manual on create stocker ROW :".$i, $createStocker);
+                        \Log::info("Fail Import Stocker Manual on create stocker ROW :".$i, $createStocker);
                     }
                 } else {
                     \Log::info("Fail Import Stocker Manual on part_detailing ROW :".$i, $partDetailInfo);
