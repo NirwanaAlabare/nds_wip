@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\Sewing\CheckOutputDetailListExport;
+use Carbon\Carbon;
 use DB;
 use Excel;
 
@@ -2004,7 +2005,7 @@ class SewingToolsController extends Controller
                             $rft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->where('id', $rftId)->first();
 
                             if ($rft) {
-                                array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
                             }
                         }
 
@@ -2100,11 +2101,9 @@ class SewingToolsController extends Controller
                             $defect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->where('id', $defectId)->first();
 
                             if ($defect) {
-                                array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
                             }
                         }
-
-                        DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
 
                         // Delete
                         $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn('id', $defectIds)->delete();
@@ -2126,7 +2125,7 @@ class SewingToolsController extends Controller
 
                         if ($modSoDet) {
                             // Check Master Plan
-                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                            $modMasterPlan = MasterPlan::select("master_plan.id", "sewing_line")
                                 ->where("tgl_plan", $request->tanggal)
                                 ->where("id_ws", $modSoDet->id_ws)
                                 ->where("color", $modSoDet->color)
@@ -2196,7 +2195,7 @@ class SewingToolsController extends Controller
                             $rework = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->selectRaw("output_reworks.*, output_rfts.id as rft_id, output_rfts.master_plan_id, output_rfts.so_det_id, output_rfts.kode_numbering")->leftJoin("output_rfts", "output_rfts.rework_id", "=", "output_reworks.id")->where('defect_id', $defectId)->first();
 
                             if ($rework) {
-                                array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
                             }
                         }
 
@@ -2228,7 +2227,7 @@ class SewingToolsController extends Controller
 
                         if ($modSoDet) {
                             // Check Master Plan
-                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                            $modMasterPlan = MasterPlan::select("master_plan.id", "sewing_line")
                                 ->where("tgl_plan", $request->tanggal)
                                 ->where("id_ws", $modSoDet->id_ws)
                                 ->where("color", $modSoDet->color)
@@ -2307,7 +2306,7 @@ class SewingToolsController extends Controller
                             $reject = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->where('id', $rejectId)->first();
 
                             if ($reject) {
-                                array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
                             }
                         }
 
@@ -2338,7 +2337,7 @@ class SewingToolsController extends Controller
 
                         if ($modSoDet) {
                             // Check Master Plan
-                            $modMasterPlan = MasterPlan::select("master_plan.id")
+                            $modMasterPlan = MasterPlan::select("master_plan.id", "sewing_line")
                                 ->where("tgl_plan", $request->tanggal)
                                 ->where("id_ws", $modSoDet->id_ws)
                                 ->where("color", $modSoDet->color)

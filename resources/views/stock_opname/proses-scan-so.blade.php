@@ -291,7 +291,7 @@
         <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
-                    Data Barcode
+                    Data Barcode Outstanding
                 </h5>
                 <div class="card-tools">
                   <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
@@ -944,6 +944,7 @@ $('#btnSendBarcode').on('click', function () {
                         txt_lokasi_h: txt_lokasi_h,
                     },
                     success: function(res) {
+                        // alert(JSON.stringify(res));
                         if (res) {
                             if (res.status == 200) {
                                 Swal.fire({
@@ -963,6 +964,19 @@ $('#btnSendBarcode').on('click', function () {
 
                             }
                         }
+                    }, error: function(jqXHR){
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Gagal!',
+                            text: 'Silahkan Coba Lagi',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke'
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                savedataopname();
+                            }
+                        });
                     }
                 });
             }

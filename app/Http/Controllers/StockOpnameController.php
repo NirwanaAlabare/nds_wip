@@ -79,7 +79,7 @@ class StockOpnameController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $dataMutlokas = DB::connection('mysql_sb')->select("select *,FORMAT(qty,2) qty_show,FORMAT(qty_so,2) qty_so_show,FORMAT(qty_sisa,2) qty_sisa_show from (select a.*,COALESCE(qty_scan,0) qty_so, round(a.qty - COALESCE(qty_scan,0),2) qty_sisa from(select a.id,a.status,a.no_transaksi,a.tipe_item,a.tgl_filter tgl_saldo,a.kode_lok,a.id_jo,a.id_item,b.goods_code,b.itemdesc,round(sum(a.qty),2) qty,a.unit ,copy_user, a.created_at from whs_saldo_stockopname a inner join masteritem b on b.id_item = a.id_item INNER JOIN (select no_transaksi, copy_user from whs_log_copysaldo GROUP BY no_transaksi) c on c.no_transaksi = a.no_transaksi where DATE_FORMAT(a.created_at, '%Y-%m-%d') BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' group by a.no_transaksi) a left join (select no_transaksi notr,lokasi_aktual,id_jo,id_item,sum(qty) qty_scan,COUNT(no_barcode) qty_roll_scan from whs_so_h a INNER JOIN whs_so_detail b on b.no_dokumen = a.no_dokumen GROUP BY no_transaksi) b on b.notr = a.no_transaksi) a");
+            $dataMutlokas = DB::connection('mysql_sb')->select("select *,FORMAT(qty,2) qty_show,FORMAT(qty_so,2) qty_so_show,FORMAT(qty_sisa,2) qty_sisa_show from (select a.*,COALESCE(qty_scan,0) qty_so, round(a.qty - COALESCE(qty_scan,0),2) qty_sisa from(select a.id,a.status,a.no_transaksi,a.tipe_item,a.tgl_filter tgl_saldo,a.kode_lok,a.id_jo,a.id_item,b.goods_code,b.itemdesc,round(sum(a.qty),2) qty,a.unit ,copy_user, min(a.created_at) created_at from whs_saldo_stockopname a inner join masteritem b on b.id_item = a.id_item INNER JOIN (select no_transaksi, copy_user from whs_log_copysaldo GROUP BY no_transaksi) c on c.no_transaksi = a.no_transaksi group by a.no_transaksi) a left join (select no_transaksi notr,lokasi_aktual,id_jo,id_item,sum(qty) qty_scan,COUNT(no_barcode) qty_roll_scan from whs_so_h a INNER JOIN whs_so_detail b on b.no_dokumen = a.no_dokumen GROUP BY no_transaksi) b on b.notr = a.no_transaksi) a where DATE_FORMAT(a.created_at, '%Y-%m-%d') BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."'");
 
 
             return DataTables::of($dataMutlokas)->toJson();
@@ -178,7 +178,7 @@ class StockOpnameController extends Controller
 
         ");
 }else{
-   $data_rak = DB::connection('mysql_sb')->select("select '' kode_lok, '' id_jo, '' kpno, '' styleno, '' buyer, '' id_item, '' itemdesc, '' ttl_roll, '' qty, '' unit");
+ $data_rak = DB::connection('mysql_sb')->select("select '' kode_lok, '' id_jo, '' kpno, '' styleno, '' buyer, '' id_item, '' itemdesc, '' ttl_roll, '' qty, '' unit");
 }
          // dd($data_rak);
 
@@ -267,7 +267,7 @@ public function getListpartialso(Request $request)
         having sum(qty_sa) != '0' or sum(qty_in) != '0' or sum(qty_out) != '0' or sum(qty_sa) + sum(qty_in) - sum(qty_out) != '0'
         order by id_item asc");
 }else{
-   $data_rak = DB::connection('mysql_sb')->select("select '' data");
+ $data_rak = DB::connection('mysql_sb')->select("select '' data");
 }
 // dd($data_rak);
 
@@ -289,13 +289,13 @@ public function getListpartialsoreplace(Request $request)
 
         $data_rak = DB::connection('mysql_sb')->select("select distinct id_item data from whs_saldo_stockopname where no_transaksi = '".$request->no_dok_cs."' order by id asc");
     }else{
-       $data_rak = DB::connection('mysql_sb')->select("select '' data");
-   }
+     $data_rak = DB::connection('mysql_sb')->select("select '' data");
+ }
 // dd($data_rak);
 
-   $html = "";
+ $html = "";
 
-   foreach ($data_rak as $data) {
+ foreach ($data_rak as $data) {
     $html .= " <option value='" . $data->data . "'>" . $data->data . "</option> ";
 }
 
@@ -656,13 +656,13 @@ public function stokopname(Request $request)
 {
     if ($request->ajax()) {
         $additionalQuery = "";
-        $keywordQuery = "";
+        $where = "";
 
-        // if ($request->kode_lok != 'ALL') {
-        //     $where = " and a.kode_lok = '" . $request->kode_lok . "' ";
-        // }else{
-        //     $where = "";
-        // }
+        if ($request->status != 'ALL') {
+            $where = " where a.status = '" . $request->status . "' ";
+        }else{
+            $where = "";
+        }
 
         // if ($request->status != 'ALL') {
         //     $where2 = " and a.status = '" . $request->status . "' ";
@@ -671,8 +671,12 @@ public function stokopname(Request $request)
         // }
 
 
-        $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,IF(qty_scan > 0,'Scanning','Pending') status,COALESCE(qty_scan,0) qty_scan, COALESCE(qty_roll_scan,0) qty_roll_scan from (select * from (select a.* from (select no_transaksi,a.tipe_item,kode_lok,GROUP_CONCAT(distinct b.itemdesc) itemdesc,round(sum(qty),2) qty, COUNT(no_barcode) qty_roll  from whs_saldo_stockopname a inner join masteritem b on b.id_item = a.id_item where a.tipe_item = 'Fabric' GROUP BY kode_lok,no_transaksi) a) a left join (select id,no_transaksi no_trans from whs_log_copysaldo where status = 'Copy saldo' GROUP BY no_transaksi) b on b.no_trans = a.no_transaksi where no_transaksi = '" . $request->no_transaksi . "' order by kode_lok asc) a LEFT JOIN
-            (select no_transaksi notr,lokasi_aktual,sum(qty) qty_scan,COUNT(no_barcode) qty_roll_scan from whs_so_h a INNER JOIN whs_so_detail b on b.no_dokumen = a.no_dokumen where no_transaksi = '" . $request->no_transaksi . "' GROUP BY no_transaksi,lokasi_aktual) b on b.notr = a.no_transaksi and b.lokasi_aktual = a.kode_lok");
+        $data_inmaterial = DB::connection('mysql_sb')->select("select * from (select a.*,CASE 
+            WHEN COALESCE(qty_roll_scan,0) = 0 THEN 'Pending'
+            WHEN COALESCE(qty_roll_scan,0) > 0 AND qty_roll_scan < qty_roll THEN 'Partial'
+            WHEN COALESCE(qty_roll_scan,0) = qty_roll THEN 'Completed'
+            END AS status,COALESCE(qty_scan,0) qty_scan, COALESCE(qty_roll_scan,0) qty_roll_scan from (select * from (select a.* from (select no_transaksi,a.tipe_item,kode_lok,GROUP_CONCAT(distinct b.itemdesc) itemdesc,round(sum(qty),2) qty, COUNT(no_barcode) qty_roll  from whs_saldo_stockopname a inner join masteritem b on b.id_item = a.id_item where a.tipe_item = 'Fabric' GROUP BY kode_lok,no_transaksi) a) a left join (select id,no_transaksi no_trans from whs_log_copysaldo where status = 'Copy saldo' GROUP BY no_transaksi) b on b.no_trans = a.no_transaksi where no_transaksi = '" . $request->no_transaksi . "' order by kode_lok asc) a LEFT JOIN
+            (select no_transaksi notr,lokasi_aktual,sum(qty) qty_scan,COUNT(no_barcode) qty_roll_scan from whs_so_h a INNER JOIN whs_so_detail b on b.no_dokumen = a.no_dokumen where no_transaksi = '" . $request->no_transaksi . "' GROUP BY no_transaksi,lokasi_aktual) b on b.notr = a.no_transaksi and b.lokasi_aktual = a.kode_lok) a " . $where . " ");
 
 
         return DataTables::of($data_inmaterial)->toJson();
@@ -680,7 +684,7 @@ public function stokopname(Request $request)
 
     $mrak = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('kode_lok')->where('status', '=', 'Active')->get();
     $status_so = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'status_stok_opname')->where('status', '=', 'Active')->get();
-    $no_transaksi = DB::connection('mysql_sb')->select("select DISTINCT no_transaksi, created_at from whs_saldo_stockopname where tipe_item = 'Fabric' and status != 'CANCEL' ORDER BY created_at desc");
+    $no_transaksi = DB::connection('mysql_sb')->select("select DISTINCT no_transaksi, min(created_at) from whs_saldo_stockopname where tipe_item = 'Fabric' and status != 'CANCEL' GROUP BY no_transaksi ORDER BY created_at desc");
 
     // dd($no_transaksi);
 
@@ -820,11 +824,12 @@ public function SimpanBarcodeForce(Request $request)
 
         $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_so_detail_temp_cancel where no_barcode = '" . $barcode . "'");
 
-        $cek_barcode = DB::connection('mysql_sb')->select("select * from (select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty, unit from whs_sa_fabric where no_barcode = '" . $barcode . "'
+        $cek_barcode = DB::connection('mysql_sb')->select("select a.*, if(b.kode_lok_new is null, a.kode_lok, b.kode_lok_new) kode_lok_new from (select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty, unit from whs_sa_fabric where no_barcode = '" . $barcode . "'
             UNION
-            select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan from whs_lokasi_inmaterial where status = 'Y' AND no_barcode = '" . $barcode . "') a limit 1");
+            select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan from whs_lokasi_inmaterial where status = 'Y' AND no_barcode = '" . $barcode . "') a LEFT JOIN (select no_barcode, kode_lok kode_lok_new, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan, no_barcode_old from whs_lokasi_inmaterial where status = 'Y' AND no_barcode_old = '" . $barcode . "'    ) b on b.no_barcode_old = a.no_barcode limit 1");
+        
         $no_barcode = $cek_barcode ? $cek_barcode[0]->no_barcode : 0;
-        $kode_lok = $cek_barcode ? $cek_barcode[0]->kode_lok : 0;
+        $kode_lok = $cek_barcode ? $cek_barcode[0]->kode_lok_new : 0;
         $id_item = $cek_barcode ? $cek_barcode[0]->id_item : 0;
         $id_jo = $cek_barcode ? $cek_barcode[0]->id_jo : 0;
         $no_lot = $cek_barcode ? $cek_barcode[0]->no_lot : 0;
@@ -1075,20 +1080,25 @@ public function export_excel_detailso(Request $request)
 
         $no_transaksi = substr($request['txt_no_dokumen'],0,16);
 
+        $notrans = DB::connection('mysql_sb')->select("select CONCAT('$no_transaksi','-',nomor) no_transaksi, '$no_transaksi' no_transaksi_awal from (select IF(MAX(SUBSTR(no_dokumen,18,6)) is null,'000001',LPAD(MAX(SUBSTR(no_dokumen,18,6))+1,6,0)) nomor from whs_so_h where no_transaksi = '$no_transaksi') a");
+        $no_dokumen = $notrans[0]->no_transaksi;
+
         if (intval($validatedRequest['txt_qty_scan']) > 0) {
 
             $soheaderstore = SoHeader::create([
                 'no_transaksi' => $no_transaksi,
-                'no_dokumen' => $request['txt_no_dokumen'],
+                'no_dokumen' => $no_dokumen,
                 'tgl_dokumen' => $request['txt_tgl_so'],
                 'status' => 'Post',
                 'created_by' => Auth::user()->name,
             ]);
 
-            $so_detail = DB::connection('mysql_sb')->insert("insert into whs_so_detail select '','".$request['txt_no_dokumen']."',no_barcode,lokasi_scan,lokasi_aktual,id_item,id_jo,no_lot,no_roll,qty,qty_old,unit,created_by,created_at,updated_at from whs_so_detail_temp where lokasi_scan = '".$request['txt_lokasi_h']."' and created_by = '".Auth::user()->name."'");
+            $so_detail = DB::connection('mysql_sb')->insert("insert into whs_so_detail select '','".$no_dokumen."',no_barcode,lokasi_scan,lokasi_aktual,id_item,id_jo,no_lot,no_roll,qty,qty_old,unit,created_by,created_at,updated_at from whs_so_detail_temp where lokasi_scan = '".$request['txt_lokasi_h']."' and created_by = '".Auth::user()->name."'");
             $so_detail_temp = SoDetailTemp::where('created_by',Auth::user()->name)->where('lokasi_scan',$request['txt_lokasi_h'])->delete();
 
-            $massage = $request['txt_no_dokumen'] . ' Saved Succesfully';
+            $so_detail_temp_cancel = SoDetailTempCancel::where('created_by',Auth::user()->name)->where('lokasi_scan',$request['txt_lokasi_h'])->delete();
+
+            $massage = $no_dokumen . ' Saved Succesfully';
             $stat = 200;
 
         }else{
@@ -1234,7 +1244,8 @@ public function export_excel_detailso(Request $request)
     public function GetdetailOpname(Request $request)
     {
 
-        $det_item = DB::connection('mysql_sb')->select("select kode_lok, kpno no_ws, no_barcode, a.id_item, b.itemdesc, no_lot, no_roll, unit, qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) c on a.id_jo = c.id_jo where no_transaksi = '" . $request->no_transaksi . "' ORDER BY kode_lok, no_barcode asc");
+        $det_item = DB::connection('mysql_sb')->select("select * from (select a.id, a.no_transaksi, kode_lok, kpno no_ws, no_barcode, a.id_item, b.itemdesc, no_lot, no_roll, unit, qty, if(status_data is null OR status_data = '','-', status_data) status_data from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) c on a.id_jo = c.id_jo where no_transaksi = '" . $request->no_transaksi . "' ORDER BY kode_lok, no_barcode asc) a left join
+            (select no_barcode barcode_scan from whs_so_detail a where no_dokumen like '%" . $request->no_transaksi . "%' ) b on b.barcode_scan = a.no_barcode");
 
         $html = '<table id="tableshow" class="table table-bordered table-striped w-100">
         <thead>
@@ -1244,10 +1255,11 @@ public function export_excel_detailso(Request $request)
         <th class="font-size: 0.6rem;">No Barcode</th>
         <th class="font-size: 0.6rem;">ID Item</th>
         <th class="font-size: 0.6rem;">Item Name</th>
-        <th class="font-size: 0.6rem;">No Lot</th>
         <th class="font-size: 0.6rem;">No Roll</th>
         <th class="font-size: 0.6rem;">Unit</th>
+        <th class="font-size: 0.6rem;">status</th>
         <th class="font-size: 0.6rem;">Qty</th>
+        <th class="font-size: 0.6rem;">Action</th>
         </tr>
         </thead>
         <tbody>';
@@ -1255,30 +1267,54 @@ public function export_excel_detailso(Request $request)
         $jml_qty_ak = 0;
         $x = 1;
         foreach ($det_item as $detitem) {
+            $deleteBtn = '';
+            if ($detitem->barcode_scan == null) {
+                $deleteBtn = "
+                <button type='button' class='btn btn-sm btn-danger' 
+                onclick=\"deleteBarcode('$detitem->id','$detitem->no_barcode')\">
+                <i class='fa-solid fa-trash'></i>
+                </button>";
+            }else{
+                $deleteBtn = "<span class='badge bg-success' style='font-size:12px; font-weight:bold; padding:6px 10px;'>
+                <i class='fa-solid fa-circle-check'></i> Scanned
+                </span>";
+            }
+
             $html .= ' <tr>
-            <td> '.$detitem->kode_lok.'</td>
-            <td> '.$detitem->no_ws.'</td>
-            <td> '.$detitem->no_barcode.'</td>
-            <td> '.$detitem->id_item.'</td>
-            <td> '.$detitem->itemdesc.'</td>
-            <td> '.$detitem->no_lot.'</td>
-            <td> '.$detitem->no_roll.'</td>
-            <td> '.$detitem->unit.'</td>
-            <td> '.$detitem->qty.'</td>
+            <td>'.$detitem->kode_lok.'</td>
+            <td>'.$detitem->no_ws.'</td>
+            <td>'.$detitem->no_barcode.'</td>
+            <td>'.$detitem->id_item.'</td>
+            <td>'.$detitem->itemdesc.'</td>
+            <td>'.$detitem->no_roll.'</td>
+            <td>'.$detitem->unit.'</td>
+            <td>'.$detitem->status_data.'</td>
+            <td class="text-end">'.number_format($detitem->qty,2,',','.').'</td>
+            <td class="text-center">'.$deleteBtn.'</td>
             </tr>';
-            $x++;
         }
+
 
         $html .= '</tbody>
         <tfoot>
         <tr>
-        <th colspan="8" class="text-right">TOTAL</th>
+        <th colspan="7" class="text-right">TOTAL</th>
+        <th class="text-right"></th>
         <th class="text-right"></th>
         </tr>
         </tfoot>
         </table>';
 
         return $html;
+    }
+
+
+    public function deletesaldoso(Request $request)
+    {
+        $copy_barcode = DB::connection('mysql_sb')->insert("insert into whs_saldo_stockopname_old select * from whs_saldo_stockopname where id = '".$request->id."'");
+
+        $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_saldo_stockopname where id = '".$request->id."'");
+
     }
 
     // public function cancelopname(Request $request)

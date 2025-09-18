@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <!-- <div class="col-md-2">
+        <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
                     <label>Status</label>
@@ -72,7 +72,7 @@
                     </select>
                 </div>
             </div>
-        </div> -->
+        </div>
 
         <div class="col-md-6" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
@@ -100,7 +100,7 @@
     <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search GR Document..." onkeyup="carigrdok()">
 </div> -->
 <div class="table-responsive">
-    <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
+    <table id="datatable" class="table table-bordered table-head-fixed 100 text-nowrap">
         <thead>
             <tr>
                 <th class="text-center">No Transaksi</th>
@@ -124,8 +124,8 @@
 
 <div class="modal fade" id="modal-appv-material">
     <form action="{{ route('approve-material') }}" method="post" onsubmit="submitForm(this, event)">
-       @method('GET')
-       <div class="modal-dialog modal-dialog-centered">
+     @method('GET')
+     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-sb text-light">
                 <h4 class="modal-title">Confirm Dialog</h4>
@@ -159,8 +159,8 @@
 
 <div class="modal fade" id="modal-edit-lokasi">
     <form action="{{ route('simpan-edit') }}" method="post" onsubmit="submitForm(this, event)">
-       @method('GET')
-       <div class="modal-dialog modal-lg modal-dialog-scrollable">
+     @method('GET')
+     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-sb text-light">
                 <h4 class="modal-title">Add Location</h4>
@@ -251,8 +251,8 @@
 
 <div class="modal fade" id="modal-tambah-lokasi">
     <form action="{{ route('store-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
-       @method('POST')
-       <div class="modal-dialog modal-lg modal-dialog-scrollable">
+     @method('POST')
+     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-sb text-light">
                 <h4 class="modal-title">Add Location</h4>
@@ -371,81 +371,121 @@
     </script>
 
     <script>
-        let datatable = $("#datatable").DataTable({
-            serverSide: true,
-         processing: true,
-         ordering: false,
-         scrollX: true,
-         autoWidth: false,
-         scrollY: true,
-         pageLength: 10,
-            ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route('list-stok-opname') }}',
-                dataType: 'json',
-                dataSrc: 'data',
-                data: function(d) {
-                    d.no_transaksi = $('#no_transaksi').val();
-                    // d.status = $('#status').val();
-                },
+     let datatable = $("#datatable").DataTable({
+        serverSide: true,
+        processing: true,
+        ordering: false,
+        scrollX: true,
+        autoWidth: false,
+        scrollY: true,
+        pageLength: 10,
+        ajax: {
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            columns: [{
-                data: 'no_transaksi'
+            url: '{{ route('list-stok-opname') }}',
+            dataType: 'json',
+            dataSrc: 'data',
+            data: function(d) {
+                d.no_transaksi = $('#no_transaksi').val();
+                d.status = $('#status').val();
             },
-            {
-                data: 'tipe_item'
+        },
+        columns: [
+        { data: 'no_transaksi' },
+        { data: 'tipe_item' },
+        { data: 'kode_lok' },
+        { data: 'itemdesc' },
+        { 
+            data: 'qty',
+            render: function(data) {
+                return parseFloat(data || 0)
+                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             },
-            {
-                data: 'kode_lok'
+            className: "text-end" 
+        },
+        { 
+            data: 'qty_roll',
+            render: function(data) {
+                return parseFloat(data || 0)
+                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             },
-            {
-                data: 'itemdesc'
+            className: "text-end"
+        },
+        { 
+            data: 'qty_scan',
+            render: function(data) {
+                return parseFloat(data || 0)
+                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             },
-            {
-                data: 'qty'
+            className: "text-end"
+        },
+        { 
+            data: 'qty_roll_scan',
+            render: function(data) {
+                return parseFloat(data || 0)
+                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             },
-            {
-                data: 'qty_roll'
-            },
-            {
-                data: 'qty_scan'
-            },
-            {
-                data: 'qty_roll_scan'
-            },
-            {
-                data: 'status'
-            },
-            {
-                data: 'kode_lok'
+            className: "text-end"
+        },
+
+        { data: 'status' },
+        { data: 'kode_lok' }
+        ],
+        columnDefs: [
+        {
+            targets: [3],
+            className: "d-none",
+            render: (data, type, row, meta) => data ? data.split(",").join("<br/>") : "-"
+        },
+        {
+            targets: [8],
+            className: "text-center", 
+            render: (data, type, row, meta) => {
+                if (data === 'Pending') {
+                    return `<span class="badge bg-secondary" style="font-size:12px; font-weight:bold; padding:6px 10px;">
+                    Pending
+                    </span>`;
+                } else if (data === 'Partial') {
+                    return `<span class="badge bg-warning text-dark" style="font-size:12px; font-weight:bold; padding:6px 10px;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Partial
+                    </span>`;
+                } else if (data === 'Completed') {
+                    return `<span class="badge bg-success" style="font-size:12px; font-weight:bold; padding:6px 10px;">
+                    <i class="fa-solid fa-circle-check"></i> Completed
+                    </span>`;
+                } else {
+                    return data || "-";
+                }
             }
+        },
+        {
+            targets: [9],
+            render: (data, type, row, meta) => {
+                return `<div class='d-flex gap-1 justify-content-center'>
+                <a href="{{ route('proses-scan-so') }}/${data}/${row.id}">
+                <button type='button' class='btn btn-sm btn-info'>
+                <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                </a>
+                </div>`;
+            }
+        }
+        ],
+        rowCallback: function(row, data) {
+        // reset dulu biar tidak double class
+        $(row).removeClass('table-warning table-success table-secondary');
 
-            ],
-            columnDefs: [{
-                targets: [3],
-                className: "d-none",
-                render: (data, type, row, meta) => data ? data.split(",").join("<br/>") : "-"
-            },
-            // {
-            //     targets: [7],
-            //     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
-            // },
-
-            {
-                targets: [9],
-                render: (data, type, row, meta) => {
-                   // if (row.qty_balance == 0) {
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                   <a href="{{ route('proses-scan-so') }}/`+data+`/`+row.id+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-pen-to-square"></i></button></a>
-                    </div>`;
-                // }
+        if (data.status === 'Pending') {
+            $(row).addClass('table-secondary'); // abu-abu
+        } else if (data.status === 'Partial') {
+            $(row).addClass('table-warning'); // kuning
+        } else if (data.status === 'Completed') {
+            $(row).addClass('table-success'); // hijau
         }
     }
+});
 
-            ]
-        });
 
 function dataTableReload() {
     datatable.ajax.reload();
