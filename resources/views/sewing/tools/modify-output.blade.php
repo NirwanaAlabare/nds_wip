@@ -637,6 +637,7 @@
 
         // Rework
         function openReworkModal() {
+
             let currentOutputs = outputs.filter((item) => {
                 return Number(item.rework) > 0
             });
@@ -657,10 +658,10 @@
 
                     selectSize.appendChild(option);
 
-                    totalRft += Number(item.rft);
+                    totalRework += Number(item.rework);
                 });
 
-                document.getElementById("rework_total").value = totalRft;
+                document.getElementById("rework_total").value = totalRework;
             }
         }
 
