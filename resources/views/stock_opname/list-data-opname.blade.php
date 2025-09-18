@@ -547,7 +547,7 @@ function export_excel_barcode() {
                 // tambahkan input search di header
                 $('#tableshow thead th').each(function () {
                     var title = $(this).text();
-                    if (title !== "Qty") { 
+                    if (title !== "Qty" && title !== "Action") { 
                         $(this).html(title + '<br><input type="text" class="form-control form-control-sm" placeholder="Search"/>');
                     }
                 });
@@ -573,7 +573,7 @@ function export_excel_barcode() {
                                 return parseFloat(a) + parseFloat(b);
                             }, 0);
 
-                            $(this.api().column(8).footer())
+                            $(this.api().column(7).footer())
                             .html(number_format(total, 2, '.', ','));
                         }
                     });
@@ -605,52 +605,48 @@ $('#modal_tblroll').on('shown.bs.modal', function () {
 
 
 
+function deleteBarcode(id, barcode, no_transaksi) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Delete barcode " + barcode + " ?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '{{ route("delete-barcode-saldo-opname") }}',
+                type: 'GET',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    id: id
+                },
+                success: function(res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'The barcode has been deleted.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    // reload table
+                    showdata(no_transaksi);
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Failed to delete data'
+                    });
+                }
+            });
+        }
+    });
+}
 
-
-// function showdata(data) {
-//     return $.ajax({
-//         headers: {
-//             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-//         },
-//         url: '{{ route("get-detail-opname") }}',
-//         type: 'get',
-//         data: { no_transaksi: data },
-//         success: function (res) {
-//             if (res) {
-//                 $('#modal_tblroll').modal('show');
-//                 $('#modal_title1').html('DETAIL ' + data);
-//                 document.getElementById('table_modal').innerHTML = res;
-
-//                 let dt = $("#tableshow").DataTable({
-//                     responsive: false,
-//                     autoWidth: false,
-//                     scrollY: "300px",     // hanya scroll vertical
-//                     scrollX: true,        // scroll horizontal jika kepanjangan
-//                     scrollCollapse: true,
-//                     paging: false,
-//                     ordering: false,
-//                     info: false,
-//                     searching: false,
-//                     fixedHeader: true,
-//                     columns: [
-//                         { width: "8%" },   // Lokasi
-//                         { width: "10%" },  // No WS
-//                         { width: "15%" },  // No Barcode
-//                         { width: "8%" },   // ID Item
-//                         { width: "30%" },  // Item Name
-//                         { width: "8%" },   // No Lot
-//                         { width: "8%" },   // No Roll
-//                         { width: "5%" },   // Unit
-//                         { width: "8%" }    // Qty
-//                     ]
-//                 });
-
-//                 // sync header/body setelah render
-//                 dt.columns.adjust().draw();
-//             }
-//         }
-//     });
-// }
 
 
 

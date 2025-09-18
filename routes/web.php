@@ -1384,6 +1384,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/list-scan-barcode2', 'listscanbarcode2')->name('list-scan-barcode-so2');
         Route::get('/list-scan-barcode3', 'listscanbarcode3')->name('list-scan-barcode-so3');
         Route::post('/simpan-barcode-force', 'SimpanBarcodeForce')->name('simpan-barcode-force');
+        Route::get('/delete-barcode-saldo-opname', 'deletesaldoso')->name('delete-barcode-saldo-opname');
     });
 
     // stock opname
