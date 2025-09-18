@@ -1176,7 +1176,7 @@ class ReportDefectController extends Controller
                 $join->on("output_defect_in_out.defect_id", "=", "output_defects.id");
             })->
             whereRaw("act_costing.kpno = '".$request->base_ws."'")->
-            orderBy("output_defects.updated_at", "desc")->
+            orderBy("output_defects.created_at", "desc")->
             get();
         }
 
@@ -1285,7 +1285,7 @@ class ReportDefectController extends Controller
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
             leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
             leftJoin("master_plan", "master_plan.id", "=", "output_defects.master_plan_id")->
-            whereBetween("output_defects.updated_at", [$dateFrom." 00:00:00", $dateTo." 23:59:59"])->
+            whereBetween("output_defects.created_at", [$dateFrom." 00:00:00", $dateTo." 23:59:59"])->
             whereRaw("
                 output_defects.id is not null
                 ".($buyer ? "AND mastersupplier.Supplier in (".$buyer.")" : "")."

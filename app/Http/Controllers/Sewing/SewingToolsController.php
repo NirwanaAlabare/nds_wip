@@ -2104,10 +2104,10 @@ class SewingToolsController extends Controller
                             }
                         }
 
-                        DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+                        dd(DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray));
 
                         // Delete
-                        $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn('id', $defectIds)->delete();
+                        // $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn('id', $defectIds)->delete();
 
                         if ($deleteDefect) {
                             return [
