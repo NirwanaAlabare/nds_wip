@@ -892,7 +892,7 @@ class ReportOutput extends Component
                 leftJoin("output_defect_types", "output_defect_types.id", "=","output_defects".$this->qcType.".defect_type_id")->
                 where("master_plan.cancel", 'N')->
                 whereRaw("master_plan.tgl_plan ".$selectFilter)->
-                whereRaw("output_defects".$this->qcType.".updated_at ".$outputFilter."")->
+                whereRaw("output_defects".$this->qcType.".created_at ".$outputFilter."")->
                 whereRaw("(
                     master_plan.sewing_line LIKE '%".$this->search."%' OR
                     act_costing.kpno LIKE '%".$this->search."%' OR
@@ -915,7 +915,7 @@ class ReportOutput extends Component
                 leftJoin("output_defect_areas", "output_defect_areas.id", "=","output_defects".$this->qcType.".defect_area_id")->
                 where("master_plan.cancel", 'N')->
                 whereRaw("master_plan.tgl_plan ".$selectFilter)->
-                whereRaw("output_defects".$this->qcType.".updated_at ".$outputFilter."")->
+                whereRaw("output_defects".$this->qcType.".created_at ".$outputFilter."")->
                 whereRaw("(
                     master_plan.sewing_line LIKE '%".$this->search."%' OR
                     act_costing.kpno LIKE '%".$this->search."%' OR
@@ -938,7 +938,7 @@ class ReportOutput extends Component
                 leftJoin('master_plan', 'master_plan.id', 'output_defects'.$this->qcType.'.master_plan_id')->
                 where("master_plan.cancel", 'N')->
                 whereRaw("master_plan.tgl_plan ".$selectFilter)->
-                whereRaw("output_defects".$this->qcType.".updated_at ".$outputFilter."")->
+                whereRaw("output_defects".$this->qcType.".created_at ".$outputFilter."")->
                 whereIn("defect_type_id", $defectTypeIds)->
                 groupBy("master_plan.sewing_line", "output_defects".$this->qcType.".defect_type_id", "output_defects".$this->qcType.".defect_area_id")->get();
         }
