@@ -2158,6 +2158,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_qc_inspect_roll', 'export_excel_qc_inspect_roll')->name('export_excel_qc_inspect_roll');
         Route::get('/qc_inspect_laporan_lot', 'qc_inspect_laporan_lot')->name('qc_inspect_laporan_lot');
         Route::get('/export_excel_qc_inspect_lot', 'export_excel_qc_inspect_lot')->name('export_excel_qc_inspect_lot');
+        Route::get('/qc_inspect_report_shade_band', 'qc_inspect_report_shade_band')->name('qc_inspect_report_shade_band');
+        Route::get('/qc_inspect_report_shade_band_add/{id_item}/{id_jo}/{group}', 'qc_inspect_report_shade_band_add')->name('qc_inspect_report_shade_band_add');
+        Route::get('/qc_inspect_report_shade_band_print/{id_item}/{id_jo}/{group}', 'qc_inspect_report_shade_band_print')->name('qc_inspect_report_shade_band_print');
+        Route::get('/qc_inspect_report_shade_band_detail', 'qc_inspect_report_shade_band_detail')->name('qc_inspect_report_shade_band_detail');
+        Route::post('/save_report_shade_band_detail', 'save_report_shade_band_detail')->name('save_report_shade_band_detail');
+        Route::get('/get_photo_shade_band', 'get_photo_shade_band')->name('get_photo_shade_band');
+        Route::post('/delete_photo_shade_band', 'delete_photo_shade_band')->name('delete_photo_shade_band');
     });
 
     // Proses Print Bintex Shade Band
@@ -2169,6 +2176,13 @@ Route::middleware('auth')->group(function () {
     // Proses Shade Band
     Route::controller(QCInspectShadeBandController::class)->prefix("proses-shade-band")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('qc_inspect_shade_band');
+        Route::get('/input_shade_band', 'input_shade_band')->name('input_shade_band');
+        Route::post('/insert_tmp_shade_band', 'insert_tmp_shade_band')->name('insert_tmp_shade_band');
+        Route::post('/get_barcode_info_shade_band', 'get_barcode_info_shade_band')->name('get_barcode_info_shade_band');
+        Route::get('/get_list_shade_band_tmp', 'get_list_shade_band_tmp')->name('get_list_shade_band_tmp');
+        Route::post('/delete_barcode_tmp_shade_band', 'delete_barcode_tmp_shade_band')->name('delete_barcode_tmp_shade_band');
+        Route::post('/save_proses_shade_band', 'save_proses_shade_band')->name('save_proses_shade_band');
+        Route::get('/print_sticker_group_shade_band', 'print_sticker_group_shade_band')->name('print_sticker_group_shade_band');
     });
 });
 

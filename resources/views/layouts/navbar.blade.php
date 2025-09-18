@@ -1244,6 +1244,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Report Inspection Lot
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('qc_inspect_report_shade_band') }}"
+                                    class="dropdown-item {{ $subPage == 'qc-inspect-report-shade-band' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Report Shade Band
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

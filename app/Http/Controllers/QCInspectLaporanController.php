@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\export_excel_qc_inspect_roll;
 use App\Exports\export_excel_qc_inspect_lot;
+use Illuminate\Support\Facades\Storage;
+use PDF;
+
 
 class QCInspectLaporanController extends Controller
 {
@@ -558,5 +561,355 @@ from main
     public function export_excel_qc_inspect_lot(Request $request)
     {
         return Excel::download(new export_excel_qc_inspect_lot($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
+
+
+    public function qc_inspect_report_shade_band(Request $request)
+    {
+        $tgl_awal = $request->tgl_awal;
+        $tgl_akhir = $request->tgl_akhir;
+        $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        $user = Auth::user()->name;
+        if ($request->ajax()) {
+            $data_input = DB::connection('mysql_sb')->select("SELECT
+max(qc.tgl_trans) tgl_update,
+DATE_FORMAT(max(qc.tgl_trans), '%d-%M-%Y') AS tgl_update_fix,
+c.supplier,
+ms.Supplier buyer,
+ac.kpno,
+ac.styleno,
+mi.color,
+mi.id_item,
+b.id_jo,
+mi.itemdesc,
+qc.group,
+count(qc.barcode) jml_roll,
+d.result
+from qc_inspect_shade_band qc
+left join whs_lokasi_inmaterial a on qc.barcode = a.no_barcode
+LEFT JOIN whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok AND a.id_item = b.id_item AND a.id_jo = b.id_jo
+LEFT JOIN whs_inmaterial_fabric c ON a.no_dok = c.no_dok
+INNER JOIN jo_det jd ON a.id_jo = jd.id_jo
+INNER JOIN so ON jd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+INNER JOIN mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+INNER JOIN masteritem mi ON a.id_item = mi.id_item
+left join qc_inspect_shade_band_result d on mi.id_item = d.id_item and a.id_jo = d.id_jo and qc.group = d.group
+group by a.id_item, a.id_jo, qc.group
+            ");
+            return DataTables::of($data_input)->toJson();
+        }
+        return view(
+            'qc_inspect.report_shade_band',
+            [
+                'page' => 'dashboard-qc-inspect',
+                "subPageGroup" => "qc-inspect-laporan",
+                "subPage" => "qc-inspect-report-shade-band",
+                'tgl_skrg_min_sebulan' => $tgl_skrg_min_sebulan,
+                "containerFluid" => true,
+                'tgl_skrg' => $tgl_skrg,
+                "user" => $user,
+
+            ]
+        );
+    }
+
+
+    public function qc_inspect_report_shade_band_add($id_item, $id_jo, $group)
+    {
+        $user = Auth::user()->name;
+
+        $get_header = DB::connection('mysql_sb')->select("SELECT
+DATE_FORMAT(max(qc.tgl_trans), '%d-%M-%Y') AS tgl_update_fix,
+c.supplier,
+ms.Supplier buyer,
+ac.kpno,
+ac.styleno,
+mi.color,
+mi.id_item,
+mi.itemdesc,
+qc.group
+from qc_inspect_shade_band qc
+left join whs_lokasi_inmaterial a on qc.barcode = a.no_barcode
+LEFT JOIN whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok AND a.id_item = b.id_item AND a.id_jo = b.id_jo
+LEFT JOIN whs_inmaterial_fabric c ON a.no_dok = c.no_dok
+INNER JOIN jo_det jd ON a.id_jo = jd.id_jo
+INNER JOIN so ON jd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+INNER JOIN mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+INNER JOIN masteritem mi ON a.id_item = mi.id_item
+WHERE mi.id_item = ? AND a.id_jo = ? AND qc.`group` = ?", [$id_item, $id_jo, $group]);
+
+        $supplier                   = $get_header[0]->supplier;
+        $buyer                      = $get_header[0]->buyer;
+        $ws                         = $get_header[0]->kpno;
+        $style                      = $get_header[0]->styleno;
+        $color                      = $get_header[0]->color;
+        $group                      = $get_header[0]->group;
+        $itemdesc                   = $get_header[0]->itemdesc;
+        $tgl_update_fix               = $get_header[0]->tgl_update_fix;
+
+        return view(
+            'qc_inspect.report_shade_band_add',
+            [
+                'page' => 'dashboard-qc-inspect',
+                "subPageGroup" => "qc-inspect-laporan",
+                "subPage" => "qc-inspect-report-shade-band",
+                "containerFluid" => true,
+                "user" => $user,
+                'supplier'      => $supplier,
+                'buyer'         => $buyer,
+                'ws'            => $ws,
+                'style'         => $style,
+                'id_item'       => $id_item,
+                'id_jo'         => $id_jo,
+                'color'         => $color,
+                'group'         => $group,
+                'itemdesc'      => $itemdesc,
+                'tgl_update_fix'  => $tgl_update_fix,
+            ]
+        );
+    }
+
+    public function qc_inspect_report_shade_band_detail(Request $request)
+    {
+        $user = Auth::user()->name;
+        $id_item = $request->id_item;
+        $id_jo = $request->id_jo;
+        $group = $request->group;
+
+        // dd($id_item, $id_jo, $group);
+
+        $data_input = DB::connection('mysql_sb')->select("SELECT
+no_invoice,
+barcode,
+no_roll_buyer,
+no_lot,
+qty_aktual,
+satuan
+from qc_inspect_shade_band qc
+left join whs_lokasi_inmaterial a on qc.barcode = a.no_barcode
+LEFT JOIN whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok AND a.id_item = b.id_item AND a.id_jo = b.id_jo
+LEFT JOIN whs_inmaterial_fabric c ON a.no_dok = c.no_dok
+INNER JOIN jo_det jd ON a.id_jo = jd.id_jo
+INNER JOIN so ON jd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+INNER JOIN mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+INNER JOIN masteritem mi ON a.id_item = mi.id_item
+WHERE mi.id_item = ? AND a.id_jo = ? AND qc.`group` = ?", [$id_item, $id_jo, $group]);
+        return DataTables::of($data_input)->toJson();
+    }
+
+    public function save_report_shade_band_detail(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $request->validate([
+            'photo' => 'nullable|image|max:5120', // Make photo optional
+            'txtid_item' => 'required',
+            'txtid_jo' => 'required',
+            'txtgroup' => 'required',
+            'result' => 'required',
+        ]);
+
+        $id_item = $request->txtid_item;
+        $id_jo = $request->txtid_jo;
+        $group = $request->txtgroup;
+        $ket = $request->txtket;
+        $result = $request->result;
+
+        $filename = null;
+
+        // Check if a new photo is uploaded
+        if ($request->hasFile('photo')) {
+            $raw_filename = "{$id_item}_{$id_jo}_{$group}";
+            $clean_filename = preg_replace('/[<>:"\/\\\\|?*]/', '_', $raw_filename);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $clean_filename . '.' . $extension;
+
+            $request->file('photo')->storeAs('public/gambar_shade_band', $filename);
+        }
+
+        $cek_result = DB::connection('mysql_sb')->table('qc_inspect_shade_band_result')
+            ->where([
+                ['id_item', '=', $id_item],
+                ['id_jo', '=', $id_jo],
+                ['group', '=', $group],
+            ])
+            ->first();
+
+        if ($cek_result) {
+
+            // ❗ If no photo in DB and no new photo uploaded, return error
+            if (!$cek_result->photo && !$filename) {
+                return response()->json(['error' => 'Photo is required because no photo exists.'], 422);
+            }
+            // Build update query dynamically based on whether photo was uploaded
+            $updateData = [
+                'result' => $result,
+                'ket' => $ket,
+                'created_by' => $user,
+                'updated_at' => now(),
+            ];
+
+            if ($filename) {
+                $updateData['photo'] = $filename;
+            }
+
+            DB::connection('mysql_sb')->table('qc_inspect_shade_band_result')
+                ->where([
+                    ['id_item', '=', $id_item],
+                    ['id_jo', '=', $id_jo],
+                    ['group', '=', $group],
+                ])
+                ->update($updateData);
+        } else {
+            // If no record, photo must be provided
+            if (!$filename) {
+                return response()->json(['error' => 'Photo is required for new records.'], 422);
+            }
+
+            DB::connection('mysql_sb')->table('qc_inspect_shade_band_result')->insert([
+                'id_item' => $id_item,
+                'id_jo' => $id_jo,
+                'group' => $group,
+                'ket' => $ket,
+                'photo' => $filename,
+                'result' => $result,
+                'created_by' => $user,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json(['message' => 'Upload successful']);
+    }
+
+
+    public function get_photo_shade_band(Request $request)
+    {
+        $request->validate([
+            'id_item' => 'required',
+            'id_jo' => 'required',
+            'group' => 'required',
+        ]);
+
+        $data = DB::connection('mysql_sb')->table('qc_inspect_shade_band_result')
+            ->where('id_item', $request->id_item)
+            ->where('id_jo', $request->id_jo)
+            ->where('group', $request->group)
+            ->select('photo', 'ket', 'result')
+            ->first();
+
+        if ($data) {
+            return response()->json([
+                'photo' => $data->photo,
+                'ket' => $data->ket,
+                'result' => $data->result,
+            ]);
+        } else {
+            return response()->json([
+                'photo' => null,
+                'ket' => null,
+                'result' => null,
+            ]);
+        }
+    }
+
+    public function delete_photo_shade_band(Request $request)
+    {
+        $photoName = $request->input('photo');
+
+        if (!$photoName) {
+            return response()->json(['error' => 'Photo name is required'], 400);
+        }
+
+        // Define full path in storage
+        $path = 'public/gambar_shade_band/' . $photoName;
+
+        if (Storage::exists($path)) {
+            Storage::delete($path);
+        } else {
+            return response()->json(['error' => 'File not found'], 404);
+        }
+
+        // Also update the database if needed
+        DB::connection('mysql_sb')
+            ->table('qc_inspect_shade_band_result')
+            ->where('photo', $photoName)
+            ->update(['photo' => null]);
+
+        return response()->json(['message' => 'Photo deleted successfully']);
+    }
+
+    public function qc_inspect_report_shade_band_print($id_item, $id_jo, $group)
+    {
+        // Fetch header data using raw SQL query
+        $data_header = DB::connection('mysql_sb')->select("SELECT
+DATE_FORMAT(max(qc.tgl_trans), '%d-%M-%Y') AS tgl_update_fix,
+c.supplier,
+ms.Supplier buyer,
+ac.kpno,
+ac.styleno,
+mi.color,
+mi.id_item,
+mi.itemdesc,
+qc.group,
+count(qc.barcode) tot_barcode,
+d.result
+from qc_inspect_shade_band qc
+left join whs_lokasi_inmaterial a on qc.barcode = a.no_barcode
+LEFT JOIN whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok AND a.id_item = b.id_item AND a.id_jo = b.id_jo
+LEFT JOIN whs_inmaterial_fabric c ON a.no_dok = c.no_dok
+INNER JOIN jo_det jd ON a.id_jo = jd.id_jo
+INNER JOIN so ON jd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+INNER JOIN mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+INNER JOIN masteritem mi ON a.id_item = mi.id_item
+left join qc_inspect_shade_band_result d on mi.id_item = d.id_item and a.id_jo = d.id_jo and qc.group = d.group
+WHERE mi.id_item = ? AND a.id_jo = ? AND qc.`group` = ?", [$id_item, $id_jo, $group]);
+
+        $data_detail = DB::connection('mysql_sb')->select("SELECT
+no_invoice,
+barcode,
+no_roll_buyer,
+no_lot,
+qty_aktual,
+satuan
+from qc_inspect_shade_band qc
+left join whs_lokasi_inmaterial a on qc.barcode = a.no_barcode
+LEFT JOIN whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok AND a.id_item = b.id_item AND a.id_jo = b.id_jo
+LEFT JOIN whs_inmaterial_fabric c ON a.no_dok = c.no_dok
+INNER JOIN jo_det jd ON a.id_jo = jd.id_jo
+INNER JOIN so ON jd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+INNER JOIN mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+INNER JOIN masteritem mi ON a.id_item = mi.id_item
+WHERE mi.id_item = ? AND a.id_jo = ? AND qc.`group` = ?", [$id_item, $id_jo, $group]);
+
+        $data_result = DB::connection('mysql_sb')->select("SELECT
+photo,
+result,
+ket
+from qc_inspect_shade_band_result
+WHERE id_item = ? AND id_jo = ? AND `group` = ?", [$id_item, $id_jo, $group]);
+
+        $photo  = $data_result[0]->photo;
+        $result  = $data_result[0]->result;
+        $ket  = $data_result[0]->ket;
+
+        // Generate PDF from the view
+        $pdf = PDF::loadView('qc_inspect.pdf_report_shade_band', [
+            'data_header' => $data_header,
+            'data_detail' => $data_detail,
+            'photo' => $photo,
+            'result' => $result,
+            'ket' => $ket,
+        ])->setPaper('a4', 'portrait');
+
+        // Set filename and return download
+        $fileName = 'pdf.pdf';
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 }

@@ -37,7 +37,7 @@
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <a href="{{ route('input_fabric_relaxation') }}" target="_blank"
+                <a href="{{ route('input_shade_band') }}" target="_blank"
                     class="btn btn-outline-primary position-relative btn-sm">
                     <i class="fas fa-plus"></i>
                     New
@@ -213,7 +213,7 @@
             // Create HTML list with both no_form and barcode
             const listHtml = selectedItems.map(item => `
             <li>
-                <strong>Form:</strong>(${item.no_barcode})<br />
+                <strong>Barcode:</strong>(${item.no_barcode})<br />
             </li>
         `).join('');
 
@@ -244,7 +244,7 @@
             });
         }
 
-        const printStickerShadeBandUrl = "{{ route('print_sticker_bintex_shade_band') }}";
+        const printStickerShadeBandUrl = "{{ route('print_sticker_group_shade_band') }}";
 
         function print_sticker_shade_band(items) {
             console.log("Printing stickers for:", items); // items is array of IDs
@@ -257,9 +257,6 @@
             const url = `${printStickerShadeBandUrl}?${queryString}`;
             window.open(url, '_blank');
         }
-
-
-
 
         let datatable = $("#datatable").DataTable({
             ordering: false,
@@ -280,7 +277,7 @@
             ],
             pageLength: 10, // Default rows per page
             ajax: {
-                url: '{{ route('qc_inspect_print_bintex_shade_band') }}',
+                url: '{{ route('qc_inspect_shade_band') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
@@ -303,10 +300,7 @@
                     }
                 },
                 {
-                    data: 'tgl_dok_fix'
-                },
-                {
-                    data: 'no_dok'
+                    data: 'tgl_trans_fix'
                 },
                 {
                     data: 'no_barcode'
@@ -346,6 +340,14 @@
                 },
                 {
                     data: 'satuan',
+                    className: 'text-center'
+                },
+                {
+                    data: 'group',
+                    className: 'text-center'
+                },
+                {
+                    data: 'created_by',
                     className: 'text-center'
                 },
 
