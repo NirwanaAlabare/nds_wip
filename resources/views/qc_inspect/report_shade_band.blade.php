@@ -127,6 +127,9 @@
         const addRouteTemplate =
             "{{ route('qc_inspect_report_shade_band_add', ['id_item' => '__id_item__', 'id_jo' => '__id_jo__', 'group' => '__group__']) }}";
 
+        const stickerRouteTemplate =
+            "{{ route('qc_inspect_sticker_shade_band_print', ['id_item' => '__id_item__', 'id_jo' => '__id_jo__', 'group' => '__group__']) }}";
+
         const printRouteTemplate =
             "{{ route('qc_inspect_report_shade_band_print', ['id_item' => '__id_item__', 'id_jo' => '__id_jo__', 'group' => '__group__']) }}";
     </script>
@@ -180,6 +183,11 @@
                             .replace('__id_jo__', idJo)
                             .replace('__group__', group);
 
+                        const stickerUrl = stickerRouteTemplate
+                            .replace('__id_item__', idItem)
+                            .replace('__id_jo__', idJo)
+                            .replace('__group__', group);
+
                         const printUrl = printRouteTemplate
                             .replace('__id_item__', idItem)
                             .replace('__id_jo__', idJo)
@@ -192,6 +200,13 @@
             style="margin-right: 5px;"
             title="Add">
             <i class="fas fa-search fa-sm"></i>
+        </a>
+        <a
+            href="${stickerUrl}" target="_blank"
+            class="btn btn-sm btn-outline-success"
+            style="margin-right: 5px;"
+            title="Print Sticker">
+            <i class="fas fa-tags fa-sm"></i> Sticker
         </a>
     `;
 

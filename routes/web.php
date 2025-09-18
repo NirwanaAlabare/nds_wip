@@ -2161,6 +2161,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/qc_inspect_report_shade_band', 'qc_inspect_report_shade_band')->name('qc_inspect_report_shade_band');
         Route::get('/qc_inspect_report_shade_band_add/{id_item}/{id_jo}/{group}', 'qc_inspect_report_shade_band_add')->name('qc_inspect_report_shade_band_add');
         Route::get('/qc_inspect_report_shade_band_print/{id_item}/{id_jo}/{group}', 'qc_inspect_report_shade_band_print')->name('qc_inspect_report_shade_band_print');
+        Route::get('/qc_inspect_sticker_shade_band_print/{id_item}/{id_jo}/{group}', 'qc_inspect_sticker_shade_band_print')->name('qc_inspect_sticker_shade_band_print');
         Route::get('/qc_inspect_report_shade_band_detail', 'qc_inspect_report_shade_band_detail')->name('qc_inspect_report_shade_band_detail');
         Route::post('/save_report_shade_band_detail', 'save_report_shade_band_detail')->name('save_report_shade_band_detail');
         Route::get('/get_photo_shade_band', 'get_photo_shade_band')->name('get_photo_shade_band');

@@ -912,4 +912,33 @@ WHERE id_item = ? AND id_jo = ? AND `group` = ?", [$id_item, $id_jo, $group]);
         $fileName = 'pdf.pdf';
         return $pdf->download(str_replace("/", "_", $fileName));
     }
+
+
+    public function qc_inspect_sticker_shade_band_print($id_item, $id_jo, $group)
+    {
+
+        // Now use the string in the raw SQL query
+        $data_header = DB::connection('mysql_sb')->select("SELECT
+qc.barcode,
+qc.group
+from qc_inspect_shade_band qc
+left join whs_lokasi_inmaterial a on qc.barcode = a.no_barcode
+LEFT JOIN whs_inmaterial_fabric_det b ON a.no_dok = b.no_dok AND a.id_item = b.id_item AND a.id_jo = b.id_jo
+LEFT JOIN whs_inmaterial_fabric c ON a.no_dok = c.no_dok
+INNER JOIN jo_det jd ON a.id_jo = jd.id_jo
+INNER JOIN so ON jd.id_so = so.id
+INNER JOIN act_costing ac ON so.id_cost = ac.id
+INNER JOIN mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+INNER JOIN masteritem mi ON a.id_item = mi.id_item
+WHERE mi.id_item = ? AND a.id_jo = ? AND qc.`group` = ?", [$id_item, $id_jo, $group]);
+
+        // Generate PDF from the view
+        $pdf = PDF::loadView('qc_inspect.pdf_print_group_shade_band', [
+            'data_header' => $data_header,
+        ])->setPaper([0, 0, 113.39, 85.04]);
+
+        // Set filename and return download
+        $fileName = 'pdf.pdf';
+        return $pdf->download(str_replace("/", "_", $fileName));
+    }
 }
