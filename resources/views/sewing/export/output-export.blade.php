@@ -550,7 +550,7 @@
                     $defectAreaIds = $defectAreasFiltered->pluck("defect_area_id")->toArray();
                     $totalDefectType = 0;
                     for ($i = 0; $i < count($defectAreaIds); $i++) {
-                        $totalDefectType += $lineDefectsFilteredType->where('defect_area_id', $defectAreaIds[$i])->take(5)->sum("total");
+                        $totalDefectType += $lineDefectsFilteredType->where('defect_area_id', $defectAreaIds[$i])->sortByDesc("total")->take(5)->sum("total");
                     }
                 @endphp
                 <tr>
