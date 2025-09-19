@@ -516,42 +516,71 @@
     <tbody>
         @if ($defectTypes->count() < 1)
             <tr>
-                <td colspan="6" style="text-align: center;">Data not found</td>
+                <td colspan="8" style="text-align: center;">Data not found</td>
             </tr>
         @else
+            {{-- Defect Types Loop --}}
             @foreach ($defectTypes as $type)
                 @php
+                    // Defect Areas
                     $defectAreasFiltered = $defectAreas->where("defect_type_id", $type->defect_type_id)->take(5);
-                    $lineDefectsFilteredType = $lineDefects->where("defect_type_id", $type->defect_type_id);
                     $firstDefectAreasFiltered = $defectAreasFiltered->first();
+
+                    // Defect Lines
+                    $lineDefectsFilteredType = $lineDefects->where("defect_type_id", $type->defect_type_id);
+
+                    // First Defect Line & Area
                     $lineDefectsFilteredAreaFirstCol = $lineDefectsFilteredType->where('defect_area_id', $firstDefectAreasFiltered->defect_area_id)->sortByDesc('total')->take(5);
                     $firstLineDefectsFilteredArea = $lineDefectsFilteredAreaFirstCol->first();
+
+                    // Rowspan
                     $typeRowspan = 0;
 
                     foreach ($defectAreasFiltered as $area) {
                         $typeRowspan += $lineDefectsFilteredType->where('defect_area_id', $area->defect_area_id)->take(5)->count();
                     }
+
+                    // Total Defect Line
+                    $totalDefectLine = $firstLineDefectsFilteredArea->total;
+
+                    // Total Defect Area by Top 5 Defect Line
+                    $totalDefectArea = $lineDefectsFilteredAreaFirstCol->sum("total");
+
+                    // Total Defect Type by Top 5 Defect Area on Top 5 Defect Line
+                    $defectAreaIds = $defectAreasFiltered->pluck("defect_area_id")->toArray();
+                    $totalDefectType = 0;
+                    for ($i = 0; $i < count($defectAreaIds); $i++) {
+                        $totalDefectType += $lineDefectsFilteredType->where('defect_area_id', $defectAreaIds[$i])->take(5)->sum("total");
+                    }
                 @endphp
                 <tr>
+                    <td {{ $typeRowspan > 1 ? 'rowspan='.$typeRowspan : '' }} style="vertical-align: middle;">{{ $loop->iteration }}</td>
                     <td {{ $typeRowspan > 1 ? 'rowspan='.$typeRowspan : '' }} style="vertical-align: middle;">
                         {{ $type->defect_type }}
                     </td>
-                    <td {{ $typeRowspan > 1 ? 'rowspan='.$typeRowspan : '' }} style="text-align: center; vertical-align: middle;" data-format="0">
-                        <b>{{$type->defect_type_count}}</b>
+                    <td {{ $typeRowspan > 1 ? 'rowspan='.$typeRowspan : '' }} style="vertical-align: middle;">
+                        {{-- <b>{{$type->defect_type_count}}</b> --}}
+                        <b>{{$totalDefectType}}</b>
+                    </td>
+                    <td {{ $typeRowspan > 1 ? 'rowspan='.$typeRowspan : '' }} style="vertical-align: middle;">
+                        {{-- <b>{{ $summaryActual > 0 ? round((($type->defect_type_count/$summaryActual)*100), 2) : '0' }} %</b> --}}
+                        <b>{{ $summaryActual > 0 ? round((($totalDefectType/$summaryActual)*100), 2) : '0' }} %</b>
                     </td>
                     <td {{ $lineDefectsFilteredAreaFirstCol->count() > 1 ? 'rowspan='.($lineDefectsFilteredAreaFirstCol->count()) : '' }} style="vertical-align: middle;">
-                        <div>
+                        <div class="d-flex justify-content-between">
                             {{ $defectAreasFiltered->first()->defect_area }}
                         </div>
                     </td>
-                    <td {{ $lineDefectsFilteredAreaFirstCol->count() > 1 ? 'rowspan='.($lineDefectsFilteredAreaFirstCol->count()) : '' }} style="text-align: center; vertical-align: middle;" data-format="0">
-                        <b>{{  $defectAreasFiltered->first()->defect_area_count }}</b>
+                    <td {{ $lineDefectsFilteredAreaFirstCol->count() > 1 ? 'rowspan='.($lineDefectsFilteredAreaFirstCol->count()) : '' }} style="vertical-align: middle;">
+                        {{-- <b>{{  $defectAreasFiltered->first()->defect_area_count }}</b> --}}
+                        <b>{{ $totalDefectArea }}</b>
                     </td>
                     <td>
                         {{ $firstLineDefectsFilteredArea->sewing_line }}
                     </td>
-                    <td style="text-align: center;">
-                        <b>{{ $firstLineDefectsFilteredArea->total }}</b>
+                    <td style="text-align: center">
+                        {{-- <b>{{ $firstLineDefectsFilteredArea->total }}</b> --}}
+                        <b>{{ $totalDefectLine }}</b>
                     </td>
                 </tr>
                 @if ($lineDefectsFilteredAreaFirstCol->count() > 1)
@@ -561,7 +590,7 @@
                                 <td>
                                     {{ $line->sewing_line }}
                                 </td>
-                                <td style="text-align: center;" data-format="0">
+                                <td style="text-align: center">
                                     <b>{{ $line->total }}</b>
                                 </td>
                             </tr>
@@ -573,20 +602,25 @@
                     @foreach ($defectAreasFiltered as $area)
                         @if ($loop->index > 0)
                             @php
+                                // Defect Area Line
                                 $lineDefectAreasFilteredNextCol = $lineDefectsFilteredType->where("defect_area_id", $area->defect_area_id)->sortByDesc('total')->take(5);
+
+                                // Total Defect Area by Top 5 Defect Line
+                                $totalDefectArea = $lineDefectAreasFilteredNextCol->sum("total");
                             @endphp
                             <tr>
                                 <td {{ $lineDefectAreasFilteredNextCol->count() > 1 ? 'rowspan='.$lineDefectAreasFilteredNextCol->count() : '' }} style="vertical-align: middle;">
                                     {{ $area->defect_area }}
                                 </td>
-                                <td {{ $lineDefectAreasFilteredNextCol->count() > 1 ? 'rowspan='.$lineDefectAreasFilteredNextCol->count() : '' }} style="text-align: center; vertical-align: middle;" data-format="0">
-                                    <b>{{ $area->defect_area_count }}</b>
+                                <td {{ $lineDefectAreasFilteredNextCol->count() > 1 ? 'rowspan='.$lineDefectAreasFilteredNextCol->count() : '' }} style="vertical-align: middle;">
+                                    {{-- <b>{{ num($area->defect_area_count) }}</b> --}}
+                                    <b>{{ num($totalDefectArea) }}</b>
                                 </td>
                                 <td>
                                     {{ $lineDefectAreasFilteredNextCol->first()->sewing_line }}
                                 </td>
-                                <td style="text-align: center;" data-format="0">
-                                    <b>{{ $lineDefectAreasFilteredNextCol->first()->total }}</b>
+                                <td style="text-align: center">
+                                    <b>{{ num($lineDefectAreasFilteredNextCol->first()->total) }}</b>
                                 </td>
                             </tr>
 
@@ -597,8 +631,8 @@
                                             <td>
                                                 {{ $line->sewing_line }}
                                             </td>
-                                            <td style="text-align: center;" data-format="0">
-                                                <b>{{  $line->total }}</b>
+                                            <td style="text-align: center">
+                                                <b>{{ num($line->total) }}</b>
                                             </td>
                                         </tr>
                                     @endif
