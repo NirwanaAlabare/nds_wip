@@ -659,6 +659,7 @@ class SewingToolsController extends Controller
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$defectPacking."
                     ".$allocationPacking."
                     ".$missmatchDefectPck."
@@ -673,6 +674,7 @@ class SewingToolsController extends Controller
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$missmatchOutputPck."
                     ".$backDateOutputPck;
 
@@ -685,6 +687,7 @@ class SewingToolsController extends Controller
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$defectPacking."
                     ".$allocationPacking."
                     ".$missmatchRejectPck."
@@ -1322,6 +1325,7 @@ class SewingToolsController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$linePacking."
                     ".$defectPacking."
                     ".$allocationPacking."
@@ -1336,6 +1340,7 @@ class SewingToolsController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$linePacking."
                     ".$missmatchOutputPck."
                     ".$backDateOutputPck;
@@ -1348,6 +1353,7 @@ class SewingToolsController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$linePacking."
                     ".$defectPacking."
                     ".$allocationPacking."

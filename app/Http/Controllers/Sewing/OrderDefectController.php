@@ -58,7 +58,7 @@ class OrderDefectController extends Controller
             }
 
             $orderDefects = $orderDefectsQuery->where('master_plan.cancel', 'N')
-                ->whereRaw("output_defects_packing.updated_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'")
+                ->whereRaw("output_defects_packing.created_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'")
                 ->groupBy('output_defect_types.id', 'output_defect_types.defect_type')
                 ->orderBy('total_defect', 'desc')
                 ->limit(10)
@@ -75,7 +75,7 @@ class OrderDefectController extends Controller
             }
 
             $orderDefects = $orderDefectsQuery->where('master_plan.cancel', 'N')
-                ->whereRaw("output_defects.updated_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'")
+                ->whereRaw("output_defects.created_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'")
                 ->groupBy('output_defect_types.id', 'output_defect_types.defect_type')
                 ->orderBy('total_defect', 'desc')
                 ->limit(10)
