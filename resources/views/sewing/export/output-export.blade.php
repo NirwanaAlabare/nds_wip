@@ -559,12 +559,12 @@
                         {{ $type->defect_type }}
                     </td>
                     <td {{ $typeRowspan > 1 ? 'rowspan='.$typeRowspan : '' }} style="vertical-align: middle;">
-                        {{-- <b>{{$type->defect_type_count}}</b> --}}
-                        <b>{{$totalDefectType}}</b>
+                        <b>{{$type->defect_type_count}}</b>
+                        {{-- <b>{{$totalDefectType}}</b> --}}
                     </td>
                     <td {{ $typeRowspan > 1 ? 'rowspan='.$typeRowspan : '' }} style="vertical-align: middle;">
-                        {{-- <b>{{ $summaryActual > 0 ? round((($type->defect_type_count/$summaryActual)*100), 2) : '0' }} %</b> --}}
-                        <b>{{ $summaryActual > 0 ? round((($totalDefectType/$summaryActual)*100), 2) : '0' }} %</b>
+                        <b>{{ $summaryActual > 0 ? round((($type->defect_type_count/$summaryActual)*100), 2) : '0' }} %</b>
+                        {{-- <b>{{ $summaryActual > 0 ? round((($totalDefectType/$summaryActual)*100), 2) : '0' }} %</b> --}}
                     </td>
                     <td {{ $lineDefectsFilteredAreaFirstCol->count() > 1 ? 'rowspan='.($lineDefectsFilteredAreaFirstCol->count()) : '' }} style="vertical-align: middle;">
                         <div class="d-flex justify-content-between">
@@ -572,15 +572,15 @@
                         </div>
                     </td>
                     <td {{ $lineDefectsFilteredAreaFirstCol->count() > 1 ? 'rowspan='.($lineDefectsFilteredAreaFirstCol->count()) : '' }} style="vertical-align: middle;">
-                        {{-- <b>{{  $defectAreasFiltered->first()->defect_area_count }}</b> --}}
-                        <b>{{ $totalDefectArea }}</b>
+                        <b>{{  $defectAreasFiltered->first()->defect_area_count }}</b>
+                        {{-- <b>{{ $totalDefectArea }}</b> --}}
                     </td>
                     <td>
                         {{ $firstLineDefectsFilteredArea->sewing_line }}
                     </td>
                     <td style="text-align: center">
-                        {{-- <b>{{ $firstLineDefectsFilteredArea->total }}</b> --}}
-                        <b>{{ $totalDefectLine }}</b>
+                        <b>{{ $firstLineDefectsFilteredArea->total }}</b>
+                        {{-- <b>{{ $totalDefectLine }}</b> --}}
                     </td>
                 </tr>
                 @if ($lineDefectsFilteredAreaFirstCol->count() > 1)
@@ -613,8 +613,8 @@
                                     {{ $area->defect_area }}
                                 </td>
                                 <td {{ $lineDefectAreasFilteredNextCol->count() > 1 ? 'rowspan='.$lineDefectAreasFilteredNextCol->count() : '' }} style="vertical-align: middle;">
-                                    {{-- <b>{{ num($area->defect_area_count) }}</b> --}}
-                                    <b>{{ num($totalDefectArea) }}</b>
+                                    <b>{{ num($area->defect_area_count) }}</b>
+                                    {{-- <b>{{ num($totalDefectArea) }}</b> --}}
                                 </td>
                                 <td>
                                     {{ $lineDefectAreasFilteredNextCol->first()->sewing_line }}
