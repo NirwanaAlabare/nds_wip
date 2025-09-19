@@ -779,3 +779,19 @@ function handleError(res) {
         };
     }
 }
+
+function showLoading() {
+    let loadingElement = document.getElementById("loading");
+
+    if (loadingElement) {
+        loadingElement.classList.remove("d-none");
+    }
+}
+
+function hideLoading() {
+    let loadingElement = document.getElementById("loading");
+
+    if (loadingElement) {
+        loadingElement.classList.add("d-none");
+    }
+}
