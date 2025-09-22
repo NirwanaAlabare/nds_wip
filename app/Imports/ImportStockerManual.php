@@ -60,8 +60,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
 
             if ($orderInfo && $orderInfo[0]) {
                 $partBagian = explode(' - ', $row[4]);
-                $namaPart = trim($partBagian[0] ? $partBagian[0] : null, " \t\n\r\0\x0B");
-                $namaBagian = trim($partBagian[1] ? $partBagian[1] : null, " \t\n\r\0\x0B");
+                $namaPart = trim($partBagian[0] ? $partBagian[0] : null);
+                $namaBagian = trim($partBagian[1] ? $partBagian[1] : null);
 
                 $partDetailInfo = DB::select("
                     SELECT
