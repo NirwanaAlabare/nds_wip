@@ -80,6 +80,15 @@
                     </a>
                 </div>
                 <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#resetStockerIdModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Stocker ID</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
                     <a type="button" class="home-item" onclick="resetRedundantStocker()">
                         <div class="card">
                             <div class="card-body">
@@ -141,6 +150,29 @@
         </div>
     </div>
 
+    <!-- Reset Stocker By id -->
+    <div class="modal fade" id="resetStockerIdModal" tabindex="-1" aria-labelledby="resetStockerIdModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="resetStockerIdModalLabel">Reset Stocker ID</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Stocker ID</label>
+                        <textarea class="form-control" name="stocker_ids" id="stocker_ids" cols="30" rows="10"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="resetStockerId()"><i class="fa fa-rotate-left"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Import Manual --}}
     <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <form method="post" action="{{ route('import-stocker-manual') }}" enctype="multipart/form-data" onsubmit="submitImportStockerManual(this, event)">
@@ -315,6 +347,56 @@
                     no_form: $('#no_form option:selected').text(),
                     form_group: $('#form_group').val() ? $('#form_group').val() : null,
                     form_stocker: $('#form_stocker').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.status == 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            html: response.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#082149",
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: response && response.message ? response.message : 'Terjadi kesalahan',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#082149",
+                        });
+                    }
+                }
+            });
+        }
+
+        function resetStockerId() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('reset-stocker-id') }}",
+                data: {
+                    stocker_ids: $('#stocker_ids').val(),
                 },
                 dataType: "json",
                 success: function (response) {
