@@ -542,9 +542,14 @@ function submitForm(e, evt) {
                 )
             };
 
+            console.log(res.message, res.message.includes("Duplicate"));
+            if (res.message && res.message.includes("Duplicate")) {
+                message += "Data sudah ada"
+            }
+
             iziToast.error({
                 title: 'Error',
-                message: 'Terjadi kesalahan.',
+                message: (message ? message : "Terjadi Kesalahan."),
                 position: 'topCenter'
             });
         }
