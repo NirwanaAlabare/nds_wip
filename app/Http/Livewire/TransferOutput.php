@@ -145,6 +145,37 @@ class TransferOutput extends Component
 
         // if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             if ($this->kodeNumbering) {
+                $output = DB::table("year_sequence")->selectRaw("
+                    year_sequence.id,
+                    year_sequence.id_year_sequence,
+                    year_sequence.so_det_id,
+                    act_costing.id,
+                    so_det.color,
+                    so_det.size,
+                    so_det.dest
+                ")->
+                leftJoin("signalbit_erp.so_det", "so_det.id", "=", "year_sequence.so_det_id")->
+                leftJoin("signalbit_erp.so", "so.id", "=", "so_det.id_so")->
+                leftJoin("signalbit_erp.act_costing", "act_costing.id", "=","so.id_cost")->
+                whereRaw("year_sequence.id_year_sequence in (".$newKodeNumbering.")")->
+                groupBy("year_sequence.id")->
+                get();
+
+                $this->toSoDet = MasterPlan::selectRaw("
+                    so_det.id,
+                    so_det.color,
+                    so_det.size,
+                    so_det.dest
+                ")->
+                leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+                leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+                leftJoin("so_det", "so_det.id_so", "=", "so.id")->
+                whereRaw("master_plan.sewing_line = '".$this->toLine."'")->
+                whereRaw("master_plan.id = '".$this->toSelectedMasterPlan."'")->
+                whereRaw("so_det.color = master_plan.color")->
+                groupBy("so_det.id")->
+                get();
+
                 $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
                     user_sb_wip.id,
                     userpassword.username
@@ -156,34 +187,74 @@ class TransferOutput extends Component
 
                 $messageSuccess = "";
                 $messageNotFound = "";
-                if ($toUser) {
-                    // Transfer Output
-                    $transferOutput = DB::connection("mysql_sb")->statement("
-                        update output_rfts".$this->outputType."
-                        left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
-                        set output_rfts".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_rfts".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
-                        where output_rfts".$this->outputType.".kode_numbering in (".$newKodeNumbering.")
-                    ");
+                foreach($output as $o) {
+                    $toSoDet = $this->toSoDet->where("color", $o->color)->where("size", $o->size)->where("dest", $o->dest)->first();
 
-                    // Transfer Defect
-                    $transferDefect = DB::connection("mysql_sb")->statement("
-                        update output_defects".$this->outputType."
-                        left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
-                        set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_defects".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
-                        where output_defects".$this->outputType.".kode_numbering in (".$newKodeNumbering.")
-                    ");
+                    if (!$toSoDet) {
+                        $toSoDet = $this->toSoDet->where("size", $o->size)->where("dest", $o->dest)->first();
 
-                    // Transfer Reject
-                    $transferReject = DB::connection("mysql_sb")->statement("
-                        update output_rejects".$this->outputType."
-                        left join master_plan on master_plan.id = output_rejects".$this->outputType.".master_plan_id
-                        set output_rejects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_rejects".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
-                        where output_rejects".$this->outputType.".kode_numbering in (".$newKodeNumbering.")
-                    ");
+                        if (!$toSoDet) {
+                            $toSoDet = $this->toSoDet->where("size", $o->size)->first();
+                        }
+                    }
 
-                    $messageSuccess .= $newKodeNumbering." <br> berhasil <br>";
-                } else {
-                    $messageNotFound .= "User Line '".$this->toLine."' tidak ditemukan.";
+                    if ($toSoDet && $toUser) {
+                        // Transfer Output
+                        $transferOutput = DB::connection("mysql_sb")->statement("
+                            update output_rfts".$this->outputType."
+                            left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
+                            set output_rfts".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_rfts".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
+                            where output_rfts".$this->outputType.".kode_numbering = '".$o->id_year_sequence."'
+                        ");
+                        if ($transferOutput) {
+                            $transferOutputSize = DB::connection("mysql_sb")->statement("
+                                update output_rfts".$this->outputType."
+                                left join master_plan on master_plan.id = output_rfts".$this->outputType.".master_plan_id
+                                set output_rfts".$this->outputType.".so_det_id = '".$toSoDet->id."'
+                                where output_rfts".$this->outputType.".kode_numbering = '".$o->id_year_sequence."'
+                            ");
+                        }
+
+                        // Transfer Defect
+                        $transferDefect = DB::connection("mysql_sb")->statement("
+                            update output_defects".$this->outputType."
+                            left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
+                            set output_defects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_defects".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
+                            where output_defects".$this->outputType.".kode_numbering = '".$o->id_year_sequence."'
+                        ");
+                        if ($transferDefect) {
+                            $transferDefectSize = DB::connection("mysql_sb")->statement("
+                                update output_defects".$this->outputType."
+                                left join master_plan on master_plan.id = output_defects".$this->outputType.".master_plan_id
+                                set output_defects".$this->outputType.".so_det_id = '".$toSoDet->id."'
+                                where output_defects".$this->outputType.".kode_numbering = '".$o->id_year_sequence."'
+                            ");
+                        }
+
+                        // Transfer Reject
+                        $transferReject = DB::connection("mysql_sb")->statement("
+                            update output_rejects".$this->outputType."
+                            left join master_plan on master_plan.id = output_rejects".$this->outputType.".master_plan_id
+                            set output_rejects".$this->outputType.".master_plan_id = '".$this->toSelectedMasterPlan."', output_rejects".$this->outputType.".created_by = '".($this->outputType == '_packing' ? $toUser->username : $toUser->id)."'
+                            where output_rejects".$this->outputType.".kode_numbering = '".$o->id_year_sequence."'
+                        ");
+                        if ($transferReject) {
+                            $transferRejectSize = DB::connection("mysql_sb")->statement("
+                                update output_rejects".$this->outputType."
+                                left join master_plan on master_plan.id = output_rejects".$this->outputType.".master_plan_id
+                                set output_rejects".$this->outputType.".so_det_id = '".$toSoDet->id."'
+                                where output_rejects".$this->outputType.".kode_numbering = '".$o->id_year_sequence."'
+                            ");
+                        }
+
+                        if ($transferOutputSize || $transferDefectSize || $transferRejectSize) {
+                            $yearSequence = DB::table("year_sequence")->where("id_year_sequence", $o->id_year_sequence)->update(["so_det_id" => $toSoDet->id]);
+                        }
+
+                        $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
+                    } else {
+                        $messageNotFound .= $o->id_year_sequence." <br> gagal <br>";
+                    }
                 }
 
                 if ($messageSuccess != "") {
@@ -262,7 +333,7 @@ class TransferOutput extends Component
                     $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
                 }
 
-                if ($toSoDet) {
+                if ($toSoDet && $toUser) {
                     $kodeNumberingNull = "";
                     if ($toSoDet->id != $fromSoDet->id) {
                         $kodeNumberingNull = " and kode_numbering is null";
@@ -395,7 +466,7 @@ class TransferOutput extends Component
                     $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
                 }
 
-                if ($toSoDet) {
+                if ($toSoDet && $toUser) {
                     $kodeNumberingNull = "";
                     if ($fromSoDet->id != $toSoDet->id) {
                         $kodeNumberingNull = " and kode_numbering is null";
@@ -581,7 +652,7 @@ class TransferOutput extends Component
                     $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
                 }
 
-                if ($toSoDet) {
+                if ($toSoDet && $toUser) {
                     $kodeNumberingNull = "";
                     if ($fromSoDet->id != $toSoDet->id) {
                         $kodeNumberingNull = " and kode_numbering is null";
@@ -766,7 +837,7 @@ class TransferOutput extends Component
                     $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
                 }
 
-                if ($toSoDet) {
+                if ($toSoDet && $toUser) {
                     $kodeNumberingNull = "";
                     if ($fromSoDet->id != $toSoDet->id) {
                         $kodeNumberingNull = " and kode_numbering is null";
@@ -974,7 +1045,7 @@ class TransferOutput extends Component
                     $toSoDet = $this->toSoDet->where("size", $fromSoDet->size)->first();
                 }
 
-                if ($toSoDet) {
+                if ($toSoDet && $toUser) {
                     $kodeNumberingNull = "";
                     if ($fromSoDet->id != $toSoDet->id) {
                         $kodeNumberingNull = " and kode_numbering is null";
