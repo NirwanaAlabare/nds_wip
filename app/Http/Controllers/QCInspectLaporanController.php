@@ -385,7 +385,7 @@ a.no_form
 qc_calc as (
 select
 id_item, id_jo, no_invoice, no_lot,
-sum(point_def_calc) as sum_point_def_calc,
+sum(coalesce(point_def_calc,0)) as sum_point_def_calc,
 sum(point_def) as sum_point_def,
 sum(pd.act_width) sum_act_width,
     NULLIF(

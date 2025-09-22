@@ -144,7 +144,9 @@ class ReportDefectController extends Controller
                 $defect->whereIn("output_defect_in_out.reworked_at", $request->external_out);
             }
 
-            return DataTables::eloquent($defect)->toJson();
+            $defectData = $defect->get();
+
+            return DataTables::of($defectData)->toJson();
         }
 
         $defectTypes = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
