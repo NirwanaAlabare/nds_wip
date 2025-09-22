@@ -542,9 +542,14 @@ function submitForm(e, evt) {
                 )
             };
 
+            console.log(res.message, res.message.includes("Duplicate"));
+            if (res.message && res.message.includes("Duplicate")) {
+                message += "Data sudah ada"
+            }
+
             iziToast.error({
                 title: 'Error',
-                message: 'Terjadi kesalahan.',
+                message: (message ? message : "Terjadi Kesalahan."),
                 position: 'topCenter'
             });
         }
@@ -777,5 +782,21 @@ function handleError(res) {
                 position: 'topCenter'
             });
         };
+    }
+}
+
+function showLoading() {
+    let loadingElement = document.getElementById("loading");
+
+    if (loadingElement) {
+        loadingElement.classList.remove("d-none");
+    }
+}
+
+function hideLoading() {
+    let loadingElement = document.getElementById("loading");
+
+    if (loadingElement) {
+        loadingElement.classList.add("d-none");
     }
 }

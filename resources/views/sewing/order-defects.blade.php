@@ -13,7 +13,7 @@
         <h3 class="my-3 text-sb text-center fw-bold">Pareto Chart</h3>
         <div class="card">
             <div class="card-body">
-                <div class="d-flex gap-3 justify-content-between mb-3">
+                <div class="d-flex flex-wrap gap-3 justify-content-between mb-3">
                     <div class="d-flex gap-3 justify-content-start align-items-end">
                         <div>
                             <label>Buyer</label>
@@ -166,11 +166,15 @@
 
             // fetch order defect data function
             function getOrderDefectData(idSupplier, namaSupplier, dari, sampai, type) {
+                showLoading();
+
                 $.ajax({
                     url: '{{ url('order-defects') }}/'+idSupplier+'/'+dari+'/'+sampai+'/'+type,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
+                        hideLoading();
+
                         let totalDefect = 0;
                         let dataArr = [];
 
@@ -243,6 +247,8 @@
                             },
                         });
                     }, error: function (jqXHR) {
+                        hideLoading();
+
                         let res = jqXHR.responseJSON;
                         console.error(res.message);
                         iziToast.error({
@@ -255,6 +261,8 @@
             }
 
             function updateBuyerList() {
+                showLoading();
+
                 $.ajax({
                     url: 'order-defects',
                     type: 'get',
@@ -263,6 +271,8 @@
                         dateTo : $('#date-to').val(),
                     },
                     success: async function(res) {
+                        hideLoading();
+
                         // Clear options
                         $("#supplier").html("");
 
@@ -289,6 +299,8 @@
                         $('#supplier').val("all").trigger('change');
                     },
                     error: function (jqXHR) {
+                        hideLoading();
+
                         let res = jqXHR.responseJSON;
                         console.error(res.message);
                         iziToast.error({

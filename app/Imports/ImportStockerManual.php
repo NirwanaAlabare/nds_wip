@@ -4,6 +4,10 @@ namespace App\Imports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\MasterPart;
+use App\Models\Part\MasterSecondary;
 use App\Models\Stocker\Stocker;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryInhouse;
@@ -55,6 +59,10 @@ class ImportStockerManual implements ToCollection, WithStartRow
             ");
 
             if ($orderInfo && $orderInfo[0]) {
+                $partBagian = explode(' - ', $row[4]);
+                $namaPart = trim($partBagian[0] ? $partBagian[0] : null);
+                $namaBagian = trim($partBagian[1] ? $partBagian[1] : null);
+
                 $partDetailInfo = DB::select("
                     SELECT
                         part_detail.id,
@@ -68,9 +76,71 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     WHERE
                         part.act_costing_ws = '".$row[0]."' and
                         part.panel = '".$row[3]."' and
-                        master_part.nama_part = '".$row[4]."'
+                        master_part.nama_part = '".$namaPart."'
                     LIMIT 1
                 ");
+
+                if (!($partDetailInfo && $partDetailInfo[0])) {
+                    $part = Part::where("act_costing_ws", $row[0])->
+                        where("panel", $row[3])->
+                        first();
+
+                    if (!$part) {
+                        $part = Part::select("kode")->orderBy("kode", "desc")->first();
+                        $partNumber = $part ? intval(substr($part->kode, -5)) + 1 : 1;
+                        $partCode = 'PRT' . sprintf('%05s', $partNumber);
+
+                        $panel = DB::connection("mysql_sb")->table("masterpanel")->where("nama_panel", $row[3])->first();
+
+                        $part = Part::create([
+                            "kode" => $partCode,
+                            "act_costing_id" => $orderInfo[0]->id_cost,
+                            "act_costing_ws" => $orderInfo[0]->ws,
+                            "color" => $orderInfo[0]->color,
+                            "panel_id" => $panel ? $panel->id : null,
+                            "panel" => $row[3],
+                            "buyer" => $orderInfo[0]->buyer,
+                            "style" => $orderInfo[0]->style,
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
+                        ]);
+                    }
+
+                    $masterPart = DB::table("master_part")->where("nama_part", "LIKE", "%".$namaPart."%")->where("bag", "%".$namaBagian."%")->first();
+                    if (!$masterPart) {
+                        $masterPart = DB::table("master_part")->where("nama_part", "LIKE", "%".$namaPart."%")->first();
+                    }
+                    $masterSecondary = DB::table("master_secondary")->where("proses", "LIKE", "%".$row[5]."%")->first();
+
+                    $partDetail = PartDetail::create([
+                        "part_id" => $part->id,
+                        "master_part_id" => $masterPart->id,
+                        "master_secondary_id" => $masterSecondary->id,
+                        "cons" => '0.01',
+                        "unit" => 'METER',
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
+
+                    if ($partDetail) {
+                        $partDetailInfo = DB::select("
+                            SELECT
+                                part_detail.id,
+                                master_secondary.tujuan,
+                                master_secondary.proses
+                            FROM
+                                part_detail
+                                LEFT JOIN part ON part.id = part_detail.part_id
+                                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                LEFT JOIN master_secondary ON master_secondary.id = part_detail.master_secondary_id
+                            WHERE
+                                part.act_costing_ws = '".$row[0]."' and
+                                part.panel = '".$row[3]."' and
+                                master_part.nama_part = '".$namaPart."'
+                            LIMIT 1
+                        ");
+                    }
+                }
 
                 if ($partDetailInfo && $partDetailInfo[0]) {
                     $stockerCount = Stocker::lastId()+1;
@@ -87,17 +157,17 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         'group_stocker' => $stockerId,
                         'ratio' => 1,
                         'size' => $row[2],
-                        'qty_ply' => $row[6],
+                        'qty_ply' => $row[7],
                         'qty_ply_mod' => null,
-                        'qty_cut' => $row[6],
-                        'notes' => $row[7],
-                        'status' => $row[8],
+                        'qty_cut' => $row[7],
+                        'notes' => $row[8],
+                        'status' => $row[9],
                         'created_by' => Auth::user()->id,
                         'created_by_username' => Auth::user()->username
                     ]);
 
                     if ($createStocker) {
-                        $rawValue = $row[13];
+                        $rawValue = $row[14];
                         $convertedDate = null;
 
                         if (is_numeric($rawValue)) {
@@ -133,9 +203,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
                                 "id_qr_stocker" => $createStocker->id_qr_stocker,
                                 "tujuan" => $partDetailInfo[0]->tujuan,
                                 "lokasi" => $partDetailInfo[0]->proses,
-                                "qty_awal" => $row[6],
-                                "qty_reject" => (($row[6]-$row[9]) > 0 ? ($row[6]-$row[9]) : 0),
-                                "qty_replace" => (($row[6]-$row[9]) < 0 ? ($row[6]-$row[9])*(-1) : 0),
+                                "qty_awal" => $row[7],
+                                "qty_reject" => (($row[7]-$row[10]) > 0 ? ($row[7]-$row[10]) : 0),
+                                "qty_replace" => (($row[7]-$row[10]) < 0 ? ($row[7]-$row[10])*(-1) : 0),
                                 "tempat" => $partDetailInfo[0]->proses,
                                 "tgl_trans" => $formattedDate,
                                 "user" => Auth::user()->name,
@@ -143,20 +213,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
                             ]);
                         }
 
-                        if ($row[10] > 0) {
-                            SecondaryInhouse::create([
-                                "tgl_trans" => $formattedDate,
-                                "id_qr_stocker" => $createStocker->id_qr_stocker,
-                                "qty_awal" => $row[9],
-                                "qty_reject" => (($row[9]-$row[10]) > 0 ? ($row[9]-$row[10]) : 0),
-                                "qty_replace" => (($row[9]-$row[10]) < 0 ? ($row[9]-$row[10])*(-1) : 0),
-                                "qty_in" => $row[10],
-                                "user" => Auth::user()->name
-                            ]);
-                        }
-
                         if ($row[11] > 0) {
-                            SecondaryIn::create([
+                            SecondaryInhouse::create([
                                 "tgl_trans" => $formattedDate,
                                 "id_qr_stocker" => $createStocker->id_qr_stocker,
                                 "qty_awal" => $row[10],
@@ -168,13 +226,25 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         }
 
                         if ($row[12] > 0) {
-                            if ($row[14]) {
+                            SecondaryIn::create([
+                                "tgl_trans" => $formattedDate,
+                                "id_qr_stocker" => $createStocker->id_qr_stocker,
+                                "qty_awal" => $row[11],
+                                "qty_reject" => (($row[11]-$row[12]) > 0 ? ($row[11]-$row[12]) : 0),
+                                "qty_replace" => (($row[11]-$row[12]) < 0 ? ($row[11]-$row[12])*(-1) : 0),
+                                "qty_in" => $row[12],
+                                "user" => Auth::user()->name
+                            ]);
+                        }
 
-                                if (is_numeric($row[14])) {
-                                    $line_id = $row[14];
-                                    $line_username = "line_".(sprintf('%02d', $row[14]));
+                        if ($row[13] > 0) {
+                            if ($row[15]) {
+
+                                if (is_numeric($row[15])) {
+                                    $line_id = $row[15];
+                                    $line_username = "line_".(sprintf('%02d', $row[15]));
                                 } else {
-                                    $line = UserLine::where("Groupp", "SEWING")->whereRaw("FullName LIKE '%".$row[14]."%'")->first();
+                                    $line = UserLine::where("Groupp", "SEWING")->whereRaw("FullName LIKE '%".$row[15]."%'")->first();
                                     $line_id = $line->line_id;
                                     $line_username = $line->username;
                                 }
@@ -194,10 +264,10 @@ class ImportStockerManual implements ToCollection, WithStartRow
                                         "loading_plan_id" => $loadingLinePlan['id'],
                                         "nama_line" => $line_username,
                                         "stocker_id" => $createStocker->id,
-                                        "qty" => $row[12],
+                                        "qty" => $row[13],
                                         "status" => "active",
                                         "tanggal_loading" => $formattedDate,
-                                        "no_bon" => $row[15],
+                                        "no_bon" => $row[16],
                                         "created_by" => Auth::user()->id,
                                         "created_by_username" => Auth::user()->username,
                                     ]);
@@ -223,10 +293,10 @@ class ImportStockerManual implements ToCollection, WithStartRow
                                         "loading_plan_id" => $newLoadingPlan['id'],
                                         "nama_line" => $line_username,
                                         "stocker_id" => $createStocker->id,
-                                        "qty" => $row[12],
+                                        "qty" => $row[13],
                                         "status" => "active",
                                         "tanggal_loading" => $formattedDate,
-                                        "no_bon" => $row[15],
+                                        "no_bon" => $row[16],
                                         "created_by" => Auth::user()->id,
                                         "created_by_username" => Auth::user()->username,
                                     ]);

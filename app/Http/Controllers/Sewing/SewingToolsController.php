@@ -131,7 +131,8 @@ class SewingToolsController extends Controller
                 actual.color as act_color,
                 actual.id_ws as act_act_costing_id,
                 output.actual_color as color,
-                output.size
+                output.size,
+                output.dest
             FROM
             (
                 SELECT
@@ -142,6 +143,7 @@ class SewingToolsController extends Controller
                     so_det.color actual_color,
                     act_costing.id actual_act_costing_id,
                     so_det.size,
+                    so_det.dest,
                     userpassword.username line,
                     master_plan.tgl_plan
                 FROM
@@ -155,6 +157,8 @@ class SewingToolsController extends Controller
                 WHERE
                     output_rfts.updated_at between '".date("Y")."-01-01 00:00:00' and '".date("Y-m-d")." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color)
+                GROUP BY
+                    output_rfts.id
             ) output
             LEFT JOIN master_plan actual on
                 actual.id_ws = output.actual_act_costing_id AND
@@ -181,35 +185,34 @@ class SewingToolsController extends Controller
         $fails = [];
         $unavailable = [];
         foreach ($masterPlan as $mp) {
-            if ($mp->act_plan_id) {
-                $updateRft = Rft::where("id", $mp->id)->update([
-                    "master_plan_id" => $mp->act_plan_id
+            $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->plan_act_costing_id)->where("so_det.color", $mp->plan_color)->where("so_det.size", $mp->size)->where("so_det.dest", $mp->dest)->first();
+
+            if ($soDet) {
+                // Update Origin
+                $rft = Rft::where("id", $mp->id)->first();
+                $rft->timestamps = false;
+                $rft->so_det_id = $soDet->id;
+                $rft->save();
+
+                if ($rft) {
+                    $yearSequence = YearSequence::where("id_year_sequence", $rft->kode_numbering)->update(["so_det_id" => $rft->so_det_id]);
+
+                    if ($yearSequence) {
+                        array_push($success, [$mp, "change output origin"]);
+                    }
+                } else {
+                    array_push($fails, [$mp, "change output origin"]);
+                }
+            } else {
+                // Update Master Plan
+                $updateRft = DB::connection("mysql_sb")->table("output_rfts")->where("id", $mp->id)->update([
+                    "master_plan_id" => $mp->act_plan_id,
                 ]);
 
                 if ($updateRft) {
                     array_push($success, [$mp, "change output master plan"]);
                 } else {
                     array_push($fails, [$mp, "change output master plan"]);
-                }
-            } else {
-                $soDet = SoDet::select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->plan_act_costing_id)->where("so_det.color", $mp->plan_color)->where("so_det.size", $mp->size)->first();
-
-                if ($soDet) {
-                    $rft = Rft::where("id", $mp->id)->first();
-                    $rft->so_det_id = $soDet->id;
-                    $rft->save();
-
-                    if ($rft) {
-                        $yearSequence = YearSequence::where("id_year_sequence", $rft->kode_numbering)->update(["so_det_id" => $rft->so_det_id]);
-
-                        if ($yearSequence) {
-                            array_push($success, [$mp, "change output origin"]);
-                        }
-                    } else {
-                        array_push($fails, [$mp, "change output origin"]);
-                    }
-                } else {
-                    array_push($unavailable, [$mp, "change output origin"]);
                 }
             }
         }
@@ -659,6 +662,7 @@ class SewingToolsController extends Controller
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$defectPacking."
                     ".$allocationPacking."
                     ".$missmatchDefectPck."
@@ -673,6 +677,7 @@ class SewingToolsController extends Controller
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$missmatchOutputPck."
                     ".$backDateOutputPck;
 
@@ -685,6 +690,7 @@ class SewingToolsController extends Controller
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
                     ".$linePacking."
+                    ".$lineOutput."
                     ".$defectPacking."
                     ".$allocationPacking."
                     ".$missmatchRejectPck."
@@ -1322,6 +1328,7 @@ class SewingToolsController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$linePacking."
                     ".$defectPacking."
                     ".$allocationPacking."
@@ -1336,6 +1343,7 @@ class SewingToolsController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$linePacking."
                     ".$missmatchOutputPck."
                     ".$backDateOutputPck;
@@ -1348,6 +1356,7 @@ class SewingToolsController extends Controller
                     ".$colorFilterOutput."
                     ".$sizeFilterOutput."
                     ".$kodeFilterOutput."
+                    ".$lineOutput."
                     ".$linePacking."
                     ".$defectPacking."
                     ".$allocationPacking."

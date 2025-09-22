@@ -818,6 +818,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name('stocker-tools');
 
         // reset stocker
+        Route::post('/reset-stocker-id', 'resetStockerId')->name('reset-stocker-id');
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
 

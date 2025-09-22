@@ -105,7 +105,9 @@ class ReportRejectController extends Controller
                 $reject->whereIn("so_det.size", $request->size);
             }
 
-            return DataTables::eloquent($reject)->toJson();
+            $rejectData = $reject->get();
+
+            return DataTables::of($rejectData)->toJson();
         }
 
         $defectTypes = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->get();
