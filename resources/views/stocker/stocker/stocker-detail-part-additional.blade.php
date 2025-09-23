@@ -43,14 +43,23 @@
                             <tbody>
                                 @foreach ($dataRatioAdditional as $ratio)
                                     @php
+                                        $currentModify = $currentModifySizeAdditional ? $currentModifySizeAdditional->where("group_stocker", "!=", $currentGroupStocker)->where("size", $ratio->size)->where("dest", $ratio->dest)->first() : null;
+
                                         $qtyAdditional = intval($ratio->ratio) * intval($currentTotalAdditional);
                                         $qtyBeforeAdditional = intval($ratio->ratio) * intval($currentBeforeAdditional);
 
                                         if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
-                                            $modifyThisStocker = $modifySizeQtyStocker->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
+                                            $modifyThisStocker = null;
+                                            if ($currentModifySizeQty > 0) {
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStocker)->where("size", $ratio->size)->where("dest", $ratio->dest)->first()->first();
+                                            } else {
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("size", $ratio->size)->where("dest", $ratio->dest)->first()->first();
+                                            }
 
                                             if ($modifyThisStocker) {
                                                 $qtyAdditional = $qtyAdditional + $modifyThisStocker->difference_qty;
+
+                                                $currentModifySizeAdditional->push(["so_det_id" => $ratio->so_det_id, "group_stocker" => $currentGroupStocker, "difference_qty" => $modifyThisStocker->difference_qty]);
                                             }
                                         }
 

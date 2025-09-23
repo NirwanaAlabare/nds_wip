@@ -185,6 +185,10 @@ class StockerService
                 $currentStockerGroup = "initial";
                 $currentStockerRatio = 0;
 
+                $currentModifySizeQty = $modifySizeQty->filter(function ($item) {
+                    return !is_null($item->group_stocker);
+                })->count();
+
                 foreach ($stockerForm as $key => $stocker) {
                     $lembarGelaran = 1;
                     if ($stocker->group_stocker) {
@@ -194,8 +198,16 @@ class StockerService
                     }
 
                     if ($currentStockerPart == $stocker->part_detail_id) {
-                        if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
-                            $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
+                        if ($stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
+
+                            $modifyThis = null;
+                            if ($currentModifySizeQty > 0) {
+                                $modifyThis = $modifySizeQty->where("group_stocker", $stocker->group_stocker)->where("so_det_id", $stocker->so_det_id)->first();
+                            } else {
+                                if ($stockerForm->min("group_stocker") == $stocker->group) {
+                                    $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
+                                }
+                            }
 
                             if ($modifyThis) {
                                 $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
@@ -240,6 +252,10 @@ class StockerService
                 $currentStockerGroupAdd = "initial";
                 $currentStockerRatioAdd = 0;
 
+                $currentModifySizeQty = $modifySizeQty->filter(function ($item) {
+                    return !is_null($item->group_stocker);
+                })->count();
+
                 foreach ($stockerFormAdd as $key => $stocker) {
                     $lembarGelaran = 1;
                     if ($stocker->group_stocker) {
@@ -249,8 +265,16 @@ class StockerService
                     }
 
                     if ($currentStockerPartAdd == $stocker->part_detail_id) {
-                        if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
-                            $modifyThis = $modifySizeQty->where("size", $stocker->size)->where("dest", $stocker->dest)->first();
+                        if ($stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
+
+                            $modifyThis = null;
+                            if ($currentModifySizeQty > 0) {
+                                $modifyThis = $modifySizeQty->where("group_stocker", $stocker->group_stocker)->where("size", $stocker->size)->where("dest", $stocker->dest)->first();
+                            } else {
+                                if ($stockerForm->min("group_stocker") == $stocker->group) {
+                                    $modifyThis = $modifySizeQty->where("size", $stocker->size)->where("dest", $stocker->dest)->first();
+                                }
+                            }
 
                             if ($modifyThis) {
                                 $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;

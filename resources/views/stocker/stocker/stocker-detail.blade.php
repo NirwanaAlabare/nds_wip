@@ -158,6 +158,13 @@
                                 $currentGroupStocker = 0;
                                 $currentTotal = 0;
                                 $currentBefore = 0;
+                                $currentModifySize = collect(["so_det_id" => null, "group_stocker" => null, "difference_qty" => null]);
+
+                                $currentModifySizeQty = $modifySizeQty->filter(function ($item) {
+                                    return !is_null($item->group_stocker);
+                                })->count();
+
+                                $groupStockerList = [];
                             @endphp
                             @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
@@ -168,6 +175,8 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
+
+                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
                                     @endif
 
@@ -184,7 +193,11 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-part')
+                                        @if ($currentModifySizeQty > 0)
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @else
+                                            @include('stocker.stocker.stocker-detail-part')
+                                        @endif
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
                                             $partIndex += $dataPartDetail->count();
@@ -197,6 +210,10 @@
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
+
+                                            $currentModifySize = $modifySizeQty->where("group_stocker", $currentGroupStocker)->first() ? $modifySizeQty->where("group_stocker", $currentGroupStocker)->first()->difference_qty : 0;
+
+                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
 
                                         @if ($loop->last)
@@ -252,6 +269,8 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
+
+                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
                                     @endif
 
@@ -268,7 +287,11 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @if ($currentModifySizeQty > 0)
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
+                                        @else
+                                            @include('stocker.stocker.stocker-detail-part')
+                                        @endif
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
                                             $partIndex += $dataPartDetail->count();
@@ -281,6 +304,8 @@
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
+
+                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
 
                                         {{-- Create last element when it comes to an end of this loop --}}
@@ -377,6 +402,12 @@
                                     $currentGroupStockerAdditional = 0;
                                     $currentTotalAdditional = 0;
                                     $currentBeforeAdditional = 0;
+
+                                    $currentModifySizeAdditional = collect(["so_det_id" => null, "group_stocker" => null, "difference_qty" => null]);
+
+                                    $currentModifySizeQtyAdditional = $modifySizeQty->filter(function ($item) {
+                                        return !is_null($item->group_stocker);
+                                    })->count();
                                 @endphp
                                 @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
                                     @if (!$detail->group_stocker)
@@ -403,7 +434,11 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @if ($currentModifySizeQtyAdditional > 0)
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @else
+                                                @include('stocker.stocker.stocker-detail-part-additional')
+                                            @endif
                                             @php
                                                 $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
                                                 $partIndexAdditional += $dataPartDetailAdditional->count();
@@ -487,7 +522,11 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @if ($currentModifySizeQtyAdditional > 0)
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @else
+                                                @include('stocker.stocker.stocker-detail-part-additional')
+                                            @endif
                                             @php
                                                 $indexAdditional += $dataRatioAdditional->count() * $dataPartDetailAdditional->count();
                                                 $partIndexAdditional += $dataPartDetailAdditional->count();
@@ -687,6 +726,7 @@
                                     <th>Range Awal</th>
                                     <th>Range Akhir</th>
                                     <th>Catatan</th>
+                                    <th>Group</th>
                                 </thead>
                                 <tbody>
                                     @foreach ($dataRatio as $ratio)
@@ -711,6 +751,17 @@
                                             <td id="mod_range_akhir_view_{{ $index }}">{{ ($rangeAkhir >= $rangeAwal ? $rangeAkhir : $rangeAwal) }}</td>
                                             <td>
                                                 <input class="form-control form-control-sm" type="text" name="mod_note[{{ $index }}]" id="mod_note_{{ $index }}" value="">
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm" name="mod_group_stocker[{{ $index }}]" id="mod_group_stocker_{{ $index }}">
+                                                    @foreach ($groupStockerList as $groupStocker)
+                                                        @if ($loop->index == (count($groupStockerList)-1))
+                                                            <option value="{{ $groupStocker }}" selected>{{ $groupStocker }}</option>
+                                                        @else
+                                                            <option value="{{ $groupStocker }}">{{ $groupStocker }}</option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
                                             </td>
                                         </tr>
 
