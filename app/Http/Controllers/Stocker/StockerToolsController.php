@@ -139,6 +139,81 @@ class StockerToolsController extends Controller
         );
     }
 
+    public function resetStockerId(Request $request) {
+        ini_set('max_execution_time', 3600);
+
+        $validatedRequest = $request->validate([
+            "stocker_ids" => "required"
+        ]);
+
+        $stockers = addQuotesAround($validatedRequest["stocker_ids"]);
+        if ($stockers) {
+            $checkYearSequence = YearSequence::leftJoin("stocker_input", function($join) {
+                $join->on("stocker_input.form_cut_id", "=", "year_sequence.form_cut_id");
+                $join->on("stocker_input.form_piece_id", "=", "year_sequence.form_piece_id");
+                $join->on("stocker_input.form_reject_id", "=", "year_sequence.form_reject_id");
+                $join->on("stocker_input.so_det_id", "=", "year_sequence.so_det_id");
+                $join->on("stocker_input.range_awal", "<=", "year_sequence.number");
+                $join->on("stocker_input.range_akhir", ">=", "year_sequence.number");
+            })->
+            whereRaw("stocker_input.id_qr_stocker in (".$stockers.")")->
+            count();
+        }
+
+        if ($checkYearSequence > 0) {
+            return array(
+                'status' => 400,
+                'message' => 'Stocker Form memiliki data year sequence (label qr).',
+                'redirect' => '',
+                'table' => '',
+                'additional' => [],
+            );
+        }
+
+        if ($stockers) {
+            $stockerData = Stocker::whereRaw("id_qr_stocker IN (".$stockers.")")->get();
+            $stockerIdQrs = $stockerData->pluck('id_qr_stocker')->toArray();
+            $stockerIds = $stockerData->pluck('id')->toArray();
+
+            // Log the deletion
+            Log::channel('resetStockerForm')->info([
+                "Deleting Data",
+                "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                DB::table("stocker_input")->whereIn('id', $stockerIds)->get(),
+                DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
+            ]);
+
+            $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
+            $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
+            $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
+            $deleteLoadingLine = LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
+
+            return array(
+                'status' => 200,
+                'message' => 'Stocker <br> "'.$validatedRequest['stocker_ids'].'" <br> berhasil direset.',
+                'redirect' => '',
+                'table' => '',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Stocker <br> "'.$validatedRequest['stocker_ids'].'" <br> gagal direset.',
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
+    }
+
     public function resetRedundantStocker(Request $request) {
         ini_set('max_execution_time', 3600);
 

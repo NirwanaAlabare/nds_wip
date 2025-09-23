@@ -185,6 +185,11 @@ use App\Http\Controllers\QCInspectLaporanController;
 use App\Http\Controllers\QCInspectPrintBintexShadeBandController;
 use App\Http\Controllers\QCInspectShadeBandController;
 
+// Management Report
+use App\Http\Controllers\MgtReportDashboardController;
+use App\Http\Controllers\MgtReportProsesController;
+
+
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
 /*
@@ -816,6 +821,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/index', 'index')->name('stocker-tools');
 
         // reset stocker
+        Route::post('/reset-stocker-id', 'resetStockerId')->name('reset-stocker-id');
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
 
@@ -2194,6 +2200,26 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete_barcode_tmp_shade_band', 'delete_barcode_tmp_shade_band')->name('delete_barcode_tmp_shade_band');
         Route::post('/save_proses_shade_band', 'save_proses_shade_band')->name('save_proses_shade_band');
         Route::get('/print_sticker_group_shade_band', 'print_sticker_group_shade_band')->name('print_sticker_group_shade_band');
+    });
+
+
+    // Management Report
+    // Dashboard
+    Route::controller(MgtReportDashboardController::class)->middleware('role:accounting')->group(function () {
+        Route::get('/dashboard_mgt_report', 'dashboard_mgt_report')->name('dashboard-mgt-report');
+    });
+
+    // Proses Management Report
+    Route::controller(MgtReportProsesController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+        Route::get('/mgt_report_proses_daily_cost', 'mgt_report_proses_daily_cost')->name('mgt_report_proses_daily_cost');
+        Route::get('/mgt_report_proses_daily_cost_show_working_days', 'mgt_report_proses_daily_cost_show_working_days')->name('mgt_report_proses_daily_cost_show_working_days');
+        Route::get('/contoh_upload_daily_cost', 'contoh_upload_daily_cost')->name('contoh_upload_daily_cost');
+        Route::post('/upload_excel_daily_cost', 'upload_excel_daily_cost')->name('upload_excel_daily_cost');
+        Route::get('/mgt_report_proses_daily_cost_show_preview', 'mgt_report_proses_daily_cost_show_preview')->name('mgt_report_proses_daily_cost_show_preview');
+        Route::post('/save_tmp_upload_daily_cost', 'save_tmp_upload_daily_cost')->name('save_tmp_upload_daily_cost');
+        Route::post('/delete_tmp_upload_daily_cost', 'delete_tmp_upload_daily_cost')->name('delete_tmp_upload_daily_cost');
+        Route::get('/show_mgt_report_det_daily_cost', 'show_mgt_report_det_daily_cost')->name('show_mgt_report_det_daily_cost');
+        Route::post('/delete_daily_cost', 'delete_daily_cost')->name('delete_daily_cost');
     });
 });
 

@@ -1499,6 +1499,23 @@
                     </li>
                 @endif
 
+
+                {{-- Management Report --}}
+                @if ($page == 'dashboard-mgt-report')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'mgt-report-proses' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('mgt_report_proses_daily_cost') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-proses-daily-cost' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Daily Cost
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
                 {{-- DIVIDER EXAMPLE --}}
                 {{-- <li class="dropdown-divider"></li> --}}
 

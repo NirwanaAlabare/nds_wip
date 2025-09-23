@@ -193,7 +193,7 @@ class MasterLineController extends Controller
                 $technical = MasterEmployee::where("enroll_id", $validatedRequest["technical_id"])->first();
 
                 if ($chief) {
-                    $storeIe = EmployeeProduction::updateOrCreate(
+                    $storeChief = EmployeeProduction::updateOrCreate(
                         ['enroll_id' => $chief->enroll_id],
                         [
                             'name' => $chief->employee_name,
