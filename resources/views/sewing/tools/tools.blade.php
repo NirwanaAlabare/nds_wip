@@ -106,7 +106,7 @@
                     <a href="{{ route('undo-reject') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Undo QC Reject</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo QC Reject</h5>
                             </div>
                         </div>
                     </a>
