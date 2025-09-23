@@ -17,6 +17,11 @@ use App\Models\SignalBit\RejectPacking;
 use App\Models\SignalBit\Undo;
 use App\Models\SignalBit\UserLine;
 use App\Models\SignalBit\UserSbWip;
+use App\Models\SignalBit\RejectIn;
+use App\Models\SignalBit\RejectInDetail;
+use App\Models\SignalBit\RejectInDetailPosition;
+use App\Models\SignalBit\RejectOut;
+use App\Models\SignalBit\RejectOutDetail;
 use App\Models\Stocker\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -1794,7 +1799,7 @@ class SewingToolsController extends Controller
                                 $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $rft->id)->delete();
 
                                 if ($deleteRft) {
-                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
 
                                     array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
                                 }
@@ -1809,7 +1814,7 @@ class SewingToolsController extends Controller
                                 $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->delete();
 
                                 if ($deleteDefect) {
-                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'created_at' => $defect->created_at, 'updated_at' => $defect->updated_at, 'undo_by_nds' => Auth::user()->id]);
 
                                     array_push($result, "DEFECT '".$defect->kode_numbering."' -> DELETED");
                                 }
@@ -1827,7 +1832,7 @@ class SewingToolsController extends Controller
                                     $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where("id", $reject->id)->delete();
 
                                     if ($deleteReject) {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $defect->id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $defect->id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id]);
 
                                         DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
                                             "defect_status" => "defect"
@@ -1850,7 +1855,7 @@ class SewingToolsController extends Controller
                             $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
 
                             if ($deleteRework) {
-                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_rft_id' => $rft->id, 'output_rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'output_rft_id' => $rft->id, 'output_rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'created_at' => $defect->created_at, 'updated_at' => $defect->updated_at, 'undo_by_nds' => Auth::user()->id]);
 
                                 DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
                                     "defect_status" => "defect"
@@ -1869,7 +1874,7 @@ class SewingToolsController extends Controller
                             $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
 
                             if ($deleteReject) {
-                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
+                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id]);
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
                             }
@@ -2584,4 +2589,332 @@ class SewingToolsController extends Controller
             }
         }
     }
+
+    public function undoReject(Request $request) {
+        return view("sewing.tools.undo-reject", ["page" => "dashboard-sewing-eff"]);
+    }
+
+    public function undoRejectSubmit(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+
+            if ($request->department) {
+                $department = $request->department == "packing" ? "_packing" : "";
+            } else {
+                $department = "";
+            }
+
+            if ($kodeNumbering) {
+                $kodeNumberingOutput = RejectIn::selectRaw("
+                        output_reject_in.id,
+                        output_reject_in.kode_numbering,
+                        DATE(output_reject_in.created_at) as tanggal,
+                        output_reject_in.created_at time_in,
+                        output_reject_in.updated_at time_out,
+                        master_plan.sewing_line sewing_line,
+                        (CASE WHEN output_reject_in.output_type = 'packing' THEN 'finishing' ELSE output_reject_in.output_type END) as output_type,
+                        output_reject_in.kode_numbering,
+                        mastersupplier.Supplier as buyer,
+                        act_costing.kpno ws,
+                        act_costing.styleno style,
+                        so_det.color color,
+                        so_det.size size,
+                        master_plan.gambar gambar,
+                        output_reject_in.reject_area_x reject_area_x,
+                        output_reject_in.reject_area_y reject_area_y,
+                        output_reject_in.status,
+                        output_reject_in.grade,
+                        COALESCE(reject_detail.defect_types_check, output_defect_types.defect_type) as defect_type,
+                        COALESCE(reject_detail.defect_areas_check, output_defect_areas.defect_area) as defect_area,
+                        output_reject_out.tujuan as allocation
+                    ")->
+                    // Reject
+                    leftJoin("output_rejects", "output_rejects.id", "=", "output_reject_in.reject_id")->
+                    // Reject Packing
+                    leftJoin("output_rejects_packing", "output_rejects_packing.id", "=", "output_reject_in.reject_id")->
+                    // Reject Finishing
+                    leftJoin("output_check_finishing", "output_check_finishing.id", "=", "output_reject_in.reject_id")->
+                    // Reject Detail
+                    leftJoin("output_reject_out_detail", "output_reject_out_detail.reject_in_id", "=", "output_reject_in.id")->
+                    leftJoin("output_reject_out", "output_reject_out.id", "=", "output_reject_out_detail.reject_out_id")->
+                    leftJoin("output_defect_types", "output_defect_types.id", "=", "output_reject_in.reject_type_id")->
+                    leftJoin("output_defect_areas", "output_defect_areas.id", "=", "output_reject_in.reject_area_id")->
+                    leftJoin("so_det", "so_det.id", "=", "output_reject_in.so_det_id")->
+                    leftJoin("so", "so.id", "=", "so_det.id_so")->
+                    leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+                    leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
+                    leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
+                    join(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+                    leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
+                    whereRaw("
+                        output_reject_in.kode_numbering IN (".$kodeNumbering.")
+                        AND
+                        output_reject_in.output_type = '".($request->department ? $request->department : 'qc')."'
+                    ")->
+                    groupByRaw("output_reject_in.id")->
+                    get();
+
+                $result = [];
+                foreach ($kodeNumberingOutput as $output) {
+                    $message = "";
+
+                    // Reject In
+                    $rejectInDetail = RejectInDetail::where("reject_in_id", $output->id)->get();
+                    if ($rejectInDetail && $rejectInDetail->count() > 0) {
+                        $rejectInDetailIds = $rejectInDetail->pluck("id")->toArray();
+
+                        // Delete Detail Position
+                        $deleteRejectInDetailPosition = RejectInDetailPosition::whereIn("reject_in_detail_id", $rejectInDetailIds)->delete();
+
+                        // Delete Detail
+                        if ($deleteRejectInDetailPosition) {
+                            RejectInDetail::where("reject_in_id", $output->id)->delete();
+
+                            $message .= "Reject In ".$output->kode_numbering." -> DELETED <br>";
+                        }
+                    }
+
+                    // Reject Out
+                    $rejectOutDetail = RejectOutDetail::where("reject_in_id", $output->id)->get();
+                    if ($rejectOutDetail && $rejectOutDetail->count() > 0) {
+                        $rejectOutIds = $rejectOutDetail->pluck("reject_out_id")->toArray();
+
+                        // Delete Group
+                        $deleteRejectOut = RejectOut::whereIn("id", $rejectOutIds)->delete();
+
+                        // Delete Detail
+                        if ($deleteRejectOut) {
+                            RejectOutDetail::where("reject_in_id", $output->id)->delete();
+
+                            $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";
+                        }
+                    }
+
+                    array_push($result, $message);
+                }
+
+                return $result;
+            }
+        }
+    }
+
+    public function restoreUndoSubmit(Request $request)
+    {
+        $kodeNumbering = addQuotesAround($request->kode_numbering);
+
+        if ($kodeNumbering) {
+            $restoreData = Undo::selectRaw("*, output_undo.id as undo_id")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.kode_numbering is not null and output_undo.kode_numbering in (".$kodeNumbering.")")->get();
+            $rft = [];
+            $rftNds = [];
+            $defect = [];
+            $rework = [];
+            $reject = [];
+            $deleteUndoIds = [];
+
+            foreach ($restoreData as $restore) {
+                // RFT
+                if ($restore->output_rft_id && $restore->keterangan == "rft") {
+                    array_push($rft, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'status' => 'NORMAL',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+
+                    // array_push($rftNds, [
+                    //     "master_plan_id" => $restore->master_plan_id,
+                    //     "so_det_id" => $restore->so_det_id,
+                    //     'status' => 'NORMAL',
+                    //     "sewing_line" => Auth::user()->username,
+                    //     "created_by" => Auth::user()->username,
+                    //     "created_at" => $restore->created_at,
+                    //     "updated_at" => $restore->updated_at,
+                    // ]);
+                }
+
+                // DEFECT
+                if ($restore->output_defect_id) {
+                    array_push($defect, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'status' => 'NORMAL',
+                        'defect_status' => 'defect',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        "defect_type_id" => $restore->defect_type_id,
+                        "defect_area_id" => $restore->defect_area_id,
+                        "defect_area_x" => $restore->defect_area_x,
+                        "defect_area_y" => $restore->defect_area_y,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                // REWORK
+                if ($restore->output_rework_id) {
+
+                    // With Defect
+                    $currentDefect = null;
+                    if ($restore->output_defect_id) {
+                        // Update Defect
+                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+                        $currentDefect->timestamps = false;
+                        $currentDefect->defect_status = 'reworked';
+                        $currentDefect->save();
+                    }
+
+                    // No Defect
+                    if (!$currentDefect) {
+                        // Create Defect
+                        $createDefect = Defect::create([
+                            "master_plan_id" => $restore->master_plan_id,
+                            "so_det_id" => $restore->so_det_id,
+                            "kode_numbering" => $restore->kode_numbering,
+                            "no_cut_size" => $restore->kode_numbering,
+                            "defect_type_id" => $restore->defect_type_id,
+                            "defect_area_id" => $restore->defect_area_id,
+                            "defect_area_x" => $restore->defect_area_x,
+                            "defect_area_y" => $restore->defect_area_y,
+                            'status' => 'NORMAL',
+                            'defect_status' => 'reworked',
+                            "created_by" => $restore->created_by,
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
+                        ]);
+
+                        $currentDefect = $createDefect;
+                    }
+
+                    // Create Rework
+                    $createRework = Rework::create([
+                        "defect_id" => $currentDefect ? $currentDefect->id : '',
+                        "status" => "NORMAL",
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+
+                    if ($createRework) {
+                        // Create RFT
+                        $createRft = Rft::create([
+                            "master_plan_id" => $restore->master_plan_id,
+                            "so_det_id" => $restore->so_det_id,
+                            'status' => 'REWORK',
+                            'rework_id' => $createRework ? $createRework->id : '',
+                            "kode_numbering" => $restore->kode_numbering,
+                            "no_cut_size" => $restore->kode_numbering,
+                            "created_by" => $restore->created_by,
+                            "created_at" => $restore->created_at,
+                            "updated_at" => $restore->updated_at,
+                        ]);
+                    }
+
+                    // Log
+                    array_push($rework, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'defect_id' => $currentDefect ? $currentDefect->id : '',
+                        'rework_id' => $createRework ? $createRework->id : '',
+                        'rft_id' => $createRft ? $createRft->id : '',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                // REJECT
+                if ($restore->output_reject_id) {
+                    array_push($reject, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+
+                    // With REJECT
+                    $currentDefect = null;
+                    if ($restore->output_defect_id) {
+                        // Update REJECT
+                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+
+                        // No REJECT
+                        if (!$currentDefect) {
+                            // Create REJECT
+                            $createDefect = Defect::create([
+                                "master_plan_id" => $restore->master_plan_id,
+                                "so_det_id" => $restore->so_det_id,
+                                "kode_numbering" => $restore->kode_numbering,
+                                "no_cut_size" => $restore->kode_numbering,
+                                "defect_type_id" => $restore->defect_type_id,
+                                "defect_area_id" => $restore->defect_area_id,
+                                "defect_area_x" => $restore->defect_area_x,
+                                "defect_area_y" => $restore->defect_area_y,
+                                'status' => 'NORMAL',
+                                'defect_status' => 'rejected',
+                                "created_by" => $restore->created_by,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+
+                            $currentDefect = $createDefect;
+                        } else {
+                            $currentDefect->timestamps = false;
+                            $currentDefect->defect_status = 'rejected';
+                            $currentDefect->save();
+                        }
+                    }
+
+                    // Create REJECT
+                    array_push($reject, [
+                        "master_plan_id" => $restore->master_plan_id,
+                        "so_det_id" => $restore->so_det_id,
+                        'defect_id' => $currentDefect ? $currentDefect->id : '',
+                        "kode_numbering" => $restore->kode_numbering,
+                        "no_cut_size" => $restore->kode_numbering,
+                        'status' => "NORMAL",
+                        'reject_status' => $currentDefect ? 'defect' : 'mati',
+                        "reject_type_id" => $restore->defect_type_id,
+                        "reject_area_id" => $restore->defect_area_id,
+                        "reject_area_x" => $restore->defect_area_x,
+                        "reject_area_y" => $restore->defect_area_y,
+                        "created_by" => $restore->created_by,
+                        "created_at" => $restore->created_at,
+                        "updated_at" => $restore->updated_at,
+                    ]);
+                }
+
+                array_push($deleteUndoIds, $restore->undo_id);
+            }
+
+            if (count($rft) > 0) {
+                Rft::insert($rft);
+                // RftPacking::insert($rft);
+            }
+
+            if (count($defect) > 0) {
+                Defect::insert($defect);
+            }
+
+            if (count($reject) > 0) {
+                Reject::insert($reject);
+            }
+
+            // if (count($rework) > 0) {
+            //     Rework::insert($rework);
+            // }
+
+            if (count($deleteUndoIds) > 0) {
+                Undo::whereIn("id", $deleteUndoIds)->delete();
+            }
+
+            return array("rft" => $rft, "defect" => $defect, "reject" => $reject, "rework" => $rework);
+        }
+    }
+
 }
