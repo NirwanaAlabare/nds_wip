@@ -319,6 +319,7 @@ class CompletedFormController extends Controller
             }
         }
 
+        // Current Form Detail
         $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             where('form_cut_id', $validatedRequest['id'])->
             where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
@@ -326,6 +327,7 @@ class CompletedFormController extends Controller
             first();
 
         if ($updateTimeRecordSummary) {
+
             // Update Scanned Item Qty
             if (($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
                 // On change ID Roll
@@ -336,17 +338,25 @@ class CompletedFormController extends Controller
                     ]);
             }
 
-            // On exist ID Roll
-            ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
-                update([
-                    "id_item" => $validatedRequest['current_id_item'],
-                    "detail_item" => $validatedRequest['current_detail_item'],
-                    "lot" => $request['current_lot'],
-                    "roll" => $validatedRequest['current_roll'],
-                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                    "qty" => $itemRemain,
-                    "unit" => $itemUnit,
-                ]);
+            // Compare Current Form Detail to Latest ID Roll usage
+            $lastFormCutDetailRoll = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+                where("id_roll", $validatedRequest['current_id_roll'])->
+                orderBy("qty", "asc")->
+                first();
+
+            if (!$lastFormCutDetailRoll || ($lastFormCutDetailRoll && $lastFormCutDetailRoll->id == $detail->id)) {
+                // On exist ID Roll
+                ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
+                    update([
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "detail_item" => $validatedRequest['current_detail_item'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                        "qty" => $itemRemain,
+                        "unit" => $itemUnit,
+                    ]);
+            }
 
             // Form Cut Detail Reorder Group Stocker
             $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
