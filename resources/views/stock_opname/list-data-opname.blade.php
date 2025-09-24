@@ -110,8 +110,8 @@
 
 <div class="modal fade" id="modal-appv-mutlok">
     <form action="{{ route('cancel-data-opname') }}" method="post" onsubmit="submitForm(this, event)">
-     @method('GET')
-     <div class="modal-dialog modal-dialog-centered">
+       @method('GET')
+       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-sb text-light">
                 <h4 class="modal-title">Confirm Dialog</h4>
@@ -250,26 +250,56 @@
 
                     if (row.status == 'OPEN') {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                        <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
-                        <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='draftdata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
-                        <button type='button' class='btn btn-sm btn-info' onclick='showdata("` + data + `")'><i class="fa-solid fa-circle-info"></i></button>
+                        <button type='button' class='btn btn-sm btn-danger' 
+                        href='javascript:void(0)' 
+                        title="Cancel Data" 
+                        onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'>
+                        <i class="fa-solid fa-undo"></i>
+                        </button>
+                        <button type='button' class='btn btn-sm btn-warning' 
+                        href='javascript:void(0)' 
+                        title="Change Status" 
+                        onclick='draftdata("` + row.no_transaksi + `","` + row.id + `")'>
+                        <i class="fa-solid fa-person-circle-check"></i>
+                        </button>
+                        <button type='button' class='btn btn-sm btn-info' 
+                        title="Show Data" 
+                        onclick='showdata("` + data + `")'>
+                        <i class="fa-solid fa-circle-info"></i>
+                        </button>
                         </div>`;
-                    }else if (row.status == 'DRAFT') {
+                    } else if (row.status == 'DRAFT') {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                        <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
-                        <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='finaldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
-                        <button type='button' class='btn btn-sm btn-info' onclick='showdata("` + data + `")'><i class="fa-solid fa-circle-info"></i></button>
+                        <button type='button' class='btn btn-sm btn-danger' 
+                        href='javascript:void(0)' 
+                        title="Cancel Data" 
+                        onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'>
+                        <i class="fa-solid fa-undo"></i>
+                        </button>
+                        <button type='button' class='btn btn-sm btn-success' 
+                        href='javascript:void(0)' 
+                        title="Change Status" 
+                        onclick='finaldata("` + row.no_transaksi + `","` + row.id + `")'>
+                        <i class="fa-solid fa-person-circle-check"></i>
+                        </button>
+                        <button type='button' class='btn btn-sm btn-info' 
+                        title="Show Data" 
+                        onclick='showdata("` + data + `")'>
+                        <i class="fa-solid fa-circle-info"></i>
+                        </button>
                         </div>`;
-                    }else if (row.status == 'FINAL') {
+                    } else if (row.status == 'FINAL') {
                         return `<div class='d-flex gap-1 justify-content-center'>
-                        <button type='button' class='btn btn-sm btn-info' onclick='showdata("` + data + `")'><i class="fa-solid fa-circle-info"></i></button>
+                        <button type='button' class='btn btn-sm btn-info' 
+                        title="Show Data" 
+                        onclick='showdata("` + data + `")'>
+                        <i class="fa-solid fa-circle-info"></i>
+                        </button>
                         </div>`;
-                    }else{
-                        return `<div class='d-flex gap-1 justify-content-center'>
-                        -
-                        </div>`;
-
+                    } else {
+                        return `<div class='d-flex gap-1 justify-content-center'>-</div>`;
                     }
+
 
                 }
             }
@@ -453,46 +483,46 @@ function export_excel() {
 
 
 function export_excel_barcode() {
-            let no_transaksi = document.getElementById("txt_no_dokumen").value;
-            let itemso = 'Fabric';
-            Swal.fire({
-                title: 'Please Wait,',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
+    let no_transaksi = document.getElementById("txt_no_dokumen").value;
+    let itemso = 'Fabric';
+    Swal.fire({
+        title: 'Please Wait,',
+        html: 'Exporting Data...',
+        didOpen: () => {
+            Swal.showLoading()
+        },
+        allowOutsideClick: false,
+    });
 
-            $.ajax({
-                type: "get",
-                url: '{{ route('export_excel_laporan_so_detail_barcode') }}',
-                data: {
-                    no_transaksi: no_transaksi,
-                    itemso: itemso
-                },
-                xhrFields: {
-                    responseType: 'blob'
-                },
-                success: function(response) {
-                    {
-                        swal.close();
-                        Swal.fire({
-                            title: 'Data Berhasil Di Export!',
-                            icon: "success",
-                            showConfirmButton: true,
-                            allowOutsideClick: false
-                        });
-                        var blob = new Blob([response]);
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Laporan Stock Opname Detail Barcode " + itemso + ".xlsx";
-                        link.click();
+    $.ajax({
+        type: "get",
+        url: '{{ route('export_excel_laporan_so_detail_barcode') }}',
+        data: {
+            no_transaksi: no_transaksi,
+            itemso: itemso
+        },
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(response) {
+            {
+                swal.close();
+                Swal.fire({
+                    title: 'Data Berhasil Di Export!',
+                    icon: "success",
+                    showConfirmButton: true,
+                    allowOutsideClick: false
+                });
+                var blob = new Blob([response]);
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "Laporan Stock Opname Detail Barcode " + itemso + ".xlsx";
+                link.click();
 
-                    }
-                },
-            });
-        }
+            }
+        },
+    });
+}
 
 </script>
 <script type="text/javascript">
