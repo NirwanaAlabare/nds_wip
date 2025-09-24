@@ -385,10 +385,11 @@ class ReportCuttingController extends Controller
                     SELECT
                         req.id_roll,
                         req.id_item,
-                        req.item_desc detail_item,
+                        req.itemdesc detail_item,
                         req.no_lot lot,
                         req.styleno,
                         req.color,
+                        req.size,
                         COALESCE(roll.roll, req.no_roll) roll,
                         COALESCE(roll.qty, req.qty_out) qty,
                         COALESCE(roll.sisa_kain, req.qty_out, 0) - COALESCE(piping.piping, 0) as sisa_kain,
@@ -397,7 +398,7 @@ class ReportCuttingController extends Controller
                         COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
                         COALESCE(roll.total_short_roll, 0) total_short_roll
                     FROM (
-                        select b.*, c.color, tmpjo.styleno from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item left join (select id_jo,kpno,styleno from signalbit_erp.act_costing ac inner join signalbit_erp.so on ac.id=so.id_cost inner join signalbit_erp.jo_det jod on signalbit_erp.so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll
+                        select b.*, c.itemdesc, c.color, c.size, tmpjo.styleno from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item left join (select id_jo,kpno,styleno from signalbit_erp.act_costing ac inner join signalbit_erp.so on ac.id=so.id_cost inner join signalbit_erp.jo_det jod on signalbit_erp.so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll
                     ) req
                     LEFT JOIN (
                         select
@@ -497,7 +498,7 @@ class ReportCuttingController extends Controller
 
     public function detailPemakaianRoll (Request $request)
     {
-        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll, id_item, item_desc, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok, b.qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll, id_item, c.itemdesc as item_desc, c.color, c.size, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok, b.qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN masteritem c on c.id_item = b.id_item LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
         $rollData = collect();
         foreach ($rollIdsArr as $rollId) {
