@@ -3644,13 +3644,13 @@ class StockerController extends Controller
                 $note = $request->mod_note[$i];
                 $groupStocker = $request->mod_group_stocker[$i];
 
-                $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-                    where("stocker_input.form_cut_id", $formCutId)->
-                    where("stocker_input.so_det_id", $soDetId)->
-                    where("stocker_input.ratio", $ratio)->
-                    count();
+                // $dcInCount = DCIn::leftJoin("stocker_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                //     where("stocker_input.form_cut_id", $formCutId)->
+                //     where("stocker_input.so_det_id", $soDetId)->
+                //     where("stocker_input.ratio", $ratio)->
+                //     count();
 
-                if ($dcInCount < 1) {
+                // if ($dcInCount < 1) {
                     $createModifySizeQty = ModifySizeQty::updateOrCreate([
                         "form_cut_id" => $formCutId,
                         "no_form" => $noForm,
@@ -3670,7 +3670,7 @@ class StockerController extends Controller
                     } else {
                         $message .= $size."(".(($differenceQty > 0) ? "+".$differenceQty : $differenceQty).") gagal di simpan. <br>";
                     }
-                }
+                // }
             }
 
             if ($message != "") {
