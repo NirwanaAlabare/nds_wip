@@ -498,7 +498,7 @@ class ReportCuttingController extends Controller
 
     public function detailPemakaianRoll (Request $request)
     {
-        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll, id_item, c.itemdesc as item_desc, c.color, c.size, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok, b.qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN masteritem c on c.id_item = b.id_item LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select b.id_roll, b.id_item, c.itemdesc as item_desc, c.color, c.size, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok, b.qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN masteritem c on c.id_item = b.id_item LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
         $rollData = collect();
         foreach ($rollIdsArr as $rollId) {
