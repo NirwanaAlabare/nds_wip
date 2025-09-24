@@ -1146,12 +1146,14 @@ order by buyer asc");
                 qty_loading,
                 output_rfts,
                 output_rfts_packing,
+                output_rfts_packing_po,
                 ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
                 SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
                 qty_cut_new  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
                 qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
                 output_rfts - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
-                output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing
+                output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing,
+                output_rfts_packing_po - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing_po
             FROM
             (
                         SELECT
@@ -1190,7 +1192,8 @@ order by buyer asc");
                         SUM(qty_cut) AS qty_cut,
                                     SUM(qty_loading) AS qty_loading,
                         SUM(output_rfts) AS output_rfts,
-                        SUM(output_rfts_packing) AS output_rfts_packing
+                        SUM(output_rfts_packing) AS output_rfts_packing,
+                        SUM(output_rfts_packing_po) AS output_rfts_packing_po
                     FROM
                     (
                     SELECT
@@ -1198,7 +1201,8 @@ order by buyer asc");
                             0 AS qty_cut,
                             MIN(qty) AS qty_loading,
                             0 AS output_rfts,
-                            0 AS output_rfts_packing
+                            0 AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                     FROM
                             laravel_nds.loading_line a
                     INNER JOIN
@@ -1216,7 +1220,8 @@ order by buyer asc");
                             0 AS qty_cut,
                             MIN(qty) AS qty_loading,
                             0 AS output_rfts,
-                            0 AS output_rfts_packing
+                            0 AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                         from laravel_nds.loading_line
                         LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
                         where form_reject_id is not null
@@ -1227,7 +1232,8 @@ order by buyer asc");
                             0 AS qty_cut,
                             0 AS qty_loading,
                             COUNT(so_det_id) AS output_rfts,
-                            0 AS output_rfts_packing
+                            0 AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                         FROM
                             signalbit_erp.output_rfts a
                         WHERE
@@ -1240,9 +1246,24 @@ order by buyer asc");
                             0 AS qty_cut,
                             0 AS qty_loading,
                             0 AS output_rfts,
-                            COUNT(so_det_id) AS output_rfts_packing
+                            COUNT(so_det_id) AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                         FROM
                             signalbit_erp.output_rfts_packing a
+                        WHERE
+                            a.updated_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                        GROUP BY
+                            so_det_id
+                        UNION ALL
+                        SELECT
+                            so_det_id AS id_so_det,
+                            0 AS qty_cut,
+                            0 AS qty_loading,
+                            0 AS output_rfts,
+                            0 AS output_rfts_packing,
+                            COUNT(so_det_id) AS output_rfts_packing_po
+                        FROM
+                            signalbit_erp.output_rfts_packing_po a
                         WHERE
                             a.updated_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
                         GROUP BY
@@ -1476,6 +1497,25 @@ order by buyer asc");
                     when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
                                 then '0'
             end,0) - qty_po blc_output_rfts_packing,
+            coalesce(output_rfts_packing_po,0) output_rfts_packing_po,
+            coalesce(case
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po <= qty_po then output_rfts_packing_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+                                then LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+                                then '0'
+            end,0) as final_output_rfts_packing_po,
+            coalesce(case
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po <= qty_po then output_rfts_packing_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+                                then LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+                                then '0'
+            end,0) - qty_po blc_output_rfts_packing_po,
             coalesce(c.tot_scan,0) tot_scan,
             coalesce(c.tot_scan,0) - qty_po blc_tot_scan,
             coalesce(d.tot_fg_out,0) tot_fg_out,
@@ -2345,12 +2385,14 @@ order by buyer asc");
                 qty_loading,
                 output_rfts,
                 output_rfts_packing,
+                output_rfts_packing_po,
                 ROW_NUMBER() OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS rn,
                 SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) AS prev_tot_po,
                 qty_cut_new  - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_cut,
                 qty_loading - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_loading,
                 output_rfts - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts,
-                output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing
+                output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing,
+                output_rfts_packing_po - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing_po
             FROM
             (
                         SELECT
@@ -2389,7 +2431,8 @@ order by buyer asc");
                         SUM(qty_cut) AS qty_cut,
                                     SUM(qty_loading) AS qty_loading,
                         SUM(output_rfts) AS output_rfts,
-                        SUM(output_rfts_packing) AS output_rfts_packing
+                        SUM(output_rfts_packing) AS output_rfts_packing,
+                        SUM(output_rfts_packing_po) AS output_rfts_packing_po
                     FROM
                     (
                     SELECT
@@ -2397,7 +2440,8 @@ order by buyer asc");
                             0 AS qty_cut,
                             MIN(qty) AS qty_loading,
                             0 AS output_rfts,
-                            0 AS output_rfts_packing
+                            0 AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                     FROM
                             laravel_nds.loading_line a
                     INNER JOIN
@@ -2415,7 +2459,8 @@ order by buyer asc");
                             0 AS qty_cut,
                             MIN(qty) AS qty_loading,
                             0 AS output_rfts,
-                            0 AS output_rfts_packing
+                            0 AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                         from laravel_nds.loading_line
                         LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
                         where form_reject_id is not null
@@ -2426,7 +2471,8 @@ order by buyer asc");
                             0 AS qty_cut,
                             0 AS qty_loading,
                             COUNT(so_det_id) AS output_rfts,
-                            0 AS output_rfts_packing
+                            0 AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                         FROM
                             signalbit_erp.output_rfts a
                         WHERE
@@ -2439,9 +2485,24 @@ order by buyer asc");
                             0 AS qty_cut,
                             0 AS qty_loading,
                             0 AS output_rfts,
-                            COUNT(so_det_id) AS output_rfts_packing
+                            COUNT(so_det_id) AS output_rfts_packing,
+                            0 AS output_rfts_packing_po
                         FROM
                             signalbit_erp.output_rfts_packing a
+                        WHERE
+                            a.updated_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                        GROUP BY
+                            so_det_id
+                        UNION ALL
+                        SELECT
+                            so_det_id AS id_so_det,
+                            0 AS qty_cut,
+                            0 AS qty_loading,
+                            0 AS output_rfts,
+                            0 AS output_rfts_packing,
+                            COUNT(so_det_id) AS output_rfts_packing_po
+                        FROM
+                            signalbit_erp.output_rfts_packing_po a
                         WHERE
                             a.updated_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
                         GROUP BY
@@ -2707,6 +2768,25 @@ order by buyer asc");
                     when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
                                 then '0'
             end,0) - qty_po blc_output_rfts_packing,
+            coalesce(output_rfts_packing_po,0) output_rfts_packing_po,
+            coalesce(case
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po <= qty_po then output_rfts_packing_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+                                then LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+                                then '0'
+            end,0) as final_output_rfts_packing_po,
+            coalesce(case
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing_po <= qty_po then output_rfts_packing_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+                                then LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
+                    when LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing_po and LAG(balance_output_rfts_packing_po) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+                                then '0'
+            end,0) - qty_po blc_output_rfts_packing_po,
             coalesce(c.tot_scan,0) tot_scan,
             coalesce(c.tot_scan,0) - qty_po blc_tot_scan,
             coalesce(d.tot_fg_out,0) tot_fg_out,
