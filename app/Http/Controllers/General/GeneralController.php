@@ -662,6 +662,8 @@ class GeneralController extends Controller
             SELECT
                 id_roll,
                 detail_item,
+                detail_item_color,
+                detail_item_size,
                 id_item,
                 lot,
                 roll,
@@ -675,7 +677,9 @@ class GeneralController extends Controller
             FROM (
                 SELECT
                     whs_bppb_det.id_roll,
-                    whs_bppb_det.item_desc detail_item,
+                    masteritem.itemdesc detail_item,
+                    masteritem.color detail_item_color,
+                    masteritem.size detail_item_size,
                     whs_bppb_det.id_item,
                     whs_bppb_det.no_lot lot,
                     whs_bppb_det.no_roll roll,
@@ -713,6 +717,8 @@ class GeneralController extends Controller
                 scanned_item.id_roll,
                 scanned_item.id_item,
                 scanned_item.detail_item,
+                scanned_item.detail_item_color,
+                scanned_item.detail_item_size,
                 scanned_item.color,
                 scanned_item.lot,
                 scanned_item.roll,
@@ -725,7 +731,8 @@ class GeneralController extends Controller
                 scanned_item.berat_amparan,
                 scanned_item.so_det_list,
                 scanned_item.size_list
-            ")->leftJoin(DB::raw("
+            ")->
+            leftJoin(DB::raw("
                 (
                     select
                         id_roll,
@@ -810,6 +817,8 @@ class GeneralController extends Controller
                         "id_item" => $newItem[0]->id_item,
                         "color" => '-',
                         "detail_item" => $newItem[0]->detail_item,
+                        "detail_item_color" => $newItem[0]->detail_item_color,
+                        "detail_item_size" => $newItem[0]->detail_item_size,
                         "lot" => $newItem[0]->lot,
                         "roll" => $newItem[0]->roll,
                         "roll_buyer" => $newItem[0]->roll_buyer,
@@ -833,6 +842,8 @@ class GeneralController extends Controller
                 br.id id_roll,
                 mi.id_item,
                 mi.itemdesc detail_item,
+                mi.color detail_item_color,
+                mi.size detail_item_size,
                 goods_code,
                 supplier,
                 bpbno_int,
@@ -906,6 +917,8 @@ class GeneralController extends Controller
                         "id_item" => $item[0]->id_item,
                         "color" => '-',
                         "detail_item" => $item[0]->detail_item,
+                        "detail_item_color" => $item[0]->detail_item_color,
+                        "detail_item_size" => $item[0]->detail_item_size,
                         "lot" => $item[0]->lot,
                         "roll" => $item[0]->roll,
                         "roll_buyer" => $item[0]->roll_buyer,
@@ -1156,7 +1169,7 @@ class GeneralController extends Controller
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
             leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
             leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
-            join(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+            leftJoin(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
             leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
             whereRaw("
                 output_reject_in.kode_numbering IN (".$kodeNumbering.")

@@ -2644,7 +2644,7 @@ class SewingToolsController extends Controller
                     leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
                     leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
                     leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
-                    join(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+                    leftJoin(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
                     leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
                     whereRaw("
                         output_reject_in.kode_numbering IN (".$kodeNumbering.")
@@ -2689,6 +2689,9 @@ class SewingToolsController extends Controller
                             $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";
                         }
                     }
+
+                    // Reject In
+                    $deleteRejectIn = RejectIn::where("id", $output->id)->delete();
 
                     array_push($result, $message);
                 }
