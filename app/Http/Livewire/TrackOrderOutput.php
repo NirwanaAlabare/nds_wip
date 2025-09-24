@@ -134,51 +134,57 @@ class TrackOrderOutput extends Component
             groupBy('kpno')->
             get();
 
-            $orderFilterSql = DB::connection('mysql_sb')->table('master_plan')->
-                selectRaw("
-                    master_plan.tgl_plan tanggal,
-                    act_costing.kpno ws,
-                    act_costing.styleno style,
-                    master_plan.color,
-                    COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line
-                    ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
-                ")->
-                leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
-                leftJoin(DB::raw("(
-                    SELECT
-                        master_plan.id_ws,
-                        output_rfts".($this->outputType).".master_plan_id,
-                        userpassword.username sewing_line
-                    FROM
-                        output_rfts".($this->outputType)."
-                        ".($this->outputType != "_packing" ?
-                        "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->outputType).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
-                        "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by")."
-                        LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
-                    WHERE
-                        output_rfts".($this->outputType).".created_by IS NOT NULL
-                        AND output_rfts".($this->outputType).".updated_at >= '".$this->dateFromFilter." 00:00:00'
-					    AND output_rfts".($this->outputType).".updated_at <= '".$this->dateToFilter." 23:59:59'
-                        " . ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
-                    GROUP BY
-                        output_rfts".($this->outputType).".master_plan_id,
-                        output_rfts".($this->outputType).".created_by
-                ) as rfts"), function ($join) {
-                    $join->on("rfts.master_plan_id", "=", "master_plan.id");
-                });
-                if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
-                if ($this->dateToFilter) $orderFilterSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
-                if ($this->groupBy == "size") $orderFilterSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
-                if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
-                if ($this->selectedOrder) $orderFilterSql->where("act_costing.id", $this->selectedOrder);
-                $orderFilterSql->
-                    groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
-                    orderBy("master_plan.id_ws", "asc")->
-                    orderBy("act_costing.styleno", "asc")->
-                    orderBy("master_plan.color", "asc")->
-                    orderByRaw("COALESCE(rfts.sewing_line, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
+        $orderFilterSql = DB::connection('mysql_sb')->table('master_plan')->
+            selectRaw("
+                master_plan.tgl_plan tanggal,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                master_plan.color,
+                COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line
+                ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
+            ")->
+            leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+            leftJoin(DB::raw("(
+                SELECT
+                    master_plan.id_ws,
+                    output_rfts".($this->outputType).".master_plan_id,
+                    userpassword.username sewing_line
+                FROM
+                    output_rfts".($this->outputType)."
+                    ".(
+                        $this->outputType == "_packing_po" ?
+                        "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by_line" :
+                        (
+                            $this->outputType != "_packing" ?
+                            "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->outputType).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                            "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by"
+                        )
+                    )."
+                    LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
+                WHERE
+                    output_rfts".($this->outputType).".created_by IS NOT NULL
+                    AND output_rfts".($this->outputType).".updated_at >= '".$this->dateFromFilter." 00:00:00'
+                    AND output_rfts".($this->outputType).".updated_at <= '".$this->dateToFilter." 23:59:59'
+                    " . ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
+                GROUP BY
+                    output_rfts".($this->outputType).".master_plan_id,
+                    output_rfts".($this->outputType).".created_by
+            ) as rfts"), function ($join) {
+                $join->on("rfts.master_plan_id", "=", "master_plan.id");
+            });
+            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
+            if ($this->dateToFilter) $orderFilterSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
+            if ($this->groupBy == "size") $orderFilterSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
+            if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
+            if ($this->selectedOrder) $orderFilterSql->where("act_costing.id", $this->selectedOrder);
+            $orderFilterSql->
+                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
+                orderBy("master_plan.id_ws", "asc")->
+                orderBy("act_costing.styleno", "asc")->
+                orderBy("master_plan.color", "asc")->
+                orderByRaw("COALESCE(rfts.sewing_line, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
 
-                $this->orderFilter = $orderFilterSql->get();
+            $this->orderFilter = $orderFilterSql->get();
 
             $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
             $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
@@ -211,10 +217,13 @@ class TrackOrderOutput extends Component
                             output_rfts".$this->outputType." rfts
                             INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
                             (
-                                $this->outputType != " _packing " ? "
-                                LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by
-                                LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id " : "
-                                LEFT JOIN userpassword ON userpassword.username = rfts.created_by "
+                                $this->outputType == "_packing_po" ?
+                                "LEFT JOIN userpassword ON userpassword.username = rfts.created_by_line" :
+                                (
+                                    $this->outputType != "_packing" ?
+                                    "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                                    "LEFT JOIN userpassword ON userpassword.username = rfts.created_by"
+                                )
                             )."
                         WHERE
                             rfts.updated_at ".$masterPlanDateFilter."
@@ -275,10 +284,13 @@ class TrackOrderOutput extends Component
                             output_rfts".$this->outputType." rfts
                             INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
                             (
-                                $this->outputType != " _packing " ? "
-                                LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by
-                                LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id " : "
-                                LEFT JOIN userpassword ON userpassword.username = rfts.created_by "
+                                $this->outputType == "_packing_po" ?
+                                "LEFT JOIN userpassword ON userpassword.username = rfts.created_by_line" :
+                                (
+                                    $this->outputType != "_packing" ?
+                                    "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                                    "LEFT JOIN userpassword ON userpassword.username = rfts.created_by"
+                                )
                             )."
                         WHERE
                             rfts.updated_at ".$masterPlanDateFilter."

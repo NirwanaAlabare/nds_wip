@@ -75,12 +75,15 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                     ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                 FROM
                     output_rfts".$this->outputType." rfts
-                    INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
-                    (
-                        $this->outputType != " _packing " ? "
-                        LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by
-                        LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id " : "
-                        LEFT JOIN userpassword ON userpassword.username = rfts.created_by "
+                    INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id
+                    ".(
+                        $this->outputType == "_packing_po" ?
+                        "LEFT JOIN userpassword ON userpassword.username = rfts.created_by_line" :
+                        (
+                            $this->outputType != "_packing" ?
+                            "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                            "LEFT JOIN userpassword ON userpassword.username = rfts.created_by"
+                        )
                     )."
                     INNER JOIN act_costing on act_costing.id = master_plan.id_ws
                 WHERE
@@ -153,12 +156,15 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                     FROM
                         output_rfts".$this->outputType." rfts
-                        INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
-                        (
-                            $this->outputType != " _packing " ? "
-                            LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by
-                            LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id " : "
-                            LEFT JOIN userpassword ON userpassword.username = rfts.created_by "
+                        INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id
+                        ".(
+                            $this->outputType == "_packing_po" ?
+                            "LEFT JOIN userpassword ON userpassword.username = rfts.created_by_line" :
+                            (
+                                $this->outputType != "_packing" ?
+                                "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                                "LEFT JOIN userpassword ON userpassword.username = rfts.created_by"
+                            )
                         )."
                         INNER JOIN act_costing on act_costing.id = master_plan.id_ws
                     WHERE
