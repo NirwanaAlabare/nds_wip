@@ -1514,6 +1514,24 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'mgt-report-laporan' ? 'active' : '' }}">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('mgt_report_daily_cost') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-laporan-daily-cost' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Daily Cost
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('mgt_report_prod_earn') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-laporan-prod-earn' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Summary Production Earn
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
                 {{-- DIVIDER EXAMPLE --}}

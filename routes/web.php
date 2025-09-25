@@ -188,6 +188,8 @@ use App\Http\Controllers\QCInspectShadeBandController;
 // Management Report
 use App\Http\Controllers\MgtReportDashboardController;
 use App\Http\Controllers\MgtReportProsesController;
+use App\Http\Controllers\MgtReportProdEarnController;
+use App\Http\Controllers\MgtReportDailyCostController;
 
 
 //maintain-bpb
@@ -2220,6 +2222,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete_tmp_upload_daily_cost', 'delete_tmp_upload_daily_cost')->name('delete_tmp_upload_daily_cost');
         Route::get('/show_mgt_report_det_daily_cost', 'show_mgt_report_det_daily_cost')->name('show_mgt_report_det_daily_cost');
         Route::post('/delete_daily_cost', 'delete_daily_cost')->name('delete_daily_cost');
+        Route::post('/update_data_labor', 'update_data_labor')->name('update_data_labor');
+    });
+
+    Route::controller(MgtReportDailyCostController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+        Route::get('/mgt_report_daily_cost', 'mgt_report_daily_cost')->name('mgt_report_daily_cost');
+        Route::get('/export_excel_laporan_daily_cost', 'export_excel_laporan_daily_cost')->name('export_excel_laporan_daily_cost');
+    });
+
+    Route::controller(MgtReportProdEarnController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+        Route::get('/mgt_report_prod_earn', 'mgt_report_prod_earn')->name('mgt_report_prod_earn');
     });
 });
 

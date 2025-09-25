@@ -955,7 +955,7 @@ public function listscanbarcode2(Request $request)
         $keywordQuery = "";
         $no_transaksi = substr($request->txt_no_dokumen,0,16);
 
-        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,c.itemdesc,a.qty,lokasi_aktual from whs_so_detail a INNER JOIN whs_so_h b on b.no_dokumen = a.no_dokumen INNER JOIN masteritem c on c.id_item = a.id_item where a.lokasi_scan = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."'");
+        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,c.itemdesc,a.qty,lokasi_aktual from whs_so_detail a INNER JOIN whs_so_h b on b.no_dokumen = a.no_dokumen INNER JOIN masteritem c on c.id_item = a.id_item where a.lokasi_aktual = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."'");
 
         return DataTables::of($data_scan)->toJson();
     }
@@ -969,7 +969,7 @@ public function listscanbarcode3(Request $request)
         $keywordQuery = "";
         $no_transaksi = substr($request->txt_no_dokumen,0,16);
 
-        $data_scan = DB::connection('mysql_sb')->select("select * from (select no_barcode,a.id_item,b.itemdesc,qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item where kode_lok = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."' order by no_barcode asc) a LEFT JOIN (select no_barcode barcode_so from whs_so_detail where lokasi_scan = '".$request->kode_lok."' and no_dokumen like '%".$no_transaksi."%') b on b.barcode_so = a.no_barcode LEFT JOIN (select no_barcode barcode_temp, created_at from whs_so_detail_temp where lokasi_scan = '".$request->kode_lok."') c on c.barcode_temp = a.no_barcode where barcode_so is null order by created_at desc,no_barcode asc");
+        $data_scan = DB::connection('mysql_sb')->select("select * from (select no_barcode,a.id_item,b.itemdesc,qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item where kode_lok = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."' order by no_barcode asc) a LEFT JOIN (select no_barcode barcode_so from whs_so_detail where lokasi_aktual = '".$request->kode_lok."' and no_dokumen like '%".$no_transaksi."%') b on b.barcode_so = a.no_barcode LEFT JOIN (select no_barcode barcode_temp, created_at from whs_so_detail_temp where lokasi_scan = '".$request->kode_lok."') c on c.barcode_temp = a.no_barcode where barcode_so is null order by created_at desc,no_barcode asc");
 
         return DataTables::of($data_scan)->toJson();
     }
