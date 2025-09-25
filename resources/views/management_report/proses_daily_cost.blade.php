@@ -471,8 +471,8 @@
             serverSide: false,
             paging: false,
             searching: true,
-            scrollY: true,
-            scrollX: false,
+            scrollY: '300px',
+            scrollX: true,
             scrollCollapse: true,
             ajax: {
                 url: '{{ route('mgt_report_proses_daily_cost_show_preview') }}',
@@ -523,15 +523,14 @@
                     maximumFractionDigits: 2
                 }));
 
-
-                // Loop through all data in daily_cost column
+                // Loop through all data in daily_cost column (index 3)
                 api.column(3, {
                     page: 'current'
                 }).data().each(function(value) {
                     total_daily_cost += parseFloat(value) || 0;
                 });
 
-                // Display the total in the footer
+                // Display the total daily cost in the footer
                 $('#total_daily_cost').html(total_daily_cost.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -627,8 +626,7 @@
                     <p>Data berhasil disimpan.</p>
                 `
                             }).then(() => {
-                                dataTableReload();
-                                dataTableListReload();
+                                location.reload();
                             });
                         },
                         error: function(xhr) {
@@ -766,7 +764,7 @@
             paging: false,
             ordering: true,
             searching: true,
-            scrollY: true,
+            scrollY: '300px',
             scrollX: true,
             scrollCollapse: false,
 
