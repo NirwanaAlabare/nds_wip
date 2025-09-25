@@ -709,7 +709,7 @@
                             category: 'Packing',
                             actual: totalFinalOutputRftsPackingPo,
                             expected: totalQtyPo,
-                            color: '#96E5D1'
+                            color: '#7cf7ba'
                         },
                         {
                             category: 'Packing Scan',
