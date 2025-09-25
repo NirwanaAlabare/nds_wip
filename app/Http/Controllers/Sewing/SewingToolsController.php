@@ -160,7 +160,7 @@ class SewingToolsController extends Controller
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
-                    output_rfts.updated_at between '".date("Y")."-01-01 00:00:00' and '".date("Y-m-d")." 23:59:59'
+                    output_rfts.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color)
                 GROUP BY
                     output_rfts.id
@@ -171,7 +171,7 @@ class SewingToolsController extends Controller
                 actual.sewing_line = output.line and
                 actual.tgl_plan = output.tgl_plan
             WHERE
-                actual.id != output.plan_id
+                actual.id IS NULL OR actual.id != output.plan_id
             GROUP BY
                 output.id
         "));
