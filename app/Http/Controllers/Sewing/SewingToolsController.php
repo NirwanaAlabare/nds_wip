@@ -62,7 +62,7 @@ class SewingToolsController extends Controller
                 LEFT JOIN user_sb_wip plan_user on plan_user.line_id = plan_line.line_id
                 LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username
             WHERE
-                output_rfts.updated_at between '".date("Y")."-01-01 00:00:00' and '".date("Y-m-d")." 23:59:59'
+                output_rfts.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                 AND (userpassword.username != master_plan.sewing_line)
             GROUP BY
                 output_rfts.id
@@ -83,7 +83,7 @@ class SewingToolsController extends Controller
         $unavailable = [];
         foreach ($masterUser as $mu) {
             if ($mu->actual_plan_id) {
-                $updateRft = Rft::where("id", $mu->id)->update([
+                $updateRft = DB::connection("mysql_sb")->table("output_rfts")->where("id", $mu->id)->update([
                     "master_plan_id" => $mu->actual_plan_id
                 ]);
 
@@ -93,7 +93,7 @@ class SewingToolsController extends Controller
                     array_push($fails, [$mu->id, "change output master plan"]);
                 }
             } else if ($mu->plan_user_id) {
-                $updateRft = Rft::where("id", $mu->id)->update([
+                $updateRft = DB::connection("mysql_sb")->table("output_rfts")->where("id", $mu->id)->update([
                     "created_by" => $mu->plan_user_id
                 ]);
 
