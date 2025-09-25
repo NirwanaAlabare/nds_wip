@@ -26,6 +26,7 @@ use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Dc\LoadingLinePlan;
 use App\Models\SignalBit\MasterPlan;
+use App\Models\SignalBit\RejectIn;
 use App\Models\Hris\MasterEmployee;
 use PDF;
 
@@ -661,6 +662,8 @@ class GeneralController extends Controller
             SELECT
                 id_roll,
                 detail_item,
+                detail_item_color,
+                detail_item_size,
                 id_item,
                 lot,
                 roll,
@@ -674,7 +677,9 @@ class GeneralController extends Controller
             FROM (
                 SELECT
                     whs_bppb_det.id_roll,
-                    whs_bppb_det.item_desc detail_item,
+                    masteritem.itemdesc detail_item,
+                    masteritem.color detail_item_color,
+                    masteritem.size detail_item_size,
                     whs_bppb_det.id_item,
                     whs_bppb_det.no_lot lot,
                     whs_bppb_det.no_roll roll,
@@ -712,6 +717,8 @@ class GeneralController extends Controller
                 scanned_item.id_roll,
                 scanned_item.id_item,
                 scanned_item.detail_item,
+                scanned_item.detail_item_color,
+                scanned_item.detail_item_size,
                 scanned_item.color,
                 scanned_item.lot,
                 scanned_item.roll,
@@ -724,7 +731,8 @@ class GeneralController extends Controller
                 scanned_item.berat_amparan,
                 scanned_item.so_det_list,
                 scanned_item.size_list
-            ")->leftJoin(DB::raw("
+            ")->
+            leftJoin(DB::raw("
                 (
                     select
                         id_roll,
@@ -809,6 +817,8 @@ class GeneralController extends Controller
                         "id_item" => $newItem[0]->id_item,
                         "color" => '-',
                         "detail_item" => $newItem[0]->detail_item,
+                        "detail_item_color" => $newItem[0]->detail_item_color,
+                        "detail_item_size" => $newItem[0]->detail_item_size,
                         "lot" => $newItem[0]->lot,
                         "roll" => $newItem[0]->roll,
                         "roll_buyer" => $newItem[0]->roll_buyer,
@@ -832,6 +842,8 @@ class GeneralController extends Controller
                 br.id id_roll,
                 mi.id_item,
                 mi.itemdesc detail_item,
+                mi.color detail_item_color,
+                mi.size detail_item_size,
                 goods_code,
                 supplier,
                 bpbno_int,
@@ -905,6 +917,8 @@ class GeneralController extends Controller
                         "id_item" => $item[0]->id_item,
                         "color" => '-',
                         "detail_item" => $item[0]->detail_item,
+                        "detail_item_color" => $item[0]->detail_item_color,
+                        "detail_item_size" => $item[0]->detail_item_size,
                         "lot" => $item[0]->lot,
                         "roll" => $item[0]->roll,
                         "roll_buyer" => $item[0]->roll_buyer,
@@ -985,7 +999,6 @@ class GeneralController extends Controller
 
         return Datatables::of($kodeNumberingOutput)->toJson();
     }
-
     public function getMasterPlan(Request $request) {
         $masterPlanSql = MasterPlan::selectRaw('
                 master_plan.id,
@@ -1102,5 +1115,70 @@ class GeneralController extends Controller
         );
 
         return $output;
+    }
+
+    public function getRejectIn(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        if ($request->department) {
+            $department = $request->department == "packing" ? "_packing" : "";
+        } else {
+            $department = "";
+        }
+
+        $kodeNumberingOutput = RejectIn::selectRaw("
+                output_reject_in.id,
+                output_reject_in.kode_numbering,
+                DATE(output_reject_in.created_at) as tanggal,
+                output_reject_in.created_at time_in,
+                output_reject_in.updated_at time_out,
+                master_plan.sewing_line sewing_line,
+                (CASE WHEN output_reject_in.output_type = 'packing' THEN 'finishing' ELSE output_reject_in.output_type END) as output_type,
+                output_reject_in.kode_numbering,
+                mastersupplier.Supplier as buyer,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color color,
+                so_det.size size,
+                master_plan.gambar gambar,
+                output_reject_in.reject_area_x reject_area_x,
+                output_reject_in.reject_area_y reject_area_y,
+                output_reject_in.status,
+                output_reject_in.grade,
+                COALESCE(reject_detail.defect_types_check, output_defect_types.defect_type) as defect_type,
+                COALESCE(reject_detail.defect_areas_check, output_defect_areas.defect_area) as defect_area,
+                output_reject_out.tujuan as allocation
+            ")->
+            // Reject
+            leftJoin("output_rejects", "output_rejects.id", "=", "output_reject_in.reject_id")->
+            // Reject Packing
+            leftJoin("output_rejects_packing", "output_rejects_packing.id", "=", "output_reject_in.reject_id")->
+            // Reject Finishing
+            leftJoin("output_check_finishing", "output_check_finishing.id", "=", "output_reject_in.reject_id")->
+            // Reject Detail
+            leftJoin("output_reject_out_detail", "output_reject_out_detail.reject_in_id", "=", "output_reject_in.id")->
+            leftJoin("output_reject_out", "output_reject_out.id", "=", "output_reject_out_detail.reject_out_id")->
+            leftJoin("output_defect_types", "output_defect_types.id", "=", "output_reject_in.reject_type_id")->
+            leftJoin("output_defect_areas", "output_defect_areas.id", "=", "output_reject_in.reject_area_id")->
+            leftJoin("so_det", "so_det.id", "=", "output_reject_in.so_det_id")->
+            leftJoin("so", "so.id", "=", "so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
+            leftJoin("master_plan", "master_plan.id", "=", "output_reject_in.master_plan_id")->
+            leftJoin(DB::raw("(select output_reject_in_detail.reject_in_id, GROUP_CONCAT(output_defect_types.defect_type SEPARATOR ' , ') defect_types_check, GROUP_CONCAT(output_defect_areas.defect_area SEPARATOR ' , ') defect_areas_check from output_reject_in_detail left join output_defect_types on output_defect_types.id = output_reject_in_detail.reject_type_id left join output_defect_areas on output_defect_areas.id = output_reject_in_detail.reject_area_id where output_reject_in_detail.id is not null group by output_reject_in_detail.reject_in_id) as reject_detail"), "reject_detail.reject_in_id", "=", "output_reject_in.id")->
+            leftJoin("userpassword", "userpassword.line_id", "=", "output_reject_in.line_id")->
+            whereRaw("
+                output_reject_in.kode_numbering IN (".$kodeNumbering.")
+                AND
+                output_reject_in.output_type = '".($request->department ? $request->department : 'qc')."'
+            ")->
+            groupByRaw("output_reject_in.id")->
+            get();
+
+        return Datatables::of($kodeNumberingOutput)->toJson();
     }
 }

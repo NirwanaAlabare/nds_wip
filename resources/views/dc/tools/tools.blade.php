@@ -47,6 +47,24 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a href="{{ route("modify-loading-line") }}" class="home-item" target="_blank">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Loading Line</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route("modify-year-sequence") }}" class="home-item" target="_blank">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Year Sequence</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

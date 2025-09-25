@@ -89,7 +89,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                 SELECT
                     req.id_roll,
                     req.id_item,
-                    req.item_desc detail_item,
+                    req.itemdesc detail_item,
                     req.no_lot lot,
                     req.styleno,
                     req.color,
@@ -101,7 +101,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
                     COALESCE(roll.total_short_roll, 0) total_short_roll
                 FROM (
-                    select b.*, c.color, tmpjo.styleno from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item left join (select id_jo,kpno,styleno from signalbit_erp.act_costing ac inner join signalbit_erp.so on ac.id=so.id_cost inner join signalbit_erp.jo_det jod on signalbit_erp.so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll
+                    select b.*, c.itemdesc, c.color, c.size, tmpjo.styleno from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item left join (select id_jo,kpno,styleno from signalbit_erp.act_costing ac inner join signalbit_erp.so on ac.id=so.id_cost inner join signalbit_erp.jo_det jod on signalbit_erp.so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll
                 ) req
                 LEFT JOIN (
                     select

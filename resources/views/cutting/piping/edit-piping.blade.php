@@ -41,7 +41,10 @@
                     <div class="col-6 col-md-6">
                         <div class="mb-1">
                             <label class="form-label"><small>ID Roll</small></label>
-                            <input type="text" class="form-control" id="edit_id_roll" name="edit_id_roll" value="{{ $piping->id_roll }}" readonly>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="edit_id_roll" name="edit_id_roll" value="{{ $piping->id_roll }}" readonly>
+                                <button class="btn btn-outline-success" type="button" id="get-item" onclick="fetchScan()"><i class="fa fa-rotate"></i></button>
+                            </div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
@@ -285,7 +288,7 @@
 
         // -Fetch Scanned Item Data-
         function fetchScan() {
-            let idRoll = document.getElementById('scan_item').value;
+            let idRoll = document.getElementById('edit_id_roll').value;
 
             getScannedItem(idRoll);
         }

@@ -20,7 +20,7 @@
                     <input type="date" class="form-control form-control-sm" id="dateTo" wire:model="dateToFilter" value="{{ $dateToFilter }}">
                 </div>
                 <button class="btn btn-sb-secondary btn-sm" wire:click="setSearch"><i class="fa fa-search"></i></button>
-                <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType && $outputType == "_packing" ? "FINISHING" : "SEWING"))) }}</span>
+                <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? ($outputType == "_packing_po" ? "PACKING" : ($outputType == "_packing" ? "FINISHING" : "SEWING")) : 'SEWING'))) }}</span>
             </div>
         </div>
         <div class="col-12 col-lg-6 col-xl-7">
@@ -211,6 +211,7 @@
                                 <select class="form-select form-select-sm" name="output-type" id="output-type" wire:model="outputType">
                                     <option value="">QC</option>
                                     <option value="_packing">Finishing</option>
+                                    <option value="_packing_po">Packing</option>
                                 </select>
                             </div>
                             <div class="mb-3">

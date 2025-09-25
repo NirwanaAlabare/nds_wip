@@ -167,26 +167,56 @@
             render: (data, type, row, meta) => {
                 if (row.status == 'OPEN') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
-                    <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='draftdata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
-                    <a href="{{ route('show-detail-so') }}/`+data+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
+                    <button type='button' class='btn btn-sm btn-danger' 
+                    href='javascript:void(0)' 
+                    title="Cancel Data" 
+                    onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'>
+                    <i class="fa-solid fa-undo"></i>
+                    </button>
+                    <button type='button' class='btn btn-sm btn-warning' 
+                    href='javascript:void(0)' 
+                    title="Change Status" 
+                    onclick='draftdata("` + row.no_transaksi + `","` + row.id + `")'>
+                    <i class="fa-solid fa-person-circle-check"></i>
+                    </button>
+                    <a href="{{ route('show-detail-so') }}/`+data+`" title="Show Data">
+                    <button type='button' class='btn btn-sm btn-info'>
+                    <i class="fa-solid fa-table-list"></i>
+                    </button>
+                    </a>
                     </div>`;
-                }else if (row.status == 'DRAFT') {
+                } else if (row.status == 'DRAFT') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-undo"></i></i></button>
-                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='finaldata("` + row.no_transaksi + `","` + row.id + `")'><i class="fa-solid fa-person-circle-check"></i></i></button>
-                    <a href="{{ route('show-detail-so') }}/`+data+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
+                    <button type='button' class='btn btn-sm btn-danger' 
+                    href='javascript:void(0)' 
+                    title="Cancel Data" 
+                    onclick='canceldata("` + row.no_transaksi + `","` + row.id + `")'>
+                    <i class="fa-solid fa-undo"></i>
+                    </button>
+                    <button type='button' class='btn btn-sm btn-success' 
+                    href='javascript:void(0)' 
+                    title="Change Status" 
+                    onclick='finaldata("` + row.no_transaksi + `","` + row.id + `")'>
+                    <i class="fa-solid fa-person-circle-check"></i>
+                    </button>
+                    <a href="{{ route('show-detail-so') }}/`+data+`" title="Show Data">
+                    <button type='button' class='btn btn-sm btn-info'>
+                    <i class="fa-solid fa-table-list"></i>
+                    </button>
+                    </a>
                     </div>`;
-                }else if (row.status == 'FINAL') {
+                } else if (row.status == 'FINAL') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <a href="{{ route('show-detail-so') }}/`+data+`"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
+                    <a href="{{ route('show-detail-so') }}/`+data+`" title="Show Data">
+                    <button type='button' class='btn btn-sm btn-info'>
+                    <i class="fa-solid fa-table-list"></i>
+                    </button>
+                    </a>
                     </div>`;
-                }else{
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                    -
-                    </div>`;
-
+                } else {
+                    return `<div class='d-flex gap-1 justify-content-center'>-</div>`;
                 }
+
 
             }
         },
@@ -194,52 +224,52 @@
         ]
     });
 
-    function dataTableReload() {
-        datatable.ajax.reload();
+function dataTableReload() {
+    datatable.ajax.reload();
+}
+
+function canceldata($no_transaksi,$id){
+
+    let no_transaksi  = $no_transaksi;
+    let id  = $id;
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Cancel Transaksi " + no_transaksi,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Cancel it!",
+      cancelButtonText: "Close"
+  }).then((result) => {
+      if (result.isConfirmed) {
+
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("cancel-report-so") }}',
+            type: 'get',
+            data: {
+                no_transaksi: no_transaksi,
+            },
+            success: function (res) {
+                Swal.fire({
+                    title: "Cancelled!",
+                    text: "Data has been Cancelled.",
+                    icon: "success"
+                }).then(async (result) => {
+                    window.location.reload()
+                });
+            }
+        });
+
     }
+});
+}
 
-    function canceldata($no_transaksi,$id){
-
-        let no_transaksi  = $no_transaksi;
-        let id  = $id;
-
-        Swal.fire({
-          title: "Are you sure?",
-          text: "Cancel Transaksi " + no_transaksi,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Yes, Cancel it!",
-          cancelButtonText: "Close"
-      }).then((result) => {
-          if (result.isConfirmed) {
-
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("cancel-report-so") }}',
-                type: 'get',
-                data: {
-                    no_transaksi: no_transaksi,
-                },
-                success: function (res) {
-                    Swal.fire({
-                        title: "Cancelled!",
-                        text: "Data has been Cancelled.",
-                        icon: "success"
-                    }).then(async (result) => {
-                        window.location.reload()
-                    });
-                }
-            });
-
-        }
-    });
-  }
-
-  function draftdata($no_transaksi,$id){
+function draftdata($no_transaksi,$id){
 
     let no_transaksi  = $no_transaksi;
     let id  = $id;

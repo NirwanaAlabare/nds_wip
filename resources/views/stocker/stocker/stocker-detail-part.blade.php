@@ -44,14 +44,24 @@
                             <tbody>
                                 @foreach ($dataRatio as $ratio)
                                     @php
-                                        $qty = intval($ratio->ratio) * intval($currentTotal);
-                                        $qtyBefore = intval($ratio->ratio) * intval($currentBefore);
+                                        $currentModify = $currentModifySize ? $currentModifySize->where("group_stocker", "!=", $currentGroupStocker)->where("so_det_id", $ratio->so_det_id)->first() : null;
 
+                                        $qty = intval($ratio->ratio) * intval($currentTotal);
+                                        $qtyBefore = (intval($ratio->ratio) * intval($currentBefore)) + ($currentModify ? $currentModify['difference_qty'] : 0);
+                                    @endphp
+                                    @php
                                         if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
-                                            $modifyThisStocker = $modifySizeQtyStocker->where("so_det_id", $ratio->so_det_id)->first();
+                                            $modifyThisStocker = null;
+                                            if ($currentModifySizeQty > 0) {
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStocker)->where("so_det_id", $ratio->so_det_id)->first();
+                                            } else {
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("so_det_id", $ratio->so_det_id)->first();
+                                            }
 
                                             if ($modifyThisStocker) {
                                                 $qty = $qty + $modifyThisStocker->difference_qty;
+
+                                                $currentModifySize->push(["so_det_id" => $ratio->so_det_id, "group_stocker" => $currentGroupStocker, "difference_qty" => $modifyThisStocker->difference_qty]);
                                             }
                                         }
 
@@ -63,6 +73,9 @@
 
                                             $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
                                             $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
+                                            if ($currentGroupStocker == '2') {
+                                                // dd($rangeAwal, $rangeAkhir, $stockerBefore->range_akhir, $qtyBefore, $qty);
+                                            }
                                     @endphp
                                     <tr>
                                         <input type="hidden" name="part_detail_id[{{ $index }}]" id="part_detail_id_{{ $index }}" value="{{ $partDetail->id }}">

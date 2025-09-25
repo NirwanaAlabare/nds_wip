@@ -39,8 +39,8 @@
             <td>{{ $item->goods_code }}</td>
             <td>{{ $item->itemdesc }}</td>
             <td>{{ $item->qty }}</td>
-            <td>{{ $item->qty_so }}</td>
-            <td>{{ $item->qty_sisa }}</td>
+            <td>{{ $item->qty_so1 }}</td>
+            <td>{{ $item->qty_sisa1 }}</td>
             <td>{{ $item->unit }}</td>
             <td>{{ $item->status }}</td>
         </tr>

@@ -115,6 +115,8 @@
                             <th>Blc Sewing</th>
                             <th>QC Finishing</th>
                             <th>Blc QC Finishing</th>
+                            <th>Packing</th>
+                            <th>Blc Packing</th>
                             <th>Packing Scan</th>
                             <th>Blc Packing Scan</th>
                             <th>Shipment</th>
@@ -133,6 +135,8 @@
                             <th id="total_blc_output_rfts"></th>
                             <th id="total_final_output_rfts_packing"></th>
                             <th id="total_blc_output_rfts_packing"></th>
+                            <th id="total_final_output_rfts_packing_po"></th>
+                            <th id="total_blc_output_rfts_packing_po"></th>
                             <th id="total_final_scan"></th>
                             <th id="total_blc_scan"></th>
                             <th id="total_final_out"></th>
@@ -445,6 +449,12 @@
                         data: 'blc_output_rfts_packing'
                     },
                     {
+                        data: 'final_output_rfts_packing_po'
+                    },
+                    {
+                        data: 'blc_output_rfts_packing_po'
+                    },
+                    {
                         data: 'tot_scan'
                     },
                     {
@@ -459,7 +469,7 @@
                 ],
                 columnDefs: [{
                         targets: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                            18
+                            18, 19, 20
                         ], // Indices of columns to align right
                         className: 'text-right' // Apply right alignment
                     },
@@ -481,10 +491,12 @@
                     var blcOutputRftsCell = $(row).find('td').eq(12);
                     var finalOutputRftsPackingCell = $(row).find('td').eq(13);
                     var blcOutputRftsPackingCell = $(row).find('td').eq(14);
-                    var finalScanCell = $(row).find('td').eq(15);
-                    var blcScanCell = $(row).find('td').eq(16);
-                    var finalFGOutCell = $(row).find('td').eq(17);
-                    var blcFGOutCell = $(row).find('td').eq(18);
+                    var finalOutputRftsPackingPoCell = $(row).find('td').eq(15);
+                    var blcOutputRftsPackingPoCell = $(row).find('td').eq(16);
+                    var finalScanCell = $(row).find('td').eq(17);
+                    var blcScanCell = $(row).find('td').eq(18);
+                    var finalFGOutCell = $(row).find('td').eq(19);
+                    var blcFGOutCell = $(row).find('td').eq(20);
 
 
                     if (parseFloat(data.blc_cut) < parseFloat(data.qty_po) &&
@@ -520,6 +532,15 @@
                     } else {
                         // Otherwise, set text color to black for final_cut
                         blcOutputRftsPackingCell.css('color', 'black');
+                    }
+
+                    if (parseFloat(data.blc_output_rfts_packing_po) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_output_rfts_packing_po) < '0') {
+                        // If final_cut is less than qty_po, set text color to red for final_cut
+                        blcOutputRftsPackingPoCell.css('color', 'red');
+                    } else {
+                        // Otherwise, set text color to black for final_cut
+                        blcOutputRftsPackingPoCell.css('color', 'black');
                     }
 
                     if (parseFloat(data.blc_tot_scan) < parseFloat(data.qty_po) &&
@@ -603,25 +624,37 @@
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalTotScan = api.column(15, {
+                    var totalFinalOutputRftsPackingPo = api.column(15, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalblcTotScan = api.column(16, {
+                    var totalblcOutputRftsPackingPo = api.column(16, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalFGOut = api.column(17, {
+                    var totalTotScan = api.column(17, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
                     }, 0)
 
-                    var totalblcFGOut = api.column(18, {
+                    var totalblcTotScan = api.column(18, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalFGOut = api.column(19, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0)
+
+                    var totalblcFGOut = api.column(20, {
                         search: 'applied'
                     }).data().reduce(function(a, b) {
                         return (parseFloat(a) || 0) + (parseFloat(b) || 0);
@@ -639,8 +672,9 @@
                     $('#total_blc_output_rfts').text(totalblcOutputRfts).css('color', totalblcOutputRfts < 0 ?
                         'red' : 'black');
                     $('#total_final_output_rfts_packing').text(totalFinalOutputRftsPacking);
-                    $('#total_blc_output_rfts_packing').text(totalblcOutputRftsPacking).css('color',
-                        totalblcOutputRftsPacking < 0 ? 'red' : 'black');
+                    $('#total_blc_output_rfts_packing').text(totalblcOutputRftsPacking).css('color', totalblcOutputRftsPacking < 0 ? 'red' : 'black');
+                    $('#total_final_output_rfts_packing_po').text(totalFinalOutputRftsPackingPo);
+                    $('#total_blc_output_rfts_packing_po').text(totalblcOutputRftsPackingPo).css('color', totalblcOutputRftsPackingPo < 0 ? 'red' : 'black');
                     $('#total_final_scan').text(totalTotScan);
                     $('#total_blc_scan').text(totalblcTotScan).css('color', totalblcTotScan < 0 ? 'red' :
                         'black');
@@ -670,6 +704,12 @@
                             actual: totalFinalOutputRftsPacking,
                             expected: totalQtyPo,
                             color: '#96E5D1'
+                        },
+                        {
+                            category: 'Packing',
+                            actual: totalFinalOutputRftsPackingPo,
+                            expected: totalQtyPo,
+                            color: '#7cf7ba'
                         },
                         {
                             category: 'Packing Scan',
@@ -739,6 +779,7 @@
                         "Loading", "Blc Loading",
                         "Sewing", "Blc Sewing",
                         "QC Finishing", "Blc QC Finishing",
+                        "Packing", "Blc Packing",
                         "Packing Scan", "Blc Packing Scan",
                         "Shipment", "Blc Shipment",
                     ];
@@ -791,6 +832,8 @@
                     let sumBlcSewing = 0;
                     let sumPackingLine = 0;
                     let sumBlcPackingLine = 0;
+                    let sumPackingPo = 0;
+                    let sumBlcPackingPo = 0;
                     let sumPackingScan = 0;
                     let sumBlcPackingScan = 0;
                     let sumShipment = 0;
@@ -807,6 +850,8 @@
                         const blcSewing = Number(row.blc_output_rfts);
                         const packingLine = Number(row.final_output_rfts_packing);
                         const blcPackingLine = Number(row.blc_output_rfts_packing);
+                        const packingPo = Number(row.final_output_rfts_packing_po);
+                        const blcPackingPo = Number(row.blc_output_rfts_packing_po);
                         const packingScan = Number(row.tot_scan);
                         const blcPackingScan = Number(row.blc_tot_scan);
                         const shipment = Number(row.tot_fg_out);
@@ -822,6 +867,8 @@
                         sumBlcSewing += blcSewing;
                         sumPackingLine += packingLine;
                         sumBlcPackingLine += blcPackingLine;
+                        sumPackingPo += packingPo;
+                        sumBlcPackingPo += blcPackingPo;
                         sumPackingScan += packingScan;
                         sumBlcPackingScan += blcPackingScan;
                         sumShipment += shipment;
@@ -844,6 +891,8 @@
                             blcSewing,
                             packingLine,
                             blcPackingLine,
+                            packingPo,
+                            blcPackingPo,
                             packingScan,
                             blcPackingScan,
                             shipment,
@@ -888,6 +937,8 @@
                         sumBlcSewing, // Sum for Blc Sewing
                         sumPackingLine, // Sum for Packing Line
                         sumBlcPackingLine, // Sum for Blc Packing Line
+                        sumPackingPo, // Sum for Packing Po
+                        sumBlcPackingPo, // Sum for Blc Packing Po
                         sumPackingScan, // Sum for Packing Scan
                         sumBlcPackingScan, // Sum for Blc Packing Scan
                         sumShipment, // Sum for Shipment
