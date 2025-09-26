@@ -397,7 +397,7 @@ class SewingToolsController extends Controller
         $success = [];
         $fails = [];
         $unavailable = [];
-        
+
         // RFT
         foreach ($masterPlan as $mp) {
             $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->plan_act_costing_id)->where("so_det.color", $mp->plan_color)->where("so_det.size", $mp->size)->where("so_det.dest", $mp->dest)->first();

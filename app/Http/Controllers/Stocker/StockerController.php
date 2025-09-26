@@ -32,6 +32,7 @@ use App\Models\SignalBit\OutputPacking;
 use App\Exports\Stocker\StockerListExport;
 use App\Exports\Stocker\StockerListDetailExport;
 use App\Services\StockerService;
+use App\Services\SewingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -5571,7 +5572,7 @@ class StockerController extends Controller
             toJson();
     }
 
-    public function modifyYearSequenceUpdate(Request $request) {
+    public function modifyYearSequenceUpdate(Request $request, SewingService $sewingService) {
         $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id, stocker_input.so_det_id, stocker_input.size, stocker_input.range_akhir, (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
 
         $request->size = $stocker ? $stocker->so_det_id : $request->size;
@@ -5618,15 +5619,15 @@ class StockerController extends Controller
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
-                // if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
-                //     array_push($yearSequenceArr, $yearSequence->id_year_sequence);
-                // } else {
+                if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
+                    array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+                } else {
                     if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
                         array_push($yearSequenceArr, $yearSequence->id_year_sequence);
                     } else {
                         array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
                     }
-                // }
+                }
             }
 
             $failMessage = "";
@@ -5663,6 +5664,9 @@ class StockerController extends Controller
                 $outputPackingNDS = DB::table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
+
+                // When the updated Size Was in different Plan
+                $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
 
                 if ($request['method'] == "list") {
                     if ($yearSequenceIds) {
