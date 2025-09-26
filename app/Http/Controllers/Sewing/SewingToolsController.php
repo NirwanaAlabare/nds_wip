@@ -790,7 +790,7 @@ class SewingToolsController extends Controller
         if ($request->defect_output && count($request->defect_output) > 0) {
             $defectList = addQuotesAround(implode("\n", $request->defect_output));
 
-            $defectOutput = " and output_defect_types.defect_type_id in (".$defectList.")";
+            $defectOutput = " and output_defect_types.id in (".$defectList.")";
             $additionalFilter .= " and output.defect_type is not null";
         }
 
@@ -811,7 +811,7 @@ class SewingToolsController extends Controller
 
         $statusPacking = "";
         if ($request->status_packing && count($request->status_packing) > 0) {
-            $statusList = addQuotesAround(implode("\n", $request->status));
+            $statusList = addQuotesAround(implode("\n", $request->status_packing));
 
             $statusPacking = " and output_packing.status in (".$statusList.")";
         }
@@ -820,12 +820,12 @@ class SewingToolsController extends Controller
         if ($request->defect_packing && count($request->defect_packing) > 0) {
             $defectList = addQuotesAround(implode("\n", $request->defect_packing));
 
-            $defectPacking = " and output_defect_types.defect_type_id in (".$defectList.")";
+            $defectPacking = " and output_defect_types.id in (".$defectList.")";
             $additionalFilter .= " and output_packing.defect_type is not null";
         }
 
         $allocationPacking = "";
-        if ($request->allocation_packing && count($request->allocation_packign) > 0) {
+        if ($request->allocation_packing && count($request->allocation_packing) > 0) {
             $allocationList = addQuotesAround(implode("\n", $request->allocation_packing));
 
             $allocationPacking = " and output_defect_types.allocation in (".$allocationList.")";
@@ -1457,7 +1457,7 @@ class SewingToolsController extends Controller
         if ($request->defect_output && count($request->defect_output) > 0) {
             $defectList = addQuotesAround(implode("\n", $request->defect_output));
 
-            $defectOutput = " and output_defect_types.defect_type_id in (".$defectList.")";
+            $defectOutput = " and output_defect_types.id in (".$defectList.")";
             $additionalFilter .= " and output.defect_type is not null";
         }
 
@@ -1478,7 +1478,7 @@ class SewingToolsController extends Controller
 
         $statusPacking = "";
         if ($request->status_packing && count($request->status_packing) > 0) {
-            $statusList = addQuotesAround(implode("\n", $request->status));
+            $statusList = addQuotesAround(implode("\n", $request->status_packing));
 
             $statusPacking = " and output_packing.status in (".$statusList.")";
         }
@@ -1487,12 +1487,12 @@ class SewingToolsController extends Controller
         if ($request->defect_packing && count($request->defect_packing) > 0) {
             $defectList = addQuotesAround(implode("\n", $request->defect_packing));
 
-            $defectPacking = " and output_defect_types.defect_type_id in (".$defectList.")";
+            $defectPacking = " and output_defect_types.id in (".$defectList.")";
             $additionalFilter .= " and output_packing.defect_type is not null";
         }
 
         $allocationPacking = "";
-        if ($request->allocation_packing && count($request->allocation_packign) > 0) {
+        if ($request->allocation_packing && count($request->allocation_packing) > 0) {
             $allocationList = addQuotesAround(implode("\n", $request->allocation_packing));
 
             $allocationPacking = " and output_defect_types.allocation in (".$allocationList.")";
