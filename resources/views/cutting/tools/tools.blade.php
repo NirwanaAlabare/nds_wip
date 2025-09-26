@@ -588,7 +588,7 @@
                                             <th>So Det</th>
                                             <th>Size</th>
                                             <th>Ratio</th>
-                                            <th>Qty CUt</th>
+                                            <th>Qty Cut</th>
                                         </tr>
                                     `;
 
