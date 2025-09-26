@@ -1,12 +1,18 @@
 <table class="table table-bordered table-sm" id="list-table">
+    @php
+        $noWs = $data->pluck('ws')->unique()->implode(',');
+        $sizes = $data->pluck('size')->unique()->implode(',');
+        $defectOutputs = $data->pluck('defect_output')->unique()->implode(',');
+        $defectPackings = $data->pluck('defect_packing')->unique()->implode(',');
+    @endphp
     <tr>
         <td colspan="19">
             OUTPUT DETAIL
             {{ ($buyer ? " | buyer : ".$buyer : "") }}
-            {{ ($ws ? " | ws : ".$ws : "") }}
+            {{ ($noWs ? " | ws : ".$noWs : "") }}
             {{ ($style ? " | style : ".$style : "") }}
             {{ ($color ? " | color : ".$color : "") }}
-            {{ ($size ? " | size : ".$size : "") }}
+            {{ ($sizes ? " | size : ".$sizes : "") }}
             {{ ($kode ? " | kode : ".$kode : "") }}
             {{ ($tanggal_loading ? " | tanggal_loading : ".$tanggal_loading : "") }}
             {{ ($line_loading ? " | line_loading : ".$line_loading : "") }}
@@ -14,13 +20,13 @@
             {{ ($tanggal_output ? " | tanggal_output : ".$tanggal_output : "") }}
             {{ ($tanggal_packing ? " | tanggal_packing : ".$tanggal_packing : "") }}
             {{ ($line_output ? " | line_output : ".$line_output : "") }}
-            {{ ($status_output ? " | status_output : ".$status_output : "") }}
-            {{ ($defect_output ? " | defect_output : ".$defect_output : "") }}
-            {{ ($allocation_output ? " | allocation_output : ".$allocation_output : "") }}
+            {{ ($status_output ? " | status_output : ".implode($status_output) : "") }}
+            {{ ($defectOutputs ? " | defect_output : ".$defectOutputs : "") }}
+            {{ ($allocation_output ? " | allocation_output : ".implode($allocation_output) : "") }}
             {{ ($line_packing ? " | line_packing : ".$line_packing : "") }}
-            {{ ($status_packing ? " | status_packing : ".$status_packing : "") }}
-            {{ ($defect_packing ? " | defect_packing : ".$defect_packing : "") }}
-            {{ ($allocation_packing ? " | allocation_packing : ".$allocation_packing : "") }}
+            {{ ($status_packing ? " | status_packing : ".implode($status_packing) : "") }}
+            {{ ($defectPackings ? " | defect_packing : ".$defectPackings : "") }}
+            {{ ($allocation_packing ? " | allocation_packing : ".implode($allocation_packing) : "") }}
             {{ ($crossline_loading ? " | crossline_loading : ".$crossline_loading : "") }}
             {{ ($crossline_output ? " | crossline_output : ".$crossline_output : "") }}
             {{ ($missmatch_code ? " | missmatch_code : ".$missmatch_code : "") }}
