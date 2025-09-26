@@ -1,9 +1,9 @@
 <table class="table table-bordered table-sm" id="list-table">
     @php
-        $noWs = $data->pluck('ws')->unique()->implode(',');
-        $sizes = $data->pluck('size')->unique()->implode(',');
-        $defectOutputs = $data->pluck('defect_output')->unique()->implode(',');
-        $defectPackings = $data->pluck('defect_packing')->unique()->implode(',');
+        $noWs = $ws ? $data->pluck('ws')->unique()->implode(',') : "";
+        $sizes = $size ? $data->pluck('size')->unique()->implode(',') : "";
+        $defectOutputs = $defect_output ? $data->pluck('defect_output')->unique()->implode(',') : "";
+        $defectPackings = $defect_packing ? $data->pluck('defect_packing')->unique()->implode(',') : "";
     @endphp
     <tr>
         <td colspan="19">
