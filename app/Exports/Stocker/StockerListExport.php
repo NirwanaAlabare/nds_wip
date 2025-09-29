@@ -241,6 +241,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                             LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                            LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
                         GROUP BY
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,

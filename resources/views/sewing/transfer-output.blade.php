@@ -35,6 +35,14 @@
             showNotification(type, message);
         })
 
+        Livewire.on('showModal', (modal) => {
+            $("#"+modal).modal("show");
+        })
+
+        Livewire.on('hideModal', (hide) => {
+            $("#"+modal).modal("hide");
+        })
+
         Livewire.on('loadingStart', () => {
             if (document.getElementById('loadingMasterPlan')) {
                 $('#loadingMasterPlan').removeClass('hidden');

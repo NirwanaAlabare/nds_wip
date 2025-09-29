@@ -139,6 +139,15 @@ class TransferOutput extends Component
         }
     }
 
+    public function preTransferNumbering()
+    {
+        if ($this->toLine && $this->toDate) {
+            $this->emit("showModal", "transferNumberingModal");
+        } else {
+            $this->emit("alert", "warning", "Minimal isi tanggal dan line untuk transfer numbering.");
+        }
+    }
+
     public function transferNumbering()
     {
         $newKodeNumbering = addQuotesAround($this->kodeNumbering);
@@ -198,7 +207,7 @@ class TransferOutput extends Component
                         $toSoDet = $this->toSoDet->where("size", $o->size)->first();
                     }
 
-                    if ($toSoDet && $toUser) {
+                    if ($this->toSelectedMasterPlan && $toSoDet && $toUser) {
                         // Transfer Output
                         $transferOutput = DB::connection("mysql_sb")->statement("
                             update output_rfts".$this->outputType."
@@ -241,7 +250,106 @@ class TransferOutput extends Component
 
                         $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
                     } else {
-                        $messageNotFound .= $o->id_year_sequence." <br> gagal <br>";
+                        // Only Date and Line (Multi Style/Color)
+                        if ($this->toDate && $toUser) {
+                            // RFT
+                            $rft = DB::connection("mysql_sb")
+                            ->table("output_rfts".$this->outputType." as rfts")
+                            ->select("rfts.id", "master_plan.tgl_plan", "master_plan.id_ws", "master_plan.color")
+                            ->leftJoin("master_plan", "master_plan.id", "=", "rfts.master_plan_id")
+                            ->where("kode_numbering", $o->id_year_sequence)
+                            ->first();
+
+                            if ($rft) {
+                                $masterPlanRft = DB::connection("mysql_sb")->table("master_plan")
+                                    ->select("master_plan.id")
+                                    ->where("master_plan.sewing_line", $toUser->username)
+                                    ->where("tgl_plan", $this->toDate)
+                                    ->where("id_ws", $rft->id_ws)
+                                    ->where("color", $rft->color)
+                                    ->first();
+
+                                if ($masterPlanRft) {
+                                    DB::connection("mysql_sb")
+                                        ->table("output_rfts".$this->outputType)
+                                        ->where("id", $rft->id)
+                                        ->update([
+                                            "master_plan_id" => $masterPlanRft->id,
+                                            "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
+                                        ]);
+
+                                    $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
+                                } else {
+                                    $messageNotFound .= "RFT ".$o->id_year_sequence." <br> master plan tidak ada <br>";
+                                }
+                            }
+
+                            // DEFECT
+                            $defect = DB::connection("mysql_sb")
+                                ->table("output_defects".$this->outputType." as defects")
+                                ->select("defects.id", "master_plan.tgl_plan", "master_plan.id_ws", "master_plan.color")
+                                ->leftJoin("master_plan", "master_plan.id", "=", "defects.master_plan_id")
+                                ->where("kode_numbering", $o->id_year_sequence)
+                                ->first();
+
+                            if ($defect) {
+                                $masterPlanDefect = DB::connection("mysql_sb")->table("master_plan")
+                                    ->select("master_plan.id")
+                                    ->where("master_plan.sewing_line", $toUser->username)
+                                    ->where("tgl_plan", $this->toDate)
+                                    ->where("id_ws", $defect->id_ws)
+                                    ->where("color", $defect->color)
+                                    ->first();
+
+                                if ($masterPlanDefect) {
+                                    DB::connection("mysql_sb")
+                                        ->table("output_defects".$this->outputType)
+                                        ->where("id", $defect->id)
+                                        ->update([
+                                            "master_plan_id" => $masterPlanDefect->id,
+                                            "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
+                                        ]);
+
+                                    $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
+                                } else {
+                                    $messageNotFound .= "Defect ".$o->id_year_sequence." <br> master plan tidak ada <br>";
+                                }
+                            }
+
+                            // REJECT
+                            $reject = DB::connection("mysql_sb")
+                                ->table("output_rejects".$this->outputType." as rejects")
+                                ->select("rejects.id", "master_plan.tgl_plan", "master_plan.id_ws", "master_plan.color")
+                                ->leftJoin("master_plan", "master_plan.id", "=", "rejects.master_plan_id")
+                                ->where("kode_numbering", $o->id_year_sequence)
+                                ->first();
+
+                            if ($reject) {
+                                $masterPlanReject = DB::connection("mysql_sb")->table("master_plan")
+                                    ->select("master_plan.id")
+                                    ->where("master_plan.sewing_line", $toUser->username)
+                                    ->where("tgl_plan", $this->toDate)
+                                    ->where("id_ws", $reject->id_ws)
+                                    ->where("color", $reject->color)
+                                    ->first();
+
+                                if ($masterPlanReject) {
+                                    DB::connection("mysql_sb")
+                                        ->table("output_rejects".$this->outputType)
+                                        ->where("id", $reject->id)
+                                        ->update([
+                                            "master_plan_id" => $masterPlanReject->id,
+                                            "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
+                                        ]);
+
+                                    $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
+                                } else {
+                                    $messageNotFound .= "Reject ".$o->id_year_sequence." <br> master plan tidak ada <br>";
+                                }
+                            }
+                        } else {
+                            $this->emit("alert", "warning", "Minimal isi tanggal dan line untuk transfer output.");
+                        }
                     }
                 }
 
