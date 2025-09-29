@@ -124,8 +124,8 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Master Plan</label>
-                        <select class="form-select" wire:model="toSelectedMasterPlan">
+                        <label class="form-label">Master Plan</label>
+                        <select class="form-select" wire:model="toSelectedMasterPlan" id="toSelectedMasterPlan">
                             <option value="">Select Master Plan</option>
                             @foreach ($toMasterPlans as $toMasterPlan)
                                 <option value="{{ $toMasterPlan->id }}" {{ $fromSelectedMasterPlan == $toMasterPlan->id ? "disabled" : "" }}>{{ $toMasterPlan->no_ws." - ".$toMasterPlan->style." - ".$toMasterPlan->color }}</option>
@@ -195,7 +195,7 @@
             <button class="btn btn-sb w-100 h-100 fw-bold" onclick="transferAll()">TRANSFER ALL <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
         <div class="col-6 col-md-6">
-            <button class="btn btn-sb-secondary w-100 h-100 fw-bold" data-bs-toggle="modal" data-bs-target="#transferNumberingModal">TRANSFER NUMBERING <i class="fa-solid fa-arrow-right fa-sm"></i></button>
+            <button class="btn btn-sb-secondary w-100 h-100 fw-bold" wire:click="preTransferNumbering()">TRANSFER NUMBERING <i class="fa-solid fa-arrow-right fa-sm"></i></button>
         </div>
         <div class="col-6 col-md-3">
             {{-- <button class="btn btn-rft w-100 h-100 fw-bold" wire:click="transferRft()">TRANSFER ALL RFT <i class="fa-solid fa-arrow-right fa-sm"></i></button> --}}
@@ -227,6 +227,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <h6>Destination : </h6>
+                        <p class="mb-0">{{ $toDate }}</p>
+                        <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
+                        <p class="mb-0" id="selectedPlan" wire:ignore></p>
+                    </div>
+                    <hr class="border border-dark">
                     <div>
                         <label class="form-label">Kode Numbering :</label>
                         <textarea class="form-control" name="kode_numbering" id="kode_numbering" wire:model="kodeNumbering" cols="30" rows="10"></textarea>
@@ -459,6 +466,18 @@
                     Livewire.emit('loadingStart');
                 }
             });
+        }
+
+        $("#toSelectedMasterPlan").on("change", () => {
+            if ($("#toSelectedMasterPlan").val()) {
+                $("#selectedPlan").html($('#toSelectedMasterPlan option:selected').text());
+            } else {
+                $("#selectedPlan").html("");
+            }
+        })
+
+        function setTransferNumberingTo() {
+            $("#toSelectedMasterPlan").val()
         }
     </script>
 @endpush
