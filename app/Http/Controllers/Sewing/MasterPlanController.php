@@ -205,6 +205,7 @@ class MasterPlanController extends Controller
     public function update(Request $request)
     {
         $validatedRequest = $request->validate([
+            "edit_tgl_plan" => "required",
             "edit_id" => "required",
             "edit_id_ws" => "required",
             "edit_color_select" => "required",
@@ -233,6 +234,7 @@ class MasterPlanController extends Controller
 
         if ($masterPlan->rfts->count()+$masterPlan->defects->count()+$masterPlan->rejects->count() < 1) {
             $updateMasterPlan = MasterPlan::where("id", $request->edit_id)->update([
+                "tgl_plan" => $request->edit_tgl_plan,
                 "id_ws" => $request->edit_id_ws,
                 "color" => $request->edit_color,
                 "smv" => $request->edit_smv,

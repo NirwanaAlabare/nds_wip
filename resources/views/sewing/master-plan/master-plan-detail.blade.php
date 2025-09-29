@@ -225,7 +225,12 @@
                         <div id="edit-form">
                             <div class="row g-3">
                                 <input type="hidden" name="edit_id" id="edit_id">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <label>Tanggal</label>
+                                    <input type="date" class="form-control" name="edit_tgl_plan" id="edit_tgl_plan">
+                                    <small class="text-danger d-none" id="edit_tgl_plan"></small>
+                                </div>
+                                <div class="col-md-4">
                                     <label>WS Number</label>
                                     <select class="form-select select2bs4" name="edit_id_ws" id="edit_id_ws">
                                         <option value="">Select WS</option>
@@ -235,7 +240,7 @@
                                     </select>
                                     <small class="text-danger d-none" id="edit_id_ws_error"></small>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <input type="hidden" name="edit_color" id="edit_color">
                                     <label>Color</label>
                                     <select class="form-select select2bs4" name="edit_color_select" id="edit_color_select">
