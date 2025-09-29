@@ -26,7 +26,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mx-1 my-3">
                         <h5 class="fw-bold">Master Plan</h5>
-                        <h3 class="text-sb fw-bold">{{ num($masterPlan->count()) }}</h5>
+                        <h3 class="text-sb fw-bold">{{ num($masterPlan->where("cancel", "N")->count()) }}</h5>
                     </div>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mx-1 my-3">
                         <h5 class="fw-bold">Jam Kerja</h5>
-                        <h3 class="fw-bold {{ num($masterPlan->sum("jam_kerja")) != 8 ? "text-danger" : "text-success" }}">{{ num($masterPlan->sum("jam_kerja")) }}</h5>
+                        <h3 class="fw-bold {{ num($masterPlan->where("cancel", "N")->sum("jam_kerja")) != 8 ? "text-danger" : "text-success" }}">{{ num($masterPlan->where("cancel", "N")->sum("jam_kerja")) }}</h5>
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mx-1 my-3">
                         <h5 class="fw-bold">Man Power</h5>
-                        <h3 class="text-primary fw-bold">{{ num($masterPlan->max("man_power")) }}</h5>
+                        <h3 class="text-primary fw-bold">{{ num($masterPlan->where("cancel", "N")->max("man_power")) }}</h5>
                     </div>
                 </div>
             </div>

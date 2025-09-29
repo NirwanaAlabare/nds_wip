@@ -172,6 +172,7 @@ class MasterPlanController extends Controller
             })->
             where("sewing_line", $line)->
             where("tgl_plan", $date)->
+            orderBy("cancel", "asc")->
             orderBy("smv", "desc")->
             get();
 
