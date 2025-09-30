@@ -59,7 +59,19 @@ CAST(a.tahun AS UNSIGNED) ASC,
 CAST(a.bulan AS UNSIGNED) ASC
 ),
 dim_tgl as (
-SELECT tanggal FROM dim_date where tahun = '$this->tahun' AND bulan = '$this->bulan'
+SELECT tanggal,
+case
+		when status_prod = 'KERJA' AND status_absen = 'LP' THEN 'KERJA'
+		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'LIBUR'
+		when status_prod = 'KERJA' AND status_absen is null THEN 'KERJA'
+		when status_prod = 'LIBUR' AND status_absen = 'LP' THEN 'LIBUR'
+		when status_prod = 'LIBUR' AND status_absen = 'LN' THEN 'LIBUR'
+		when status_prod = 'LIBUR' AND status_absen is null THEN 'LIBUR'
+
+		END AS stat_kerja
+FROM dim_date a
+left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
+where tahun = '$this->tahun' AND bulan = '$this->bulan'
 ),
 dc as (
 SELECT
@@ -77,6 +89,7 @@ GROUP BY no_coa
 coa_direct as (
 select
 tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
@@ -89,6 +102,7 @@ where eng_categori4 = 'DIRECT LABOR COST'
 coa_indirect as (
 select
 tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
@@ -101,6 +115,7 @@ where eng_categori4 = 'INDIRECT LABOR COST'
 coa_overhead as (
 select
 tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
@@ -113,6 +128,7 @@ where eng_categori4 = 'FIXED OVERHEAD COST'
 coa_selling as (
 select
 tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
@@ -125,6 +141,7 @@ where eng_categori4 = 'SELLING EXPENSE'
 coa_ga as (
 select
 tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
@@ -137,6 +154,7 @@ where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
 coa_expense as (
 select
 tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
@@ -178,11 +196,13 @@ group by sub_dept_id, group_department, tanggal_berjalan
 (
 SELECT
 a.tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 a.projection,
 a.daily_cost,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -190,12 +210,14 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
 		when a.nama_coa like '%THR%' then sum(thr) + a.daily_cost
 		ELSE a.daily_cost
-		END AS tot_labor
+		END AS tot_labor,
+'direct labor' as nm_labor
 from coa_direct a
 left join map_coa b on a.no_coa = b.no_coa
 left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan and group_department = 'PRODUCTION'
@@ -203,11 +225,13 @@ GROUP BY no_coa, a.tanggal
 UNION ALL
 SELECT
 a.tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 a.projection,
 a.daily_cost,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -215,12 +239,14 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
 		when a.nama_coa like '%THR%' then sum(thr) + a.daily_cost
 		ELSE a.daily_cost
-		END AS tot_labor
+		END AS tot_labor,
+'indirect labor' as nm_labor
 from coa_indirect  a
 left join map_coa b on a.no_coa = b.no_coa
 left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan and group_department = 'SUPPORTING PRODUCTION'
@@ -228,11 +254,13 @@ GROUP BY no_coa, a.tanggal
 UNION ALL
 SELECT
 a.tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 a.projection,
 a.daily_cost,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -240,12 +268,14 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
 		when a.nama_coa like '%THR%' then sum(thr) + a.daily_cost
 		ELSE a.daily_cost
-		END AS tot_labor
+		END AS tot_labor,
+'overhead labor' as nm_labor
 from coa_overhead  a
 left join map_coa b on a.no_coa = b.no_coa
 left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan
@@ -253,11 +283,13 @@ GROUP BY no_coa, a.tanggal
 UNION ALL
 SELECT
 a.tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 a.projection,
 a.daily_cost,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -265,12 +297,14 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
 		when a.nama_coa like '%THR%' then sum(thr) + a.daily_cost
 		ELSE a.daily_cost
-		END AS tot_labor
+		END AS tot_labor,
+'selling expense' as nm_labor
 from coa_selling  a
 left join map_coa b on a.no_coa = b.no_coa
 left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan  AND c.group_department = 'SUPPORTING SELLING'
@@ -278,11 +312,13 @@ GROUP BY no_coa, a.tanggal
 UNION ALL
 SELECT
 a.tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 a.projection,
 a.daily_cost,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -290,12 +326,14 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
 		when a.nama_coa like '%THR%' then sum(thr) + a.daily_cost
 		ELSE a.daily_cost
-		END AS tot_labor
+		END AS tot_labor,
+'ga expense' as nm_labor
 from coa_ga  a
 left join map_coa b on a.no_coa = b.no_coa
 left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan  AND c.group_department = 'SUPPORTING GENERAL & ADMINISTRATION'
@@ -303,11 +341,13 @@ GROUP BY no_coa, a.tanggal
 UNION ALL
 SELECT
 a.tanggal,
+stat_kerja,
 a.no_coa,
 a.nama_coa,
 a.projection,
 a.daily_cost,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -315,12 +355,14 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
+		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
 		when a.nama_coa like '%THR%' then sum(thr) + a.daily_cost
 		ELSE a.daily_cost
-		END AS tot_labor
+		END AS tot_labor,
+'other expense' as nm_labor
 from coa_expense  a
 left join map_coa b on a.no_coa = b.no_coa
 left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan

@@ -190,6 +190,7 @@ use App\Http\Controllers\MgtReportDashboardController;
 use App\Http\Controllers\MgtReportProsesController;
 use App\Http\Controllers\MgtReportProdEarnController;
 use App\Http\Controllers\MgtReportDailyCostController;
+use App\Http\Controllers\MgtReportEarningController;
 
 
 //maintain-bpb
@@ -2228,6 +2229,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(MgtReportDailyCostController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
         Route::get('/mgt_report_daily_cost', 'mgt_report_daily_cost')->name('mgt_report_daily_cost');
         Route::get('/export_excel_laporan_daily_cost', 'export_excel_laporan_daily_cost')->name('export_excel_laporan_daily_cost');
+    });
+
+    Route::controller(MgtReportEarningController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+        Route::get('/mgt_report_earning', 'mgt_report_earning')->name('mgt_report_earning');
+        Route::get('/export_excel_laporan_earning', 'export_excel_laporan_earning')->name('export_excel_laporan_earning');
     });
 
     Route::controller(MgtReportProdEarnController::class)->prefix("proses")->middleware('role:accounting')->group(function () {

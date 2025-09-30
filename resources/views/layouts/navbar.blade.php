@@ -1525,11 +1525,17 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('mgt_report_earning') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-laporan-earning' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Earning
+                                </a>
+                            </li>
+                            {{-- <li>
                                 <a href="{{ route('mgt_report_prod_earn') }}"
                                     class="dropdown-item {{ $subPage == 'mgt-report-laporan-prod-earn' ? 'active' : '' }}">
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Summary Production Earn
                                 </a>
-                            </li>
+                            </li> --}}
                         </ul>
                     </li>
                 @endif

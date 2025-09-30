@@ -103,22 +103,27 @@
 
 
 
-
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Daily Cost</h5>
-        </div>
-
-        <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <a onclick="update_data()" class="btn btn-outline-primary position-relative btn-sm">
-                        <i class="fas fa-sync-alt fa-sm"></i>
-                        Update Data
-                    </a>
-                </div>
+    <form method="GET" action="{{ route('mgt_report_daily_cost') }}" id="form_daily_cost" name="form_daily_cost">
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Daily Cost</h5>
             </div>
-            <form method="GET" action="{{ route('mgt_report_daily_cost') }}">
+
+            <div class="card-body">
+                @php
+                    $user = auth()->user();
+                @endphp
+
+                @if ($user && $user->username === 'admin_01')
+                    <div class="d-flex align-items-end gap-3 mb-3">
+                        <div class="mb-3">
+                            <a onclick="update_data()" class="btn btn-outline-primary position-relative btn-sm">
+                                <i class="fas fa-sync-alt fa-sm"></i>
+                                Update Data
+                            </a>
+                        </div>
+                    </div>
+                @endif
                 <div class="row align-items-end g-3 mb-3">
                     <!-- Periode Tahun -->
                     <div class="col-md-2">
@@ -157,7 +162,7 @@
                     <!-- Generate Button -->
                     <div class="col-md-4 d-flex gap-2 align-items-end">
                         <button type="submit" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-cogs"></i> Generate Table
+                            <i class="fas fa-search"></i> Submit
                         </button>
 
                         <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm">
@@ -212,8 +217,8 @@
                         </tfoot>
                     </table>
                 </div>
-        </div>
-        </form>
+            </div>
+    </form>
     </div>
 @endsection
 
@@ -256,6 +261,17 @@
     </script>
 
     <script>
+        $('#form_daily_cost').on('submit', function(e) {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Loading data...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        });
+
         $(document).ready(function() {
             var table = $('#myTable').DataTable({
                 ordering: false,
@@ -266,7 +282,7 @@
                 searching: true,
                 scrollY: "500px",
                 scrollX: true,
-                scrollCollapse: false,
+                scrollCollapse: true,
                 fixedColumns: {
                     leftColumns: 4
                 },

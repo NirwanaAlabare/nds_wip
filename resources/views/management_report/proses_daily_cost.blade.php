@@ -490,11 +490,25 @@
                     data: 'nama_coa'
                 },
                 {
-                    data: 'projection'
+                    data: 'projection',
+                    className: 'text-end', // Bootstrap right align
+                    render: function(data, type, row) {
+                        return parseFloat(data).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
                 },
                 {
-                    data: 'daily_cost'
-                },
+                    data: 'daily_cost',
+                    className: 'text-end',
+                    render: function(data, type, row) {
+                        return parseFloat(data).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                }
             ],
 
             // ✅ Highlight rows where cek_valid === 'N'
@@ -782,11 +796,25 @@
                     data: 'nama_coa'
                 },
                 {
-                    data: 'projection'
+                    data: 'projection',
+                    className: 'text-end', // Bootstrap right align
+                    render: function(data, type, row) {
+                        return parseFloat(data).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
                 },
                 {
-                    data: 'daily_cost'
-                },
+                    data: 'daily_cost',
+                    className: 'text-end',
+                    render: function(data, type, row) {
+                        return parseFloat(data).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                }
             ],
             drawCallback: function(settings) {
                 let api = this.api();
