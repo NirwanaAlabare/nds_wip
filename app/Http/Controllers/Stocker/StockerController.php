@@ -6321,6 +6321,16 @@ class StockerController extends Controller
             } else {
                 $dataOutputPacking = collect([]);
             }
+
+            if ($request->range_awal && $request->range_akhir) {
+                $dataOutputPackingPo = collect(
+                    DB::connection("mysql_sb")->select("
+                        select created_by sewing_line, kode_numbering, id, created_at, updated_at from output_rfts_packing_po WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : '-')."
+                    ")
+                );
+            } else {
+                $dataOutputPackingPo = collect([]);
+            }
         }
 
         return Datatables::of($data)->
@@ -6442,8 +6452,18 @@ class StockerController extends Controller
                     "so_det_id" => $request->size,
                 ]);
 
+                $outputPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->whereIn("kode_numbering", $yearSequenceArr)->update([
+                    "so_det_id" => $request->size,
+                ]);
+
+                $outputGudangStok = DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->whereIn("kode_numbering", $yearSequenceArr)->update([
+                    "so_det_id" => $request->size,
+                ]);
+
                 // When the updated Size Was in different Plan
                 $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
+
+                $sewingService->missPackingPo();
 
                 if ($request['method'] == "list") {
                     if ($yearSequenceIds) {

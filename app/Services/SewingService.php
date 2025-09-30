@@ -311,4 +311,46 @@ class SewingService
             'additional' => [],
         );
     }
+
+    function missPackingPo() {
+        $missPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->
+            select("output_rfts_packing_po.id", "output_rfts_packing_po.po_id", "output_rfts_packing_po.kode_numbering", "output_rfts_packing_po.so_det_id", "ppic_master_so.id", "ppic_master_so.po")->
+            leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts_packing_po.po_id")->
+            whereRaw("output_rfts_packing_po.so_det_id != ppic_master_so.id_so_det")->
+            get();
+
+        $success = [];
+        $fails = [];
+        foreach ($missPackingPo as $packingPo) {
+            $actualPo = DB::table("ppic_master_so")->select("id", "po", "id_so_det")->where("id_so_det", $packingPo->so_det_id)->where("po", $packingPo->po)->first();
+
+            if (!$actualPo) {
+                $actualPo = DB::table("ppic_master_so")->select("id", "po", "id_so_det")->where("id_so_det", $packingPo->so_det_id)->first();
+            }
+
+            if ($actualPo && $actualPo->id) {
+                DB::connection("mysql_sb")->table(table: "output_rfts_packing_po")->where("id", $packingPo->id)->update(["po_id" => $actualPo->id]);
+
+                array_push($success, "PO Output Packing ".$packingPo->kode_numbering." / ".$packingPo->po_id." / ".$packingPo->so_det_id." diubah ke PO ".$actualPo->po." / ".$actualPo->id." / ".$actualPo->id_so_det);
+            } else {
+                array_push($fails, "PO Output Packing ".$packingPo->kode_numbering." tidak ditemukan");
+            }
+        }
+
+        Log::channel('missPackingPo')->info([
+            "Repair Packing Po Missing Po",
+            "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+            "Total Data ".count($success),
+            "Success" => $success,
+            "Fails" => $fails
+        ]);
+
+        return array(
+            'status' => 200,
+            'message' => (count($success) > 0 ? 'Berhasil mengubah '.count($success).' data </br>': '').' '.(count($fails) > 0 ? 'Gagal mengubah '.count($fails).' data </br>': ''),
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
+    }
 }
