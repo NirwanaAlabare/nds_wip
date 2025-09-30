@@ -26,7 +26,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mx-1 my-3">
                         <h5 class="fw-bold">Master Plan</h5>
-                        <h3 class="text-sb fw-bold">{{ num($masterPlan->count()) }}</h5>
+                        <h3 class="text-sb fw-bold">{{ num($masterPlan->where("cancel", "N")->count()) }}</h5>
                     </div>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mx-1 my-3">
                         <h5 class="fw-bold">Jam Kerja</h5>
-                        <h3 class="fw-bold {{ num($masterPlan->sum("jam_kerja")) != 8 ? "text-danger" : "text-success" }}">{{ num($masterPlan->sum("jam_kerja")) }}</h5>
+                        <h3 class="fw-bold {{ num($masterPlan->where("cancel", "N")->sum("jam_kerja")) != 8 ? "text-danger" : "text-success" }}">{{ num($masterPlan->where("cancel", "N")->sum("jam_kerja")) }}</h5>
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mx-1 my-3">
                         <h5 class="fw-bold">Man Power</h5>
-                        <h3 class="text-primary fw-bold">{{ num($masterPlan->max("man_power")) }}</h5>
+                        <h3 class="text-primary fw-bold">{{ num($masterPlan->where("cancel", "N")->max("man_power")) }}</h5>
                     </div>
                 </div>
             </div>
@@ -171,6 +171,7 @@
                             <th>Plan Target</th>
                             <th>Target Efficiency</th>
                             <th>Output</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -188,10 +189,13 @@
                                     <td class="text-nowrap">{{ num($mp->plan_target) }}</td>
                                     <td class="text-nowrap">{{ curr($mp->target_effy) }} %</td>
                                     <td class="text-nowrap">{{ num($mp->rfts->count()) }}</td>
+                                    <td class="text-nowrap fw-bold {{ ($mp->cancel != 'Y' ? "text-success" : "text-danger") }}">{{ ($mp->cancel != 'Y' ? "ACTIVE" : "CANCELLED") }}</td>
                                     <td class="text-nowrap">
-                                        <div class="d-flex gap-1">
+                                        <div class="d-flex justify-content-center gap-1">
                                             <button class="btn btn-primary btn-sm" onclick='editData({{ $mp->makeHidden(["rfts"]) }}, "editMasterPlanModal");'><i class="fa fa-edit"></i></button>
-                                            <button class="btn btn-danger btn-sm" data='{{ $mp->makeHidden(["rfts"]) }}' data-url='{{ route('destroy-master-plan', ['id' => $mp->id]) }}' onclick='deleteData(this)'><i class="fa fa-trash"></i></button>
+                                            @if ($mp->cancel != 'Y')
+                                                <button class="btn btn-danger btn-sm" data='{{ $mp->makeHidden(["rfts"]) }}' data-url='{{ route('destroy-master-plan', ['id' => $mp->id]) }}' onclick='deleteData(this)'><i class="fa fa-trash"></i></button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -225,7 +229,12 @@
                         <div id="edit-form">
                             <div class="row g-3">
                                 <input type="hidden" name="edit_id" id="edit_id">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <label>Tanggal</label>
+                                    <input type="date" class="form-control" name="edit_tgl_plan" id="edit_tgl_plan">
+                                    <small class="text-danger d-none" id="edit_tgl_plan"></small>
+                                </div>
+                                <div class="col-md-4">
                                     <label>WS Number</label>
                                     <select class="form-select select2bs4" name="edit_id_ws" id="edit_id_ws">
                                         <option value="">Select WS</option>
@@ -235,7 +244,7 @@
                                     </select>
                                     <small class="text-danger d-none" id="edit_id_ws_error"></small>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <input type="hidden" name="edit_color" id="edit_color">
                                     <label>Color</label>
                                     <select class="form-select select2bs4" name="edit_color_select" id="edit_color_select">
@@ -258,18 +267,26 @@
                                     <input type="number" class="form-control" value="" name="edit_man_power" id="edit_man_power" onchange="calculateMasterPlanTarget('edit_')" onkeyup="calculateMasterPlanTarget('edit_')">
                                     <small class="text-danger d-none" id="edit_man_power_error"></small>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label>Plan Target</label>
                                     <input type="number" class="form-control" value="" name="edit_plan_target" id="edit_plan_target">
                                     <small class="text-danger d-none" id="edit_plan_target_error"></small>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label>Target Efficiency</label>
                                     <div class="input-group mb-3">
                                         <input type="number" class="form-control" value="" name="edit_target_effy" id="edit_target_effy">
                                         <span class="input-group-text">%</span>
                                     </div>
                                     <small class="text-danger d-none" id="edit_target_effy_error"></small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Status</label>
+                                    <select class="form-select select2bs4" name="edit_cancel" id="edit_cancel">
+                                        <option value="N">ACTIVE</option>
+                                        <option value="Y">CANCELLED</option>
+                                    </select>
+                                    <small class="text-danger d-none" id="edit_cancel_error"></small>
                                 </div>
                                 <div class="col-md-6 d-none">
                                     <label>Gambar Baru</label>

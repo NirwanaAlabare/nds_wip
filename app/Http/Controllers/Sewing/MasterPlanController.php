@@ -161,6 +161,7 @@ class MasterPlanController extends Controller
                 master_plan.man_power,
                 master_plan.plan_target,
                 master_plan.target_effy,
+                master_plan.cancel,
                 CONCAT('http://10.10.5.62:8080/erp/pages/prod_new/upload_files/', master_plan.gambar) gambar
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
@@ -171,7 +172,7 @@ class MasterPlanController extends Controller
             })->
             where("sewing_line", $line)->
             where("tgl_plan", $date)->
-            where("master_plan.cancel", "N")->
+            orderBy("cancel", "asc")->
             orderBy("smv", "desc")->
             get();
 
@@ -205,6 +206,7 @@ class MasterPlanController extends Controller
     public function update(Request $request)
     {
         $validatedRequest = $request->validate([
+            "edit_tgl_plan" => "required",
             "edit_id" => "required",
             "edit_id_ws" => "required",
             "edit_color_select" => "required",
@@ -213,6 +215,7 @@ class MasterPlanController extends Controller
             "edit_man_power" => "required|numeric|min:0|not_in:0",
             "edit_plan_target" => "required|numeric|min:0|not_in:0",
             "edit_target_effy" => "required|numeric|min:0|not_in:0",
+            "edit_status" => "nullable",
         ]);
 
         $editGambarNew = null;
@@ -233,6 +236,7 @@ class MasterPlanController extends Controller
 
         if ($masterPlan->rfts->count()+$masterPlan->defects->count()+$masterPlan->rejects->count() < 1) {
             $updateMasterPlan = MasterPlan::where("id", $request->edit_id)->update([
+                "tgl_plan" => $request->edit_tgl_plan,
                 "id_ws" => $request->edit_id_ws,
                 "color" => $request->edit_color,
                 "smv" => $request->edit_smv,
@@ -240,6 +244,7 @@ class MasterPlanController extends Controller
                 "man_power" => $request->edit_man_power,
                 "plan_target" => $request->edit_plan_target,
                 "target_effy" => $request->edit_target_effy,
+                "cancel" => $request->edit_status ? 'N' : $request->edit_status,
                 // "gambar" => $editGambarNew
             ]);
 

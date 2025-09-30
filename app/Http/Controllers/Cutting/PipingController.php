@@ -28,13 +28,13 @@ class PipingController extends Controller
                 form_cut_piping.cons_piping,
                 form_cut_piping.id_roll,
                 scanned_item.id_item,
-                scanned_item.detail_item,
+                REPLACE(scanned_item.detail_item, '\"', '&quot;') AS detail_item,
                 scanned_item.lot,
                 scanned_item.roll,
                 form_cut_piping.qty,
                 form_cut_piping.piping,
                 form_cut_piping.qty_sisa,
-                COALESCE(form_cut_piping.short_roll, 0) short_roll,
+                COALESCE(form_cut_piping.short_roll, 0) AS short_roll,
                 form_cut_piping.unit,
                 operator
             ")->
