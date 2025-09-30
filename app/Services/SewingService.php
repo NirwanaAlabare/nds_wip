@@ -329,7 +329,7 @@ class SewingService
             }
 
             if ($actualPo && $actualPo->id) {
-                DB::connection("mysql_sb")->table(table: "output_rfts_packing_po")->where("id", $packingPo->id)->update(["po_id" => $actualPo->id]);
+                DB::connection("mysql_sb")->table("output_rfts_packing_po")->where("id", $packingPo->id)->update(["po_id" => $actualPo->id]);
 
                 array_push($success, "PO Output Packing ".$packingPo->kode_numbering." / ".$packingPo->po_id." / ".$packingPo->so_det_id." diubah ke PO ".$actualPo->po." / ".$actualPo->id." / ".$actualPo->id_so_det);
             } else {
