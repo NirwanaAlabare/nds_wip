@@ -72,7 +72,7 @@
                         {{ number_format($row->blc, 2) }}</td>
                     <td class="text-end"
                         style="color: {{ strpos($row->percent_est_earn, '-') !== false ? 'red' : 'black' }}">
-                        {{ $row->percent_est_earn }}
+                        {{ number_format((float) $row->percent_est_earn, 2) }} %
                     </td>
 
                     <td class="text-end">{{ number_format($row->full_cm_price, 2) }}</td>
@@ -84,7 +84,7 @@
                         {{ number_format($row->blc_full_earn, 2) }}</td>
                     <td class="text-end"
                         style="color: {{ strpos($row->percent_full_earn, '-') !== false ? 'red' : 'black' }}">
-                        {{ $row->percent_full_earn }}
+                        {{ number_format((float) $row->percent_full_earn, 2) }} %
                     </td>
 
                     <td class="text-end" style="color: {{ $row->est_earning_prod < 0 ? 'red' : 'black' }}">
@@ -95,7 +95,7 @@
                         {{ number_format($row->blc_est_cost_prod, 2) }}</td>
                     <td class="text-end"
                         style="color: {{ strpos($row->percent_est_cost_prod, '-') !== false ? 'red' : 'black' }}">
-                        {{ $row->percent_est_cost_prod }}
+                        {{ number_format((float) $row->percent_est_cost_prod, 2) }} %
                     </td>
 
                     <td class="text-end" style="color: {{ $row->est_earning_mkt < 0 ? 'red' : 'black' }}">
@@ -106,8 +106,9 @@
                         {{ number_format($row->blc_earn_mkt, 2) }}</td>
                     <td class="text-end"
                         style="color: {{ strpos($row->percent_earn_mkt, '-') !== false ? 'red' : 'black' }}">
-                        {{ $row->percent_earn_mkt }}
+                        {{ number_format((float) $row->percent_earn_mkt, 2) }} %
                     </td>
+
 
 
                 </tr>
