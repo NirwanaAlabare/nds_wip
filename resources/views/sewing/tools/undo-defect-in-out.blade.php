@@ -15,7 +15,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title">
-                <i class="fa fa-solid fa-rotate fa-sm"></i> Undo Output
+                <i class="fa fa-solid fa-rotate fa-sm"></i> Undo Defect In Out
             </h5>
         </div>
         <div class="card-body">
@@ -24,7 +24,6 @@
                 <select class="form-select" name="department" id="department">
                     <option value="qc">QC</option>
                     <option value="packing">FINISHING</option>
-                    <option value="packing_po">PACKING</option>
                 </select>
             </div>
             <label class="form-label">Kode Numbering :</label>
@@ -56,7 +55,8 @@
                             <th>Status</th>
                             <th>Line</th>
                             <th>Waktu</th>
-                            <th>Defect</th>
+                            <th>Defect Type</th>
+                            <th>Defect Area</th>
                             <th>Alokasi</th>
                         </tr>
                     </thead>
@@ -66,8 +66,7 @@
             </div>
         </div>
         <div class="card-footer border-1">
-            <button type="button" class="btn btn-sb-secondary btn-block" onclick="undoOutputSubmit()"><i class="fa fa-rotate"></i> UNDO</button>
-            <button type="button" class="btn btn-success btn-block" onclick="restoreUndoOutputSubmit()"><i class="fa fa-circle"></i> RESTORE</button>
+            <button type="button" class="btn btn-sb-secondary btn-block" onclick="undoDefectSubmit()"><i class="fa fa-rotate"></i> UNDO</button>
         </div>
     </div>
 @endsection
@@ -95,7 +94,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('get-output') }}',
+                url: '{{ route('get-defect-in-out') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 scrollY: '400px',
@@ -106,15 +105,16 @@
             },
             columns: [
                 { data: "kode_numbering" },
-                { data: "type" },
+                { data: "output_type" },
                 { data: "ws" },
                 { data: "style" },
                 { data: "color" },
                 { data: "size" },
                 { data: "status" },
                 { data: "sewing_line" },
-                { data: "updated_at" },
-                { data: "defect" },
+                { data: "time_out" },
+                { data: "defect_type" },
+                { data: "defect_area" },
                 { data: "allocation" }
             ],
             columnDefs: [
@@ -130,10 +130,10 @@
             listTable.ajax.reload();
         }
 
-        function undoOutputSubmit() {
+        function undoDefectSubmit() {
             Swal.fire({
-                title: 'UNDO Output',
-                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan UNDO OUTPUT ini?',
+                title: 'UNDO Defect IN/OUT',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan UNDO DEFECT IN/OUT ini?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'UNDO',
@@ -144,7 +144,7 @@
                     document.getElementById("loading").classList.remove("d-none");
 
                     $.ajax({
-                        url: "{{ route('undo-output-submit') }}",
+                        url: "{{ route('undo-defect-in-out-submit') }}",
                         type: "post",
                         data: {
                             kode_numbering: $("#kode_numbering").val(),
@@ -157,54 +157,7 @@
                             console.log(res);
 
                             if (res.length > 0) {
-                                let message = res.join("<br>");
-
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'Info',
-                                    html: message,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                    confirmButtonColor: "#082149",
-                                });
-
-                                listTableReload();
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        function restoreUndoOutputSubmit() {
-            Swal.fire({
-                title: 'Restore UNDO Output',
-                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan Restore UNDO OUTPUT ini?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'RESTORE',
-                cancelButtonText: 'BATAL',
-                confirmButtonColor: "#dc3545"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById("loading").classList.remove("d-none");
-
-                    $.ajax({
-                        url: "{{ route('restore-undo-submit') }}",
-                        type: "post",
-                        data: {
-                            kode_numbering: $("#kode_numbering").val(),
-                            department: $("#department").val()
-                        },
-                        dataType: "json",
-                        success: function (res) {
-                            document.getElementById("loading").classList.add("d-none");
-
-                            console.log(res);
-
-                            if (res.length > 0) {
-                                let message = res.join("<br>");
+                                let message = res.join("");
 
                                 Swal.fire({
                                     icon: 'info',

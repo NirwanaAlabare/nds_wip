@@ -5,6 +5,7 @@ namespace App\Http\Controllers\General;
 use App\Http\Controllers\Controller;
 use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
+use App\Models\SignalBit\DefectInOut;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -966,30 +967,47 @@ class GeneralController extends Controller
         }
 
         if ($request->department) {
-            $department = $request->department == "packing" ? "_packing" : "";
+            $department = ($request->department == "packing_po" ? "_packing_po" : ($request->department == "packing" ? "_packing" : ""));
         } else {
             $department = "";
         }
 
         $kodeNumberingOutput = collect(
             DB::connection("mysql_sb")->select("
-                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing" ? "'PACKING' as type" : "'QC' as type")." FROM (
-                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
-                    UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
-                    UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing" ? "'packing' as type" : "'qc' as type")." FROM (
+                    select master_plan_id, so_det_id, created_by ".($department == "_packing_po" ? ", created_by_username, created_by_line" : "").", kode_numbering, id, created_at, updated_at, 'rft' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
+                    ".
+                    (
+                        $department != "_packing_po" ?
+                            "
+                                UNION
+                                select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, defect_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
+                                UNION
+                                select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, reject_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                            "
+                            :
+                            ""
+                    )
+                    ."
                 ) output
                 ".
                 (
-                    $department && $department == "_packing" ?
+                    $department && $department == "_packing_po" ?
                     "
-                        left join userpassword on userpassword.username = output.created_by
-                    " :
+                        left join userpassword on userpassword.username = output.created_by_line
                     "
-                        left join user_sb_wip on user_sb_wip.id = output.created_by
-                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                    "
+                    :
+                    (
+                        $department && $department == "_packing" ?
+                        "
+                            left join userpassword on userpassword.username = output.created_by
+                        "
+                        :
+                        "
+                            left join user_sb_wip on user_sb_wip.id = output.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                        "
+                    )
                 )."
                 left join so_det on so_det.id = output.so_det_id
                 left join so on so.id = so_det.id_so
@@ -1180,5 +1198,50 @@ class GeneralController extends Controller
             get();
 
         return Datatables::of($kodeNumberingOutput)->toJson();
+    }
+
+    public function getDefectInOut(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        $department = $request->department;
+
+        $defectInOutList = DefectInOut::selectRaw("
+            master_plan.id master_plan_id,
+            master_plan.id_ws,
+            master_plan.sewing_line,
+            act_costing.kpno as ws,
+            act_costing.styleno as style,
+            master_plan.color as color,
+            output_defect_in_out.created_at as time_in,
+            output_defect_in_out.updated_at as time_out,
+            output_defects.defect_type_id,
+            output_defect_types.defect_type,
+            output_defect_areas.defect_area,
+            output_defects.so_det_id,
+            output_defect_in_out.kode_numbering,
+            output_defect_in_out.output_type,
+            output_defect_in_out.updated_at as defect_time,
+            output_defect_in_out.status,
+            output_defect_types.allocation,
+            so_det.size
+        ")->
+        leftJoin(($department == 'packing' ? 'output_defects_packing' : ($department == 'qcf' ? 'output_check_finishing' : 'output_defects'))." as output_defects", "output_defects.id", "=", "output_defect_in_out.defect_id")->
+        leftJoin("so_det", "so_det.id", "=", "output_defects.so_det_id")->
+        leftJoin("master_plan", "master_plan.id", "=", "output_defects.master_plan_id")->
+        leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+        leftJoin("output_defect_types", "output_defect_types.id", "=", "output_defects.defect_type_id")->
+        leftJoin("output_defect_areas", "output_defect_areas.id", "=", "output_defects.defect_area_id")->
+        whereNotNull("output_defects.id")->
+        where("output_defect_in_out.output_type", $department)->
+        whereRaw("YEAR(output_defect_in_out.created_at) = '".date("Y")."' AND output_defects.kode_numbering in (".$kodeNumbering.")")->
+        groupBy("output_defect_in_out.id")->
+        orderBy("output_defect_in_out.updated_at", "desc")->
+        get();
+
+        return Datatables::of($defectInOutList)->toJson();
     }
 }

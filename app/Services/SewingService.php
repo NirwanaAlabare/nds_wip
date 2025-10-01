@@ -314,15 +314,16 @@ class SewingService
 
     function missPackingPo() {
         $missPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->
-            select("output_rfts_packing_po.id", "output_rfts_packing_po.po_id", "output_rfts_packing_po.kode_numbering", "output_rfts_packing_po.so_det_id", "ppic_master_so.id", "ppic_master_so.po")->
+            select("output_rfts_packing_po.id", "output_rfts_packing_po.po_id", "output_rfts_packing_po.kode_numbering", "output_rfts_packing_po.so_det_id", "ppic_master_so.id as po_id", "ppic_master_so.po")->
             leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts_packing_po.po_id")->
             whereRaw("output_rfts_packing_po.so_det_id != ppic_master_so.id_so_det")->
+            groupBy("output_rfts_packing_po.id")->
             get();
 
         $success = [];
         $fails = [];
         foreach ($missPackingPo as $packingPo) {
-            $actualPo = DB::table("ppic_master_so")->select("id", "po", "id_so_det")->where("id_so_det", $packingPo->so_det_id)->where("po", $packingPo->po)->first();
+            $actualPo = DB::table("ppic_master_so")->select("id", "po", "id_so_det")->where("po", $packingPo->po)->where("id_so_det", $packingPo->so_det_id)->first();
 
             if (!$actualPo) {
                 $actualPo = DB::table("ppic_master_so")->select("id", "po", "id_so_det")->where("id_so_det", $packingPo->so_det_id)->first();
@@ -335,6 +336,8 @@ class SewingService
             } else {
                 array_push($fails, "PO Output Packing ".$packingPo->kode_numbering." tidak ditemukan");
             }
+
+            $actualPo = null;
         }
 
         Log::channel('missPackingPo')->info([
