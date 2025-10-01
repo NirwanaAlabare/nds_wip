@@ -281,6 +281,12 @@
                     {
                         data: 'eff_line',
                         className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            return parseFloat(data).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
                     },
                     {
                         data: 'tot_earning_rupiah',
@@ -315,6 +321,12 @@
                     {
                         data: 'percent_est_earn',
                         className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            return parseFloat(data).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
                     },
                     {
                         data: 'full_cm_price',
@@ -448,7 +460,7 @@
 
                     for (let i = 4; i <= 24; i++) {
                         // Skip columns 7 and 12
-                        if (i === 7 || i === 12 || i === 16 || i === 20 || i === 24) {
+                        if (i === 7 || i === 11 || i === 16 || i === 20 || i === 24) {
                             $(api.column(i).footer()).html(''); // clear footer for excluded cols (optional)
                             continue;
                         }
@@ -515,7 +527,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Laporan Daily Cost " + " bulan " + bulan + " _ " + tahun + ".xlsx";
+                    link.download = "Laporan Daily Earning " + " bulan " + bulan + " _ " + tahun + ".xlsx";
                     link.click();
                 },
                 error: function(xhr, status, error) {

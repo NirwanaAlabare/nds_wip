@@ -9,6 +9,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class MgtReportProsesController extends Controller
 {
@@ -278,7 +279,7 @@ no_coa asc
 
     public function update_data_labor(Request $request)
     {
-        $user = Auth::user()->name;
+        $user = Auth::user() ? Auth::user()->name : $request->input('user');
         $timestamp = Carbon::now();
         $frequency = $request->input('frequency');
         $tahun = $request->input('tahun');
@@ -286,14 +287,24 @@ no_coa asc
         $start_date = $request->input('start_date'); // might be null
         $end_date = $request->input('end_date'); // might be null
 
+        $cond = "";
+        $condDel = "";
+        $condDesc = "";
         if ($frequency == 'daily') {
             $cond = "a.tanggal_berjalan BETWEEN '$start_date' AND '$end_date'";
+            $condDel = "AND tanggal_berjalan BETWEEN '$start_date' AND '$end_date'";
+            $condDesc = "Dari '$start_date' Sampai '$end_date'";
         } else if ($frequency == 'monthly') {
             $cond = "month(a.tanggal_berjalan) = '$bulan' AND year(a.tanggal_berjalan) = '$tahun'";
+            $condDel = "AND month(tanggal_berjalan) = '$bulan' AND year(tanggal_berjalan) = '$tahun'";
+            $condDesc = "Bulan '$bulan' Tahun '$tahun'";
         } else if ($frequency == 'yearly') {
-            $cond = "year(a.tanggal_berjalan) = '$tahun'";
+            $cond = "year(tanggal_berjalan) = '$tahun'";
+            $condDel = "AND year(tanggal_berjalan) = '$tahun'";
+            $condDesc = "Tahun '$tahun'";
+        } else {
+            $condDel = "AND 1 = 0"; // fail-safe: delete nothing
         }
-
 
         $data_hris = DB::connection('mysql_hris')->select(
             "SELECT a.tanggal_berjalan ,if(emp_hist.status_staff is null,b.status_staff,emp_hist.status_staff) status_staff,if(emp_hist.department_id is null,b.department_id,emp_hist.department_id) department_id,if(emp_hist.department_name is null,b.department_name,emp_hist.department_name) department_name,if(emp_hist.department_name is null,b.sub_dept_id,emp_hist.sub_dept_id) sub_dept_id,if(emp_hist.sub_dept_name is null,b.sub_dept_name,emp_hist.sub_dept_name) sub_dept_name,a.group_department,COUNT(IF(CASE WHEN(absen_ijin.kode_ijin_payroll is null) THEN
@@ -363,31 +374,47 @@ no_coa asc
         group by a.tanggal_berjalan,sub_dept_id"
         );
 
+        // Delete The Current Data
+        $deleteCurrentData = DB::connection('mysql_sb')->table('mgt_rep_labor')->whereRaw("tanggal_berjalan is not null ".$condDel."")->delete();
 
+        // Insert New Data
         foreach ($data_hris as $row) {
-            DB::connection('mysql_sb')->table('mgt_rep_labor')->insert([
-                'tanggal_berjalan'      => $row->tanggal_berjalan,
-                'status_staff'          => $row->status_staff,
-                'department_id'         => $row->department_id,
-                'department_name'       => $row->department_name,
-                'sub_dept_id'           => $row->sub_dept_id,
-                'sub_dept_name'         => $row->sub_dept_name,
-                'group_department'      => $row->group_department,
-                'man_power'             => $row->man_power,
-                'absen_menit'           => $row->absen_menit,
-                'mulai_jam_kerja'       => $row->mulai_jam_kerja,
-                'status_absen'          => $row->status_absen,
-                'absen_masuk_kerja'     => $row->absen_masuk_kerja,
-                'absen_pulang_kerja'    => $row->absen_pulang_kerja,
-                'kode_hari'             => $row->kode_hari,
-                'bruto'                 => $row->bruto,
-                'total_lembur_rupiah'   => $row->total_lembur_rupiah,
-                'bpjs_tk'               => $row->bpjs_tk,
-                'bpjs_ks'               => $row->bpjs_ks,
-                'thr'                   => $row->thr,
-                'created_by'            => $user,
-                'created_at'            => $timestamp,
-            ]);
+            DB::connection('mysql_sb')->table('mgt_rep_labor')->updateOrInsert(
+                [
+                    'tanggal_berjalan' => $row->tanggal_berjalan,
+                    'sub_dept_id'      => $row->sub_dept_id,
+                    'group_department' => $row->group_department,
+                ],
+                [
+                    'status_staff'        => $row->status_staff,
+                    'department_id'       => $row->department_id,
+                    'department_name'     => $row->department_name,
+                    'sub_dept_name'       => $row->sub_dept_name,
+                    'man_power'           => $row->man_power,
+                    'absen_menit'         => $row->absen_menit,
+                    'mulai_jam_kerja'     => $row->mulai_jam_kerja,
+                    'status_absen'        => $row->status_absen,
+                    'absen_masuk_kerja'   => $row->absen_masuk_kerja,
+                    'absen_pulang_kerja'  => $row->absen_pulang_kerja,
+                    'kode_hari'           => $row->kode_hari,
+                    'bruto'               => $row->bruto,
+                    'total_lembur_rupiah' => $row->total_lembur_rupiah,
+                    'bpjs_tk'             => $row->bpjs_tk,
+                    'bpjs_ks'             => $row->bpjs_ks,
+                    'thr'                 => $row->thr,
+                    'created_by'          => $user,
+                    'created_at'          => $timestamp,
+                ]
+            );
         }
+
+        Log::channel('updateHrisLabor')->info("Labor Processed ".(Carbon::now()->format('d-m-Y H:i:s'))." \n ".$condDesc."");
+        Log::channel('updateHrisLabor')->info($data_hris);
+
+        return array(
+            "status" => 200,
+            "message" => "Labor Processed ".(Carbon::now()->format('d-m-Y h:i:s')." \n ".$condDesc.""),
+            "data" => $data_hris
+        );
     }
 }

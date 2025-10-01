@@ -2215,12 +2215,12 @@ Route::middleware('auth')->group(function () {
 
     // Management Report
     // Dashboard
-    Route::controller(MgtReportDashboardController::class)->middleware('role:accounting')->group(function () {
+    Route::controller(MgtReportDashboardController::class)->middleware('role:management')->group(function () {
         Route::get('/dashboard_mgt_report', 'dashboard_mgt_report')->name('dashboard-mgt-report');
     });
 
     // Proses Management Report
-    Route::controller(MgtReportProsesController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+    Route::controller(MgtReportProsesController::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/mgt_report_proses_daily_cost', 'mgt_report_proses_daily_cost')->name('mgt_report_proses_daily_cost');
         Route::get('/mgt_report_proses_daily_cost_show_working_days', 'mgt_report_proses_daily_cost_show_working_days')->name('mgt_report_proses_daily_cost_show_working_days');
         Route::get('/contoh_upload_daily_cost', 'contoh_upload_daily_cost')->name('contoh_upload_daily_cost');
@@ -2233,17 +2233,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/update_data_labor', 'update_data_labor')->name('update_data_labor');
     });
 
-    Route::controller(MgtReportDailyCostController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+    Route::controller(MgtReportDailyCostController::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/mgt_report_daily_cost', 'mgt_report_daily_cost')->name('mgt_report_daily_cost');
         Route::get('/export_excel_laporan_daily_cost', 'export_excel_laporan_daily_cost')->name('export_excel_laporan_daily_cost');
     });
 
-    Route::controller(MgtReportEarningController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+    Route::controller(MgtReportEarningController::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/mgt_report_earning', 'mgt_report_earning')->name('mgt_report_earning');
         Route::get('/export_excel_laporan_earning', 'export_excel_laporan_earning')->name('export_excel_laporan_earning');
     });
 
-    Route::controller(MgtReportProdEarnController::class)->prefix("proses")->middleware('role:accounting')->group(function () {
+    Route::controller(MgtReportProdEarnController::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/mgt_report_prod_earn', 'mgt_report_prod_earn')->name('mgt_report_prod_earn');
     });
 });
