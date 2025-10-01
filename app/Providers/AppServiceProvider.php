@@ -44,14 +44,14 @@ class AppServiceProvider extends ServiceProvider
                     return true;
                 }
             } else {
-                if (!(in_array("accounting", $roles)) && $user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
+                if ((!(in_array("accounting", $roles)) && !(in_array("management", $roles))) && $user->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0) {
                     return true;
                 }
 
                 foreach($roles as $role) {
                     // Check if user has the role This check will depend on how your roles are set up
                     foreach ($user->roles as $userRole) {
-                        if (($role == 'accounting' && $userRole->accesses->whereIn("access", [$role])->count() > 0) || ($role != 'accounting' && $userRole->accesses->whereIn("access", [$role, "all"])->count() > 0)) {
+                        if ((($role == 'accounting' || $role == 'management') && $userRole->accesses->whereIn("access", [$role])->count() > 0) || (($role != 'accounting' && $role != 'management') && $userRole->accesses->whereIn("access", [$role, "all"])->count() > 0)) {
                             return true;
                         }
                     }

@@ -148,9 +148,21 @@ return [
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
 
+        'missPackingPo' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/missPackingPo/missPackingPo.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
         'deleteStockerAbout' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/stockerAbout/deleteStockerAbout.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
+        'updateHrisLabor' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/hris/updateHrisLabor.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
     ],
