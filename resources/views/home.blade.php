@@ -273,7 +273,7 @@
                             </div>
                         @endrole
 
-                        @role('accounting')
+                        @role('management')
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-mgt-report') }}" class="home-item">
                                     <div class="card h-100">
