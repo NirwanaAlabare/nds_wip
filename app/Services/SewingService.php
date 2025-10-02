@@ -316,7 +316,7 @@ class SewingService
         $missPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->
             select("output_rfts_packing_po.id", "output_rfts_packing_po.po_id", "output_rfts_packing_po.kode_numbering", "output_rfts_packing_po.so_det_id", "ppic_master_so.id as po_id", "ppic_master_so.po")->
             leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts_packing_po.po_id")->
-            whereRaw("output_rfts_packing_po.so_det_id != ppic_master_so.id_so_det")->
+            whereRaw("output_rfts_packing_po.po_id is not null and (ppic_master_so.id_so_det is null OR ppic_master_so.id_so_det != output_rfts_packing_po.so_det_id)")->
             groupBy("output_rfts_packing_po.id")->
             get();
 
