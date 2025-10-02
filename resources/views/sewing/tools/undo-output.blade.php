@@ -201,10 +201,13 @@
                         success: function (res) {
                             document.getElementById("loading").classList.add("d-none");
 
-                            console.log(res);
-
-                            if (res.length > 0) {
-                                let message = res.join("<br>");
+                            if (res) {
+                                console.log(res);
+                                let messageRft = (res.rft.length)+" RFT <br>";
+                                let messageDefect = (res.defect.length)+" Defect <br>";
+                                let messageRework = (res.rework.length)+" Rework <br>";
+                                let messageReject = (res.reject.length)+" Reject <br>";
+                                let message = messageRft + messageDefect + messageRework + messageReject;
 
                                 Swal.fire({
                                     icon: 'info',
@@ -215,9 +218,9 @@
                                     confirmButtonText: 'Oke',
                                     confirmButtonColor: "#082149",
                                 });
-
-                                listTableReload();
                             }
+
+                            listTableReload();
                         }
                     });
                 }

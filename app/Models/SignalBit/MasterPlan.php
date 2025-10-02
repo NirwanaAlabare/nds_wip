@@ -53,6 +53,6 @@ class MasterPlan extends Model
     // QC Packing
     public function rftsPacking()
     {
-        return $this->hasMany(OutputPacking::class, 'master_plan_id', 'id');
+        return $this->hasMany(RftPacking::class, 'master_plan_id', 'id');
     }
 }

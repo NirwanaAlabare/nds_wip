@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\SignalBit\OutputPacking;
+use App\Models\SignalBit\RftPacking;
 
 class PPICMasterSo extends Model
 {
@@ -16,6 +16,6 @@ class PPICMasterSo extends Model
 
     public function outputPacking()
     {
-        return $this->hasOne(outputPacking::class, 'so_det_id', 'id_so_det');
+        return $this->hasOne(RftPacking::class, 'so_det_id', 'id_so_det');
     }
 }
