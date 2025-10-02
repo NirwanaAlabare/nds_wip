@@ -2115,7 +2115,7 @@ class SewingToolsController extends Controller
                                         DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
 
                                         // Delete Gudang Stok on Packing Po GudangStok
-                                        if ($rft->alokasi == "gudang_stok") {
+                                        if ($rft->alokasi == "gudang stok") {
                                             DB::connection("mysql_sb")->table("output_gudang_stok")->where('packing_po_id', $rft->id)->delete();
                                         }
                                     } else {
@@ -2953,18 +2953,33 @@ class SewingToolsController extends Controller
                 if ($restore->output_rft_id && $restore->keterangan == "rft") {
                     if ($department == "packing_po") {
                         array_push($rft, [
+                            "id" => $restore->output_rft_id,
                             "master_plan_id" => $restore->master_plan_id,
                             "so_det_id" => $restore->so_det_id,
                             "po_id" => $restore->po_id,
                             'status' => 'NORMAL',
                             "kode_numbering" => $restore->kode_numbering,
                             "no_cut_size" => $restore->kode_numbering,
+                            "alokasi" => $restore->alokasi,
                             "created_by" => $restore->created_by,
                             "created_by_username" => $restore->created_by_username,
                             "created_by_line" => $restore->created_by_line,
                             "created_at" => $restore->created_at,
                             "updated_at" => $restore->updated_at,
                         ]);
+
+                        if ($restore->alokasi == "gudang stok") {
+                            array_push($gudangStok, [
+                                "kode_numbering" => $restore->kode_numbering,
+                                "so_det_id" => $restore->so_det_id,
+                                "packing_po_id" => $restore->output_rft_id,
+                                "created_by" => $restore->created_by,
+                                "created_by_username" => $restore->created_by_username,
+                                "created_by_line" => $restore->created_by_line,
+                                "created_at" => $restore->created_at,
+                                "updated_at" => $restore->updated_at,
+                            ]);
+                        }
                     } else {
                         array_push($rft, [
                             "master_plan_id" => $restore->master_plan_id,
@@ -3209,6 +3224,10 @@ class SewingToolsController extends Controller
             if (count($rft) > 0) {
                 if ($department == "packing_po") {
                     RftPackingPo::insert($rft);
+
+                    if (count($gudangStok) > 0) {
+                        OutputGudangStok::insert($gudangStok);
+                    }
                 } else if ($department == "packing") {
                     RftPacking::insert($rft);
 
