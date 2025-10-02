@@ -55,62 +55,74 @@
         <tbody>
             @foreach ($rawData as $row)
                 <tr>
-                    <td>{{ $row->tgl_trans_fix }}</td>
+                    <td>{{ $row->tanggal_fix }}</td>
                     <td>{{ $row->sewing_line }}</td>
                     <td>{{ $row->kpno }}</td>
                     <td>{{ $row->buyer }}</td>
                     <td class="text-end">{{ $row->tot_output }}</td>
-                    <td class="text-end">{{ number_format($row->mins_prod, 2) }}</td>
-                    <td class="text-end">{{ number_format($row->mins_avail, 2) }}</td>
-                    <td class="text-end">{{ $row->eff_line }}</td>
-
-                    <td class="text-end" style="color: {{ $row->tot_earning_rupiah < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->tot_earning_rupiah, 2) }}</td>
-                    <td class="text-end" style="color: {{ $row->est_tot_cost < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->est_tot_cost, 2) }}</td>
-                    <td class="text-end" style="color: {{ $row->blc < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->blc, 2) }}</td>
+                    <td class="text-end">{{ $row->mins_prod }}</td>
+                    <td class="text-end">{{ $row->mins_avail }}</td>
                     <td class="text-end"
-                        style="color: {{ strpos($row->percent_est_earn, '-') !== false ? 'red' : 'black' }}">
-                        {{ number_format((float) $row->percent_est_earn, 2) }} %
+                        style="color: {{ strpos($row->eff_line / 100, '-') !== false ? 'red' : 'black' }}">
+                        {{ $row->eff_line / 100 }}
                     </td>
 
-                    <td class="text-end">{{ number_format($row->full_cm_price, 2) }}</td>
-                    <td class="text-end" style="color: {{ $row->est_full_earning < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->est_full_earning, 2) }}</td>
+                    <td class="text-end" style="color: {{ $row->tot_earning_rupiah < 0 ? 'red' : 'black' }}">
+                        {{ $row->tot_earning_rupiah }}
+                    </td>
                     <td class="text-end" style="color: {{ $row->est_tot_cost < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->est_tot_cost, 2) }}</td>
-                    <td class="text-end" style="color: {{ $row->blc_full_earn < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->blc_full_earn, 2) }}</td>
+                        {{ $row->est_tot_cost }}
+                    </td>
+                    <td class="text-end" style="color: {{ $row->blc < 0 ? 'red' : 'black' }}">
+                        {{ $row->blc }}
+                    </td>
                     <td class="text-end"
-                        style="color: {{ strpos($row->percent_full_earn, '-') !== false ? 'red' : 'black' }}">
-                        {{ number_format((float) $row->percent_full_earn, 2) }} %
+                        style="color: {{ strpos($row->percent_est_earn / 100, '-') !== false ? 'red' : 'black' }}">
+                        {{ $row->percent_est_earn / 100 }}
+                    </td>
+
+                    <td class="text-end">{{ $row->full_cm_price }}</td>
+                    <td class="text-end" style="color: {{ $row->est_full_earning < 0 ? 'red' : 'black' }}">
+                        {{ $row->est_full_earning }}
+                    </td>
+                    <td class="text-end" style="color: {{ $row->est_tot_cost < 0 ? 'red' : 'black' }}">
+                        {{ $row->est_tot_cost }}
+                    </td>
+                    <td class="text-end" style="color: {{ $row->blc_full_earn < 0 ? 'red' : 'black' }}">
+                        {{ $row->blc_full_earn }}
+                    </td>
+                    <td class="text-end"
+                        style="color: {{ strpos($row->percent_full_earn / 100, '-') !== false ? 'red' : 'black' }}">
+                        {{ $row->percent_full_earn / 100 }}
                     </td>
 
                     <td class="text-end" style="color: {{ $row->est_earning_prod < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->est_earning_prod, 2) }}</td>
+                        {{ $row->est_earning_prod }}
+                    </td>
                     <td class="text-end" style="color: {{ $row->est_cost_prod < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->est_cost_prod, 2) }}</td>
+                        {{ $row->est_cost_prod }}
+                    </td>
                     <td class="text-end" style="color: {{ $row->blc_est_cost_prod < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->blc_est_cost_prod, 2) }}</td>
+                        {{ $row->blc_est_cost_prod }}
+                    </td>
                     <td class="text-end"
-                        style="color: {{ strpos($row->percent_est_cost_prod, '-') !== false ? 'red' : 'black' }}">
-                        {{ number_format((float) $row->percent_est_cost_prod, 2) }} %
+                        style="color: {{ strpos($row->percent_est_cost_prod / 100, '-') !== false ? 'red' : 'black' }}">
+                        {{ $row->percent_est_cost_prod / 100 }}
                     </td>
 
                     <td class="text-end" style="color: {{ $row->est_earning_mkt < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->est_earning_mkt, 2) }}</td>
-                    <td class="text-end" style="color: {{ $row->est_cost_mkt < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->est_cost_mkt, 2) }}</td>
-                    <td class="text-end" style="color: {{ $row->blc_earn_mkt < 0 ? 'red' : 'black' }}">
-                        {{ number_format($row->blc_earn_mkt, 2) }}</td>
-                    <td class="text-end"
-                        style="color: {{ strpos($row->percent_earn_mkt, '-') !== false ? 'red' : 'black' }}">
-                        {{ number_format((float) $row->percent_earn_mkt, 2) }} %
+                        {{ $row->est_earning_mkt }}
                     </td>
-
-
-
+                    <td class="text-end" style="color: {{ $row->est_cost_mkt < 0 ? 'red' : 'black' }}">
+                        {{ $row->est_cost_mkt }}
+                    </td>
+                    <td class="text-end" style="color: {{ $row->blc_earn_mkt < 0 ? 'red' : 'black' }}">
+                        {{ $row->blc_earn_mkt }}
+                    </td>
+                    <td class="text-end"
+                        style="color: {{ strpos($row->percent_earn_mkt / 100, '-') !== false ? 'red' : 'black' }}">
+                        {{ $row->percent_earn_mkt / 100 }}
+                    </td>
                 </tr>
             @endforeach
         </tbody>

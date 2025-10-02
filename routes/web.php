@@ -188,7 +188,7 @@ use App\Http\Controllers\QCInspectShadeBandController;
 // Management Report
 use App\Http\Controllers\MgtReportDashboardController;
 use App\Http\Controllers\MgtReportProsesController;
-use App\Http\Controllers\MgtReportProdEarnController;
+use App\Http\Controllers\MgtReportSumProdEarnController;
 use App\Http\Controllers\MgtReportDailyCostController;
 use App\Http\Controllers\MgtReportEarningController;
 
@@ -2236,8 +2236,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_laporan_earning', 'export_excel_laporan_earning')->name('export_excel_laporan_earning');
     });
 
-    Route::controller(MgtReportProdEarnController::class)->prefix("proses")->middleware('role:management')->group(function () {
-        Route::get('/mgt_report_prod_earn', 'mgt_report_prod_earn')->name('mgt_report_prod_earn');
+    Route::controller(MgtReportSumProdEarnController::class)->prefix("proses")->middleware('role:management')->group(function () {
+        Route::get('/mgt_report_sum_prod_earn', 'mgt_report_sum_prod_earn')->name('mgt_report_sum_prod_earn');
     });
 });
 

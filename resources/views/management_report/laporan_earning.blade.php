@@ -237,7 +237,7 @@
                     }
                 },
                 columns: [{
-                        data: 'tgl_trans_fix'
+                        data: 'tanggal_fix'
                     },
                     {
                         data: 'sewing_line'
@@ -282,17 +282,21 @@
                         data: 'eff_line',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
-                            });
+                            }) + ' %'; // 👈 Append percentage symbol;
                         }
                     },
                     {
                         data: 'tot_earning_rupiah',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -300,9 +304,11 @@
                     },
                     {
                         data: 'est_tot_cost',
-                        className: 'text-end', // Bootstrap right align
+                        className: 'text-end',
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -312,7 +318,9 @@
                         data: 'blc',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -322,17 +330,21 @@
                         data: 'percent_est_earn',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
-                            });
+                            }) + ' %'; // 👈 Append percentage symbol;
                         }
                     },
                     {
                         data: 'full_cm_price',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -342,7 +354,9 @@
                         data: 'est_full_earning',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -352,7 +366,9 @@
                         data: 'est_tot_cost',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -362,7 +378,9 @@
                         data: 'blc_full_earn',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -371,12 +389,22 @@
                     {
                         data: 'percent_full_earn',
                         className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + ' %'; // 👈 Append percentage symbol;
+                        }
                     },
                     {
                         data: 'est_earning_prod',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -386,7 +414,9 @@
                         data: 'est_cost_prod',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -396,7 +426,9 @@
                         data: 'blc_est_cost_prod',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -405,12 +437,22 @@
                     {
                         data: 'percent_est_cost_prod',
                         className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + ' %'; // 👈 Append percentage symbol;
+                        }
                     },
                     {
                         data: 'est_earning_mkt',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -420,7 +462,9 @@
                         data: 'est_cost_mkt',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -430,7 +474,9 @@
                         data: 'blc_earn_mkt',
                         className: 'text-end', // Bootstrap right align
                         render: function(data, type, row) {
-                            return parseFloat(data).toLocaleString(undefined, {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
@@ -439,6 +485,14 @@
                     {
                         data: 'percent_earn_mkt',
                         className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + ' %'; // 👈 Append percentage symbol;
+                        }
                     },
                 ],
                 createdRow: function(row, data, dataIndex) {
