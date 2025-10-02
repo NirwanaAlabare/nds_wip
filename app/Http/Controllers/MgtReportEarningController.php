@@ -528,90 +528,126 @@ sum_earn as (
 select tgl_trans, sum(mins_avail) sum_mins_avail from earn group by tgl_trans
 )
 
-
-
 select
 -- est earning
+dt.tanggal,
+concat((DATE_FORMAT(dt.tanggal,  '%d')), '-',left(DATE_FORMAT(dt.tanggal,  '%M'),3),'-',DATE_FORMAT(dt.tanggal,  '%Y')) as tanggal_fix,
+dt.stat_kerja,
 a.tgl_trans,
-a.tgl_trans_fix,
 a.master_plan_id,
 sewing_line,
 a.buyer,
 a.kpno,
-tot_earning_rupiah,
-a.mins_avail,
-a.mins_prod,
-concat(a.eff_line, ' %') as eff_line,
-sum_mins_avail,
+coalesce(tot_earning_rupiah,0) as tot_earning_rupiah,
+COALESCE(a.mins_avail, 0) AS mins_avail,
+COALESCE(a.mins_prod, 0) AS mins_prod,
+COALESCE(a.eff_line, 0) AS eff_line,
+COALESCE(sum_mins_avail, 0) AS sum_mins_avail,
 
-round((sum_tot_labor / c.sum_mins_avail)  * a.mins_avail,2) as est_tot_cost,
-round((tot_earning_rupiah - ((sum_tot_labor / c.sum_mins_avail) * a.mins_avail)),2) AS blc,
-concat(round((((tot_earning_rupiah - ((sum_tot_labor / c.sum_mins_avail) * a.mins_avail))) / tot_earning_rupiah) * 100,2),' %') as percent_est_earn,
+ROUND((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0), 2) AS est_tot_cost,
+ROUND((COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0))), 2) AS blc,
+  ROUND((
+    (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))
+    / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)
+  ) * 100, 2) AS percent_est_earn,
 -- Full earning
-a.cm_price,
+COALESCE(a.cm_price,0) AS cm_price,
 allowance,
 kurs_tengah,
 a.curr,
-tot_output,
+COALESCE(tot_output,0) AS tot_output,
+
 (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)) full_cm_price,
 round(
 case
 		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
 		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
 		end,2) as est_full_earning,
-round((sum_tot_labor / c.sum_mins_avail)  * a.mins_avail,2) as est_tot_cost,
-round(
-case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end - (sum_tot_labor / c.sum_mins_avail)  * a.mins_avail,2)
-		as blc_full_earn,
-concat(round(
-		(case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end - (sum_tot_labor / c.sum_mins_avail)  * a.mins_avail)
-		/
-		(case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end ) * 100 ,2), ' %') as percent_full_earn,
+ROUND(
+  (CASE WHEN COALESCE(a.curr, '') = 'IDR'
+    THEN COALESCE(tot_output, 0) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+    ELSE (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+  END)
+  -
+  ((COALESCE(sum_tot_labor, 0) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0)),
+2
+) AS blc_full_earn,
+ROUND((
+  (CASE WHEN COALESCE(a.curr, '') = 'IDR'
+    THEN COALESCE(tot_output, 0) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+    ELSE (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+  END)
+  - ((COALESCE(sum_tot_labor, 0) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0)))
+  /
+  NULLIF(
+    (CASE WHEN COALESCE(a.curr, '') = 'IDR'
+      THEN COALESCE(tot_output, 0) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+           (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+      ELSE (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+           (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+    END),
+    0
+  ) * 100, 2) AS percent_full_earn,
+
 -- est earning production
-tot_earning_rupiah est_earning_prod,
-round((((b.sum_direct_labor + b.sum_indirect_labor + b.sum_overhead_labor) / c.sum_mins_avail) * a.mins_avail),2) est_cost_prod,
-round(tot_earning_rupiah - (((b.sum_direct_labor + b.sum_indirect_labor + b.sum_overhead_labor) / c.sum_mins_avail) * a.mins_avail),2) blc_est_cost_prod,
-concat(round(((tot_earning_rupiah - (((b.sum_direct_labor + b.sum_indirect_labor + b.sum_overhead_labor) / c.sum_mins_avail) * a.mins_avail)) / tot_earning_rupiah) * 100,2), '%') as percent_est_cost_prod,
+COALESCE(tot_earning_rupiah, 0) AS est_earning_prod,
+ROUND(((COALESCE(b.sum_direct_labor, 0) + COALESCE(b.sum_indirect_labor, 0) + COALESCE(b.sum_overhead_labor, 0)) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0), 2) AS est_cost_prod,
+ROUND(COALESCE(tot_earning_rupiah, 0) - (((COALESCE(b.sum_direct_labor, 0) + COALESCE(b.sum_indirect_labor, 0) + COALESCE(b.sum_overhead_labor, 0)) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0)), 2) AS blc_est_cost_prod,
+ROUND(((COALESCE(tot_earning_rupiah, 0) - (((COALESCE(b.sum_direct_labor, 0) + COALESCE(b.sum_indirect_labor, 0) + COALESCE(b.sum_overhead_labor, 0)) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0))) / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)) * 100, 2) AS percent_est_cost_prod,
+
 -- est earning mkt
-((case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end) -
-tot_earning_rupiah) as est_earning_mkt_old,
-round(((case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end) -
-tot_earning_rupiah),2) as est_earning_mkt,
-round(coalesce((((b.sum_selling_expense_labor + b.sum_ga_expense_labor + b.sum_other_expense_labor) / c.sum_mins_avail) * a.mins_avail),0),2) as est_cost_mkt,
-round((((case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end) -
-tot_earning_rupiah)) - ((((b.sum_selling_expense_labor + b.sum_ga_expense_labor + b.sum_other_expense_labor) / c.sum_mins_avail) * a.mins_avail)),2) as blc_earn_mkt,
+ROUND((
+  CASE
+    WHEN COALESCE(a.curr, '') = 'IDR' THEN
+      COALESCE(tot_output, 0) * (
+        COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+        (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+      )
+    ELSE
+      (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (
+        COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+        (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+      )
+  END
+  - COALESCE(tot_earning_rupiah, 0)
+), 2) AS est_earning_mkt,
 
-(((case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end) -
-tot_earning_rupiah)) - ((((b.sum_selling_expense_labor + b.sum_ga_expense_labor + b.sum_other_expense_labor) / c.sum_mins_avail) * a.mins_avail))
-/
-((case
-		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
-		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
-		end) -
-tot_earning_rupiah) * 100 as percent_earn_mkt_old,
+ROUND(
+  COALESCE(
+    (
+      (COALESCE(b.sum_selling_expense_labor, 0) + COALESCE(b.sum_ga_expense_labor, 0) + COALESCE(b.sum_other_expense_labor, 0))
+      / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)
+    ) * COALESCE(a.mins_avail, 0),
+  0), 2) AS est_cost_mkt,
 
-concat(coalesce(round(round((((case
+ROUND((
+  (
+    CASE
+      WHEN COALESCE(a.curr, '') = 'IDR' THEN
+        COALESCE(tot_output, 0) * (
+          COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+          (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+        )
+      ELSE
+        (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (
+          COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+          (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+        )
+    END
+    - COALESCE(tot_earning_rupiah, 0)
+  )
+  - (
+    (COALESCE(b.sum_selling_expense_labor, 0) + COALESCE(b.sum_ga_expense_labor, 0) + COALESCE(b.sum_other_expense_labor, 0))
+    / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)
+  ) * COALESCE(a.mins_avail, 0)
+), 2) AS blc_earn_mkt,
+
+
+coalesce(round(round((((case
 		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
 		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
 		end) -
@@ -621,13 +657,15 @@ round(((case
 		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
 		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
 		end) -
-tot_earning_rupiah),2) * 100,2),0), ' %') as percent_earn_mkt
+tot_earning_rupiah),2) * 100,2),0) as percent_earn_mkt
 
-from earn a
-left join sum_daily_cost b on a.tgl_trans = b.tanggal
-left join sum_earn c on a.tgl_trans = c.tgl_trans
+from dim_tgl dt
+left join earn a on dt.tanggal = a.tgl_trans
+left join sum_daily_cost b on dt.tanggal = b.tanggal
+left join sum_earn c on dt.tanggal = c.tgl_trans
 left join sum_cost d on a.kpno = d.kpno
-order by a.tgl_trans asc, sewing_line asc
+where dt.tanggal >= '$start_date' and dt.tanggal <= '$end_date'
+order by dt.tanggal asc, sewing_line asc
         ");
                 return response()->json([
                     'data' => $rawData // ✅ simplified response

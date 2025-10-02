@@ -10,9 +10,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use DB;
 use Illuminate\Support\Facades\Auth;
 
-class MgtReportProdEarnController extends Controller
+class MgtReportSumProdEarnController extends Controller
 {
-    public function mgt_report_prod_earn(Request $request)
+    public function mgt_report_sum_prod_earn(Request $request)
     {
         $thn_view = $request->periode_tahun_view;
         $user = Auth::user()->name;
@@ -55,10 +55,10 @@ class MgtReportProdEarnController extends Controller
         }
 
         // For non-AJAX (initial page load)
-        return view('management_report.laporan_prod_earn', [
+        return view('management_report.laporan_sum_prod_earn', [
             'page' => 'dashboard-mgt-report',
             'subPageGroup' => 'mgt-report-laporan',
-            'subPage' => 'mgt-report-laporan-prod-earn',
+            'subPage' => 'mgt-report-laporan-sum-prod-earn',
             'containerFluid' => true,
             'user' => $user,
         ]);
