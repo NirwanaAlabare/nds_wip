@@ -274,6 +274,8 @@ Route::middleware('auth')->group(function () {
 
         // reject in out
         Route::get('/get-reject-in', 'getRejectIn')->name('get-reject-in');
+        // defect in out
+        Route::get('/get-defect-in-out', 'getDefectInOut')->name('get-defect-in-out');
     });
 
     // Worksheet
@@ -1272,13 +1274,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
         Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
         Route::post('/miss-reject', 'missReject')->name("sewing-miss-reject");
+        Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
 
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
         Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
-        Route::get('/undo-output', 'undoOutput')->name("undo-output");
-        Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
 
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
@@ -1286,11 +1287,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/modify-output', 'modifyOutput')->name("modify-output");
         Route::post('/modify-output/action', 'modifyOutputAction')->name("modify-output-action");
 
-        Route::get('/undo-reject', 'undoReject')->name("undo-reject");
-        Route::post('/undo-reject-submit', 'undoRejectSubmit')->name("undo-reject-submit");
+        Route::get('/undo-output', 'undoOutput')->name("undo-output");
+        Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
 
         Route::get('/restore-undo', 'restoreUndo')->name("restore-undo");
         Route::post('/restore-undo-submit', 'restoreUndoSubmit')->name("restore-undo-submit");
+
+        Route::get('/undo-reject', 'undoReject')->name("undo-reject");
+        Route::post('/undo-reject-submit', 'undoRejectSubmit')->name("undo-reject-submit");
+
+        Route::get('/undo-defect-in-out', 'undoDefectInOut')->name("undo-defect-in-out");
+        Route::post('/undo-defect-in-out-submit', 'undoDefectInOutSubmit')->name("undo-defect-in-out-submit");
     });
 
     // Mutasi Mesin

@@ -22,7 +22,10 @@ use App\Models\SignalBit\RejectInDetail;
 use App\Models\SignalBit\RejectInDetailPosition;
 use App\Models\SignalBit\RejectOut;
 use App\Models\SignalBit\RejectOutDetail;
+use App\Models\SignalBit\OutputGudangStok;
+use App\Models\SignalBit\DefectInOut;
 use App\Models\Stocker\YearSequence;
+use App\Services\SewingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -641,6 +644,14 @@ class SewingToolsController extends Controller
             'table' => '',
             'additional' => [],
         );
+    }
+
+    public function missPackingPo(SewingService $sewingService) {
+        ini_set("max_execution_time", 3600);
+
+        $response = $sewingService->missPackingPo();
+
+        return $response;
     }
 
     public function checkOutputDetail() {
@@ -2036,7 +2047,7 @@ class SewingToolsController extends Controller
             $kodeNumbering = addQuotesAround($request->kode_numbering);
 
             if ($request->department) {
-                $department = $request->department == "packing" ? "_packing" : "";
+                $department = ($request->department == "packing_po" ? "_packing_po" : ($request->department == "packing" ? "_packing" : ""));
             } else {
                 $department = "";
             }
@@ -2045,22 +2056,39 @@ class SewingToolsController extends Controller
                 $kodeNumberingOutput = collect(
                     DB::connection("mysql_sb")->select("
                         SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing" ? "'packing' as type" : "'qc' as type")." FROM (
-                            select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'rft' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
-                            UNION
-                            select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, defect_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
-                            UNION
-                            select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, reject_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                            select master_plan_id, so_det_id, created_by ".($department == "_packing_po" ? ", created_by_username, created_by_line" : "").", kode_numbering, id, created_at, updated_at, 'rft' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
+                            ".
+                            (
+                                $department != "_packing_po" ?
+                                    "
+                                        UNION
+                                        select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, defect_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
+                                        UNION
+                                        select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, reject_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
+                                    "
+                                    :
+                                    ""
+                            )
+                            ."
                         ) output
                         ".
                         (
-                            $department && $department == "_packing" ?
+                            $department && $department == "_packing_po" ?
                             "
-                                left join userpassword on userpassword.username = output.created_by
-                            " :
+                                left join userpassword on userpassword.username = output.created_by_line
                             "
-                                left join user_sb_wip on user_sb_wip.id = output.created_by
-                                left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                            "
+                            :
+                            (
+                                $department && $department == "_packing" ?
+                                "
+                                    left join userpassword on userpassword.username = output.created_by
+                                "
+                                :
+                                "
+                                    left join user_sb_wip on user_sb_wip.id = output.created_by
+                                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                                "
+                            )
                         )."
                         left join so_det on so_det.id = output.so_det_id
                         left join so on so.id = so_det.id_so
@@ -2079,7 +2107,16 @@ class SewingToolsController extends Controller
                                 $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $rft->id)->delete();
 
                                 if ($deleteRft) {
-                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                    if ($department == "_packing_po") {
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
+
+                                        // Delete Gudang Stok on Packing Po GudangStok
+                                        if ($rft->alokasi == "gudang_stok") {
+                                            DB::connection("mysql_sb")->table("output_gudang_stok")->where('packing_po_id', $rft->id)->delete();
+                                        }
+                                    } else {
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                    }
 
                                     array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
                                 }
@@ -2724,145 +2761,44 @@ class SewingToolsController extends Controller
     }
 
     public function undoDefectInOut(Request $request) {
+        return view("sewing.tools.undo-defect-in-out", ["page" => "dashboard-sewing-eff"]);
+    }
+
+    public function undoDefectInOutSubmit(Request $request) {
         if ($request->kode_numbering) {
             $kodeNumbering = addQuotesAround($request->kode_numbering);
 
-            if ($request->department) {
-                $department = $request->department == "packing" ? "_packing" : "";
-            } else {
-                $department = "";
-            }
+            $department = $request->department;
 
             if ($kodeNumbering) {
-                $kodeNumberingOutput = collect(
-                    DB::connection("mysql_sb")->select("
-                        SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing" ? "'packing' as type" : "'qc' as type")." FROM (
-                            select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'rft' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
-                            UNION
-                            select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, defect_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE kode_numbering in (".$kodeNumbering.")
-                            UNION
-                            select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, reject_status as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and kode_numbering in (".$kodeNumbering.")
-                        ) output
-                        ".
-                        (
-                            $department && $department == "_packing" ?
-                            "
-                                left join userpassword on userpassword.username = output.created_by
-                            " :
-                            "
-                                left join user_sb_wip on user_sb_wip.id = output.created_by
-                                left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                            "
-                        )."
-                        left join so_det on so_det.id = output.so_det_id
-                        left join so on so.id = so_det.id_so
-                        left join act_costing on act_costing.id = so.id_cost
-                    ")
-                );
+                $kodeNumberingOutput = DefectInOut::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
 
                 $result = [];
                 foreach ($kodeNumberingOutput as $output) {
-                    switch ($output->status) {
-                        case 'rft' :
-                            // Undo RFT
-                            $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $output->id)->first();
+                    $message = "";
 
-                            if ($rft) {
-                                $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $rft->id)->delete();
+                    if ($output->id) {
+                        if ($output->status == "reworked") {
+                            $output->timestamps = false;
+                            $output->status = "defect";
+                            $output->save();
 
-                                if ($deleteRft) {
-                                    if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                    }
+                            $message .= "Defect IN/OUT ".$output->kode_numbering." -> UPDATED TO DEFECT <br>";
+                        } else {
+                            // Defect In Out
+                            $deleteDefectInOut = $output->delete();
 
-                                    array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
-                                }
+                            if ($deleteDefectInOut) {
+                                $message .= "Defect IN/OUT ".$output->kode_numbering." -> DELETED <br>";
+                            } else {
+                                $message .= "Defect IN/OUT ".$output->kode_numbering." -> DELETE FAILED <br>";
                             }
-
-                            break;
-                        case 'defect' :
-                            // Undo DEFECT
-                            $defect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $output->id)->first();
-
-                            if ($defect) {
-                                $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->delete();
-
-                                if ($deleteDefect) {
-                                    if ($department && $department != "_packing") {
-                                        Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                    }
-
-                                    array_push($result, "DEFECT '".$defect->kode_numbering."' -> DELETED");
-                                }
-                            }
-
-                            break;
-                        case 'rejected' :
-                            // Undo Reject
-                            $defect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $output->id)->first();
-
-                            if ($defect) {
-                                $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('defect_id', $defect->id)->first();
-
-                                if ($reject) {
-                                    $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where("id", $reject->id)->delete();
-
-                                    if ($deleteReject) {
-                                        if ($department && $department != "_packing") {
-                                            Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $defect->id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                        }
-
-                                        DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
-                                            "defect_status" => "defect"
-                                        ]);
-
-                                        array_push($result, "REJECT '".$reject->kode_numbering."' -> DEFECT");
-                                    }
-                                }
-                            }
-
-                            break;
-                        case 'reworked' :
-                            // Undo REWORK
-                            $defect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $output->id)->first();
-
-                            $rework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('defect_id', $defect->id)->first();
-
-                            $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('rework_id', $rework->id)->first();
-
-                            $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
-
-                            if ($deleteRework) {
-                                if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_rft_id' => $rft->id, 'output_rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                }
-
-                                DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
-                                    "defect_status" => "defect"
-                                ]);
-
-                                DB::connection("mysql_sb")->table("output_rfts".$department)->where("rework_id", $rework->id)->delete();
-
-                                array_push($result, "REWORK '".$defect->kode_numbering."' -> DEFECT");
-                            }
-
-                            break;
-                        case 'mati' :
-                            // Undo REJECT
-                            $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $output->id)->first();
-
-                            $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
-
-                            if ($deleteReject) {
-                                if ($department && $department != "_packing") {
-                                    Undo::create(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id]);
-                                }
-
-                                array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
-                            }
-
-                            break;
+                        }
+                    } else {
+                        $message .= "Defect IN/OUT ".$output->kode_numbering." -> NOT FOUND <br>";
                     }
+
+                    array_push($result, $message);
                 }
 
                 return $result;
@@ -2964,7 +2900,12 @@ class SewingToolsController extends Controller
 
                         // Delete Detail
                         if ($deleteRejectOut) {
-                            RejectOutDetail::where("reject_in_id", $output->id)->delete();
+                            $deleteRejectOutDetail = RejectOutDetail::where("reject_in_id", $output->id)->delete();
+
+                            if ($deleteRejectOutDetail) {
+                                // Output Gudang Stok
+                                OutputGudangStok::where("reject_out_id", $rejectOutDetail->id)->delete();
+                            }
 
                             $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";
                         }

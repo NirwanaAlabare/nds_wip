@@ -67,6 +67,15 @@
                     </a>
                 </div>
                 <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="missPackingPo()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-circle-exclamation"></i> Fix Packing-PO</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
                     <a href="{{ route('check-output-detail') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
@@ -85,19 +94,19 @@
                     </a>
                 </div>
                 <div class="col-md-4">
-                    <a href="{{ route('undo-output') }}" class="home-item">
+                    <a href="{{ route('modify-output') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-arrows-rotate"></i> Undo Output</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Modify Output</h5>
                             </div>
                         </div>
                     </a>
                 </div>
                 <div class="col-md-4">
-                    <a href="{{ route('modify-output') }}" class="home-item">
+                    <a href="{{ route('undo-output') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Modify Output</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-arrows-rotate"></i> Undo Output</h5>
                             </div>
                         </div>
                     </a>
@@ -111,15 +120,15 @@
                         </div>
                     </a>
                 </div>
-                {{-- <div class="col-md-4">
+                <div class="col-md-4">
                     <a href="{{ route('undo-defect-in-out') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Undo</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo Defect In Out</h5>
                             </div>
                         </div>
                     </a>
-                </div> --}}
+                </div>
             </div>
         </div>
     </div>
@@ -387,6 +396,76 @@
                     $.ajax({
                         type: "post",
                         url: "{{ route('sewing-miss-reject') }}",
+                        dataType: "json",
+                        success: function(response) {
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: response && response.message ? response.message :
+                                        "Terjadi Kesalahan",
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Info',
+                        html: "Proses dibatalkan",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#082149",
+                    });
+                }
+            });
+        }
+
+        function missPackingPo() {
+            Swal.fire({
+                title: 'Fix Miss Packing Po',
+                html: '<span class="text-danger"><span class="text-danger"><b>Critical</b></span></span> <br> Yakin akan mengubah data output packing po?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Po Output Packing Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
+
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('sewing-miss-packing-po') }}",
                         dataType: "json",
                         success: function(response) {
                             if (response.status == 200) {
