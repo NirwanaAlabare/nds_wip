@@ -851,6 +851,7 @@ END jam) a))) target from (
                 ) output on output.sewing_line = userpassword.username and output.tgl_output = output_employee_line.tanggal
             WHERE
                 tanggal between '".$year."-".$month."-01' AND '".$year."-".$month."-31'
+                AND tanggal <= CURRENT_DATE()
             group by
                 tanggal,
                 line_id
