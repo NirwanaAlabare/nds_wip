@@ -974,7 +974,7 @@ class GeneralController extends Controller
 
         $kodeNumberingOutput = collect(
             DB::connection("mysql_sb")->select("
-                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing" ? "'packing' as type" : "'qc' as type")." FROM (
+                SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line, ".($department && $department == "_packing_po" ? "'packing' as type" : ($department && $department == "_packing" ? "'finishing' as type" : "'qc' as type"))." FROM (
                     select master_plan_id, so_det_id, created_by ".($department == "_packing_po" ? ", created_by_username, created_by_line" : "").", kode_numbering, id, created_at, updated_at, 'rft' as status, '-' as defect, '-' as allocation from output_rfts".$department." as output_rfts WHERE status = 'NORMAL' and kode_numbering in (".$kodeNumbering.")
                     ".
                     (
@@ -1036,7 +1036,7 @@ class GeneralController extends Controller
                 $masterPlanSql->whereRaw('YEAR(master_plan.tgl_plan) = "'.date('Y').'"');
             }
 
-            // Line Filter
+            // Line Filte
             if ($request->line) {
                 $masterPlanSql->where('master_plan.sewing_line', $request->line);
             }
