@@ -26,6 +26,7 @@
                 'color' => $group->first()->color,
                 'size' => $group->first()->size,
                 'defect_type' => $group->first()->defect_type,
+                'defect_area' => $group->first()->defect_area,
                 'total_defect' => $group->sum('total_defect')
             ];
         });
@@ -46,6 +47,7 @@
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Color</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Size</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Defect Type</th>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Defect Area</th>
         <?php
             if ( $topDefect && $topDefect->count() > 0 ) {
                 foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
@@ -66,6 +68,7 @@
                             <td style="border: 1px solid #000;">{{ $lineStyle['color'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['size'] }}</td>
                             <td style="border: 1px solid #000;">{{ $lineStyle['defect_type'] }}</td>
+                            <td style="border: 1px solid #000;">{{ $lineStyle['defect_area'] }}</td>
                             @foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                                 @php
                                     $thisDefect = $topDefect->where('grouping', $lineStyle['grouping'])->where('tanggal', $dailyDate->first()->tanggal)->sum("total_defect");
@@ -89,7 +92,7 @@
             }
         ?>
     <tr>
-        <th style="font-weight: 800;text-align: center;border: 1px solid #000;" colspan="6">TOTAL</th>
+        <th style="font-weight: 800;text-align: center;border: 1px solid #000;" colspan="7">TOTAL</th>
         @foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
             @php
                 $thisDefect = $topDefect->where('tanggal', $dailyDate->first()->tanggal)->sum("total_defect");

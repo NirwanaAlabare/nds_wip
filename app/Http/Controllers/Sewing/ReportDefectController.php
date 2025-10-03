@@ -801,7 +801,7 @@ class ReportDefectController extends Controller
         if (in_array('top_defect', $types)) {
             $topDefectQuery = "
                 SELECT
-                    CONCAT(userpassword.username, act_costing.kpno, act_costing.styleno, so_det.color, so_det.size, output_defect_types.id) as grouping,
+                    CONCAT(userpassword.username, act_costing.kpno, act_costing.styleno, so_det.color, so_det.size, output_defect_types.id, output_defect_areas.id) as grouping,
                     CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
                     CONCAT(act_costing.styleno, output_defect_types.id) as style_grouping,
                     userpassword.username sewing_line,
@@ -811,10 +811,12 @@ class ReportDefectController extends Controller
                     so_det.size,
                     DATE( output_defects.updated_at ) tanggal,
                     output_defect_types.defect_type,
+                    output_defect_areas.defect_area,
                     COUNT( output_defects.id ) total_defect
                 FROM
                     output_defects".$request->department." as output_defects
                     LEFT JOIN output_defect_types on output_defect_types.id = output_defects.defect_type_id
+                    LEFT JOIN output_defect_areas on output_defect_areas.id = output_defects.defect_area_id
                     ".(
                         $request->department == "_packing" ?
                         "
@@ -844,6 +846,7 @@ class ReportDefectController extends Controller
                     act_costing.styleno,
                     so_det.color,
                     output_defect_types.id,
+                    output_defect_areas.id,
                     DATE(output_defects.updated_at)
                 ORDER BY
                     userpassword.username,
@@ -859,7 +862,7 @@ class ReportDefectController extends Controller
         if (in_array('top_reject', $types)) {
             $topRejectQuery = "
                 SELECT
-                    CONCAT(userpassword.username, act_costing.kpno, act_costing.styleno, so_det.color, output_defect_types.id) as grouping,
+                    CONCAT(userpassword.username, act_costing.kpno, act_costing.styleno, so_det.color, output_defect_types.id, output_defect_areas.id) as grouping,
                     CONCAT(userpassword.username, output_defect_types.id) as line_grouping,
                     CONCAT(act_costing.kpno, output_defect_types.id) as style_grouping,
                     userpassword.username sewing_line,
@@ -869,10 +872,12 @@ class ReportDefectController extends Controller
                     so_det.size,
                     DATE( output_rejects.updated_at ) tanggal,
                     output_defect_types.defect_type as reject_type,
+                    output_defect_areas.defect_area as reject_area,
                     COUNT( output_rejects.id ) total_reject
                 FROM
                     output_rejects".$request->department." as output_rejects
                     LEFT JOIN output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+                    LEFT JOIN output_defect_areas on output_defect_areas.id = output_rejects.reject_area_id
                     ".(
                         $request->department == "_packing" ?
                         "
@@ -901,6 +906,7 @@ class ReportDefectController extends Controller
                     act_costing.styleno,
                     so_det.color,
                     output_defect_types.id,
+                    output_defect_areas.id,
                     DATE(output_rejects.updated_at)
                 ORDER BY
                     userpassword.username,
