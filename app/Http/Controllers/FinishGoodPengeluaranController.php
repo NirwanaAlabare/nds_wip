@@ -60,7 +60,7 @@ group by no_sb
         $data_buyer = DB::select("SELECT buyer isi, buyer tampil from
         (select id_so_det from ppic_master_so group by po) p
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
-		inner join fg_fg_in f on p.id_so_det = f.id_so_det
+		left join fg_fg_in f on p.id_so_det = f.id_so_det
         group by buyer");
 
         $data_dok = DB::connection('mysql_sb')->select("SELECT nama_pilihan isi,nama_pilihan tampil
