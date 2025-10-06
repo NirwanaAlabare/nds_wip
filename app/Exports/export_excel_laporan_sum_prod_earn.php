@@ -1,36 +1,40 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Exports;
 
-use App\Imports\ImportDailyCost;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
-use Maatwebsite\Excel\Facades\Excel;
-use DB;
-use Illuminate\Support\Facades\Auth;
-use App\Exports\export_excel_laporan_sum_prod_earn;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class MgtReportSumProdEarnController extends Controller
+
+class export_excel_laporan_sum_prod_earn implements FromView, ShouldAutoSize, WithEvents
 {
-    public function mgt_report_sum_prod_earn(Request $request)
+    use Exportable;
+    protected $bulan, $tahun, $rowCount;
+
+    public function __construct($bulan, $tahun)
     {
-        $user = Auth::user()->name;
+        $this->bulan = $bulan;
+        $this->tahun = $tahun;
+    }
 
-        $bulan = $request->bulan;
-        $tahun = $request->tahun;
+    public function view(): View
+    {
+        $start_date = \Carbon\Carbon::createFromDate($this->tahun, $this->bulan, 1)->startOfDay()->format('Y-m-d');
+        $end_date = \Carbon\Carbon::createFromDate($this->tahun, $this->bulan, 1)->endOfMonth()->endOfDay()->format('Y-m-d');
 
-        if ($request->ajax()) {
-            // ✅ If bulan or tahun is missing, return no data
-            if ($bulan === null || $tahun === null) {
-                return response()->json(['data' => []]);
-            } else {
 
-                // Generate start and end date
-                $start_date = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->startOfDay()->format('Y-m-d');
-                $end_date = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->endOfMonth()->endOfDay()->format('Y-m-d');
-
-                $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
+        $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  select a.cost_no,kpno,supplier,styleno,product_item,season_desc,curr,so_date,status,qty_so,price_so,cost_date,status_cost,qty_cost,COALESCE(ttl_fabric,0) ttl_fabric,COALESCE(ttl_accsew,0) ttl_accsew,COALESCE(ttl_accpack,0) ttl_accpack,(COALESCE(ttl_fabric,0) + COALESCE(ttl_accsew,0) + COALESCE(ttl_accpack,0)) ttl_material,COALESCE(ttl_cmt,0) ttl_cmt,COALESCE(ttl_embro,0) ttl_embro,COALESCE(ttl_wash,0) ttl_wash,COALESCE(ttl_print,0) ttl_print,COALESCE(ttl_wrapbut,0) ttl_wrapbut,COALESCE(ttl_compbut,0) ttl_compbut,COALESCE(ttl_label,0) ttl_label,COALESCE(ttl_laser,0) ttl_laser,(COALESCE(ttl_cmt,0) + COALESCE(ttl_embro,0) + COALESCE(ttl_wash,0) + COALESCE(ttl_print,0) + COALESCE(ttl_wrapbut,0) + COALESCE(ttl_compbut,0) + COALESCE(ttl_label,0) + COALESCE(ttl_laser,0)) ttl_manufacturing,COALESCE(ttl_develop,0) ttl_develop,COALESCE(ttl_overhead,0) ttl_overhead,COALESCE(ttl_market,0) ttl_market,COALESCE(ttl_shipp,0) ttl_shipp,COALESCE(ttl_import,0) ttl_import,COALESCE(ttl_handl,0) ttl_handl,COALESCE(ttl_test,0) ttl_test,COALESCE(ttl_fabhandl,0) ttl_fabhandl,COALESCE(ttl_service,0) ttl_service, COALESCE(ttl_clearcost,0) ttl_clearcost ,COALESCE(ttl_development,0) ttl_development ,COALESCE(ttl_unexcost,0) ttl_unexcost ,COALESCE(ttl_managementfee,0) ttl_managementfee ,COALESCE(ttl_profit,0) ttl_profit ,(COALESCE(ttl_develop,0) + COALESCE(ttl_overhead,0) + COALESCE(ttl_market,0) + COALESCE(ttl_shipp,0) + COALESCE(ttl_import,0) + COALESCE(ttl_handl,0) + COALESCE(ttl_test,0) + COALESCE(ttl_fabhandl,0) + COALESCE(ttl_service,0) + COALESCE(ttl_clearcost,0) + COALESCE(ttl_development,0) + COALESCE(ttl_unexcost,0) + COALESCE(ttl_managementfee,0) + COALESCE(ttl_profit,0)) ttl_others
            from (select a.cost_no,a.kpno,b.supplier,styleno,product_item,season_desc,if(so.curr is null,a.curr,so.curr) curr,so_date,IF(so.cancel_h = 'Y','CANCEL','-') status,so.qty qty_so,so.fob price_so,cost_date,a.status status_cost, a.qty qty_cost  from act_costing a INNER JOIN mastersupplier b ON a.id_buyer=b.Id_Supplier inner join masterproduct mp on a.id_product=mp.id left join so on so.id_cost = a.id left join masterseason ms on ms.id_season = so.id_season where cost_date >= '2025-01-01' GROUP BY cost_no) a left join (select cost_no, sum(ttl_fabric) ttl_fabric, sum(ttl_accsew) ttl_accsew, sum(ttl_accpack) ttl_accpack from (select cost_no,case when mattype = 'FABRIC' then total end as ttl_fabric,
            case when mattype = 'ACCESORIES SEWING' then total end as ttl_accsew,
@@ -194,7 +198,7 @@ FROM dim_date a
 LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
 WHERE status_prod = 'KERJA'
 AND (status_absen != 'LN' OR status_absen IS NULL)
-AND tahun = '$tahun' AND bulan = '$bulan'
+AND tahun = '$this->tahun' AND bulan = '$this->bulan'
 GROUP BY bulan, tahun
 ORDER BY
 CAST(a.tahun AS UNSIGNED) ASC,
@@ -213,7 +217,7 @@ case
 		END AS stat_kerja
 FROM dim_date a
 left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
-where tahun = '$tahun' AND bulan = '$bulan'
+where tahun = '$this->tahun' AND bulan = '$this->bulan'
 ),
 dc as (
 SELECT
@@ -225,7 +229,7 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE a.tahun = '$tahun' and a.bulan = '$bulan'
+WHERE a.tahun = '$this->tahun' and a.bulan = '$this->bulan'
 GROUP BY no_coa
 ),
 coa_direct as (
@@ -728,27 +732,76 @@ left join sum_daily_cost c on a.tanggal = c.tanggal
 left join sum_labor d on a.tanggal = d.tanggal_berjalan
 left join m_kurs_bi e on a.tanggal = e.tanggal_kurs_bi
 order by a.tanggal asc
-
         ");
-                return response()->json([
-                    'data' => $rawData // ✅ simplified response
-                ]);
-            }
-        }
 
-        // For non-AJAX (initial page load)
-        return view('management_report.laporan_sum_prod_earn', [
-            'page' => 'dashboard-mgt-report',
-            'subPageGroup' => 'mgt-report-laporan',
-            'subPage' => 'mgt-report-laporan-sum-prod-earn',
-            'containerFluid' => true,
-            'user' => $user,
+
+        $this->rowCount = count($rawData) + 1; // 1 for header
+
+        return view('management_report.export_excel_laporan_sum_prod_earn', [
+            'bulan' => $this->bulan,
+            'tahun' => $this->tahun,
+            'rawData' => $rawData,
         ]);
     }
 
-
-    public function export_excel_laporan_sum_prod_earn(Request $request)
+    public function registerEvents(): array
     {
-        return Excel::download(new export_excel_laporan_sum_prod_earn($request->bulan, $request->tahun), 'Laporan_Penerimaan FG_Stok.xlsx');
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+
+                $highestRow = $sheet->getHighestRow();
+                $highestColumn = $sheet->getHighestColumn(); // e.g. 'Z'
+                $columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+
+                for ($i = 1; $i <= $columnIndex; $i++) {
+                    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+                    $cell = $colLetter . '2'; // Only row 2
+
+                    $sheet->getStyle($cell)->applyFromArray([
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => ['argb' => 'FFD9EDF7'], // Light blue
+                        ],
+                        'font' => [
+                            'bold' => true,
+                            'color' => ['argb' => 'FF000000'], // Black text
+                        ],
+                    ]);
+                }
+
+                // ===== 3. Apply border to whole table =====
+                $range = 'A1:' . $highestColumn . $highestRow;
+                $sheet->getStyle($range)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => 'FF000000'],
+                        ],
+                    ],
+                ]);
+
+                for ($i = 2; $i <= $columnIndex; $i++) { // Start from column 2 (i.e., column 'B')
+                    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+
+                    for ($row = 3; $row <= $highestRow; $row++) { // Start from row 3 to skip header
+                        $cell = $colLetter . $row;
+                        $value = $sheet->getCell($cell)->getValue();
+
+                        // If cell is null or empty, set it to 0
+                        if ($value === null || $value === '') {
+                            $sheet->setCellValue($cell, 0);
+                        }
+
+                        // Apply number format
+                        $sheet->getStyle($cell)->getNumberFormat()->setFormatCode('#,##0.00');
+                    }
+                }
+            }
+        ];
     }
 }
