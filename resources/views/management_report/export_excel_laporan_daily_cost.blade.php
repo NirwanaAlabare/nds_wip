@@ -27,14 +27,14 @@
                 <tr>
                     <td>{{ $coa['no_coa'] }}</td>
                     <td>{{ $coa['nama_coa'] }}</td>
-                    <td class="text-end">{{ number_format($coa['projection'], 2) }}</td>
-                    <td class="text-end">{{ number_format($coa['daily_cost'], 2) }}</td>
+                    <td class="text-end">{{ $coa['projection'] }}</td>
+                    <td class="text-end">{{ $coa['daily_cost'] }}</td>
                     @foreach ($tanggalList as $tgl)
                         @php
                             $key = $tgl->format('Y-m-d');
                             $value = $coa['totals_by_date'][$key] ?? 0;
                         @endphp
-                        <td class="text-end">{{ number_format($value, 2) }}</td>
+                        <td class="text-end">{{ $value }}</td>
                     @endforeach
                 </tr>
             @endforeach

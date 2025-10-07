@@ -28,7 +28,7 @@ Route::post('user/store-api', [UserController::class, 'storeApi']);
 // Mgt Report
 Route::controller(MgtReportProsesController::class)->prefix("mgt-report-proses")->group(function () {
     Route::get('/', 'index');
-    Route::post('/update_data_labor', 'update_data_labor');
+    Route::post('/update_data_labor', 'update_data_labor_new');
 });
 
 // FGStok Report

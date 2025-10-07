@@ -56,7 +56,7 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
         $this->rowCountStyle = $topDefect->groupBy("style_grouping")->count();
 
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $topDefect->groupBy("tanggal")->count()+5;
+        $colCount = $topDefect->groupBy("tanggal")->count()+6;
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);
@@ -115,15 +115,15 @@ class TopDefectExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
 
             for ($i = 0; $i < $this->rowCount; $i++) {
                 array_push($labelsDefect,
-                    new DataSeriesValues('String', 'defect!$A$'.($i+7).':$F$'.($i+7).'', null, 5)
+                    new DataSeriesValues('String', 'defect!$A$'.($i+7).':$G$'.($i+7).'', null, 5)
                 );
 
                 array_push($categoriesDefect,
-                    new DataSeriesValues('String', 'defect!$G$6:$'.$this->colAlphabet.'$6', null, 5)
+                    new DataSeriesValues('String', 'defect!$H$6:$'.$this->colAlphabet.'$6', null, 5)
                 );
 
                 array_push($valuesDefect,
-                    new DataSeriesValues('Number', 'defect!$G$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
+                    new DataSeriesValues('Number', 'defect!$H$'.($i+7).':$'.$this->colAlphabet.'$'.($i+7).'', null, 5)
                 );
             }
 

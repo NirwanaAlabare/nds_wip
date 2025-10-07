@@ -22,8 +22,9 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Summary Production Earn</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Summary (Production Earn)</h5>
         </div>
+
         <div class="card-body">
             <div class="row align-items-end g-3 mb-3">
                 <!-- Periode Tahun -->
@@ -35,29 +36,93 @@
                         name="periode_tahun_view" style="width: 100%;">
                         <option value="">-- Pilih Tahun --</option>
                         @for ($year = 2025; $year <= 2030; $year++)
-                            <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>
+                            <option value="{{ $year }}"
+                                {{ $year == request('periode_tahun_view') ? 'selected' : '' }}>
                                 {{ $year }}
                             </option>
                         @endfor
                     </select>
                 </div>
 
+                <!-- Pilih Bulan -->
+                <div class="col-md-2">
+                    <label class="form-label">
+                        <small><b>Pilih Bulan</b></small>
+                    </label>
+                    <select class="form-control form-control-sm select2bs4" id="periode_bulan_view"
+                        name="periode_bulan_view" style="width: 100%;">
+                        <option value="">-- Pilih Bulan --</option>
+                        @for ($m = 1; $m <= 12; $m++)
+                            <option value="{{ $m }}"
+                                {{ $m == request('periode_bulan_view') ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
 
+                <!-- Generate Button -->
+                <div class="col-md-4 d-flex gap-2 align-items-end">
+                    <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
+                        <i class="fas fa-search"></i>
+                        Submit
+                    </a>
 
+                    <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel
+                    </a>
+                </div>
             </div>
+
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered text-nowrap" style="width: 100%;">
+                <table id="datatable" class="table table-bordered w-100 text-nowrap">
                     <thead class="bg-sb">
                         <tr>
-                            <th class="text-center align-middle">Bulan</th>
-                            <th class="text-center align-middle">Tahun</th>
-                            <th class="text-center align-middle">Total Daily Cost</th>
-                            <th class="text-center align-middle">Act</th>
+                            <th class="text-center align-middle" scope="col" style="color: black;">Date
+                            </th>
+                            <th class="text-center align-middle" scope="col">Est Earning</th>
+                            <th class="text-center align-middle" scope="col">Est Total Cost</th>
+                            <th class="text-center align-middle" scope="col">Balance</th>
+
+                            <th class="text-center align-middle" scope="col">Total Min</th>
+                            <th class="text-center align-middle" scope="col">Est Earning / Min</th>
+                            <th class="text-center align-middle" scope="col">Est Cost / Min</th>
+                            <th class="text-center align-middle" scope="col">Balance</th>
+
+                            <th class="text-center align-middle" scope="col">No Of MP</th>
+                            <th class="text-center align-middle" scope="col">Est Earning / MP</th>
+                            <th class="text-center align-middle" scope="col">Est Cost / MP</th>
+                            <th class="text-center align-middle" scope="col">Balance</th>
+
+                            <th class="text-center align-middle" scope="col">Rate</th>
+                            <th class="text-center align-middle" scope="col">Est Earning</th>
+                            <th class="text-center align-middle" scope="col">Est Total Cost</th>
+                            <th class="text-center align-middle" scope="col">Balance</th>
+
+                            <th class="text-center align-middle" scope="col">Total Min</th>
+                            <th class="text-center align-middle" scope="col">Est Earning / Min</th>
+                            <th class="text-center align-middle" scope="col">Est Cost / Min</th>
+                            <th class="text-center align-middle" scope="col">Balance</th>
+
+                            <th class="text-center align-middle" scope="col">No Of MP</th>
+                            <th class="text-center align-middle" scope="col">Est Earning / MP</th>
+                            <th class="text-center align-middle" scope="col">Est Cost / MP</th>
+                            <th class="text-center align-middle" scope="col">Balance</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th class="text-center">Total</th>
+                            @for ($i = 0; $i < 23; $i++)
+                                <th></th>
+                            @endfor
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
+
         </div>
     </div>
 @endsection
@@ -99,93 +164,458 @@
             alert("Maaf, Fitur belum tersedia!");
         }
     </script>
+
     <script>
         $(document).ready(function() {
-            dataTableReload();
-        })
+            $('#periode_tahun_view').val('').trigger('change');
+            $('#periode_bulan_view').val('').trigger('change');
+            dataTableReload()
+        });
+
 
         function dataTableReload() {
-            datatable.ajax.reload();
-            // ✅ Wait a bit, then fix layout
-            setTimeout(() => {
-                datatable.columns.adjust();
-            }, 300); // Delay ensures DOM updates are done
+            let tahun = $('#periode_tahun_view').val();
+            let bulan = $('#periode_bulan_view').val();
+
+            // Show loading Swal only if both fields are filled
+            if (tahun && bulan) {
+                Swal.fire({
+                    title: 'Loading...',
+                    text: 'Please wait while data is loading.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
+
+            let table = $('#datatable').DataTable({
+                destroy: true,
+                ordering: false,
+                responsive: true,
+                serverSide: false,
+                paging: false,
+                searching: true,
+                scrollY: "500px",
+                scrollX: true,
+                scrollCollapse: true,
+                language: {
+                    loadingRecords: "",
+                    processing: ""
+                },
+                processing: false, // keep processing true if you want to use processing events, just hide the text
+
+                fixedColumns: {
+                    leftColumns: 1
+                },
+                ajax: {
+                    url: '{{ route('mgt_report_sum_prod_earn') }}',
+                    dataSrc: function(json) {
+                        // Close the Swal loading when data is received
+                        if (tahun && bulan) {
+                            Swal.close();
+                        }
+                        return json.data;
+                    },
+                    data: function(d) {
+                        d.tahun = tahun;
+                        d.bulan = bulan;
+                    },
+                    error: function(xhr, status, error) {
+                        if (tahun && bulan) {
+                            Swal.fire('Error', 'Failed to load data.', 'error');
+                        }
+                    }
+                },
+                columns: [{
+                        data: 'tanggal_fix'
+                    },
+                    {
+                        data: 'sum_tot_earning_rupiah',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_tot_cost',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'blc',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'sewing_absen_menit',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_earn_per_min',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_cost_per_min',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'blc_earn_and_cost',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'tot_man_power',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_earn_per_min_all_man_power',
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_cost_per_min_all_man_power',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'blc_earn_and_cost_all_man_power',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'kurs_tengah',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_earning_rate',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_tot_cost_rate',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'blc_est_earning_cost_rate',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'sewing_absen_menit',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_earning_rate_per_min',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_cost_rate_per_min',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'blc_rate_per_min',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'tot_man_power',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_earning_rate_per_man_power',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'est_cost_rate_per_man_power',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                    {
+                        data: 'blc_rate_per_man_power',
+                        className: 'text-end', // Bootstrap right align
+                        render: function(data, type, row) {
+                            var value = parseFloat(data);
+                            if (isNaN(value)) value = 0;
+                            return value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    },
+                ],
+                createdRow: function(row, data, dataIndex) {
+                    // Loop through columns after 'buyer' (starting index 4)
+                    $('td', row).each(function(colIndex) {
+                        if (colIndex >= 1) {
+                            let cellValue = $(this).text().replace(/,/g, '');
+                            let number = parseFloat(cellValue);
+
+                            if (!isNaN(number) && number < 0) {
+                                $(this).css('color', 'red');
+                            }
+                        }
+                    });
+                },
+
+                footerCallback: function(row, data, start, end, display) {
+                    let api = this.api();
+
+                    // Loop from column index 1 to 23 (second column to last)
+                    for (let i = 1; i < 24; i++) {
+                        let total = api
+                            .column(i, {
+                                page: 'current'
+                            }) // Only current page rows
+                            .data()
+                            .reduce((a, b) => {
+                                const clean = val => {
+                                    if (typeof val === 'string') {
+                                        return parseFloat(val.replace(/[,|%]/g, '')) || 0;
+                                    }
+                                    return parseFloat(val) || 0;
+                                };
+                                return clean(a) + clean(b);
+                            }, 0);
+
+                        // Format the total with 2 decimal places
+                        let formattedTotal = total.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+
+                        // Optional: show negative numbers in red
+                        if (total < 0) {
+                            formattedTotal = `<span style="color:red;">${formattedTotal}</span>`;
+                        }
+
+                        // Set the formatted total in the correct footer cell
+                        $(api.column(i).footer()).html(formattedTotal);
+                    }
+                }
+
+
+            });
         }
 
+        function export_excel() {
+            let bulan = document.getElementById("periode_bulan_view").value;
+            let tahun = document.getElementById("periode_tahun_view").value;
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
 
-        let datatable = $("#datatable").DataTable({
-            ordering: true,
-            responsive: true,
-            processing: true,
-            serverSide: false,
-            paging: false,
-            searching: true,
-            scrollY: '300px',
-            scrollX: true,
-            scrollCollapse: true,
-            ajax: {
-                url: '{{ route('mgt_report_proses_daily_cost_show_preview') }}',
-                data: function(d) {
-                    d.working_days = $('#working_days').val();
-                    d.bulan = $('#periode_bulan').val();
-                    d.tahun = $('#periode_tahun').val();
-                    console.log(d.working_days);
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_laporan_sum_prod_earn') }}',
+                data: {
+                    bulan: bulan,
+                    tahun: tahun
                 },
-            },
-            columns: [{
-                    data: 'no_coa'
+                xhrFields: {
+                    responseType: 'blob'
                 },
-                {
-                    data: 'nama_coa'
-                },
-                {
-                    data: 'projection'
-                },
-                {
-                    data: 'daily_cost'
-                },
-            ],
+                success: function(response) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Data Sudah Di Export!',
+                        icon: "success",
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
 
-            // ✅ Highlight rows where cek_valid === 'N'
-            rowCallback: function(row, data, index) {
-                if (data.cek_valid === 'N') {
-                    $(row).css('background-color', '#ff0000'); // Bright red
-                    $(row).css('color', 'white'); // Optional: make text readable
+                    var blob = new Blob([response]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Laporan Summary Prod (Earn) " + " bulan " + bulan + " _ " + tahun +
+                        ".xlsx";
+                    link.click();
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Gagal Mengekspor Data',
+                        text: 'Terjadi kesalahan saat mengekspor. Silakan coba lagi.',
+                        icon: 'error',
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    console.error("Export failed:", {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
                 }
-            },
-
-            drawCallback: function(settings) {
-                let api = this.api();
-                let total_projection = 0;
-                let total_daily_cost = 0;
-
-                // Loop through all data in daily_cost column
-                api.column(2, {
-                    page: 'current'
-                }).data().each(function(value) {
-                    total_projection += parseFloat(value) || 0;
-                });
-
-                // Display the total in the footer
-                $('#total_projection').html(total_projection.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-
-                // Loop through all data in daily_cost column (index 3)
-                api.column(3, {
-                    page: 'current'
-                }).data().each(function(value) {
-                    total_daily_cost += parseFloat(value) || 0;
-                });
-
-                // Display the total daily cost in the footer
-                $('#total_daily_cost').html(total_daily_cost.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-
-            }
-        });
+            });
+        }
     </script>
 @endsection

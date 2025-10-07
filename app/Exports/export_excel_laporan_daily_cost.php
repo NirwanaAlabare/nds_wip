@@ -62,7 +62,7 @@ dim_tgl as (
 SELECT tanggal,
 case
 		when status_prod = 'KERJA' AND status_absen = 'LP' THEN 'KERJA'
-		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'LIBUR'
+		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'KERJA'
 		when status_prod = 'KERJA' AND status_absen is null THEN 'KERJA'
 		when status_prod = 'LIBUR' AND status_absen = 'LP' THEN 'LIBUR'
 		when status_prod = 'LIBUR' AND status_absen = 'LN' THEN 'LIBUR'
@@ -93,7 +93,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-coalesce(daily_cost,0) daily_cost
+case
+		when stat_kerja = 'LIBUR' THEN 0
+		ELSE coalesce(daily_cost,0)
+		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
@@ -106,7 +109,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-coalesce(daily_cost,0) daily_cost
+case
+		when stat_kerja = 'LIBUR' THEN 0
+		ELSE coalesce(daily_cost,0)
+		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
@@ -119,7 +125,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-coalesce(daily_cost,0) daily_cost
+case
+		when stat_kerja = 'LIBUR' THEN 0
+		ELSE coalesce(daily_cost,0)
+		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
@@ -132,7 +141,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-coalesce(daily_cost,0) daily_cost
+case
+		when stat_kerja = 'LIBUR' THEN 0
+		ELSE coalesce(daily_cost,0)
+		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
@@ -145,7 +157,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-coalesce(daily_cost,0) daily_cost
+case
+		when stat_kerja = 'LIBUR' THEN 0
+		ELSE coalesce(daily_cost,0)
+		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
@@ -158,7 +173,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-coalesce(daily_cost,0) daily_cost
+case
+		when stat_kerja = 'LIBUR' THEN 0
+		ELSE coalesce(daily_cost,0)
+		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
@@ -188,7 +206,7 @@ sum(bpjs_tk) bpjs_tk,
 sum(bpjs_ks) bpjs_ks,
 sum(thr) thr
 from mgt_rep_labor
-WHERE tanggal_berjalan BETWEEN '$start_date' AND '$end_date' -- dynamic filter
+WHERE tanggal_berjalan BETWEEN '$start_date' AND '$end_date' AND status_staff = 'NON STAFF' -- dynamic filter
 group by sub_dept_id, group_department, tanggal_berjalan
 )
 
@@ -202,7 +220,6 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -210,7 +227,6 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
@@ -231,7 +247,6 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -239,7 +254,6 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
@@ -260,7 +274,6 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -268,7 +281,6 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
@@ -289,7 +301,6 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -297,7 +308,6 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
@@ -318,7 +328,6 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -326,7 +335,6 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost
@@ -347,7 +355,6 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage)
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk)
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks)
@@ -355,7 +362,6 @@ case
 		ELSE '0'
 		END AS nominal_labor,
 case
-		WHEN stat_kerja = 'LIBUR' THEN 0
 		when a.nama_coa like '%GAJI%' then sum(wage) + a.daily_cost
 		when a.nama_coa like '%BPJS KETENAGAKERJAAN%' then sum(bpjs_tk) + a.daily_cost
 		when a.nama_coa like '%BPJS KESEHATAN%' then sum(bpjs_ks) + a.daily_cost

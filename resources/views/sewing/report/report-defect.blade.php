@@ -701,6 +701,8 @@
                         message: message,
                         position: 'topCenter'
                     });
+
+                    Swal.close();
                 }
             });
         }
