@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Sewing;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Summary\DataDetailProduksiDay;
-use App\Exports\ExportReportProduction;
+use App\Exports\Sewing\ExportReportProduction;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;

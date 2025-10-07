@@ -1,5 +1,6 @@
 <?php
-    namespace App\Exports;
+    namespace App\Exports\Sewing;
+
     use App\Models\Summary\DataProduksi;
     use App\Models\Summary\DataDetailProduksi;
     use App\Models\Summary\DataDetailProduksiDay;
@@ -23,7 +24,7 @@
         $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
     });
 
-    class ExportReportDetailOutputDataPacking implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithEvents
+    class ExportReportDetailOutputData implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithEvents
     {
         use Exportable;
 
@@ -84,23 +85,23 @@
             foreach($filterDetailProduksiDay as $day) {
                 $output = MasterPlanSB::on('mysql_sb')->
                     selectRaw('
-                        count(output_rfts_packing.id) output,
-                        output_rfts_packing.so_det_id,
+                        count(output_rfts.id) output,
+                        output_rfts.so_det_id,
                         master_plan.tgl_plan,
                         master_plan.id_ws
                     ')->
-                    leftJoin('output_rfts_packing', 'output_rfts_packing.master_plan_id', '=', 'master_plan.id')->
+                    leftJoin('output_rfts', 'output_rfts.master_plan_id', '=', 'master_plan.id')->
                     where('master_plan.tgl_plan', $day->tgl_plan)->
                     where('master_plan.id_ws', $day->id_ws)->
-                    where('output_rfts_packing.so_det_id', $day->so_det_id)->
-                    groupBy('master_plan.tgl_plan', 'master_plan.id_ws', 'output_rfts_packing.so_det_id')->
+                    where('output_rfts.so_det_id', $day->so_det_id)->
+                    groupBy('master_plan.tgl_plan', 'master_plan.id_ws', 'output_rfts.so_det_id')->
                     first();
                 $day->output = $output ? $output->output : 0;
             }
 
             $this->rowCount = $filterDetailProduksiDay->count() + 3;
 
-            return view('sewing.report.excel.detail-output-packing-excel', [
+            return view('sewing.report.excel.detail-output-excel', [
                 'dataDetailProduksiDay' => $filterDetailProduksiDay,
                 'tanggal' => $this->tanggal
             ]);

@@ -1,5 +1,6 @@
 <?php
-    namespace App\Exports;
+    namespace App\Exports\Sewing;
+
     use App\Models\Summary\DataProduksi;
     use App\Models\Summary\DataDetailProduksi;
     use App\Models\Summary\DataDetailProduksiDay;
@@ -26,7 +27,7 @@
         $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
     });
 
-    class ExportReportEfficiencySingle implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents
+    class ExportReportEfficiencySingle1 implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents
     {
         use Exportable;
 
