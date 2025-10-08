@@ -356,6 +356,15 @@
                             })
                         );
                     }
+                },
+                // ✅ Ensure layout is drawn properly before calling draw()
+                initComplete: function() {
+                    let api = this.api();
+
+                    // Small delay ensures scroll and fixedColumns are applied correctly
+                    setTimeout(function() {
+                        api.columns.adjust().draw(false);
+                    }, 100); // 100ms is usually enough; adjust if needed
                 }
             });
         });

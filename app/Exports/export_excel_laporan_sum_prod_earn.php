@@ -20,18 +20,22 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 class export_excel_laporan_sum_prod_earn implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
-    protected $bulan, $tahun, $rowCount;
+    protected $start_date, $end_date, $rowCount;
 
-    public function __construct($bulan, $tahun)
+    public function __construct($start_date, $end_date)
     {
-        $this->bulan = $bulan;
-        $this->tahun = $tahun;
+        $this->start_date = $start_date;
+        $this->end_date = $end_date;
     }
 
     public function view(): View
     {
-        $start_date = \Carbon\Carbon::createFromDate($this->tahun, $this->bulan, 1)->startOfDay()->format('Y-m-d');
-        $end_date = \Carbon\Carbon::createFromDate($this->tahun, $this->bulan, 1)->endOfMonth()->endOfDay()->format('Y-m-d');
+
+        $bulan_awal = date('n', strtotime($this->start_date)); // Returns month as number without leading zero (e.g., 9)
+        $tahun_awal = date('Y', strtotime($this->start_date)); // Returns full year (e.g., 2025)
+
+        $bulan_akhir = date('n', strtotime($this->end_date)); // Returns month as number without leading zero (e.g., 9)
+        $tahun_akhir = date('Y', strtotime($this->end_date)); // Returns full year (e.g., 2025)
 
 
         $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
@@ -115,7 +119,7 @@ earn as (
                     time(max(a.updated_at)) jam_akhir_input,
                     created_by
                     from output_rfts a
-                    where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59'
+                    where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59'
                     group by master_plan_id, created_by, date(updated_at)
                 ) a
                 inner join so_det sd on a.so_det_id = sd.id
@@ -133,7 +137,7 @@ earn as (
                         END as istirahat,
                     created_by
                     from output_rfts
-                    where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59' group by created_by, date(updated_at)
+                    where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59' group by created_by, date(updated_at)
                 ) op on a.tgl_trans = op.tgl_trans_line and a.created_by = op.created_by
                 left join (
                     select * from act_costing_mfg where id_item = '8' group by id_act_cost
@@ -154,7 +158,7 @@ earn as (
                         count(so_det_id) tot_rfts,
                         created_by
                         from output_rfts a
-                        where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59' and status = 'NORMAL'
+                        where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59' and status = 'NORMAL'
                         group by master_plan_id, created_by, date(updated_at)
                     ) a
                     inner join master_plan mp on a.master_plan_id = mp.id
@@ -163,7 +167,7 @@ earn as (
                 left join
                 (
                     select min(id), man_power, sewing_line, tgl_plan from master_plan
-                    where tgl_plan >= '$start_date' and  tgl_plan <= '$end_date' and cancel = 'N'
+                    where tgl_plan >= '$this->start_date' and  tgl_plan <= '$this->end_date' and cancel = 'N'
                     group by sewing_line, tgl_plan
                 ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
 
@@ -175,7 +179,7 @@ earn as (
                         FROM (
                             SELECT DISTINCT date(updated_at) AS tgl_trans
                             FROM output_rfts
-                            WHERE updated_at >= '$start_date 00:00:00' AND updated_at <= '$end_date 23:59:59'
+                            WHERE updated_at >= '$this->start_date 00:00:00' AND updated_at <= '$this->end_date 23:59:59'
                         ) a_dates
                         JOIN master_kurs_bi mkb
                         ON mkb.tanggal_kurs_bi <= a_dates.tgl_trans
@@ -198,14 +202,17 @@ FROM dim_date a
 LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
 WHERE status_prod = 'KERJA'
 AND (status_absen != 'LN' OR status_absen IS NULL)
-AND tahun = '$this->tahun' AND bulan = '$this->bulan'
+AND a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
 GROUP BY bulan, tahun
 ORDER BY
 CAST(a.tahun AS UNSIGNED) ASC,
 CAST(a.bulan AS UNSIGNED) ASC
 ),
 dim_tgl as (
-SELECT tanggal,
+SELECT
+tanggal,
+bulan,
+tahun,
 case
 		when status_prod = 'KERJA' AND status_absen = 'LP' THEN 'KERJA'
 		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'KERJA'
@@ -217,7 +224,7 @@ case
 		END AS stat_kerja
 FROM dim_date a
 left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
-where tahun = '$this->tahun' AND bulan = '$this->bulan'
+where tanggal >= '$this->start_date' and tanggal <= '$this->end_date'
 ),
 dc as (
 SELECT
@@ -229,8 +236,8 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE a.tahun = '$this->tahun' and a.bulan = '$this->bulan'
-GROUP BY no_coa
+WHERE a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
+GROUP BY no_coa, dd.bulan, dd.tahun
 ),
 coa_direct as (
 select
@@ -245,7 +252,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'DIRECT LABOR COST'
 ),
 coa_indirect as (
@@ -261,7 +268,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'INDIRECT LABOR COST'
 ),
 coa_overhead as (
@@ -277,7 +284,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'FIXED OVERHEAD COST'
 ),
 coa_selling as (
@@ -293,7 +300,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'SELLING EXPENSE'
 ),
 coa_ga as (
@@ -309,7 +316,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
 ),
 coa_expense as (
@@ -325,7 +332,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'INTEREST EXPENSE'
 ),
 map_coa as (
@@ -352,7 +359,7 @@ sum(bpjs_tk) bpjs_tk,
 sum(bpjs_ks) bpjs_ks,
 sum(thr) thr
 from mgt_rep_labor
-WHERE tanggal_berjalan BETWEEN '$start_date' AND '$end_date' AND status_staff = 'NON STAFF' -- dynamic filter
+WHERE tanggal_berjalan BETWEEN '$this->start_date' AND '$this->end_date' AND status_staff = 'NON STAFF' -- dynamic filter
 group by sub_dept_id, group_department, tanggal_berjalan
 ),
 daily_cost as (
@@ -674,7 +681,7 @@ left join earn a on dt.tanggal = a.tgl_trans
 left join sum_daily_cost b on dt.tanggal = b.tanggal
 left join sum_earn c on dt.tanggal = c.tgl_trans
 left join sum_cost d on a.kpno = d.kpno
-where dt.tanggal >= '$start_date' and dt.tanggal <= '$end_date'
+where dt.tanggal >= '$this->start_date' and dt.tanggal <= '$this->end_date'
 order by dt.tanggal asc, sewing_line asc
 ),
 sum_earning as (
@@ -690,12 +697,12 @@ SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN man
 SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN absen_menit ELSE 0 END) AS sewing_absen_menit,
 SUM(man_power)  AS tot_man_power
 from mgt_rep_labor
-WHERE tanggal_berjalan BETWEEN '$start_date' AND '$end_date'
+WHERE tanggal_berjalan BETWEEN '$this->start_date' AND '$this->end_date'
 group by tanggal_berjalan
 order by tanggal_berjalan asc
 ),
 m_kurs_bi as (
-select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '$start_date' AND '$end_date'
+select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '$this->start_date' AND '$this->end_date'
 )
 
 select
@@ -732,14 +739,13 @@ left join sum_daily_cost c on a.tanggal = c.tanggal
 left join sum_labor d on a.tanggal = d.tanggal_berjalan
 left join m_kurs_bi e on a.tanggal = e.tanggal_kurs_bi
 order by a.tanggal asc
+
         ");
 
 
         $this->rowCount = count($rawData) + 1; // 1 for header
 
         return view('management_report.export_excel_laporan_sum_prod_earn', [
-            'bulan' => $this->bulan,
-            'tahun' => $this->tahun,
             'rawData' => $rawData,
         ]);
     }
