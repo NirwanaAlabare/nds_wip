@@ -38,19 +38,25 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-chart-area"></i> Hourly Output</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <label class="form-label"><small><b>Tgl Filter</b></small></label>
-                    <input type="date" class="form-control form-control " id="tgl_filter" name="tgl_filter"
-                        value="{{ date('Y-m-d') }}">
+            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div class="mb-3">
+                        <label class="form-label"><small><b>Tgl Filter</b></small></label>
+                        <input type="date" class="form-control form-control " id="tgl_filter" name="tgl_filter" value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div class="mb-3">
+                        <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative">
+                            <i class="fas fa-search fa-sm"></i>
+                        </a>
+                    </div>
+                    <div class="mb-3">
+                        <div id="last-updated" class="text-muted" style="font-size: small;"></div>
+                    </div>
                 </div>
                 <div class="mb-3">
-                    <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative">
-                        <i class="fas fa-search fa-sm"></i>
+                    <a class="btn btn-outline-success position-relative mb-3" data-bs-toggle="modal" data-bs-target="#exportModal">
+                        <i class="fas fa-file-excel fa-sm"></i>
                     </a>
-                </div>
-                <div class="mb-3">
-                    <div id="last-updated" class="text-muted" style="font-size: small;"></div>
                 </div>
             </div>
 
@@ -125,6 +131,52 @@
             </div>
         </div>
     </div>
+
+    {{-- Report Hourly --}}
+    <div class="modal" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h5 class="modal-title">Export</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Periode</label>
+                        <select class="form-select" name="periode" id="periode" onchange="checkPeriod()">
+                            <option value="daily">Daily</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div id="daily-container">
+                        <input type="date" class="form-control" id="tanggal_export">
+                    </div>
+                    <div id="monthly-container">
+                        <div class="d-flex gap-3">
+                            <div class="w-50">
+                                <select class="form-control select2bs4" id="bulan_export" name="bulan_export[]" multiple>
+                                    @foreach ($months as $month)
+                                        <option value="{{ $month['angka'] }}">{{ $month['nama'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="w-50">
+                                <select class="form-control select2bs4" id="tahun_export" name="tahun_export">
+                                    @foreach ($years as $year)
+                                        <option value="{{ $year }}">{{ $year }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+                    <button type="button" onclick="export_excel_hourly()" class="btn btn-success"><i class="fa fa-file-excel"></i> Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -147,11 +199,13 @@
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-            containerCssClass: 'form-control-sm rounded'
+            containerCssClass: 'rounded'
         });
     </script>
     <script>
         $(document).ready(() => {
+            checkPeriod();
+
             dataTableReload();
             setInterval(dataTableReload, 300000);
             // 300000
@@ -200,7 +254,6 @@
                     url: '{{ route('report-hourly') }}',
                     data: function(d) {
                         d.tgl_filter = $('#tgl_filter').val(); // Send the selected date to the server
-                        console.log(d.tgl_filter); // Debugging: log the filter date
                     },
                     dataSrc: function(json) {
                         // Access the DataTable instance directly
@@ -635,7 +688,117 @@
             });
         }
 
+        function checkPeriod() {
+            let period = document.getElementById("periode");
+            let dailyContainer = document.getElementById("daily-container");
+            let monthlyContainer = document.getElementById("monthly-container");
 
+            if (period && dailyContainer && monthlyContainer) {
+                if (period.value == "daily") {
+                    dailyContainer.classList.remove("d-none");
+                    monthlyContainer.classList.add("d-none");
+                }
+
+                if (period.value == "monthly") {
+                    dailyContainer.classList.add("d-none");
+                    monthlyContainer.classList.remove("d-none");
+                }
+            }
+        }
+
+        async function export_excel_hourly() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...  <br><br> <b>0</b>s elapsed...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            if ($("#periode").val() == "daily") {
+                $.ajax({
+                    type: "get",
+                    url: '{{ route('export-excel-hourly') }}',
+                    data: {
+                        tgl_filter: $('#tanggal_export').val()
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function(response) {
+                        swal.close();
+
+                        if (response) {
+                            Swal.fire({
+                                title: 'Data Sudah Di Export!',
+                                icon: "success",
+                                showConfirmButton: true,
+                                allowOutsideClick: false
+                            });
+                            var blob = new Blob([response]);
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Laporan Hourly " + $('#tgl_filter').val() + ".xlsx";
+                            link.click();
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+
+                        swal.close();
+                    }
+                });
+            } else {
+                let months = $('#bulan_export').val();
+                let year = $('#tahun_export').val();
+
+                if (months.length > 0) {
+                    await downloadMonthlyReports(months, year, estimatedTime);
+                }
+            }
+        }
+
+        async function downloadMonthlyReports(months, year, estimatedTime) {
+            for (const month of months) {
+                await new Promise((resolve, reject) => {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export-excel-hourly-monthly') }}',
+                        data: { month, year },
+                        xhrFields: { responseType: 'blob' },
+                        success: function(response) {
+                            const blob = new Blob([response]);
+                            const link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Laporan Hourly " + year + "-" + month + ".xlsx";
+                            link.click();
+                            resolve(); // 👈 signal that this one is done
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR);
+                            reject(jqXHR);
+                        }
+                    });
+                });
+            }
+
+            swal.close(); // safely called after all exports complete
+            Swal.fire({
+                title: 'Data Sudah Di Export!',
+                icon: "success",
+                html: estimatedTime+" ellapsed.",
+                showConfirmButton: true,
+                allowOutsideClick: false
+            });
+        }
 
         function export_excel_tracking() {
             let buyer = document.getElementById("cbobuyer").value;

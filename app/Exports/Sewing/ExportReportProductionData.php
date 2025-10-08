@@ -1,5 +1,6 @@
 <?php
-    namespace App\Exports;
+    namespace App\Exports\Sewing;
+
     use App\Models\Summary\DataProduksi;
     use App\Models\Summary\DataDetailProduksi;
     use App\Models\Summary\DataDetailProduksiDay;

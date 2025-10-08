@@ -1,5 +1,6 @@
 <?php
-    namespace App\Exports;
+    namespace App\Exports\Sewing;
+
     use App\Models\Summary\DataProduksi;
     use App\Models\Summary\DataDetailProduksi;
     use App\Models\Summary\DataDetailProduksiDay;
@@ -7,7 +8,7 @@
     use Maatwebsite\Excel\Concerns\WithMultipleSheets;
     use Illuminate\Contracts\Queue\ShouldQueue;
 
-    class ExportReportProduction implements WithMultipleSheets, ShouldQueue
+    class ExportReportEfficiency implements WithMultipleSheets, ShouldQueue
     {
         use Exportable;
 
@@ -40,10 +41,10 @@
                 ->get();
 
                 foreach ($monthly as $month) {
-                    $sheets[] = new ExportReportProductionData($month->tgl_produksi);
+                    $sheets[] = new ExportReportEfficiencyData($month->tgl_produksi);
                 }
             } else {
-                $sheets[] = new ExportReportProductionData($this->tanggal);
+                $sheets[] = new ExportReportEfficiencyData($this->tanggal);
             }
 
             if(count($sheets) < 1) {

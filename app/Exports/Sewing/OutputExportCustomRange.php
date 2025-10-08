@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\Sewing;
 
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\UserLine;
@@ -13,15 +13,17 @@ use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use DB;
 
-class OutputExport implements FromView, ShouldAutoSize
+class OutputExportCustomRange implements FromView, ShouldAutoSize
 {
-    protected $date;
+    protected $dateFrom;
+    protected $dateTo;
     protected $subtype;
     protected $search;
     protected $group;
 
-    function __construct($date, $subtype, $search, $group) {
-        $this->date = $date;
+    function __construct($dateFrom, $dateTo, $subtype, $search, $group) {
+        $this->dateFrom = $dateFrom;
+        $this->dateTo = $dateTo;
         $this->subtype = $subtype;
         $this->search = $search;
         $this->group = $group;
@@ -29,12 +31,12 @@ class OutputExport implements FromView, ShouldAutoSize
 
     public function view(): View
     {
-        $masterPlanDateFilter = " = '".$this->date."'";
-        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-7 days', strtotime($this->date)))."' and '".$this->date."'";
-        $outputFilter = " between '".$this->date." 00:00:00' and '".$this->date." 23:59:59'";
-        $leaderDate = $this->date;
+        $masterPlanDateFilter = " between '".$this->dateFrom."' and '".$this->dateTo."'";
+        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-7 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
+        $outputFilter = " between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'";
+        $leaderDate = $this->dateTo;
 
-        $selectFilter = $masterPlanDateFilter1;
+        $selectFilter = $masterPlanDateFilter;
 
         if ($this->group == 'line') {
             $lines = MasterPlan::selectRaw("
@@ -52,16 +54,17 @@ class OutputExport implements FromView, ShouldAutoSize
                 SUM((IFNULL(rfts.rft, 0)+IFNULL(reworks.rework, 0))*master_plan.smv) mins_prod,
                 SUM(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.man_power * master_plan.jam_kerja ) ELSE 0 END)*60 mins_avail,
                 MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.man_power ) ELSE 0 END) man_power,
-                MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.man_power ) ELSE 0 END)*(IF(cast(CURRENT_TIMESTAMP as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60)), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))-60))) cumulative_mins_avail,
-                FLOOR(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.man_power ) ELSE 0 END )*(IF(cast(CURRENT_TIMESTAMP as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))/AVG(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN master_plan.smv ELSE 0 END), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))-60)/AVG(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN master_plan.smv ELSE 0 END) ))) cumulative_target,
+                MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.man_power ) ELSE 0 END)*(IF(cast(GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) as time) <= '13:00:00', ((TIME_TO_SEC(TIMEDIFF(cast(GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) as time), '07:00:00'))/60)), (((TIME_TO_SEC(TIMEDIFF(cast(GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) as time), '07:00:00'))/60))-60))) cumulative_mins_avail,
+                FLOOR(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.man_power ) ELSE 0 END )*(IF(cast(GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) as time) <= '13:00:00', ((TIME_TO_SEC(TIMEDIFF(cast(GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) as time), '07:00:00'))/60))/AVG(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN master_plan.smv ELSE 0 END), (((TIME_TO_SEC(TIMEDIFF(cast(GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) as time), '07:00:00'))/60))-60)/AVG(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN master_plan.smv ELSE 0 END) ))) cumulative_target,
                 SUM(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.plan_target ) ELSE 0 END) total_target,
                 COALESCE(line.sewing_line, master_plan.sewing_line) FullName,
                 COALESCE(line.sewing_line, master_plan.sewing_line) username,
                 SUM(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.jam_kerja ) ELSE 0 END) jam_kerja,
                 MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( DATE(master_plan.tgl_plan) ) ELSE 0 END) tgl_plan,
-                GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( defects.last_defect ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rejects.last_reject ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) latest_output")->
+                GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( defects.last_defect ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rejects.last_reject ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) latest_output
+            ")->
             leftJoin("userpassword", "userpassword.username", "=", "master_plan.sewing_line")->
-            leftJoin("output_employee_line", function ($join)  use ($leaderDate) {
+            leftJoin("output_employee_line", function ($join) use ($leaderDate) {
                 $join->on("output_employee_line.line_id", "=", "userpassword.line_id");
                 $join->on("output_employee_line.tanggal", "=", DB::raw("'".$leaderDate."'"));
             })->
@@ -253,7 +256,7 @@ class OutputExport implements FromView, ShouldAutoSize
             $orders = collect([]);
         }
 
-        $defectTypes = DB::connection('mysql_sb')->table('output_defects'.$this->subtype)->
+        $defectTypes = DB::connection("mysql_sb")->table('output_defects'.$this->subtype)->
             selectRaw('defect_type_id, defect_type, count(defect_type_id) as defect_type_count')->
             leftJoin("so_det", "so_det.id", "=","output_defects".$this->subtype.".so_det_id")->
             leftJoin("so", "so.id", "=","so_det.id_so")->
@@ -261,7 +264,7 @@ class OutputExport implements FromView, ShouldAutoSize
             leftJoin("master_plan", "master_plan.id", "=","output_defects".$this->subtype.".master_plan_id")->
             leftJoin("output_defect_types", "output_defect_types.id", "=","output_defects".$this->subtype.".defect_type_id")->
             where("master_plan.cancel", 'N')->
-            whereRaw("output_defects".$this->subtype.".created_at ".$outputFilter."")->
+            whereRaw("output_defects".$this->subtype.".updated_at ".$outputFilter."")->
             whereRaw("(
                 master_plan.sewing_line LIKE '%".$this->search."%' OR
                 act_costing.kpno LIKE '%".$this->search."%' OR
@@ -275,7 +278,7 @@ class OutputExport implements FromView, ShouldAutoSize
             array_push($defectTypeIds, $type->defect_type_id);
         }
 
-        $defectAreas = DB::connection('mysql_sb')->table('output_defects'.$this->subtype)->
+        $defectAreas = DB::connection("mysql_sb")->table('output_defects'.$this->subtype)->
             selectRaw('defect_type_id, defect_area_id, defect_area, count(defect_area_id) as defect_area_count')->
             leftJoin("so_det", "so_det.id", "=","output_defects".$this->subtype.".so_det_id")->
             leftJoin("so", "so.id", "=","so_det.id_so")->
@@ -283,13 +286,13 @@ class OutputExport implements FromView, ShouldAutoSize
             leftJoin("master_plan", "master_plan.id", "=","output_defects".$this->subtype.".master_plan_id")->
             leftJoin("output_defect_areas", "output_defect_areas.id", "=","output_defects".$this->subtype.".defect_area_id")->
             where("master_plan.cancel", 'N')->
-            whereRaw("output_defects".$this->subtype.".created_at ".$outputFilter."")->
+            whereRaw("output_defects".$this->subtype.".updated_at ".$outputFilter."")->
+            whereIn("defect_type_id", $defectTypeIds)->
             whereRaw("(
                 master_plan.sewing_line LIKE '%".$this->search."%' OR
                 act_costing.kpno LIKE '%".$this->search."%' OR
                 act_costing.styleno LIKE '%".$this->search."%'
             )")->
-            whereIn("defect_type_id", $defectTypeIds)->
             groupBy("defect_type_id", "defect_area_id")->
             orderByRaw("defect_area_count desc")->get();
 
@@ -298,25 +301,26 @@ class OutputExport implements FromView, ShouldAutoSize
             array_push($defectAreaIds, $area->defect_area_id);
         }
 
-        $lineDefects = DB::connection('mysql_sb')->table('output_defects'.$this->subtype)->
+        $lineDefects = DB::connection("mysql_sb")->table('output_defects'.$this->subtype)->
             selectRaw("master_plan.sewing_line, output_defects".$this->subtype.".defect_type_id, output_defects".$this->subtype.".defect_area_id, count(*) as total")->
             leftJoin('master_plan', 'master_plan.id', 'output_defects'.$this->subtype.'.master_plan_id')->
             where("master_plan.cancel", 'N')->
-            whereRaw("output_defects".$this->subtype.".created_at ".$outputFilter."")->
+            whereRaw("output_defects".$this->subtype.".updated_at ".$outputFilter."")->
             whereIn("defect_type_id", $defectTypeIds)->
             groupBy("master_plan.sewing_line", "output_defects".$this->subtype.".defect_type_id", "output_defects".$this->subtype.".defect_area_id")->get();
 
-        return view('sewing.export.output-export', [
+        return view('sewing.export.output-export-custom-range', [
             'lines' => $lines,
             'orders' => $orders,
-            'masterPlans' => $masterPlans,
             'defectTypes' => $defectTypes,
             'defectAreas' => $defectAreas,
             'lineDefects' => $lineDefects,
             'subtype' => $this->subtype,
+            'dateFrom' => $this->dateFrom,
+            'dateTo' => $this->dateTo,
             'search' => $this->search,
-            'date' => $this->date,
-            'group' => $this->group
+            'group' => $this->group,
+            'date' => $this->dateFrom.' - '.$this->dateTo,
         ]);
     }
 }

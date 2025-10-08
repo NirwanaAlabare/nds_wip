@@ -443,7 +443,7 @@ class CuttingToolsController extends Controller
                     $partForm = PartForm::where("form_id", $validatedRequest["modify_marker_form_id"])->first();
                     if ($partForm) {
                         // Part
-                        $part = Part::where("act_costing_id", $currentData->id)->where("panel", $currentData->id)->first();
+                        $part = Part::where("act_costing_id", $currentData->id)->where("panel", $currentData->panel)->first();
                         if (!$part) {
                             $partCount = Part::selectRaw("MAX(kode) latest_kode")->first();
                             $latestPartNumber = intval(substr($partCount->latest_kode, -5)) + 1;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\Sewing;
 
 use App\Models\SignalBit\MasterPlan;
 use Illuminate\Contracts\View\View;
