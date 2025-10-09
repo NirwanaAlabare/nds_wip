@@ -799,3 +799,17 @@ function hideLoading() {
         loadingElement.classList.add("d-none");
     }
 }
+
+window.formatTimer = function(elapsedMs) {
+    const totalSeconds = Math.floor(elapsedMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    let formattedTime = '';
+    if (hours > 0) formattedTime += `${hours} hr `;
+    if (minutes > 0) formattedTime += `${minutes} min `;
+    formattedTime += `${seconds} sec`;
+
+    return formattedTime.trim();
+};
