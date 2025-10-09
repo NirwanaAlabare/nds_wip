@@ -6187,7 +6187,7 @@ class StockerController extends Controller
 
             $max = $availableYearSequence[0]->year_sequence ?? 0;
 
-            $sequenceList = range(0, $max);
+            $sequenceList = range(0, $max+1);
 
             if (count($sequenceList) > 0) {
                 return json_encode($sequenceList);

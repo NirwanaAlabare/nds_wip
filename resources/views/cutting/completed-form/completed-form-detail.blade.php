@@ -44,13 +44,13 @@
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
-                                <input type="datetime" class="form-control form-control-sm" name="start" id="start-time" value="{{ $formCutInputData->waktu_mulai }}">
+                                <input type="datetime" class="form-control form-control-sm" name="start" id="start-time" value="{{ ($formCutInputData->waktu_mulai ? $formCutInputData->waktu_mulai : $formCutInputData->waktu_selesai) }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Finish</b></small></label>
-                                <input type="datetime" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai }}">
+                                <input type="datetime" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai ? $formCutInputData->waktu_selesai : $formCutInputData->waktu_mulai }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
