@@ -651,13 +651,13 @@ class GeneralController extends Controller
         }
 
         if ($request->act_costing_id) {
-            $newItemAdditional .= " and act_costing.id = '".$request->act_costing_id."'";
+            $newItemAdditional .= " and (act_costing.id = '".$request->act_costing_id."' or whs_bppb_h.no_ws_aktual = '".$request->act_costing_ws."')";
             $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
         }
 
-        if ($request->color) {
-            $newItemAdditional .= " and so_det.color = '".$request->color."'";
-        }
+        // if ($request->color) {
+        //     $newItemAdditional .= " and masteritem.color = '".$request->color."'";
+        // }
 
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
