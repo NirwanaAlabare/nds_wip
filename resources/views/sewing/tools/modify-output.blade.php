@@ -950,9 +950,9 @@
 
         function updateTotalQty(prefix) {
             let currentOutputs = [];
-            if ($('#'+prefix+'size').val()) {
+            if ($('#'+prefix+'size').val() || $('#dept').val() == "_packing_po") {
                 currentOutputs = outputs.filter((item) => {
-                    return ((item.so_det_id == $('#'+prefix+'size').val()) && ($('#dept').val() != "_packing_po" || ($('#dept').val() == "_packing_po" && item.po == $('#'+prefix+'po').val())));
+                    return ((item.so_det_id == $('#'+prefix+'size').val() || !$('#'+prefix+'size').val()) && ($('#dept').val() != "_packing_po" || ($('#dept').val() == "_packing_po" && item.po == $('#'+prefix+'po').val())));
                 });
             } else {
                 currentOutputs = outputs;
