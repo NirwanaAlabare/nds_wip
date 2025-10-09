@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Sewing;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\PPIC_MasterSOController;
+use App\Models\PPICMasterSo;
 use App\Models\SignalBit\ActCosting;
 use App\Models\SignalBit\SoDet;
 use App\Models\SignalBit\MasterPlan;
@@ -2318,16 +2320,23 @@ class SewingToolsController extends Controller
                 $rfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept." as output_rfts")
                     ->select("output_rfts.*")
                     ->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id");
-                    if ($request->dept == "_packing") {
-                        $rfts->leftJoin("userpassword", "userpassword.username", "=", "output_rfts.created_by");
+                    if ($request->dept == "_packing_po") {
+                        $rfts->leftJoin("userpassword", "userpassword.username", "=", "output_rfts.created_by_line")->leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts.po_id");
                     } else {
-                        $rfts->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id");
+                        if ($request->dept == "_packing") {
+                            $rfts->leftJoin("userpassword", "userpassword.username", "=", "output_rfts.created_by");
+                        } else {
+                            $rfts->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id");
+                        }
                     }
                     $rfts->where("output_rfts.status", "NORMAL")
                     ->where("userpassword.username", $request->line)
                     ->where("master_plan.id", $request->master_plan_id)
-                    ->where("output_rfts.so_det_id", $request->so_det_id)
-                    ->take($request->qty);
+                    ->where("output_rfts.so_det_id", $request->so_det_id);
+                    if ($request->dept == "_packing_po") {
+                        $rfts->where("ppic_master_so.po", $request->po_id);
+                    }
+                    $rfts->take($request->qty);
 
                 $rftIds = $rfts->pluck("id")->toArray();
 
@@ -2340,7 +2349,16 @@ class SewingToolsController extends Controller
                             $rft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->where('id', $rftId)->first();
 
                             if ($rft) {
-                                array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+                                if ($request->dept == "_packing_po") {
+                                    array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+
+                                    // Delete Gudang Stok on Packing Po GudangStok
+                                    if ($rft->alokasi == "gudang stok") {
+                                        DB::connection("mysql_sb")->table("output_gudang_stok")->where('packing_po_id', $rft->id)->delete();
+                                    }
+                                } else {
+                                    array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+                                }
                             }
                         }
 
@@ -2365,6 +2383,7 @@ class SewingToolsController extends Controller
                             ->first();
 
                         if ($modSoDet) {
+
                             // Check Master Plan
                             $modMasterPlan = MasterPlan::select("master_plan.id", "master_plan.sewing_line")
                                 ->where("tgl_plan", $request->tanggal)
@@ -2380,11 +2399,58 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             if ($modMasterPlan) {
-                                $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update([
-                                    "so_det_id"       => $modSoDet->id,
-                                    "master_plan_id"  => $modMasterPlan->id,
-                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
-                                ]);
+                                if ($request->dept == "_packing_po") {
+                                    // Check Po
+                                    $modPo = PPICMasterSo::selectRaw("ppic_master_so.id")
+                                        ->where("ppic_master_so.id", $request->mod_po_id)
+                                        ->first();
+
+                                    $currentRft = [
+                                        "so_det_id" => $modSoDet->id,
+                                        "po_id" => $modPo ? $modPo->id : null,
+                                        "master_plan_id" => $modMasterPlan->id,
+                                        "alokasi" => ($modPo ? ($modPo->id ? "po" : "gudang stok") : null),
+                                        "created_by_line" => $modMasterPlan->sewing_line
+                                    ];
+
+                                    if ($modPo && $modPo->id) {
+                                        // IF PO
+                                        DB::connection("mysql_sb")->table("output_gudang_stok")->whereIn("packing_po_id", $rftIds)->delete();
+                                    } else {
+                                        // IF Gudang Stok
+                                        $gudangStokArr = [];
+                                        foreach ($rftIds as $rftId) {
+                                            $rft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->where('id', $rftId)->first();
+
+                                            if ($rft) {
+                                                array_push($gudangStokArr, [
+                                                    "kode_numbering" => $rft->kode_numbering,
+                                                    "packing_po_id" => $rft->id,
+                                                    "so_det_id" => $rft->so_det_id,
+                                                    "created_by" => $rft->created_by,
+                                                    "created_by_username" => $rft->created_by_line,
+                                                    "created_by_line" => $rft->created_by_line,
+                                                    "created_at" => $rft->created_at,
+                                                    "updated_at" => $rft->updated_at,
+                                                ]);
+                                            }
+                                        }
+
+                                        DB::connection("mysql_sb")->table("output_gudang_stok")->upsert(
+                                            $gudangStokArr,
+                                            ['packing_po_id'],
+                                            ['kode_numbering', 'so_det_id', 'created_by', 'created_by_username', 'created_by_line', 'created_at', 'updated_at']
+                                        );
+                                    }
+                                } else {
+                                    $currentRft = [
+                                        "so_det_id" => $modSoDet->id,
+                                        "master_plan_id" => $modMasterPlan->id,
+                                        "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
+                                    ];
+                                }
+
+                                $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update($currentRft);
 
                                 if ($updateRfts) {
                                     return [

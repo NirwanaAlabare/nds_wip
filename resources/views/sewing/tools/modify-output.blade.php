@@ -19,9 +19,10 @@
         <div class="card-body">
             <div class="mb-3">
                 <label class="form-label">Departemen</label>
-                <select class="form-select select2bs4" id="dept">
+                <select class="form-select select2bs4" id="dept" onchange="getMasterPlanOutputSize()">
                     <option value="">QC</option>
                     <option value="_packing">FINISHING</option>
+                    <option value="_packing_po">PACKING</option>
                 </select>
             </div>
             <div class="mb-3">
@@ -144,6 +145,12 @@
                                 <option value="">Pilih Size</option>
                             </select>
                         </div>
+                        <div class="col-md-4 d-none" id="rft-po-container">
+                            <label class="form-label">PO</label>
+                            <select class="form-select select2bs4Rft" name="rft_po" id="rft_po">
+                                <option value="">Pilih PO</option>
+                            </select>
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label">Modify Qty</label>
                             <input type="number" class="form-control" value="0" name="rft_qty" id="rft_qty">
@@ -180,6 +187,12 @@
                             <label class="form-label">Size</label>
                             <select class="form-select select2bs4Rft" name="rft_mod_size" id="rft_mod_size">
                                 <option value="">Pilih Size</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-none" id="rft-mod-po-container">
+                            <label class="form-label">PO</label>
+                            <select class="form-select select2bs4Rft" name="rft_mod_po" id="rft_mod_po">
+                                <option value="">Pilih PO</option>
                             </select>
                         </div>
                     </div>
@@ -546,7 +559,8 @@
                 type: "get",
                 url: "{{ route('get-master-plan-output-size') }}",
                 data: {
-                    id: $("#master_plan").val()
+                    id: $("#master_plan").val(),
+                    department: $("#dept").val(),
                 },
                 dataType: "json",
                 success: function (response) {
@@ -595,14 +609,45 @@
                 currentOutputs.forEach(item => {
                     let option = document.createElement("option");
                     option.value = item.so_det_id;
-                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? " - "+item.dest : "");
 
                     selectSize.appendChild(option);
 
                     totalRft += Number(item.rft);
                 });
 
-                document.getElementById("rft_total").value = totalRft;
+                // PO Conditional
+                if (document.getElementById("dept").value == '_packing_po') {
+                    let poList = objectValues(objectGroupBy(currentOutputs, ({ po }) => po)).filter(item => item[0].po != 'undefined' && item[0].po != null && item[0].po != '' && item[0].po != '-');
+
+                    let totalRftPo = 0;
+                    let selectPoContainer = document.getElementById("rft-po-container");
+                    let selectPo = document.getElementById("rft_po");
+                    if (poList && poList.length > 0) {
+                        selectPoContainer.classList.remove("d-none");
+                        selectPo.innerHTML = "<option value=''>Gudang Stok</option>";
+                        poList.forEach(item => {
+                            let option = document.createElement("option");
+                            option.value = item[0].po;
+                            option.innerText = item[0].po;
+
+                            selectPo.appendChild(option);
+
+                            totalRftPo += Number(item.rft);
+                        });
+
+                    } else {
+                        selectPoContainer.classList.add("d-none");
+                    }
+
+                    document.getElementById("rft_total").value = totalRftPo;
+
+                    let selectModPoContainer =  document.getElementById("rft-mod-po-container");
+                    selectModPoContainer.classList.remove("d-none");
+                } else {
+                    document.getElementById("rft_total").value = totalRft;
+                }
+
             }
         }
 
@@ -624,7 +669,7 @@
                 currentOutputs.forEach(item => {
                     let option = document.createElement("option");
                     option.value = item.so_det_id;
-                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? " - "+item.dest : "");
 
                     selectSize.appendChild(option);
 
@@ -654,7 +699,7 @@
                 currentOutputs.forEach(item => {
                     let option = document.createElement("option");
                     option.value = item.so_det_id;
-                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? " - "+item.dest : "");
 
                     selectSize.appendChild(option);
 
@@ -683,7 +728,7 @@
                 currentOutputs.forEach(item => {
                     let option = document.createElement("option");
                     option.value = item.so_det_id;
-                    option.innerText = item.size+(item.dest && item.dest != "-" ? item.dest : "");
+                    option.innerText = item.size+(item.dest && item.dest != "-" ? " - "+item.dest : "");
 
                     selectSize.appendChild(option);
 
@@ -786,7 +831,11 @@
         // RFT
         $("#rft_mod_color").on("change", () => {
             updateSizeList("rft_mod_")
-        })
+        });
+
+        $("#rft_mod_size").on("change", () => {
+            updatePoList("rft_mod_")
+        });
 
         // DEFECT
         $("#defect_mod_color").on("change", () => {
@@ -838,8 +887,49 @@
             });
         }
 
+        function updatePoList(prefix) {
+            document.getElementById(prefix+'po').value = null;
+
+            return $.ajax({
+                url: '{{ route("get-pos") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#'+prefix+'id_ws').val(),
+                    color: $('#'+prefix+'color').val(),
+                    so_det_id: $('#'+prefix+'size').val(),
+                    po_id: $('#'+prefix+'po').val(),
+                },
+                success: function (res) {
+                    console.log(res);
+                    if (res) {
+                        console.log(res, res[0]);
+                        let select = document.getElementById(prefix+'po');
+                        select.innerHTML = "";
+
+                        let latestVal = null;
+                        for(let i = 0; i < res.length; i++) {
+                            let option = document.createElement("option");
+                            option.setAttribute("value", res[i].id);
+                            option.innerHTML = res[i].po;
+                            option.setAttribute("po", res[i].po);
+                            select.appendChild(option);
+                        }
+
+                        $("#"+prefix+"po").val(res[0].id).trigger("change");
+
+                        // Open this step
+                        $("#"+prefix+"po").prop("disabled", false);
+                    }
+                },
+            });
+        }
+
         // RFT
         $("#rft_size").on("change", () => {
+            updateTotalQty("rft_");
+        })
+
+        $("#rft_po").on("change", () => {
             updateTotalQty("rft_");
         })
 
@@ -862,7 +952,7 @@
             let currentOutputs = [];
             if ($('#'+prefix+'size').val()) {
                 currentOutputs = outputs.filter((item) => {
-                    return item.so_det_id == $('#'+prefix+'size').val();
+                    return ((item.so_det_id == $('#'+prefix+'size').val()) && ($('#dept').val() != "_packing_po" || ($('#dept').val() == "_packing_po" && item.po == $('#'+prefix+'po').val())));
                 });
             } else {
                 currentOutputs = outputs;
@@ -882,6 +972,9 @@
                 document.getElementById("defect_total").value = totals.defect;
                 document.getElementById("rework_total").value = totals.rework;
                 document.getElementById("reject_total").value = totals.reject;
+            } else {
+                document.getElementById(prefix+"total").value = 0;
+                document.getElementById(prefix+"qty").value = 0;
             }
         }
 
@@ -951,8 +1044,10 @@
             let line = document.getElementById("line").value;
             let masterPlanId = document.getElementById("master_plan").value;
             let soDetId = document.getElementById(prefix+"size").value;
+            let poId = document.getElementById(prefix+"po").value;
             let qty = document.getElementById(prefix+"qty").value;
             let modSoDetId = document.getElementById(prefix+"mod_size").value;
+            let modPoId = document.getElementById(prefix+"mod_po").value;
 
             if (tanggal && line && masterPlanId && soDetId && modSoDetId && (qty > 0)) {
                 document.getElementById("loading").classList.remove("d-none");
@@ -965,7 +1060,9 @@
                         line: line,
                         master_plan_id: masterPlanId,
                         so_det_id: soDetId,
+                        po_id: poId,
                         mod_so_det_id: modSoDetId,
+                        mod_po_id: modPoId,
                         qty: qty,
                         type: prefix,
                         dept: dept,

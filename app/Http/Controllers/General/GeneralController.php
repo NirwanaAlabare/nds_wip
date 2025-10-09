@@ -180,27 +180,56 @@ class GeneralController extends Controller
 
     public function getColors(Request $request)
     {
-        $colors = DB::select("select color from master_sb_ws where id_act_cost = '" . $request->act_costing_id . "'group by color");
+        $colors = DB::connection("mysql_sb")->select("select color from so_det left join so on so.id = so_det.id_so left join act_costing on act_costing.id = so.id_cost where act_costing.id = '" . $request->act_costing_id . "' group by color");
 
         return $colors ? $colors : null;
     }
 
     public function getSizes(Request $request) {
-        $sizes = DB::table("master_sb_ws")->selectRaw("
-                master_sb_ws.id_so_det so_det_id,
-                master_sb_ws.ws no_ws,
-                master_sb_ws.color,
-                master_sb_ws.size,
-                master_sb_ws.dest,
-                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END) size_dest
+        $sizes = DB::connection("mysql_sb")->table("so_det")->selectRaw("
+                so_det.id as so_det_id,
+                act_costing.kpno no_ws,
+                so_det.color,
+                so_det.size,
+                so_det.dest,
+                (CASE WHEN so_det.dest IS NOT NULL AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) size_dest
             ")->
-            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
-            where("master_sb_ws.color", $request->color)->
-            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+            leftJoin("so", "so.id", "=", "so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "so_det.size")->
+            where("act_costing.id", $request->act_costing_id)->
+            where("so_det.color", $request->color)->
+            groupBy("so_det.id")->
             orderBy("master_size_new.urutan")->
             get();
 
         return $sizes ? $sizes : null;
+    }
+
+    public function getPos(Request $request) {
+        $pos = DB::table("ppic_master_so")->selectRaw("
+                ppic_master_so.id,
+                ppic_master_so.po as po
+            ")
+            ->leftJoin('signalbit_erp.so_det', 'so_det.id', '=', 'ppic_master_so.id_so_det')
+            ->leftJoin('signalbit_erp.so', 'so.id', '=', 'so_det.id_so')
+            ->leftJoin('signalbit_erp.act_costing', 'act_costing.id', '=', 'so.id_cost')
+            ->leftJoin('signalbit_erp.mastersupplier', 'mastersupplier.id_supplier', '=', 'act_costing.id_buyer')
+            ->leftJoin('signalbit_erp.master_size_new', 'master_size_new.size', '=', 'so_det.size')
+            ->leftJoin('signalbit_erp.masterproduct', 'masterproduct.id', '=', 'act_costing.id_product')
+            ->where('so_det.cancel', '!=', 'Y')
+            ->where('act_costing.id', $request->act_costing_id)
+            ->where('so_det.color', $request->color)
+            ->where('so_det.id', $request->so_det_id)
+            ->groupBy('ppic_master_so.id')
+            ->get();
+
+        $pos->push((object)[
+            'id' => null,
+            'po' => 'GUDANG_STOK',
+        ]);
+
+        return $pos ? $pos : null;
     }
 
     public function getPanelListNew(Request $request)
@@ -1036,7 +1065,7 @@ class GeneralController extends Controller
                 $masterPlanSql->whereRaw('YEAR(master_plan.tgl_plan) = "'.date('Y').'"');
             }
 
-            // Line Filte
+            // Line Filter
             if ($request->line) {
                 $masterPlanSql->where('master_plan.sewing_line', $request->line);
             }
@@ -1076,12 +1105,37 @@ class GeneralController extends Controller
         $output = collect(
             DB::connection("mysql_sb")->select("
                 SELECT output.*, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, userpassword.username as sewing_line FROM (
-                    select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
-                    UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE master_plan_id = '".$request->id."'
-                    UNION
-                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and master_plan_id = '".$request->id."'
+                    select master_plan_id, so_det_id, created_by, ".($request->department == "_packing_po" ? ' created_by_username, created_by_line, ' : '')." kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts".$request->department." as output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
+                    ".
+                    (
+                        $request->department != "_packing_po" ?
+                            "
+                                UNION
+                                select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE master_plan_id = '".$request->id."'
+                                UNION
+                                select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and master_plan_id = '".$request->id."'
+                            "
+                        :
+                            ""
+                    )
+                    ."
                 ) output
+                ".(
+                    $request->department == "_packing_po" ?
+                        "left join userpassword on userpassword.username = output_rfts.created_by_line"
+                    :
+                    (
+                        $request->department == "_packing" ?
+                            "left join userpassword on userpassword.username = output_rfts.created_by"
+                        :
+                        (
+                            "
+                                left join user_sb_wip on user_sb_wip.id = output.created_by
+                                left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            "
+                        )
+                    )
+                )."
                 left join user_sb_wip on user_sb_wip.id = output.created_by
                 left join userpassword on userpassword.line_id = user_sb_wip.line_id
                 left join so_det on so_det.id = output.so_det_id
@@ -1104,6 +1158,15 @@ class GeneralController extends Controller
                     color,
                     size,
                     dest,
+                    ".(
+                        $request->department == "_packing_po" ?
+                            "
+                                po_id,
+                                po,
+                            "
+                        :
+                            ""
+                    )."
                     so_det_id,
                     master_plan_id,
                     CONCAT(master_plan_id, ws, style, color, size) as grouping,
@@ -1113,21 +1176,62 @@ class GeneralController extends Controller
                     SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) reject
                 FROM
                 (
-                    SELECT output.*, act_costing.id as id_ws, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, so_det.dest, userpassword.username as sewing_line FROM (
-                        select master_plan_id, so_det_id, created_by, kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
-                        UNION
-                        select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE master_plan_id = '".$request->id."'
-                        UNION
-                        select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and master_plan_id = '".$request->id."'
+                    SELECT output.*, act_costing.id as id_ws, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, so_det.dest, userpassword.username as sewing_line ".($request->department == "_packing_po" ? ', ppic_master_so.po ' : '')." FROM (
+                        select master_plan_id, so_det_id, created_by, ".($request->department == "_packing_po" ? ' po_id, created_by_username, created_by_line, ' : '')." kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts".$request->department." as output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
+                        ".
+                        (
+                            $request->department != "_packing_po" ?
+                                "
+                                    UNION
+                                    select master_plan_id, so_det_id, created_by, kode_numbering, output_defects.id, output_defects.created_at, output_defects.updated_at, UPPER(defect_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_defects".$request->department." as output_defects left join output_defect_types on output_defect_types.id = output_defects.defect_type_id WHERE master_plan_id = '".$request->id."'
+                                    UNION
+                                    select master_plan_id, so_det_id, created_by, kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, UPPER(reject_status) as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rejects".$request->department." as output_rejects left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id WHERE reject_status = 'mati' and master_plan_id = '".$request->id."'
+                                "
+                            :
+                                ""
+                        )
+                        ."
                     ) output
-                    left join user_sb_wip on user_sb_wip.id = output.created_by
-                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    ".(
+                        $request->department == "_packing_po" ?
+                            "left join userpassword on userpassword.username = output.created_by_line"
+                        :
+                        (
+                            $request->department == "_packing" ?
+                                "left join userpassword on userpassword.username = output.created_by"
+                            :
+                            (
+                                "
+                                    left join user_sb_wip on user_sb_wip.id = output.created_by
+                                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                                "
+                            )
+                        )
+                    )."
+                    ".
+                        (
+                            $request->department == "_packing_po" ?
+                                "
+                                    left join laravel_nds.ppic_master_so on ppic_master_so.id = output.po_id
+                                "
+                            :
+                                ""
+                        )
+                    ."
                     left join so_det on so_det.id = output.so_det_id
                     left join so on so.id = so_det.id_so
                     left join act_costing on act_costing.id = so.id_cost
                 ) as output
                 GROUP BY
                     master_plan_id,
+                    ".(
+                        $request->department == "_packing_po" ?
+                            "
+                                po_id,
+                            "
+                        :
+                            ""
+                    )."
                     so_det_id
             ")
         );
