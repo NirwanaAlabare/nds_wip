@@ -1084,6 +1084,7 @@
                             data: {
                                 unit: "PCS",
                                 act_costing_id: $("#act_costing_id").val(),
+                                act_costing_ws: $("#act_costing_ws").val(),
                                 color: $("#color").val(),
                             },
                             dataType: 'json',

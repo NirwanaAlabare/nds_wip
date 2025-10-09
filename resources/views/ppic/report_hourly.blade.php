@@ -761,12 +761,14 @@
                 let year = $('#tahun_export').val();
 
                 if (months.length > 0) {
-                    await downloadMonthlyReports(months, year, estimatedTime);
+                    await downloadMonthlyReports(months, year);
                 }
             }
         }
 
-        async function downloadMonthlyReports(months, year, estimatedTime) {
+        async function downloadMonthlyReports(months, year) {
+            const startTime = performance.now();
+
             for (const month of months) {
                 await new Promise((resolve, reject) => {
                     $.ajax({
@@ -790,11 +792,15 @@
                 });
             }
 
+            const endTime  = performance.now();
+            const elapsedMs = endTime - startTime;
+            const elapsedTime = formatTimer(elapsedMs);
+
             swal.close(); // safely called after all exports complete
             Swal.fire({
                 title: 'Data Sudah Di Export!',
                 icon: "success",
-                html: estimatedTime+" ellapsed.",
+                html: elapsedTime+" elapsed.",
                 showConfirmButton: true,
                 allowOutsideClick: false
             });

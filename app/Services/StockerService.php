@@ -233,9 +233,9 @@ class StockerService
                         }
                     }
 
-                    $stocker->so_det_id && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
+                    $stocker->so_det_id && (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
                     $stocker->range_awal = $rangeAwal;
-                    $stocker->range_akhir = $stocker->so_det_id ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
+                    $stocker->range_akhir = $stocker->so_det_id && isset($sizeRangeAkhir[$stocker->so_det_id]) ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
                     $stocker->save();
 
                     if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {

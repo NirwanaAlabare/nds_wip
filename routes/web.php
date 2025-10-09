@@ -251,6 +251,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-colors-new', 'getColors')->name('get-colors');
         // get sizes
         Route::get('/get-sizes-new', 'getSizes')->name('get-sizes');
+        // get po
+        Route::get('/get-pos', 'getPos')->name('get-pos');
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
