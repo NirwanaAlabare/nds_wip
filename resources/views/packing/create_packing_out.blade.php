@@ -50,11 +50,13 @@
                             <div class="col-sm">
                                 <div class="form-group">
                                     <label><small><b>No. Carton # :</b></small></label>
-                                    <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
-                                        name='cbono_carton' id='cbono_carton'
-                                        onchange = "dataTableSummaryReload();dataTableHistoryReload();"></select>
+                                    <select class="form-control select2bs4 form-control-sm" style="width: 100%;"
+                                        name="cbono_carton" id="cbono_carton"
+                                        onchange="dataTableSummaryReload(); dataTableHistoryReload();">
+                                    </select>
                                 </div>
                             </div>
+
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Barcode</b></small></label>
                                 <div class="input-group">
@@ -192,6 +194,9 @@
             $("#qty_terisi_carton").val('');
         })
 
+
+
+
         document.getElementById("barcode").onkeypress = function(e) {
             var key = e.charCode || e.keyCode || 0;
             if (key == 13) {
@@ -223,22 +228,71 @@
         };
 
         function getno_carton() {
-            let cbopo = document.form_h.cbopo.value;
-
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('getno_carton') }}',
-                data: {
-                    cbopo: cbopo
+            $('#cbono_carton').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Search No. Carton...',
+                minimumInputLength: 1, // Wait for user to type
+                ajax: {
+                    url: '{{ route('getno_carton') }}',
+                    dataType: 'json',
+                    delay: 250, // Wait after typing before request
+                    data: function(params) {
+                        return {
+                            search: params.term, // user typed text
+                            cbopo: document.form_h.cbopo.value // pass selected PO
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
                 },
-                async: false
-            }).responseText;
-            // console.log(html != "");
-            console.log(cbopo);
-            if (html != "") {
-                $("#cbono_carton").html(html);
-            }
-        };
+                language: {
+                    inputTooShort: function() {
+                        return 'Type at least 1 character...';
+                    },
+                    noResults: function() {
+                        return 'No carton found';
+                    }
+                }
+            });
+
+            // Trigger other actions on carton select
+            $('#cbono_carton').on('change', function() {
+                dataTableSummaryReload();
+                dataTableHistoryReload();
+            });
+        }
+
+
+        //         function getno_carton() {
+        //     let cbopo = document.form_h.cbopo.value;
+
+        //     console.log("Selected cbopo:", cbopo);
+
+        //     $.ajax({
+        //         type: "GET",
+        //         url: '{{ route('getno_carton') }}',
+        //         data: {
+        //             cbopo: cbopo
+        //         },
+        //         dataType: "html", // Expecting HTML from server
+        //         success: function(response) {
+        //             if (response && response.trim() !== "") {
+        //                 $("#cbono_carton").html(response);
+        //             } else {
+        //                 $("#cbono_carton").html("<option value=''>No data found</option>");
+        //             }
+        //         },
+        //         error: function(xhr, status, error) {
+        //             console.error("AJAX Error:", status, error);
+        //             $("#cbono_carton").html("<option value=''>Failed to load data</option>");
+        //         }
+        //     });
+        // }
+
 
         function getpo() {
             let cbopo = document.form_h.cbopo.value;
