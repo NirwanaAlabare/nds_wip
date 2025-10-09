@@ -27,38 +27,21 @@
 
         <div class="card-body">
             <div class="row align-items-end g-3 mb-3">
-                <!-- Periode Tahun -->
+                <!-- Start Date -->
                 <div class="col-md-2">
                     <label class="form-label">
-                        <small><b>Periode Tahun</b></small>
+                        <small><b>Start Date</b></small>
                     </label>
-                    <select class="form-control form-control-sm select2bs4" id="periode_tahun_view"
-                        name="periode_tahun_view" style="width: 100%;">
-                        <option value="">-- Pilih Tahun --</option>
-                        @for ($year = 2025; $year <= 2030; $year++)
-                            <option value="{{ $year }}"
-                                {{ $year == request('periode_tahun_view') ? 'selected' : '' }}>
-                                {{ $year }}
-                            </option>
-                        @endfor
-                    </select>
+                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date"
+                        value="">
                 </div>
-
-                <!-- Pilih Bulan -->
+                <!-- End Date -->
                 <div class="col-md-2">
                     <label class="form-label">
-                        <small><b>Pilih Bulan</b></small>
+                        <small><b>End Date</b></small>
                     </label>
-                    <select class="form-control form-control-sm select2bs4" id="periode_bulan_view"
-                        name="periode_bulan_view" style="width: 100%;">
-                        <option value="">-- Pilih Bulan --</option>
-                        @for ($m = 1; $m <= 12; $m++)
-                            <option value="{{ $m }}"
-                                {{ $m == request('periode_bulan_view') ? 'selected' : '' }}>
-                                {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
-                            </option>
-                        @endfor
-                    </select>
+                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date"
+                        value="">
                 </div>
 
                 <!-- Generate Button -->
@@ -176,18 +159,18 @@
 
     <script>
         $(document).ready(function() {
-            $('#periode_tahun_view').val('').trigger('change');
-            $('#periode_bulan_view').val('').trigger('change');
+            $('#start_date').val('').trigger('change');
+            $('#end_date').val('').trigger('change');
             dataTableReload()
         });
 
 
         function dataTableReload() {
-            let tahun = $('#periode_tahun_view').val();
-            let bulan = $('#periode_bulan_view').val();
+            let start_date = $('#start_date').val();
+            let end_date = $('#end_date').val();
 
             // Show loading Swal only if both fields are filled
-            if (tahun && bulan) {
+            if (start_date && end_date) {
                 Swal.fire({
                     title: 'Loading...',
                     text: 'Please wait while data is loading.',
@@ -221,17 +204,17 @@
                     url: '{{ route('mgt_report_earning') }}',
                     dataSrc: function(json) {
                         // Close the Swal loading when data is received
-                        if (tahun && bulan) {
+                        if (start_date && end_date) {
                             Swal.close();
                         }
                         return json.data;
                     },
                     data: function(d) {
-                        d.tahun = tahun;
-                        d.bulan = bulan;
+                        d.start_date = start_date;
+                        d.end_date = end_date;
                     },
                     error: function(xhr, status, error) {
-                        if (tahun && bulan) {
+                        if (start_date && end_date) {
                             Swal.fire('Error', 'Failed to load data.', 'error');
                         }
                     }
@@ -548,8 +531,8 @@
         }
 
         function export_excel() {
-            let bulan = document.getElementById("periode_bulan_view").value;
-            let tahun = document.getElementById("periode_tahun_view").value;
+            let start_date = $('#start_date').val();
+            let end_date = $('#end_date').val();
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -563,8 +546,8 @@
                 type: "get",
                 url: '{{ route('export_excel_laporan_earning') }}',
                 data: {
-                    bulan: bulan,
-                    tahun: tahun
+                    start_date: start_date,
+                    end_date: end_date
                 },
                 xhrFields: {
                     responseType: 'blob'
@@ -581,7 +564,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Laporan Daily Earning " + " bulan " + bulan + " _ " + tahun + ".xlsx";
+                    link.download = "Laporan Daily Earning " + start_date + " _ " + end_date + ".xlsx";
                     link.click();
                 },
                 error: function(xhr, status, error) {

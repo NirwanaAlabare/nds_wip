@@ -704,7 +704,7 @@
         }
 
         let datatable_list = $("#datatable_list").DataTable({
-            ordering: true,
+            ordering: false,
             responsive: true,
             processing: true,
             serverSide: false, // ✅ change this!

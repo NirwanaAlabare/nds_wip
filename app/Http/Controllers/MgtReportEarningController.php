@@ -17,19 +17,20 @@ class MgtReportEarningController extends Controller
     {
         $user = Auth::user()->name;
 
-        $bulan = $request->bulan;
-        $tahun = $request->tahun;
+        $start_date = $request->input('start_date'); // example: 9 (September)
+        $end_date = $request->input('end_date'); // example: 2025
+
+        $bulan_awal = date('n', strtotime($start_date)); // Returns month as number without leading zero (e.g., 9)
+        $tahun_awal = date('Y', strtotime($start_date)); // Returns full year (e.g., 2025)
+
+        $bulan_akhir = date('n', strtotime($end_date)); // Returns month as number without leading zero (e.g., 9)
+        $tahun_akhir = date('Y', strtotime($end_date)); // Returns full year (e.g., 2025)
 
         if ($request->ajax()) {
             // ✅ If bulan or tahun is missing, return no data
-            if ($bulan === null || $tahun === null) {
+            if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
-
-                // Generate start and end date
-                $start_date = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->startOfDay()->format('Y-m-d');
-                $end_date = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->endOfMonth()->endOfDay()->format('Y-m-d');
-
                 $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  select a.cost_no,kpno,supplier,styleno,product_item,season_desc,curr,so_date,status,qty_so,price_so,cost_date,status_cost,qty_cost,COALESCE(ttl_fabric,0) ttl_fabric,COALESCE(ttl_accsew,0) ttl_accsew,COALESCE(ttl_accpack,0) ttl_accpack,(COALESCE(ttl_fabric,0) + COALESCE(ttl_accsew,0) + COALESCE(ttl_accpack,0)) ttl_material,COALESCE(ttl_cmt,0) ttl_cmt,COALESCE(ttl_embro,0) ttl_embro,COALESCE(ttl_wash,0) ttl_wash,COALESCE(ttl_print,0) ttl_print,COALESCE(ttl_wrapbut,0) ttl_wrapbut,COALESCE(ttl_compbut,0) ttl_compbut,COALESCE(ttl_label,0) ttl_label,COALESCE(ttl_laser,0) ttl_laser,(COALESCE(ttl_cmt,0) + COALESCE(ttl_embro,0) + COALESCE(ttl_wash,0) + COALESCE(ttl_print,0) + COALESCE(ttl_wrapbut,0) + COALESCE(ttl_compbut,0) + COALESCE(ttl_label,0) + COALESCE(ttl_laser,0)) ttl_manufacturing,COALESCE(ttl_develop,0) ttl_develop,COALESCE(ttl_overhead,0) ttl_overhead,COALESCE(ttl_market,0) ttl_market,COALESCE(ttl_shipp,0) ttl_shipp,COALESCE(ttl_import,0) ttl_import,COALESCE(ttl_handl,0) ttl_handl,COALESCE(ttl_test,0) ttl_test,COALESCE(ttl_fabhandl,0) ttl_fabhandl,COALESCE(ttl_service,0) ttl_service, COALESCE(ttl_clearcost,0) ttl_clearcost ,COALESCE(ttl_development,0) ttl_development ,COALESCE(ttl_unexcost,0) ttl_unexcost ,COALESCE(ttl_managementfee,0) ttl_managementfee ,COALESCE(ttl_profit,0) ttl_profit ,(COALESCE(ttl_develop,0) + COALESCE(ttl_overhead,0) + COALESCE(ttl_market,0) + COALESCE(ttl_shipp,0) + COALESCE(ttl_import,0) + COALESCE(ttl_handl,0) + COALESCE(ttl_test,0) + COALESCE(ttl_fabhandl,0) + COALESCE(ttl_service,0) + COALESCE(ttl_clearcost,0) + COALESCE(ttl_development,0) + COALESCE(ttl_unexcost,0) + COALESCE(ttl_managementfee,0) + COALESCE(ttl_profit,0)) ttl_others
            from (select a.cost_no,a.kpno,b.supplier,styleno,product_item,season_desc,if(so.curr is null,a.curr,so.curr) curr,so_date,IF(so.cancel_h = 'Y','CANCEL','-') status,so.qty qty_so,so.fob price_so,cost_date,a.status status_cost, a.qty qty_cost  from act_costing a INNER JOIN mastersupplier b ON a.id_buyer=b.Id_Supplier inner join masterproduct mp on a.id_product=mp.id left join so on so.id_cost = a.id left join masterseason ms on ms.id_season = so.id_season where cost_date >= '2025-01-01' GROUP BY cost_no) a left join (select cost_no, sum(ttl_fabric) ttl_fabric, sum(ttl_accsew) ttl_accsew, sum(ttl_accpack) ttl_accpack from (select cost_no,case when mattype = 'FABRIC' then total end as ttl_fabric,
@@ -194,14 +195,17 @@ FROM dim_date a
 LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
 WHERE status_prod = 'KERJA'
 AND (status_absen != 'LN' OR status_absen IS NULL)
-AND tahun = '$tahun' AND bulan = '$bulan'
+AND a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
 GROUP BY bulan, tahun
 ORDER BY
 CAST(a.tahun AS UNSIGNED) ASC,
 CAST(a.bulan AS UNSIGNED) ASC
 ),
 dim_tgl as (
-SELECT tanggal,
+SELECT
+tanggal,
+bulan,
+tahun,
 case
 		when status_prod = 'KERJA' AND status_absen = 'LP' THEN 'KERJA'
 		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'KERJA'
@@ -213,7 +217,7 @@ case
 		END AS stat_kerja
 FROM dim_date a
 left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
-where tahun = '$tahun' AND bulan = '$bulan'
+where tanggal >= '$start_date' and tanggal <= '$end_date'
 ),
 dc as (
 SELECT
@@ -225,8 +229,8 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE a.tahun = '$tahun' and a.bulan = '$bulan'
-GROUP BY no_coa
+WHERE a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
+GROUP BY no_coa, dd.bulan, dd.tahun
 ),
 coa_direct as (
 select
@@ -241,7 +245,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'DIRECT LABOR COST'
 ),
 coa_indirect as (
@@ -257,7 +261,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'INDIRECT LABOR COST'
 ),
 coa_overhead as (
@@ -273,7 +277,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'FIXED OVERHEAD COST'
 ),
 coa_selling as (
@@ -289,7 +293,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'SELLING EXPENSE'
 ),
 coa_ga as (
@@ -305,7 +309,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
 ),
 coa_expense as (
@@ -321,7 +325,7 @@ case
 		END AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'INTEREST EXPENSE'
 ),
 map_coa as (
@@ -685,8 +689,6 @@ order by dt.tanggal asc, sewing_line asc
             'page' => 'dashboard-mgt-report',
             'subPageGroup' => 'mgt-report-laporan',
             'subPage' => 'mgt-report-laporan-earning',
-            'bulan' => $bulan,
-            'tahun' => $tahun,
             'containerFluid' => true,
             'user' => $user,
         ]);
@@ -695,6 +697,6 @@ order by dt.tanggal asc, sewing_line asc
 
     public function export_excel_laporan_earning(Request $request)
     {
-        return Excel::download(new export_excel_laporan_earning($request->bulan, $request->tahun), 'Laporan_Penerimaan FG_Stok.xlsx');
+        return Excel::download(new export_excel_laporan_earning($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }
