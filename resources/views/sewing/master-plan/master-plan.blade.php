@@ -74,7 +74,7 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa fa-cogs"></i> Data Master Plan</h5>
         </div>
         <div class="card-body">
-            @livewire('line-masterplan')
+            @livewire('sewing.line-masterplan')
             {{-- <div class="d-flex align-items-end gap-3">
                 <div class="mb-1">
                     <div>

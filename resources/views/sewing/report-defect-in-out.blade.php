@@ -13,7 +13,7 @@
                 <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-circle-exclamation"></i> Report Defect In Out</h5>
             </div>
             <div class="card-body">
-                @livewire('report-defect-in-out')
+                @livewire('sewing.report-defect-in-out')
             </div>
         </div>
     </div>

@@ -10,7 +10,7 @@
         </div>
     </div>
     <div class="row justify-content-between align-items-end flex-wrap">
-        <div class="col-12 col-lg-6 col-xl-4">
+        <div class="col">
             <div class="d-flex flex-wrap align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateFrom" wire:model="dateFromFilter" value="{{ $dateFromFilter }}">
@@ -23,7 +23,7 @@
                 <span class="badge bg-sb text-light">PACKING</span>
             </div>
         </div>
-        <div class="col-12 col-lg-6 col-xl-8">
+        <div class="col">
             <div class="d-flex flex-wrap align-items-end justify-content-end gap-3 mb-3">
                 <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#filter-modal"><i class="fa fa-filter"></i></button>
                 <div wire:ignore>
@@ -93,7 +93,7 @@
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->style }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->po }}</span></td>
+                                        <td class="text-wrap"><span class="bg-light text-dark">{{ $dailyGroup->po }}</span></td>
                                         <td class="text-nowrap">{{ $dailyGroup->size }}</td>
                                         @php
                                             $thisRowOutput = 0;
