@@ -5,7 +5,7 @@
         <div class="card">
             <div class="card-body">
                 <h3 class="card-title text-sb text-center fw-bold my-3">Line Dashboard List</h3>
-                @livewire('line-dashboard-list')
+                @livewire('sewing.line-dashboard-list')
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use App\Models\SignalBit\UserLine;
@@ -1490,6 +1490,6 @@ class TransferOutput extends Component
             get();
         }
 
-        return view('livewire.transfer-output');
+        return view('livewire.sewing.transfer-output');
     }
 }

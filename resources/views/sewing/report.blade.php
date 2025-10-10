@@ -11,11 +11,11 @@
         <div class="card">
             <div class="card-body">
                 @if ($type == "output")
-                    @livewire('report-output')
+                    @livewire('sewing.report-output')
                 @elseif ($type == "production")
-                    @livewire('report-production')
+                    @livewire('sewing.report-production')
                 @elseif ($type == "line-user")
-                    @livewire('report-line-user')
+                    @livewire('sewing.report-line-user')
                 @endif
             </div>
         </div>

@@ -241,6 +241,14 @@ class KonfPemasukanController extends Controller
             $no_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->no_coa : '-';
             $nama_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->nama_coa : '-';
 
+            $sqlcoa_deb = DB::connection('mysql_sb')->select("
+                select no_coa, nama_coa from mastercoa_v2
+                where cus_ctg like ? and mattype like ? and matclass like ? and n_code_category like ? and inv_type like '%bpb_debit%' limit 1
+                ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
+            $no_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->no_coa : '-';
+            $nama_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->nama_coa : '-';
+
+
             Journal::create([
                 'no_journal' => $no_bpb,
                 'tgl_journal' => $tgl_bpb,
@@ -265,8 +273,8 @@ class KonfPemasukanController extends Controller
                 'no_journal' => $no_bpb,
                 'tgl_journal' => $tgl_bpb,
                 'type_journal' => 'AP - BPB',
-                'no_coa' => $no_coa_cre,
-                'nama_coa' => $nama_coa_cre,
+                'no_coa' => $no_coa_deb,
+                'nama_coa' => $nama_coa_deb,
                 'curr' => $curr,
                 'rate' => $rate,
                 'debit' => $dpp,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -69,7 +69,7 @@ class ReportLineUser extends Component
             )")->
             groupBy("user_sb_wip.id")->get();
 
-        return view('livewire.report-line-user', [
+        return view('livewire.sewing.report-line-user', [
             'masterPlans' => $masterPlans,
             'lines' => $lines,
             'months' => $months,

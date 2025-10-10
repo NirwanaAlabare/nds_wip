@@ -13,7 +13,7 @@
                 <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Output</h5>
             </div>
             <div class="card-body">
-                @livewire('transfer-output')
+                @livewire('sewing.transfer-output')
             </div>
         </div>
     </div>

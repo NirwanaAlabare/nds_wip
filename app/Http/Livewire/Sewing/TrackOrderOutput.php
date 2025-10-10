@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use App\Models\SignalBit\MasterPlan;
@@ -86,6 +86,8 @@ class TrackOrderOutput extends Component
         // else {
         //     $this->dateToFilter = date("Y-m-d");
         // }
+
+        $this->search = true;
     }
 
     public function setSearch() {
@@ -328,7 +330,7 @@ class TrackOrderOutput extends Component
             \Log::info("Query Completed");
         }
 
-        return view('livewire.track-order-output');
+        return view('livewire.sewing.track-order-output');
     }
 
     public function dehydrate()

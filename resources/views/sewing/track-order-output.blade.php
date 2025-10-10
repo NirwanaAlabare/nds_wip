@@ -13,7 +13,7 @@
                 <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-shuffle"></i> Track Order Output</h5>
             </div>
             <div class="card-body">
-                @livewire('track-order-output')
+                @livewire('sewing.track-order-output')
             </div>
         </div>
     </div>

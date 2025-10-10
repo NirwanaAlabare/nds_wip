@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -943,7 +943,7 @@ class ReportOutput extends Component
                 groupBy("master_plan.sewing_line", "output_defects".$this->qcType.".defect_type_id", "output_defects".$this->qcType.".defect_area_id")->get();
         }
 
-        return view('livewire.report-output', [
+        return view('livewire.sewing.report-output', [
             'masterPlans' => $masterPlans,
             'lines' => $lines,
             'orders' => $orders,

@@ -1097,6 +1097,16 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-line' ? 'active' : '' }}">Packing Line</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('track-packing-output') }}" class="dropdown-item {{ $subPage == 'track-packing-output' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-shuffle"></i> Track Packing Output
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
                 @if ($page == 'dashboard_finish_good')

@@ -46,7 +46,7 @@
             <tr>
                 <th style="border: none;vertical-align: middle;">Product</th>
                 <td style="border: none;vertical-align: middle;padding: 2px;padding-left: 5px;padding-right: 5px;"> : </td>
-                <th style="border: none;vertical-align: middle;">{{ $sbItem->detail_item }}</th>
+                <th style="border: none;vertical-align: middle;">{{ strtoupper(substr($sbItem->detail_item, 0, 65)).(strlen($sbItem->detail_item) > 65 ? '...' : '') }}</th>
             </tr>
             <tr>
                 <th style="border: none;vertical-align: middle;">Kode&nbsp;Barang</th>
@@ -95,7 +95,7 @@
                 @endif
             </tr>
             <tr>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $ndsItem ? $ndsItem->group_roll : "-" }}</td>
+                <td style="padding-left: 1px;font-size: 7px;">{{ $ndsItem ? strtoupper(substr($ndsItem->group_roll, 0, 15)).(strlen($ndsItem->group_roll) > 15 ? '...' : '') : '-' }}</td>
                 <td style="padding-left: 1px;font-size: 7px;">{{ $sbItem->no_roll }}</td>
                 <td style="padding-left: 1px;font-size: 7px;">{{ $sbItem->no_roll_buyer }}</td>
                 <td style="padding-left: 1px;font-size: 7px;">{{ $sbItem->lot }}</td>
