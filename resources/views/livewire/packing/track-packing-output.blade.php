@@ -63,7 +63,7 @@
                         <td class="bg-sb text-light">Size</td>
                     @endif
                     <?php
-                        if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
+                        if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 && $dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") && $dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() > 0) {
                             foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                                 ?>
                                     <th class="bg-sb text-light">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
@@ -85,48 +85,50 @@
                         $dateOutputs = collect();
                         $totalOutput = null;
 
-                        foreach ($dailyOrderGroup as $dailyGroup) {
-                            ?>
-                                <tr>
+                        if ($dailyOrderGroup && $dailyOrderGroup->count() > 0) {
+                            foreach ($dailyOrderGroup as $dailyGroup) {
+                                ?>
+                                    <tr>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->ws }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->style }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->po }}</span></td>
                                         <td class="text-nowrap">{{ $dailyGroup->size }}</td>
-                                    @php
-                                        $thisRowOutput = 0;
-                                    @endphp
-                                    @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                                         @php
-                                            $thisOutput = 0;
-
-                                            if ($groupBy == 'size') {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
-                                            } else {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
-                                            }
-
-                                            if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
-                                                $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
-                                            } else {
-                                                $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
-                                            }
-                                            $thisRowOutput += $thisOutput;
+                                            $thisRowOutput = 0;
                                         @endphp
+                                        @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
+                                            @php
+                                                $thisOutput = 0;
 
-                                        <td class="text-end text-nowrap">
-                                            {{ num($thisOutput) }}
+                                                if ($groupBy == 'size') {
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
+                                                } else {
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
+                                                }
+
+                                                if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
+                                                    $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
+                                                } else {
+                                                    $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
+                                                }
+                                                $thisRowOutput += $thisOutput;
+                                            @endphp
+
+                                            <td class="text-end text-nowrap">
+                                                {{ num($thisOutput) }}
+                                            </td>
+                                        @endforeach
+                                        <td class="fw-bold text-end text-nowrap fs-5">
+                                            {{ num($thisRowOutput) }}
                                         </td>
-                                    @endforeach
-                                    <td class="fw-bold text-end text-nowrap fs-5">
-                                        {{ num($thisRowOutput) }}
-                                    </td>
-                                    @php
-                                        $totalOutput += $thisRowOutput;
-                                    @endphp
-                                </tr>
-                            <?php
+                                        @php
+                                            $totalOutput += $thisRowOutput;
+                                        @endphp
+                                    </tr>
+                                <?php
+                            }
                         }
                     }
                 ?>
@@ -299,6 +301,7 @@
                 await clearFixedColumn();
 
                 @this.set('dateFromFilter', this.value);
+                @this.setSearch();
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
@@ -307,6 +310,7 @@
                 await clearFixedColumn();
 
                 @this.set('dateToFilter', this.value);
+                @this.setSearch();
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
@@ -324,6 +328,8 @@
 
                 @this.set('selectedSupplier', this.value);
 
+                @this.setSearch();
+
                 updateWsList($('#dateFrom').val(), $('#dateTo').val(), this.value);
             });
 
@@ -334,6 +340,8 @@
 
                 @this.set('selectedOrder', this.value);
 
+                @this.setSearch();
+
                 Livewire.emit('loadingStart');
             });
 
@@ -341,6 +349,8 @@
                 await clearFixedColumn();
 
                 @this.set('loadingOrderOutput', true);
+
+                @this.setSearch();
 
                 Livewire.emit('loadingStart');
             });
@@ -350,6 +360,8 @@
 
                 @this.set('loadingOrderOutput', true);
 
+                @this.setSearch();
+
                 Livewire.emit('loadingStart');
             });
 
@@ -358,6 +370,8 @@
 
                 @this.set('loadingOrderOutput', true);
 
+                @this.setSearch();
+
                 Livewire.emit('loadingStart');
             });
 
@@ -365,6 +379,8 @@
                 await clearFixedColumn();
 
                 @this.set('loadingOrderOutput', true);
+
+                @this.setSearch();
 
                 Livewire.emit('loadingStart');
             });

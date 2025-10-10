@@ -23,7 +23,7 @@
     <div class="container-fluid">
         <div class="card">
             <div class="mx-3 my-3">
-                <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-shuffle"></i> Track Order Output</h5>
+                <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-shuffle"></i> Track Packing Output</h5>
             </div>
             <div class="card-body">
                 @livewire('packing.track-packing-output')
