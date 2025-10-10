@@ -1490,6 +1490,6 @@ class TransferOutput extends Component
             get();
         }
 
-        return view('livewire.transfer-output');
+        return view('livewire.sewing.transfer-output');
     }
 }
