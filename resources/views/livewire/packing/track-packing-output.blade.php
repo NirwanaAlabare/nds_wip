@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='selectedSupplier, groupBy, colorFilter, panelFilter, mejaFilter, sizeFilter, clearFilter'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='setSearch, selectedSupplier, groupBy, colorFilter, poFilter, lineFilter, sizeFilter, clearFilter'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -9,9 +9,9 @@
             <div class="loading"></div>
         </div>
     </div>
-    <div class="row justify-content-between align-items-end">
+    <div class="row justify-content-between align-items-end flex-wrap">
         <div class="col-12 col-lg-6 col-xl-4">
-            <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateFrom" wire:model="dateFromFilter" value="{{ $dateFromFilter }}">
                 </div>
@@ -19,11 +19,12 @@
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateTo" wire:model="dateToFilter" value="{{ $dateToFilter }}">
                 </div>
-                <span class="badge bg-sb text-light">CUT</span>
+                <button class="btn btn-sb-secondary btn-sm" id="search"><i class="fa fa-search"></i></button>
+                <span class="badge bg-sb text-light">PACKING</span>
             </div>
         </div>
         <div class="col-12 col-lg-6 col-xl-8">
-            <div class="d-flex align-items-end justify-content-end gap-3 mb-3">
+            <div class="d-flex flex-wrap align-items-end justify-content-end gap-3 mb-3">
                 <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#filter-modal"><i class="fa fa-filter"></i></button>
                 <div wire:ignore>
                     <select class="form-select form-select-sm" name="supplier" id="supplier">
@@ -56,8 +57,8 @@
                     <td class="bg-sb text-light">No. WS</td>
                     <td class="bg-sb text-light">Style</td>
                     <td class="bg-sb text-light">Color</td>
-                    <td class="bg-sb text-light">Meja</td>
-                    <td class="bg-sb text-light">Panel</td>
+                    <td class="bg-sb text-light">Line</td>
+                    <td class="bg-sb text-light">PO</td>
                     @if ($groupBy == 'size')
                         <td class="bg-sb text-light">Size</td>
                     @endif
@@ -77,8 +78,8 @@
                         $currentWs = null;
                         $currentStyle = null;
                         $currentColor = null;
-                        $currentMeja = null;
-                        $currentPanel = null;
+                        $currentLine = null;
+                        $currentPo = null;
                         $currentSize = null;
 
                         $dateOutputs = collect();
@@ -90,8 +91,8 @@
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->ws }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->style }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->panel }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->po }}</span></td>
                                         <td class="text-nowrap">{{ $dailyGroup->size }}</td>
                                     @php
                                         $thisRowOutput = 0;
@@ -101,9 +102,9 @@
                                             $thisOutput = 0;
 
                                             if ($groupBy == 'size') {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("qty");
+                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
                                             } else {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->sum("qty");
+                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
                                             }
 
                                             if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
@@ -177,23 +178,23 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label>Panel</label>
-                                <select class="form-select form-select-sm" name="panel" id="panel" wire:model="panelFilter">
-                                    <option value="">Pilih Panel</option>
+                                <label>PO</label>
+                                <select class="form-select form-select-sm" name="po" id="po" wire:model="poFilter">
+                                    <option value="">Pilih PO</option>
                                     @if ($orderFilter)
-                                        @foreach ($orderFilter->groupBy('panel') as $panel)
-                                            <option value="{{ $panel->first()->panel }}">{{ $panel->first()->panel }}</option>
+                                        @foreach ($orderFilter->groupBy('po') as $po)
+                                            <option value="{{ $po->first()->po }}">{{ $po->first()->po }}</option>
                                         @endforeach
                                     @endif
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label>Meja</label>
-                                <select class="form-select form-select-sm" name="meja" id="meja" wire:model="mejaFilter">
-                                    <option value="">Pilih Meja</option>
+                                <label>Line</label>
+                                <select class="form-select form-select-sm" name="line" id="line" wire:model="lineFilter">
+                                    <option value="">Pilih Line</option>
                                     @if ($orderFilter)
-                                        @foreach ($orderFilter->groupBy('id_meja') as $meja)
-                                            <option value="{{ $meja->first()->id_meja }}">{{ $meja->first()->meja }}</option>
+                                        @foreach ($orderFilter->groupBy('sewing_line') as $line)
+                                            <option value="{{ $line->first()->sewing_line }}">{{ $line->first()->sewing_line }}</option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -310,6 +311,14 @@
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
 
+            $('#search').on('click', async function (e) {
+                await clearFixedColumn();
+
+                @this.setSearch();
+
+                Livewire.emit('loadingStart');
+            });
+
             $('#supplier').on('change', async function (e) {
                 await clearFixedColumn();
 
@@ -336,7 +345,7 @@
                 Livewire.emit('loadingStart');
             });
 
-            $('#panel').on('change', async function (e) {
+            $('#po').on('change', async function (e) {
                 await clearFixedColumn();
 
                 @this.set('loadingOrderOutput', true);
@@ -344,7 +353,7 @@
                 Livewire.emit('loadingStart');
             });
 
-            $('#meja').on('change', async function (e) {
+            $('#line').on('change', async function (e) {
                 await clearFixedColumn();
 
                 @this.set('loadingOrderOutput', true);
@@ -412,8 +421,6 @@
             setTimeout(function () {
                 $('#trackdatatable').DataTable().columns.adjust();
             }, 1000);
-
-            console.log("initFixedColumn");
         }
 
         Livewire.on("clearFixedColumn", () => {
@@ -428,12 +435,12 @@
             }, 1000);
         });
 
-        // Run after any Livewire update
-        Livewire.hook('message.processed', () => {
-            setTimeout(() => {
-                setFixedColumn();
-            }, 0);
-        });
+        // // Run after any Livewire update
+        // Livewire.hook('message.processed', () => {
+        //     setTimeout(() => {
+        //         setFixedColumn();
+        //     }, 0);
+        // });
 
         async function updateSupplierList(dateFrom, dateTo) {
             document.getElementById("loadingOrderOutput").classList.remove("hidden");
@@ -441,7 +448,7 @@
             let currentValue = await $("#supplier").val();
 
             return $.ajax({
-                url: 'track-cutting-output',
+                url: 'track-packing-output',
                 type: 'get',
                 data: {
                     type : "supplier",
@@ -506,7 +513,7 @@
             let currentValue = await $("#order").val();
 
             return $.ajax({
-                url: 'track-cutting-output',
+                url: 'track-packing-output',
                 type: 'get',
                 data: {
                     type : "order",
@@ -587,12 +594,11 @@
             let currentDate = `${day}-${month}-${year}`;
 
             $.ajax({
-                url: "{{ url("/report-cutting/track-cutting-output/export") }}",
-                type: 'get',
+                url: "{{ url("/packing-line/track-packing-output/export") }}",
+                type: 'post',
                 data: {
                     dateFrom:$("#dateFrom").val(),
                     dateTo:$("#dateTo").val(),
-                    outputType:$("#output-type").val(),
                     groupBy:$("#group-by").val(),
                     order:$("#order").val(),
                     buyer:$("#supplier").val(),
@@ -615,7 +621,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = currentDate+" - "+($('#supplier').val() ? "'"+$('#supplier').find(":selected").text()+"'" : " All Supplier ")+" - "+($('#order').val() ? "'"+$('#order').find(":selected").text()+"'" : " All WS ")+" - Cutting Output.xlsx";
+                    link.download = currentDate+" - "+($('#supplier').val() ? "'"+$('#supplier').find(":selected").text()+"'" : " All Supplier ")+" - "+($('#order').val() ? "'"+$('#order').find(":selected").text()+"'" : " All WS ")+" - Packing Output.xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     let res = jqXHR.responseJSON;

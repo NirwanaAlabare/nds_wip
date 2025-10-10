@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use App\Models\SignalBit\UserLine;

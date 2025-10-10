@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PackingLineController;
 use Illuminate\Support\Facades\Route;
 
 // User
@@ -1753,6 +1754,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
         Route::get('/packing_out_tot_barcode', 'packing_out_tot_barcode')->name('packing_out_tot_barcode');
         Route::get('/show_sum_max_carton', 'show_sum_max_carton')->name('show_sum_max_carton');
+    });
+
+    Route::controller(PackingLineController::class)->prefix("packing-line")->middleware('packing')->group(function () {
+        Route::get('/track-packing-output', 'trackPackingOutput')->name('track-packing-output');
+        Route::post('/track-packing-output/export', 'exportPackingOutput')->name('export-packing-output');
     });
 
     // Needle Check

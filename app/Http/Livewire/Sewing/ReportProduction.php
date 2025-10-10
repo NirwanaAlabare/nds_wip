@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use App\Models\SignalBit\UserLine;
@@ -128,6 +128,6 @@ class ReportProduction extends Component
             where("output_employee_line.tanggal", $this->date)->
             first();
 
-        return view('livewire.report-production', ['lines' => $lines, 'hours' => $hours]);
+        return view('livewire.sewing.report-production', ['lines' => $lines, 'hours' => $hours]);
     }
 }

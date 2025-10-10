@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use App\Models\SignalBit\UserDefect;
@@ -226,6 +226,6 @@ class ReportDefectInOut extends Component
             orderBy("output_defect_in_out.created_at", "desc")->
             get();
 
-        return view('livewire.report-defect-in-out', ['defectInOutList' => $defectInOutList, 'defectInOutTotalQty' => $defectInOutTotalQty, 'outputAll' => $outputAll]);
+        return view('livewire.sewing.report-defect-in-out', ['defectInOutList' => $defectInOutList, 'defectInOutTotalQty' => $defectInOutTotalQty, 'outputAll' => $outputAll]);
     }
 }

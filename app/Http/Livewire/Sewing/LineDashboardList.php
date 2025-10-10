@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Sewing;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -32,6 +32,6 @@ class LineDashboardList extends Component
             orderBy('username', 'asc')->
             get();
 
-        return view('livewire.line-dashboard-list');
+        return view('livewire.sewing.line-dashboard-list');
     }
 }

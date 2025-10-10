@@ -23,10 +23,10 @@
     <div class="container-fluid">
         <div class="card">
             <div class="mx-3 my-3">
-                <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-file"></i> Order Cutting Output</h5>
+                <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-shuffle"></i> Track Order Output</h5>
             </div>
             <div class="card-body">
-                @livewire('cutting.track-cutting-output')
+                @livewire('packing.track-packing-output')
             </div>
         </div>
     </div>
@@ -39,9 +39,7 @@
     <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
-    {{-- Select2 --}}
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-
     <script>
         $('.select2').select2({
             theme: 'bootstrap4',

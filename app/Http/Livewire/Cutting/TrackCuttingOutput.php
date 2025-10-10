@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Cutting;
 
 use Livewire\Component;
 use App\Models\SignalBit\MasterPlan;
@@ -600,7 +600,7 @@ class TrackCuttingOutput extends Component
 
         \Log::info("Query Completed");
 
-        return view('livewire.track-cutting-output');
+        return view('livewire.cutting.track-cutting-output');
     }
 
     // public function dehydrate()
