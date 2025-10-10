@@ -59,39 +59,96 @@ order by o.created_at desc
 
     public function getno_carton(Request $request)
     {
-        $cek_po = DB::select("
-        select po, dest from ppic_master_so where id = '" . $request->cbopo . "'
-        ");
+        $search = $request->input('search');
+        $cbopo = $request->input('cbopo');
 
-        $po = $cek_po ? $cek_po[0]->po : null;
-        $dest = $cek_po ? $cek_po[0]->dest : null;
+        // Get PO and destination from master table
+        $cek_po = DB::table('ppic_master_so')
+            ->select('po', 'dest')
+            ->where('id', $cbopo)
+            ->first();
 
-
-        $data_carton = DB::select("SELECT
-        a.no_carton isi, a.no_carton tampil
-        from
-        (
-        select po, no_carton, dest, barcode, qty qty_pl
-        from packing_master_packing_list where po = '$po' and dest = '$dest'
-        ) a
-        left join
-        (
-        select po, no_carton, dest, barcode, count(barcode) qty_scan
-        from packing_packing_out_scan where po = '$po' and dest = '$dest'
-        group by po, no_carton, dest, barcode
-        ) b on a.po = b.po and a.no_carton = b.no_carton and a.dest = b.dest and a.barcode = b.barcode
-		where a.qty_pl -  coalesce(qty_scan,0) != '0'
-        group by a.no_carton
-        ");
-
-        $html = "<option value=''>Pilih No Carton</option>";
-
-        foreach ($data_carton as $datacarton) {
-            $html .= " <option value='" . $datacarton->isi . "'>" . $datacarton->tampil . "</option> ";
+        if (!$cek_po) {
+            return response()->json([]);
         }
 
-        return $html;
+        $po = $cek_po->po;
+        $dest = $cek_po->dest;
+
+        // Main query for carton data with qty balance
+        $subQuery = DB::table('packing_master_packing_list as a')
+            ->select('a.no_carton', DB::raw('SUM(a.qty) as total_pl'), DB::raw('SUM(COALESCE(b.qty_scan, 0)) as total_scan'))
+            ->leftJoin(DB::raw('(
+            SELECT po, no_carton, dest, barcode, COUNT(barcode) as qty_scan
+            FROM packing_packing_out_scan
+            WHERE po = "' . $po . '" AND dest = "' . $dest . '"
+            GROUP BY po, no_carton, dest, barcode
+        ) b'), function ($join) {
+                $join->on('a.po', '=', 'b.po')
+                    ->on('a.no_carton', '=', 'b.no_carton')
+                    ->on('a.dest', '=', 'b.dest')
+                    ->on('a.barcode', '=', 'b.barcode');
+            })
+            ->where('a.po', $po)
+            ->where('a.dest', $dest)
+            ->groupBy('a.no_carton')
+            ->havingRaw('SUM(a.qty) - SUM(COALESCE(b.qty_scan, 0)) != 0');
+
+        // Apply search filter if exists
+        if (!empty($search)) {
+            $subQuery->where('a.no_carton', 'like', '%' . $search . '%');
+        }
+
+        $data_carton = $subQuery->limit(50)->get();
+
+        // Format response for Select2
+        $results = $data_carton->map(function ($row) {
+            return [
+                'id' => $row->no_carton,
+                'text' => $row->no_carton
+            ];
+        });
+
+        return response()->json($results);
     }
+
+
+    //     public function getno_carton(Request $request)
+    // {
+    //     $cek_po = DB::select("
+    //     select po, dest from ppic_master_so where id = '" . $request->cbopo . "'
+    //     ");
+
+    //     $po = $cek_po ? $cek_po[0]->po : null;
+    //     $dest = $cek_po ? $cek_po[0]->dest : null;
+
+
+    //     $data_carton = DB::select("SELECT
+    //     a.no_carton isi, a.no_carton tampil
+    //     from
+    //     (
+    //     select po, no_carton, dest, barcode, qty qty_pl
+    //     from packing_master_packing_list where po = '$po' and dest = '$dest'
+    //     ) a
+    //     left join
+    //     (
+    //     select po, no_carton, dest, barcode, count(barcode) qty_scan
+    //     from packing_packing_out_scan where po = '$po' and dest = '$dest'
+    //     group by po, no_carton, dest, barcode
+    //     ) b on a.po = b.po and a.no_carton = b.no_carton and a.dest = b.dest and a.barcode = b.barcode
+    // 	where a.qty_pl -  coalesce(qty_scan,0) != '0'
+    //     group by a.no_carton
+    //     ");
+
+    //     $html = "<option value=''>Pilih No Carton</option>";
+
+    //     foreach ($data_carton as $datacarton) {
+    //         $html .= " <option value='" . $datacarton->isi . "'>" . $datacarton->tampil . "</option> ";
+    //     }
+
+    //     return $html;
+    // }
+
 
 
     public function getpo(Request $request)
@@ -305,13 +362,13 @@ from packing_packing_out_scan
 where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
 ) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode");
 
-    if ($cek_qty_isi_karton) {
-        $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
-        $tot_out = $cek_qty_isi_karton[0]->tot_input;
-        if ($cek_stok_fix >= '1') {
+            if ($cek_qty_isi_karton) {
+                $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
+                $tot_out = $cek_qty_isi_karton[0]->tot_input;
+                if ($cek_stok_fix >= '1') {
 
-            if ($cek_qty_isi > $tot_out) {
-                $insert = DB::insert("
+                    if ($cek_qty_isi > $tot_out) {
+                        $insert = DB::insert("
                 insert into packing_packing_out_scan
                 (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
                 values
@@ -327,38 +384,37 @@ where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' 
                     '$timestamp'
                 )
                 ");
-                return array(
-                    'icon' => 'benar',
-                    'msg' => 'Data berhasil Disimpan',
-                );
-            } else if ($cek_qty_isi == $tot_out) {
-                return array(
-                    'icon' => 'lebih',
-                    'msg' => 'Data sudah melebihi qty karton',
-                );
-            } else {
+                        return array(
+                            'icon' => 'benar',
+                            'msg' => 'Data berhasil Disimpan',
+                        );
+                    } else if ($cek_qty_isi == $tot_out) {
+                        return array(
+                            'icon' => 'lebih',
+                            'msg' => 'Data sudah melebihi qty karton',
+                        );
+                    } else {
+                        return array(
+                            'icon' => 'salah',
+                            'msg' => 'Tidak Ada Data 1',
+                        );
+                    }
+                } else
+                    return array(
+                        'icon' => 'salah',
+                        'msg' => 'Tidak Ada Stok',
+                    );
+            } else
                 return array(
                     'icon' => 'salah',
-                    'msg' => 'Tidak Ada Data 1',
+                    'msg' => 'Tidak Ada Data 2',
                 );
-            }
-        } else
+        } else {
             return array(
                 'icon' => 'salah',
-                'msg' => 'Tidak Ada Stok',
+                'msg' => 'Datat tidak ada di packing list',
             );
-        } else
-            return array(
-                'icon' => 'salah',
-                'msg' => 'Tidak Ada Data 2',
-            );
-    } else {
-        return array(
-            'icon' => 'salah',
-            'msg' => 'Datat tidak ada di packing list',
-        );
-    }
-
+        }
     }
 
     public function packing_out_show_tot_input(Request $request)

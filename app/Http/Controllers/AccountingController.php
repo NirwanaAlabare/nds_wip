@@ -448,7 +448,7 @@ public function ReportCeisaDetail(Request $request)
             UNION
             select nomor_aju, nomor_identitas, nama_entitas, alamat_entitas from exim_entitas where seri = '9' and kode_entitas = '9' and kode_jenis_identitas = '6' and (LEFT(nomor_aju,6) + 0) IN (40,262) GROUP BY nomor_aju
             UNION
-            select nomor_aju, nomor_identitas, nama_entitas, alamat_entitas from exim_entitas where (seri != '4' and kode_entitas != '4' and (kode_jenis_identitas != '6')) and (LEFT(nomor_aju,6) + 0) IN (23) and (nama_entitas != 'PT NIRWANA ALABARE GARMENT' and nama_entitas != 'NIRWANA ALABARE GARMENT') GROUP BY nomor_aju
+                    select nomor_aju, nomor_identitas, nama_entitas, alamat_entitas from exim_entitas where kode_entitas = '5' and (LEFT(nomor_aju,6) + 0) IN (23) and (nama_entitas != 'PT NIRWANA ALABARE GARMENT' and nama_entitas != 'NIRWANA ALABARE GARMENT') GROUP BY nomor_aju
             UNION
             select nomor_aju, nomor_identitas, nama_entitas, alamat_entitas from exim_entitas where seri = '8' and kode_entitas = '8' and kode_jenis_identitas = '' and (LEFT(nomor_aju,6) + 0) IN (30) GROUP BY nomor_aju) a) c on c.nomor_aju=a.nomor_aju) a) a where tgl_daftar >= '".$request->dateFrom."' and tgl_daftar <= '".$request->dateTo."'
             UNION

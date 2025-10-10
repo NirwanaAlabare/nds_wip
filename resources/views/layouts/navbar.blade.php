@@ -1543,7 +1543,13 @@
                             <li>
                                 <a href="{{ route('mgt_report_sum_prod_earn') }}"
                                     class="dropdown-item {{ $subPage == 'mgt-report-laporan-sum-prod-earn' ? 'active' : '' }}">
-                                    <i class="fa-solid fa-list-ul fa-sm"></i> Summary Production Earn
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Summary Production Earning
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('mgt_report_sum_full_earn') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-laporan-sum-full-earn' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Summary Production Full Earning
                                 </a>
                             </li>
                         </ul>
