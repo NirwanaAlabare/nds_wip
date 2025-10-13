@@ -193,6 +193,7 @@ use App\Http\Controllers\MgtReportSumProdEarnController;
 use App\Http\Controllers\MgtReportSumFullEarnController;
 use App\Http\Controllers\MgtReportDailyCostController;
 use App\Http\Controllers\MgtReportEarningController;
+use App\Http\Controllers\MgtReportSumBuyerController;
 
 
 //maintain-bpb
@@ -2262,6 +2263,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(MgtReportSumFullEarnController::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/mgt_report_sum_full_earn', 'mgt_report_sum_full_earn')->name('mgt_report_sum_full_earn');
         Route::get('/export_excel_laporan_sum_fullearn', 'export_excel_laporan_sum_full_earn')->name('export_excel_laporan_sum_full_earn');
+    });
+
+    Route::controller(MgtReportSumBuyerController::class)->prefix("proses")->middleware('role:management')->group(function () {
+        Route::get('/mgt_report_sum_buyer', 'mgt_report_sum_buyer')->name('mgt_report_sum_buyer');
+        Route::get('/export_excel_laporan_sum_buyer', 'export_excel_laporan_sum_buyer')->name('export_excel_laporan_sum_buyer');
     });
 });
 

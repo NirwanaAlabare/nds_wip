@@ -231,7 +231,7 @@
             $('#cbono_carton').select2({
                 theme: 'bootstrap4',
                 placeholder: 'Search No. Carton...',
-                minimumInputLength: 1, // Wait for user to type
+                minimumInputLength: 0, // Wait for user to type
                 ajax: {
                     url: '{{ route('getno_carton') }}',
                     dataType: 'json',

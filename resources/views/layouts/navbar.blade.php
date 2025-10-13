@@ -1552,6 +1552,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Summary Production Full Earning
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('mgt_report_sum_buyer') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-laporan-sum-buyer' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Summary Buyer
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
