@@ -26,7 +26,6 @@
                     <th style="font-weight: 800;" class="text-center">TOTAL</th>
                 </tr>
             <?php
-
                     $currentWs = null;
                     $currentStyle = null;
                     $currentColor = null;
@@ -40,49 +39,11 @@
                     foreach ($orderGroup as $group) {
                         ?>
                             <tr>
-                                @if ($group->ws != $currentWs)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count() }}">{{ $group->ws }}</td>
-
-                                    @php
-                                        $currentWs = $group->ws;
-                                        $currentStyle = null;
-                                        $currentColor = null;
-                                        $currentMeja = null;
-                                    @endphp
-                                @endif
-                                @if ($group->ws == $currentWs && $group->style != $currentStyle)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->count() }}">{{ $group->style }}</td>
-
-                                    @php
-                                        $currentStyle = $group->style;
-                                        $currentColor = null;
-                                        $currentLine = null;
-                                    @endphp
-                                @endif
-                                @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color != $currentColor)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->count() }}">{{ $group->color }}</td>
-
-                                    @php
-                                        $currentColor = $group->color;
-                                        $currentLine = null;
-                                        $currentPo = null;
-                                    @endphp
-                                @endif
-                                @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color == $currentColor && $group->sewing_line != $currentLine)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('sewing_line', $group->sewing_line)->count() }}">{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
-
-                                    @php
-                                        $currentLine = $group->sewing_line;
-                                        $currentPo = null;
-                                    @endphp
-                                @endif
-                                @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color == $currentColor && $group->sewing_line == $currentLine && $group->po != $currentPo)
-                                    <td style="vertical-align: top;text-align: left;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('sewing_line', $group->sewing_line)->where('po', $group->po)->count() }}">{{ $group->po }}</td>
-
-                                    @php
-                                        $currentPo = $group->po;
-                                    @endphp
-                                @endif
+                                <td style="vertical-align: top;text-align: left;">{{ $group->ws }}</td>
+                                <td style="vertical-align: top;text-align: left;">{{ $group->style }}</td>
+                                <td style="vertical-align: top;text-align: left;">{{ $group->color }}</td>
+                                <td style="vertical-align: top;text-align: left;">{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
+                                <td style="vertical-align: top;text-align: left;">{{ $group->po }}</td>
                                 @if ($groupBy == "size")
                                     <td style="vertical-align: top;text-align: left;">{{ $group->size }}</td>
                                 @endif

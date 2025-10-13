@@ -60,7 +60,7 @@ class TrackPackingOutput extends Component
         $this->groupBy = "size";
         $this->baseUrl = url('/');
 
-        $this->search = false;
+        $this->isSearch = false;
     }
 
     public function clearFilter()
@@ -69,7 +69,7 @@ class TrackPackingOutput extends Component
         $this->lineFilter = null;
         $this->sizeFilter = null;
         $this->poFilter = null;
-        $this->search = false;
+        $this->isSearch = false;
     }
 
     public function updatedSelectedOrder()
@@ -87,15 +87,13 @@ class TrackPackingOutput extends Component
         if ($lastPlan) {
             $this->dateToFilter = $lastPlan->tgl_plan;
         }
-
-        $this->search = true;
         // else {
         //     $this->dateToFilter = date("Y-m-d");
         // }
     }
 
     public function setSearch() {
-        $this->search = true;
+        $this->isSearch = true;
     }
 
     public function render()
@@ -121,16 +119,16 @@ class TrackPackingOutput extends Component
                 groupBy('Id_Supplier', 'Supplier')->
                 get();
 
-            $orderSql = DB::connection('mysql_sb')->
-                table('act_costing')->
-                selectRaw('
-                    id as id_ws,
-                    kpno as no_ws
-                ')->
-                where('status', '!=', 'CANCEL')->
-                where('cost_date', '>=', '2023-01-01')->
-                where('type_ws', 'STD');
-                if ($this->selectedSupplier) $orderSql->where('id_buyer', $this->selectedSupplier);
+        $orderSql = DB::connection('mysql_sb')->
+            table('act_costing')->
+            selectRaw('
+                id as id_ws,
+                kpno as no_ws
+            ')->
+            where('status', '!=', 'CANCEL')->
+            where('cost_date', '>=', '2023-01-01')->
+            where('type_ws', 'STD');
+            if ($this->selectedSupplier) $orderSql->where('id_buyer', $this->selectedSupplier);
 
         $this->orders = $orderSql->
             orderBy('cost_date', 'desc')->
@@ -140,8 +138,8 @@ class TrackPackingOutput extends Component
 
         $this->loadingOrderOutput = false;
 
-        if ($this->search) {
-            $this->search = false;
+        if ($this->isSearch === true) {
+            $this->isSearch = false;
 
             $orderFilterSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("

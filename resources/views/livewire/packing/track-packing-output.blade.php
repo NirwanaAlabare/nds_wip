@@ -9,6 +9,7 @@
             <div class="loading"></div>
         </div>
     </div>
+    <span class="d-none">Search : {{ $isSearch ? "true" : "false" }}</span>
     <div class="row justify-content-between align-items-end flex-wrap">
         <div class="col">
             <div class="d-flex flex-wrap align-items-center justify-content-start gap-3 mb-3">
@@ -65,9 +66,11 @@
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 && $dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") && $dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() > 0) {
                             foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
+                                if ($dailyDate && is_object($dailyDate->first())) {
                                 ?>
                                     <th class="bg-sb text-light">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                                 <?php
+                                }
                             }
                     ?>
                     <th class="bg-sb text-light text-center">TOTAL</th>
@@ -87,6 +90,7 @@
 
                         if ($dailyOrderGroup && $dailyOrderGroup->count() > 0) {
                             foreach ($dailyOrderGroup as $dailyGroup) {
+                                if ($dailyGroup && is_object($dailyGroup)) {
                                 ?>
                                     <tr>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->ws }}</span></td>
@@ -128,6 +132,7 @@
                                         @endphp
                                     </tr>
                                 <?php
+                                }
                             }
                         }
                     }
@@ -174,7 +179,9 @@
                                     <option value="">Pilih Color</option>
                                     @if ($orderFilter)
                                         @foreach ($orderFilter->groupBy('color') as $color)
-                                            <option value="{{ $color->first()->color }}">{{ $color->first()->color }}</option>
+                                            @if ($color && is_object($color->first()))
+                                                <option value="{{ $color->first()->color }}">{{ $color->first()->color }}</option>
+                                            @endif
                                         @endforeach
                                     @endif
                                 </select>
@@ -185,7 +192,9 @@
                                     <option value="">Pilih PO</option>
                                     @if ($orderFilter)
                                         @foreach ($orderFilter->groupBy('po') as $po)
-                                            <option value="{{ $po->first()->po }}">{{ $po->first()->po }}</option>
+                                            @if ($po && is_object($po->first()))
+                                                <option value="{{ $po->first()->po }}">{{ $po->first()->po }}</option>
+                                            @endif
                                         @endforeach
                                     @endif
                                 </select>
@@ -196,7 +205,9 @@
                                     <option value="">Pilih Line</option>
                                     @if ($orderFilter)
                                         @foreach ($orderFilter->groupBy('sewing_line') as $line)
-                                            <option value="{{ $line->first()->sewing_line }}">{{ $line->first()->sewing_line }}</option>
+                                            @if ($line && is_object($line->first()))
+                                                <option value="{{ $line->first()->sewing_line }}">{{ $line->first()->sewing_line }}</option>
+                                            @endif
                                         @endforeach
                                     @endif
                                 </select>
@@ -208,7 +219,9 @@
                                         <option value="">Pilih Size</option>
                                         @if ($orderFilter)
                                             @foreach ($orderFilter->groupBy('size') as $size)
-                                                <option value="{{ $size->first()->size }}">{{ $size->first()->size }}</option>
+                                                @if ($size && is_object($size->first()))
+                                                    <option value="{{ $size->first()->size }}">{{ $size->first()->size }}</option>
+                                                @endif
                                             @endforeach
                                         @endif
                                     </select>
@@ -301,7 +314,6 @@
                 await clearFixedColumn();
 
                 @this.set('dateFromFilter', this.value);
-                @this.setSearch();
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
@@ -310,7 +322,6 @@
                 await clearFixedColumn();
 
                 @this.set('dateToFilter', this.value);
-                @this.setSearch();
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
@@ -328,8 +339,6 @@
 
                 @this.set('selectedSupplier', this.value);
 
-                @this.setSearch();
-
                 updateWsList($('#dateFrom').val(), $('#dateTo').val(), this.value);
             });
 
@@ -340,8 +349,6 @@
 
                 @this.set('selectedOrder', this.value);
 
-                @this.setSearch();
-
                 Livewire.emit('loadingStart');
             });
 
@@ -349,8 +356,6 @@
                 await clearFixedColumn();
 
                 @this.set('loadingOrderOutput', true);
-
-                @this.setSearch();
 
                 Livewire.emit('loadingStart');
             });
@@ -360,8 +365,6 @@
 
                 @this.set('loadingOrderOutput', true);
 
-                @this.setSearch();
-
                 Livewire.emit('loadingStart');
             });
 
@@ -370,8 +373,6 @@
 
                 @this.set('loadingOrderOutput', true);
 
-                @this.setSearch();
-
                 Livewire.emit('loadingStart');
             });
 
@@ -379,8 +380,6 @@
                 await clearFixedColumn();
 
                 @this.set('loadingOrderOutput', true);
-
-                @this.setSearch();
 
                 Livewire.emit('loadingStart');
             });
@@ -444,6 +443,8 @@
         });
 
         Livewire.on("initFixedColumn", () => {
+            clearFixedColumn();
+
             setFixedColumn();
 
             setTimeout(function () {
@@ -451,7 +452,7 @@
             }, 1000);
         });
 
-        // // Run after any Livewire update
+        // Run after any Livewire update
         // Livewire.hook('message.processed', () => {
         //     setTimeout(() => {
         //         setFixedColumn();
