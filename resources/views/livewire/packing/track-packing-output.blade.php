@@ -9,7 +9,7 @@
             <div class="loading"></div>
         </div>
     </div>
-    <span>Search : {{ $isSearch ? "true" : "false" }}</span>
+    <span class="text-light">Search : {{ $isSearch ? "true" : "false" }}</span>
     <div class="row justify-content-between align-items-end flex-wrap">
         <div class="col">
             <div class="d-flex flex-wrap align-items-center justify-content-start gap-3 mb-3">
