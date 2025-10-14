@@ -246,13 +246,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-case
-		when stat_kerja = 'LIBUR' THEN 0
-		ELSE coalesce(daily_cost,0)
-		END AS daily_cost
+coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
+left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'DIRECT LABOR COST'
 ),
 coa_indirect as (
@@ -262,13 +259,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-case
-		when stat_kerja = 'LIBUR' THEN 0
-		ELSE coalesce(daily_cost,0)
-		END AS daily_cost
+coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
+left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'INDIRECT LABOR COST'
 ),
 coa_overhead as (
@@ -278,13 +272,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-case
-		when stat_kerja = 'LIBUR' THEN 0
-		ELSE coalesce(daily_cost,0)
-		END AS daily_cost
+coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
+left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'FIXED OVERHEAD COST'
 ),
 coa_selling as (
@@ -294,13 +285,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-case
-		when stat_kerja = 'LIBUR' THEN 0
-		ELSE coalesce(daily_cost,0)
-		END AS daily_cost
+coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
+left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'SELLING EXPENSE'
 ),
 coa_ga as (
@@ -310,13 +298,10 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-case
-		when stat_kerja = 'LIBUR' THEN 0
-		ELSE coalesce(daily_cost,0)
-		END AS daily_cost
+coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
+left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
 ),
 coa_expense as (
@@ -326,10 +311,7 @@ stat_kerja,
 a.no_coa,
 a.nama_coa,
 coalesce(projection,0) projection,
-case
-		when stat_kerja = 'LIBUR' THEN 0
-		ELSE coalesce(daily_cost,0)
-		END AS daily_cost
+coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
@@ -372,7 +354,8 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
         CASE
             WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
             WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
@@ -380,16 +363,14 @@ CASE
             WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
             ELSE 0
         END
-    ELSE 0
-END AS nominal_labor,
-CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
         CASE
-            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0) + COALESCE(a.daily_cost, 0)
-            ELSE COALESCE(a.daily_cost, 0)
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
         END
     ELSE 0
 END AS tot_labor,
@@ -407,7 +388,8 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
         CASE
             WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
             WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
@@ -415,16 +397,14 @@ CASE
             WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
             ELSE 0
         END
-    ELSE 0
-END AS nominal_labor,
-CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
         CASE
-            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0) + COALESCE(a.daily_cost, 0)
-            ELSE COALESCE(a.daily_cost, 0)
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
         END
     ELSE 0
 END AS tot_labor,
@@ -442,7 +422,8 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
         CASE
             WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
             WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
@@ -450,16 +431,14 @@ CASE
             WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
             ELSE 0
         END
-    ELSE 0
-END AS nominal_labor,
-CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
         CASE
-            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0) + COALESCE(a.daily_cost, 0)
-            ELSE COALESCE(a.daily_cost, 0)
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
         END
     ELSE 0
 END AS tot_labor,
@@ -477,7 +456,8 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
         CASE
             WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
             WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
@@ -485,16 +465,14 @@ CASE
             WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
             ELSE 0
         END
-    ELSE 0
-END AS nominal_labor,
-CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
         CASE
-            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0) + COALESCE(a.daily_cost, 0)
-            ELSE COALESCE(a.daily_cost, 0)
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
         END
     ELSE 0
 END AS tot_labor,
@@ -512,7 +490,8 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
         CASE
             WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
             WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
@@ -520,16 +499,14 @@ CASE
             WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
             ELSE 0
         END
-    ELSE 0
-END AS nominal_labor,
-CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
         CASE
-            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0) + COALESCE(a.daily_cost, 0)
-            ELSE COALESCE(a.daily_cost, 0)
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
         END
     ELSE 0
 END AS tot_labor,
@@ -547,30 +524,27 @@ a.nama_coa,
 a.projection,
 a.daily_cost,
 CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN a.nama_coa LIKE '%SGT%'  AND stat_kerja = 'KERJA' THEN COALESCE(a.daily_cost, 0)
+    WHEN a.nama_coa LIKE '%SGT%'  AND stat_kerja = 'LIBUR' THEN 0
+	WHEN a.nama_coa LIKE '%GS%' THEN 0
+	WHEN a.nama_coa LIKE '%SA%' THEN 0
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
         CASE
-        	WHEN a.nama_coa LIKE '%SGT%' THEN 0
-			WHEN a.nama_coa LIKE '%GS%' THEN 0
-			WHEN a.nama_coa LIKE '%SA%' THEN 0
             WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
             WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
             WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
             WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
             ELSE 0
         END
-    ELSE 0
-END AS nominal_labor,
-CASE
-    WHEN COALESCE(a.daily_cost, 0) != 0 THEN
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
         CASE
-        	WHEN a.nama_coa LIKE '%SGT%' THEN COALESCE(a.daily_cost, 0)
-			WHEN a.nama_coa LIKE '%GS%' THEN COALESCE(a.daily_cost, 0)
-			WHEN a.nama_coa LIKE '%SA%' THEN COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0) + COALESCE(a.daily_cost, 0)
-            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0) + COALESCE(a.daily_cost, 0)
-            ELSE COALESCE(a.daily_cost, 0)
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
         END
     ELSE 0
 END AS tot_labor,
