@@ -722,14 +722,21 @@ class TrolleyStockerController extends Controller
                             $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
                             $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
 
+                            function getCostingData($data, $field) {
+                                return $data->masterSbWs?->{$field}
+                                    ?? $data->formPiece?->{$field}
+                                    ?? $data->formReject?->{$field}
+                                    ?? $data->formCut?->marker?->{$field};
+                            }
+
                             $storeLoadingPlan = LoadingLinePlan::create([
                                 "line_id" => $lineData['line_id'],
                                 "kode" => $kodeLoadingPlan,
-                                "act_costing_id" => ($thisStockerData->masterSbWs ? ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->act_costing_id : ($thisStockerData->formPiece->act_costing_id ? $thisStockerData->formPiece->act_costing_id : ($thisStockerData->formReject ? $thisStockerData->formReject->act_costing_id : ($thisStockerData->formCut ? ($thisStockerData->formCut->marker ? $thisStockerData->formCut->marker->act_costing_id : null) : null)) )) : null),
-                                "act_costing_ws" => ($thisStockerData->masterSbWs ? ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->act_costing_ws : ($thisStockerData->formPiece->act_costing_ws ? $thisStockerData->formPiece->act_costing_ws : ($thisStockerData->formReject ? $thisStockerData->formReject->act_costing_ws : ($thisStockerData->formCut ? ($thisStockerData->formCut->marker ? $thisStockerData->formCut->marker->act_costing_ws : null) : null)) )) : null),
-                                "buyer" => ($thisStockerData->masterSbWs ? ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->buyer : ($thisStockerData->formPiece->buyer ? $thisStockerData->formPiece->buyer : ($thisStockerData->formReject ? $thisStockerData->formReject->buyer : ($thisStockerData->formCut ? ($thisStockerData->formCut->marker ? $thisStockerData->formCut->marker->buyer : null) : null)) )) : null),
-                                "style" => ($thisStockerData->masterSbWs ? ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->styleno : ($thisStockerData->formPiece->style ? $thisStockerData->formPiece->style : ($thisStockerData->formReject ? $thisStockerData->formReject->style : ($thisStockerData->formCut ? ($thisStockerData->formCut->marker ? $thisStockerData->formCut->marker->style : null) : null)) )) : null),
-                                "color" => ($thisStockerData->masterSbWs ? ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : ($thisStockerData->formPiece->color ? $thisStockerData->formPiece->color : ($thisStockerData->formReject ? $thisStockerData->formReject->color : ($thisStockerData->formCut ? ($thisStockerData->formCut->marker ? $thisStockerData->formCut->marker->color : null) : null)) )) : null),
+                                "act_costing_id" => getCostingData($thisStockerData, "act_costing_id"),
+                                "act_costing_ws" => getCostingData($thisStockerData, "act_costing_ws"),
+                                "buyer" => getCostingData($thisStockerData, "buyer"),
+                                "style" => getCostingData($thisStockerData, "style"),
+                                "color" => getCostingData($thisStockerData, "color"),
                                 "tanggal" => $request['tanggal_loading'],
                                 "created_by" => Auth::user()->id,
                                 "created_by_username" => Auth::user()->username,
