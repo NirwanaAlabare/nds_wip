@@ -772,7 +772,7 @@ class SewingToolsController extends Controller
             $tglDefect = " and output_defects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
             $tglReject = " and output_rejects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
 
-            $additionalFilter .= " and output.tgl is not null";
+            $additionalFilter .= " and output.tgl is not null and output.tgl between '".$tglAwalOutput."' and '".$tglAkhirOutput."'";
         }
 
         $tglOutputPck = "";
@@ -786,7 +786,7 @@ class SewingToolsController extends Controller
             $tglDefectPck = " and output_defects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
             $tglRejectPck = " and output_rejects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
 
-            $additionalFilter .= " and output_packing.tgl is not null";
+            $additionalFilter .= " and output_packing.tgl is not null and output_packing.tgl between '".$tglAwalPacking."' and '".$tglAkhirPacking."'";
         }
 
         // Sewing
@@ -893,7 +893,7 @@ class SewingToolsController extends Controller
             $backDateOutput = " and DATE(output_rfts.updated_at) != master_plan.tgl_plan";
             $backDateDefect = " and DATE(output_defects.updated_at) != master_plan.tgl_plan";
             $backDateReject = " and DATE(output_rejects.updated_at) != master_plan.tgl_plan";
-            $additionalFilter .= " and output.tgl is not null";
+            $additionalFilter .= " and output.tgl is not null and (output.tgl_plan != output.tgl)";
         }
 
         // Backdate
@@ -904,7 +904,7 @@ class SewingToolsController extends Controller
             $backDateOutputPck = " and DATE(output_rfts.updated_at) != master_plan.tgl_plan";
             $backDateDefectPck = " and DATE(output_defects.updated_at) != master_plan.tgl_plan";
             $backDateRejectPck = " and DATE(output_rejects.updated_at) != master_plan.tgl_plan";
-            $additionalFilter .= " and output_packing.tgl is not null";
+            $additionalFilter .= " and output_packing.tgl is not null and (output_packing.tgl_plan != output_packing.tgl)";
         }
 
         $filterYs = $buyerFilterYs."

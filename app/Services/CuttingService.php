@@ -40,6 +40,7 @@ class CuttingService
                     $totalSisaFabric = 0;
                     $totalShortRoll = 0;
                     $latestStatus = "";
+                    $currentStatus = "";
                     foreach ($formCutDetails as $formCutDetail) {
                         // Sambungan Roll
                         $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
@@ -74,6 +75,10 @@ class CuttingService
                             // Sambungan
                             if ($formCutDetail->sisa_gelaran > 0) {
                                 $currentSambungan = $pAct - $formCutDetail->sisa_gelaran;
+
+                                $currentStatus = 'need extension';
+                            } else {
+                                $currentStatus = 'complete';
                             }
 
                             // Sisa Kain
@@ -104,12 +109,15 @@ class CuttingService
                             // Sisa Kain
                             $sisaKain = 0;
 
+                            $currentStatus = 'extension complete';
+
                             // Reset Qty
                             $currentQty = $qty - (($sambungan * $formCutDetail->lembar_gelaran) + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping);
                             $currentIdRoll = $formCutDetail->id_roll;
                         }
 
                         // Save Detail
+                        $formCutDetail->status = $currentStatus;
                         $formCutDetail->est_amparan = $estAmpar;
                         $formCutDetail->pemakaian_lembar = $pemakaianLembar;
                         $formCutDetail->total_pemakaian_roll = $totalPemakaian;
