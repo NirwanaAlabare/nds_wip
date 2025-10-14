@@ -49,6 +49,7 @@
                                         $qty = intval($ratio->ratio) * intval($currentTotal);
                                         $qtyBefore = (intval($ratio->ratio) * intval($currentBefore)) + ($currentModify ? $currentModify['difference_qty'] : 0);
                                     @endphp
+
                                     @php
                                         if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
                                             $modifyThisStocker = null;
