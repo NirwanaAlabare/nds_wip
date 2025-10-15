@@ -52,7 +52,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_input_detail.group_stocker,
                 COALESCE(modify_size_qty.difference_qty, 0),
                 COALESCE(modify_size_qty.modified_qty, 0),
-                ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (CASE WHEN similar.max_group = form_cut_input_detail.group_stocker THEN COALESCE(modify_size_qty.difference_qty, 0) ELSE 0 END)) qty
+                ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
             FROM
                 form_cut_input
                 LEFT JOIN (
@@ -85,7 +85,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
                 LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
                 LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-                LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE(modify_size_qty.group_stocker, similar.max_group)
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
             WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN' and
