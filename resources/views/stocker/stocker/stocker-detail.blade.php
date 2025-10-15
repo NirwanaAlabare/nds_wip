@@ -175,8 +175,6 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-
-                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
                                     @endif
 
@@ -192,6 +190,9 @@
                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                             </div>
                                         </div>
+                                        @php
+                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                        @endphp
 
                                         @if ($currentModifySizeQty > 0)
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -212,8 +213,6 @@
                                             $currentTotal = $detail->lembar_gelaran;
 
                                             $currentModifySize = $modifySizeQty->where("group_stocker", $currentGroupStocker)->first() ? $modifySizeQty->where("group_stocker", $currentGroupStocker)->first()->difference_qty : 0;
-
-                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
 
                                         @if ($loop->last)
@@ -228,6 +227,9 @@
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
                                             </div>
+                                            @php
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                            @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
@@ -253,6 +255,9 @@
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
                                             </div>
+                                            @php
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                            @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
@@ -269,8 +274,6 @@
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
-
-                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
                                     @endif
 
@@ -286,6 +289,9 @@
                                                 <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                             </div>
                                         </div>
+                                        @php
+                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                        @endphp
 
                                         @if ($currentModifySizeQty > 0)
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
@@ -304,8 +310,6 @@
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
-
-                                            array_push($groupStockerList, $currentGroupStocker);
                                         @endphp
 
                                         {{-- Create last element when it comes to an end of this loop --}}
@@ -320,6 +324,9 @@
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
                                             </div>
+                                            @php
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                            @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
@@ -345,6 +352,9 @@
                                                     <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
                                                 </div>
                                             </div>
+                                            @php
+                                                array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                            @endphp
 
                                             @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
@@ -717,68 +727,71 @@
                 </div>
                 <div class="modal-body">
                     <form action="#" method="post" id="mod-size-qty-form">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table" id="table-ratio-numbering">
-                                <thead>
-                                    <th>Size</th>
-                                    <th>Ratio</th>
-                                    <th>Qty Cut</th>
-                                    <th>Range Awal</th>
-                                    <th>Range Akhir</th>
-                                    <th>Catatan</th>
-                                    <th>Group</th>
-                                </thead>
-                                <tbody>
-                                    @foreach ($dataRatio as $ratio)
-                                        @php
-                                            $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
+                        <div id="mod-size-table-container">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table" id="table-ratio-numbering-mod">
+                                    <thead>
+                                        <th>Size</th>
+                                        <th>Ratio</th>
+                                        <th>Qty Cut</th>
+                                        <th>Range Awal</th>
+                                        <th>Range Akhir</th>
+                                        <th>Catatan</th>
+                                        <th>Group</th>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($dataRatio as $ratio)
+                                            @php
+                                                $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
 
-                                            $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
-                                            $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+                                                $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
+                                                $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
 
-                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : ($qty > 0 ? 1 : '-')) : ($qty > 0 ? 1 : '-'));
-                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : ($qty > 0 ? $qty : '-')) : ($qty > 0 ? $qty : '-'));
+                                                $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : ($qty > 0 ? 1 : '-')) : ($qty > 0 ? 1 : '-'));
+                                                $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : ($qty > 0 ? $qty : '-')) : ($qty > 0 ? $qty : '-'));
 
-                                            $numGeneratable = true;
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $ratio->size_dest}}</td>
-                                            <td>{{ $ratio->ratio }}</td>
-                                            <td>
-                                                <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $qty }}" value="{{ $qty }}" onchange="modifyQty(this, {{ $index }});">
-                                            </td>
-                                            <td id="mod_range_awal_view_{{ $index }}">{{ $rangeAwal }}</td>
-                                            <td id="mod_range_akhir_view_{{ $index }}">{{ ($rangeAkhir >= $rangeAwal ? $rangeAkhir : $rangeAwal) }}</td>
-                                            <td>
-                                                <input class="form-control form-control-sm" type="text" name="mod_note[{{ $index }}]" id="mod_note_{{ $index }}" value="">
-                                            </td>
-                                            <td>
-                                                <select class="form-select form-select-sm" name="mod_group_stocker[{{ $index }}]" id="mod_group_stocker_{{ $index }}">
-                                                    @foreach ($groupStockerList as $groupStocker)
-                                                        @if ($loop->index == (count($groupStockerList)-1))
-                                                            <option value="{{ $groupStocker }}" selected>{{ $groupStocker }}</option>
-                                                        @else
-                                                            <option value="{{ $groupStocker }}">{{ $groupStocker }}</option>
-                                                        @endif
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                        </tr>
+                                                $numGeneratable = true;
+                                            @endphp
+                                            <tr>
+                                                <td>{{ $ratio->size_dest}}</td>
+                                                <td>{{ $ratio->ratio }}</td>
+                                                <td>
+                                                    <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" onchange="modifyQty(this, {{ $index }});">
+                                                </td>
+                                                <td id="mod_range_awal_view_{{ $index }}">{{ $rangeAwal }}</td>
+                                                <td id="mod_range_akhir_view_{{ $index }}">{{ ($rangeAkhir >= $rangeAwal ? $rangeAkhir : $rangeAwal) }}</td>
+                                                <td>
+                                                    <input class="form-control form-control-sm" type="text" name="mod_note[{{ $index }}]" id="mod_note_{{ $index }}" value="">
+                                                </td>
+                                                <td>
+                                                    <select class="form-select form-select-sm" name="mod_group_stocker[{{ $index }}]" id="mod_group_stocker_{{ $index }}" onchange="modifyGroupStocker(this, {{ $index }});">
+                                                        @foreach ($groupStockerList as $groupStocker)
+                                                            @if ($loop->index == (count($groupStockerList)-1))
+                                                                <option value="{{ $groupStocker['group_stocker'] }}" data-qty="{{ $groupStocker['qty'] }}" selected>{{ $groupStocker['group_stocker'] }}</option>
+                                                            @else
+                                                                <option value="{{ $groupStocker['group_stocker'] }}" data-qty="{{ $groupStocker['qty'] }}">{{ $groupStocker['group_stocker'] }}</option>
+                                                            @endif
+                                                        @endforeach
+                                                    </select>
+                                                </td>
+                                            </tr>
 
-                                        <input type="hidden" name="mod_original_qty[{{ $index }}]" id="mod_original_qty_{{ $index }}" value="{{ $qty }}">
-                                        <input type="hidden" name="mod_difference_qty[{{ $index }}]" id="mod_difference_qty_{{ $index }}" value="{{ 0 }}">
-                                        <input type="hidden" name="mod_ratio[{{ $index }}]" id="mod_ratio_{{ $index }}" value="{{ $ratio->ratio }}">
-                                        <input type="hidden" name="mod_so_det_id[{{ $index }}]" id="mod_so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
-                                        <input type="hidden" name="mod_size[{{ $index }}]" id="mod_size_{{ $index }}" value="{{ $ratio->size }}">
-                                        <input type="hidden" name="mod_range_awal[{{ $index }}]" id="mod_range_awal_{{ $index }}" value="{{ $rangeAwal }}">
-                                        <input type="hidden" name="mod_range_akhir[{{ $index }}]" id="mod_range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
-                                        @php
-                                            $index++;
-                                        @endphp
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                            <input type="hidden" name="mod_original_qty[{{ $index }}]" id="mod_original_qty_{{ $index }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}">
+                                            <input type="hidden" name="mod_difference_qty[{{ $index }}]" id="mod_difference_qty_{{ $index }}" value="{{ 0 }}">
+                                            <input type="hidden" name="mod_ratio[{{ $index }}]" id="mod_ratio_{{ $index }}" value="{{ $ratio->ratio }}">
+                                            <input type="hidden" name="mod_so_det_id[{{ $index }}]" id="mod_so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                            <input type="hidden" name="mod_size[{{ $index }}]" id="mod_size_{{ $index }}" value="{{ $ratio->size }}">
+                                            <input type="hidden" name="mod_range_awal[{{ $index }}]" id="mod_range_awal_{{ $index }}" value="{{ $rangeAwal }}">
+                                            <input type="hidden" name="mod_range_akhir[{{ $index }}]" id="mod_range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
+                                            @php
+                                                $index++;
+                                            @endphp
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+                        <button type="button" class="btn btn-sb mb-3" id="add-mod-button"><i class="fa fa-plus"></i> Add Mod</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -1109,7 +1122,7 @@
 
         var generating = false;
 
-        $(document).ready(() => {
+        $(document).ready(function () {
             let generatableElements = document.getElementsByClassName('generatable');
 
             for (let i = 0; i < generatableElements.length; i++) {
@@ -1141,6 +1154,8 @@
             $("#add_color").prop("disabled", true);
             $("#add_panel_id").prop("disabled", true);
 
+            addModSize();
+
             // window.onfocus = function() {
             //     console.log(generating);
 
@@ -1149,6 +1164,79 @@
             //     }
             // }
         });
+
+        function addModSize() {
+            const addModBtn = document.getElementById('add-mod-button');
+            const tableContainer = document.getElementById('mod-size-table-container');
+
+            addModBtn.addEventListener('click', function(e) {
+                e.preventDefault(); // prevent form submission
+
+                const originalTable = document.getElementById('table-ratio-numbering-mod');
+                const clonedTable = originalTable.cloneNode(true);
+
+                // Determine the last index from existing mod_qty_cut inputs
+                let lastInputs = tableContainer.querySelectorAll('input[name^="mod_qty_cut"]');
+                let lastIndex = lastInputs.length > 0
+                    ? parseInt(lastInputs[lastInputs.length - 1].name.match(/\d+/)[0])
+                    : -1;
+
+                let currentIndex = lastIndex + 1;
+
+                // Loop through each row
+                clonedTable.querySelectorAll('tbody tr').forEach(function(tr) {
+                    // Update visible inputs and selects in this row
+                    tr.querySelectorAll('[id]').forEach(function(el) {
+                        const oldId = el.id;
+                        el.id = oldId.replace(/\d+/, currentIndex);
+
+                        if (el.name) {
+                            el.name = el.name.replace(/\[\d+\]/, `[${currentIndex}]`);
+                        }
+
+                        if (el.hasAttribute('onchange')) {
+                            let onchangeStr = el.getAttribute('onchange');
+                            // Replace the old index number with currentIndex
+                            onchangeStr = onchangeStr.replace(/\d+/, currentIndex);
+                            el.setAttribute('onchange', onchangeStr);
+                        }
+
+                        // Reset visible values
+                        if (el.tagName === 'INPUT') {
+                            if (el.type === 'number') el.value = el.dataset.originalValue || 0;
+                            else if (el.type === 'text') el.value = '';
+                        }
+
+                        if (el.tagName === 'SELECT') el.selectedIndex = el.options.length - 1;
+                    });
+
+                    // Update all hidden inputs that belong to this row (inside tbody)
+                    // Assuming hidden inputs are directly after the row
+                    let next = tr.nextElementSibling;
+                    while (next && next.tagName === 'INPUT' && next.type === 'hidden') {
+                        const hidden = next;
+                        const oldId = hidden.id;
+                        hidden.id = oldId.replace(/\d+/, currentIndex);
+
+                        if (hidden.name) hidden.name = hidden.name.replace(/\[\d+\]/, `[${currentIndex}]`);
+
+                        // Reset hidden values
+                        if (hidden.name.includes('mod_difference_qty')) hidden.value = 0;
+                        if (hidden.name.includes('mod_original_qty')) hidden.value = hidden.dataset.originalValue || hidden.value;
+
+                        next = next.nextElementSibling;
+                    }
+
+                    currentIndex++; // increment index once per row
+                });
+
+                // Append cloned table
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('table-responsive', 'mt-3');
+                wrapper.appendChild(clonedTable);
+                tableContainer.appendChild(wrapper);
+            });
+        }
 
         function openAdditionalModal() {
             $("#additional-modal").modal("show");
@@ -2202,6 +2290,26 @@
             }
 
             differenceElement.value = difference;
+        }
+
+        function modifyGroupStocker(element, index) {
+            let currentVal = element.value;
+            let currentQty = element.options[element.selectedIndex].getAttribute('data-qty');
+            let qtyCutElement = document.getElementById('mod_qty_cut_'+index);
+            let originalElement = document.getElementById('mod_original_qty_'+index);
+            let differenceElement = document.getElementById('mod_difference_qty_'+index);
+            let ratioElement = document.getElementById('mod_ratio_'+index);
+            let rangeAwalElement = document.getElementById("mod_range_awal_"+index);
+            let rangeAwalElementView = document.getElementById("mod_range_awal_view_"+index);
+            let rangeAkhirElement = document.getElementById("mod_range_akhir_"+index);
+            let rangeAkhirElementView = document.getElementById("mod_range_akhir_view_"+index);
+            let noteElement = document.getElementById("mod_note_"+index);
+
+            let currentQtyRatio = Number(ratioElement.value) * Number(currentQty);
+            originalElement.value = currentQtyRatio;
+            qtyCutElement.value = currentQtyRatio;
+
+            modifyQty(qtyCutElement, index);
         }
 
         function submitModifyQty() {

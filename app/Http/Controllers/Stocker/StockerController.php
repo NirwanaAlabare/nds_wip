@@ -367,7 +367,9 @@ class StockerController extends Controller
             orderBy("form_cut_input.no_form", "desc")->
             get();
 
-        $modifySizeQty = ModifySizeQty::selectRaw("modify_size_qty.*, master_sb_ws.size, master_sb_ws.dest ")->leftJoin("master_sb_ws","master_sb_ws.id_so_det", "=", "modify_size_qty.so_det_id")->where("form_cut_id", $dataSpreading->form_cut_id)->get();
+        $modifySizeQty = ModifySizeQty::selectRaw("modify_size_qty.*, master_sb_ws.size, master_sb_ws.dest ")->leftJoin("master_sb_ws","master_sb_ws.id_so_det", "=", "modify_size_qty.so_det_id")->where("form_cut_id", $dataSpreading->form_cut_id)->where("difference_qty", "!=", 0)->get();
+
+            // dd($modifySizeQty);
 
         $dataAdditional = DB::table("stocker_ws_additional")->where("form_cut_id", $dataSpreading->form_cut_id)->first();
 
@@ -1360,7 +1362,12 @@ class StockerController extends Controller
         $storeItemArr = [];
         $incompleteModSizeQty = [];
         foreach ($partDetailKeys as $index) {
-            $modifySizeQty = ModifySizeQty::selectRaw("modify_size_qty.*, master_sb_ws.size, master_sb_ws.dest ")->leftJoin("master_sb_ws","master_sb_ws.id_so_det", "=", "modify_size_qty.so_det_id")->where("form_cut_id", $formData->id)->where("so_det_id", $request['so_det_id'][$index])->first();
+            $modifySizeQty = ModifySizeQty::selectRaw("modify_size_qty.*, master_sb_ws.size, master_sb_ws.dest ")->
+                leftJoin("master_sb_ws","master_sb_ws.id_so_det", "=", "modify_size_qty.so_det_id")->
+                where("form_cut_id", $formData->id)->
+                where("group_stocker", $request['group_stocker'][$index])->
+                where("so_det_id", $request['so_det_id'][$index])->
+                first();
 
             $rangeAwal = $request['range_awal'][$index];
             $rangeAkhir = $request['range_akhir'][$index];
@@ -1609,13 +1616,13 @@ class StockerController extends Controller
                             $item['cancel'] = 'y';
 
                             array_push($incompleteModSizeQty, [
-                                "form_cut_id" => $item['form_cut_id'],
-                                "so_det_id" =>  $item['so_det_id'],
-                                'part_detail_id' => $item['part_detail_id'],
-                                'shade' => $item['group'],
-                                "group_stocker" => $item['group_stocker'],
-                                "ratio" => $item['ratio'],
-                                "qty" => ($item['range_akhir'] - $item['range_awal'])
+                                "form_cut_id" => isset($item['group']) ? $item['form_cut_id'] : null,
+                                "so_det_id" =>  isset($item['group']) ? $item['so_det_id'] : null,
+                                'part_detail_id' => isset($item['group']) ? $item['part_detail_id'] : null,
+                                'shade' => isset($item['group']) ? $item['group'] : null,
+                                "group_stocker" =>isset($item['group']) ?  $item['group_stocker'] : null,
+                                "ratio" => isset($item['ratio']) ? $item['ratio'] : null,
+                                "qty" => isset($item['range_akhir']) && isset($item['range_awal']) ? ($item['range_akhir'] - $item['range_awal']) : null
                             ]);
                         } else {
                             $item['cancel'] = 'n';
@@ -4435,8 +4442,8 @@ class StockerController extends Controller
                         "form_cut_id" => $formCutId,
                         "no_form" => $noForm,
                         "so_det_id" => $soDetId,
-                    ],[
                         "group_stocker" => $groupStocker,
+                    ],[
                         "original_qty" => $originalQty,
                         "modified_qty" => $modifiedQty,
                         "difference_qty" => $differenceQty,
