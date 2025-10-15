@@ -403,7 +403,7 @@ class SecondaryInController extends Controller
             dc.tujuan,
             dc.lokasi,
             mp.nama_part,
-            sii.qty_awal,
+            COALESCE(sii.qty_awal, si.qty_in, (dc.qty_awal - dc.qty_reject - dc.qty_replace), 0) as qty_awal,
             sii.qty_reject,
             sii.qty_replace,
             sii.qty_in,
