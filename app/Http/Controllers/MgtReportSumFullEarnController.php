@@ -725,12 +725,12 @@ SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN man
 SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN absen_menit ELSE 0 END) AS sewing_absen_menit,
 SUM(man_power)  AS tot_man_power
 from mgt_rep_labor
-WHERE tanggal_berjalan BETWEEN '2025-10-01' AND '2025-10-08'
+WHERE tanggal_berjalan BETWEEN '$start_date' AND '$end_date'
 group by tanggal_berjalan
 order by tanggal_berjalan asc
 ),
 m_kurs_bi as (
-select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '2025-10-01' AND '2025-10-08'
+select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '$start_date' AND '$end_date'
 )
 
 select
