@@ -1098,10 +1098,13 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-line' ? 'active' : '' }}">Packing Line</a>
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-line' ? 'active' : '' }}">Packing
+                            Line</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('track-packing-output') }}" class="dropdown-item {{ $subPage == 'track-packing-output' ? 'active' : '' }}">
+                                <a href="{{ route('track-packing-output') }}"
+                                    class="dropdown-item {{ $subPage == 'track-packing-output' ? 'active' : '' }}">
                                     <i class="fa-solid fa-shuffle"></i> Track Packing Output
                                 </a>
                             </li>
@@ -1556,6 +1559,18 @@
                                 <a href="{{ route('mgt_report_sum_buyer') }}"
                                     class="dropdown-item {{ $subPage == 'mgt-report-laporan-sum-buyer' ? 'active' : '' }}">
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Summary Buyer
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('mgt_report_daily_earn_buyer') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-laporan-daily-earn-buyer' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Daily Earn Per Buyer
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('mgt_report_profit_line') }}"
+                                    class="dropdown-item {{ $subPage == 'mgt-report-laporan-profit-line' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Profit Line
                                 </a>
                             </li>
                         </ul>
