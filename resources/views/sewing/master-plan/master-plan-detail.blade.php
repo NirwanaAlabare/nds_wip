@@ -236,7 +236,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label>WS Number</label>
-                                    <select class="form-select select2bs4" name="edit_id_ws" id="edit_id_ws">
+                                    <select class="form-select select2bs4edit" name="edit_id_ws" id="edit_id_ws">
                                         <option value="">Select WS</option>
                                         @foreach ($actCosting as $ac)
                                             <option value="{{ $ac->id }}">{{ $ac->kpno }}</option>
@@ -247,7 +247,7 @@
                                 <div class="col-md-4">
                                     <input type="hidden" name="edit_color" id="edit_color">
                                     <label>Color</label>
-                                    <select class="form-select select2bs4" name="edit_color_select" id="edit_color_select">
+                                    <select class="form-select select2bs4edit" name="edit_color_select" id="edit_color_select">
                                         <option value="">Select Color</option>
                                     </select>
                                     <small class="text-danger d-none" id="edit_color_error"></small>
@@ -282,7 +282,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label>Status</label>
-                                    <select class="form-select select2bs4" name="edit_cancel" id="edit_cancel">
+                                    <select class="form-select select2bs4edit" name="edit_cancel" id="edit_cancel">
                                         <option value="N">ACTIVE</option>
                                         <option value="Y">CANCELLED</option>
                                     </select>
@@ -329,9 +329,9 @@
     $('.select2bs4').select2({
         theme: 'bootstrap4'
     })
-
-    $('.select2roll').select2({
-        theme: 'bootstrap4'
+    $('.select2bs4edit').select2({
+        theme: 'bootstrap4',
+        dropdownParent: $('#editMasterPlanModal')
     })
 </script>
 

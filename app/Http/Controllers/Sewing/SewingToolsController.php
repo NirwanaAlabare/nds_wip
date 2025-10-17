@@ -260,12 +260,12 @@ class SewingToolsController extends Controller
                     master_plan.id plan_id,
                     master_plan.color plan_color,
                     master_plan.id_ws plan_act_costing_id,
-                    so_det.color actual_color,
+                    TRIM(so_det.color) actual_color,
                     act_costing.id actual_act_costing_id,
                     so_det.size,
                     so_det.dest,
                     userpassword.username line,
-                    master_plan.tgl_plan
+                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) as tgl_plan
                 FROM
                     output_rfts
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rfts.created_by
@@ -276,7 +276,7 @@ class SewingToolsController extends Controller
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
                     output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
                 GROUP BY
                     output_rfts.id
             ) output
@@ -286,7 +286,7 @@ class SewingToolsController extends Controller
                 actual.sewing_line = output.line and
                 actual.tgl_plan = output.tgl_plan
             WHERE
-                actual.id IS NULL OR actual.id != output.plan_id
+                actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
                 output.id
         "));
@@ -316,7 +316,7 @@ class SewingToolsController extends Controller
                     so_det.size,
                     so_det.dest,
                     userpassword.username line,
-                    master_plan.tgl_plan
+                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) as tgl_plan
                 FROM
                     output_defects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_defects.created_by
@@ -327,7 +327,7 @@ class SewingToolsController extends Controller
                     LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 WHERE
                     output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
                 GROUP BY
                     output_defects.id
             ) output
@@ -337,7 +337,7 @@ class SewingToolsController extends Controller
                 actual.sewing_line = output.line and
                 actual.tgl_plan = output.tgl_plan
             WHERE
-                actual.id IS NULL OR actual.id != output.plan_id
+                actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
                 output.id
         "));
@@ -367,7 +367,7 @@ class SewingToolsController extends Controller
                     so_det.size,
                     so_det.dest,
                     userpassword.username line,
-                    master_plan.tgl_plan
+                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) as tgl_plan
                 FROM
                     output_rejects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rejects.created_by
@@ -378,7 +378,7 @@ class SewingToolsController extends Controller
                     LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 WHERE
                     output_rejects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
                 GROUP BY
                     output_rejects.id
             ) output
@@ -388,7 +388,7 @@ class SewingToolsController extends Controller
                 actual.sewing_line = output.line and
                 actual.tgl_plan = output.tgl_plan
             WHERE
-                actual.id IS NULL OR actual.id != output.plan_id
+                actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
                 output.id
         "));
@@ -411,6 +411,10 @@ class SewingToolsController extends Controller
         foreach ($masterPlan as $mp) {
             $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->plan_act_costing_id)->where("so_det.color", $mp->plan_color)->where("so_det.size", $mp->size)->where("so_det.dest", $mp->dest)->first();
 
+            if (!$soDet) {
+                $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mp->plan_act_costing_id)->where("so_det.color", $mp->plan_color)->where("so_det.size", $mp->size)->first();
+            }
+
             if ($soDet) {
                 // Update Origin
                 $rft = Rft::where("id", $mp->id)->first();
@@ -429,15 +433,17 @@ class SewingToolsController extends Controller
                     array_push($fails, [$mp, "change output origin"]);
                 }
             } else {
-                // Update Master Plan
-                $updateRft = DB::connection("mysql_sb")->table("output_rfts")->where("id", $mp->id)->update([
-                    "master_plan_id" => $mp->act_plan_id,
-                ]);
+                if ($mp->act_plan_id) {
+                    // Update Master Plan
+                    $updateRft = DB::connection("mysql_sb")->table("output_rfts")->where("id", $mp->id)->update([
+                        "master_plan_id" => $mp->act_plan_id,
+                    ]);
 
-                if ($updateRft) {
-                    array_push($success, [$mp, "change output master plan"]);
-                } else {
-                    array_push($fails, [$mp, "change output master plan"]);
+                    if ($updateRft) {
+                        array_push($success, [$mp, "change output master plan"]);
+                    } else {
+                        array_push($fails, [$mp, "change output master plan"]);
+                    }
                 }
             }
         }
@@ -445,6 +451,10 @@ class SewingToolsController extends Controller
         // Defect
         foreach ($masterPlanDef as $mpDef) {
             $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mpDef->plan_act_costing_id)->where("so_det.color", $mpDef->plan_color)->where("so_det.size", $mpDef->size)->where("so_det.dest", $mpDef->dest)->first();
+
+            if (!$soDet) {
+                $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mpDef->plan_act_costing_id)->where("so_det.color", $mpDef->plan_color)->where("so_det.size", $mpDef->size)->first();
+            }
 
             if ($soDet) {
                 // Update Origin
@@ -464,15 +474,17 @@ class SewingToolsController extends Controller
                     array_push($fails, [$mpDef, "change output origin defect"]);
                 }
             } else {
-                // Update Master Plan
-                $updateDefect = DB::connection("mysql_sb")->table("output_defects")->where("id", $mpDef->id)->update([
-                    "master_plan_id" => $mpDef->act_plan_id,
-                ]);
+                if ($mpDef->act_plan_id) {
+                    // Update Master Plan
+                    $updateDefect = DB::connection("mysql_sb")->table("output_defects")->where("id", $mpDef->id)->update([
+                        "master_plan_id" => $mpDef->act_plan_id,
+                    ]);
 
-                if ($updateDefect) {
-                    array_push($success, [$mpDef, "change output master plan defect"]);
-                } else {
-                    array_push($fails, [$mpDef, "change output master plan defect"]);
+                    if ($updateDefect) {
+                        array_push($success, [$mpDef, "change output master plan defect"]);
+                    } else {
+                        array_push($fails, [$mpDef, "change output master plan defect"]);
+                    }
                 }
             }
         }
@@ -480,6 +492,10 @@ class SewingToolsController extends Controller
         // Reject
         foreach ($masterPlanRej as $mpRej) {
             $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mpRej->plan_act_costing_id)->where("so_det.color", $mpRej->plan_color)->where("so_det.size", $mpRej->size)->where("so_det.dest", $mpRej->dest)->first();
+
+            if (!$soDet) {
+                $soDet = DB::connection("mysql_sb")->table("so_det")->select("so_det.id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $mpRej->plan_act_costing_id)->where("so_det.color", $mpRej->plan_color)->where("so_det.size", $mpRej->size)->first();
+            }
 
             if ($soDet) {
                 // Update Origin
@@ -498,15 +514,17 @@ class SewingToolsController extends Controller
                     array_push($fails, [$mpRej, "change output origin reject"]);
                 }
             } else {
-                // Update Master Plan
-                $updateReject = DB::connection("mysql_sb")->table("output_rejects")->where("id", $mpRej->id)->update([
-                    "master_plan_id" => $mpRej->act_plan_id,
-                ]);
+                if ($mpRej->act_plan_id) {
+                    // Update Master Plan
+                    $updateReject = DB::connection("mysql_sb")->table("output_rejects")->where("id", $mpRej->id)->update([
+                        "master_plan_id" => $mpRej->act_plan_id,
+                    ]);
 
-                if ($updateReject) {
-                    array_push($success, [$mpRej, "change output master plan reject"]);
-                } else {
-                    array_push($fails, [$mpRej, "change output master plan reject"]);
+                    if ($updateReject) {
+                        array_push($success, [$mpRej, "change output master plan reject"]);
+                    } else {
+                        array_push($fails, [$mpRej, "change output master plan reject"]);
+                    }
                 }
             }
         }

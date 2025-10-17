@@ -258,7 +258,8 @@ class CuttingFormController extends Controller
             leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
             leftJoin("masteritem", "masteritem.id_gen", "=", "bom_jo_item.id_item")->
             leftJoin("masterpanel", "masterpanel.id", "=", "bom_jo_item.id_panel")->
-            where("act_costing.id", $request->act_costing_id)->where("so_det.color", $request->color)->
+            where("act_costing.id", $request->act_costing_id)->
+            where("so_det.color", $request->color)->
             where("masterpanel.nama_panel", $request->panel)->
             where("bom_jo_item.status", "M")->
             where("bom_jo_item.cancel", "N")->

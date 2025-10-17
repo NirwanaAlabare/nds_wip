@@ -234,7 +234,7 @@ class MasterPlanController extends Controller
 
         $masterPlan = MasterPlan::where("id", $request->edit_id)->first();
 
-        if ($masterPlan->rfts->count()+$masterPlan->defects->count()+$masterPlan->rejects->count() < 1) {
+        if (($masterPlan->rfts->count()+$masterPlan->defects->count()+$masterPlan->rejects->count() < 1) || Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
             $updateMasterPlan = MasterPlan::where("id", $request->edit_id)->update([
                 "tgl_plan" => $request->edit_tgl_plan,
                 "id_ws" => $request->edit_id_ws,
