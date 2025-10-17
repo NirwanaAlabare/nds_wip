@@ -9,7 +9,7 @@
             <div class="loading"></div>
         </div>
     </div>
-    <span class="d-none">Search : {{ $isSearch ? "true" : "false" }}</span>
+    <span class="text-light">Search : {{ $isSearch ? "true" : "false" }}</span>
     <div class="row justify-content-between align-items-end flex-wrap">
         <div class="col">
             <div class="d-flex flex-wrap align-items-center justify-content-start gap-3 mb-3">
@@ -384,32 +384,38 @@
                 Livewire.emit('loadingStart');
             });
 
-            var datatable = $('#trackdatatable').DataTable({
-                paging: false,
-                ordering: false,
-                searching: false,
-                scrollX: true,
-                scrollY: '400px',
-                serverSide: false,
-                rowsGroup: [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                    5
-                ]
-            });
+            if (!$.fn.dataTable.isDataTable('#trackdatatable')) {
+                var datatable = $('#trackdatatable').DataTable({
+                    paging: false,
+                    ordering: false,
+                    searching: false,
+                    scrollX: true,
+                    scrollY: '400px',
+                    serverSide: false,
+                    rowsGroup: [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                });
+            }
         });
 
         function clearFixedColumn() {
-            $('#trackdatatable').DataTable().destroy();
+            if ($.fn.dataTable.isDataTable('#trackdatatable')) {
+                $('#trackdatatable').DataTable().destroy();
 
-            console.log("clearFixedColumn");
+                console.log("clearFixedColumn");
+            }
         }
 
         async function setFixedColumn() {
-            setTimeout(function () {
+            if ($.fn.dataTable.isDataTable('#trackdatatable')) {
+                console.log("datatable initialized");
+            } else {
                 // Initialize DataTable again
                 var datatable = $('#trackdatatable').DataTable({
                     fixedColumns: {
@@ -431,19 +437,19 @@
                         5
                     ]
                 });
-            }, 500);
 
-            setTimeout(function () {
-                $('#trackdatatable').DataTable().columns.adjust();
-            }, 1000);
+                setTimeout(function () {
+                    $('#trackdatatable').DataTable().columns.adjust();
+                }, 1000);
+            }
         }
 
-        Livewire.on("clearFixedColumn", () => {
-            clearFixedColumn();
+        Livewire.on("clearFixedColumn", async function () {
+            await clearFixedColumn();
         });
 
-        Livewire.on("initFixedColumn", () => {
-            clearFixedColumn();
+        Livewire.on("initFixedColumn", async function () {
+            await clearFixedColumn();
 
             setFixedColumn();
 

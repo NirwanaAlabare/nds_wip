@@ -1,42 +1,31 @@
 <?php
 
-namespace App\Exports;
+namespace App\Http\Controllers;
 
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\AfterSheet;
-use Illuminate\Support\Facades\DB;
+use App\Imports\ImportDailyCost;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use DB;
+use Illuminate\Support\Facades\Auth;
+use App\Exports\export_excel_laporan_daily_earn_buyer;
 
-
-class export_excel_laporan_earning implements FromView, ShouldAutoSize, WithEvents
+class MgtReportDailyEarnBuyerController extends Controller
 {
-    use Exportable;
-    protected $start_date, $end_date, $rowCount;
-
-    public function __construct($start_date, $end_date)
+    public function mgt_report_daily_earn_buyer(Request $request)
     {
-        $this->start_date = $start_date;
-        $this->end_date = $end_date;
-    }
+        $thn_view = $request->periode_tahun_view;
+        $user = Auth::user()->name;
 
-    public function view(): View
-    {
+        $start_date = $request->input('start_date'); // example: 9 (September)
+        $end_date = $request->input('end_date'); // example: 2025
 
+        $bulan_awal = date('n', strtotime($start_date)); // Returns month as number without leading zero (e.g., 9)
+        $tahun_awal = date('Y', strtotime($start_date)); // Returns full year (e.g., 2025)
 
-        $bulan_awal = date('n', strtotime($this->start_date)); // Returns month as number without leading zero (e.g., 9)
-        $tahun_awal = date('Y', strtotime($this->start_date)); // Returns full year (e.g., 2025)
-
-        $bulan_akhir = date('n', strtotime($this->end_date)); // Returns month as number without leading zero (e.g., 9)
-        $tahun_akhir = date('Y', strtotime($this->end_date)); // Returns full year (e.g., 2025)
+        $bulan_akhir = date('n', strtotime($end_date)); // Returns month as number without leading zero (e.g., 9)
+        $tahun_akhir = date('Y', strtotime($end_date)); // Returns full year (e.g., 2025)
 
         $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  select a.cost_no,kpno,supplier,styleno,product_item,season_desc,curr,so_date,status,qty_so,price_so,cost_date,status_cost,qty_cost,COALESCE(ttl_fabric,0) ttl_fabric,COALESCE(ttl_accsew,0) ttl_accsew,COALESCE(ttl_accpack,0) ttl_accpack,(COALESCE(ttl_fabric,0) + COALESCE(ttl_accsew,0) + COALESCE(ttl_accpack,0)) ttl_material,COALESCE(ttl_cmt,0) ttl_cmt,COALESCE(ttl_embro,0) ttl_embro,COALESCE(ttl_wash,0) ttl_wash,COALESCE(ttl_print,0) ttl_print,COALESCE(ttl_wrapbut,0) ttl_wrapbut,COALESCE(ttl_compbut,0) ttl_compbut,COALESCE(ttl_label,0) ttl_label,COALESCE(ttl_laser,0) ttl_laser,(COALESCE(ttl_cmt,0) + COALESCE(ttl_embro,0) + COALESCE(ttl_wash,0) + COALESCE(ttl_print,0) + COALESCE(ttl_wrapbut,0) + COALESCE(ttl_compbut,0) + COALESCE(ttl_label,0) + COALESCE(ttl_laser,0)) ttl_manufacturing,COALESCE(ttl_develop,0) ttl_develop,COALESCE(ttl_overhead,0) ttl_overhead,COALESCE(ttl_market,0) ttl_market,COALESCE(ttl_shipp,0) ttl_shipp,COALESCE(ttl_import,0) ttl_import,COALESCE(ttl_handl,0) ttl_handl,COALESCE(ttl_test,0) ttl_test,COALESCE(ttl_fabhandl,0) ttl_fabhandl,COALESCE(ttl_service,0) ttl_service, COALESCE(ttl_clearcost,0) ttl_clearcost ,COALESCE(ttl_development,0) ttl_development ,COALESCE(ttl_unexcost,0) ttl_unexcost ,COALESCE(ttl_managementfee,0) ttl_managementfee ,COALESCE(ttl_profit,0) ttl_profit ,(COALESCE(ttl_develop,0) + COALESCE(ttl_overhead,0) + COALESCE(ttl_market,0) + COALESCE(ttl_shipp,0) + COALESCE(ttl_import,0) + COALESCE(ttl_handl,0) + COALESCE(ttl_test,0) + COALESCE(ttl_fabhandl,0) + COALESCE(ttl_service,0) + COALESCE(ttl_clearcost,0) + COALESCE(ttl_development,0) + COALESCE(ttl_unexcost,0) + COALESCE(ttl_managementfee,0) + COALESCE(ttl_profit,0)) ttl_others
@@ -119,7 +108,7 @@ earn as (
                     time(max(a.updated_at)) jam_akhir_input,
                     created_by
                     from output_rfts a
-                    where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59'
+                    where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59'
                     group by master_plan_id, created_by, date(updated_at)
                 ) a
                 inner join so_det sd on a.so_det_id = sd.id
@@ -137,7 +126,7 @@ earn as (
                         END as istirahat,
                     created_by
                     from output_rfts
-                    where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59' group by created_by, date(updated_at)
+                    where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59' group by created_by, date(updated_at)
                 ) op on a.tgl_trans = op.tgl_trans_line and a.created_by = op.created_by
                 left join (
                     select * from act_costing_mfg where id_item = '8' group by id_act_cost
@@ -158,7 +147,7 @@ earn as (
                         count(so_det_id) tot_rfts,
                         created_by
                         from output_rfts a
-                        where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59' and status = 'NORMAL'
+                        where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59' and status = 'NORMAL'
                         group by master_plan_id, created_by, date(updated_at)
                     ) a
                     inner join master_plan mp on a.master_plan_id = mp.id
@@ -167,7 +156,7 @@ earn as (
                 left join
                 (
                     select min(id), man_power, sewing_line, tgl_plan from master_plan
-                    where tgl_plan >= '$this->start_date' and  tgl_plan <= '$this->end_date' and cancel = 'N'
+                    where tgl_plan >= '$start_date' and  tgl_plan <= '$end_date' and cancel = 'N'
                     group by sewing_line, tgl_plan
                 ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
 
@@ -179,7 +168,7 @@ earn as (
                         FROM (
                             SELECT DISTINCT date(updated_at) AS tgl_trans
                             FROM output_rfts
-                            WHERE updated_at >= '$this->start_date 00:00:00' AND updated_at <= '$this->end_date 23:59:59'
+                            WHERE updated_at >= '$start_date 00:00:00' AND updated_at <= '$end_date 23:59:59'
                         ) a_dates
                         JOIN master_kurs_bi mkb
                         ON mkb.tanggal_kurs_bi <= a_dates.tgl_trans
@@ -224,7 +213,7 @@ case
 		END AS stat_kerja
 FROM dim_date a
 left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
-where tanggal >= '$this->start_date' and tanggal <= '$this->end_date'
+where tanggal >= '$start_date' and tanggal <= '$end_date'
 ),
 dc as (
 SELECT
@@ -341,7 +330,7 @@ sum(bpjs_tk) bpjs_tk,
 sum(bpjs_ks) bpjs_ks,
 sum(thr) thr
 from mgt_rep_labor
-WHERE tanggal_berjalan BETWEEN '$this->start_date' AND '$this->end_date' AND status_staff = 'NON STAFF' -- dynamic filter
+WHERE tanggal_berjalan BETWEEN '$start_date' AND '$end_date' AND status_staff = 'NON STAFF' -- dynamic filter
 group by sub_dept_id, group_department, tanggal_berjalan
 ),
 daily_cost as (
@@ -571,8 +560,8 @@ from daily_cost group by tanggal
 ),
 sum_earn as (
 select tgl_trans, sum(mins_avail) sum_mins_avail from earn group by tgl_trans
-)
-
+),
+earning as (
 select
 -- est earning
 dt.tanggal,
@@ -709,96 +698,137 @@ left join earn a on dt.tanggal = a.tgl_trans
 left join sum_daily_cost b on dt.tanggal = b.tanggal
 left join sum_earn c on dt.tanggal = c.tgl_trans
 left join sum_cost d on a.kpno = d.kpno
-where dt.tanggal >= '$this->start_date' and dt.tanggal <= '$this->end_date'
+where dt.tanggal >= '$start_date' and dt.tanggal <= '$end_date'
 order by dt.tanggal asc, sewing_line asc
+),
+sum_earning as (
+select
+tanggal,
+sum(tot_earning_rupiah) as sum_tot_earning_rupiah,
+sum(est_full_earning) as sum_est_full_earning,
+sum(est_earning_prod) as sum_est_earning_prod,
+sum(est_cost_prod) as sum_est_cost_prod,
+sum(est_earning_mkt) as sum_est_earning_mkt,
+sum(est_cost_mkt) as sum_est_cost_mkt
+from earning group by tanggal
+),
+sum_labor as (
+select
+tanggal_berjalan,
+SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN man_power ELSE 0 END) AS sewing_man_power,
+SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN absen_menit ELSE 0 END) AS sewing_absen_menit,
+SUM(man_power)  AS tot_man_power
+from mgt_rep_labor
+WHERE tanggal_berjalan BETWEEN '$start_date' AND '$end_date'
+group by tanggal_berjalan
+order by tanggal_berjalan asc
+),
+m_kurs_bi as (
+select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '$start_date' AND '$end_date'
+),
+full_earning as (
+select
+a.tanggal,
+concat((DATE_FORMAT(a.tanggal,  '%d')), '-',left(DATE_FORMAT(a.tanggal,  '%M'),3),'-',DATE_FORMAT(a.tanggal,  '%Y')) as tanggal_fix,
+
+ROUND(coalesce(b.sum_tot_earning_rupiah,0),2) as sum_tot_earning_rupiah,
+ROUND(coalesce(sum_tot_labor,0),2) as est_tot_cost,
+ROUND(coalesce(b.sum_tot_earning_rupiah,0) - coalesce(sum_tot_labor,0),2) as blc,
+
+
+ROUND(coalesce(b.sum_est_full_earning,0),2) as sum_est_full_earning,
+ROUND(coalesce(b.sum_est_full_earning,0) - coalesce(sum_tot_labor,0),2) as blc_full_earning,
+
+ROUND(coalesce(sum_est_earning_prod,0),2) as sum_est_earning_prod,
+ROUND(coalesce(sum_est_cost_prod,0),2) as sum_est_cost_prod,
+ROUND(coalesce(sum_est_earning_prod,0) - coalesce(sum_est_cost_prod,0),2) as blc_est_earn_cost_prod,
+
+ROUND(coalesce(sum_est_earning_mkt,0),2) as sum_est_earning_mkt,
+ROUND(coalesce(sum_est_cost_mkt,0),2) as sum_est_cost_mkt,
+ROUND(coalesce(sum_est_earning_mkt,0) - coalesce(sum_est_cost_mkt,0),2) as blc_est_earn_cost_mkt
+
+from dim_tgl a
+left join sum_earning b on a.tanggal = b.tanggal
+left join sum_daily_cost c on a.tanggal = c.tanggal
+left join sum_labor d on a.tanggal = d.tanggal_berjalan
+left join m_kurs_bi e on a.tanggal = e.tanggal_kurs_bi
+order by a.tanggal asc
+),
+earning_buyer as (
+SELECT
+tanggal,
+buyer,
+sum(blc_full_earn) blc
+from earning
+group by tanggal, buyer
+order by tanggal asc, buyer asc
+),
+
+earning_blc as (
+select
+tanggal,
+sum_est_full_earning,
+blc_full_earning,
+CASE
+		WHEN sum_est_full_earning = 0 THEN blc_full_earning
+		ELSE 0
+END AS day_without_output
+from full_earning a
+
+)
+
+select
+a.tanggal,
+concat((DATE_FORMAT(a.tanggal,  '%d')), '-',left(DATE_FORMAT(a.tanggal,  '%M'),3),'-',DATE_FORMAT(a.tanggal,  '%Y')) as tanggal_fix,
+a.buyer,
+a.blc,
+sum_est_full_earning,
+blc_full_earning,
+day_without_output
+from earning_buyer a
+left join earning_blc b on a.tanggal = b.tanggal
         ");
 
+        $pivot = [];
 
-        $this->rowCount = count($rawData) + 1; // 1 for header
+        foreach ($rawData as $row) {
+            $tanggal = $row->tanggal;
+            $buyer = $row->buyer;
+            $blc = $row->blc;
 
-        return view('management_report.export_excel_laporan_earning', [
+            // Initialize row for each unique date
+            if (!isset($pivot[$tanggal])) {
+                $pivot[$tanggal] = [
+                    'tanggal' => $tanggal,
+                    'tanggal_fix' => $row->tanggal_fix,
+                    'blc_full_earning' => $row->blc_full_earning,
+                    'day_without_output' => $row->day_without_output,
+                ];
+            }
+            // Assign blc value to the buyer column dynamically
+            $pivot[$tanggal][$buyer] = $blc;
+        }
 
-            'rawData' => $rawData,
+        // Optional: reset to indexed array
+        $pivot = array_values($pivot);
+
+
+        // For non-AJAX (initial page load)
+        return view('management_report.laporan_daily_earn_buyer', [
+            'page' => 'dashboard-mgt-report',
+            'subPageGroup' => 'mgt-report-laporan',
+            'subPage' => 'mgt-report-laporan-daily-earn-buyer',
+            'pivotData' => $pivot,
+            'containerFluid' => true,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'user' => $user,
         ]);
     }
 
-    public function registerEvents(): array
+
+    public function export_excel_laporan_daily_earn_buyer(Request $request)
     {
-        return [
-            AfterSheet::class => function (AfterSheet $event) {
-                $sheet = $event->sheet->getDelegate();
-
-                $highestRow = $sheet->getHighestRow();
-                $highestColumn = $sheet->getHighestColumn(); // e.g. 'Z'
-                $columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
-
-                // ===== 1. Format header rows (row 2 and 3) =====
-                for ($i = 1; $i <= $columnIndex; $i++) {
-                    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
-
-                    foreach ([2, 3] as $row) {
-                        $cell = $colLetter . $row;
-
-                        $sheet->getStyle($cell)->applyFromArray([
-                            'alignment' => [
-                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                            ],
-                            'fill' => [
-                                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                                'startColor' => ['argb' => 'FFD9EDF7'], // Light blue
-                            ],
-                            'font' => [
-                                'bold' => true,
-                                'color' => ['argb' => 'FF000000'], // Black text
-                            ],
-                        ]);
-                    }
-                }
-
-                // ===== Percentage columns =====
-                $percentageColumns = ['H', 'L', 'Q', 'U', 'Y'];
-
-                // ===== 2. Format columns E to highestColumn =====
-                for ($i = 5; $i <= $columnIndex; $i++) { // Column E = index 5
-                    $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
-                    $range = $colLetter . '4:' . $colLetter . $highestRow;
-
-                    if (in_array($colLetter, $percentageColumns)) {
-                        // Percentage format
-                        $sheet->getStyle($range)
-                            ->getNumberFormat()
-                            ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
-
-                        // Right align percentages
-                        $sheet->getStyle($range)->getAlignment()->setHorizontal(
-                            \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT
-                        );
-                    } else {
-                        // Number format with commas and 2 decimals
-                        $sheet->getStyle($range)->applyFromArray([
-                            'alignment' => [
-                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
-                                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                            ],
-                            'numberFormat' => [
-                                'formatCode' => '#,##0.00',
-                            ],
-                        ]);
-                    }
-                }
-
-                // ===== 3. Apply border to whole table =====
-                $range = 'A1:' . $highestColumn . $highestRow;
-                $sheet->getStyle($range)->applyFromArray([
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            'color' => ['argb' => 'FF000000'],
-                        ],
-                    ],
-                ]);
-            }
-        ];
+        return Excel::download(new export_excel_laporan_daily_earn_buyer($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

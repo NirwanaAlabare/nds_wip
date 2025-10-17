@@ -1275,10 +1275,9 @@ public function export_excel_detailso(Request $request)
                 <i class='fa-solid fa-trash'></i>
                 </button>";
             }else{
-                $deleteBtn = "<button type='button' class='btn btn-sm btn-danger'
-                onclick=\"deleteBarcode('$detitem->id','$detitem->no_barcode')\">
-                <i class='fa-solid fa-trash'></i>
-                </button>";
+                $deleteBtn = "<span class='badge bg-success' style='font-size:12px; font-weight:bold; padding:6px 10px;'>
+                <i class='fa-solid fa-circle-check'></i> Scanned
+                </span>";
             }
 
             $html .= ' <tr>

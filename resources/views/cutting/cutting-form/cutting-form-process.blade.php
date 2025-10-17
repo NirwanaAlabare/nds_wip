@@ -1442,6 +1442,7 @@
 
                 if ($("#current_unit").val() == "KGM" && $("#current_berat_amparan").val() <= 0) {
                     document.getElementById("loading").classList.add("d-none");
+                    document.getElementById("stopLapButton").removeAttribute("disabled");
 
                     return Swal.fire({
                         icon: 'error',
@@ -1456,6 +1457,7 @@
                     if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
                         if (!isNaN($("#current_short_roll_percentage").val()) && Number($("#current_short_roll_percentage").val()) < -2) {
                             document.getElementById("loading").classList.add("d-none");
+                            document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             lockForm();
 
@@ -1485,6 +1487,7 @@
                         data: dataObj,
                         success: function(res) {
                             document.getElementById("loading").classList.add("d-none");
+                            document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
@@ -1518,6 +1521,7 @@
                         },
                         error: function(jqXHR) {
                             document.getElementById("loading").classList.add("d-none");
+                            document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             let res = jqXHR.responseJSON;
                             let message = '';
@@ -1548,6 +1552,7 @@
                         data: dataObj,
                         success: function(res) {
                             document.getElementById("loading").classList.add("d-none");
+                            document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
@@ -1581,6 +1586,7 @@
                         },
                         error: function(jqXHR) {
                             document.getElementById("loading").classList.add("d-none");
+                            document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             let res = jqXHR.responseJSON;
                             let message = '';
@@ -3731,6 +3737,8 @@
 
             // -Stop Time Record-
             async function stopTimeRecord() {
+                document.getElementById("stopLapButton").setAttribute("disabled", true);
+
                 backToProcessThree();
             }
 

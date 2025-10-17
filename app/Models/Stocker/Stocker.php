@@ -2,6 +2,7 @@
 
 namespace App\Models\Stocker;
 
+use App\Models\SignalBit\SoDet;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Scopes\InactiveStocker;
@@ -44,7 +45,7 @@ class Stocker extends Model
      */
     public function masterSbWs()
     {
-        return $this->belongsTo(MasterSbWs::class, 'so_det_id', 'id_so_det');
+        return $this->belongsTo(SoDet::class, 'so_det_id', 'id');
     }
 
     /**

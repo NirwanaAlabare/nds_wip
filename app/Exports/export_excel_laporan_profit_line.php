@@ -10,16 +10,13 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-
-class export_excel_laporan_earning implements FromView, ShouldAutoSize, WithEvents
+class export_excel_laporan_profit_line implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
+
     protected $start_date, $end_date, $rowCount;
 
     public function __construct($start_date, $end_date)
@@ -30,8 +27,6 @@ class export_excel_laporan_earning implements FromView, ShouldAutoSize, WithEven
 
     public function view(): View
     {
-
-
         $bulan_awal = date('n', strtotime($this->start_date)); // Returns month as number without leading zero (e.g., 9)
         $tahun_awal = date('Y', strtotime($this->start_date)); // Returns full year (e.g., 2025)
 
@@ -571,8 +566,8 @@ from daily_cost group by tanggal
 ),
 sum_earn as (
 select tgl_trans, sum(mins_avail) sum_mins_avail from earn group by tgl_trans
-)
-
+),
+earning as (
 select
 -- est earning
 dt.tanggal,
@@ -711,14 +706,157 @@ left join sum_earn c on dt.tanggal = c.tgl_trans
 left join sum_cost d on a.kpno = d.kpno
 where dt.tanggal >= '$this->start_date' and dt.tanggal <= '$this->end_date'
 order by dt.tanggal asc, sewing_line asc
+),
+sum_earning as (
+select
+tanggal,
+sum(tot_earning_rupiah) as sum_tot_earning_rupiah,
+sum(est_full_earning) as sum_est_full_earning,
+sum(est_earning_prod) as sum_est_earning_prod,
+sum(est_cost_prod) as sum_est_cost_prod,
+sum(est_earning_mkt) as sum_est_earning_mkt,
+sum(est_cost_mkt) as sum_est_cost_mkt
+from earning group by tanggal
+),
+sum_labor as (
+select
+tanggal_berjalan,
+SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN man_power ELSE 0 END) AS sewing_man_power,
+SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN absen_menit ELSE 0 END) AS sewing_absen_menit,
+SUM(man_power)  AS tot_man_power
+from mgt_rep_labor
+WHERE tanggal_berjalan BETWEEN '$this->start_date' AND '$this->end_date'
+group by tanggal_berjalan
+order by tanggal_berjalan asc
+),
+m_kurs_bi as (
+select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '$this->start_date' AND '$this->end_date'
+),
+full_earning as (
+select
+a.tanggal,
+concat((DATE_FORMAT(a.tanggal,  '%d')), '-',left(DATE_FORMAT(a.tanggal,  '%M'),3),'-',DATE_FORMAT(a.tanggal,  '%Y')) as tanggal_fix,
+
+ROUND(coalesce(b.sum_tot_earning_rupiah,0),2) as sum_tot_earning_rupiah,
+ROUND(coalesce(sum_tot_labor,0),2) as est_tot_cost,
+ROUND(coalesce(b.sum_tot_earning_rupiah,0) - coalesce(sum_tot_labor,0),2) as blc,
+
+
+ROUND(coalesce(b.sum_est_full_earning,0),2) as sum_est_full_earning,
+ROUND(coalesce(b.sum_est_full_earning,0) - coalesce(sum_tot_labor,0),2) as blc_full_earning,
+
+ROUND(coalesce(sum_est_earning_prod,0),2) as sum_est_earning_prod,
+ROUND(coalesce(sum_est_cost_prod,0),2) as sum_est_cost_prod,
+ROUND(coalesce(sum_est_earning_prod,0) - coalesce(sum_est_cost_prod,0),2) as blc_est_earn_cost_prod,
+
+ROUND(coalesce(sum_est_earning_mkt,0),2) as sum_est_earning_mkt,
+ROUND(coalesce(sum_est_cost_mkt,0),2) as sum_est_cost_mkt,
+ROUND(coalesce(sum_est_earning_mkt,0) - coalesce(sum_est_cost_mkt,0),2) as blc_est_earn_cost_mkt
+
+from dim_tgl a
+left join sum_earning b on a.tanggal = b.tanggal
+left join sum_daily_cost c on a.tanggal = c.tanggal
+left join sum_labor d on a.tanggal = d.tanggal_berjalan
+left join m_kurs_bi e on a.tanggal = e.tanggal_kurs_bi
+order by a.tanggal asc
+),
+earning_buyer as (
+SELECT
+tanggal,
+buyer,
+sum(blc_full_earn) blc
+from earning
+group by tanggal, buyer
+order by tanggal asc, buyer asc
+),
+pl as (
+select
+tanggal,
+sewing_line,
+sum(blc_full_earn) as blc
+from earning
+where sewing_line is not null
+group by tanggal, sewing_line
+order by tanggal asc, sewing_line asc
+)
+
+select
+tanggal,
+concat((DATE_FORMAT(tanggal,  '%d')), '-',left(DATE_FORMAT(tanggal,  '%M'),3),'-',DATE_FORMAT(tanggal,  '%Y')) as tanggal_fix,
+sewing_line,
+sum(blc) blc
+FROM
+(
+select
+a.tanggal,
+case
+		when sewing_line is null then 'N/A'
+		ELSE sewing_line
+		END AS sewing_line,
+coalesce(blc,0) as blc
+from dim_tgl a
+left join pl b on a.tanggal = b.tanggal
+UNION
+select
+tanggal,
+'N/A' as sewing_line,
+sum(coalesce(blc,0)) as blc
+from full_earning
+group by tanggal
+HAVING SUM(sum_tot_earning_rupiah) = 0
+) a
+group by tanggal, sewing_line
+order by sewing_line asc, tanggal asc
         ");
 
+        $pivot = [];
+        $fixDateMap = []; // Map tanggal => tanggal_fix
 
-        $this->rowCount = count($rawData) + 1; // 1 for header
+        foreach ($rawData as $row) {
+            $tanggal = $row->tanggal;
+            $tanggal_fix = $row->tanggal_fix;
+            $sewing_line = $row->sewing_line;
+            $blc = $row->blc;
 
-        return view('management_report.export_excel_laporan_earning', [
+            // Save fix date for each tanggal
+            $fixDateMap[$tanggal] = $tanggal_fix;
 
-            'rawData' => $rawData,
+            // Initialize sewing_line row
+            if (!isset($pivot[$sewing_line])) {
+                $pivot[$sewing_line] = ['sewing_line' => $sewing_line];
+            }
+
+            // Set value per date
+            $pivot[$sewing_line][$tanggal] = $blc;
+        }
+
+        // Get sorted list of tanggal based on keys
+        $sortedTanggal = array_keys($fixDateMap);
+        sort($sortedTanggal);
+
+        // Replace tanggal keys with tanggal_fix for header rendering
+        $fixHeaders = [];
+        foreach ($sortedTanggal as $tgl) {
+            $fixHeaders[$tgl] = $fixDateMap[$tgl];
+        }
+
+        // Fill missing values with 0
+        foreach ($pivot as &$row) {
+            foreach ($sortedTanggal as $tgl) {
+                if (!isset($row[$tgl])) {
+                    $row[$tgl] = 0;
+                }
+            }
+        }
+
+        // Optional: reindex rows
+        $pivot = array_values($pivot);
+
+        return view('management_report.export_excel_laporan_profit_line', [
+            'start_date' => $this->start_date,
+            'end_date' => $this->end_date,
+            'pivotData' => $pivot,
+            'fixHeaders' => $fixHeaders,
         ]);
     }
 
@@ -732,60 +870,42 @@ order by dt.tanggal asc, sewing_line asc
                 $highestColumn = $sheet->getHighestColumn(); // e.g. 'Z'
                 $columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
 
-                // ===== 1. Format header rows (row 2 and 3) =====
+                // ===== 1. Format header row (row 2) =====
                 for ($i = 1; $i <= $columnIndex; $i++) {
                     $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+                    $cell = $colLetter . '2';
 
-                    foreach ([2, 3] as $row) {
-                        $cell = $colLetter . $row;
-
-                        $sheet->getStyle($cell)->applyFromArray([
-                            'alignment' => [
-                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                            ],
-                            'fill' => [
-                                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                                'startColor' => ['argb' => 'FFD9EDF7'], // Light blue
-                            ],
-                            'font' => [
-                                'bold' => true,
-                                'color' => ['argb' => 'FF000000'], // Black text
-                            ],
-                        ]);
-                    }
+                    $sheet->getStyle($cell)->applyFromArray([
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => ['argb' => 'FFD9EDF7'], // Light blue, you can change
+                        ],
+                        'font' => [
+                            'bold' => true,
+                            'color' => ['argb' => 'FF000000'], // Black text
+                        ],
+                    ]);
                 }
 
-                // ===== Percentage columns =====
-                $percentageColumns = ['H', 'L', 'Q', 'U', 'Y'];
-
-                // ===== 2. Format columns E to highestColumn =====
-                for ($i = 5; $i <= $columnIndex; $i++) { // Column E = index 5
+                // ===== 2. Format value columns (C to end) =====
+                for ($i = 2; $i <= $columnIndex; $i++) { // Column C (3) to last
                     $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
-                    $range = $colLetter . '4:' . $colLetter . $highestRow;
+                    $range = $colLetter . '3:' . $colLetter . $highestRow;
 
-                    if (in_array($colLetter, $percentageColumns)) {
-                        // Percentage format
-                        $sheet->getStyle($range)
-                            ->getNumberFormat()
-                            ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
-
-                        // Right align percentages
-                        $sheet->getStyle($range)->getAlignment()->setHorizontal(
-                            \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT
-                        );
-                    } else {
-                        // Number format with commas and 2 decimals
-                        $sheet->getStyle($range)->applyFromArray([
-                            'alignment' => [
-                                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
-                                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                            ],
-                            'numberFormat' => [
-                                'formatCode' => '#,##0.00',
-                            ],
-                        ]);
-                    }
+                    // Set number format and align right
+                    $sheet->getStyle($range)->applyFromArray([
+                        'numberFormat' => [
+                            'formatCode' => '#,##0.00',
+                        ],
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                    ]);
                 }
 
                 // ===== 3. Apply border to whole table =====

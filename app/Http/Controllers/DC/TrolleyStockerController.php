@@ -53,7 +53,7 @@ class TrolleyStockerController extends Controller
                             COALESCE (
                                 COALESCE(
                                     (
-                                        MAX(dc_in_input.qty_awal)
+                                        MAX(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0))
                                         - MAX(COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(COALESCE ( dc_in_input.qty_replace, 0 ))
                                         - MAX(COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                                         - MAX(COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_in_input.qty_replace, 0 ))
@@ -123,8 +123,8 @@ class TrolleyStockerController extends Controller
                     CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
-                    COALESCE(MIN(COALESCE(dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
-                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
+                    COALESCE(MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
+                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((stocker_input.qty_ply_mod - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
@@ -197,8 +197,8 @@ class TrolleyStockerController extends Controller
                     CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
-                    COALESCE(MIN(COALESCE(dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
-                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
+                    COALESCE(MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
+                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((stocker_input.qty_ply_mod - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
@@ -619,8 +619,8 @@ class TrolleyStockerController extends Controller
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                 COALESCE(master_sb_ws.size, stocker_input.size) size,
-                COALESCE(MIN(COALESCE(dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
-                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
+                COALESCE(MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) )) qty,
+                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((stocker_input.qty_ply_mod - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
                 CONCAT(users.username, ' (', trolley_stocker.updated_at, ')') user
             ")->
             leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
@@ -722,14 +722,27 @@ class TrolleyStockerController extends Controller
                             $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
                             $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
 
+                            function getCostingData($data, $field) {
+                                if (isset($data->masterSbWs->{$field})) {
+                                    return $data->masterSbWs->{$field};
+                                } elseif (isset($data->formPiece->{$field})) {
+                                    return $data->formPiece->{$field};
+                                } elseif (isset($data->formReject->{$field})) {
+                                    return $data->formReject->{$field};
+                                } elseif (isset($data->formCut->marker->{$field})) {
+                                    return $data->formCut->marker->{$field};
+                                }
+                                return null;
+                            }
+
                             $storeLoadingPlan = LoadingLinePlan::create([
                                 "line_id" => $lineData['line_id'],
                                 "kode" => $kodeLoadingPlan,
-                                "act_costing_id" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->id_act_cost : ($thisStockerData->formPiece->act_costing_id ? $thisStockerData->formPiece->act_costing_id : $thisStockerData->formReject->act_costing_id)),
-                                "act_costing_ws" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->ws : ($thisStockerData->formPiece->act_costing_ws ? $thisStockerData->formPiece->act_costing_ws : $thisStockerData->formReject->act_costing_ws)),
-                                "buyer" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->buyer : ($thisStockerData->formPiece->buyer ? $thisStockerData->formPiece->buyer : $thisStockerData->formReject->buyer)),
-                                "style" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->styleno : ($thisStockerData->formPiece->style ? $thisStockerData->formPiece->style : $thisStockerData->formReject->style)),
-                                "color" => ($thisStockerData->masterSbWs ? $thisStockerData->masterSbWs->color : ($thisStockerData->formPiece->color ? $thisStockerData->formPiece->color : $thisStockerData->formReject->color)),
+                                "act_costing_id" => getCostingData($thisStockerData, "act_costing_id"),
+                                "act_costing_ws" => getCostingData($thisStockerData, "act_costing_ws"),
+                                "buyer" => getCostingData($thisStockerData, "buyer"),
+                                "style" => getCostingData($thisStockerData, "style"),
+                                "color" => getCostingData($thisStockerData, "color"),
                                 "tanggal" => $request['tanggal_loading'],
                                 "created_by" => Auth::user()->id,
                                 "created_by_username" => Auth::user()->username,

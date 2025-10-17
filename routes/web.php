@@ -194,7 +194,8 @@ use App\Http\Controllers\MgtReportSumFullEarnController;
 use App\Http\Controllers\MgtReportDailyCostController;
 use App\Http\Controllers\MgtReportEarningController;
 use App\Http\Controllers\MgtReportSumBuyerController;
-
+use App\Http\Controllers\MgtReportDailyEarnBuyerController;
+use App\Http\Controllers\MgtReportProfitLineController;
 
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
@@ -2268,6 +2269,16 @@ Route::middleware('auth')->group(function () {
     Route::controller(MgtReportSumBuyerController::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/mgt_report_sum_buyer', 'mgt_report_sum_buyer')->name('mgt_report_sum_buyer');
         Route::get('/export_excel_laporan_sum_buyer', 'export_excel_laporan_sum_buyer')->name('export_excel_laporan_sum_buyer');
+    });
+
+    Route::controller(MgtReportDailyEarnBuyerController::class)->prefix("proses")->middleware('role:management')->group(function () {
+        Route::get('/mgt_report_daily_earn_buyer', 'mgt_report_daily_earn_buyer')->name('mgt_report_daily_earn_buyer');
+        Route::get('/export_excel_laporan_daily_earn_buyer', 'export_excel_laporan_daily_earn_buyer')->name('export_excel_laporan_daily_earn_buyer');
+    });
+
+    Route::controller(MgtReportProfitLineController::class)->prefix("proses")->middleware('role:management')->group(function () {
+        Route::get('/mgt_report_profit_line', 'mgt_report_profit_line')->name('mgt_report_profit_line');
+        Route::get('/export_excel_laporan_profit_line', 'export_excel_laporan_profit_line')->name('export_excel_laporan_profit_line');
     });
 });
 
