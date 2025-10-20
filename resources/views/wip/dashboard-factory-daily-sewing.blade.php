@@ -298,24 +298,24 @@
             var options = {
                 series: [
                     {
-                        name: "Efficiency",
-                        type: "line",
-                        data: efficiencyArr
-                    },
-                    {
                         name: "Target Efficiency",
                         type: "line",
                         data: targetEffArr
                     },
                     {
-                        name: "RFT",
-                        type: "line",
-                        data: rftArr
-                    },
-                    {
                         name: "Target RFT",
                         type: "line",
                         data: targetRftArr
+                    },
+                    {
+                        name: "Efficiency",
+                        type: "line",
+                        data: efficiencyArr
+                    },
+                    {
+                        name: "RFT",
+                        type: "line",
+                        data: rftArr
                     },
                 ],
                 chart: {
@@ -329,7 +329,7 @@
                         show: false
                     }
                 },
-                colors: ['#006691', '#7bdae8', '#fc6703', '#fc9d5d'],
+                colors: ['#7bdae8', '#fc9d5d', '#006691', '#fc6703'],
                 dataLabels: {
                     enabled: true,
                     style: {
@@ -348,9 +348,9 @@
                     }
                 },
                 stroke: {
-                    width: [5, 2.5, 5, 2.5],     // line gets 2px, bar gets 0
-                    dashArray: [0, 6, 0, 6],
-                    colors: ['#006691', '#7bdae8', '#fc6703', '#fc9d5d'],
+                    width: [2.5, 2.5, 5, 5],     // line gets 2px, bar gets 0
+                    dashArray: [6, 6, 0, 0],
+                    colors: ['#7bdae8', '#fc9d5d', '#006691', '#fc6703'],
                     curve: 'smooth'
                 },
                 // title: {

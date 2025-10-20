@@ -86,8 +86,8 @@
                                 <label class="form-label">Chief</label>
                                 <select class="form-select select2bs4-create-modal" name="chief_id" id="chief_id">
                                     <option value="">Pilih Chief</option>
-                                    @foreach ($employeesChief as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @foreach ($employeesChief as $employeeChief)
+                                        <option value="{{ $employeeChief->enroll_id }}" data-nik="{{ $employeeChief->nik ? $employeeChief->nik : '' }}" data-name="{{ $employeeChief->employee_name ? $employeeChief->employee_name : '' }}">{{ $employeeChief->nik." - ".$employeeChief->employee_name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" class="form-control" name="chief_nik" id="chief_nik" readonly>
@@ -97,8 +97,8 @@
                                 <label class="form-label">Leader</label>
                                 <select class="form-select select2bs4-create-modal" name="leader_id" id="leader_id">
                                     <option value="">Pilih Leader</option>
-                                    @foreach ($employeesLeader as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @foreach ($employeesLeader as $employeeLeader)
+                                        <option value="{{ $employeeLeader->enroll_id }}" data-nik="{{ $employeeLeader->nik ? $employeeLeader->nik : '' }}" data-name="{{ $employeeLeader->employee_name ? $employeeLeader->employee_name : '' }}">{{ $employeeLeader->nik." - ".$employeeLeader->employee_name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" class="form-control" name="leader_nik" id="leader_nik" readonly>
@@ -108,8 +108,8 @@
                                 <label class="form-label">IE</label>
                                 <select class="form-select select2bs4-create-modal" name="ie_id" id="ie_id">
                                     <option value="">Pilih IE</option>
-                                    @foreach ($employeesIe as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @foreach ($employeesIe as $employeeIe)
+                                        <option value="{{ $employeeIe->enroll_id }}" data-nik="{{ $employeeIe->nik ? $employeeIe->nik : '' }}" data-name="{{ $employeeIe->employee_name ? $employeeIe->employee_name : '' }}">{{ $employeeIe->nik." - ".$employeeIe->employee_name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" class="form-control" name="ie_nik" id="ie_nik" readonly>
@@ -119,8 +119,8 @@
                                 <label class="form-label">Leader QC</label>
                                 <select class="form-select select2bs4-create-modal" name="leaderqc_id" id="leaderqc_id">
                                     <option value="">Pilih Leader QC</option>
-                                    @foreach ($employeesLeaderQc as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @foreach ($employeesLeaderQc as $employeeQc)
+                                        <option value="{{ $employeeQc->enroll_id }}" data-nik="{{ $employeeQc->nik ? $employeeQc->nik : '' }}" data-name="{{ $employeeQc->employee_name ? $employeeQc->employee_name : '' }}">{{ $employeeQc->nik." - ".$employeeQc->employee_name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" class="form-control" name="leaderqc_nik" id="leaderqc_nik" readonly>
@@ -130,8 +130,8 @@
                                 <label class="form-label">Mechanic</label>
                                 <select class="form-select select2bs4-create-modal" name="mechanic_id" id="mechanic_id">
                                     <option value="">Pilih Mechanic</option>
-                                    @foreach ($employeesMechanic as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @foreach ($employeesMechanic as $employeeMech)
+                                        <option value="{{ $employeeMech->enroll_id }}" data-nik="{{ $employeeMech->nik ? $employeeMech->nik : '' }}" data-name="{{ $employeeMech->employee_name ? $employeeMech->employee_name : '' }}">{{ $employeeMech->nik." - ".$employeeMech->employee_name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" class="form-control" name="mechanic_nik" id="mechanic_nik" readonly>
@@ -141,8 +141,8 @@
                                 <label class="form-label">Technical</label>
                                 <select class="form-select select2bs4-create-modal" name="technical_id" id="technical_id">
                                     <option value="">Pilih Technical</option>
-                                    @foreach ($employeesTechnical as $employee)
-                                        <option value="{{ $employee->enroll_id }}" data-nik="{{ $employee->nik }}" data-name="{{ $employee->employee_name }}">{{ $employee->nik." - ".$employee->employee_name }}</option>
+                                    @foreach ($employeesTechnical as $employeeTech)
+                                        <option value="{{ $employeeTech->enroll_id }}" data-nik="{{ $employeeTech->nik ? $employeeTech->nik : '' }}" data-name="{{ $employeeTech->employee_name ? $employeeTech->employee_name : '' }}">{{ $employeeTech->nik." - ".$employeeTech->employee_name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" class="form-control" name="technical_nik" id="technical_nik" readonly>
