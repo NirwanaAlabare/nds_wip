@@ -424,24 +424,24 @@
 
             await ApexCharts.exec('factory-daily-chart', 'updateSeries', [
                     {
-                        name: "Efficiency",
-                        type: "line",
-                        data: efficiencyArr
-                    },
-                    {
                         name: "Target Efficiency",
                         type: "line",
                         data: targetEffArr
                     },
                     {
-                        name: "RFT",
-                        type: "line",
-                        data: rftArr
-                    },
-                    {
                         name: "Target RFT",
                         type: "line",
                         data: targetRftArr
+                    },
+                    {
+                        name: "Efficiency",
+                        type: "line",
+                        data: efficiencyArr
+                    },
+                    {
+                        name: "RFT",
+                        type: "line",
+                        data: rftArr
                     },
                 ], true);
 
