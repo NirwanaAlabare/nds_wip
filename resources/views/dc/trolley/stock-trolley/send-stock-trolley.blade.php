@@ -494,11 +494,11 @@
                             //     message = res.errors[key];
                             // }
 
-                            // iziToast.error({
-                            //     title: 'Error',
-                            //     message: 'Terjadi kesalahan. ' + message,
-                            //     position: 'topCenter'
-                            // });
+                            iziToast.error({
+                                title: 'Error',
+                                message: 'Terjadi kesalahan.',
+                                position: 'topCenter'
+                            });
 
                             console.log(jqXHR);
                         }
