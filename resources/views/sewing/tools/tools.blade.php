@@ -231,12 +231,15 @@
                 title: 'Fix Miss Master Plan Output',
                 html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data output master plan?',
                 icon: 'warning',
+                showDenyButton: true,
                 showCancelButton: true,
-                confirmButtonText: 'UBAH',
-                cancelButtonText: 'BATAL',
-                confirmButtonColor: "#dc3545"
+                confirmButtonText: 'Update Origin',
+                confirmButtonColor: "#082149",
+                denyButtonText: 'Update Master Plan',
+                denyButtonColor: "#238380",
+                cancelButtonText: 'Cancel'
             }).then((result) => {
-                if (result.isConfirmed) {
+                if (result.isConfirmed || result.isDenied) {
                     Swal.fire({
                         title: 'Please Wait...',
                         html: 'Fixing Miss Master Plan Output Data...  <br><br> <b>0</b>s elapsed...',
@@ -256,8 +259,13 @@
                     $.ajax({
                         type: "post",
                         url: "{{ route('sewing-miss-masterplan') }}",
+                        data: {
+                            update_origin: (result.isConfirmed ? true : (result.isDenied ? false : false))
+                        },  
                         dataType: "json",
                         success: function(response) {
+                            console.log(response);
+
                             if (response.status == 200) {
                                 Swal.fire({
                                     icon: 'success',
@@ -280,6 +288,9 @@
                                     confirmButtonColor: "#082149",
                                 });
                             }
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR);
                         }
                     });
                 } else {
