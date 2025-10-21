@@ -20,7 +20,7 @@ class QCInspectProsesFabricRelaxationController extends Controller
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
-            $data_input = DB::connection('mysql_sb')->select("select
+            $data_input = DB::connection('mysql_sb')->select("SELECT
 rl.id,
 rl.tgl_form,
 DATE_FORMAT(rl.tgl_form, '%d-%M-%Y') AS tgl_form_fix,
@@ -66,7 +66,12 @@ INNER JOIN act_costing ac ON so.id_cost = ac.id
 INNER JOIN mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
 INNER JOIN masteritem mi ON a.id_item = mi.id_item
 where rl.tgl_form >= '$tgl_awal' and rl.tgl_form <= '$tgl_akhir'
-order by rl.tgl_form desc
+ORDER BY
+    CASE
+        WHEN finish_form IS NULL THEN 0  -- Ongoing
+        ELSE 1                           -- Done
+    END,
+rl.tgl_form desc
             ");
 
             return DataTables::of($data_input)->toJson();
