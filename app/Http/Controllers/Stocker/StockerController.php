@@ -6432,6 +6432,11 @@ class StockerController extends Controller
             }
 
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
+                \Log::channel("modifyYearSequence")->info([
+                    "Year Sequence",
+                    YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->get(),
+                ]);
+
                 $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
                     "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
                     "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
@@ -6441,30 +6446,58 @@ class StockerController extends Controller
                     "size" => $request->size_text,
                 ]);
 
+                \Log::channel("modifyYearSequence")->info([
+                    "RFT",
+                    DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->get(),
+                ]);
                 $rft = DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
+                \Log::channel("modifyYearSequence")->info([
+                    "DEFECT",
+                    DB::connection("mysql_sb")->table("output_defects")->whereIn("kode_numbering", $yearSequenceArr)->get(),
+                ]);
                 $defect = DB::connection("mysql_sb")->table("output_defects")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
+                \Log::channel("modifyYearSequence")->info([
+                    "REJECT",
+                    DB::connection("mysql_sb")->table("output_rejects")->whereIn("kode_numbering", $yearSequenceArr)->get(),
+                ]);
                 $reject = DB::connection("mysql_sb")->table("output_rejects")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
+                \Log::channel("modifyYearSequence")->info([
+                    "PACKING OUTPUT",
+                    DB::connection("mysql_sb")->table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->get(),
+                ]);
                 $outputPacking = DB::connection("mysql_sb")->table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
+                \Log::channel("modifyYearSequence")->info([
+                    "PACKING OUTPUT NDS",
+                    DB::table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->get(),
+                ]);
                 $outputPackingNDS = DB::table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
+                \Log::channel("modifyYearSequence")->info([
+                    "PACKING OUTPUT PO",
+                    DB::connection("mysql_sb")->table("output_rfts_packing_po")->whereIn("kode_numbering", $yearSequenceArr)->get(),
+                ]);
                 $outputPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
 
+                \Log::channel("modifyYearSequence")->info([
+                    "GUDANG STOK",
+                    DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->whereIn("kode_numbering", $yearSequenceArr)->get(),
+                ]);
                 $outputGudangStok = DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
