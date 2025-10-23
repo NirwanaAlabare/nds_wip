@@ -178,6 +178,7 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/pako/pako.min.js') }}"></script>
 
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
@@ -335,6 +336,13 @@
                         let select = document.getElementById('size');
                         select.innerHTML = "";
 
+                        // Init Option
+                        let option = document.createElement("option");
+                        option.setAttribute("value", "");
+                        option.innerHTML = "DEPEND";
+                        option.setAttribute("size", "");
+                        select.appendChild(option);
+
                         let latestVal = null;
                         for(let i = 0; i < res.length; i++) {
                             let option = document.createElement("option");
@@ -344,7 +352,7 @@
                             select.appendChild(option);
                         }
 
-                        $("#size").val(res[0].so_det_id).trigger("change");
+                        // $("#size").val(res[0].so_det_id).trigger("change");
 
                         // Open this step
                         $("#size").prop("disabled", false);
@@ -368,12 +376,18 @@
             serverSide: true,
             ajax: {
                 url: '{{ route("modify-year-sequence-list") }}',
+                type: 'POST',
                 data: function (d) {
                     d.year = $('#year').val();
                     d.sequence = $('#sequence').val();
                     d.range_awal = $('#range_awal').val();
                     d.range_akhir = $('#range_akhir').val();
-                    d.year_sequence_ids = $('#year_sequence_ids').val();
+                    const yearSequence = $('#year_sequence_ids').val();
+                    if (yearSequence) {
+                        // Compress and encode as base64
+                        const compressed = pako.deflate(yearSequence);
+                        d.year_sequence_ids = btoa(String.fromCharCode.apply(null, compressed));
+                    }
                     d.method = ($('#switch-method').is(':checked') ? "list" : "range");
                 },
             },
@@ -427,6 +441,14 @@
                     if (result.isConfirmed) {
                         document.getElementById("loading").classList.remove("d-none");
 
+                        let yearSequenceIds = null;
+                        const yearSequence = $('#year_sequence_ids').val();
+                        if (yearSequence) {
+                            // Compress and encode as base64
+                            const compressed = pako.deflate(yearSequence);
+                            yearSequenceIds = btoa(String.fromCharCode.apply(null, compressed));
+                        }
+
                         $.ajax({
                             url: '{{ route('update-year-sequence') }}',
                             method: "POST",
@@ -436,8 +458,10 @@
                                 "sequence": $("#sequence").val(),
                                 "range_awal": $("#range_awal").val(),
                                 "range_akhir": $("#range_akhir").val(),
-                                "year_sequence_ids": $('#year_sequence_ids').val(),
+                                "year_sequence_ids": yearSequenceIds,
                                 "method": ($('#switch-method').is(':checked') ? "list" : "range"),
+                                "id_ws": $("#id_ws").val(),
+                                "color": $("#color").val(),
                                 "size": $("#size").val(),
                                 "size_text": $("#size").find(":selected").attr("size"),
                             },

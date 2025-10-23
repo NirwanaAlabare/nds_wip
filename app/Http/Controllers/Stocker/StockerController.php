@@ -25,6 +25,7 @@ use App\Models\Stocker\StockerAdditionalDetail;
 use App\Models\Dc\DCIn;
 use App\Models\Stocker\StockerSeparate;
 use App\Models\Stocker\StockerSeparateDetail;
+use App\Models\SignalBit\SoDet;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Reject;
@@ -6249,7 +6250,14 @@ class StockerController extends Controller
 
     public function modifyYearSequenceList(Request $request) {
         if ($request['method'] == "list") {
-            $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
+            $yearSequenceIds = "'-'";
+            if ($request->year_sequence_ids) {
+                // Decompress
+                $binary = base64_decode($request->year_sequence_ids);
+                $decompressBinary = gzuncompress($binary);
+
+                $yearSequenceIds = addQuotesAround($decompressBinary);
+            }
 
             $data = YearSequence::selectRaw("
                 year_sequence.id_year_sequence,
@@ -6369,6 +6377,9 @@ class StockerController extends Controller
     }
 
     public function modifyYearSequenceUpdate(Request $request, SewingService $sewingService) {
+        ini_set("max_execution_time", 360000);
+        ini_set("memory_limit", '2048M');
+
         $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id, stocker_input.so_det_id, stocker_input.size, stocker_input.range_akhir, (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
 
         $request->size = $stocker ? $stocker->so_det_id : $request->size;
@@ -6381,7 +6392,15 @@ class StockerController extends Controller
 
         if ($request->size != null && $request->size_text != null) {
             if ($request['method'] == "list") {
-                $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
+                // Decompress
+                $yearSequenceIds = "'-'";
+                if ($request->year_sequence_ids) {
+                    // Decompress
+                    $binary = base64_decode($request->year_sequence_ids);
+                    $decompressBinary = gzuncompress($binary);
+
+                    $yearSequenceIds = addQuotesAround($decompressBinary);
+                }
 
                 $yearSequences = YearSequence::whereRaw("id_year_sequence in (".$yearSequenceIds.")")->
                     get();
@@ -6432,10 +6451,6 @@ class StockerController extends Controller
             }
 
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
-                \Log::channel("modifyYearSequence")->info([
-                    "Year Sequence",
-                    YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->get(),
-                ]);
 
                 $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
                     "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
@@ -6445,58 +6460,23 @@ class StockerController extends Controller
                     "so_det_id" => $request->size,
                     "size" => $request->size_text,
                 ]);
-
-                \Log::channel("modifyYearSequence")->info([
-                    "RFT",
-                    DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->get(),
-                ]);
                 $rft = DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
-                ]);
-
-                \Log::channel("modifyYearSequence")->info([
-                    "DEFECT",
-                    DB::connection("mysql_sb")->table("output_defects")->whereIn("kode_numbering", $yearSequenceArr)->get(),
                 ]);
                 $defect = DB::connection("mysql_sb")->table("output_defects")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
-
-                \Log::channel("modifyYearSequence")->info([
-                    "REJECT",
-                    DB::connection("mysql_sb")->table("output_rejects")->whereIn("kode_numbering", $yearSequenceArr)->get(),
-                ]);
                 $reject = DB::connection("mysql_sb")->table("output_rejects")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
-                ]);
-
-                \Log::channel("modifyYearSequence")->info([
-                    "PACKING OUTPUT",
-                    DB::connection("mysql_sb")->table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->get(),
                 ]);
                 $outputPacking = DB::connection("mysql_sb")->table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
-
-                \Log::channel("modifyYearSequence")->info([
-                    "PACKING OUTPUT NDS",
-                    DB::table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->get(),
-                ]);
                 $outputPackingNDS = DB::table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
-
-                \Log::channel("modifyYearSequence")->info([
-                    "PACKING OUTPUT PO",
-                    DB::connection("mysql_sb")->table("output_rfts_packing_po")->whereIn("kode_numbering", $yearSequenceArr)->get(),
-                ]);
                 $outputPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
-                ]);
-
-                \Log::channel("modifyYearSequence")->info([
-                    "GUDANG STOK",
-                    DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->whereIn("kode_numbering", $yearSequenceArr)->get(),
                 ]);
                 $outputGudangStok = DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
@@ -6505,6 +6485,7 @@ class StockerController extends Controller
                 // When the updated Size Was in different Plan
                 $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
 
+                 // When the updated Size Was in different PO
                 $sewingService->missPackingPo();
 
                 if ($request['method'] == "list") {
@@ -6536,6 +6517,180 @@ class StockerController extends Controller
                     "message" => "Maksimal QTY '5000'"
                 );
             }
+        } else {
+            if ($request['method'] == "list") {
+                // Decompress
+                $yearSequenceIds = "'-'";
+                if ($request->year_sequence_ids) {
+                    // Decompress
+                    $binary = base64_decode($request->year_sequence_ids);
+                    $decompressBinary = gzuncompress($binary);
+
+                    $yearSequenceIds = addQuotesAround($decompressBinary);
+                }
+
+                $yearSequences = YearSequence::whereRaw("id_year_sequence in (".$yearSequenceIds.")")->
+                    get();
+
+                $output = collect(
+                    DB::connection("mysql_sb")->select("
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE kode_numbering in (".$yearSequenceIds.")
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE kode_numbering in (".$yearSequenceIds.")
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE kode_numbering in (".$yearSequenceIds.")
+                    ")
+                );
+            } else {
+                $yearSequences = YearSequence::where("year", $request->year)->
+                    where("year_sequence", $request->sequence)->
+                    whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
+                    get();
+
+                $output = collect(
+                    DB::connection("mysql_sb")->select("
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                        UNION
+                        select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                    ")
+                );
+            }
+
+            $yearSequenceArr = [];
+            $yearSequenceFailArr = [];
+            foreach ($yearSequences as $yearSequence) {
+                if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
+                    array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+                } else {
+                    if ($output->where("kode_numbering", $yearSequence->id_year_sequence)->count() < 1) {
+                        array_push($yearSequenceArr, $yearSequence->id_year_sequence);
+                    } else {
+                        array_push($yearSequenceFailArr, $yearSequence->id_year_sequence);
+                    }
+                }
+            }
+
+            $failMessage = "";
+            for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
+                $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
+            }
+
+            if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
+                $idWs = $request->id_ws;
+                $color = $request->color;
+
+                if ($idWs && $color) {
+
+                    // Loop over year seq
+                    foreach ($yearSequenceArr as $ys) {
+
+                        // Check current year seq
+                        $currentYearSequence = YearSequence::select("so_det.size", "so_det.dest")->
+                            leftJoin("signalbit_erp.so_det", "so_det.id", "=", "year_sequence.so_det_id")->
+                            where("id_year_sequence", $ys)->first();
+
+                        if ($currentYearSequence) {
+
+                            // Check current so det
+                            $currentSoDet = SoDet::select("so_det.id", "act_costing.id as id_ws", "so_det.color", "so_det.size")->
+                                leftJoin("so", "so.id", "=", "so_det.id_so")->
+                                leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+                                where("act_costing.id", $idWs)->
+                                where("so_det.color", $color)->
+                                where("so_det.size", $currentYearSequence->size)->
+                                where("so_det.dest", $currentYearSequence->dest)->
+                                first();
+                            if (!$currentSoDet) {
+                                $currentSoDet = SoDet::select("so_det.id", "act_costing.id as id_ws", "so_det.color", "so_det.size")->
+                                    leftJoin("so", "so.id", "=", "so_det.id_so")->
+                                    leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+                                    where("act_costing.id", $idWs)->
+                                    where("so_det.color", $color)->
+                                    where("so_det.size", $currentYearSequence->size)->
+                                    first();
+                            }
+
+                            // Update if so det was found
+                            if ($currentSoDet && $currentSoDet->id && $currentSoDet->size) {
+                                $yearSequence = YearSequence::where("id_year_sequence", $ys)->update([
+                                    "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
+                                    "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
+                                    "form_reject_id" => $stocker ? $stocker->form_reject_id : null,
+                                    "number" => $stocker ? $stocker->range_akhir : null,
+                                    "so_det_id" => $currentSoDet->id,
+                                    "size" => $currentSoDet->size,
+                                ]);
+                                $rft = DB::connection("mysql_sb")->table("output_rfts")->where("kode_numbering", $ys)->update([
+                                    "so_det_id" => $currentSoDet->id,
+                                ]);
+                                $defect = DB::connection("mysql_sb")->table("output_defects")->where("kode_numbering", $ys)->update([
+                                    "so_det_id" => $currentSoDet->id,
+                                ]);
+                                $reject = DB::connection("mysql_sb")->table("output_rejects")->where("kode_numbering", $ys)->update([
+                                    "so_det_id" => $currentSoDet->id,
+                                ]);
+                                $outputPacking = DB::connection("mysql_sb")->table("output_rfts_packing")->where("kode_numbering", $ys)->update([
+                                    "so_det_id" => $currentSoDet->id,
+                                ]);
+                                $outputPackingNDS = DB::table("output_rfts_packing")->where("kode_numbering", $ys)->update([
+                                    "so_det_id" => $currentSoDet->id,
+                                ]);
+                                $outputPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->where("kode_numbering", $ys)->update([
+                                    "so_det_id" => $currentSoDet->id,
+                                ]);
+                                $outputGudangStok = DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->where("kode_numbering", $ys)->update([
+                                    "so_det_id" => $currentSoDet->id,
+                                ]);
+                            } else {
+                                $failMessage .= "<small>'".$ys." tidak ditemukan size yang cocok'</small><br>";
+                            }
+                        }
+                    }
+
+                    // When the updated Size Was in different Plan
+                    $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
+
+                    // When the updated Size Was in different PO
+                    $sewingService->missPackingPo();
+
+                    // Message
+                    if ($request['method'] == "list") {
+                        if ($yearSequenceIds) {
+                            return array(
+                                "status" => 200,
+                                "message" => "Year Sequence <br> ".$yearSequenceIds.". <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
+                            );
+                        } else {
+                            return array(
+                                "status" => 400,
+                                "message" => "Terjadi Kesalahan"
+                            );
+                        }
+                    } else {
+                        return array(
+                            "status" => 200,
+                            "message" => "Year ".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
+                        );
+                    }
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Harap lengkapi form tujuan."
+                    );
+                }
+            } else if (count($yearSequenceArr) < 1) {
+                return array(
+                    "status" => 400,
+                    "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
+                );
+            } else if (count($yearSequenceArr) > 5000) {
+                return array(
+                    "status" => 400,
+                    "message" => "Maksimal QTY '5000'"
+                );
+            }
         }
 
         return array(
@@ -6551,7 +6706,14 @@ class StockerController extends Controller
         ]);
 
         if ($request['method'] == "list") {
-            $yearSequenceIds = addQuotesAround($request->year_sequence_ids);
+            $yearSequenceIds = "'-'";
+            if ($request->year_sequence_ids) {
+                // Decompress
+                $binary = base64_decode($request->year_sequence_ids);
+                $decompressBinary = gzuncompress($binary);
+
+                $yearSequenceIds = addQuotesAround($decompressBinary);
+            }
 
             $yearSequences = YearSequence::whereRaw("id_year_sequence in (".$yearSequenceIds.")")->
                 get();
@@ -6844,7 +7006,6 @@ class StockerController extends Controller
 
         return $pdf->download(str_replace("/", "_", $fileName));
     }
-
     public function separateStocker(Request $request) {
         $validatedRequest = $request->validate([
             "form_cut_id" => "required",
