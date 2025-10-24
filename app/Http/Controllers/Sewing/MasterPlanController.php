@@ -244,7 +244,7 @@ class MasterPlanController extends Controller
                 "man_power" => $request->edit_man_power,
                 "plan_target" => $request->edit_plan_target,
                 "target_effy" => $request->edit_target_effy,
-                "cancel" => $request->edit_status ? 'N' : $request->edit_status,
+                "cancel" => $request->edit_status ? $request->edit_status : 'N',
                 // "gambar" => $editGambarNew
             ]);
 
