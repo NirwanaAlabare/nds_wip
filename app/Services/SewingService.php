@@ -339,9 +339,9 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
-                actual.color as act_color,
-                actual.id_ws as act_act_costing_id,
+                MAX(actual.id) as act_plan_id,
+                MAX(actual.color) as act_color,
+                MAX(actual.id_ws) as act_act_costing_id,
                 output.actual_color as color,
                 output.size,
                 output.dest
@@ -376,7 +376,7 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan = output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -390,9 +390,9 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
-                actual.color as act_color,
-                actual.id_ws as act_act_costing_id,
+                MAX(actual.id) as act_plan_id,
+                MAX(actual.color) as act_color,
+                MAX(actual.id_ws) as act_act_costing_id,
                 output.actual_color as color,
                 output.size,
                 output.dest
@@ -424,10 +424,10 @@ class SewingService
                     output_defects.id
             ) output
             LEFT JOIN master_plan actual on
-                actual.id_ws = output.actual_act_costing_id AND
-                actual.color = output.actual_color and
-                actual.sewing_line = output.line and
-                actual.tgl_plan = output.tgl_plan
+                actual.id_ws <= output.actual_act_costing_id AND
+                actual.color <= output.actual_color and
+                actual.sewing_line <= output.line and
+                actual.tgl_plan <= output.tgl_plan
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -441,9 +441,9 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
-                actual.color as act_color,
-                actual.id_ws as act_act_costing_id,
+                MAX(actual.id) as act_plan_id,
+                MAX(actual.color) as act_color,
+                MAX(actual.id_ws) as act_act_costing_id,
                 output.actual_color as color,
                 output.size,
                 output.dest
@@ -478,7 +478,7 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan = output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY

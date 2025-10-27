@@ -1435,6 +1435,7 @@ class StockerController extends Controller
                                 'created_by_username' => Auth::user()->username,
                                 'created_at' => Carbon::now(),
                                 'updated_at' => Carbon::now(),
+                                'cancel' => 'n',
                             ]);
                         }
                     } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != $cumRangeAkhir) ) {
@@ -1676,6 +1677,7 @@ class StockerController extends Controller
             $storeItem = Stocker::insert($storeItemArr);
         }
 
+
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
                 COALESCE(master_sb_ws.size, stocker_input.size) size,
@@ -1786,7 +1788,7 @@ class StockerController extends Controller
                             'created_by' => Auth::user()->id,
                             'created_by_username' => Auth::user()->username,
                             'created_at' => Carbon::now(),
-                            'updated_at' => Carbon::now()
+                            'updated_at' => Carbon::now(),
                         ]);
                     } else if ($checkStocker && ($checkStocker->qty_ply != $stockerSeparateDetail->qty || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != $stockerSeparateDetail->$cumRangeAkhir)) {
                         $checkStocker->qty_ply = $stockerSeparateDetail->qty;
