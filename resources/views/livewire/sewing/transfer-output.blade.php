@@ -546,24 +546,30 @@
 
         $("#backDateRft").on("change", () => {
             if ($("#backDateRft").is(":checked")) {
+                Livewire.emit("loadingStart");
                 @this.backDateInput = true;
             } else {
+                Livewire.emit("loadingStart");
                 @this.backDateInput = false;
             }
         });
 
         $("#backDateDefect").on("change", () => {
             if ($("#backDateDefect").is(":checked")) {
+                Livewire.emit("loadingStart");
                 @this.backDateInput = true;
             } else {
+                Livewire.emit("loadingStart");
                 @this.backDateInput = false;
             }
         });
 
         $("#backDateRework").on("change", () => {
             if ($("#backDateRework").is(":checked")) {
+                Livewire.emit("loadingStart");
                 @this.backDateInput = true;
             } else {
+                Livewire.emit("loadingStart");
                 @this.backDateInput = false;
             }
         });
@@ -579,18 +585,22 @@
         });
 
         $('#transferRftModal').on('hidden.bs.modal', function () {
+            $("#backDateRft").prop("checked", false);
             @this.backDateInput = false;
         });
 
         $('#transferDefectModal').on('hidden.bs.modal', function () {
+            $("#backDateDefect").prop("checked", false);
             @this.backDateInput = false;
         });
 
         $('#transferReworkModal').on('hidden.bs.modal', function () {
+            $("#backDateRework").prop("checked", false);
             @this.backDateInput = false;
         });
 
         $('#transferRejectModal').on('hidden.bs.modal', function () {
+            $("#backDateReject").prop("checked", false);
             @this.backDateInput = false;
         });
 
