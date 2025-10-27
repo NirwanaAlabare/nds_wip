@@ -2263,7 +2263,7 @@
                     shortRoll = 0;
                 }
 
-                let shortRollPercentage = qtyAwalVar > 0 ? (shortRoll / qtyAwalVar) * 100 : 0;
+                let shortRollPercentage = qtyAwalVar > 0 ? (shortRoll / qtyAwalVar) * 100 : (qtyVar > 0 ? (shortRoll / qtyVar) * 100 : 0);
 
                 if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
                     if (status == "PENGERJAAN FORM CUTTING SPREAD") {
