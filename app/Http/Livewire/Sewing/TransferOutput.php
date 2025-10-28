@@ -54,6 +54,12 @@ class TransferOutput extends Component
     public $fromSelectedMasterPlan;
     public $toSelectedMasterPlan;
 
+    public $backDateInput;
+    public $backDateRft;
+    public $backDateDefect;
+    public $backDateRework;
+    public $backDateReject;
+
     public $loadingMasterPlan;
 
     public $outputType;
@@ -87,6 +93,13 @@ class TransferOutput extends Component
         $this->kodeNumberingList = null;
         $this->kodeNumberingOutput = null;
         $this->kodeNumberingOutputPacking = null;
+
+        $this->backDateInput = false;
+
+        $this->backDateRft = false;
+        $this->backDateDefect = false;
+        $this->backDateRework = false;
+        $this->backDateReject = false;
 
         $this->loadingMasterPlan = false;
         $this->baseUrl = url('/');
@@ -631,7 +644,8 @@ class TransferOutput extends Component
                     $rfts = RftPacking::selectRaw("output_rfts_packing.*")->
                         leftJoin("so_det", "so_det.id", "=", "output_rfts_packing.so_det_id")->
                         leftJoin("userpassword", "userpassword.username", "=", "output_rfts_packing.created_by")->
-                        where("output_rfts_packing.status", "NORMAL")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_rfts_packing.master_plan_id")->
+                        whereRaw("output_rfts_packing.status = 'NORMAL' ".($this->backDateInput ? " AND DATE(output_rfts_packing.updated_at) != master_plan.tgl_plan" : "")."")->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferRftSize)->
@@ -643,7 +657,8 @@ class TransferOutput extends Component
                         leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->
                         leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->
                         leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
-                        where("output_rfts.status", "NORMAL")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->
+                        whereRaw("output_rfts.status = 'NORMAL' ".($this->backDateInput ? " AND DATE(output_rfts.updated_at) != master_plan.tgl_plan" : "")."")->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferRftSize)->
@@ -821,6 +836,8 @@ class TransferOutput extends Component
                     $defects = DefectPacking::selectRaw("output_defects_packing.*")->
                         leftJoin("so_det", "so_det.id", "=", "output_defects_packing.so_det_id")->
                         leftJoin("userpassword", "userpassword.username", "=", "output_defects_packing.created_by")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_defects_packing.master_plan_id")->
+                        whereRaw("output_defects_packing.defect_status = 'defect' ".($this->backDateInput ? " AND DATE(output_defects_packing.updated_at) != master_plan.tgl_plan" : "")."")->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferDefectSize)->
@@ -833,10 +850,11 @@ class TransferOutput extends Component
                         leftJoin("so_det", "so_det.id", "=", "output_defects.so_det_id")->
                         leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->
                         leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_defects.master_plan_id")->
+                        whereRaw("output_defects.defect_status = 'defect' ".($this->backDateInput ? " AND DATE(output_defects.updated_at) != master_plan.tgl_plan" : "")."")->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferDefectSize)->
-                        where("output_defects.defect_status", "defect")->
                         orderBy("output_defects.updated_at", "desc")->
                         limit($this->transferDefectQty)->
                         get();
@@ -1026,10 +1044,11 @@ class TransferOutput extends Component
                     $defects = DefectPacking::selectRaw("output_defects_packing.*")->
                         leftJoin("so_det", "so_det.id", "=", "output_defects_packing.so_det_id")->
                         leftJoin("userpassword", "userpassword.username", "=", "output_defects_packing.created_by")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_defects_packing.master_plan_id")->
+                        whereRaw("output_defects_packing.defect_status = 'reworked' ".($this->backDateInput ? " AND DATE(output_defects_packing.updated_at) != master_plan.tgl_plan" : "")."")->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferReworkSize)->
-                        where("output_defects_packing.defect_status", "reworked")->
                         orderBy("output_defects_packing.updated_at", "desc")->
                         limit($this->transferReworkQty)->
                         get();
@@ -1038,6 +1057,8 @@ class TransferOutput extends Component
                         leftJoin("so_det", "so_det.id", "=", "output_defects.so_det_id")->
                         leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->
                         leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_defects.master_plan_id")->
+                        whereRaw("output_defects.defect_status = 'reworked' ".($this->backDateInput ? " AND DATE(output_defects.updated_at) != master_plan.tgl_plan" : "")."")->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferReworkSize)->
@@ -1238,6 +1259,9 @@ class TransferOutput extends Component
                     $rejects = RejectPacking::selectRaw("output_rejects_packing.*")->
                         leftJoin("so_det", "so_det.id", "=", "output_rejects_packing.so_det_id")->
                         leftJoin("userpassword", "userpassword.username", "=", "output_rejects_packing.created_by")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_rejects_packing.master_plan_id")->
+                        whereRaw("output_rejects_packing.id is not null ".($this->backDateInput ? " AND DATE(output_rejects_packing.updated_at) != master_plan.tgl_plan" : "")."")->
+                        where("userpassword.username", $this->fromLine)->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferRejectSize)->
@@ -1249,6 +1273,8 @@ class TransferOutput extends Component
                         leftJoin("so_det", "so_det.id", "=", "output_rejects.so_det_id")->
                         leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rejects.created_by")->
                         leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                        leftJoin("master_plan", "master_plan.id", "=", "output_rejects.master_plan_id")->
+                        whereRaw("output_rejects.id is not null ".($this->backDateInput ? " AND DATE(output_rejects.updated_at) != master_plan.tgl_plan" : "")."")->
                         where("userpassword.username", $this->fromLine)->
                         where("master_plan_id", $this->fromSelectedMasterPlan)->
                         where("so_det.size", $this->transferRejectSize)->
@@ -1378,6 +1404,8 @@ class TransferOutput extends Component
             orderBy('act_costing.kpno', 'asc')->
             get();
 
+        // dd($this->backDateInput);
+
         // From Master Plan Output
         if ($this->fromSelectedMasterPlan) {
             $this->fromMasterPlanOutput = MasterPlan::selectRaw("
@@ -1422,10 +1450,30 @@ class TransferOutput extends Component
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin("so", "so.id_cost", "=", "act_costing.id")->
             leftJoin("so_det", "so_det.id_so", "=", "so.id")->
-            leftJoin(DB::raw("(select COUNT(id) rft, so_det_id, master_plan_id from output_rfts".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' group by so_det_id, master_plan_id) rft"), "so_det.id", "=", "rft.so_det_id")->
-            leftJoin(DB::raw("(select COUNT(id) defect, so_det_id, master_plan_id from output_defects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' and defect_status = 'defect' group by so_det_id, master_plan_id) defect"), "so_det.id", "=", "defect.so_det_id")->
-            leftJoin(DB::raw("(select COUNT(id) rework, so_det_id, master_plan_id from output_defects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' and defect_status = 'reworked' group by so_det_id, master_plan_id) rework"), "so_det.id", "=", "rework.so_det_id")->
-            leftJoin(DB::raw("(select COUNT(id) reject, so_det_id, master_plan_id from output_rejects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' group by so_det_id, master_plan_id) reject"), "so_det.id", "=", "reject.so_det_id")->
+            leftJoin(DB::raw("(select COUNT(id) rft, so_det_id, master_plan_id, DATE(updated_at) as tgl_input from output_rfts".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' group by so_det_id, master_plan_id, DATE(updated_at)) rft"), function ($join) {
+                $join->on("so_det.id", "=", "rft.so_det_id");
+                if ($this->backDateInput) {
+                    $join->on("rft.tgl_input", "!=", "master_plan.tgl_plan");
+                }
+            })->
+            leftJoin(DB::raw("(select COUNT(id) defect, so_det_id, master_plan_id, DATE(updated_at) as tgl_input from output_defects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' and defect_status = 'defect' group by so_det_id, master_plan_id, DATE(updated_at)) defect"), function ($join) {
+                $join->on("so_det.id", "=", "defect.so_det_id");
+                if ($this->backDateInput) {
+                    $join->on("defect.tgl_input", "!=", "master_plan.tgl_plan");
+                }
+            })->
+            leftJoin(DB::raw("(select COUNT(id) rework, so_det_id, master_plan_id, DATE(updated_at) as tgl_input from output_defects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' and defect_status = 'reworked' group by so_det_id, master_plan_id, DATE(updated_at)) rework"), function ($join) {
+                $join->on("so_det.id", "=", "rework.so_det_id");
+                if ($this->backDateInput) {
+                    $join->on("rework.tgl_input", "!=", "master_plan.tgl_plan");
+                }
+            })->
+            leftJoin(DB::raw("(select COUNT(id) reject, so_det_id, master_plan_id, DATE(updated_at) as tgl_input from output_rejects".$this->outputType." where master_plan_id = '".$this->fromSelectedMasterPlan."' group by so_det_id, master_plan_id, DATE(updated_at)) reject"), function ($join) {
+                $join->on("so_det.id", "=", "reject.so_det_id");
+                if ($this->backDateInput) {
+                    $join->on("reject.tgl_input", "!=", "master_plan.tgl_plan");
+                }
+            })->
             whereRaw("master_plan.sewing_line = '".$this->fromLine."'")->
             whereRaw("master_plan.id = '".$this->fromSelectedMasterPlan."'")->
             whereRaw("so_det.color = master_plan.color")->

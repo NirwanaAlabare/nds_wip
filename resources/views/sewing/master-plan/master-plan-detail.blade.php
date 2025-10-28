@@ -282,11 +282,11 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label>Status</label>
-                                    <select class="form-select select2bs4edit" name="edit_cancel" id="edit_cancel">
+                                    <select class="form-select select2bs4edit" name="edit_status" id="edit_status">
                                         <option value="N">ACTIVE</option>
                                         <option value="Y">CANCELLED</option>
                                     </select>
-                                    <small class="text-danger d-none" id="edit_cancel_error"></small>
+                                    <small class="text-danger d-none" id="edit_status_error"></small>
                                 </div>
                                 <div class="col-md-6 d-none">
                                     <label>Gambar Baru</label>

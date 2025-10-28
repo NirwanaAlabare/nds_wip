@@ -51,9 +51,9 @@
                                         if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
                                             $modifyThisStocker = null;
                                             if ($currentModifySizeQty > 0) {
-                                                $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStocker)->where("size", $ratio->size)->where("dest", $ratio->dest)->first()->first();
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("group_stocker", $currentGroupStocker)->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
                                             } else {
-                                                $modifyThisStocker = $modifySizeQtyStocker->where("size", $ratio->size)->where("dest", $ratio->dest)->first()->first();
+                                                $modifyThisStocker = $modifySizeQtyStocker->where("size", $ratio->size)->where("dest", $ratio->dest)->first();
                                             }
 
                                             if ($modifyThisStocker) {

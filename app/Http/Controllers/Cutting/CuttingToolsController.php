@@ -15,6 +15,7 @@ use App\Services\StockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use DB;
 
@@ -200,6 +201,15 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
+
+            if ($checkStocker) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah memiliki Stocker."
+                );
+            }
+
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
 
             $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
@@ -322,6 +332,15 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_marker_form_id'])->first();
+
+            if ($checkStocker) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah memiliki Stocker."
+                );
+            }
+
             $oldMarker = Marker::where("kode", $validatedRequest['modify_marker_kode_marker'])->first();
 
             // if (
@@ -398,9 +417,19 @@ class CuttingToolsController extends Controller
                 if ($oldMarker && $oldMarker->markerDetails) {
                     foreach ($oldMarker->markerDetails as $markerDetail) {
                         if ($markerDetail->masterSbWs) {
-                            $currentSoDet = $data->where("size", $markerDetail->masterSbWs->size)->where("dest", $markerDetail->masterSbWs->dest)->first();
+                            $currentSoDet = $data->where("size", ($markerDetail->masterSbWs->size))->where("dest", $markerDetail->masterSbWs->dest)->first();
                             if (!$currentSoDet) {
-                                $currentSoDet = $data->where("size", $markerDetail->masterSbWs->size)->first();
+                                $currentSoDet = $data->where("size", ($markerDetail->masterSbWs->size))->first();
+                            }
+                            if (!$currentSoDet) {
+                                $currentSoDet = $data->filter(function($item) use ($markerDetail) {
+                                    return Str::startsWith($item->size, $markerDetail->masterSbWs->size);
+                                })->first();
+                            }
+                            if (!$currentSoDet) {
+                                $currentSoDet = $data->filter(function($item) use ($markerDetail) {
+                                    return Str::endsWith($item->size, $markerDetail->masterSbWs->size);
+                                })->first();
                             }
 
                             if ($currentSoDet) {

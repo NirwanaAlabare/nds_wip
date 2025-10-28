@@ -59,7 +59,8 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                 act_costing.styleno style,
                 master_plan.color,
                 COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line,
-                COALESCE(ppic_master_so.po, 'GUDANG STOK') as po
+                COALESCE(ppic_master_so.po, 'GUDANG STOK') as po,
+                COALESCE(rfts.type, 'rft') as type
                 ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
@@ -73,7 +74,8 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                         count( rfts.id ) rft,
                         master_plan.id master_plan_id,
                         master_plan.id_ws master_plan_id_ws,
-                        rfts.po_id
+                        rfts.po_id,
+                        rfts.type
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                     FROM
                         output_rfts_packing_po rfts
@@ -102,7 +104,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
             if ($this->dateTo) $orderGroupSql->where('rfts.tanggal', '<=', $this->dateTo);
             if ($this->order) $orderGroupSql->where("act_costing.id", $this->order);
             $orderGroupSql->
-                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line), ppic_master_so.po ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
+                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line), ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
                 orderBy("master_plan.id_ws", "asc")->
                 orderBy("act_costing.styleno", "asc")->
                 orderBy("master_plan.color", "asc")->
@@ -124,7 +126,8 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                 master_plan.man_power man_power,
                 master_plan.plan_target plan_target,
                 COALESCE ( rfts.last_rft, master_plan.tgl_plan ) latest_output,
-                COALESCE(ppic_master_so.po, 'GUDANG STOK') as po
+                COALESCE(ppic_master_so.po, 'GUDANG STOK') as po,
+                COALESCE(rfts.type, 'rft') as type
             ")->
             join(DB::raw("
                 (
@@ -135,7 +138,8 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                         master_plan.id master_plan_id,
                         master_plan.id_ws master_plan_id_ws,
                         COALESCE ( userpassword.username, master_plan.sewing_line ) created_by,
-                        rfts.po_id
+                        rfts.po_id,
+                        rfts.type
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                     FROM
                         output_rfts_packing_po rfts
@@ -151,7 +155,8 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
                         master_plan.color,
                         DATE ( rfts.updated_at ),
                         COALESCE ( userpassword.username, master_plan.sewing_line ),
-                        rfts.po_id
+                        rfts.po_id,
+                        rfts.type
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                     HAVING
                         count( rfts.id ) > 0
@@ -165,7 +170,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
             if ($this->dateFrom) $orderOutputSql->whereRaw('rfts.tanggal >= "'.$this->dateFrom.'"');
             if ($this->dateTo) $orderOutputSql->whereRaw('rfts.tanggal <= "'.$this->dateTo.'"');
             $orderOutputSql->
-                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan, rfts.tanggal, ppic_master_so.po ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
+                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan, rfts.tanggal, ppic_master_so.po, COALESCE(rfts.type, 'rft') ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
                 orderBy("master_plan.id_ws", "asc")->
                 orderBy("act_costing.styleno", "asc")->
                 orderBy("master_plan.color", "asc")->
@@ -174,7 +179,7 @@ class PackingOutputExport implements FromView, WithEvents, ShouldAutoSize
 
         $this->rowCount = $orderGroup->count() + 4;
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $orderOutputs->groupBy("tanggal")->count() + ($this->groupBy == "size" ? 6 : 5);
+        $colCount = $orderOutputs->groupBy("tanggal")->count() + ($this->groupBy == "size" ? 7 : 6);
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);

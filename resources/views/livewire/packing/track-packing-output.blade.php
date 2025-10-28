@@ -60,6 +60,7 @@
                     <td class="bg-sb text-light">Color</td>
                     <td class="bg-sb text-light">Line</td>
                     <td class="bg-sb text-light">PO</td>
+                    <td class="bg-sb text-light">Quality</td>
                     @if ($groupBy == 'size')
                         <td class="bg-sb text-light">Size</td>
                     @endif
@@ -98,7 +99,10 @@
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
                                         <td class="text-nowrap"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
                                         <td class="text-wrap"><span class="bg-light text-dark">{{ $dailyGroup->po }}</span></td>
-                                        <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                                        <td class="text-nowrap"><span class="bg-light fw-bold {{ $dailyGroup->type == 'reject' ? 'text-danger' : 'text-success' }}">{{ $dailyGroup->type ? strtoupper($dailyGroup->type) : 'RFT' }}</span></td>
+                                        @if ($groupBy == 'size')
+                                            <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                                        @endif
                                         @php
                                             $thisRowOutput = 0;
                                         @endphp
@@ -107,9 +111,9 @@
                                                 $thisOutput = 0;
 
                                                 if ($groupBy == 'size') {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('type', $dailyGroup->type ? $dailyGroup->type : 'rft')->where('size', $dailyGroup->size)->sum("output");
                                                 } else {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('po', $dailyGroup->po)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('type', $dailyGroup->type ? $dailyGroup->type : 'rft')->sum("output");
                                                 }
 
                                                 if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
@@ -140,7 +144,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="{{ $groupBy == "size" ? '6' : '5' }}" class="bg-sb text-light text-end">
+                    <th colspan="{{ $groupBy == "size" ? '7' : '6' }}" class="bg-sb text-light text-end">
                         TOTAL
                     </th>
                     @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
@@ -398,7 +402,8 @@
                         2,
                         3,
                         4,
-                        5
+                        5,
+                        6
                     ]
                 });
             }
@@ -419,7 +424,7 @@
                 // Initialize DataTable again
                 var datatable = $('#trackdatatable').DataTable({
                     fixedColumns: {
-                        start: 6,
+                        start: 7,
                         end: 1
                     },
                     paging: false,
@@ -434,7 +439,8 @@
                         2,
                         3,
                         4,
-                        5
+                        5,
+                        6
                     ]
                 });
 

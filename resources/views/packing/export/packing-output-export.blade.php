@@ -1,9 +1,9 @@
 <table class="table table-bordered">
     <tr>
-        <td colspan="{{ ($groupBy == "size" ? 7 : 6) + $orderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() }}" style="text-align: center;">Tanggal Export : {{ $dateFrom || $dateTo ? $dateFrom." - ".$dateTo : 'All Day' }}</td>
+        <td colspan="{{ ($groupBy == "size" ? 8 : 7) + $orderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() }}" style="text-align: center;">Tanggal Export : {{ $dateFrom || $dateTo ? $dateFrom." - ".$dateTo : 'All Day' }}</td>
     </tr>
     <tr>
-        <td colspan="{{ ($groupBy == "size" ? 7 : 6) + $orderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() }}" style="text-align: center; font-weight: 800;">{{ $buyer ? "'".$buyerName."'" : '' }} {{ $order ? "'".$order."'" : '' }} Packing Output</td>
+        <td colspan="{{ ($groupBy == "size" ? 8 : 7) + $orderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() }}" style="text-align: center; font-weight: 800;">{{ $buyer ? "'".$buyerName."'" : '' }} {{ $order ? "'".$order."'" : '' }} Packing Output</td>
     </tr>
     @if ($orderOutputs && $orderOutputs->count() > 0)
         <tr>
@@ -12,6 +12,7 @@
             <th style="font-weight: 800;">Color</th>
             <th style="font-weight: 800;">Line</th>
             <th style="font-weight: 800;">PO</th>
+            <th style="font-weight: 800;">Quality</th>
             @if ($groupBy == 'size')
                 <th style="font-weight: 800;">Size</th>
             @endif
@@ -44,6 +45,7 @@
                                 <td style="vertical-align: top;text-align: left;">{{ $group->color }}</td>
                                 <td style="vertical-align: top;text-align: left;">{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
                                 <td style="vertical-align: top;text-align: left;">{{ $group->po }}</td>
+                                <td style="vertical-align: top;text-align: left;">{{ strtoupper($group->type) }}</td>
                                 @if ($groupBy == "size")
                                     <td style="vertical-align: top;text-align: left;">{{ $group->size }}</td>
                                 @endif
@@ -56,9 +58,9 @@
                                         $thisOutput = 0;
 
                                         if ($groupBy == 'size') {
-                                            $thisOutput = $orderOutputs->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('po', $group->po)->where('sewing_line', $group->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $group->size)->sum("output");
+                                            $thisOutput = $orderOutputs->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('po', $group->po)->where('sewing_line', $group->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('type', $dailyDate->first()->type)->where('size', $group->size)->sum("output");
                                         } else {
-                                            $thisOutput = $orderOutputs->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('po', $group->po)->where('sewing_line', $group->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
+                                            $thisOutput = $orderOutputs->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('po', $group->po)->where('sewing_line', $group->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('type', $dailyDate->first()->type)->sum("output");
                                         }
 
                                         if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
@@ -87,19 +89,19 @@
                 } else {
                     ?>
                         <tr>
-                            <td style="text-align:center;" colspan="{{ $groupBy == "size" ? '8' : '5' }}">Data tidak ditemukan</td>
+                            <td style="text-align:center;" colspan="{{ $groupBy == "size" ? '9' : '6' }}">Data tidak ditemukan</td>
                         </tr>
                     <?php
                 }
             ?>
     @else
         <tr>
-            <td style="text-align:center;" colspan="{{ $groupBy == "size" ? "13" : "12" }}">Data tidak ditemukan.</td>
+            <td style="text-align:center;" colspan="{{ $groupBy == "size" ? "14" : "13" }}">Data tidak ditemukan.</td>
         </tr>
     @endif
 
     <tr>
-        <th colspan="{{ $groupBy == "size" ? '6' : '5' }}" style="font-weight: 800;">
+        <th colspan="{{ $groupBy == "size" ? '7' : '6' }}" style="font-weight: 800;">
             TOTAL
         </th>
         @if ( $orderOutputs && $orderOutputs->count() > 0)

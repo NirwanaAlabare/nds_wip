@@ -655,6 +655,19 @@ class TrolleyStockerController extends Controller
 
         $lineData = UserLine::where("line_id", $request->line_id)->first();
 
+        function getCostingDataTrolley($data, $field) {
+            if (isset($data->masterSbWs->{$field})) {
+                return $data->masterSbWs->{$field};
+            } elseif (isset($data->formPiece->{$field})) {
+                return $data->formPiece->{$field};
+            } elseif (isset($data->formReject->{$field})) {
+                return $data->formReject->{$field};
+            } elseif (isset($data->formCut->marker->{$field})) {
+                return $data->formCut->marker->{$field};
+            }
+            return null;
+        }
+
         if ($request->destination != "trolley") {
             foreach ($request->selectedStocker as $req) {
                 $loadingStockArr = [];
@@ -722,27 +735,14 @@ class TrolleyStockerController extends Controller
                             $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
                             $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
 
-                            function getCostingData($data, $field) {
-                                if (isset($data->masterSbWs->{$field})) {
-                                    return $data->masterSbWs->{$field};
-                                } elseif (isset($data->formPiece->{$field})) {
-                                    return $data->formPiece->{$field};
-                                } elseif (isset($data->formReject->{$field})) {
-                                    return $data->formReject->{$field};
-                                } elseif (isset($data->formCut->marker->{$field})) {
-                                    return $data->formCut->marker->{$field};
-                                }
-                                return null;
-                            }
-
                             $storeLoadingPlan = LoadingLinePlan::create([
                                 "line_id" => $lineData['line_id'],
                                 "kode" => $kodeLoadingPlan,
-                                "act_costing_id" => getCostingData($thisStockerData, "act_costing_id"),
-                                "act_costing_ws" => getCostingData($thisStockerData, "act_costing_ws"),
-                                "buyer" => getCostingData($thisStockerData, "buyer"),
-                                "style" => getCostingData($thisStockerData, "style"),
-                                "color" => getCostingData($thisStockerData, "color"),
+                                "act_costing_id" => getCostingDataTrolley($thisStockerData, "act_costing_id"),
+                                "act_costing_ws" => getCostingDataTrolley($thisStockerData, "act_costing_ws"),
+                                "buyer" => getCostingDataTrolley($thisStockerData, "buyer"),
+                                "style" => getCostingDataTrolley($thisStockerData, "style"),
+                                "color" => getCostingDataTrolley($thisStockerData, "color"),
                                 "tanggal" => $request['tanggal_loading'],
                                 "created_by" => Auth::user()->id,
                                 "created_by_username" => Auth::user()->username,

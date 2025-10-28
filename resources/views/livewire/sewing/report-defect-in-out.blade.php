@@ -260,7 +260,7 @@
                                 <td>{{ $val['styleno'] }}</td>
                                 <td>{{ $val['color'] }}</td>
                                 <td>{{ $val['total_defect'] }}</td>
-                                <td>{{ round(($val['total_defect']/($outputAll && $outputAll->where("style", $val['styleno'])->sum('total_output') > 0 ? $outputAll->where("style", $val['styleno'])->sum('total_output') : 0)*100), 4) }} %</td>
+                                <td>{{ (($outputAll && $outputAll->where("style", $val['styleno'])->sum('total_output') > 0 ? $outputAll->where("style", $val['styleno'])->sum('total_output') : 0) > 0 ? round(($val['total_defect']/($outputAll && $outputAll->where("style", $val['styleno'])->sum('total_output') > 0 ? $outputAll->where("style", $val['styleno'])->sum('total_output') : 0)*100), 4) : '0') }} %</td>
                             </tr>
                         @endforeach
                         <tr>

@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferDefectDetail, transferRework, transferReworkDetail, transferReject, transferRejectDetail, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput, outputType, checkNumbering'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='transferNumbering, transferAll, transferRft, transferRftDetail, transferDefect, transferDefectDetail, transferRework, transferReworkDetail, transferReject, transferRejectDetail, fromDate, toDate, fromLine, toLine, fromSelectedMasterPlan, toSelectedMasterPlan, fromMasterPlans, toMasterPlans, fromSoDet, toSoDet, fromMasterPlanOutput, toMasterPlanOutput, outputType, checkNumbering, backDateInput'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -300,6 +300,21 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
+                        <h6>Destination : </h6>
+                        <p class="mb-0">{{ $toDate }}</p>
+                        <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
+                        <p class="mb-0" id="selectedPlanRft" wire:ignore></p>
+                    </div>
+                    <hr class="border-sb">
+                    <div class="mb-3">
+                        <div class="form-check" wire:ignore>
+                            <input class="form-check-input" type="checkbox" id="backDateRft">
+                            <label class="form-check-label" for="backDateRft">
+                                Back-date input
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_rft" id="size_rft" wire:model="transferRftSize" placeholder="Pilih Size">
                             <option value="">Pilih Size</option>
@@ -339,6 +354,21 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <h6>Destination : </h6>
+                        <p class="mb-0">{{ $toDate }}</p>
+                        <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
+                        <p class="mb-0" id="selectedPlanDefect" wire:ignore></p>
+                    </div>
+                    <hr class="border-sb">
+                    <div class="mb-3">
+                        <div class="form-check" wire:ignore>
+                            <input class="form-check-input" type="checkbox" id="backDateDefect">
+                            <label class="form-check-label" for="backDateDefect">
+                                Back-date input
+                            </label>
+                        </div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_defect" id="size_defect" wire:model="transferDefectSize" placeholder="Pilih Size">
@@ -380,6 +410,21 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
+                        <h6>Destination : </h6>
+                        <p class="mb-0">{{ $toDate }}</p>
+                        <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
+                        <p class="mb-0" id="selectedPlanRework" wire:ignore></p>
+                    </div>
+                    <hr class="border-sb">
+                    <div class="mb-3">
+                        <div class="form-check" wire:ignore>
+                            <input class="form-check-input" type="checkbox" id="backDateRework">
+                            <label class="form-check-label" for="backDateRework">
+                                Back-date input
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_rework" id="size_rework" wire:model="transferReworkSize" placeholder="Pilih Size">
                             <option value="">Pilih Size</option>
@@ -419,6 +464,21 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <h6>Destination : </h6>
+                        <p class="mb-0">{{ $toDate }}</p>
+                        <p class="mb-0">{{ strtoupper(str_replace("_", " ", $toLine)) }}</p>
+                        <p class="mb-0" id="selectedPlanReject" wire:ignore></p>
+                    </div>
+                    <hr class="border-sb">
+                    <div class="mb-3">
+                        <div class="form-check" wire:ignore>
+                            <input class="form-check-input" type="checkbox" id="backDateReject">
+                            <label class="form-check-label" for="backDateReject">
+                                Back-date input
+                            </label>
+                        </div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Size :</label>
                         <select class="form-control" name="size_reject" id="size_reject" wire:model="transferRejectSize" placeholder="Pilih Size">
@@ -471,10 +531,78 @@
         $("#toSelectedMasterPlan").on("change", () => {
             if ($("#toSelectedMasterPlan").val()) {
                 $("#selectedPlan").html($('#toSelectedMasterPlan option:selected').text());
+                $("#selectedPlanRft").html($('#toSelectedMasterPlan option:selected').text());
+                $("#selectedPlanDefect").html($('#toSelectedMasterPlan option:selected').text());
+                $("#selectedPlanRework").html($('#toSelectedMasterPlan option:selected').text());
+                $("#selectedPlanReject").html($('#toSelectedMasterPlan option:selected').text());
             } else {
                 $("#selectedPlan").html("");
+                $("#selectedPlanRft").html("");
+                $("#selectedPlanDefect").html("");
+                $("#selectedPlanRework").html("");
+                $("#selectedPlanReject").html("");
             }
-        })
+        });
+
+        $("#backDateRft").on("change", () => {
+            if ($("#backDateRft").is(":checked")) {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = true;
+            } else {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = false;
+            }
+        });
+
+        $("#backDateDefect").on("change", () => {
+            if ($("#backDateDefect").is(":checked")) {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = true;
+            } else {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = false;
+            }
+        });
+
+        $("#backDateRework").on("change", () => {
+            if ($("#backDateRework").is(":checked")) {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = true;
+            } else {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = false;
+            }
+        });
+
+        $("#backDateReject").on("change", () => {
+            if ($("#backDateReject").is(":checked")) {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = true;
+            } else {
+                Livewire.emit("loadingStart");
+                @this.backDateInput = false;
+            }
+        });
+
+        $('#transferRftModal').on('hidden.bs.modal', function () {
+            $("#backDateRft").prop("checked", false);
+            @this.backDateInput = false;
+        });
+
+        $('#transferDefectModal').on('hidden.bs.modal', function () {
+            $("#backDateDefect").prop("checked", false);
+            @this.backDateInput = false;
+        });
+
+        $('#transferReworkModal').on('hidden.bs.modal', function () {
+            $("#backDateRework").prop("checked", false);
+            @this.backDateInput = false;
+        });
+
+        $('#transferRejectModal').on('hidden.bs.modal', function () {
+            $("#backDateReject").prop("checked", false);
+            @this.backDateInput = false;
+        });
 
         function setTransferNumberingTo() {
             $("#toSelectedMasterPlan").val()
