@@ -526,10 +526,11 @@
                             });
                             gettotal_input();
                         }
-                        dataTableSummaryReload();
-                        dataTableHistoryReload();
                         document.getElementById('barcode').value = "";
                         document.getElementById("barcode").focus();
+                        dataTableSummaryReload();
+                        dataTableHistoryReload();
+
                         gettotal_input();
                         // get_sum_carton();
                     },
