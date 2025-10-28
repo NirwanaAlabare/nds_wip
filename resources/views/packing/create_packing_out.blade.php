@@ -315,67 +315,68 @@
         };
 
 
+        let datatable = $('#datatable_summary').DataTable({
+            processing: true,
+            serverSide: true,
+            deferRender: true,
+            paging: false,
+            ordering: false,
+            info: false,
+            searching: false,
+
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('packing_out_show_summary') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.cbopo = $('#cbopo_det').val();
+                    d.cbono_carton = $('#cbono_carton').val();
+                    d.txtdest = $('#txtdest').val();
+                },
+            },
+
+            columns: [{
+                    data: 'po'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'tot_scan'
+                }
+            ],
+
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
+                var json = api.ajax.json();
+                var totals = (json && json.totals) ?
+                    json.totals : {
+                        qty: 0,
+                        tot_scan: 0
+                    };
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(3).footer()).html(totals.qty);
+                $(api.column(4).footer()).html(totals.tot_scan);
+            },
+            createdRow: function(row, data) {
+                if (data.qty == data.tot_scan) $(row).addClass('row-green');
+                else if (data.qty < data.tot_scan) $(row).addClass('row-blue');
+                else $(row).addClass('row-black');
+            },
+        });
+
         function dataTableSummaryReload() {
-            let datatable = $('#datatable_summary').DataTable({
-                processing: true,
-                serverSide: true,
-                deferRender: true,
-                paging: false,
-                ordering: false,
-                info: false,
-                searching: false,
-                destroy: true,
-
-                ajax: {
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '{{ route('packing_out_show_summary') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                    data: function(d) {
-                        d.cbopo = $('#cbopo_det').val();
-                        d.cbono_carton = $('#cbono_carton').val();
-                        d.txtdest = $('#txtdest').val();
-                    },
-                },
-
-                columns: [{
-                        data: 'po'
-                    },
-                    {
-                        data: 'color'
-                    },
-                    {
-                        data: 'size'
-                    },
-                    {
-                        data: 'qty'
-                    },
-                    {
-                        data: 'tot_scan'
-                    }
-                ],
-
-                footerCallback: function(row, data, start, end, display) {
-                    var api = this.api();
-                    var json = api.ajax.json();
-                    var totals = (json && json.totals) ?
-                        json.totals : {
-                            qty: 0,
-                            tot_scan: 0
-                        };
-
-                    $(api.column(0).footer()).html('Total');
-                    $(api.column(3).footer()).html(totals.qty);
-                    $(api.column(4).footer()).html(totals.tot_scan);
-                },
-                createdRow: function(row, data) {
-                    if (data.qty == data.tot_scan) $(row).addClass('row-green');
-                    else if (data.qty < data.tot_scan) $(row).addClass('row-blue');
-                    else $(row).addClass('row-black');
-                },
-            });
+            datatable.ajax.reload();
         }
 
 
