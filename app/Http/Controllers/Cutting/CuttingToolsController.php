@@ -201,6 +201,15 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
+
+            if ($checkStocker) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah memiliki Stocker."
+                );
+            }
+
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
 
             $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
@@ -323,6 +332,15 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_marker_form_id'])->first();
+
+            if ($checkStocker) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah memiliki Stocker."
+                );
+            }
+
             $oldMarker = Marker::where("kode", $validatedRequest['modify_marker_kode_marker'])->first();
 
             // if (
