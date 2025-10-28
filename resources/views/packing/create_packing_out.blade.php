@@ -316,48 +316,16 @@
 
 
         function dataTableSummaryReload() {
-            let datatable = $("#datatable_summary").DataTable({
-
-                "footerCallback": function(row, data, start, end, display) {
-                    var api = this.api(),
-                        data;
-
-                    // converting to interger to find total
-                    var intVal = function(i) {
-                        return typeof i === 'string' ?
-                            i.replace(/[\$,]/g, '') * 1 :
-                            typeof i === 'number' ?
-                            i : 0;
-                    };
-
-                    // computing column Total of the complete result
-                    var sumTotal = api
-                        .column(3)
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    var sumTotalA = api
-                        .column(4)
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    // Update footer by showing the total with the reference of the column index
-                    $(api.column(0).footer()).html('Total');
-                    $(api.column(3).footer()).html(sumTotal);
-                    $(api.column(4).footer()).html(sumTotalA);
-                },
-
-                ordering: false,
+            let datatable = $('#datatable_summary').DataTable({
                 processing: true,
                 serverSide: true,
+                deferRender: true,
                 paging: false,
-                destroy: true,
+                ordering: false,
                 info: false,
                 searching: false,
+                destroy: true,
+
                 ajax: {
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -371,50 +339,45 @@
                         d.txtdest = $('#txtdest').val();
                     },
                 },
+
                 columns: [{
-                        data: 'po',
+                        data: 'po'
                     },
                     {
-                        data: 'color',
+                        data: 'color'
                     },
                     {
-                        data: 'size',
+                        data: 'size'
                     },
                     {
-                        data: 'qty',
+                        data: 'qty'
                     },
                     {
-                        data: 'tot_scan',
-                    },
+                        data: 'tot_scan'
+                    }
                 ],
 
-                // Add createdRow callback
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+                    var json = api.ajax.json();
+                    var totals = (json && json.totals) ?
+                        json.totals : {
+                            qty: 0,
+                            tot_scan: 0
+                        };
 
-                createdRow: function(row, data, dataIndex) {
-
-                    // Check if qty and tot_scan are equal
-
-                    if (data.qty == data.tot_scan) {
-                        $(row).css({
-                            'color': 'green',
-                            'font-weight': 'bold'
-                        });
-                    } else if (data.qty <= data.tot_scan) {
-                        $(row).css({
-                            'color': 'blue',
-                            'font-weight': 'bold'
-                        });
-                    } else {
-                        $(row).css({
-                            'color': 'black',
-                            'font-weight': 'bold'
-                        });
-                    }
-
+                    $(api.column(0).footer()).html('Total');
+                    $(api.column(3).footer()).html(totals.qty);
+                    $(api.column(4).footer()).html(totals.tot_scan);
                 },
-
+                createdRow: function(row, data) {
+                    if (data.qty == data.tot_scan) $(row).addClass('row-green');
+                    else if (data.qty < data.tot_scan) $(row).addClass('row-blue');
+                    else $(row).addClass('row-black');
+                },
             });
         }
+
 
         function dataTableHistoryReload() {
             let datatable = $("#datatable_history").DataTable({

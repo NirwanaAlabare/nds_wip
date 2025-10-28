@@ -170,42 +170,69 @@ order by o.created_at desc
 
     public function packing_out_show_summary(Request $request)
     {
-        $user = Auth::user()->name;
-
-        $po = $request->cbopo ? $request->cbopo : null;
-        $cbono_carton = $request->cbono_carton ? $request->cbono_carton : null;
-        $dest = $request->txtdest ? $request->txtdest : null;
-
-        // $cekArray = explode('_', $cbono_carton);
-        // $no_carton = $cekArray[0];
-        // $notes = $cekArray[1];
-
-        if ($request->ajax()) {
-
-
-            $data_summary = DB::select("
-select a.*, coalesce(tot_scan,0) tot_scan from
-(
-select no_carton, a.po, a.dest, id_ppic_master_so, a.id_so_det, m.size, m.color, a.barcode, a.qty
-from packing_master_packing_list a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on a.id_so_det = m.id_so_det
-where a.po = '$po' and a.dest = '$dest' and no_carton = '$cbono_carton'
-) a
-left join
-(
-                select count(barcode)tot_scan, barcode, po, no_carton,dest
-                from packing_packing_out_scan
-                where po = '$po'  and dest = '$dest' and no_carton = '$cbono_carton '
-                group by barcode, no_carton
-) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode
-left join master_size_new msn on a.size = msn.size
-order by color asc, urutan asc
-            ");
-
-            return DataTables::of($data_summary)->toJson();
+        if (!$request->ajax()) {
+            abort(403);
         }
+
+        $po = $request->cbopo;
+        $cbono_carton = $request->cbono_carton;
+        $dest = $request->txtdest;
+
+        // Main data query
+        $data_summary = DB::select("
+        SELECT a.*, COALESCE(tot_scan, 0) AS tot_scan
+        FROM (
+            SELECT
+                a.no_carton,
+                a.po,
+                a.dest,
+                a.id_ppic_master_so,
+                a.id_so_det,
+                m.size,
+                m.color,
+                a.barcode,
+                a.qty
+            FROM packing_master_packing_list a
+            INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+            INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+            WHERE a.po = ?
+              AND a.dest = ?
+              AND a.no_carton = ?
+        ) a
+        LEFT JOIN (
+            SELECT
+                COUNT(barcode) AS tot_scan,
+                barcode,
+                po,
+                no_carton,
+                dest
+            FROM packing_packing_out_scan
+            WHERE po = ?
+              AND dest = ?
+              AND no_carton = ?
+            GROUP BY barcode, no_carton, dest, po
+        ) b ON a.po = b.po
+           AND a.dest = b.dest
+           AND a.no_carton = b.no_carton
+           AND a.barcode = b.barcode
+        LEFT JOIN master_size_new msn ON a.size = msn.size
+        ORDER BY color ASC, urutan ASC
+    ", [$po, $dest, $cbono_carton, $po, $dest, $cbono_carton]);
+
+        // Compute totals (done server-side)
+        $total_qty = collect($data_summary)->sum('qty');
+        $total_scan = collect($data_summary)->sum('tot_scan');
+
+        // Return DataTables-compatible JSON
+        return response()->json([
+            'data' => $data_summary,
+            'totals' => [
+                'qty' => $total_qty,
+                'tot_scan' => $total_scan,
+            ],
+        ]);
     }
+
 
     public function packing_out_show_history(Request $request)
     {
