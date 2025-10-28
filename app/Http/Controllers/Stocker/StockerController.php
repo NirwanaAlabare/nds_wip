@@ -7017,7 +7017,7 @@ class StockerController extends Controller
                 where("stocker_input.form_cut_id", $validatedRequest['form_cut_id'])->
                 count();
 
-            if ($dcInCount) {
+            if ($dcInCount < 1) {
                 $result = [];
                 for ($i = 0; $i < count($request["so_det_id"]); $i++) {
                     if (count($request["separate_qty"][$i]) > 0 && $request["ratio"][$i] != count($request["separate_qty"][$i])) {
