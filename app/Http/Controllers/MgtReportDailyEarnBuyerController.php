@@ -18,6 +18,13 @@ class MgtReportDailyEarnBuyerController extends Controller
         $thn_view = $request->periode_tahun_view;
         $user = Auth::user()->name;
 
+        $data_buyer = DB::connection('mysql_sb')->select("SELECT supplier isi, supplier tampil from signalbit_erp.so
+                                inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                                inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                                where so_date >= '2024-05-01' and ac.status = 'CONFIRM'
+                                GROUP BY supplier
+                                order by supplier asc");
+
         $start_date = $request->input('start_date'); // example: 9 (September)
         $end_date = $request->input('end_date'); // example: 2025
 
@@ -26,6 +33,15 @@ class MgtReportDailyEarnBuyerController extends Controller
 
         $bulan_akhir = date('n', strtotime($end_date)); // Returns month as number without leading zero (e.g., 9)
         $tahun_akhir = date('Y', strtotime($end_date)); // Returns full year (e.g., 2025)
+
+        $buyer_filter = $request->input('buyer_filter');
+
+        if ($buyer_filter != "") {
+            $cond_buyer = "and a.buyer = '$buyer_filter'";
+        } else {
+            $cond_buyer = "";
+        }
+
 
         $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  select a.cost_no,kpno,supplier,styleno,product_item,season_desc,curr,so_date,status,qty_so,price_so,cost_date,status_cost,qty_cost,COALESCE(ttl_fabric,0) ttl_fabric,COALESCE(ttl_accsew,0) ttl_accsew,COALESCE(ttl_accpack,0) ttl_accpack,(COALESCE(ttl_fabric,0) + COALESCE(ttl_accsew,0) + COALESCE(ttl_accpack,0)) ttl_material,COALESCE(ttl_cmt,0) ttl_cmt,COALESCE(ttl_embro,0) ttl_embro,COALESCE(ttl_wash,0) ttl_wash,COALESCE(ttl_print,0) ttl_print,COALESCE(ttl_wrapbut,0) ttl_wrapbut,COALESCE(ttl_compbut,0) ttl_compbut,COALESCE(ttl_label,0) ttl_label,COALESCE(ttl_laser,0) ttl_laser,(COALESCE(ttl_cmt,0) + COALESCE(ttl_embro,0) + COALESCE(ttl_wash,0) + COALESCE(ttl_print,0) + COALESCE(ttl_wrapbut,0) + COALESCE(ttl_compbut,0) + COALESCE(ttl_label,0) + COALESCE(ttl_laser,0)) ttl_manufacturing,COALESCE(ttl_develop,0) ttl_develop,COALESCE(ttl_overhead,0) ttl_overhead,COALESCE(ttl_market,0) ttl_market,COALESCE(ttl_shipp,0) ttl_shipp,COALESCE(ttl_import,0) ttl_import,COALESCE(ttl_handl,0) ttl_handl,COALESCE(ttl_test,0) ttl_test,COALESCE(ttl_fabhandl,0) ttl_fabhandl,COALESCE(ttl_service,0) ttl_service, COALESCE(ttl_clearcost,0) ttl_clearcost ,COALESCE(ttl_development,0) ttl_development ,COALESCE(ttl_unexcost,0) ttl_unexcost ,COALESCE(ttl_managementfee,0) ttl_managementfee ,COALESCE(ttl_profit,0) ttl_profit ,(COALESCE(ttl_develop,0) + COALESCE(ttl_overhead,0) + COALESCE(ttl_market,0) + COALESCE(ttl_shipp,0) + COALESCE(ttl_import,0) + COALESCE(ttl_handl,0) + COALESCE(ttl_test,0) + COALESCE(ttl_fabhandl,0) + COALESCE(ttl_service,0) + COALESCE(ttl_clearcost,0) + COALESCE(ttl_development,0) + COALESCE(ttl_unexcost,0) + COALESCE(ttl_managementfee,0) + COALESCE(ttl_profit,0)) ttl_others
@@ -698,7 +714,7 @@ left join earn a on dt.tanggal = a.tgl_trans
 left join sum_daily_cost b on dt.tanggal = b.tanggal
 left join sum_earn c on dt.tanggal = c.tgl_trans
 left join sum_cost d on a.kpno = d.kpno
-where dt.tanggal >= '$start_date' and dt.tanggal <= '$end_date'
+where dt.tanggal >= '$start_date' and dt.tanggal <= '$end_date' $cond_buyer
 order by dt.tanggal asc, sewing_line asc
 ),
 sum_earning as (
@@ -822,6 +838,8 @@ left join earning_blc b on a.tanggal = b.tanggal
             'containerFluid' => true,
             'start_date' => $start_date,
             'end_date' => $end_date,
+            'buyer_filter' => $buyer_filter,
+            'data_buyer' => $data_buyer,
             'user' => $user,
         ]);
     }
@@ -829,6 +847,6 @@ left join earning_blc b on a.tanggal = b.tanggal
 
     public function export_excel_laporan_daily_earn_buyer(Request $request)
     {
-        return Excel::download(new export_excel_laporan_daily_earn_buyer($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
+        return Excel::download(new export_excel_laporan_daily_earn_buyer($request->start_date, $request->end_date, $request->buyer_filter), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

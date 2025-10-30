@@ -20,12 +20,13 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 class export_excel_laporan_sum_buyer implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
-    protected $start_date, $end_date, $rowCount;
+    protected $start_date, $end_date, $buyer, $rowCount;
 
-    public function __construct($start_date, $end_date)
+    public function __construct($start_date, $end_date, $buyer)
     {
         $this->start_date = $start_date;
         $this->end_date = $end_date;
+        $this->buyer = $buyer;
     }
 
     public function view(): View
@@ -36,6 +37,58 @@ class export_excel_laporan_sum_buyer implements FromView, ShouldAutoSize, WithEv
 
         $bulan_akhir = date('n', strtotime($this->end_date)); // Returns month as number without leading zero (e.g., 9)
         $tahun_akhir = date('Y', strtotime($this->end_date)); // Returns full year (e.g., 2025)
+        $buyer = $this->buyer;
+
+        if ($buyer != "") {
+            $having_buyer = "HAVING a.buyer = '$buyer'";
+            $cond_buyer = "and ms.supplier = '$buyer'";
+            $cond_na = "";
+        } else {
+            $having_buyer = "";
+            $cond_buyer = "";
+            $cond_na = "UNION
+SELECT
+'N/A' AS buyer,
+ROUND(0,2) AS tot_target,
+ROUND(0,2) AS tot_output,
+ROUND(0,2) AS sum_mins_avail,
+ROUND(0,2) AS sum_mins_prod,
+ROUND(0,2) AS eff,
+ROUND(0,2) AS earn_prod,
+ROUND(COALESCE(s.total_cost, 0),2) AS est_tot_cost,
+ROUND(0 - COALESCE(s.total_cost, 0),2) as blc,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END AS percent_earning,
+
+
+ROUND(0,2) sum_est_full_earning,
+ROUND(0 - COALESCE(s.total_cost, 0),2) as blc_full_earn_cost_prod,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END  AS percent_full_earning_cost,
+
+
+ROUND(0,2) AS sum_est_earning_prod,
+ROUND(0,2) AS sum_est_cost_prod,
+ROUND((0 - 0),2) as blc_earn_cost_prod,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END  as percent_earn_cost_prod,
+
+ROUND(0,2)  AS sum_est_earning_mkt,
+ROUND(0,2)  AS sum_est_cost_mkt,
+ROUND(0,2)  as blc_earn_cost_mkt,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END   as percent_earn_cost_mkt
+FROM sum_full_earn_wo_buyer s";
+        }
+
 
 
         $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
@@ -188,7 +241,8 @@ earn as (
                     JOIN master_kurs_bi k
                     ON k.tanggal_kurs_bi = x.max_kurs_date
                 ) mkb ON a.tgl_trans = mkb.tgl_trans
-								where u.name != 'line sample prod'
+				where u.name != 'line sample prod'
+                $cond_buyer
                 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
                 order by a.tgl_trans asc, u.name asc, ac.kpno asc
 ),
@@ -810,50 +864,8 @@ ROUND((((sum_est_earning_mkt - sum_est_cost_mkt) / sum_est_earning_mkt) * 100),2
 from earn a
 left join sum_earning_buyer b on a.buyer = b.buyer
 group by a.buyer
-
-UNION
-
-SELECT
-'N/A' AS buyer,
-ROUND(0,2) AS tot_target,
-ROUND(0,2) AS tot_output,
-ROUND(0,2) AS sum_mins_avail,
-ROUND(0,2) AS sum_mins_prod,
-ROUND(0,2) AS eff,
-ROUND(0,2) AS earn_prod,
-ROUND(COALESCE(s.total_cost, 0),2) AS est_tot_cost,
-ROUND(0 - COALESCE(s.total_cost, 0),2) as blc,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END AS percent_earning,
-
-
-ROUND(0,2) sum_est_full_earning,
-ROUND(COALESCE(s.total_cost, 0),2) as blc_full_earn_cost_prod,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END  AS percent_full_earning_cost,
-
-
-ROUND(0,2) AS sum_est_earning_prod,
-ROUND(0,2) AS sum_est_cost_prod,
-ROUND(COALESCE(s.total_cost, 0),2) as blc_earn_cost_prod,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END  as percent_earn_cost_prod,
-
-ROUND(0,2)  AS sum_est_earning_mkt,
-ROUND(0,2)  AS sum_est_cost_mkt,
-ROUND(0,2)  as blc_earn_cost_mkt,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END   as percent_earn_cost_mkt
-FROM sum_full_earn_wo_buyer s
-
+$having_buyer
+$cond_na
         ");
 
 

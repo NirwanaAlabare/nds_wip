@@ -17,6 +17,13 @@ class MgtReportSumBuyerController extends Controller
     {
         $user = Auth::user()->name;
 
+        $data_buyer = DB::connection('mysql_sb')->select("SELECT supplier isi, supplier tampil from signalbit_erp.so
+                                inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                                inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                                where so_date >= '2024-05-01' and ac.status = 'CONFIRM'
+                                GROUP BY supplier
+                                order by supplier asc");
+
         $start_date = $request->input('start_date'); // example: 9 (September)
         $end_date = $request->input('end_date'); // example: 2025
 
@@ -31,6 +38,58 @@ class MgtReportSumBuyerController extends Controller
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
+
+                $buyer = $request->input('buyer');
+
+                if ($buyer != "") {
+                    $having_buyer = "HAVING a.buyer = '$buyer'";
+                    $cond_buyer = "and ms.supplier = '$buyer'";
+                    $cond_na = "";
+                } else {
+                    $having_buyer = "";
+                    $cond_buyer = "";
+                    $cond_na = "UNION
+SELECT
+'N/A' AS buyer,
+ROUND(0,2) AS tot_target,
+ROUND(0,2) AS tot_output,
+ROUND(0,2) AS sum_mins_avail,
+ROUND(0,2) AS sum_mins_prod,
+ROUND(0,2) AS eff,
+ROUND(0,2) AS earn_prod,
+ROUND(COALESCE(s.total_cost, 0),2) AS est_tot_cost,
+ROUND(0 - COALESCE(s.total_cost, 0),2) as blc,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END AS percent_earning,
+
+
+ROUND(0,2) sum_est_full_earning,
+ROUND(0 - COALESCE(s.total_cost, 0),2) as blc_full_earn_cost_prod,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END  AS percent_full_earning_cost,
+
+
+ROUND(0,2) AS sum_est_earning_prod,
+ROUND(0,2) AS sum_est_cost_prod,
+ROUND((0 - 0),2) as blc_earn_cost_prod,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END  as percent_earn_cost_prod,
+
+ROUND(0,2)  AS sum_est_earning_mkt,
+ROUND(0,2)  AS sum_est_cost_mkt,
+ROUND(0,2)  as blc_earn_cost_mkt,
+CASE
+    WHEN 0 = 0 THEN 0.00
+    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
+END   as percent_earn_cost_mkt
+FROM sum_full_earn_wo_buyer s";
+                }
 
 
                 $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
@@ -132,7 +191,8 @@ earn as (
                         END as istirahat,
                     created_by
                     from output_rfts
-                    where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59' group by created_by, date(updated_at)
+                    where updated_at >= '$start_date 00:00:00' and updated_at <= '$end_date 23:59:59'
+                    group by created_by, date(updated_at)
                 ) op on a.tgl_trans = op.tgl_trans_line and a.created_by = op.created_by
                 left join (
                     select * from act_costing_mfg where id_item = '8' group by id_act_cost
@@ -183,7 +243,8 @@ earn as (
                     JOIN master_kurs_bi k
                     ON k.tanggal_kurs_bi = x.max_kurs_date
                 ) mkb ON a.tgl_trans = mkb.tgl_trans
-								where u.name != 'line sample prod'
+					where u.name != 'line sample prod'
+                    $cond_buyer
                 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
                 order by a.tgl_trans asc, u.name asc, ac.kpno asc
 ),
@@ -805,49 +866,8 @@ ROUND((((sum_est_earning_mkt - sum_est_cost_mkt) / sum_est_earning_mkt) * 100),2
 from earn a
 left join sum_earning_buyer b on a.buyer = b.buyer
 group by a.buyer
-
-UNION
-
-SELECT
-'N/A' AS buyer,
-ROUND(0,2) AS tot_target,
-ROUND(0,2) AS tot_output,
-ROUND(0,2) AS sum_mins_avail,
-ROUND(0,2) AS sum_mins_prod,
-ROUND(0,2) AS eff,
-ROUND(0,2) AS earn_prod,
-ROUND(COALESCE(s.total_cost, 0),2) AS est_tot_cost,
-ROUND(0 - COALESCE(s.total_cost, 0),2) as blc,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END AS percent_earning,
-
-
-ROUND(0,2) sum_est_full_earning,
-ROUND(0 - COALESCE(s.total_cost, 0),2) as blc_full_earn_cost_prod,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END  AS percent_full_earning_cost,
-
-
-ROUND(0,2) AS sum_est_earning_prod,
-ROUND(0,2) AS sum_est_cost_prod,
-ROUND((0 - 0),2) as blc_earn_cost_prod,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END  as percent_earn_cost_prod,
-
-ROUND(0,2)  AS sum_est_earning_mkt,
-ROUND(0,2)  AS sum_est_cost_mkt,
-ROUND(0,2)  as blc_earn_cost_mkt,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END   as percent_earn_cost_mkt
-FROM sum_full_earn_wo_buyer s
+$having_buyer
+$cond_na
         ");
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
@@ -860,6 +880,7 @@ FROM sum_full_earn_wo_buyer s
             'page' => 'dashboard-mgt-report',
             'subPageGroup' => 'mgt-report-laporan',
             'subPage' => 'mgt-report-laporan-sum-buyer',
+            "data_buyer" => $data_buyer,
             'containerFluid' => true,
             'user' => $user,
         ]);
@@ -868,6 +889,6 @@ FROM sum_full_earn_wo_buyer s
 
     public function export_excel_laporan_sum_buyer(Request $request)
     {
-        return Excel::download(new export_excel_laporan_sum_buyer($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
+        return Excel::download(new export_excel_laporan_sum_buyer($request->start_date, $request->end_date, $request->buyer), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

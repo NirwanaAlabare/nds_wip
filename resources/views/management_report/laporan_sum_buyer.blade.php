@@ -44,6 +44,21 @@
                         value="">
                 </div>
 
+                <div class="col-md-3">
+                    <label class="form-label"><small><b>Buyer</b></small></label>
+                    <div class="input-group">
+                        <select class="form-control select2bs4 form-control-sm rounded" id="buyer_filter"
+                            name="buyer_filter" style="width: 100%;">
+                            <option value="">-- Select Buyer --</option>
+                            @foreach ($data_buyer as $databuyer)
+                                <option value="{{ $databuyer->isi }}">
+                                    {{ $databuyer->tampil }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Generate Button -->
                 <div class="col-md-4 d-flex gap-2 align-items-end">
                     <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
@@ -148,6 +163,7 @@
         $(document).ready(function() {
             $('#start_date').val('').trigger('change');
             $('#end_date').val('').trigger('change');
+            $('#buyer_filter').val('').trigger('change');
             dataTableReload()
         });
 
@@ -155,6 +171,7 @@
         function dataTableReload() {
             let start_date = $('#start_date').val();
             let end_date = $('#end_date').val();
+            let buyer = $('#buyer_filter').val();
 
             // Show loading Swal only if both fields are filled
             if (start_date && end_date) {
@@ -199,6 +216,7 @@
                     data: function(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
+                        d.buyer = buyer;
                     },
                     error: function(xhr, status, error) {
                         if (start_date && end_date) {
@@ -522,6 +540,7 @@
         function export_excel() {
             let start_date = $('#start_date').val();
             let end_date = $('#end_date').val();
+            let buyer = $('#buyer_filter').val();
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -536,7 +555,8 @@
                 url: '{{ route('export_excel_laporan_sum_buyer') }}',
                 data: {
                     start_date: start_date,
-                    end_date: end_date
+                    end_date: end_date,
+                    buyer: buyer
                 },
                 xhrFields: {
                     responseType: 'blob'

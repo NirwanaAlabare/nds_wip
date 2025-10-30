@@ -44,6 +44,24 @@
                         <input type="date" class="form-control form-control-sm" id="end_date" name="end_date"
                             value="{{ $end_date }}">
                     </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label"><small><b>Buyer</b></small></label>
+                        <div class="input-group">
+                            <select class="form-control select2bs4 form-control-sm rounded" id="buyer_filter"
+                                name="buyer_filter" style="width: 100%;">
+                                <option value="">-- Select Buyer --</option>
+                                @foreach ($data_buyer as $databuyer)
+                                    <option value="{{ $databuyer->isi }}"
+                                        {{ $buyer_filter == $databuyer->isi ? 'selected' : '' }}>
+                                        {{ $databuyer->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                        </div>
+                    </div>
+
                     <!-- Generate Button -->
                     <div class="col-md-4 d-flex gap-2 align-items-end">
                         <button type="submit" class="btn btn-outline-primary btn-sm">
@@ -286,6 +304,7 @@
         function export_excel() {
             let start_date = document.getElementById("start_date").value;
             let end_date = document.getElementById("end_date").value;
+            let buyer_filter = document.getElementById("buyer_filter").value;
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -300,7 +319,8 @@
                 url: '{{ route('export_excel_laporan_daily_earn_buyer') }}',
                 data: {
                     start_date: start_date,
-                    end_date: end_date
+                    end_date: end_date,
+                    buyer_filter: buyer_filter
                 },
                 xhrFields: {
                     responseType: 'blob'

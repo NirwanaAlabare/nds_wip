@@ -289,6 +289,22 @@
                             </div>
                         @endrole
 
+                        {{-- Industrial Engineering --}}
+                        @role('admin')
+                            <div class="col-lg-2 col-md-3 col-sm-6">
+                                <a href="{{ route('dashboard-IE') }}" class="home-item">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex h-100 flex-column justify-content-between">
+                                                <img src="{{ asset('dist/img/IE.png') }}" class="img-fluid p-3" alt="ie image">
+                                                <p class="text-center fw-bold text-uppercase text-dark">Industrial Engineering</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        @endrole
+
                         {{-- General Menu --}}
                         @role('superadmin')
                             <div class="col-lg-2 col-md-3 col-sm-6">

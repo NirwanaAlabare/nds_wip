@@ -197,6 +197,11 @@ use App\Http\Controllers\MgtReportSumBuyerController;
 use App\Http\Controllers\MgtReportDailyEarnBuyerController;
 use App\Http\Controllers\MgtReportProfitLineController;
 
+// Industrial Engineering
+use App\Http\Controllers\IEDashboardController;
+use App\Http\Controllers\IE_Proses_OB_Controller;
+
+
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
 /*
@@ -2279,6 +2284,18 @@ Route::middleware('auth')->group(function () {
     Route::controller(MgtReportProfitLineController::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/mgt_report_profit_line', 'mgt_report_profit_line')->name('mgt_report_profit_line');
         Route::get('/export_excel_laporan_profit_line', 'export_excel_laporan_profit_line')->name('export_excel_laporan_profit_line');
+    });
+
+
+    // Industrial Engineering
+    // Dashboard
+    Route::controller(IEDashboardController::class)->middleware('role:management')->group(function () {
+        Route::get('/dashboard_IE', 'dashboard_IE')->name('dashboard-IE');
+    });
+
+    // Proses Industrial Engineering Operational Breakdown
+    Route::controller(IE_Proses_OB_Controller::class)->prefix("proses")->middleware('role:management')->group(function () {
+        Route::get('/IE_proses_op_breakdown', 'IE_proses_op_breakdown')->name('IE_proses_op_breakdown');
     });
 });
 
