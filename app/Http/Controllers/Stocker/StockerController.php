@@ -5517,7 +5517,22 @@ class StockerController extends Controller
                 get();
 
             if ($validatedRequest['range_awal_year_sequence'] > 0 && $validatedRequest['range_awal_year_sequence'] <= $validatedRequest['range_akhir_year_sequence'] && $validatedRequest['range_akhir_year_sequence'] <= 999999 && $validatedRequest['year_sequence'] > 0) {
-                $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $validatedRequest['year'])->where("year_sequence", $validatedRequest['year_sequence'])->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+                $yearSequence = collect(
+                    DB::select("
+                        SELECT
+                            `year`,
+                            year_sequence,
+                            MAX(year_sequence_number) year_sequence_number
+                        FROM
+                            `year_sequence`
+                        WHERE
+                            `year_sequence`.`year` = '".$validatedRequest['year']."'
+                            AND `year_sequence`.`year_sequence` = '".$validatedRequest['year_sequence']."'
+                        GROUP BY
+                            `year`,
+                            `year_sequence`
+                    ")
+                )->first();
                 $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : $validatedRequest['year_sequence'];
                 $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
 
@@ -6363,21 +6378,25 @@ class StockerController extends Controller
     public function getRangeYearSequence(Request $request) {
         if ($request->year && $request->sequence) {
 
-            $availableYearSequence = DB::table("year_sequence")->selectRaw("
-                    year,
+            $availableYearSequence = collect(DB::select("
+                SELECT
+                    `year`,
                     year_sequence,
-                    year_sequence_number
-                ")->
-                where("year_sequence.year",  $request->year)->
-                where("year_sequence.year_sequence",  $request->sequence)->
-                orderBy('year_sequence_number', 'desc')->
-                limit(1)->
-                first();
+                    MAX(year_sequence_number) year_sequence_number
+                FROM
+                    `year_sequence`
+                WHERE
+                    `year_sequence`.`year` = '".$request->year."'
+                    AND `year_sequence`.`year_sequence` = '".$request->sequence."'
+                GROUP BY
+                    `year`,
+                    `year_sequence`
+            "))->first();
 
             if ($availableYearSequence) {
                 return json_encode($availableYearSequence);
             } else {
-                return json_encode(["year" => $request->year, "year_sequence" => $request->year_sequence, "year_sequence_number" => 1]);
+                return json_encode(["year" => $request->year, "year_sequence" => $request->sequence, "year_sequence_number" => 1]);
             }
         }
 
