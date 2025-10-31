@@ -209,8 +209,7 @@
                     </div>
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
-                            <table id="datatable_detail_packing_list"
-                                class="table table-bordered table-hover 100 nowrap">
+                            <table id="datatable_detail_packing_list" class="table table-bordered table-hover 100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>PO</th>
@@ -455,8 +454,7 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table id="datatable_upload"
-                                class="table table-bordered 100 table-hover display nowrap">
+                            <table id="datatable_upload" class="table table-bordered 100 table-hover display nowrap">
                                 <thead class="table-primary">
                                     <tr style='text-align:center; vertical-align:middle'>
                                         <th>Tgl. Shipment</th>
@@ -630,7 +628,7 @@
             } else {
                 let cbopo = po.split('_')[0];
                 let dest = po.split('_')[1];
-console.log(po);
+                console.log(po);
                 $.ajax({
                     url: '{{ route('show_det_po') }}',
                     method: 'get',
@@ -846,6 +844,10 @@ console.log(po);
                   data-bs-target="#exampleModalTambah"
                 onclick="show_data_t('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );dataTableUploadTambahReload();"><i class='fas fa-plus'></i>
                 </a>
+                <a class='btn btn-success btn-sm'
+                onclick="export_excel('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );"><i class='fas fa-file-excel'></i>
+                </a>
+
                      </div>
                     `;
                     }
@@ -1709,6 +1711,90 @@ console.log(po);
                 },
                 async: false
             }).responseText;
+        }
+
+        function export_excel(po, dest, buyer, styleno) {
+            // Step 1: Ask user which format they want
+            Swal.fire({
+                title: 'Pilih Format Export',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Excel (.xlsx)',
+                denyButtonText: 'CSV (.csv)',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    sendExportRequest(po, dest, buyer, styleno, 'xlsx');
+                } else if (result.isDenied) {
+                    sendExportRequest(po, dest, buyer, styleno, 'csv');
+                }
+            });
+        }
+
+        // Step 2: The actual export AJAX request
+        function sendExportRequest(po, dest, buyer, styleno, format) {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_packing_list') }}',
+                data: {
+                    po,
+                    dest,
+                    buyer,
+                    styleno,
+                    format // send chosen format to backend
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Data Sudah Di Export!',
+                        icon: "success",
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    // Determine MIME type dynamically
+                    const mimeType =
+                        format === 'csv' ?
+                        'text/csv;charset=utf-8;' :
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+                    const blob = new Blob([response], {
+                        type: mimeType
+                    });
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = `PO${po}.${format}`;
+                    link.click();
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Gagal Mengekspor Data',
+                        text: 'Terjadi kesalahan saat mengekspor. Silakan coba lagi.',
+                        icon: 'error',
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    console.error("Export failed:", {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
+                }
+            });
         }
     </script>
 @endsection

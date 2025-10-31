@@ -15,6 +15,8 @@ use App\Imports\UploadPackingListHeader;
 use App\Imports\UploadPackingListKartonVertical;
 use App\Exports\ExportDataTemplatePackingListHorizontal;
 use App\Exports\ExportDataTemplatePackingListVertical;
+use App\Exports\export_excel_packing_list;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 
 
 class PackingPackingListController extends Controller
@@ -1471,6 +1473,26 @@ left join packing_master_packing_list pl on x.po = pl.po and x.id_ppic_master_so
 
         if (empty($data_upload)) {
             return DataTables::of([])->toJson();
+        }
+    }
+
+    public function export_excel_packing_list(Request $request)
+    {
+        $format = $request->get('format', 'xlsx'); // default to XLSX if not specified
+
+        $export = new export_excel_packing_list(
+            $request->po,
+            $request->buyer,
+            $request->dest,
+            $request->styleno
+        );
+
+        $fileName = 'Laporan_Penerimaan_FG_Stok.' . $format;
+
+        if ($format === 'csv') {
+            return Excel::download($export, $fileName, ExcelFormat::CSV);
+        } else {
+            return Excel::download($export, $fileName, ExcelFormat::XLSX);
         }
     }
 }
