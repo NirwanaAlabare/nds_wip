@@ -2922,13 +2922,13 @@ class StockerController extends Controller
 
             if ($lastRatio > 0) {
                 $deleteStocker = Stocker::whereRaw("
-                        part_detail_id = '" . $request['part_detail_id_add'][$i] . "' AND
+                        part_detail_id = '" . $request['part_detail_id_add'][$index] . "' AND
                         form_piece_id = '" . $request['form_cut_id'] . "' AND
-                        so_det_id = '" . $request['so_det_id_add'][$i] . "' AND
+                        so_det_id = '" . $request['so_det_id_add'][$index] . "' AND
                         color = '" . $request['color_add'] . "' AND
                         panel = '" . $request['panel_add'] . "' AND
-                        shade = '" . $request['group_add'][$i] . "' AND
-                        " . ($request['group_stocker_add'][$i] && $request['group_stocker_add'][$i] != "" ? "group_stocker = '" . $request['group_stocker_add'][$i] . "' AND" : "") . "
+                        shade = '" . $request['group_add'][$index] . "' AND
+                        " . ($request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? "group_stocker = '" . $request['group_stocker_add'][$index] . "' AND" : "") . "
                         ratio > " . ($lastRatio) . "
                     ")->update([
                         "cancel" => "y",
