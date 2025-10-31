@@ -199,6 +199,7 @@ use App\Http\Controllers\MgtReportProfitLineController;
 
 // Industrial Engineering
 use App\Http\Controllers\IEDashboardController;
+use App\Http\Controllers\IEMasterController;
 use App\Http\Controllers\IE_Proses_OB_Controller;
 
 
@@ -1824,6 +1825,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/hapus_packing_list', 'hapus_packing_list')->name('hapus_packing_list');
         Route::post('/tambah_packing_list', 'tambah_packing_list')->name('tambah_packing_list');
         Route::get('/show_datatable_upload_packing_list_tambah', 'show_datatable_upload_packing_list_tambah')->name('show_datatable_upload_packing_list_tambah');
+        Route::get('/export_excel_packing_list', 'export_excel_packing_list')->name('export_excel_packing_list');
     });
 
     // Packing List
@@ -2291,6 +2293,11 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(IEDashboardController::class)->middleware('role:management')->group(function () {
         Route::get('/dashboard_IE', 'dashboard_IE')->name('dashboard-IE');
+    });
+
+    // Proses Industrial Engineering Operational Breakdown
+    Route::controller(IEMasterController::class)->prefix("master")->middleware('role:management')->group(function () {
+        Route::get('/IE_master_process', 'IE_master_process')->name('IE_master_process');
     });
 
     // Proses Industrial Engineering Operational Breakdown

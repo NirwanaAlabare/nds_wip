@@ -1581,6 +1581,18 @@
                 @if ($page == 'dashboard-IE')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'IE-master' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('IE_master_process') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-master-process' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Master Process
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'IE-proses' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
