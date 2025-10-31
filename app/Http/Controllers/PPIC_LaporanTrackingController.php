@@ -1154,7 +1154,7 @@ order by buyer asc");
                 output_rfts_packing - 	SUM(a.qty_po) OVER (PARTITION BY a.ws, a.color, a.size ORDER BY a.tgl_shipment) balance_output_rfts_packing
             FROM
             (
-                        SELECT
+                    SELECT
                         supplier buyer,
                         kpno ws,
                         color,
@@ -1225,6 +1225,17 @@ order by buyer asc");
                         SELECT
                             so_det_id AS id_so_det,
                             0 AS qty_cut,
+                            MIN(qty) AS qty_loading,
+                            0 AS output_rfts,
+                            0 AS output_rfts_packing
+                        from laravel_nds.loading_line
+                        LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                        where form_piece_id is not null
+                        group by so_det_id, form_piece_id
+                        UNION ALL
+                        SELECT
+                            so_det_id AS id_so_det,
+                            0 AS qty_cut,
                             0 AS qty_loading,
                             COUNT(so_det_id) AS output_rfts,
                             0 AS output_rfts_packing
@@ -1256,7 +1267,7 @@ order by buyer asc");
                         signalbit_erp.act_costing ac ON so.id_cost = ac.id
                     INNER JOIN
                         signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                        where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                             group by kpno, color, size
             ) b on a.ws = b.ws and a.color = b.color and a.size = b.size and a.styleno_prod = b.styleno_prod and a.reff_no = b.reff_no
             LEFT JOIN (
@@ -1512,7 +1523,7 @@ order by buyer asc");
                 inner join signalbit_erp.so on sd.id_so = so.id
                 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                 group by
                 ac.kpno,
                 sd.color,
@@ -1541,7 +1552,7 @@ order by buyer asc");
                         inner join signalbit_erp.so on sd.id_so = so.id
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                        where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                         group by
                         ac.kpno,
                         sd.color,
@@ -1566,7 +1577,7 @@ order by buyer asc");
                         inner join signalbit_erp.so on sd.id_so = so.id
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size and a.status = 'NORMAL'
+                        where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size and a.status = 'NORMAL'
                         group by
                         ac.kpno,
                         sd.color,
@@ -2411,7 +2422,7 @@ order by buyer asc");
                         signalbit_erp.act_costing ac ON so.id_cost = ac.id
                     INNER JOIN
                         signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                        where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                             GROUP BY
                             ws, color, size,styleno_prod, reff_no, tgl_shipment
                             ORDER BY
@@ -2463,6 +2474,17 @@ order by buyer asc");
                         SELECT
                             so_det_id AS id_so_det,
                             0 AS qty_cut,
+                            MIN(qty) AS qty_loading,
+                            0 AS output_rfts,
+                            0 AS output_rfts_packing
+                        from laravel_nds.loading_line
+                        LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                        where form_piece_id is not null
+                        group by so_det_id, form_piece_id
+                        UNION ALL
+                        SELECT
+                            so_det_id AS id_so_det,
+                            0 AS qty_cut,
                             0 AS qty_loading,
                             COUNT(so_det_id) AS output_rfts,
                             0 AS output_rfts_packing
@@ -2494,7 +2516,7 @@ order by buyer asc");
                         signalbit_erp.act_costing ac ON so.id_cost = ac.id
                     INNER JOIN
                         signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                        where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                             group by kpno, color, size
             ) b on a.ws = b.ws and a.color = b.color and a.size = b.size and a.styleno_prod = b.styleno_prod and a.reff_no = b.reff_no
             LEFT JOIN (
@@ -2782,7 +2804,7 @@ order by buyer asc");
                 inner join signalbit_erp.so on sd.id_so = so.id
                 inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                 group by
                 ac.kpno,
                 sd.color,
@@ -2811,7 +2833,7 @@ order by buyer asc");
                         inner join signalbit_erp.so on sd.id_so = so.id
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
+                        where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size
                         group by
                         ac.kpno,
                         sd.color,
@@ -2836,7 +2858,7 @@ order by buyer asc");
                         inner join signalbit_erp.so on sd.id_so = so.id
                         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
                         inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                        where ms.supplier = '$buyer' and sd.cancel = 'N' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size and a.status = 'NORMAL'
+                        where ms.supplier = '$buyer' and so.cancel_h = 'N' $cond_reff $cond_ws $cond_color $cond_size and a.status = 'NORMAL'
                         group by
                         ac.kpno,
                         sd.color,
