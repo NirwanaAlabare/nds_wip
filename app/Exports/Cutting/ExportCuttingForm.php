@@ -95,7 +95,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_input.id,
                 form_cut_input_detail.group_stocker,
                 marker_input_detail.id
-            UNION
+            UNION ALL
             SELECT
                 COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) tanggal,
                 '-' meja,
@@ -122,8 +122,8 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) between '".$this->dateFrom."' and '".$this->dateTo."' and
-                form_cut_piece_detail_size.qty > 0
+                DATE(form_cut_piece_detail.created_at) between '".$this->dateFrom."' and '".$this->dateTo."' and
+                form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
                 form_cut_piece_detail.group_stocker,
