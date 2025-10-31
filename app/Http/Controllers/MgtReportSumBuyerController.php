@@ -43,11 +43,9 @@ class MgtReportSumBuyerController extends Controller
 
                 if ($buyer != "") {
                     $having_buyer = "HAVING a.buyer = '$buyer'";
-                    $cond_buyer = "and ms.supplier = '$buyer'";
                     $cond_na = "";
                 } else {
                     $having_buyer = "";
-                    $cond_buyer = "";
                     $cond_na = "UNION
 SELECT
 'N/A' AS buyer,
@@ -244,7 +242,6 @@ earn as (
                     ON k.tanggal_kurs_bi = x.max_kurs_date
                 ) mkb ON a.tgl_trans = mkb.tgl_trans
 					where u.name != 'line sample prod'
-                    $cond_buyer
                 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
                 order by a.tgl_trans asc, u.name asc, ac.kpno asc
 ),

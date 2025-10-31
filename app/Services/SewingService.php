@@ -70,7 +70,7 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan = output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan
             WHERE
                 actual.id IS NULL OR actual.id != output.plan_id
             GROUP BY
@@ -122,7 +122,7 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan = output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan
             WHERE
                 actual.id IS NULL OR actual.id != output.plan_id
             GROUP BY
@@ -174,7 +174,7 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan = output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan
             WHERE
                 actual.id IS NULL OR actual.id != output.plan_id
             GROUP BY
@@ -424,9 +424,9 @@ class SewingService
                     output_defects.id
             ) output
             LEFT JOIN master_plan actual on
-                actual.id_ws <= output.actual_act_costing_id AND
-                actual.color <= output.actual_color and
-                actual.sewing_line <= output.line and
+                actual.id_ws = output.actual_act_costing_id AND
+                actual.color = output.actual_color and
+                actual.sewing_line = output.line and
                 actual.tgl_plan <= output.tgl_plan
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
@@ -643,6 +643,8 @@ class SewingService
             "Fails" => $fails,
             "Unavailable" => $unavailable
         ]);
+
+        dd($masterPlan->toSql() + $masterPlanDef->toSql() + $masterPlanRej->toSql() + $masterPlanPac->toSql() + $masterPlanDefPac->toSql() + $masterPlanRejPac->toSql());
 
         return array(
             'status' => 200,
