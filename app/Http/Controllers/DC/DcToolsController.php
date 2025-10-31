@@ -29,7 +29,7 @@ class DcToolsController extends Controller
         $month = $request->input('month');
         $date = $request->input('date');
 
-        $emptyOrder = LoadingLine::selectRaw("GROUP_CONCAT(loading_line.id) as loading_line_ids, loading_line.tanggal_loading, loading_line.line_id, master_sb_ws.buyer, master_sb_ws.id_act_cost as act_costing_id, stocker_input.act_costing_ws, master_sb_ws.styleno as style, stocker_input.color, MIN(loading_plan_id) as loading_plan_id")->
+        $emptyOrder = LoadingLine::selectRaw("GROUP_CONCAT(loading_line.id) as loading_line_ids, loading_line.tanggal_loading, loading_line.line_id, master_sb_ws.buyer, master_sb_ws.id_act_cost as act_costing_id, stocker_input.act_costing_ws, master_sb_ws.styleno as style, stocker_input.color, MIN(loading_line_plan.id) as loading_plan_id")->
             leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")->
             leftJoin("loading_line_plan", "loading_line_plan.id", "=", "loading_line.loading_plan_id")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
@@ -61,7 +61,7 @@ class DcToolsController extends Controller
                         array_push($fails, $eo->loading_line_ids);
                     }
                 }
-            } else {
+            } else if ($eo->loading_plan_id) {
                 $updateLoadingLinePlan = LoadingLinePlan::where("id", $eo->loading_plan_id)->update([
                     "buyer" => $eo->buyer,
                     "act_costing_id" => $eo->act_costing_id,
@@ -79,6 +79,52 @@ class DcToolsController extends Controller
                         array_push($success, $eo->loading_line_ids);
                     } else {
                         array_push($fails, $eo->loading_line_ids);
+                    }
+                }
+            } else {
+                $currentLoadingLinePlan = LoadingLinePlan::where("act_costing_id", $eo->act_costing_id)->
+                    where("act_costing_ws", $eo->act_costing_ws)->
+                    where("style", $eo->style)->
+                    where("color", $eo->color)->
+                    where("tanggal", $eo->tanggal_loading)->
+                    first();
+
+                if ($currentLoadingLinePlan) {
+                    $updateLoadingLine = LoadingLine::whereRaw("id in (".$eo->loading_line_ids.")")->update([
+                        "loading_plan_id" => $currentLoadingLinePlan->id
+                    ]);
+
+                    if ($updateLoadingLine) {
+                        array_push($success, $eo->loading_line_ids);
+                    } else {
+                        array_push($fails, $eo->loading_line_ids);
+                    }
+                } else {
+                    $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
+                    $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
+                    $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
+
+                    $loadingLinePlan = LoadingLinePlan::create([
+                        "kode" => $kodeLoadingPlan,
+                        "tanggal" => $eo->tanggal_loading,
+                        "line_id" => $eo->line_id,
+                        "buyer" => $eo->buyer,
+                        "act_costing_id" => $eo->act_costing_id,
+                        "act_costing_ws" => $eo->act_costing_ws,
+                        "style" => $eo->style,
+                        "color" => $eo->color,
+                    ]);
+
+                    if ($loadingLinePlan) {
+                        $updateLoadingLine = LoadingLine::whereRaw("id in (".$eo->loading_line_ids.")")->update([
+                            "loading_plan_id" => $loadingLinePlan->id
+                        ]);
+
+                        if ($updateLoadingLine) {
+                            array_push($success, $eo->loading_line_ids);
+                        } else {
+                            array_push($fails, $eo->loading_line_ids);
+                        }
                     }
                 }
             }

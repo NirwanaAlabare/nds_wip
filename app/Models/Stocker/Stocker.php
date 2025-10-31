@@ -45,7 +45,7 @@ class Stocker extends Model
      */
     public function masterSbWs()
     {
-        return $this->belongsTo(SoDet::class, 'so_det_id', 'id');
+        return $this->belongsTo(MasterSbWs::class, 'so_det_id', 'id_so_det');
     }
 
     /**

@@ -656,8 +656,22 @@ class TrolleyStockerController extends Controller
         $lineData = UserLine::where("line_id", $request->line_id)->first();
 
         function getCostingDataTrolley($data, $field) {
-            if (isset($data->masterSbWs->{$field})) {
-                return $data->masterSbWs->{$field};
+            if (isset($data->masterSbWs)) {
+                switch ($field) {
+                    case "act_costing_id" :
+                        $field = "id_act_cost";
+                        break;
+                    case "act_costing_ws" :
+                        $field = "ws";
+                        break;
+                    case "style" :
+                        $field = "styleno";
+                        break;
+                }
+
+                if (isset($data->masterSbWs->{$field})) {
+                    return $data->masterSbWs->{$field};
+                }
             } elseif (isset($data->formPiece->{$field})) {
                 return $data->formPiece->{$field};
             } elseif (isset($data->formReject->{$field})) {
