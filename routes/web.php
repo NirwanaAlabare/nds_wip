@@ -353,6 +353,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
         // get master secondary
         Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
+        // get complement panels
+        Route::get('/get-complement-panels', 'getComplementPanelList')->name('get-part-complement-panels');
+        // get complement panel parts
+        Route::get('/get-complement-panel-parts', 'getComplementPanelPartList')->name('get-part-complement-panel-parts');
     });
 
     // Marker :

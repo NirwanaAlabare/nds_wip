@@ -21,6 +21,7 @@ use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Dc\LoadingLine;
 use App\Models\Stocker\ModifySizeQty;
+use App\Services\PartService;
 use App\Services\StockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -170,6 +171,35 @@ class PartController extends Controller
         return $html;
     }
 
+    public function getComplementPanelList(Request $request)
+    {
+        $include = "";
+        $complementPanels = Part::select("part.id", "part.panel")->where("part.act_costing_id", $request->act_costing_id)->where("part.color", $request->color)->where("part.panel", "!=", $request->panel)->get();
+
+        $html = "<option value=''>Pilih Panel</option>";
+
+        foreach ($complementPanels as $panel) {
+            $html .= " <option value='" . $panel->id . "'>" . $panel->panel . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function getComplementPanelPartList(Request $request)
+    {
+        $complementPanelParts = PartDetail::select("part_detail.id", "master_part.nama_part")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            where("part_detail.part_id", $request->part_id)->
+            get();
+
+        $html = "<option value=''>Pilih Part</option>";
+
+        foreach ($complementPanelParts as $panelPart) {
+            $html .= " <option value='" . $panelPart->id . "'>" . ($panelPart->nama_part) . "</option> ";
+        }
+
+        return $html;
+    }
+
     public function getMasterParts(Request $request)
     {
         $masterParts = MasterPart::all();
@@ -212,12 +242,13 @@ class PartController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PartService $partService, Request $request)
     {
         $part = Part::select("kode")->orderBy("kode", "desc")->first();
         $partNumber = $part ? intval(substr($part->kode, -5)) + 1 : 1;
         $partCode = 'PRT' . sprintf('%05s', $partNumber);
         $totalPartDetail = intval($request["jumlah_part_detail"]);
+        $totalComplementPartDetail = intval($request["jumlah_complement_part_detail"]);
 
         $validatedRequest = $request->validate([
             "ws_id" => "required",
@@ -227,7 +258,14 @@ class PartController extends Controller
             "panel" => "required",
             "buyer" => "required",
             "style" => "required",
+            "panel_status" => "required",
         ]);
+
+        // Check Remaining Panel
+        $checkRemainingPanel = $partService->checkRemainingPanel($validatedRequest['ws_id'], $validatedRequest['panel_id'], $validatedRequest['panel'], $validatedRequest['panel_status']);
+        if ($checkRemainingPanel && $checkRemainingPanel['status'] && $checkRemainingPanel['status'] != 200) {
+            return $checkRemainingPanel;
+        }
 
         if ($totalPartDetail > 0) {
             $partStore = Part::create([
@@ -239,10 +277,12 @@ class PartController extends Controller
                 "panel" => $validatedRequest['panel'],
                 "buyer" => $validatedRequest['buyer'],
                 "style" => $validatedRequest['style'],
+                "panel_status" => $validatedRequest['panel_status'],
                 "created_by" => Auth::user()->id,
                 "created_by_username" => Auth::user()->username,
             ]);
 
+            // Main/Regular Part
             $timestamp = Carbon::now();
             $partId = $partStore->id;
             $partDetailData = [];
@@ -256,10 +296,34 @@ class PartController extends Controller
                         "unit" => $request["cons_unit"][$i],
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
+                        "from_part_detail" => null,
+                        "part_status" => isset($request["main_part"][$i]) ? 'main' : 'regular'
                     ]);
                 }
             }
 
+            // Complement Part
+            for ($i = 0; $i < $totalComplementPartDetail; $i++) {
+                if ($request["com_part_details"][$i] && $request["com_proses"][$i] && $request["com_from_part_id"][$i]) {
+                    $currentFromPartDetail = DB::table("part_detail")->where("id", $request["com_from_part_id"][$i])->first();
+
+                    if ($currentFromPartDetail) {
+                        array_push($partDetailData, [
+                            "part_id" => $partId,
+                            "master_part_id" => $request["com_part_details"][$i],
+                            "master_secondary_id" => $request["com_proses"][$i],
+                            "cons" => $currentFromPartDetail->cons,
+                            "unit" => $currentFromPartDetail->unit,
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                            "from_part_detail" => $request["com_from_part_id"][$i],
+                            "part_status" => 'complement'
+                        ]);
+                    }
+                }
+            }
+
+            // Store Part Detail
             $partDetailStore = PartDetail::insert($partDetailData);
 
             $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
@@ -959,6 +1023,7 @@ class PartController extends Controller
                 ms.proses,
                 cons,
                 UPPER(unit) unit,
+                pd.part_status,
                 stocker.total total_stocker
             FROM
                 `part_detail` pd

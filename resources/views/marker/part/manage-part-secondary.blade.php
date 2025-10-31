@@ -62,7 +62,13 @@
                             <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $part->panel }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>Panel Status</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ $part->panel_status }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
                         <div class="mb-3">
                             <label><small><b>Parts</b></small></label>
                             <input type="text" class="form-control form-control-sm" name="part_details" id="part_details" value="{{ $part->part_details }}" readonly>
@@ -160,6 +166,7 @@
                                     <th>Satuan</th>
                                     <th>Tujuan</th>
                                     <th>Proses</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -439,6 +446,9 @@
                     {
                         data: 'proses',
                     },
+                    {
+                        data: 'part_status',
+                    },
                 ],
                 columnDefs: [
                     {
@@ -456,6 +466,12 @@
                             `;
                         }
                     },
+                    {
+                        targets: [6],
+                        render: (data, type, row, meta) => {
+                            return data ? data.toUpperCase() : '-';
+                        }
+                    }
                 ]
             });
         }
