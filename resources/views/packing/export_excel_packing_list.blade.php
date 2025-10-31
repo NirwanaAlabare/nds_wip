@@ -5,7 +5,7 @@
     <table>
         <thead>
             <tr>
-                <th class="text-center align-middle" scope="col">PO</th>
+                <th class="text-center align-middle" scope="col">PO Number</th>
                 <th class="text-center align-middle" scope="col">Carton Number</th>
                 <th class="text-center align-middle" scope="col">SKU</th>
                 <th class="text-center align-middle" scope="col">Short Description</th>
