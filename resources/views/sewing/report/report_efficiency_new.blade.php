@@ -80,13 +80,10 @@
                         <tr>
                             <th colspan="4"> Total </th>
                             <th colspan="3"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_mp'> </th>
+                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_mp'></th>
                             <th></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_target'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_output'> </th>
+                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_target'></th>
+                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_output'></th>
                             <th></th>
                             <th></th>
                             <th></th>
