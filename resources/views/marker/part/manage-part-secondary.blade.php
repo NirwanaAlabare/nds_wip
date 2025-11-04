@@ -65,13 +65,23 @@
                     <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Panel Status</b></small></label>
-                            <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ $part->panel_status }}" readonly>
+                            <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ strtoupper($part->panel_status) }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Parts</b></small></label>
-                            <input type="text" class="form-control form-control-sm" name="part_details" id="part_details" value="{{ $part->part_details }}" readonly>
+                            @php
+                                $partDetails = explode(",", $part->part_details);
+                            @endphp
+                            <ul class="list-group">
+                                @if ($partDetails)
+                                    @for ($i = 0; $i < count($partDetails); $i++)
+                                        <li class="list-group-item">{{ $partDetails[$i] }}</li>
+                                    @endfor
+                                @endif
+                            </ul>
+                            {{-- <input type="text" class="form-control form-control-sm" name="part_details" id="part_details" value="{{ $part->part_details }}" readonly> --}}
                         </div>
                     </div>
                 </div>
@@ -95,35 +105,52 @@
                     <form method="post" id="store-secondary" name='form'>
                         <div class="row">
                             <div class="col-6 col-md-3">
-                                <div class="mb-4">
-                                    <label><small><b>Part</b></small></label>
-                                    <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
-                                        <option selected="selected" value="">Pilih Part</option>
-                                        @foreach ($data_part as $datapart)
-                                            <option value="{{ $datapart->id }}">
-                                                {{ $datapart->nama_part . ' - ' . $datapart->bag }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                <label><small><b>Part</b></small></label>
+                                <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih Part</option>
+                                    @foreach ($data_part as $datapart)
+                                        <option value="{{ $datapart->id }}">
+                                            {{ $datapart->nama_part . ' - ' . $datapart->bag }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-6 col-md-3">
-                                <div class="mb-4">
-                                    <label><small><b>Cons</b></small></label>
-                                    <div class="input-group mb-3">
-                                        <input type="text" class="form-control" name="txtcons" id="txtcons">
-                                        <div class="input-group-prepend">
-                                            <select class="form-select" style="border-radius: 0 3px 3px 0;" name="txtconsunit" id="txtconsunit">
-                                                <option value="meter">METER</option>
-                                                <option value="yard">YARD</option>
-                                                <option value="kgm">KGM</option>
-                                                <option value="pcs">PCS</option>
-                                            </select>
-                                        </div>
+                                <label><small><b>Cons</b></small></label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" name="txtcons" id="txtcons">
+                                    <div class="input-group-prepend">
+                                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="txtconsunit" id="txtconsunit">
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                            <option value="pcs">PCS</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
+                                <label class="form-label"><small>Secondary</small></label>
+                                <div class="d-flex gap-1">
+                                    <select class="form-control select2bs4" type="text" id="secondaries" name="secondaries[]" multiple onchange="orderSecondary(this)">
+                                        @foreach ($data_secondary as $secondary)
+                                            <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-sm btn-dark" onclick="clearSelectOptions(this)"><i class="fa fa-rotate-left"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><small>Urutan</small></label>
+                                <ul class="list-group" id="urutan_show">
+                                    <li class="list-group-item">-</li>
+                                </ul>
+                                <input type="text" class="form-control d-none" id="urutan" name="urutan" readonly>
+                            </div>
+                            <div class="col-12 col-md-12 mt-3">
+                                <button type="button" class="btn btn-block btn-sb-secondary btn-sm" name="simpan" id="simpan" onclick="simpan_data();">SIMPAN <i class="fa fa-save"></i></button>
+                            </div>
+                            {{-- <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Tujuan</b></small></label>
                                     <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;" onchange="getproses();">
@@ -135,8 +162,8 @@
                                         @endforeach
                                     </select>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-3">
+                            </div> --}}
+                            {{-- <div class="col-6 col-md-3">
                                 <div class="row align-items-end">
                                     <div class="col-9">
                                         <div class="mb-4">
@@ -145,15 +172,118 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-3">
-                                        <div class="mb-4">
-                                            <label><small><b>&nbsp</b></small></label>
-                                            <button type="button" class="btn btn-block bg-primary" name="simpan" id="simpan" onclick="simpan_data();"><i class="fa fa-save"></i></button>
-                                            {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
-                                        </div>
+                                </div>
+                            </div> --}}
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table id="datatable_list_part" class="table table-bordered table w-100">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Part</th>
+                                    <th>Cons.</th>
+                                    <th>Satuan</th>
+                                    <th>Tujuan</th>
+                                    <th>Proses</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tambah Part Secondary Complement --}}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header bg-sb">
+                    <h5 class="card-title fw-bold">
+                        <i class="fa fa-list fa-sm"></i> Tambah Complement Part Secondary
+                    </h5>
+                    <div class='card-tools'>
+                        <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="store-complement-secondary" name='form'>
+                        <div class="row">
+                            <div class="col-6 col-md-3">
+                                <label><small><b>Part</b></small></label>
+                                <select class="form-control select2bs4" id="com_txtpart" name="com_txtpart" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih Part</option>
+                                    @foreach ($data_part as $datapart)
+                                        <option value="{{ $datapart->id }}">
+                                            {{ $datapart->nama_part . ' - ' . $datapart->bag }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label><small><b>Cons</b></small></label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" name="com_txtcons" id="com_txtcons">
+                                    <div class="input-group-prepend">
+                                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="com_txtconsunit" id="com_txtconsunit">
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                            <option value="pcs">PCS</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><small>Secondary</small></label>
+                                <div class="d-flex gap-1">
+                                    <select class="form-control select2bs4" type="text" id="com_secondaries" name="com_secondaries[]" multiple onchange="orderSecondary(this, 'com_')">
+                                        @foreach ($data_secondary as $secondary)
+                                            <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-sm btn-dark" onclick="clearSelectOptions(this, 'com_')"><i class="fa fa-rotate-left"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><small>Urutan</small></label>
+                                <ul class="list-group" id="com_urutan_show">
+                                    <li class="list-group-item">-</li>
+                                </ul>
+                                <input type="text" class="form-control d-none" id="com_urutan" name="com_urutan" readonly>
+                            </div>
+                            <div class="col-12 col-md-12">
+                                <button type="button" class="btn btn-block btn-sb-secondary btn-sm" name="com_simpan" id="com_simpan" onclick="simpan_data('com_');">SIMPAN <i class="fa fa-save"></i></button>
+                                {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
+                            </div>
+                            {{-- <div class="col-6 col-md-3">
+                                <div class="mb-4">
+                                    <label><small><b>Tujuan</b></small></label>
+                                    <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;" onchange="getproses();">
+                                        <option selected="selected" value="">Pilih Tujuan</option>
+                                        @foreach ($data_tujuan as $datatujuan)
+                                            <option value="{{ $datatujuan->isi }}">
+                                                {{ $datatujuan->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div> --}}
+                            {{-- <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-9">
+                                        <div class="mb-4">
+                                            <label><small><b>Proses</b></small></label>
+                                            <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> --}}
                         </div>
                     </form>
                     <div class="table-responsive">
@@ -215,6 +345,24 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label"><small>Secondary</small></label>
+                            <div class="d-flex gap-1">
+                                <select class="form-control select2bs4" type="text" id="edit_secondaries" name="edit_secondaries" multiple onchange="orderSecondary(this, 'edit')">
+                                    @foreach ($data_secondary as $secondary)
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-sm btn-dark" onclick="clearSelectOptions(this, 'edit')"><i class="fa fa-rotate-left"></i></button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><small>Urutan</small></label>
+                            <ul class="list-group" id="edit_urutan_show">
+                                <li class="list-group-item">-</li>
+                            </ul>
+                            <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
+                        </div>
+                        {{-- <div class="mb-3">
                             <label class="form-label">Tujuan</label>
                             <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
                                 @foreach ($data_tujuan as $datatujuan)
@@ -227,7 +375,7 @@
                         <div class="mb-3">
                             <label class="form-label">Proses</label>
                             <select class="form-select select2bs4" name="edit_proses" id="edit_proses"></select>
-                        </div>
+                        </div> --}}
                     </div>
                     <div class="modal-footer">
                         <div class="d-flex gap-1">
@@ -1011,6 +1159,78 @@
                     confirmButtonText: 'Oke',
                 });
             }
+        }
+
+        function orderSecondary(element, prefix = '') {
+            console.log(element, prefix, document.getElementById(`${prefix}urutan_show`), `${prefix}urutan_show`);
+            const orderShow = document.getElementById(`${prefix}urutan_show`);
+            const order = document.getElementById(`${prefix}urutan`);
+
+            if (orderShow && order) {
+                // remove the default placeholder if it exists
+                const placeholder = orderShow.querySelector('li');
+                if (placeholder && placeholder.textContent.trim() === '-') {
+                    placeholder.remove();
+                }
+
+                let currentValues = order.value ? order.value.split(',') : [];
+
+                const selectedValues = Array.from(element.selectedOptions).map(opt => opt.value);
+                const selectedTexts = Array.from(element.selectedOptions).map(opt => opt.textContent);
+
+                const newlySelected = selectedValues.filter(v => !currentValues.includes(v));
+                const deselected = currentValues.filter(v => !selectedValues.includes(v));
+
+                // Add new selections
+                newlySelected.forEach(value => {
+                    const optionText = selectedTexts[selectedValues.indexOf(value)];
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.dataset.value = value;
+                    li.textContent = optionText;
+                    li.draggable = true;
+                    orderShow.appendChild(li);
+                    currentValues.push(value);
+                });
+
+                // Remove deselected items
+                deselected.forEach(value => {
+                    currentValues = currentValues.filter(v => v !== value);
+                    const liToRemove = orderShow.querySelector(`li[data-value="${value}"]`);
+                    if (liToRemove) liToRemove.remove();
+                });
+
+                order.value = currentValues.join(',');
+                console.log(`Select ${prefix} current values:`, currentValues);
+            }
+        }
+
+        function clearSelectOptions(button, prefix = '') {
+            // get select, list, hidden input based on index
+            const select = document.getElementById(`${prefix}secondaries`);
+            const list = document.getElementById(`${prefix}urutan_show`);
+            const hidden = document.getElementById(`${prefix}urutan`);
+
+            if (!select || !list || !hidden) return;
+
+            // Deselect all options
+            Array.from(select.options).forEach(option => option.selected = false);
+
+            // Clear the list
+            list.innerHTML = '';
+
+            // Reset hidden input
+            hidden.value = '';
+
+            // Restore placeholder
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = '-';
+            list.appendChild(li);
+
+            $(`#${prefix}secondaries`).val(null).trigger("change");
+
+            console.log(`Cleared select and list for ${prefix}index`);
         }
     </script>
 @endsection

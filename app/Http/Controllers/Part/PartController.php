@@ -8,6 +8,7 @@ use App\Models\Part\MasterTujuan;
 use App\Models\Part\MasterSecondary;
 use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailSecondary;
 use App\Models\Part\PartForm;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
@@ -27,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -226,9 +228,19 @@ class PartController extends Controller
 
     public function getMasterSecondary(Request $request)
     {
-        $masterSecondary = MasterSecondary::all();
+        if ($request->type) {
+            if ($request->type == "non secondary") {
+                $masterSecondary = MasterSecondary::where("tujuan", "NON SECONDARY")->get();
+            } else if ($request->type == "secondary") {
+                $masterSecondary = MasterSecondary::whereIn("tujuan", ["SECONDARY DALAM", "SECONDARY LUAR"])->get();
+            } else {
+                $masterSecondary = MasterSecondary::all();
+            }
+        } else {
+            $masterSecondary = MasterSecondary::all();
+        }
 
-        $masterSecondaryOptions = "<option value=''>Pilih Proses</option>";
+        $masterSecondaryOptions = '';
         foreach ($masterSecondary as $secondary) {
             $masterSecondaryOptions .= "<option value='".$secondary->id."' data-tujuan='".$secondary->id_tujuan."'>".$secondary->proses." / ".$secondary->tujuan."</option>";
         }
@@ -283,49 +295,94 @@ class PartController extends Controller
             ]);
 
             // Main/Regular Part
+            $batch = Str::uuid();
+
             $timestamp = Carbon::now();
             $partId = $partStore->id;
-            $partDetailData = [];
+            $partDetailSecondaryData = [];
             for ($i = 0; $i < $totalPartDetail; $i++) {
-                if ($request["part_details"][$i] && $request["proses"][$i] && $request["cons"][$i] && $request["cons_unit"][$i]) {
-                    array_push($partDetailData, [
+                if ($request["part_details"][$i] && $request["cons"][$i] && $request["cons_unit"][$i] && $request["tujuan"][$i]) {
+                    // Store to Part Detail
+                    $currentPartDetail = PartDetail::create( [
                         "part_id" => $partId,
+                        "batch" => $batch,
                         "master_part_id" => $request["part_details"][$i],
-                        "master_secondary_id" => $request["proses"][$i],
+                        // "master_secondary_id" => $request["proses"][$i],
+                        "tujuan" => $request["tujuan"][$i],
                         "cons" => $request["cons"][$i],
+                        "from_part_detail" => null,
+                        "part_status" => isset($request["main_part"][$i]) ? 'main' : 'regular',
+                        "created_by" => Auth::user()->id,
+                        "created_by_username" => Auth::user()->username,
                         "unit" => $request["cons_unit"][$i],
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
-                        "from_part_detail" => null,
-                        "part_status" => isset($request["main_part"][$i]) ? 'main' : 'regular'
                     ]);
+
+                    // Store Secondaries
+                    if ($request["urutan"][$i]) {
+                        $currentSecondaries = explode(',', $request["urutan"][$i]);
+                        for ($j = 0; $j < count($currentSecondaries); $j++) {
+                            array_push($partDetailSecondaryData, [
+                                "part_detail_id" => $currentPartDetail->id,
+                                "master_secondary_id" => $currentSecondaries[$j],
+                                "urutan" => $j+1,
+                                "batch" => $batch,
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
+                                "created_at" => $timestamp,
+                                "updated_at" => $timestamp,
+                            ]);
+                        }
+                    }
                 }
             }
 
             // Complement Part
             for ($i = 0; $i < $totalComplementPartDetail; $i++) {
-                if ($request["com_part_details"][$i] && $request["com_proses"][$i] && $request["com_from_part_id"][$i]) {
-                    $currentFromPartDetail = DB::table("part_detail")->where("id", $request["com_from_part_id"][$i])->first();
+                if ($request["com_part_details"][$i] && $request["com_from_part_id"][$i]) {
+                    $currentFromPartDetail = PartDetail::where("id", $request["com_from_part_id"][$i])->first();
 
                     if ($currentFromPartDetail) {
-                        array_push($partDetailData, [
+                        // Store to Part Detail
+                        $currentPartDetail = PartDetail::create([
                             "part_id" => $partId,
+                            "batch" => $batch,
                             "master_part_id" => $request["com_part_details"][$i],
-                            "master_secondary_id" => $request["com_proses"][$i],
+                            // "master_secondary_id" => $request["com_proses"][$i],
                             "cons" => $currentFromPartDetail->cons,
                             "unit" => $currentFromPartDetail->unit,
+                            "from_part_detail" => $request["com_from_part_id"][$i],
+                            "tujuan" => $currentFromPartDetail->tujuan,
+                            "part_status" => 'complement',
                             "created_at" => $timestamp,
                             "updated_at" => $timestamp,
-                            "from_part_detail" => $request["com_from_part_id"][$i],
-                            "part_status" => 'complement'
                         ]);
+
+                        // Store Secondaries
+                        $currentPartDetailSecondaries = $currentFromPartDetail->secondaries();
+                        if ($currentPartDetailSecondaries) {
+                            foreach ($currentPartDetailSecondaries as $secondary) {
+                                array_push($partDetailSecondaryData, [
+                                    "part_detail_id" => $currentPartDetail->id,
+                                    "master_secondary_id" => $secondary->master_secondary_id,
+                                    "urutan" => $secondary->urutan,
+                                    "batch" => $batch,
+                                    "created_by" => Auth::user()->id,
+                                    "created_by_username" => Auth::user()->username,
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
+                        }
                     }
                 }
             }
 
-            // Store Part Detail
-            $partDetailStore = PartDetail::insert($partDetailData);
+            // Store Part Detail Secondary Detail
+            $partDetailSecondaryStore = PartDetailSecondary::insert($partDetailSecondaryData);
 
+            // Part Form IN
             $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
             foreach ($formCutData as $formCut) {
                 $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
@@ -345,6 +402,7 @@ class PartController extends Controller
                 }
             }
 
+            // Part Form Piece IN
             $formPieceData = FormCutPiece::select('form_cut_piece.id')->where("form_cut_piece.act_costing_id", $partStore->act_costing_id)->where("form_cut_piece.act_costing_ws", $partStore->act_costing_ws)->where("form_cut_piece.panel", $partStore->panel)->where("form_cut_piece.buyer", $partStore->buyer)->where("form_cut_piece.style", $partStore->style)->where("form_cut_piece.status", "complete")->orderBy("no_cut", "asc")->get();
             foreach ($formPieceData as $formPiece) {
                 $isExist = PartForm::where("part_id", $partId)->where("form_pcs_id", $formPiece->id)->count();
@@ -599,6 +657,7 @@ class PartController extends Controller
                 part.style,
                 part.color,
                 part.panel,
+                part.panel_status,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->
             leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
@@ -612,10 +671,11 @@ class PartController extends Controller
         // where part_id = '$id'");
 
         $data_part = MasterPart::all();
+        $data_secondary = MasterSecondary::all();
 
         $data_tujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
 
-        return view("marker.part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view("marker.part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "data_secondary" => $data_secondary, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function get_proses(Request $request)

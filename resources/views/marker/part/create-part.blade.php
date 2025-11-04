@@ -36,8 +36,8 @@
 @section('content')
     <form action="{{ route('store-part') }}" method="post" id="store-part" onsubmit="submitPartForm(this, event)">
         @csrf
-        <div class="card card-sb">
-            <div class="card-header">
+        <div class="card">
+            <div class="card-header bg-sb">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold">
                         <i class="fa fa-plus fa-sm"></i> Tambah Data Part Group
@@ -114,81 +114,90 @@
                     <div class="col-12 col-md-12 mb-3" id="parts-section">
                         <hr class="border-dark">
                         <h5 class="text-sb">Parts</h5>
-                        <div class="row">
-                            <div class="col">
-                                <label class="form-label"><small>Part</small></label>
-                                <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
-                                    <option value="">Pilih Part</option>
-                                    @foreach ($masterParts as $masterPart)
-                                        <option value="{{ $masterPart->id }}" data-index="0">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
-                                    @endforeach
-                                </select>
+                        <div class="card">
+                            <div class="card-header bg-sb-secondary">
+                                <h6 class="mb-0">Part 1</h6>
                             </div>
-                            <div class="col">
-                                <label class="form-label"><small>Cons</small></label>
-                                <div class="d-flex mb-3">
-                                    <div style="width: 50%;">
-                                        <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[0]" id="cons_0" step="0.001">
-                                    </div>
-                                    <div style="width: 50%;">
-                                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[0]" id="cons_unit_0">
-                                            <option value="meter">METER</option>
-                                            <option value="yard">YARD</option>
-                                            <option value="kgm">KGM</option>
-                                            <option value="pcs">PCS</option>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <label class="form-label"><small>Part</small></label>
+                                        <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
+                                            <option value="">Pilih Part</option>
+                                            @foreach ($masterParts as $masterPart)
+                                                <option value="{{ $masterPart->id }}" data-index="0">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
+                                    <div class="col-4">
+                                        <label class="form-label"><small>Cons</small></label>
+                                        <div class="d-flex mb-3">
+                                            <div style="width: 50%;">
+                                                <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[0]" id="cons_0" step="0.001">
+                                            </div>
+                                            <div style="width: 50%;">
+                                                <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[0]" id="cons_unit_0">
+                                                    <option value="meter">METER</option>
+                                                    <option value="yard">YARD</option>
+                                                    <option value="kgm">KGM</option>
+                                                    <option value="pcs">PCS</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label"><small>Tujuan</small></label>
+                                        <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0" onchange="switchTujuan(this, 0)">
+                                            <option value="">Pilih Tujuan</option>
+                                            <option value="NON SECONDARY">NON SECONDARY</option>
+                                            <option value="SECONDARY">SECONDARY</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-3 d-none" id="non_secondary_container_0">
+                                        <label class="form-label"><small>Proses</small></label>
+                                        <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0" data-index="0" onchange="orderNonSecondary(this, 0)">
+                                            <option value="">Pilih Proses</option>
+                                            @foreach ($masterSecondary->where("tujuan", "NON SECONDARY") as $secondary)
+                                                <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col d-none" id="secondary_container_0">
+                                        <label class="form-label"><small>Proses</small></label>
+                                        <div class="d-flex gap-1">
+                                            <select class="form-control select2bs4" id="secondaries_0" name="secondaries[0][]" data-width="100%" multiple onchange="orderSecondary(this, 0)">
+                                                @foreach ($masterSecondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
+                                                    <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(0)">
+                                                <i class="fa fa-rotate-left"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col d-none" id="urutan_container_0">
+                                        <label class="form-label"><small>Urutan</small></label>
+                                        <ul class="list-group" id="urutan_show_0">
+                                        </ul>
+                                        <input type="text" class="form-control d-none" id="urutan_0" name="urutan[0]" readonly>
+                                    </div>
+                                    <div class="col d-none">
+                                        <label class="form-label"><small>Proses Secondary Luar</small></label>
+                                        <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses_secondary_luar[0]" id="proses_secondary_luar_0" data-index="0">
+                                            <option value="">Pilih Proses</option>
+                                            @foreach ($masterSecondary as $secondary)
+                                                <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label"><small>Main Part</small></label>
+                                        <br>
+                                        <div class="form-check">
+                                            <input class="form-check-input is-main-part" type="checkbox" value="true" id="main_part_0" name="main_part[0]" onchange="uncheckOtherMainPart(0)" checked="true">
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            {{-- <div class="col">
-                                <label class="form-label"><small>Tujuan</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0">
-                                    <option value="">Pilih Tujuan</option>
-                                    @foreach ($masterTujuan as $tujuan)
-                                        <option value="{{ $tujuan->id }}">{{ $tujuan->tujuan }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col">
-                                <label class="form-label"><small>Proses</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0" data-index="0" onchange="changeTujuan(this)">
-                                    <option value="">Pilih Proses</option>
-                                    @foreach ($masterSecondary as $secondary)
-                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
-                                    @endforeach
-                                </select>
-                            </div> --}}
-                            <div class="col">
-                                <label class="form-label"><small>Secondary</small></label>
-                                <div class="d-flex gap-1">
-                                    <select class="form-control select2bs4" type="text" id="secondaries_0" name="secondaries[0]" multiple onchange="orderSecondary(this, 0)">
-                                        @foreach ($masterSecondary as $secondary)
-                                            <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
-                                        @endforeach
-                                    </select>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="clearSelectOptions(this, 0)">x</button>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <label class="form-label"><small>Urutan</small></label>
-                                <ul class="list-group" id="urutan_show_0" style="padding-top: 5px !important; padding-bottom: 5px !important;">
-                                    <li class="list-group-item">-</li>
-                                </ul>
-                                <input type="text" class="form-control d-none" id="urutan_0" name="urutan[0]" readonly>
-                            </div>
-                            <div class="col d-none">
-                                <label class="form-label"><small>Proses Secondary Luar</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses_secondary_luar[0]" id="proses_secondary_luar_0" data-index="0">
-                                    <option value="">Pilih Proses</option>
-                                    @foreach ($masterSecondary as $secondary)
-                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <label class="form-label"><small>Main Part</small></label>
-                                <br>
-                                <input class="form-check-input ms-0 is-main-part" type="checkbox" value="true" id="main_part_0" name="main_part[0]" onchange="uncheckOtherMainPart(0)" checked="true">
                             </div>
                         </div>
                     </div>
@@ -292,7 +301,8 @@
         var partSection = null;
         var partOptions = null;
         var tujuanOptions = null;
-        var prosesOptions = null;
+        var prosesNonSecondaryOptions = null;
+        var prosesSecondaryOptions = null;
         var selectedPartArray = [];
 
         var complementPanelOptions = null;
@@ -318,7 +328,8 @@
 
                 await getMasterParts();
                 await getTujuan();
-                await getProses();
+                await getProsesNonSecondary();
+                await getProsesSecondary();
 
                 partSection = document.getElementById('parts-section');
 
@@ -345,7 +356,7 @@
 
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
-            theme: 'bootstrap4',
+            theme: 'bootstrap4'
         });
 
         // Step One (WS) on change event
@@ -460,17 +471,44 @@
             });
         }
 
-        function getProses() {
+        function getProsesNonSecondary() {
             document.getElementById("loading").classList.remove("d-none");
 
             return $.ajax({
                 url: '{{ route("get-master-secondary") }}',
+                data: {
+                    type: "non secondary"
+                },
                 type: 'get',
                 success: function (res) {
                     document.getElementById("loading").classList.add("d-none");
 
                     if (res) {
-                        prosesOptions = res;
+                        prosesNonSecondaryOptions = res;
+                    }
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+
+                    document.getElementById("loading").classList.add("d-none");
+                }
+            });
+        }
+
+        function getProsesSecondary() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            return $.ajax({
+                url: '{{ route("get-master-secondary") }}',
+                data: {
+                    type: "secondary"
+                },
+                type: 'get',
+                success: function (res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res) {
+                        prosesSecondaryOptions = res;
                     }
                 },
                 error: function (jqXHR) {
@@ -615,6 +653,44 @@
             }
         }
 
+        function switchTujuan(element, index) {
+            let nonSecondaryContainer = document.getElementById("non_secondary_container_"+index);
+            let secondaryContainer = document.getElementById("secondary_container_"+index);
+            let urutanContainer = document.getElementById("urutan_container_"+index);
+            let prosesElement = null;
+
+            if (nonSecondaryContainer && secondaryContainer && urutanContainer) {
+                if (element.value == "NON SECONDARY") {
+                    nonSecondaryContainer.classList.remove("d-none");
+                    secondaryContainer.classList.add("d-none");
+                    urutanContainer.classList.add("d-none");
+
+                    // Clear Non Secondary
+                    prosesElement = document.getElementById("proses_"+index);
+                    orderNonSecondary(prosesElement, index);
+                } else if (element.value == "SECONDARY") {
+                    nonSecondaryContainer.classList.add("d-none");
+                    secondaryContainer.classList.remove("d-none");
+                    urutanContainer.classList.remove("d-none");
+                    
+                    // Clear Secondary
+                    prosesElement = document.getElementById("secondaries_"+index);
+                    clearSelectOptions(index);
+                    orderSecondary(prosesElement, index);
+                } else {
+                    nonSecondaryContainer.classList.remove("d-none");
+                    secondaryContainer.classList.remove("d-none");
+                    urutanContainer.classList.remove("d-none");
+
+                    nonSecondaryContainer.classList.add("d-none");
+                    secondaryContainer.classList.add("d-none");
+                    urutanContainer.classList.add("d-none");
+
+                    clearSelectOptions(index);
+                }
+            }
+        }
+
         function changeTujuan(element) {
             let thisIndex = element.getAttribute('data-index');
             let thisSelected = element.options[element.selectedIndex];
@@ -636,123 +712,164 @@
         }
 
         function addNewPart() {
-            if (jumlahPartDetail) {
-                let index = jumlahPartDetail.value;
-
-                // Create a new row container
-                let divRow = document.createElement('div');
-                divRow.setAttribute('class', 'row mt-2');
-
-                // --- 1. Part ---
-                let divColPart = document.createElement('div');
-                divColPart.setAttribute('class', 'col');
-                divColPart.innerHTML = `
-                    <label class="form-label"><small>Part</small></label>
-                    <select class="form-control select2bs4" name="part_details[${index}]" id="part_details_${index}">
-                        ${partOptions}
-                    </select>
-                `;
-
-                // --- 2. Cons + Unit ---
-                let divColCons = document.createElement('div');
-                divColCons.setAttribute('class', 'col');
-                divColCons.innerHTML = `
-                    <label class="form-label"><small>Cons</small></label>
-                    <div class="d-flex mb-3">
-                        <div style="width: 50%;">
-                            <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;"
-                                name="cons[${index}]" id="cons_${index}" step="0.001">
-                        </div>
-                        <div style="width: 50%;">
-                            <select class="form-select" style="border-radius: 0 3px 3px 0;"
-                                name="cons_unit[${index}]" id="cons_unit_${index}">
-                                <option value="meter">METER</option>
-                                <option value="yard">YARD</option>
-                                <option value="kgm">KGM</option>
-                                <option value="pcs">PCS</option>
-                            </select>
-                        </div>
-                    </div>
-                `;
-
-                // --- 3. Tujuan ---
-                let divColTujuan = document.createElement('div');
-                divColTujuan.setAttribute('class', 'col');
-                divColTujuan.innerHTML = `
-                    <label class="form-label"><small>Tujuan</small></label>
-                    <select class="form-control select2bs4" name="tujuan[${index}]" id="tujuan_${index}">
-                        ${tujuanOptions}
-                    </select>
-                `;
-
-                // --- 4. Proses ---
-                let divColProses = document.createElement('div');
-                divColProses.setAttribute('class', 'col');
-                divColProses.innerHTML = `
-                    <label class="form-label"><small>Proses</small></label>
-                    <select class="form-control select2bs4" name="proses[${index}]" id="proses_${index}"
-                        data-index="${index}" onchange="changeTujuan(this)">
-                        ${prosesOptions}
-                    </select>
-                `;
-
-                // --- 5. Urutan ---
-                let divColUrutan = document.createElement('div');
-                divColUrutan.setAttribute('class', 'col');
-                divColUrutan.classList.add('d-none');
-                divColUrutan.innerHTML = `
-                    <label class="form-label"><small>Urutan</small></label>
-                    <input type="text" class="form-control" id="urutan_${index}" name="urutan[${index}]">
-                `;
-
-                // --- 6. Proses Secondary Luar ---
-                let divColProsesLuar = document.createElement('div');
-                divColProsesLuar.setAttribute('class', 'col');
-                divColProsesLuar.classList.add('d-none');
-                divColProsesLuar.innerHTML = `
-                    <label class="form-label"><small>Proses Secondary Luar</small></label>
-                    <select class="form-control select2bs4" name="proses_secondary_luar[${index}]"
-                        id="proses_secondary_luar_${index}" data-index="${index}">
-                        ${prosesOptions}
-                    </select>
-                `;
-
-                // --- 7. Main Part Checkbox ---
-                let divColMain = document.createElement('div');
-                divColMain.setAttribute('class', 'col-auto');
-                divColMain.innerHTML = `
-                    <label class="form-label"><small>Main Part</small></label><br>
-                    <input class="form-check-input ms-0 is-main-part" type="checkbox" id="main_part_${index}" name="main_part[${index}]" onchange="uncheckOtherMainPart(${index})">
-                `;
-
-                // Append all columns to the row
-                divRow.appendChild(divColPart);
-                divRow.appendChild(divColCons);
-                divRow.appendChild(divColTujuan);
-                divRow.appendChild(divColProses);
-                divRow.appendChild(divColUrutan);
-                divRow.appendChild(divColProsesLuar);
-                divRow.appendChild(divColMain);
-
-                // Append row to section
-                document.getElementById('parts-section').appendChild(divRow);
-
-                // Reinitialize select2
-                $(`#part_details_${index}`).select2({ theme: 'bootstrap4' });
-                $(`#tujuan_${index}`).select2({ theme: 'bootstrap4' });
-                $(`#proses_${index}`).select2({ theme: 'bootstrap4' });
-                $(`#proses_secondary_luar_${index}`).select2({ theme: 'bootstrap4' });
-
-                // Increment counter
-                jumlahPartDetail.value++;
-            } else {
+            if (!jumlahPartDetail) {
                 Swal.fire({
                     title: "Warning",
                     text: "Harap pilih No. WS",
                     icon: "warning"
                 });
+                return;
             }
+
+            let index = parseInt(jumlahPartDetail.value);
+
+            // Create card container
+            let card = document.createElement('div');
+            card.classList.add('card', 'mt-3');
+
+            // --- Card Header ---
+            let cardHeader = document.createElement('div');
+            cardHeader.classList.add('card-header', 'bg-sb-secondary');
+            cardHeader.innerHTML = `<h6 class="mb-0">Part ${index + 1}</h6>`; // 1-based numbering
+
+            // Card body
+            let cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            let row = document.createElement('div');
+            row.classList.add('row');
+
+            // --- 1. Part ---
+            let colPart = document.createElement('div');
+            colPart.classList.add('col-4');
+            colPart.innerHTML = `
+                <label class="form-label"><small>Part</small></label>
+                <select class="form-control select2bs4" name="part_details[${index}]" id="part_details_${index}">
+                    ${partOptions}
+                </select>
+            `;
+
+            // --- 2. Cons + Unit ---
+            let colCons = document.createElement('div');
+            colCons.classList.add('col-4');
+            colCons.innerHTML = `
+                <label class="form-label"><small>Cons</small></label>
+                <div class="d-flex mb-3">
+                    <div style="width: 50%;">
+                        <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[${index}]" id="cons_${index}" step="0.001">
+                    </div>
+                    <div style="width: 50%;">
+                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[${index}]" id="cons_unit_${index}">
+                            <option value="meter">METER</option>
+                            <option value="yard">YARD</option>
+                            <option value="kgm">KGM</option>
+                            <option value="pcs">PCS</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+
+            // --- 3. Tujuan ---
+            let colTujuan = document.createElement('div');
+            colTujuan.classList.add('col-4');
+            colTujuan.innerHTML = `
+                <label class="form-label"><small>Tujuan</small></label>
+                <select class="form-control select2bs4" name="tujuan[${index}]" id="tujuan_${index}" onchange="switchTujuan(this, ${index})">
+                    <option value="">Pilih Tujuan</option>
+                    <option value="NON SECONDARY">NON SECONDARY</option>
+                    <option value="SECONDARY">SECONDARY</option>
+                </select>
+            `;
+
+            // --- 4. Non-Secondary Proses ---
+            let colNonSecondary = document.createElement('div');
+            colNonSecondary.classList.add('col-3', 'd-none');
+            colNonSecondary.id = `non_secondary_container_${index}`;
+            colNonSecondary.innerHTML = `
+                <label class="form-label"><small>Proses</small></label>
+                <select class="form-control select2bs4" name="proses[${index}]" id="proses_${index}" data-index="${index}" onchange="orderNonSecondary(this, ${index})">
+                    <option value="">Pilih Proses</option>
+                    ${prosesNonSecondaryOptions} 
+                </select>
+            `;
+
+            // --- 5. Secondary Proses (multi-select + clear) ---
+            let colSecondary = document.createElement('div');
+            colSecondary.classList.add('col', 'd-none');
+            colSecondary.id = `secondary_container_${index}`;
+            colSecondary.innerHTML = `
+                <label class="form-label"><small>Proses</small></label>
+                <div class="d-flex gap-1">
+                    <select class="form-control select2bs4" id="secondaries_${index}" name="secondaries[${index}][]" data-width="100%" multiple onchange="orderSecondary(this, ${index})">
+                        ${prosesSecondaryOptions}
+                    </select>
+                    <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(${index})">
+                        <i class="fa fa-rotate-left"></i>
+                    </button>
+                </div>
+            `;
+
+            // --- 6. Urutan container ---
+            let colUrutan = document.createElement('div');
+            colUrutan.classList.add('col', 'd-none');
+            colUrutan.id = `urutan_container_${index}`;
+            colUrutan.innerHTML = `
+                <label class="form-label"><small>Urutan</small></label>
+                <ul class="list-group" id="urutan_show_${index}"></ul>
+                <input type="text" class="form-control d-none" id="urutan_${index}" name="urutan[${index}]" readonly>
+            `;
+
+            // --- 7. Proses Secondary Luar ---
+            let colProsesLuar = document.createElement('div');
+            colProsesLuar.classList.add('col', 'd-none');
+            colProsesLuar.innerHTML = `
+                <label class="form-label"><small>Proses Secondary Luar</small></label>
+                <select class="form-control select2bs4" name="proses_secondary_luar[${index}]" id="proses_secondary_luar_${index}" data-index="${index}">
+                    <option value="">Pilih Proses</option>
+                    ${prosesSecondaryOptions}
+                </select>
+            `;
+
+            // --- 8. Main Part checkbox ---
+            let colMain = document.createElement('div');
+            colMain.classList.add('col');
+            colMain.innerHTML = `
+                <label class="form-label"><small>Main Part</small></label><br>
+                <div class="form-check">
+                    <input class="form-check-input is-main-part" type="checkbox" value="true" id="main_part_${index}" name="main_part[${index}]" onchange="uncheckOtherMainPart(${index})">
+                </div>
+            `;
+
+            // Append all columns to row
+            row.appendChild(colPart);
+            row.appendChild(colCons);
+            row.appendChild(colTujuan);
+            row.appendChild(colNonSecondary);
+            row.appendChild(colSecondary);
+            row.appendChild(colUrutan);
+            row.appendChild(colProsesLuar);
+            row.appendChild(colMain);
+
+            cardBody.appendChild(row);
+
+            // Append header and body to card
+            card.appendChild(cardHeader);
+            card.appendChild(cardBody);
+
+            // Append card to parts section
+            document.getElementById('parts-section').appendChild(card);
+
+            // Reinitialize Select2
+            $(`#part_details_${index}`).select2({ theme: 'bootstrap4' });
+            $(`#tujuan_${index}`).select2({ theme: 'bootstrap4' });
+            $(`#proses_${index}`).select2({ theme: 'bootstrap4' });
+            $(`#secondaries_${index}`).select2({ theme: 'bootstrap4', width: '100%' });
+            $(`#proses_secondary_luar_${index}`).select2({ theme: 'bootstrap4' });
+
+            // Increment counter
+            jumlahPartDetail.value++;
         }
+
 
         function addNewPartComplement() {
             if (jumlahComplementPartDetail) {
@@ -795,6 +912,7 @@
                 // --- 4. Tujuan ---
                 let divColTujuan = document.createElement('div');
                 divColTujuan.setAttribute('class', 'col');
+                divColTujuan.setAttribute('class', 'd-none');
                 divColTujuan.innerHTML = `
                     <label class="form-label"><small>Tujuan</small></label>
                     <select class="form-control select2bs4" name="com_tujuan[${index}]" id="com_tujuan_${index}">
@@ -805,11 +923,12 @@
                 // --- 5. Proses ---
                 let divColProses = document.createElement('div');
                 divColProses.setAttribute('class', 'col');
+                divColProses.setAttribute('class', 'd-none');
                 divColProses.innerHTML = `
                     <label class="form-label"><small>Proses</small></label>
                     <select class="form-control select2bs4" name="com_proses[${index}]" id="com_proses_${index}"
                         data-index="${index}" onchange="changeComplementTujuan(this)">
-                        ${prosesOptions}
+                        ${prosesNonSecondaryOptions}
                     </select>
                 `;
 
@@ -830,7 +949,7 @@
                     <label class="form-label"><small>Proses Secondary Luar</small></label>
                     <select class="form-control select2bs4" name="com_proses_secondary_luar[${index}]"
                         id="com_proses_secondary_luar_${index}" data-index="${index}" onchange="changeComplementTujuan(this)">
-                        ${prosesOptions}
+                        ${prosesSecondaryOptions}
                     </select>
                 `;
 
@@ -864,6 +983,28 @@
                     text: "Harap pilih No. WS",
                     icon: "warning"
                 });
+            }
+        }
+
+        function orderNonSecondary(element, index) {
+            const orderShow = document.getElementById(`urutan_show_${index}`);
+            const order = document.getElementById(`urutan_${index}`);
+
+            if (order && orderShow) {
+                orderShow.innerHTML = '';
+
+                const selectedValue = element.value;
+
+                // Add to list
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.dataset.value = selectedValue;
+                li.textContent = selectedValue;
+                li.draggable = true;
+                orderShow.appendChild(li);
+
+                order.value = selectedValue;
+                console.log(`Select ${index} current values:`, selectedValue);
             }
         }
 
@@ -908,7 +1049,7 @@
             console.log(`Select ${index} current values:`, currentValues);
         }
 
-        function clearSelectOptions(button, index) {
+        function clearSelectOptions(index) {
             // get select, list, hidden input based on index
             const select = document.getElementById(`secondaries_${index}`);
             const list = document.getElementById(`urutan_show_${index}`);
