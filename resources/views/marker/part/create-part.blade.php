@@ -672,7 +672,7 @@
                     nonSecondaryContainer.classList.add("d-none");
                     secondaryContainer.classList.remove("d-none");
                     urutanContainer.classList.remove("d-none");
-                    
+
                     // Clear Secondary
                     prosesElement = document.getElementById("secondaries_"+index);
                     clearSelectOptions(index);
@@ -789,7 +789,7 @@
                 <label class="form-label"><small>Proses</small></label>
                 <select class="form-control select2bs4" name="proses[${index}]" id="proses_${index}" data-index="${index}" onchange="orderNonSecondary(this, ${index})">
                     <option value="">Pilih Proses</option>
-                    ${prosesNonSecondaryOptions} 
+                    ${prosesNonSecondaryOptions}
                 </select>
             `;
 
@@ -1110,6 +1110,12 @@
                     if (res.status == 200) {
                         // When Actually Success :
 
+                        // Prepare a placeholder tab only if needed
+                        let newTab = null;
+                        if (res.redirect && res.redirect !== '' && res.redirect !== 'reload') {
+                            newTab = window.open('', '_blank'); // open synchronously
+                        }
+
                         // Reset This Form
                         e.reset();
 
@@ -1124,14 +1130,20 @@
                             timer: 5000,
                             timerProgressBar: true
                         }).then(() => {
-                            if (res.redirect != '') {
-                                if (res.redirect != 'reload') {
-                                    location.href = res.redirect;
-                                } else {
+                            if (res.redirect) {
+                                if (res.redirect === 'reload') {
                                     location.reload();
+                                } else if (newTab) {
+                                    // if a new tab was opened earlier, fill it
+                                    newTab.location.href = res.redirect;
+                                    // then reload the current page
+                                    location.reload();
+                                } else {
+                                    // fallback: just redirect in the same tab
+                                    location.href = res.redirect;
                                 }
                             }
-                        })
+                        });
                     } else {
                         // When Actually Error :
 
