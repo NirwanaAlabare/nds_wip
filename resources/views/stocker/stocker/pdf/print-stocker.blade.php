@@ -82,7 +82,7 @@
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Style</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
-                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ substr($dataStocker->style, 0, 30).(strlen($dataStocker->style) > 30 ? '...' : '') }}</td>
+                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ substr($dataStocker->style, 0, 45).(strlen($dataStocker->style) > 45 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Color</td>
