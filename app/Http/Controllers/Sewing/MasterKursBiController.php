@@ -495,7 +495,7 @@ class MasterKursBiController extends Controller
                 // when tanggal kurs is below tanggal request
                 $isNow = strtotime($tanggalRequest) == strtotime($latestTanggalKurs);
                 $isNowCondition = $isNow ? strtotime($fullTanggalKurs) >= strtotime($latestTanggalKurs) : strtotime($fullTanggalKurs) > strtotime($latestTanggalKurs);
-                if (strtotime($fullTanggalKurs) <= strtotime($tanggalRequest) && $isNowCondition) {
+                if ((strtotime($fullTanggalKurs) <= strtotime($tanggalRequest) && $isNowCondition) || strtotime($fullTanggalKurs) == strtotime($tanggalRequest)) {
                     $countTanggalKurs++;
 
                     // set kurs
