@@ -1136,8 +1136,6 @@ class GeneralController extends Controller
                         )
                     )
                 )."
-                left join user_sb_wip on user_sb_wip.id = output.created_by
-                left join userpassword on userpassword.line_id = user_sb_wip.line_id
                 left join so_det on so_det.id = output.so_det_id
                 left join so on so.id = so_det.id_so
                 left join act_costing on act_costing.id = so.id_cost
