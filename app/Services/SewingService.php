@@ -32,9 +32,9 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
-                actual.color as act_color,
-                actual.id_ws as act_act_costing_id,
+                MAX(actual.id) as act_plan_id,
+                MAX(actual.color) as act_color,
+                MAX(actual.id_ws) as act_act_costing_id,
                 output.actual_color as color,
                 output.size,
                 output.dest
@@ -50,7 +50,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     userpassword.username line,
-                    master_plan.tgl_plan
+                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) tgl_plan
                 FROM
                     output_rfts
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rfts.created_by
@@ -61,7 +61,7 @@ class SewingService
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
                     output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rfts.id
@@ -72,7 +72,7 @@ class SewingService
                 actual.sewing_line = output.line and
                 actual.tgl_plan <= output.tgl_plan
             WHERE
-                actual.id IS NULL OR actual.id != output.plan_id
+                actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
                 output.id
         "));
@@ -84,9 +84,9 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
-                actual.color as act_color,
-                actual.id_ws as act_act_costing_id,
+                MAX(actual.id) as act_plan_id,
+                MAX(actual.color) as act_color,
+                MAX(actual.id_ws) as act_act_costing_id,
                 output.actual_color as color,
                 output.size,
                 output.dest
@@ -102,7 +102,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     userpassword.username line,
-                    master_plan.tgl_plan
+                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) tgl_plan
                 FROM
                     output_defects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_defects.created_by
@@ -113,7 +113,7 @@ class SewingService
                     LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 WHERE
                     output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_defects.id
@@ -124,7 +124,7 @@ class SewingService
                 actual.sewing_line = output.line and
                 actual.tgl_plan <= output.tgl_plan
             WHERE
-                actual.id IS NULL OR actual.id != output.plan_id
+                actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
                 output.id
         "));
@@ -136,9 +136,9 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
-                actual.color as act_color,
-                actual.id_ws as act_act_costing_id,
+                MAX(actual.id) as act_plan_id,
+                MAX(actual.color) as act_color,
+                MAX(actual.id_ws) as act_act_costing_id,
                 output.actual_color as color,
                 output.size,
                 output.dest
@@ -154,7 +154,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     userpassword.username line,
-                    master_plan.tgl_plan
+                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) tgl_plan
                 FROM
                     output_rejects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rejects.created_by
@@ -165,7 +165,7 @@ class SewingService
                     LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 WHERE
                     output_rejects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rejects.id
@@ -176,7 +176,7 @@ class SewingService
                 actual.sewing_line = output.line and
                 actual.tgl_plan <= output.tgl_plan
             WHERE
-                actual.id IS NULL OR actual.id != output.plan_id
+                actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
                 output.id
         "));
@@ -226,6 +226,11 @@ class SewingService
                     ]);
 
                     if ($updateRft) {
+                        // Update Master Plan Cancel if Cancelled
+                        $updateMasterPlan = DB::connection("mysql_sb")->table("master_plan")->where("id", $mp->act_plan_id)->update([
+                            "cancel" => "N"
+                        ]);
+
                         array_push($success, [$mp, "change output master plan"]);
                     } else {
                         array_push($fails, [$mp, "change output master plan"]);
@@ -273,6 +278,11 @@ class SewingService
                     ]);
 
                     if ($updateDefect) {
+                        // Update Master Plan Cancel if Cancelled
+                        $updateMasterPlan = DB::connection("mysql_sb")->table("master_plan")->where("id", $mpDef->act_plan_id)->update([
+                            "cancel" => "N"
+                        ]);
+
                         array_push($success, [$mpDef, "change output master plan defect"]);
                     } else {
                         array_push($fails, [$mpDef, "change output master plan defect"]);
@@ -319,6 +329,11 @@ class SewingService
                     ]);
 
                     if ($updateReject) {
+                        // Update Master Plan Cancel if Cancelled
+                        $updateMasterPlan = DB::connection("mysql_sb")->table("master_plan")->where("id", $mpRej->act_plan_id)->update([
+                            "cancel" => "N"
+                        ]);
+
                         array_push($success, [$mpRej, "change output master plan reject"]);
                     } else {
                         array_push($fails, [$mpRej, "change output master plan reject"]);
@@ -367,7 +382,7 @@ class SewingService
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
                     output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rfts.id
@@ -418,10 +433,14 @@ class SewingService
                     LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 WHERE
                     output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
-                    output_defects.id
+                    output_defects.id,
+                    act_costing.id,
+                    so_det.color,
+                    userpassword.username,
+                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at))
             ) output
             LEFT JOIN master_plan actual on
                 actual.id_ws = output.actual_act_costing_id AND
@@ -469,7 +488,7 @@ class SewingService
                     LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 WHERE
                     output_rejects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rejects.id
@@ -532,6 +551,11 @@ class SewingService
                     ]);
 
                     if ($updateRft) {
+                        // Update Master Plan Cancel if Cancelled
+                        $updateMasterPlan = DB::connection("mysql_sb")->table("master_plan")->where("id", $mpPac->act_plan_id)->update([
+                            "cancel" => "N"
+                        ]);
+
                         array_push($success, [$mpPac, "change output master plan"]);
                     } else {
                         array_push($fails, [$mpPac, "change output master plan"]);
@@ -579,6 +603,11 @@ class SewingService
                     ]);
 
                     if ($updateDefect) {
+                        // Update Master Plan Cancel if Cancelled
+                        $updateMasterPlan = DB::connection("mysql_sb")->table("master_plan")->where("id", $mpDefPac->act_plan_id)->update([
+                            "cancel" => "N"
+                        ]);
+
                         array_push($success, [$mpDefPac, "change output master plan defect"]);
                     } else {
                         array_push($fails, [$mpDefPac, "change output master plan defect"]);
@@ -625,6 +654,10 @@ class SewingService
                     ]);
 
                     if ($updateReject) {
+                        $updateMasterPlan = DB::connection("mysql_sb")->table("master_plan")->where("id", $mpRejPac->act_plan_id)->update([
+                            "cancel" => "N"
+                        ]);
+
                         array_push($success, [$mpRejPac, "change output master plan reject"]);
                     } else {
                         array_push($fails, [$mpRejPac, "change output master plan reject"]);
@@ -643,8 +676,6 @@ class SewingService
             "Fails" => $fails,
             "Unavailable" => $unavailable
         ]);
-
-        dd($masterPlan->toSql() + $masterPlanDef->toSql() + $masterPlanRej->toSql() + $masterPlanPac->toSql() + $masterPlanDefPac->toSql() + $masterPlanRejPac->toSql());
 
         return array(
             'status' => 200,
