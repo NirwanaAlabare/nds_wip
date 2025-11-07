@@ -33,6 +33,6 @@ class PartDetail extends Model
 
     public function secondaries()
     {
-        return $this->hasMany(PartDetail::class, 'part_detail_id', 'id');
+        return $this->hasMany(PartDetailSecondary::class, 'part_detail_id', 'id');
     }
 }

@@ -103,8 +103,8 @@
                 </div>
                 <div class="card-body">
                     <form method="post" id="store-secondary" name='form'>
-                        <div class="row">
-                            <div class="col-6 col-md-3">
+                        <div class="row mb-3">
+                            <div class="col-4">
                                 <label><small><b>Part</b></small></label>
                                 <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Part</option>
@@ -115,7 +115,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-4">
                                 <label><small><b>Cons</b></small></label>
                                 <div class="input-group mb-3">
                                     <input type="text" class="form-control" name="txtcons" id="txtcons">
@@ -129,23 +129,41 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <label class="form-label"><small>Secondary</small></label>
+                            <div class="col-4">
+                                <label class="form-label"><small>Tujuan</small></label>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan" id="tujuan" onchange="switchTujuan(this)">
+                                    <option value="">Pilih Tujuan</option>
+                                    <option value="NON SECONDARY">NON SECONDARY</option>
+                                    <option value="SECONDARY">SECONDARY</option>
+                                </select>
+                            </div>
+                            <div class="col-6 d-none" id="non_secondary_container">
+                                <label class="form-label"><small>Proses</small></label>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses" id="proses" onchange="orderNonSecondary(this)">
+                                    <option value="">Pilih Proses</option>
+                                    @foreach ($data_secondary->where("tujuan", "NON SECONDARY") as $secondary)
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-6 d-none" id="secondary_container">
+                                <label class="form-label"><small>Proses</small></label>
                                 <div class="d-flex gap-1">
-                                    <select class="form-control select2bs4" type="text" id="secondaries" name="secondaries[]" multiple onchange="orderSecondary(this)">
-                                        @foreach ($data_secondary as $secondary)
+                                    <select class="form-control select2bs4" id="secondaries" name="secondaries[]" data-width="100%" multiple onchange="orderSecondary(this)">
+                                        @foreach ($data_secondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
                                             <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
                                         @endforeach
                                     </select>
-                                    <button type="button" class="btn btn-sm btn-dark" onclick="clearSelectOptions(this)"><i class="fa fa-rotate-left"></i></button>
+                                    <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(this)">
+                                        <i class="fa fa-rotate-left"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 d-none" id="urutan_container">
                                 <label class="form-label"><small>Urutan</small></label>
                                 <ul class="list-group" id="urutan_show">
-                                    <li class="list-group-item">-</li>
                                 </ul>
-                                <input type="text" class="form-control d-none" id="urutan" name="urutan" readonly>
+                                <input type="text" class="form-control d-none" id="urutan" name="urutan[]" readonly>
                             </div>
                             <div class="col-12 col-md-12 mt-3">
                                 <button type="button" class="btn btn-block btn-sb-secondary btn-sm" name="simpan" id="simpan" onclick="simpan_data();">SIMPAN <i class="fa fa-save"></i></button>
@@ -199,7 +217,7 @@
     </div>
 
     {{-- Tambah Part Secondary Complement --}}
-    <div class="row mb-3">
+    <div class="row mb-3 {{ $part->panel_status != 'main' ? 'd-none' : '' }}">
         <div class="col-12">
             <div class="card h-100">
                 <div class="card-header bg-sb">
@@ -212,7 +230,7 @@
                 </div>
                 <div class="card-body">
                     <form method="post" id="store-complement-secondary" name='form'>
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-6 col-md-3">
                                 <label><small><b>Part</b></small></label>
                                 <select class="form-control select2bs4" id="com_txtpart" name="com_txtpart" style="width: 100%;">
@@ -238,26 +256,23 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <label class="form-label"><small>Secondary</small></label>
-                                <div class="d-flex gap-1">
-                                    <select class="form-control select2bs4" type="text" id="com_secondaries" name="com_secondaries[]" multiple onchange="orderSecondary(this, 'com_')">
-                                        @foreach ($data_secondary as $secondary)
-                                            <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
-                                        @endforeach
-                                    </select>
-                                    <button type="button" class="btn btn-sm btn-dark" onclick="clearSelectOptions(this, 'com_')"><i class="fa fa-rotate-left"></i></button>
-                                </div>
+                            <div class="col">
+                                <label class="form-label"><small>From Panel</small></label>
+                                <select class="form-control select2bs4 com_from_panel_id" name="com_from_panel_id" id="com_from_panel_id" onchange="updateComplementPanelPartList()">
+                                    <option value="">Pilih Panel</option>
+                                    @foreach ($complementPanels as $panels)
+                                        <option value="{{ $panels->id }}">{{ $panels->panel }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <label class="form-label"><small>Urutan</small></label>
-                                <ul class="list-group" id="com_urutan_show">
-                                    <li class="list-group-item">-</li>
-                                </ul>
-                                <input type="text" class="form-control d-none" id="com_urutan" name="com_urutan" readonly>
+                            <div class="col">
+                                <label class="form-label"><small>From Part</small></label>
+                                <select class="form-control select2bs4" name="com_from_part_id" id="com_from_part_id">
+                                    <option value="">Pilih Part</option>
+                                </select>
                             </div>
-                            <div class="col-12 col-md-12">
-                                <button type="button" class="btn btn-block btn-sb-secondary btn-sm" name="com_simpan" id="com_simpan" onclick="simpan_data('com_');">SIMPAN <i class="fa fa-save"></i></button>
+                            <div class="col-12 col-md-12 mt-3">
+                                <button type="button" class="btn btn-block btn-sb btn-sm" name="com_simpan" id="com_simpan" onclick="simpan_data_com();">SIMPAN <i class="fa fa-save"></i></button>
                                 {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
                             </div>
                             {{-- <div class="col-6 col-md-3">
@@ -287,7 +302,7 @@
                         </div>
                     </form>
                     <div class="table-responsive">
-                        <table id="datatable_list_part" class="table table-bordered table w-100">
+                        <table id="datatable_list_part_complement" class="table table-bordered table w-100">
                             <thead>
                                 <tr>
                                     <th>Action</th>
@@ -345,20 +360,38 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><small>Secondary</small></label>
+                            <label class="form-label">Tujuan</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_tujuan" id="edit_tujuan" onchange="switchTujuan(this, 'edit_')">
+                                <option value="">Pilih Tujuan</option>
+                                <option value="NON SECONDARY">NON SECONDARY</option>
+                                <option value="SECONDARY">SECONDARY</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_non_secondary_container">
+                            <label class="form-label">Proses</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_proses" id="edit_proses" onchange="orderNonSecondary(this, 'edit_')">
+                                <option value="">Pilih Proses</option>
+                                @foreach ($data_secondary->where("tujuan", "NON SECONDARY") as $secondary)
+                                    <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_secondary_container">
+                            <label class="form-label">Proses</label>
                             <div class="d-flex gap-1">
-                                <select class="form-control select2bs4" type="text" id="edit_secondaries" name="edit_secondaries" multiple onchange="orderSecondary(this, 'edit')">
-                                    @foreach ($data_secondary as $secondary)
+                                <select class="form-control select2bs4" id="edit_secondaries" name="edit_secondaries[]" data-width="100%" multiple onchange="orderSecondary(this, 'edit_')">
+                                    @foreach ($data_secondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
                                         <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
                                     @endforeach
                                 </select>
-                                <button type="button" class="btn btn-sm btn-dark" onclick="clearSelectOptions(this, 'edit')"><i class="fa fa-rotate-left"></i></button>
+                                <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(this,'edit_')">
+                                    <i class="fa fa-rotate-left"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label"><small>Urutan</small></label>
+                        <div class="mb-3 d-none" id="edit_urutan_container">
+                            <label class="form-label">Urutan</label>
                             <ul class="list-group" id="edit_urutan_show">
-                                <li class="list-group-item">-</li>
                             </ul>
                             <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
                         </div>
@@ -527,6 +560,7 @@
 
         cleardata();
         dataTableReload();
+        dataTableComplementReload();
 
         function cleardata() {
             $("#cboproses").val('').trigger('change');
@@ -626,23 +660,32 @@
 
         function simpan_data() {
             let id = document.getElementById("id").value;
-            let cbotuj = document.form.cbotuj.value;
-            let txtpart = document.form.txtpart.value;
-            let txtcons = document.form.txtcons.value;
-            let txtconsunit = document.form.txtconsunit.value;
-            let cboproses = document.form.cboproses.value;
+            // let cbotuj = document.getElementById('cbotuj') ? document.getElementById('cbotuj').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+            let txtpart = document.getElementById('txtpart') ? document.getElementById('txtpart').value : '';
+            let txtcons = document.getElementById('txtcons') ? document.getElementById('txtcons').value : '';
+            let txtconsunit = document.getElementById('txtconsunit') ? document.getElementById('txtconsunit').value : '';
+            // New
+            let tujuan = document.getElementById('tujuan') ? document.getElementById('tujuan').value : '';
+            let urutan = document.getElementById('urutan') ? document.getElementById('urutan').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
             $.ajax({
                 type: "post",
                 url: '{{ route('store_part_secondary') }}',
                 data: {
                     id: id,
-                    cbotuj: cbotuj,
                     txtpart: txtpart,
                     txtcons: txtcons,
                     txtconsunit: txtconsunit,
-                    cboproses: cboproses
+                    tujuan: tujuan,
+                    urutan: urutan
                 },
                 success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
                     if (response.icon == 'salah') {
                         iziToast.warning({
                             message: response.msg,
@@ -657,9 +700,228 @@
                     dataTableReload();
                     cleardata();
                 },
-                // error: function(request, status, error) {
-                //     alert(request.responseText);
-                // },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function simpan_data_com() {
+            let id = document.getElementById("id").value;
+            let txtpart = document.getElementById('com_txtpart') ? document.getElementById('com_txtpart').value : '';
+            let txtcons = document.getElementById('com_txtcons') ? document.getElementById('com_txtcons').value : '';
+            let txtconsunit = document.getElementById('com_txtpart') ? document.getElementById('com_txtpart').value : '';
+            // New
+            let partSource = document.getElementById('com_from_part_id') ? document.getElementById('com_from_part_id').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_part_secondary') }}',
+                data: {
+                    id: id,
+                    txtpart: txtpart,
+                    txtcons: txtcons,
+                    txtconsunit: txtconsunit,
+                    partSource: partSource,
+                    is_complement: 1
+                },
+                success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                    cleardata();
+                },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function update_data() {
+            let id = document.getElementById("id").value;
+            let cbotuj = document.getElementById('cbotuj') ? document.getElementById('cbotuj').value : '';
+            let txtpart = document.getElementById('txtpart') ? document.getElementById('txtpart').value : '';
+            let txtcons = document.getElementById('txtcons') ? document.getElementById('txtcons').value : '';
+            let txtconsunit = document.getElementById('txtconsunit') ? document.getElementById('txtconsunit').value : '';
+            // New
+            let tujuan = document.getElementById('tujuan') ? document.getElementById('tujuan').value : '';
+            let urutan = document.getElementById('urutan') ? document.getElementById('urutan').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_part_secondary') }}',
+                data: {
+                    id: id,
+                    cbotuj: cbotuj,
+                    txtpart: txtpart,
+                    txtcons: txtcons,
+                    txtconsunit: txtconsunit,
+                    tujuan: tujuan,
+                    urutan: urutan
+                },
+                success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                    cleardata();
+                },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function dataTableComplementReload() {
+            let datatable = $("#datatable_list_part_complement").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                destroy: true,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('datatable_list_part_complement') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.id = $('#id').val();
+                    },
+                },
+                columns: [
+                    {
+                        data: 'id',
+                    },
+                    {
+                        data: 'nama_part',
+                    },
+                    {
+                        data: 'cons',
+                    },
+                    {
+                        data: 'unit',
+                    },
+                    {
+                        data: 'tujuan',
+                    },
+                    {
+                        data: 'proses',
+                    },
+                    {
+                        data: 'part_status',
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [0],
+                        className: "text-center",
+                        render: (data, type, row, meta) => {
+                            let disableDelete = (row.total_stocker > 0 ? 'disabled' : '');
+                            return `
+                                <button class='btn btn-primary btn-sm' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
+                                    <i class='fa fa-edit'></i>
+                                </button>
+                                <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                    <i class='fa fa-trash'></i>
+                                </button>
+                            `;
+                        }
+                    },
+                    {
+                        targets: [6],
+                        render: (data, type, row, meta) => {
+                            return data ? data.toUpperCase() : '-';
+                        }
+                    }
+                ]
+            });
+        }
+
+         function simpan_data_complement() {
+            let id = document.getElementById("id").value;
+            let cbotuj = document.getElementById('cbotuj') ? document.getElementById('cbotuj').value : '';
+            let txtpart = document.getElementById('txtpart') ? document.getElementById('txtpart').value : '';
+            let txtcons = document.getElementById('txtcons') ? document.getElementById('txtcons').value : '';
+            let txtconsunit = document.getElementById('txtconsunit') ? document.getElementById('txtconsunit').value : '';
+            // New
+            let tujuan = document.getElementById('tujuan') ? document.getElementById('tujuan').value : '';
+            let urutan = document.getElementById('urutan') ? document.getElementById('urutan').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_part_secondary') }}',
+                data: {
+                    id: id,
+                    cbotuj: cbotuj,
+                    txtpart: txtpart,
+                    txtcons: txtcons,
+                    txtconsunit: txtconsunit,
+                    tujuan: tujuan,
+                    urutan: urutan
+                },
+                success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                    cleardata();
+                },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
             });
         };
     </script>
@@ -1205,6 +1467,28 @@
             }
         }
 
+        function orderNonSecondary(element, prefix='') {
+            const orderShow = document.getElementById(`${prefix}urutan_show`);
+            const order = document.getElementById(`${prefix}urutan`);
+
+            if (order && orderShow) {
+                orderShow.innerHTML = '';
+
+                const selectedValue = element.value;
+
+                // Add to list
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.dataset.value = selectedValue;
+                li.textContent = selectedValue;
+                li.draggable = true;
+                orderShow.appendChild(li);
+
+                order.value = selectedValue;
+                console.log(`Select current values:`, selectedValue);
+            }
+        }
+
         function clearSelectOptions(button, prefix = '') {
             // get select, list, hidden input based on index
             const select = document.getElementById(`${prefix}secondaries`);
@@ -1230,7 +1514,75 @@
 
             $(`#${prefix}secondaries`).val(null).trigger("change");
 
-            console.log(`Cleared select and list for ${prefix}index`);
+            console.log(`Cleared select and list for ${prefix} index`);
+        }
+
+        function switchTujuan(element, prefix='') {
+            let nonSecondaryContainer = document.getElementById(prefix+"non_secondary_container");
+            let secondaryContainer = document.getElementById(prefix+"secondary_container");
+            let urutanContainer = document.getElementById(prefix+"urutan_container");
+            let prosesElement = null;
+
+            if (nonSecondaryContainer && secondaryContainer && urutanContainer) {
+                if (element.value == "NON SECONDARY") {
+                    nonSecondaryContainer.classList.remove("d-none");
+                    secondaryContainer.classList.add("d-none");
+                    urutanContainer.classList.add("d-none");
+
+                    // Clear Non Secondary
+                    prosesElement = document.getElementById(prefix+"proses");
+                    orderNonSecondary(prosesElement);
+                } else if (element.value == "SECONDARY") {
+                    nonSecondaryContainer.classList.add("d-none");
+                    secondaryContainer.classList.remove("d-none");
+                    urutanContainer.classList.remove("d-none");
+
+                    // Clear Secondary
+                    prosesElement = document.getElementById(prefix+"secondaries");
+                    clearSelectOptions(prefix);
+                    orderSecondary(prosesElement, prefix);
+                } else {
+                    nonSecondaryContainer.classList.remove("d-none");
+                    secondaryContainer.classList.remove("d-none");
+                    urutanContainer.classList.remove("d-none");
+
+                    nonSecondaryContainer.classList.add("d-none");
+                    secondaryContainer.classList.add("d-none");
+                    urutanContainer.classList.add("d-none");
+
+                    clearSelectOptions(prefix);
+                }
+            }
+        }
+
+        function updateComplementPanelPartList() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            document.getElementById('com_from_part_id').innerHTML = null;
+            return $.ajax({
+                url: '{{ route("get-part-complement-panel-parts") }}',
+                type: 'get',
+                data: {
+                    part_id: $('#com_from_panel_id').val(),
+                },
+                success: function (res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res) {
+                        // Update this step
+                        let complementPanelParts = document.getElementById('com_from_part_id');
+
+                        complementPanelParts.innerHTML = res;
+
+                        complementPanelParts.disabled = false;
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+
+                    document.getElementById("loading").classList.add("d-none");
+                }
+            });
         }
     </script>
 @endsection

@@ -334,6 +334,7 @@ Route::middleware('auth')->group(function () {
         // part secondary
         Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('manage-part-secondary');
         Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
+        Route::get('/datatable_list_part_complement/{id?}', 'datatable_list_part_complement')->name('datatable_list_part_complement');
         Route::get('/get_proses', 'get_proses')->name('get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
         Route::put('/update-part-secondary', 'updatePartSecondary')->name('update-part-secondary');
