@@ -443,8 +443,6 @@
 
                         if ($('#supplier').find("option[value='"+currentValue+"']").length) {
                             $('#supplier').val(currentValue).trigger("change");
-                        } else {
-                            $('#supplier').val("").trigger("change");
                         }
                     }
                 },
@@ -507,8 +505,6 @@
 
                         if ($('#order').find("option[value='"+currentValue+"']").length) {
                             await $('#order').val(currentValue).trigger("change");
-                        } else {
-                            $('#order').val("").trigger("change");
                         }
                     }
                 },
