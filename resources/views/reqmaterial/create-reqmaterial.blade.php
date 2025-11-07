@@ -100,8 +100,17 @@
                 <div class="mb-1">
                     <div class="form-group">
                         <label><small>WS Actual #</small></label>
-                        <select class="form-control select2bs4" id="ws_act" name="ws_act" style="width: 100%;">
+                        <select class="form-control select2bs4" id="ws_act" name="ws_act" style="width: 100%;" onchange="getStyle_aktual(this.value);">
                         </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="mb-1">
+                    <div class="form-group">
+                        <label><small>Style Actual #</small></label>
+                        <input type="text" class="form-control" id="style_act" name="style_act" value="" readonly>
                     </div>
                 </div>
             </div>
@@ -144,12 +153,12 @@
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">Nama Barang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty In</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Sisa</th>
+                            <th class="text-center hidden" style="font-size: 0.6rem;width: 300px;">Qty In</th>
+                            <th class="text-center hidden" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Stok</th>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Sisa Req</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Stok Sekarang</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Input</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Sisa</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Input Request</th>
                             <th class="text-center" style="font-size: 0.6rem;width: 300px;">Unit</th>
                         </tr>
                     </thead>
@@ -266,6 +275,8 @@
             success: function (res) {
                 if (res) {
                     document.getElementById('job_order').innerHTML = res;
+                    getWSAct();
+                    document.getElementById('style_act').value = '';
                 }
             },
         });
@@ -624,5 +635,26 @@
             }
         }
     }
+
+    function getStyle_aktual($no_ws){
+            let no_ws = $no_ws;
+            // alert(no_ws);
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("get-style-actual") }}',
+                type: 'get',
+                data: {
+                    no_ws: no_ws,
+                },
+                success: function (res) {
+                    if (res) {
+                        console.log(res);
+                        document.getElementById('style_act').value = res[0].styleno;
+                    }
+                }
+            });
+        }
 </script>
 @endsection

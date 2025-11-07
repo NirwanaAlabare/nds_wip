@@ -17,54 +17,48 @@
         <h5 class="card-title fw-bold mb-0">Data Master Lokasi</h5>
     </div>
     <div class="card-body">
-        <div class="d-flex align-items-end gap-3 mb-3">
-            <div class="col-md-12">
-            <div class="form-group row">
-            <div class="col-md-5">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Area Lokasi</label>
-                <select class="form-control select2master" id="area" name="area" style="width: 100%;">
-                    <option selected="selected" value="ALL">ALL</option>
-                        @foreach ($arealok as $alok)
-                    <option value="{{ $alok->area }}">
-                                {{ $alok->area }}
-                    </option>
-                        @endforeach
-                </select>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-7" style="padding-top: 0.5rem;">
-            <div class="mt-4">
-                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
-                <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button>
-            </div>
-            </div>
-        </div>
+  <div class="row align-items-end mb-3">
+    <div class="col-md-5">
+      <label for="area" class="form-label mb-1 fw-bold">Area Lokasi</label>
+      <select class="form-select form-select-sm select2master" id="area" name="area">
+        <option selected value="ALL">ALL</option>
+        @foreach ($arealok as $alok)
+          <option value="{{ $alok->area }}">{{ $alok->area }}</option>
+        @endforeach
+      </select>
     </div>
 
-        </div>
-
-        <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped w-100">
-                <thead>
-                    <tr>
-                        <th class="text-center">Area Lokasi</th>
-                        <th class="text-center">Kode Lokasi</th>
-                        <th class="text-center">Satuan</th>
-                        <th class="text-center">Kapasitas</th>
-                        <th class="text-center">User</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
+    <div class="col-md-7 d-flex gap-2 mt-3">
+      <button class="btn btn-primary btn-sm" onclick="dataTableReload()">
+        <i class="fas fa-search"></i> Search
+      </button>
+      <button class="btn btn-info btn-sm" onclick="tambahdata()">
+        <i class="fas fa-plus"></i> Add Data
+      </button>
+      <!-- <button class="btn btn-success btn-sm" onclick="printAllLokasi()">
+    <i class="fas fa-print"></i> Print All
+  </button> -->
     </div>
+  </div>
+
+  <div class="table-responsive">
+    <table id="datatable" class="table table-bordered table-striped w-100">
+      <thead class="text-center">
+        <tr>
+          <th>Area Lokasi</th>
+          <th>Kode Lokasi</th>
+          <th>Satuan</th>
+          <th>Kapasitas</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
 </div>
 
 <div class="modal fade" id="modal-active-lokasi">
@@ -104,326 +98,175 @@
 </div>
 
 
+ <div class="modal fade" id="modal-edit-lokasi" tabindex="-1" aria-hidden="true">
+  <form action="{{ route('simpan-edit') }}" method="post" onsubmit="submitForm(this, event)">
+    @csrf
+    @method('GET')
 
-<!-- <div class="modal fade" id="modal-edit-lokasi">
-    <form action="{{ route('simpan-edit') }}" method="post" onsubmit="submitForm(this, event)">
-         @method('GET')
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">Edit Location</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group row">
-
-            <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>ID</label>
-                <input type="text" class="form-control " id="txt_id" name="txt_id" value="" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-3">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Location Area</label>
-                <input class="form-control" list="txtarea" id="txt_area" name="txt_area" value="">
-                <datalist id="txtarea">
-                    @foreach ($arealok as $alok)
-                    <option value="{{ $alok->area }}">
-                                {{ $alok->area }}
-                    </option>
-                        @endforeach
-                </datalist>
-                </div>
-            </div>
-            </div>
-            <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Storage Initial</label>
-                <input type="text" class="form-control " id="txt_inisial" name="txt_inisial" value="">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Row</label>
-                <input type="number" class="form-control " id="txt_baris" name="txt_baris" value="" min="0">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Level</label>
-                <input type="number" class="form-control " id="txt_level" name="txt_level" value="" min="0">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Number</label>
-                <input type="text" class="form-control " id="txt_num" name="txt_num" value="" maxlength="2">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-3">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Unit</label>
-                <input class="form-control" list="txtunit" id="txt_unit" name="txt_unit" value="">
-                <datalist id="txtunit">
-                    @foreach ($unit as $un)
-                    <option value="{{ $un->nama_unit }}">
-                                {{ $un->nama_unit }}
-                    </option>
-                        @endforeach
-                </datalist>
-                </div>
-            </div>
-            </div>
-            <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Capacity</label>
-                <input type="number" class="form-control " id="txt_capacity" name="txt_capacity" value="" min="0">
-                </div>
-            </div>
-            </div>
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                    <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Save</button>
-                </div>
-            </div>
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg">
+        <!-- Header -->
+        <div class="modal-header bg-sb text-light">
+          <h5 class="modal-title mb-0">
+            <i class="fas fa-map-marker-alt me-2"></i> Edit Lokasi
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-    </form>
-</div>
- -->
 
- <div class="modal fade" id="modal-edit-lokasi">
-    <form action="{{ route('simpan-edit') }}" method="post" onsubmit="submitForm(this, event)">
-         @method('GET')
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">Edit Lokasi</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!--  -->
-                    <div class="form-group row">
+        <div class="modal-body bg-light">
+          <div class="row g-3">
+            <!-- Kiri -->
             <div class="col-md-6">
-            <div class="form-group row">
-                <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>ID</label>
-                <input type="text" class="form-control " id="txt_id" name="txt_id" value="" readonly>
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Area Lokasi</label>
-                <input class="form-control" list="txtarea" id="txt_area" name="txt_area" value="">
-                <datalist id="txtarea">
-                    @foreach ($arealok as $alok)
-                    <option value="{{ $alok->area }}">
-                                {{ $alok->area }}
-                    </option>
-                        @endforeach
-                </datalist>
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Inisial Penyimpanan</label>
-                <input type="text" class="form-control " id="txt_inisial" name="txt_inisial" value="">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Baris</label>
-                <input type="number" class="form-control " id="txt_baris" name="txt_baris" value="" min="0">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Tingkat</label>
-                <input type="number" class="form-control " id="txt_level" name="txt_level" value="" min="0">
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="form-group row">
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Nomor</label>
-                <input type="text" class="form-control " id="txt_num" name="txt_num" value="" maxlength="2">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Satuan</label>
-                        @foreach ($unit as $un)
-                        <br>
-                <input type="checkbox" class="ml-2" id="{{ $un->nama_unit }}_edit" name="{{ $un->nama_unit }}_edit" /><label style="font-size: 0.9rem" for="{{ $un->nama_unit }}_edit">  <i>{{ $un->nama_unit }}</i></label>
-                        @endforeach
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Kapasitas</label>
-                <input type="number" class="form-control " id="txt_capacity" name="txt_capacity" value="" min="0">
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
-                    <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
+              <div class="form-group mb-3">
+                <label for="kode_lok" class="form-label fw-bold">Kode Lokasi</label>
+                <input type="text" class="form-control" id="kode_lok_edit" name="kode_lok_edit" value="" readonly>
+                <input type="hidden" class="form-control" id="txt_id" name="txt_id" value="" readonly>
+              </div>
 
-
-<div class="modal fade" id="modal-tambah-lokasi">
-    <form action="{{ route('store-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
-         @method('POST')
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">Tambah Lokasi</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!--  -->
-                    <div class="form-group row">
-            <div class="col-md-6">
-            <div class="form-group row">
-                <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Kode Lokasi</label>
-                <input type="text" class="form-control " id="kode_lok" name="kode_lok" value="" readonly>
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Area Lokasi</label>
-                <select class="form-control select2bs4" id="txt_area_new" name="txt_area_new" style="width: 100%;" >
-                    <option selected="selected" value="">Pilih Area</option>
-                        @foreach ($arealok as $alok)
-                    <option value="{{ $alok->area }}">
-                                {{ $alok->area }}
-                    </option>
-                        @endforeach
+              <div class="form-group mb-3">
+                <label for="txt_area" class="form-label fw-bold">Area Lokasi</label>
+                <select class="form-control select2bs4" id="txt_area" name="txt_area" style="width: 100%;">
+                  <option selected value="">Pilih Area</option>
+                  @foreach ($arealok as $alok)
+                    <option value="{{ $alok->area }}">{{ $alok->area }}</option>
+                  @endforeach
                 </select>
-                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_inisial_new" class="form-label fw-bold">Inisial Penyimpanan</label>
+                <input type="text" class="form-control" id="txt_inisial" name="txt_inisial" oninput="this.value = this.value.toUpperCase(); setinisial_edit();">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_baris_new" class="form-label fw-bold">Baris</label>
+                <input type="number" class="form-control" id="txt_baris" name="txt_baris" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial_edit(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_level_new" class="form-label fw-bold">Tingkat</label>
+                <input type="number" class="form-control" id="txt_level" name="txt_level" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial_edit(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
             </div>
+
+            <!-- Kanan -->
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="txt_subbaris_new" class="form-label fw-bold">Sub Baris</label>
+                <input type="number" class="form-control" id="txt_subbaris" name="txt_subbaris" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial_edit(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_sublevel_new" class="form-label fw-bold">Sub Tingkat</label>
+                <input type="number" class="form-control" id="txt_sublevel" name="txt_sublevel" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial_edit(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_capacity_new" class="form-label fw-bold">Kapasitas</label>
+                <input type="number" class="form-control" id="txt_capacity" name="txt_capacity" min="0">
+              </div>
             </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Inisial Penyimpanan</label>
-                <input type="text" class="form-control " id="txt_inisial_new" name="txt_inisial_new" value="" oninput="setinisial()">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Baris</label>
-                <input type="number" class="form-control " id="txt_baris_new" name="txt_baris_new" value="" min="0" oninput="setinisial()">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Tingkat</label>
-                <input type="number" class="form-control " id="txt_level_new" name="txt_level_new" value="" min="0" oninput="setinisial()">
-                </div>
-            </div>
-            </div>
+          </div>
         </div>
+
+        <div class="modal-footer bg-white border-top">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+            <i class="fa fa-times"></i> Tutup
+          </button>
+          <button type="submit" class="btn btn-sb toastsDefaultDanger">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="col-md-6">
-        <div class="form-group row">
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Nomor</label>
-                <input type="text" class="form-control " id="txt_num_new" name="txt_num_new" value="" maxlength="2" oninput="setinisial()">
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Satuan</label>
-                        @foreach ($unit as $un)
-                        <br>
-                <input type="checkbox" class="ml-2" id="{{ $un->nama_unit }}" name="{{ $un->nama_unit }}" /><label style="font-size: 0.9rem" for="{{ $un->nama_unit }}">  <i>{{ $un->nama_unit }}</i></label>
-                        @endforeach
-                </div>
-            </div>
-            </div>
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Kapasitas</label>
-                <input type="number" class="form-control " id="txt_capacity_new" name="txt_capacity_new" value="" min="0">
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
-                    <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                </div>
-            </div>
-        </div>
-    </form>
+  </form>
 </div>
+
+
+<!-- Modal Tambah Lokasi -->
+<div class="modal fade" id="modal-tambah-lokasi" tabindex="-1" aria-hidden="true">
+  <form action="{{ route('store-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
+    @csrf
+    @method('POST')
+
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg">
+        <!-- Header -->
+        <div class="modal-header bg-sb text-light">
+          <h5 class="modal-title mb-0">
+            <i class="fas fa-map-marker-alt me-2"></i> Tambah Lokasi
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body bg-light">
+          <div class="row g-3">
+            <!-- Kiri -->
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="kode_lok" class="form-label fw-bold">Kode Lokasi</label>
+                <input type="text" class="form-control" id="kode_lok" name="kode_lok" value="" readonly>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_area_new" class="form-label fw-bold">Area Lokasi</label>
+                <select class="form-control select2bs4" id="txt_area_new" name="txt_area_new" style="width: 100%;">
+                  <option selected value="">Pilih Area</option>
+                  @foreach ($arealok as $alok)
+                    <option value="{{ $alok->area }}">{{ $alok->area }}</option>
+                  @endforeach
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_inisial_new" class="form-label fw-bold">Inisial Penyimpanan</label>
+                <input type="text" class="form-control" id="txt_inisial_new" name="txt_inisial_new" oninput="this.value = this.value.toUpperCase(); setinisial();">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_baris_new" class="form-label fw-bold">Baris</label>
+                <input type="number" class="form-control" id="txt_baris_new" name="txt_baris_new" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_level_new" class="form-label fw-bold">Tingkat</label>
+                <input type="number" class="form-control" id="txt_level_new" name="txt_level_new" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
+            </div>
+
+            <!-- Kanan -->
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="txt_subbaris_new" class="form-label fw-bold">Sub Baris</label>
+                <input type="number" class="form-control" id="txt_subbaris_new" name="txt_subbaris_new" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_sublevel_new" class="form-label fw-bold">Sub Tingkat</label>
+                <input type="number" class="form-control" id="txt_sublevel_new" name="txt_sublevel_new" min="0" max="99" onfocus="clearIfZero(this)" oninput="setinisial(); limitTwoDigits(this);" onblur="padZero(this)">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="txt_capacity_new" class="form-label fw-bold">Kapasitas</label>
+                <input type="number" class="form-control" id="txt_capacity_new" name="txt_capacity_new" min="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-white border-top">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+            <i class="fa fa-times"></i> Tutup
+          </button>
+          <button type="submit" class="btn btn-sb toastsDefaultDanger">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
 @endsection
 
 @section('custom-script')
@@ -449,15 +292,51 @@ $('.select2roll').select2({
 </script>
 
 <script type="text/javascript">
-    function setinisial(){
-        let ini = $('#txt_inisial_new').val();
-        let row = $('#txt_baris_new').val();
-        let level = $('#txt_level_new').val();
-        let num = $('#txt_num_new').val();
-        let kode  = ini + '.' + row + '.' + level + '.' + num;
+    function setinisial() {
+  const ini = $('#txt_inisial_new').val().toUpperCase().trim();
+  const row = $('#txt_baris_new').val().trim().slice(0, 2);
+  const level = $('#txt_level_new').val().trim().slice(0, 2);
+  const subrow = $('#txt_subbaris_new').val().trim().slice(0, 2);
+  const sublevel = $('#txt_sublevel_new').val().trim().slice(0, 2);
 
-    $('#kode_lok').val(kode);
-    }
+  const parts = [ini, row, level, subrow, sublevel].filter(Boolean);
+  $('#kode_lok').val(parts.join('.'));
+  $('#txt_inisial_new').val(ini);
+}
+
+    function setinisial_edit() {
+  const ini = $('#txt_inisial').val().toUpperCase().trim();
+  const row = $('#txt_baris').val().trim().slice(0, 2);
+  const level = $('#txt_level').val().trim().slice(0, 2);
+  const subrow = $('#txt_subbaris').val().trim().slice(0, 2);
+  const sublevel = $('#txt_sublevel').val().trim().slice(0, 2);
+
+  const parts = [ini, row, level, subrow, sublevel].filter(Boolean);
+  $('#kode_lok_edit').val(parts.join('.'));
+  $('#txt_inisial').val(ini);
+}
+
+
+</script>
+
+<script>
+function clearIfZero(el) {
+  if (el.value === '') {
+    el.value = '';
+  }
+}
+
+function limitTwoDigits(el) {
+  let val = el.value.replace(/\D/g, '');
+  if (val.length > 2) val = val.slice(0, 2);
+  el.value = val;
+}
+
+function padZero(el) {
+  if (el.value === '') {
+    el.value = '';
+  }
+}
 </script>
 
 <script>
@@ -501,6 +380,7 @@ $('.select2roll').select2({
         ],
         columnDefs: [{
                 targets: [2],
+                visible: false,
                 render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
             },
             {
@@ -509,7 +389,7 @@ $('.select2roll').select2({
                     console.log(row);
                     if (row.status == 'Active') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                   <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.id + `","` + row.kapasitas + `","` + row.inisial_lok + `","` + row.baris_lok + `","` + row.level_lok + `","` + row.no_lok + `","` + row.area_lok + `","` + row.unit + `","` + row.unit_roll + `","` + row.unit_bundle + `","` + row.unit_box + `","` + row.unit_pack + `")'><i class="fa-solid fa-pen-to-square"></i></button>
+                   <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.id + `","` + row.kapasitas + `","` + row.inisial_lok + `","` + row.baris_lok + `","` + row.level_lok + `","` + row.no_lok + `","` + row.area_lok + `","` + row.unit + `","` + row.unit_roll + `","` + row.unit_bundle + `","` + row.unit_box + `","` + row.unit_pack + `","` + row.kode_lok + `","` + row.subbaris_lok + `","` + row.sublevel_lok + `")'><i class="fa-solid fa-pen-to-square"></i></button>
                     <button type='button' class='btn btn-sm btn-info' onclick='printlokasi("` + row.id + `")'><i class='fa fa-file-pdf'></i></button>
                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-unlock-alt'></i></button>
                     </div>`;
@@ -542,7 +422,7 @@ $('.select2roll').select2({
     }
 
 
-    function editdata($id,$kapasitas,$inisial_lok,$baris,$level,$nomor,$area,$unit,$u_roll,$u_bundle,$u_box,$u_pack){
+    function editdata($id,$kapasitas,$inisial_lok,$baris,$level,$nomor,$area,$unit,$u_roll,$u_bundle,$u_box,$u_pack,$kode_lok,$subbaris,$sublevel){
         // alert($id);
         $("#ROLL_edit").prop("checked", false);
         $("#BUNDLE_edit").prop("checked", false);
@@ -560,6 +440,9 @@ $('.select2roll').select2({
         let u_bundle  = $u_bundle;
         let u_box  = $u_box;
         let u_pack  = $u_pack;
+        let kode_lok  = $kode_lok;
+        let subbaris  = $subbaris;
+        let sublevel  = $sublevel;
 
         console.log(u_roll);
 
@@ -579,47 +462,96 @@ $('.select2roll').select2({
             $("#PACK_edit").prop("checked", true);
         }
 
+    $('#kode_lok_edit').val(kode_lok);
     $('#txt_id').val(idnya);
     $('#txt_inisial').val(inisial_lok);
     $('#txt_capacity').val(kapasitas);
     $('#txt_baris').val(baris);
     $('#txt_level').val(level);
-    $('#txt_num').val(nomor);
-    $('#txt_area').val(area);
-    // document.getElementById('txt_area').value=area;
-    // document.getElementById('txt_area').selected=true;
+    $('#txt_subbaris').val(subbaris);
+    $('#txt_sublevel').val(sublevel);
+    const select = document.getElementById('txt_area');
+select.value = area;
+select.dispatchEvent(new Event('change'));
     $('#modal-edit-lokasi').modal('show');
     }
 
     function tambahdata(){
+        $('#txt_baris_new').val('');
+        $('#txt_level_new').val('');
+        $('#txt_subbaris_new').val('');
+        $('#txt_sublevel_new').val('');
+        $('#txt_inisial_new').val('');
     $('#modal-tambah-lokasi').modal('show');
     }
 </script>
 
 <script type="text/javascript">
     function printlokasi(id) {
+  $.ajax({
+    url: '{{ route('print-lokasi') }}/' + id,
+    type: 'post',
+    processData: false,
+    contentType: false,
+    xhrFields: {
+      responseType: 'blob'
+    },
+    success: function(res) {
+      if (res) {
+        const blob = new Blob([res], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        // buka di tab/jendela baru
+        window.open(url, '_blank');
+      }
+    }
+  });
+}
 
-            $.ajax({
-                url: '{{ route('print-lokasi') }}/'+id,
-                type: 'post',
-                processData: false,
-                contentType: false,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
+function printAllLokasi() {
+  Swal.fire({
+    title: 'Mencetak...',
+    text: 'Mohon tunggu, sedang menyiapkan data lokasi.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = id+".pdf";
-                        link.click();
-                    }
-                }
-            });
-        }
+  $.ajax({
+    url: '{{ route('print-lokasi-all') }}',
+    type: 'POST',
+    processData: false,
+    contentType: false,
+    xhrFields: { responseType: 'blob' },
+    success: function(res) {
+      Swal.close(); // Tutup loading Swal
+
+      if (res) {
+        const blob = new Blob([res], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank'); // buka di tab baru
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'File lokasi berhasil dicetak.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
+    },
+    error: function() {
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: 'Gagal mencetak semua lokasi!',
+      });
+    }
+  });
+}
+
+
+
 </script>
 @endsection

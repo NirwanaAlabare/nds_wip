@@ -251,6 +251,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'approve_date' => $timestamp,
                 'cancel_by' => '',
                 'cancel_date' => '',
+                'profit_center' => 'NAG',
             ]);
 
             // Ambil COA debit
@@ -289,6 +290,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 'approve_date' => $timestamp,
                 'cancel_by' => '',
                 'cancel_date' => '',
+                'profit_center' => 'NAG',
             ]);
 
             // Jurnal PPN
@@ -325,6 +327,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     'approve_date' => $timestamp,
                     'cancel_by' => '',
                     'cancel_date' => '',
+                    'profit_center' => 'NAG',
                 ]);
             }
         }

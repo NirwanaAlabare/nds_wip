@@ -30,9 +30,8 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No BPPB</small></label>
-                @foreach ($kode_gr as $kodegr)
-                <input type="text" class="form-control " id="txt_nobppb" name="txt_nobppb" value="{{ $kodegr->kode }}" readonly>
-                @endforeach
+                <input type="text" class="form-control " id="txt_nobppb" name="txt_nobppb" value="{{ $data_out->no_bppb }}" readonly>
+                <input type="hidden" class="form-control " id="txt_idbppb" name="txt_idbppb" value="{{ $data_out->id }}" readonly>
                 </div>
             </div>
             </div>
@@ -42,7 +41,7 @@
                 <div class="form-group">
                 <label><small>Tgl BPPB</small></label>
                 <input type="date" class="form-control form-control" id="txt_tgl_bppb" name="txt_tgl_bppb"
-                        value="{{ date('Y-m-d') }}">
+                        value="{{ $data_out->tgl_bppb }}">
                 </div>
             </div>
             </div>
@@ -51,14 +50,8 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No Request</small></label>
-                <select class="form-control select2bs4" id="txt_noreq" name="txt_noreq" style="width: 100%;" onchange="det_request(this.value)">
-                    <option selected="selected" value="">Pilih Request</option>
-                        @foreach ($no_req as $noreq)
-                    <option value="{{ $noreq->isi }}">
-                                {{ $noreq->tampil }}
-                    </option>
-                        @endforeach
-                </select>
+                <input type="text" class="form-control form-control" id="txt_noreq" name="txt_noreq"
+                        value="{{ $data_out->no_req }}" readonly>
                 </div>
             </div>
             </div>
@@ -66,16 +59,17 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Jenis Pengeluaran</small></label>
-                <select class="form-control select2bs4" id="txt_jns_klr" name="txt_jns_klr" style="width: 100%;">
-                    <option selected="selected" value="">Pilih Pengeluaran</option>
+                    <label><small>Jenis Pengeluaran</small></label>
+                    <select class="form-control select2bs4" id="txt_jns_klr" name="txt_jns_klr" style="width: 100%;">
                         @foreach ($jns_klr as $jnsklr)
-                    <option value="{{ $jnsklr->isi }}">
+                            <option value="{{ trim($jnsklr->isi) }}"
+                                {{ trim($jnsklr->isi) == trim($data_out->jenis_pengeluaran) ? 'selected' : '' }}>
                                 {{ $jnsklr->tampil }}
-                    </option>
+                            </option>
                         @endforeach
-                </select>
+                    </select>
                 </div>
+
             </div>
             </div>
 
@@ -83,7 +77,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No JO</small></label>
-                <input type="text" class="form-control " id="txt_nojo" name="txt_nojo" value="" readonly>
+                <input type="text" class="form-control " id="txt_nojo" name="txt_nojo" value="{{ $data_out->no_jo }}" readonly>
                 <input type="hidden" class="form-control " id="txt_id_jo" name="txt_id_jo" value="" readonly>
                 </div>
             </div>
@@ -98,7 +92,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Dikirim Ke</small></label>
-                <input type="text" class="form-control " id="txt_dikirim" name="txt_dikirim" value="" readonly>
+                <input type="text" class="form-control " id="txt_dikirim" name="txt_dikirim" value="{{ $data_out->tujuan }}" readonly>
                 <input type="hidden" class="form-control " id="txt_idsupp" name="txt_idsupp" value="" readonly>
                 </div>
             </div>
@@ -108,7 +102,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Buyer</small></label>
-                <input type="text" class="form-control " id="txt_buyer" name="txt_buyer" value="" readonly>
+                <input type="text" class="form-control " id="txt_buyer" name="txt_buyer" value="{{ $data_out->buyer }}" readonly>
                 </div>
             </div>
             </div>
@@ -117,7 +111,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Worksheet</small></label>
-                <input type="text" class="form-control " id="txt_nows" name="txt_nows" value="" readonly>
+                <input type="text" class="form-control " id="txt_nows" name="txt_nows" value="{{ $data_out->no_ws }}" readonly>
                 </div>
             </div>
             </div>
@@ -126,7 +120,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Worksheet Actual</small></label>
-                <input type="text" class="form-control " id="txt_nows_act" name="txt_nows_act" value="" readonly>
+                <input type="text" class="form-control " id="txt_nows_act" name="txt_nows_act" value="{{ $data_out->no_ws_aktual }}" readonly>
                 </select>
                 </div>
             </div>
@@ -136,7 +130,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Style Actual</small></label>
-                <input type="text" class="form-control " id="txt_style_act" name="txt_style_act" value="" readonly>
+                <input type="text" class="form-control " id="txt_style_act" name="txt_style_act" value="{{ $data_out->style_aktual }}" readonly>
                 </div>
             </div>
             </div>
@@ -153,9 +147,10 @@
                 <select class="form-control select2bs4" id="txt_dok_bc" name="txt_dok_bc" style="width: 100%;">
                     <option selected="selected" value="">Pilih Dokumen</option>
                         @foreach ($mtypebc as $bc)
-                    <option value="{{ $bc->nama_pilihan }}">
-                                {{ $bc->nama_pilihan }}
-                    </option>
+                        <option value="{{ trim($bc->nama_pilihan) }}"
+                            {{ trim($bc->nama_pilihan) == trim($data_out->dok_bc) ? 'selected' : '' }}>
+                            {{ $bc->nama_pilihan }}
+                        </option>
                         @endforeach
                 </select>
                 </div>
@@ -211,7 +206,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No Kontrak</small></label>
-                <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak" value="" >
+                <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak" value="{{ $data_out->no_kontrak }}" >
                 </div>
             </div>
             </div>
@@ -220,8 +215,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No Invoice</small></label>
-<!--            <select class="form-control select2bs4" id="txt_tom" name="txt_tom" style="width: 100%;"></select> -->                      
-                <input type="text" class="form-control " id="txt_invoice" name="txt_invoice" value="">
+                <input type="text" class="form-control " id="txt_invoice" name="txt_invoice" value="{{ $data_out->no_invoice }}">
                </div>
             </div>
             </div>
@@ -485,20 +479,6 @@
     $('.select2req').select2({
         theme: 'bootstrap4'
     });
-
-    $("#color").prop("disabled", true);
-    $("#panel").prop("disabled", true);
-    $('#p_unit').val("yard").trigger('change');
-
-    // Reset Form
-    // Reset Form
-if (document.getElementById('store-outmaterial-fabric')) {
-    document.getElementById('store-outmaterial-fabric').reset();
-
-    // Reset semua select2 juga
-    $('.select2, .select2bs4, .select2barcode, .select2req').val(null).trigger('change');
-    getlistdata();
-}
 
 });
 

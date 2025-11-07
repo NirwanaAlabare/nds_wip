@@ -1364,6 +1364,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/updatestatus', 'updatestatus')->name('updatestatus');
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi');
+        Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all');
+
     });
 
     //dashboard fabric
@@ -1450,6 +1452,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-qty-upload', 'getqtyupload')->name('get-qty-upload');
         Route::post('/save-upload-lokasi', 'saveuploadlokasi')->name('save-upload-lokasi');
         Route::get('/cancel-retur-material', 'CancelReturMaterial')->name('cancel-retur-material');
+        Route::post('/delete-detail-barcode-rak', 'DeleteDataBarcode')->name('delete-detail-barcode-rak');
+        Route::get('/export-format-upload-roll', 'ExportUploadRoll')->name('export-format-upload-roll');
+        Route::post('/update-all-barcode-rak', 'updateAllLokasi')->name('update-all-barcode-rak');
+
     });
 
     //permintaan
@@ -1460,10 +1466,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-ws-act', 'getWSact')->name('get-ws-act');
         Route::get('/show-detail', 'showdetail')->name('get-detail-req');
         Route::get('/sum-detail', 'sumdetail')->name('get-sum-req');
+        Route::get('/get-style-actual', 'getStyleAct')->name('get-style-actual');
         Route::post('/store', 'store')->name('store-reqmaterial-fabric');
         Route::post('/print-pdf-reqmaterial/{bppbno?}', 'pdfreqmaterial')->name('print-pdf-reqmaterial');
         Route::get('/edit-request/{id?}', 'editrequest')->name('edit-reqmaterial');
         Route::get('/update-req-fabric', 'updateReq')->name('update-reqmaterial-fabric');
+        Route::get('/cancel-request', 'CancelRequest')->name('cancel-request');
     });
 
     //Pengeluaran
@@ -1482,6 +1490,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
         Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
         Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
+        Route::get('/edit-out-material/{id?}', 'editoutmaterial')->name('edit-out-material');
     });
 
 
@@ -1496,6 +1505,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/approve-mutlok', 'approvemutlok')->name('approve-mutlok');
         Route::get('/edit-mutlok/{id?}', 'editmutlok')->name('edit-mutlok');
         Route::get('/update-mutlokasi', 'updatemutlok')->name('update-mutlokasi');
+        Route::get('/get-barcode', 'getbarcodemutasi')->name('get-data-barcodemutasi');
+        Route::get('/save-barcode', 'simpanbarcodemutasi')->name('simpan-scan-barcode-mutasi');
+        Route::get('/list-scan-barcode', 'listscanbarcodemut')->name('list-scan-barcode-mutasi');
+        Route::get('/delete-mut-temp', 'deletemuttemp')->name('delete-mut-temp');
+        Route::get('/delete-mut-temp-all', 'deletemuttempall')->name('delete-mut-temp-all');
+        Route::get('/update_lokasi-mut-temp', 'updatelokasimuttemp')->name('update_lokasi-mut-temp');
+        Route::post('/store_new', 'store_new')->name('save-mutasi-rak-fabric');
     });
 
     //Retur

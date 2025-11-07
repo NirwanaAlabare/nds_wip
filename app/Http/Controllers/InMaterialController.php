@@ -23,6 +23,10 @@ use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ImportLokasiMaterial;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use DB;
 use QrCode;
 use DNS1D;
@@ -283,50 +287,57 @@ public function getdetaillok(Request $request)
 
 public function showdetaillok(Request $request)
 {
-        // $det_lokasi = DB::connection('mysql_sb')->table('whs_lokasi_inmaterial')->select('no_roll','no_lot','ROUND(qty_sj,2) qty_sj','ROUND(qty_aktual,2) qty_aktual','kode_lok')->where('status', '=', 'Y')->where('no_dok', '=', $request->no_dok)->where('no_ws', '=', $request->no_ws)->where('id_jo', '=', $request->id_jo)->where('id_item', '=', $request->id_item)->get();
     $det_lokasi = DB::connection('mysql_sb')->select("
-        select no_barcode, no_roll_buyer, no_roll,no_lot,ROUND(qty_sj,2) qty_sj,ROUND(qty_aktual,2) qty_aktual,kode_lok from whs_lokasi_inmaterial where status = 'Y' and ROUND(qty_aktual - COALESCE(qty_mutasi,0) ,2) > 0 and no_dok = '" . $request->no_dok . "' and no_ws = '" . $request->no_ws . "' and id_jo = '" . $request->id_jo . "' and id_item = '" . $request->id_item . "' ");
+        select no_barcode, no_roll_buyer, no_roll, no_lot,
+               ROUND(qty_sj,2) qty_sj,
+               ROUND(qty_aktual,2) qty_aktual,
+               kode_lok
+        from whs_lokasi_inmaterial
+        where status = 'Y'
+          and ROUND(qty_aktual - COALESCE(qty_mutasi,0),2) > 0
+          and no_dok = '".$request->no_dok."'
+          and no_ws = '".$request->no_ws."'
+          and id_jo = '".$request->id_jo."'
+          and id_item = '".$request->id_item."' order by CAST(no_roll AS UNSIGNED) asc
+    ");
 
-    $html = '<div class="table-responsive" style="max-height: 250px">
-    <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100 text-nowrap">
-    <thead>
-    <tr>
-    <th class="text-center" style="font-size: 0.6rem;width: 18%;">No Barcode</th>
-    <th class="text-center" style="font-size: 0.6rem;width: 15%;">No Roll</th>
-    <th class="text-center" style="font-size: 0.6rem;width: 15%;">No Roll Buyer</th>
-    <th class="text-center" style="font-size: 0.6rem;width: 29%;">Lot</th>
-    <th class="text-center" style="font-size: 0.6rem;width: 18%;">Qty</th>
-    <th class="text-center" style="font-size: 0.6rem;width: 30%;">Lokasi</th>
-    </tr>
-    </thead>
-    <tbody>';
-    $jml_qty_sj = 0;
-    $jml_qty_ak = 0;
-    foreach ($det_lokasi as $detlok) {
-        $jml_qty_sj += $detlok->qty_sj;
-        $jml_qty_ak += $detlok->qty_aktual;
-        $html .= ' <tr>
-        <td class="text-center">' . $detlok->no_barcode . '</td>
-        <td class="text-left">' . $detlok->no_roll . '</td>
-        <td class="text-left">' . $detlok->no_roll_buyer . '</td>
-        <td class="text-left">' . $detlok->no_lot . '</td>
-        <td class="text-right">' . $detlok->qty_aktual . '</td>
-        <td class="text-left">' . $detlok->kode_lok . '</td>
-        </tr>';
+    $html = '
+    <div class="table-responsive" style="max-height: 250px">
+        <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100 text-nowrap">
+            <thead>
+                <tr>
+                    <th class="text-center" style="font-size: 0.7rem;">No Barcode</th>
+                    <th class="text-center" style="font-size: 0.7rem;">No Roll</th>
+                    <th class="text-center" style="font-size: 0.7rem;">No Roll Buyer</th>
+                    <th class="text-center" style="font-size: 0.7rem;">Lot</th>
+                    <th class="text-center" style="font-size: 0.7rem;">Qty Aktual</th>
+                    <th class="text-center" style="font-size: 0.7rem;">Lokasi</th>
+                </tr>
+            </thead>
+            <tbody>
+    ';
+
+    foreach ($det_lokasi as $det) {
+        $html .= '
+            <tr data-barcode="'.$det->no_barcode.'">
+                <td class="text-center">'.$det->no_barcode.'</td>
+                <td class="text-left editable" contenteditable="true">'.$det->no_roll.'</td>
+                <td class="text-left editable" contenteditable="true">'.$det->no_roll_buyer.'</td>
+                <td class="text-left editable" contenteditable="true">'.$det->no_lot.'</td>
+                <td class="text-right editable" contenteditable="true">'.$det->qty_aktual.'</td>
+                <td class="text-left editable" contenteditable="true">'.$det->kode_lok.'</td>
+            </tr>
+        ';
     }
 
-    $html .= ' <tr>
-    <td colspan="4" class="text-center"><b>Total</b></td>
-    <td class="text-right">' . $jml_qty_ak . '</td>
-    <td class="text-left"></td>
-    </tr>';
-
-    $html .= '</tbody>
-    </table>
+    $html .= '
+            </tbody>
+        </table>
     </div>';
 
     return $html;
 }
+
 
 
 public function getDetailList(Request $request)
@@ -535,7 +546,7 @@ public function updatedet(Request $request)
         if (intval($request['jumlah_qty']) > 0) {
 
             $tglbpb = $request['txt_tgl_gr'];
-            $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/IN/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) bpbno_int FROM bpb WHERE MONTH(bpbdate) = MONTH('" . $tglbpb . "') AND YEAR(bpbdate) = YEAR('" . $tglbpb . "') AND LEFT(bpbno_int,2) = 'GK'");
+            $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0)) nomor,CONCAT('GK/IN/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0))) no_dok FROM whs_inmaterial_fabric WHERE MONTH(tgl_dok) = MONTH('" . $tglbpb . "') AND YEAR(tgl_dok) = YEAR('" . $tglbpb . "') AND LEFT(no_dok,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
             $m_type = $Mattype1[0]->Mattype;
             $no_type = $Mattype1[0]->nomor;
@@ -816,6 +827,7 @@ public function updatedet(Request $request)
 
     public function savelokasi(Request $request)
     {
+        // dd($request);
         $iddok = $request['txtidgr'];
         $ttl_qty_sj = $request['ttl_qty_sj'];
 
@@ -838,8 +850,9 @@ public function updatedet(Request $request)
                     }else{
                         $data_aktual = $request["qty_ak"][$i];
                     }
-                    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F', DATE_FORMAT(NOW(), '%y%m'), LPAD(COALESCE((SELECT CAST(RIGHT(no_barcode, 5) AS UNSIGNED) + 1 FROM whs_lokasi_inmaterial WHERE no_barcode REGEXP CONCAT('^F', DATE_FORMAT(NOW(), '%y%m'), '[0-9]{5}$') ORDER BY no_barcode DESC LIMIT 1), 1), 5, '0')) AS kode");
                     $barcode = $sql_barcode[0]->kode;
+                    // dd($barcode);
 
                     $save_lokasi = InMaterialLokasi::create([
                         "no_barcode" => $barcode,
@@ -854,12 +867,17 @@ public function updatedet(Request $request)
                         "no_lot" => $request["no_lot"][$i],
                         "qty_sj" => $request["qty_sj"][$i],
                         "qty_aktual" => $data_aktual,
+                        "qty_mutasi" => '',
+                        "qty_out" => '',
+                        "no_mut" => null,
                         "satuan" => $satuan,
                         "kode_lok" => $request["selectlok"][$i],
                         "status" => 'Y',
                         "created_by" => Auth::user()->name,
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
+                        "nilai_barang" => '',
+                        "no_barcode_old" => '',
                     ]);
                 }
             }
@@ -913,7 +931,7 @@ public function updatedet(Request $request)
                     }else{
                         $data_aktual = $request["qty_aktual"][$i];
                     }
-                    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F', DATE_FORMAT(NOW(), '%y%m'), LPAD(COALESCE((SELECT CAST(RIGHT(no_barcode, 5) AS UNSIGNED) + 1 FROM whs_lokasi_inmaterial WHERE no_barcode REGEXP CONCAT('^F', DATE_FORMAT(NOW(), '%y%m'), '[0-9]{5}$') ORDER BY no_barcode DESC LIMIT 1), 1), 5, '0')) AS kode");
                     $barcode = $sql_barcode[0]->kode;
 
                     $save_lokasi = InMaterialLokasi::create([
@@ -1141,6 +1159,126 @@ public function pdfinmaterial(Request $request, $id)
 
         return view('master.update-lokasi', ["dataLokasi" => $dataLokasi,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
     }
+
+
+  public function DeleteDataBarcode(Request $request)
+{
+    $no_dok = $request->input('no_dok');
+    $id_item = $request->input('id_item');
+
+    if (!$no_dok || !$id_item) {
+        return response()->json(['success' => false, 'message' => 'Parameter tidak lengkap.'], 400);
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $insertSql = "INSERT INTO whs_lokasi_inmaterial_cancel
+                      SELECT * FROM whs_lokasi_inmaterial
+                      WHERE no_dok = ? AND id_item = ?";
+
+        DB::connection('mysql_sb')->statement($insertSql, [$no_dok, $id_item]);
+
+        $deleted = DB::connection('mysql_sb')
+            ->table('whs_lokasi_inmaterial')
+            ->where('no_dok', $no_dok)
+            ->where('id_item', $id_item)
+            ->delete();
+
+        DB::commit();
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'deleted' => $deleted]);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang dihapus.'], 404);
+        }
+
+    } catch (Exception $e) {
+        DB::rollBack();
+        Log::error('DeleteDataBarcode error: '.$e->getMessage(), [
+            'no_dok' => $no_dok,
+            'id_item' => $id_item
+        ]);
+        return response()->json(['success' => false, 'message' => 'Terjadi kesalahan server.'], 500);
+    }
+}
+
+
+public function ExportUploadRoll(Request $request)
+{
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    $headers = ['id', 'no_lot', 'no_roll', 'no_roll_buyer', 'qty_bpb', 'qty_aktual', 'kode_lok'];
+    $col = 'A';
+    foreach ($headers as $header) {
+        $sheet->setCellValue($col . '1', $header);
+        $col++;
+    }
+
+    $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+    $sheet->getStyle('A1:G1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    foreach (range('A', 'G') as $columnID) {
+        $sheet->getColumnDimension($columnID)->setAutoSize(true);
+    }
+
+    $borderStyle = [
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['argb' => 'FF000000'],
+            ],
+        ],
+    ];
+    $sheet->getStyle('A1:G2')->applyFromArray($borderStyle);
+
+    $sheet->setCellValue('A2', '');
+    $sheet->getRowDimension(2)->setRowHeight(18);
+
+    $writer = new Xlsx($spreadsheet);
+    ob_start();
+    $writer->save('php://output');
+    $excelOutput = ob_get_clean();
+
+    return response($excelOutput, 200, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="Format_Upload_Roll.xlsx"',
+        'Cache-Control' => 'max-age=0',
+    ]);
+}
+
+public function updateAllLokasi(Request $request)
+{
+    $rows = $request->data;
+    // dd($rows);
+    foreach ($rows as $row) {
+        $qty = $row['m_qty'];
+        $qty_diff = $row['m_qty_diff'];
+        if ($qty_diff > 0) {
+            DB::connection('mysql_sb')
+            ->table('whs_inmaterial_fabric_det')
+            ->where('no_dok', $row['m_gr_dok'])
+            ->where('id_item', $row['m_iditem'])
+            ->update([
+                'qty_good' => $qty,
+            ]);
+        }
+        DB::connection('mysql_sb')
+            ->table('whs_lokasi_inmaterial')
+            ->where('no_barcode', $row['no_barcode'])
+            ->update([
+                'no_roll' => $row['no_roll'],
+                'no_roll_buyer' => $row['no_roll_buyer'],
+                'no_lot' => $row['no_lot'],
+                'qty_sj' => $row['qty_aktual'],
+                'qty_aktual' => $row['qty_aktual'],
+                'kode_lok' => $row['kode_lok'],
+            ]);
+    }
+
+    return response()->json(['success' => true]);
+}
+
 
 
     /**

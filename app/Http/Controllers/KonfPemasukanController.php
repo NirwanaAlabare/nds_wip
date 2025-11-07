@@ -267,6 +267,7 @@ class KonfPemasukanController extends Controller
                 'create_date' => $dateinput_,
                 'approve_by' => Auth::user()->name,
                 'approve_date' => $timestamp,
+                'profit_center' => 'NAG',
             ]);
 
             Journal::create([
@@ -287,6 +288,7 @@ class KonfPemasukanController extends Controller
                 'create_date' => $dateinput_,
                 'approve_by' => Auth::user()->name,
                 'approve_date' => $timestamp,
+                'profit_center' => 'NAG',
             ]);
 
             if ($tax >= 1) {
@@ -312,6 +314,7 @@ class KonfPemasukanController extends Controller
                     'create_date' => $dateinput_,
                     'approve_by' => Auth::user()->name,
                     'approve_date' => $timestamp,
+                    'profit_center' => 'NAG',
                 ]);
             }
         }
