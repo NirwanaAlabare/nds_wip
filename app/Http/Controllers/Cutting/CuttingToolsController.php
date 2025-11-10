@@ -332,13 +332,18 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
-            $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_marker_form_id'])->first();
+            // If not Bypassed
+            if (!isset($request['modify_bypass_stocker']) && $request['modify_bypass_stocker'] == "bypass") {
 
-            if ($checkStocker) {
-                return array(
-                    "status" => 400,
-                    "message" => "Form sudah memiliki Stocker."
-                );
+                // Check Stocker Availability
+                $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_marker_form_id'])->first();
+
+                if ($checkStocker) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Form sudah memiliki Stocker."
+                    );
+                }
             }
 
             $oldMarker = Marker::where("kode", $validatedRequest['modify_marker_kode_marker'])->first();
@@ -417,6 +422,8 @@ class CuttingToolsController extends Controller
                 if ($oldMarker && $oldMarker->markerDetails) {
                     foreach ($oldMarker->markerDetails as $markerDetail) {
                         if ($markerDetail->masterSbWs) {
+
+                            // Search for Similar So Det
                             $currentSoDet = $data->where("size", ($markerDetail->masterSbWs->size))->where("dest", $markerDetail->masterSbWs->dest)->first();
                             if (!$currentSoDet) {
                                 $currentSoDet = $data->where("size", ($markerDetail->masterSbWs->size))->first();
@@ -432,12 +439,14 @@ class CuttingToolsController extends Controller
                                 })->first();
                             }
 
+                            // When Found
                             if ($currentSoDet) {
                                 $filtered = array_filter($markerDetailData, function($value) use ($currentSoDet, $markerDetail) {
                                     return $value["so_det_id"] == $currentSoDet->so_det_id && $value["ratio"] > $markerDetail->ratio;
                                 });
 
                                 if (count($filtered) < 1) {
+                                    // Mass Upsert Marker Detail
                                     array_push($markerDetailData, [
                                         "marker_id" => $markerId,
                                         "so_det_id" => $currentSoDet->so_det_id,
@@ -499,6 +508,52 @@ class CuttingToolsController extends Controller
                         $partFormCut = PartForm::where("form_id", $validatedRequest["modify_marker_form_id"])->update([
                             "part_id" => $partId,
                         ]);
+
+                        // Update Stocker
+                        if ($oldMarker && $oldMarker->markerDetails) {
+                            if ($markerDetailStore) {
+                                foreach ($oldMarker->markerDetails as $markerDetail) {
+                                    if ($markerDetail->masterSbWs) {
+
+                                        // Search for Similar So Det
+                                        $currentSoDet = $data->where("size", ($markerDetail->masterSbWs->size))->where("dest", $markerDetail->masterSbWs->dest)->first();
+                                        if (!$currentSoDet) {
+                                            $currentSoDet = $data->where("size", ($markerDetail->masterSbWs->size))->first();
+                                        }
+                                        if (!$currentSoDet) {
+                                            $currentSoDet = $data->filter(function($item) use ($markerDetail) {
+                                                return Str::startsWith($item->size, $markerDetail->masterSbWs->size);
+                                            })->first();
+                                        }
+                                        if (!$currentSoDet) {
+                                            $currentSoDet = $data->filter(function($item) use ($markerDetail) {
+                                                return Str::endsWith($item->size, $markerDetail->masterSbWs->size);
+                                            })->first();
+                                        }
+
+                                        // When Found
+                                        if ($currentSoDet) {
+                                            $filtered = array_filter($markerDetailData, function($value) use ($currentSoDet, $markerDetail) {
+                                                return $value["so_det_id"] == $currentSoDet->so_det_id && $value["ratio"] > $markerDetail->ratio;
+                                            });
+
+                                            if (count($filtered) < 1) {
+                                                // Update Stocker
+                                                Stocker::where("form_cut_id", $validatedRequest["modify_marker_form_id"])
+                                                ->where("so_det_id", $markerDetail->masterSbWs->id_so_det)
+                                                ->update([
+                                                    "act_costing_ws" => $currentSoDet->kpno,
+                                                    "color" => $currentSoDet->color,
+                                                    "so_det_id" => $currentSoDet->so_det_id,
+                                                    "size" => $currentSoDet->size . ($currentSoDet->dest && $currentSoDet->dest != "-" ? " - " . $currentSoDet->dest : ""),
+                                                    "notes" => DB::raw("CONCAT(notes, ' MODIFY MARKER')")
+                                                ]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         $stockerService->reorderStockerNumbering($partId);
                     }
