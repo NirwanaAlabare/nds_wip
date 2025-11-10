@@ -713,9 +713,9 @@ class PartController extends Controller
                 // "cbotuj" => "required",
                 // "cboproses" => "required",
                 "txtpart" => "required",
-                "txtcons" => "required",
-                "txtconsunit" => "required",
                 "partSource" => "required",
+                // "txtcons" => "required",
+                // "txtconsunit" => "required",
             ]);
 
             // Check Part Detail
@@ -731,8 +731,9 @@ class PartController extends Controller
                         'part_id' => $request->id,
                         'master_part_id' => $validatedRequest['txtpart'],
                         'part_status' => 'complement',
+                        'from_part_detail' => $currentFromPartDetail->id,
                         'cons' => $currentFromPartDetail->cons,
-                        'unit' => $currentFromPartDetail->cons_unit,
+                        'unit' => $currentFromPartDetail->unit,
                         'tujuan' => $currentFromPartDetail->tujuan,
                         "created_by" => Auth::user()->id,
                         "created_by_username" => Auth::user()->username,
@@ -940,6 +941,88 @@ class PartController extends Controller
             'status' => '400',
             'table' => 'datatable_list_part',
             'message' => 'Data Part Secondary "' . $validatedRequest["edit_id"] . '" gagal diupdate',
+        );
+    }
+
+    public function updatePartSecondaryComplement(Request $request) {
+        $validatedRequest = $request->validate([
+            "edit_com_id" => "required",
+            "edit_com_master_part_id" => "required",
+            "edit_com_from_part_id" => "required",
+        ]);
+
+        // Status & Message
+        $status = "";
+        $message = "";
+
+        // Phase 1 (Check DC In Input)
+        $checkDc = DcIn::leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
+            where("part_detail_id", $validatedRequest['edit_com_id'])->
+            count();
+
+        if ($checkDc < 1 || Auth::user()->roles->whereIn("nama_role", ["superadmin"])) {
+            // When DC In was not inputted
+
+            // Phase 2 (Check Part Detail)
+            $currentPartDetail = PartDetail::where("id", $validatedRequest['edit_com_id'])->first();
+            if ($currentPartDetail) {
+                // Phase 3 (Check New Part Detail's Sources)
+                $fromPartDetail = PartDetail::where("id", $validatedRequest['edit_com_from_part_id'])->first();
+                if ($fromPartDetail) {
+                    // Phase 4 (Delete Part Detail's old Secondaries)
+                    $deletePartDetailSecondary = PartDetailSecondary::where("part_detail_id", $validatedRequest['edit_com_id'])->delete();
+                    if ($deletePartDetailSecondary) {
+                        // Phase 5 (Create New Part Detail's Secondaries)
+                        $partDetailSecondaryData = [];
+                        $batch = Str::uuid();
+                        $timestamp = Carbon::now();
+                        $currentSecondaries = $fromPartDetail->secondaries;
+                        if ($currentSecondaries) {
+                            foreach ($currentSecondaries as $secondary) {
+                                array_push($partDetailSecondaryData, [
+                                    "part_detail_id" => $validatedRequest['edit_com_id'],
+                                    "master_secondary_id" => $secondary->master_secondary_id,
+                                    "urutan" => $secondary->urutan,
+                                    "batch" => $batch,
+                                    "created_by" => Auth::user()->id,
+                                    "created_by_username" => Auth::user()->username,
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
+
+                            PartDetailSecondary::insert($partDetailSecondaryData);
+                        }
+
+                        // Phase 6 (Update Part Detail)
+                        PartDetail::where("id", $validatedRequest['edit_com_id'])->update([
+                            "master_part_id" => $validatedRequest['edit_com_master_part_id'],
+                            "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
+                        ]);
+
+                        $status = "200";
+                        $message = 'Data Part Secondary "' . $validatedRequest["edit_com_id"] . '" berhasil disimpan.';
+                    } else {
+                        $status = "400";
+                        $message = 'Data Part Secondary Tujuan "' . $validatedRequest["edit_com_id"] . '" tidak ditemukan.';
+                    }
+                } else {
+                    $status = "400";
+                    $message = 'Data Part Secondary "' . $validatedRequest["edit_com_id"] . '" gagal dihapus.';
+                }
+            } else {
+                $status = "400";
+                $message = 'Data Part Secondary Tujuan "' . $validatedRequest["edit_com_id"] . '" tidak ditemukan.';
+            }
+        } else {
+            $status = "400";
+            $message = 'Data Part Secondary Tujuan "' . $validatedRequest["edit_com_id"] . '" sudah masuk ke DC.';
+        }
+
+        return array(
+            'status' => $status,
+            'table' => 'datatable_list_part_complement',
+            'message' => $message,
         );
     }
 
@@ -1283,20 +1366,23 @@ class PartController extends Controller
         $list_part = DB::select(
             "
             SELECT
-                pd.id,
-                CONCAT(nama_part, ' - ', bag) nama_part,
-                master_part_id,
-                master_secondary_id,
-                COALESCE(pd.tujuan, ms.tujuan) as tujuan,
-                COALESCE(pds.proses, ms.proses) as proses,
-                cons,
-                UPPER(unit) unit,
-                COALESCE(pd.part_status, '-') part_status,
-                stocker.total total_stocker
+                pd.id com_id,
+                CONCAT(mp.nama_part, ' - ', mp.bag) com_nama_part,
+                CONCAT(from_master_part.nama_part, ' - ', from_master_part.bag) as com_from_part,
+                pd.master_part_id com_master_part_id,
+                pd.master_secondary_id com_master_secondary_id,
+                COALESCE(pd.tujuan, ms.tujuan) as com_tujuan,
+                COALESCE(pds.proses, ms.proses) as com_proses,
+                pd.cons com_cons,
+                UPPER(pd.unit) com_unit,
+                COALESCE(pd.part_status, '-') com_part_status,
+                stocker.total com_total_stocker
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
                 left join master_secondary ms on pd.master_secondary_id = ms.id
+                left join part_detail as from_part_detail on from_part_detail.id = pd.from_part_detail
+                left join master_part as from_master_part on from_master_part.id = from_part_detail.master_part_id
                 left join (
                     select
                         part_detail_id,
@@ -1317,10 +1403,10 @@ class PartController extends Controller
                         part_detail_id
                 ) stocker on stocker.part_detail_id = pd.id
             where
-                part_id = '" . $request->id . "' and
-                (part_status = 'complement')
+                pd.part_id = '" . $request->id . "' and
+                (pd.part_status = 'complement')
             order by
-                id asc
+                pd.id asc
             "
         );
 
@@ -1342,6 +1428,8 @@ class PartController extends Controller
             Log::channel('deletePartDetail')->info([
                 "Deleting Data",
                 "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                DB::table("part_detail")->where('id', $id)->get(),
+                DB::table("part_detail_secondary")->where('part_detail_id', $id)->get(),
                 DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                 DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                 DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
@@ -1350,6 +1438,7 @@ class PartController extends Controller
                 DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
             ]);
 
+            $deletePartDetailSecondary = PartDetailSecondary::where('part_detail_id', $id)->delete();
             $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
             $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
@@ -1362,7 +1451,7 @@ class PartController extends Controller
                 'status' => 200,
                 'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil dihapus. <br> "'.$partDetail->id.'"',
                 'redirect' => '',
-                'table' => 'datatable_list_part',
+                'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part_complement',
                 'additional' => [],
             );
         }

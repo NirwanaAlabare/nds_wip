@@ -231,7 +231,7 @@
                 <div class="card-body">
                     <form method="post" id="store-complement-secondary" name='form'>
                         <div class="row mb-3">
-                            <div class="col-6 col-md-3">
+                            <div class="col">
                                 <label><small><b>Part</b></small></label>
                                 <select class="form-control select2bs4" id="com_txtpart" name="com_txtpart" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Part</option>
@@ -242,7 +242,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col d-none">
                                 <label><small><b>Cons</b></small></label>
                                 <div class="input-group mb-3">
                                     <input type="text" class="form-control" name="com_txtcons" id="com_txtcons">
@@ -312,6 +312,7 @@
                                     <th>Tujuan</th>
                                     <th>Proses</th>
                                     <th>Status</th>
+                                    <th>From</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -327,7 +328,7 @@
     <form action="{{ route('update-part-secondary') }}" method="post" id="update_part_secondary_form" onsubmit="submitForm(this, event)">
         @method("PUT")
         <div class="modal fade" id="editPartSecondaryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPartSecondaryModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb">
                         <h1 class="modal-title fs-5" id="editPartSecondaryModalLabel"><i class="fa fa-edit"></i> Edit Part Detail</h1>
@@ -395,6 +396,119 @@
                             </ul>
                             <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
                         </div>
+                        {{-- <div class="mb-3">
+                            <label class="form-label">Tujuan</label>
+                            <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
+                                @foreach ($data_tujuan as $datatujuan)
+                                    <option value="{{ $datatujuan->isi }}">
+                                        {{ $datatujuan->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proses</label>
+                            <select class="form-select select2bs4" name="edit_proses" id="edit_proses"></select>
+                        </div> --}}
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-sb-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-sb">Simpan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Edit Modal -->
+    <form action="{{ route('update-part-secondary-complement') }}" method="post" id="update_part_secondary_form" onsubmit="submitForm(this, event)">
+        @method("PUT")
+        <div class="modal fade" id="editPartSecondaryComplementModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPartSecondaryComplementModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb">
+                        <h1 class="modal-title fs-5" id="editPartSecondaryComplementModalLabel"><i class="fa fa-edit"></i> Edit Part Detail Complement</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="hidden" class="form-control" readonly id="edit_com_id" name="edit_com_id">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Part</label>
+                            <input type="text" class="form-control" id="edit_com_nama_part" name="edit_com_nama_part" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ubah Part</label>
+                            <select class="form-select select2bs4editcom" name="edit_com_master_part_id" id="edit_com_master_part_id">
+                                <option selected="selected" value="">Pilih Part</option>
+                                @foreach ($data_part as $datapart)
+                                    <option value="{{ $datapart->id }}">
+                                        {{ $datapart->nama_part . ' - ' . $datapart->bag }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><small>From Panel</small></label>
+                            <select class="form-control select2bs4editcom edit_com_from_panel_id" name="edit_com_from_panel_id" id="edit_com_from_panel_id" onchange="updateComplementPanelPartList('edit_')">
+                                <option value="">Pilih Panel</option>
+                                @foreach ($complementPanels as $panels)
+                                    <option value="{{ $panels->id }}">{{ $panels->panel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><small>From Part</small></label>
+                            <select class="form-control select2bs4editcom" name="edit_com_from_part_id" id="edit_com_from_part_id">
+                                <option value="">Pilih Part</option>
+                            </select>
+                        </div>
+                        {{-- <div class="mb-3">
+                            <label class="form-label">Cons</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="edit_com_cons" name="edit_com_cons" step="0.001">
+                                <input type="text" class="form-control" id="edit_com_unit" name="edit_com_unit" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tujuan</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_com_tujuan" id="edit_com_tujuan" onchange="switchTujuan(this, 'edit_')">
+                                <option value="">Pilih Tujuan</option>
+                                <option value="NON SECONDARY">NON SECONDARY</option>
+                                <option value="SECONDARY">SECONDARY</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_non_secondary_container">
+                            <label class="form-label">Proses</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_proses" id="edit_proses" onchange="orderNonSecondary(this, 'edit_')">
+                                <option value="">Pilih Proses</option>
+                                @foreach ($data_secondary->where("tujuan", "NON SECONDARY") as $secondary)
+                                    <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_secondary_container">
+                            <label class="form-label">Proses</label>
+                            <div class="d-flex gap-1">
+                                <select class="form-control select2bs4" id="edit_secondaries" name="edit_secondaries[]" data-width="100%" multiple onchange="orderSecondary(this, 'edit_')">
+                                    @foreach ($data_secondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(this,'edit_')">
+                                    <i class="fa fa-rotate-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_urutan_container">
+                            <label class="form-label">Urutan</label>
+                            <ul class="list-group" id="edit_urutan_show">
+                            </ul>
+                            <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
+                        </div> --}}
                         {{-- <div class="mb-3">
                             <label class="form-label">Tujuan</label>
                             <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
@@ -558,6 +672,11 @@
             dropdownParent: $('#editPartSecondaryModal')
         })
 
+        $('.select2bs4editcom').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#editPartSecondaryComplementModal')
+        })
+
         cleardata();
         dataTableReload();
         dataTableComplementReload();
@@ -639,10 +758,10 @@
                         render: (data, type, row, meta) => {
                             let disableDelete = (row.total_stocker > 0 ? 'disabled' : '');
                             return `
-                                <button class='btn btn-primary btn-sm' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
+                                <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
                                     <i class='fa fa-edit'></i>
                                 </button>
-                                <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
                             `;
@@ -698,6 +817,7 @@
                         });
                     }
                     dataTableReload();
+                    dataTableComplementReload();
                     cleardata();
                 },
                 error: function(request, status, error) {
@@ -746,6 +866,7 @@
                         });
                     }
                     dataTableReload();
+                    dataTableComplementReload();
                     cleardata();
                 },
                 error: function(request, status, error) {
@@ -797,6 +918,7 @@
                         });
                     }
                     dataTableReload();
+                    dataTableComplementReload();
                     cleardata();
                 },
                 error: function(request, status, error) {
@@ -827,25 +949,28 @@
                 },
                 columns: [
                     {
-                        data: 'id',
+                        data: 'com_id',
                     },
                     {
-                        data: 'nama_part',
+                        data: 'com_nama_part',
                     },
                     {
-                        data: 'cons',
+                        data: 'com_cons',
                     },
                     {
-                        data: 'unit',
+                        data: 'com_unit',
                     },
                     {
-                        data: 'tujuan',
+                        data: 'com_tujuan',
                     },
                     {
-                        data: 'proses',
+                        data: 'com_proses',
                     },
                     {
-                        data: 'part_status',
+                        data: 'com_part_status',
+                    },
+                    {
+                        data: 'com_from_part',
                     },
                 ],
                 columnDefs: [
@@ -855,13 +980,19 @@
                         render: (data, type, row, meta) => {
                             let disableDelete = (row.total_stocker > 0 ? 'disabled' : '');
                             return `
-                                <button class='btn btn-primary btn-sm' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
+                                <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryComplementModal")'>
                                     <i class='fa fa-edit'></i>
                                 </button>
-                                <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
                             `;
+                        }
+                    },
+                    {
+                        targets: [4],
+                        render: (data, type, row, meta) => {
+                            return data ? data.toUpperCase() : '-';
                         }
                     },
                     {
@@ -1555,22 +1686,22 @@
             }
         }
 
-        function updateComplementPanelPartList() {
+        function updateComplementPanelPartList(prefix='') {
             document.getElementById("loading").classList.remove("d-none");
 
-            document.getElementById('com_from_part_id').innerHTML = null;
+            document.getElementById(prefix+'com_from_part_id').innerHTML = null;
             return $.ajax({
                 url: '{{ route("get-part-complement-panel-parts") }}',
                 type: 'get',
                 data: {
-                    part_id: $('#com_from_panel_id').val(),
+                    part_id: $('#'+prefix+'com_from_panel_id').val(),
                 },
                 success: function (res) {
                     document.getElementById("loading").classList.add("d-none");
 
                     if (res) {
                         // Update this step
-                        let complementPanelParts = document.getElementById('com_from_part_id');
+                        let complementPanelParts = document.getElementById(prefix+'com_from_part_id');
 
                         complementPanelParts.innerHTML = res;
 

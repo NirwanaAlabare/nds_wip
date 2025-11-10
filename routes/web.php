@@ -338,6 +338,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_proses', 'get_proses')->name('get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
         Route::put('/update-part-secondary', 'updatePartSecondary')->name('update-part-secondary');
+        Route::put('/update-part-secondary-complement', 'updatePartSecondaryComplement')->name('update-part-secondary-complement');
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
