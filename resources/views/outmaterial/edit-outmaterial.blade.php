@@ -304,7 +304,7 @@
                             <td value="-">
                                 <div class='d-flex gap-1 justify-content-center'>
                                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_bppb}}","{{$detdata->kpno}}","{{$detdata->styleno}}","{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_out}}","{{$detdata->item_desc}}");getlist_bppbdet("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-barcode"></i></button>
-                                    <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_bppb}}","{{$detdata->id_item}}")'>
+                                    <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'>
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </div>
@@ -1431,16 +1431,16 @@ function saveEditedBppbDet() {
             id_roll: id_roll,
             id_bppbdet: $(cols[6]).text().trim(),
             qty_out: $(cols[5]).text().trim(),
-            m_qty: $('#m_qty2_new').val(),
-            m_qty_diff: $('#m_qty2_diff').val(),
-            m_gr_dok: $('#m_gr_dok2').val(),
-            m_iditem: $('#m_iditem2').val(),
+            no_bppb: $('#mdl_no_bppb').val(),
+            id_item: $('#mdl_id_item').val(),
+            id_jo: $('#mdl_id_jo').val(),
+            qty_out_h: $('#mdl_qty_out_h').val(),
         });
     });
 
     Swal.fire({
         title: 'Konfirmasi',
-        text: 'Simpan semua perubahan data lokasi?',
+        text: 'Simpan semua perubahan data?',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Ya, Simpan',
@@ -1452,7 +1452,7 @@ function saveEditedBppbDet() {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'POST',
-                url: '{{ route("update-all-barcode-rak") }}',
+                url: '{{ route("update-detail-barcode-bppb") }}',
                 data: { data: rows },
                 success: function(res) {
                     if (res.success) {
@@ -1477,5 +1477,68 @@ function saveEditedBppbDet() {
         }
     });
 }
+
+function deleteData(no_bppb, id_jo, id_item) {
+    Swal.fire({
+        title: 'Hapus Data?',
+        text: "Data ini akan dihapus secara permanen.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '{{ route("delete-detail-barcode-bppb") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    no_bppb: no_bppb,
+                    id_jo: id_jo,
+                    id_item: id_item
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: 'Data berhasil dihapus.',
+                            timer: 1500,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        }).then(() => {
+                            if ($('#datatable').length) {
+                                location.reload();
+                            } else {
+                                location.reload();
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            timer: 1500,
+                            timerProgressBar: true,
+                            text: response.message ?? 'Data gagal dihapus.'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        timer: 1500,
+                        timerProgressBar: true,
+                        text: 'Terjadi kesalahan saat menghapus data.'
+                    });
+                    console.error(error);
+                }
+            });
+        }
+    });
+}
+
     </script>
 @endsection

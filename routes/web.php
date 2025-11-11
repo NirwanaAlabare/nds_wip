@@ -1493,6 +1493,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit-out-material/{id?}', 'editoutmaterial')->name('edit-out-material');
         Route::get('/update-out-material', 'updateOut')->name('update-outmaterial-fabric');
         Route::get('/show-detail-bppb', 'showdetailBppb')->name('get-detail-bppb');
+        Route::post('/update-detail-barcode-bppb', 'updateBarcodeBppb')->name('update-detail-barcode-bppb');
+        Route::post('/delete-detail-barcode-bppb', 'DeleteDataBarcodeBppb')->name('delete-detail-barcode-bppb');
     });
 
 

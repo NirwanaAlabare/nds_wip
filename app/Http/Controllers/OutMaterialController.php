@@ -461,8 +461,8 @@ class OutMaterialController extends Controller
     {
         $user = Auth::user()->name;
         $data_detail = DB::connection('mysql_sb')->select("select styleno, a.id_item, a.id_jo, itemdesc, qtyitem_sisa, qtyreq, qty_sdh_out, (qtyreq - qty_sdh_out) qty_sisa_out, Coalesce(qty_input,0) qty_input, unit from (select a.bppbno, ac.styleno, a.id_item, mi.itemdesc, a.qty qtyreq, COALESCE(a.qty_out,0) qty_sdh_out, a.id_jo,a.unit  from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id inner join mastersupplier b on ac.id_buyer=b.id_supplier inner join masteritem mi on a.id_item=mi.id_item where bppbno='".$request->no_req."' GROUP BY a.id) a LEFT JOIN
-(select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN 
-(select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) c on c.iditem = a.id_item");
+            (select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN 
+            (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) c on c.iditem = a.id_item");
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -1096,77 +1096,162 @@ public function pdfoutmaterial(Request $request, $id)
 
 
     public function updateOut(Request $request)
-{
+    {
 
-    $id = $request['txt_idbppb'];
+        $id = $request['txt_idbppb'];
 
-    $updateInMaterial = BppbHeader::where('id', $request['txt_idbppb'])->update([
-        'tgl_bppb' => $request['txt_tgl_bppb'],
-        'jenis_pengeluaran' => $request['txt_jns_klr'],
-        'tujuan' => $request['txt_dikirim'],
-        'dok_bc' => $request['txt_dok_bc'],
-        'no_kontrak' => $request['txt_kontrak'],
-        'no_invoice' => $request['txt_invoice'],
-        'no_po_subkon' => $request['txt_po_sub'],
-        'catatan' => $request['txt_notes'],
-    ]);
+        $updateInMaterial = BppbHeader::where('id', $request['txt_idbppb'])->update([
+            'tgl_bppb' => $request['txt_tgl_bppb'],
+            'jenis_pengeluaran' => $request['txt_jns_klr'],
+            'tujuan' => $request['txt_dikirim'],
+            'dok_bc' => $request['txt_dok_bc'],
+            'no_kontrak' => $request['txt_kontrak'],
+            'no_invoice' => $request['txt_invoice'],
+            'no_po_subkon' => $request['txt_po_sub'],
+            'catatan' => $request['txt_notes'],
+        ]);
 
-    $massage = 'Edit Data Successfully';
+        $massage = 'Edit Data Successfully';
 
-    return array(
-        "status" => 200,
-        "message" => $massage,
-        "additional" => [],
-        "redirect" => url('/out-material')
-    );
+        return array(
+            "status" => 200,
+            "message" => $massage,
+            "additional" => [],
+            "redirect" => url('/out-material')
+        );
 
-}
-
-public function showdetailBppb(Request $request)
-{
-    $det_bppb = DB::connection('mysql_sb')->select(" select id, id_roll, no_roll, no_lot, satuan, qty_out, no_rak from whs_bppb_det where no_bppb = '".$request->no_bppb."' and id_item = '".$request->id_item."' and id_jo = '".$request->id_jo."'");
-    // dd($det_bppb);
-
-    $html = '
-    <div class="table-responsive" style="max-height: 250px">
-        <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100 text-nowrap">
-            <thead>
-                <tr>
-                    <th class="text-center" style="font-size: 0.7rem;">No Barcode</th>
-                    <th class="text-center" style="font-size: 0.7rem;">No Roll</th>
-                    <th class="text-center" style="font-size: 0.7rem;">No Lot</th>
-                    <th class="text-center" style="font-size: 0.7rem;">Lokasi</th>
-                    <th class="text-center" style="font-size: 0.7rem;">Satuan</th>
-                    <th class="text-center" style="font-size: 0.7rem;">Qty Out</th>
-                    <th class="text-center" style="font-size: 0.7rem;">id</th>
-                </tr>
-            </thead>
-            <tbody>
-    ';
-
-    foreach ($det_bppb as $det) {
-        $html .= '
-            <tr data-barcode="'.$det->id_roll.'">
-                <td class="text-center">'.$det->id_roll.'</td>
-                <td class="text-center">'.$det->no_roll.'</td>
-                <td class="text-center">'.$det->no_lot.'</td>
-                <td class="text-center">'.$det->no_rak.'</td>
-                <td class="text-center">'.$det->satuan.'</td>
-                <td class="text-left editable" contenteditable="true">'.$det->qty_out.'</td>
-                <td class="text-center">'.$det->id.'</td>
-            </tr>
-        ';
     }
 
-    $html .= '
-            </tbody>
+    public function showdetailBppb(Request $request)
+    {
+        $det_bppb = DB::connection('mysql_sb')->select(" select id, id_roll, no_roll, no_lot, satuan, qty_out, no_rak from whs_bppb_det where no_bppb = '".$request->no_bppb."' and id_item = '".$request->id_item."' and id_jo = '".$request->id_jo."'");
+    // dd($det_bppb);
+
+        $html = '
+        <div class="table-responsive" style="max-height: 250px">
+        <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100 text-nowrap">
+        <thead>
+        <tr>
+        <th class="text-center" style="font-size: 0.7rem;">No Barcode</th>
+        <th class="text-center" style="font-size: 0.7rem;">No Roll</th>
+        <th class="text-center" style="font-size: 0.7rem;">No Lot</th>
+        <th class="text-center" style="font-size: 0.7rem;">Lokasi</th>
+        <th class="text-center" style="font-size: 0.7rem;">Satuan</th>
+        <th class="text-center" style="font-size: 0.7rem;">Qty Out</th>
+        <th class="text-center" style="font-size: 0.7rem;">id</th>
+        </tr>
+        </thead>
+        <tbody>
+        ';
+
+        foreach ($det_bppb as $det) {
+            $html .= '
+            <tr data-barcode="'.$det->id_roll.'">
+            <td class="text-center">'.$det->id_roll.'</td>
+            <td class="text-center">'.$det->no_roll.'</td>
+            <td class="text-center">'.$det->no_lot.'</td>
+            <td class="text-center">'.$det->no_rak.'</td>
+            <td class="text-center">'.$det->satuan.'</td>
+            <td class="text-left editable" contenteditable="true">'.$det->qty_out.'</td>
+            <td class="text-center">'.$det->id.'</td>
+            </tr>
+            ';
+        }
+
+        $html .= '
+        </tbody>
         </table>
-    </div>';
+        </div>';
 
-    return $html;
-}
+        return $html;
+    }
 
 
+    public function updateBarcodeBppb(Request $request)
+    {
+        $rows = $request->data;
+    // dd($rows);
+        foreach ($rows as $row) {
+            $no_bppb = $row['no_bppb'];
+            $id_item = $row['id_item'];
+            $id_jo = $row['id_jo'];
+            $qty_out_h = $row['qty_out_h'];
+
+            DB::connection('mysql_sb')
+            ->table('bppb')
+            ->where('bppbno_int', $no_bppb)
+            ->where('id_item', $id_item)
+            ->where('id_jo', $id_jo)
+            ->update([
+                'qty_old' => DB::raw('qty'),
+                'qty' => $qty_out_h,
+            ]);
+
+            DB::connection('mysql_sb')
+            ->table('whs_bppb_det')
+            ->where('id', $row['id_bppbdet'])
+            ->update([
+                'qty_out' => $row['qty_out'],
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function DeleteDataBarcodeBppb(Request $request)
+    {
+        $no_bppb = $request->input('no_bppb');
+        $id_jo = $request->input('id_jo');
+        $id_item = $request->input('id_item');
+
+        if (!$no_bppb || !$id_item) {
+            return response()->json(['success' => false, 'message' => 'Parameter tidak lengkap.'], 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $insertSql = "INSERT INTO whs_bppb_det_cancel
+            SELECT * FROM whs_bppb_det
+            WHERE no_bppb = ? AND id_jo = ? AND id_item = ?";
+
+            DB::connection('mysql_sb')->statement($insertSql, [$no_bppb, $id_jo, $id_item]);
+
+            DB::connection('mysql_sb')
+            ->table('bppb')
+            ->where('bppbno_int', $no_bppb)
+            ->where('id_item', $id_item)
+            ->where('id_jo', $id_jo)
+            ->update([
+                'qty_old' => DB::raw('qty'),
+                'qty' => 0,
+            ]);
+
+            $deleted = DB::connection('mysql_sb')
+            ->table('whs_bppb_det')
+            ->where('no_bppb', $no_bppb)
+            ->where('id_jo', $id_jo)
+            ->where('id_item', $id_item)
+            ->delete();
+
+            DB::commit();
+
+            if ($deleted) {
+                return response()->json(['success' => true, 'deleted' => $deleted]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Tidak ada data yang dihapus.'], 404);
+            }
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('DeleteDataBarcode error: '.$e->getMessage(), [
+                'no_bppb' => $no_bppb,
+                'id_jo' => $id_jo,
+                'id_item' => $id_item
+            ]);
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan server.'], 500);
+        }
+    }
 
 
 }
