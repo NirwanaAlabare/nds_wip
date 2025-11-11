@@ -115,8 +115,7 @@ class OutMaterialController extends Controller
     {
 
         // $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
-        // $det_data = DB::connection('mysql_sb')->select("select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
-        //     (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
+        $det_data = DB::connection('mysql_sb')->select("select no_bppb, kpno, styleno, a.id_item, a.id_jo, item_desc, COALESCE(stok,0) stok, qty_req, COALESCE(qty_out,0) qty_out, (qty_req - COALESCE(qty_out,0)) qty_sisa_req, satuan from (select a.no_bppb, styleno, a.id_item, a.id_jo, a.item_desc, sum(a.qty_out) qty_out, a.satuan,kpno from whs_bppb_det a INNER JOIN whs_bppb_h b on b.no_bppb = a.no_bppb left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) c on c.id_jo=a.id_jo where b.id = '$id' GROUP BY a.id_item, a.id_jo) a INNER JOIN (select b.id_item, b.id_jo, sum(qty) qty_req from whs_bppb_h a INNER JOIN bppb_req b on b.bppbno = a.no_req where a.id = '$id' GROUP BY b.id_item, b.id_jo) b on b.id_jo = a.id_jo AND b.id_item = a.id_item LEFT JOIN (select id_jo, id_item, SUM(sal_akhir) stok from data_stock_fabric GROUP BY id_jo, id_item) c on c.id_jo = a.id_jo and c.id_item = a.id_item");
 
         // $jml_det = DB::connection('mysql_sb')->select("select COUNT(no_dok) jml_dok from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
 
@@ -130,7 +129,7 @@ class OutMaterialController extends Controller
 
         $data_out = DB::connection('mysql_sb')->table('whs_bppb_h')->where('id', $id)->first();
 
-        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->get();
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '!=', 'C')->get();
         $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'Status KB Out')->get();
         $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('status', '=', 'Active')->get();
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
@@ -147,7 +146,7 @@ class OutMaterialController extends Controller
         DB::connection('mysql_sb')->delete("DELETE FROM whs_bppb_det_temp WHERE created_by = ? ", [Auth::user()->name]);
 
 
-        return view('outmaterial.edit-outmaterial', ['data_out' => $data_out, 'no_req' => $no_req, 'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-warehouse']);
+        return view('outmaterial.edit-outmaterial', ['det_data' => $det_data, 'data_out' => $data_out, 'no_req' => $no_req, 'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-warehouse']);
     }
 
     public function getdetailreq(Request $request)
@@ -1094,6 +1093,78 @@ public function pdfoutmaterial(Request $request, $id)
     {
         //
     }
+
+
+    public function updateOut(Request $request)
+{
+
+    $id = $request['txt_idbppb'];
+
+    $updateInMaterial = BppbHeader::where('id', $request['txt_idbppb'])->update([
+        'tgl_bppb' => $request['txt_tgl_bppb'],
+        'jenis_pengeluaran' => $request['txt_jns_klr'],
+        'tujuan' => $request['txt_dikirim'],
+        'dok_bc' => $request['txt_dok_bc'],
+        'no_kontrak' => $request['txt_kontrak'],
+        'no_invoice' => $request['txt_invoice'],
+        'no_po_subkon' => $request['txt_po_sub'],
+        'catatan' => $request['txt_notes'],
+    ]);
+
+    $massage = 'Edit Data Successfully';
+
+    return array(
+        "status" => 200,
+        "message" => $massage,
+        "additional" => [],
+        "redirect" => url('/out-material')
+    );
+
+}
+
+public function showdetailBppb(Request $request)
+{
+    $det_bppb = DB::connection('mysql_sb')->select(" select id, id_roll, no_roll, no_lot, satuan, qty_out, no_rak from whs_bppb_det where no_bppb = '".$request->no_bppb."' and id_item = '".$request->id_item."' and id_jo = '".$request->id_jo."'");
+    // dd($det_bppb);
+
+    $html = '
+    <div class="table-responsive" style="max-height: 250px">
+        <table id="tableshow" class="table table-head-fixed table-bordered table-striped table w-100 text-nowrap">
+            <thead>
+                <tr>
+                    <th class="text-center" style="font-size: 0.7rem;">No Barcode</th>
+                    <th class="text-center" style="font-size: 0.7rem;">No Roll</th>
+                    <th class="text-center" style="font-size: 0.7rem;">No Lot</th>
+                    <th class="text-center" style="font-size: 0.7rem;">Lokasi</th>
+                    <th class="text-center" style="font-size: 0.7rem;">Satuan</th>
+                    <th class="text-center" style="font-size: 0.7rem;">Qty Out</th>
+                    <th class="text-center" style="font-size: 0.7rem;">id</th>
+                </tr>
+            </thead>
+            <tbody>
+    ';
+
+    foreach ($det_bppb as $det) {
+        $html .= '
+            <tr data-barcode="'.$det->id_roll.'">
+                <td class="text-center">'.$det->id_roll.'</td>
+                <td class="text-center">'.$det->no_roll.'</td>
+                <td class="text-center">'.$det->no_lot.'</td>
+                <td class="text-center">'.$det->no_rak.'</td>
+                <td class="text-center">'.$det->satuan.'</td>
+                <td class="text-left editable" contenteditable="true">'.$det->qty_out.'</td>
+                <td class="text-center">'.$det->id.'</td>
+            </tr>
+        ';
+    }
+
+    $html .= '
+            </tbody>
+        </table>
+    </div>';
+
+    return $html;
+}
 
 
 

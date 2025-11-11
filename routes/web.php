@@ -1491,6 +1491,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
         Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
         Route::get('/edit-out-material/{id?}', 'editoutmaterial')->name('edit-out-material');
+        Route::get('/update-out-material', 'updateOut')->name('update-outmaterial-fabric');
+        Route::get('/show-detail-bppb', 'showdetailBppb')->name('get-detail-bppb');
     });
 
 

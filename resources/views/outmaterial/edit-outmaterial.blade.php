@@ -11,7 +11,8 @@
 @endsection
 
 @section('content')
-<form action="{{ route('store-outmaterial-fabric') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
+<form action="{{ route('update-outmaterial-fabric') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
+    @method('GET')
     @csrf
     <div class="card card-sb">
         <div class="card-header">
@@ -92,8 +93,15 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Dikirim Ke</small></label>
-                <input type="text" class="form-control " id="txt_dikirim" name="txt_dikirim" value="{{ $data_out->tujuan }}" readonly>
-                <input type="hidden" class="form-control " id="txt_idsupp" name="txt_idsupp" value="" readonly>
+                <select class="form-control select2bs4" id="txt_dikirim" name="txt_dikirim" style="width: 100%;">
+                    <option selected="selected" value="">Pilih Tujuan</option>
+                        @foreach ($msupplier as $supp)
+                        <option value="{{ trim($supp->Supplier) }}"
+                            {{ trim($supp->Supplier) == trim($data_out->tujuan) ? 'selected' : '' }}>
+                            {{ $supp->Supplier }}
+                        </option>
+                        @endforeach
+                </select>
                 </div>
             </div>
             </div>
@@ -240,7 +248,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Catatan</small></label>
-                <textarea type="text" rows="5" class="form-control " id="txt_notes" name="txt_notes" value="" > </textarea>
+                <textarea type="text" rows="5" class="form-control " id="txt_notes" name="txt_notes" value="" >{{ $data_out->catatan }}</textarea>
                 <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
                 <input type="hidden" class="form-control" id="jumlah_qty" name="jumlah_qty" readonly>
                 </div>
@@ -277,15 +285,33 @@
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Request</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Sisa Qty Request</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Input</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Satuan</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <?php $i=1; ?>
+                        @foreach ($det_data as $detdata)
+                        <tr>
+                            <td value="{{$detdata->styleno}}">{{$detdata->styleno}}</td>
+                            <td value="{{$detdata->id_item}}">{{$detdata->id_item}}</td>
+                            <td value="{{$detdata->item_desc}}">{{$detdata->item_desc}}</td>
+                            <td value="{{$detdata->stok}}">{{$detdata->stok}}</td>
+                            <td value="{{$detdata->qty_req}}">{{$detdata->qty_req}}</td>
+                            <td value="{{$detdata->qty_out}}">{{$detdata->qty_out}}</td>
+                            <td value="{{$detdata->qty_sisa_req}}">{{$detdata->qty_sisa_req}}</td>
+                            <td value="{{$detdata->satuan}}">{{$detdata->satuan}}</td>
+                            <td value="-">
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_bppb}}","{{$detdata->kpno}}","{{$detdata->styleno}}","{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_out}}","{{$detdata->item_desc}}");getlist_bppbdet("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-barcode"></i></button>
+                                    <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_bppb}}","{{$detdata->id_item}}")'>
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php $i++; ?>
+                        @endforeach
                 </tbody>
             </table>
         </div>
@@ -445,6 +471,87 @@
             </div>
         </div>
     </form>
+</div>
+
+
+<div class="modal fade" id="modal-det-bppb">
+    <form method="post" onsubmit="submitForm(this, event)">
+       @method('POST')
+       <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-sb text-light">
+                <h4 class="modal-title">Info Lokasi</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>No BPPB</small></label>
+                                        <input type="text" class="form-control " id="mdl_no_bppb" name="mdl_no_bppb" value="" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>No WS</small></label>
+                                        <input type="text" class="form-control " id="mdl_no_ws" name="mdl_no_ws" value="" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>Style</small></label>
+                                        <input type="text" class="form-control " id="mdl_style" name="mdl_style" value="" readonly>
+                                        <input type="hidden" class="form-control " id="mdl_id_item" name="mdl_id_item" value="" readonly>
+                                        <input type="hidden" class="form-control " id="mdl_id_jo" name="mdl_id_jo" value="" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>Quantity</small></label>
+                                        <input type="text" class="form-control" id="mdl_qty_out" name="mdl_qty_out" value="" readonly>
+                                        <input type="hidden" class="form-control" id="mdl_qty_out_h" name="mdl_qty_out_h" value="" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>Deskripsi</small></label>
+                                        <input type="text" class="form-control " id="mdl_catatan" name="mdl_catatan" value="" readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-12" id="detail_showlok">
+                            </div>
+                        </div>
+
+                        <div class="mt-2 text-right">
+            <button type="button" class="btn btn-success btn-sm" onclick="saveEditedLokasi()">
+                <i class="fa fa-save"></i> Update
+            </button>
+        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
 </div>
 @endsection
 
@@ -844,103 +951,19 @@ function submitFormScan(e, evt) {
             });
         }
 
-        let datatable = $("#datatable").DataTable({
+        $(document).ready(function () {
+        $("#datatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: false,
             paging: false,
             searching: true,
             scrollY: '300px',
-            scrollX: '300px',
+            scrollX: true,        
             scrollCollapse: true,
-            ajax: {
-                url: '{{ route("get-detail-item") }}',
-                data: function (d) {
-                    d.no_req = $('#txt_noreq').val();
-                    d.no_jo = $('#txt_id_jo').val() || 0;
-                    // alert(d.no_jo);
-                    console.log(d.no_req);
-                    console.log(d.no_jo);
-                },
-            },
-            columns: [
-                {
-                    data: 'styleno'
-                },
-                {
-                    data: 'id_item'
-                } ,
-                {
-                    data: 'itemdesc'
-                },
-                {
-                    data: 'qtyitem_sisa'
-                },
-                {
-                    data: 'qtyreq'
-                },
-                {
-                    data: 'qty_sdh_out'
-                },
-                {
-                    data: 'qty_sisa_out'
-                },
-                {
-                    data: 'qty_input'
-                },
-                {
-                    data: 'unit'
-                },
-                {
-                    data: 'id_jo'
-                },
-                {
-                    data: 'id_item'
-                },
-                {
-                    data: 'qty_sdh_out'
-                },
-                {
-                    data: 'unit'
-                }
-            ],
-            columnDefs: [
-                {
-                    targets: [3],
-                    render: (data, type, row, meta) => data ? data.round(2) : "0"
-                },
-                {
-                    targets: [7],
-                    // className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data.round(2) + '" readonly />'
-                },
-                {
-                    targets: [9],
-                    render: (data, type, row, meta) => {
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button>
-                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_scan("` + row.id_item + `","` + row.id_jo + `")'><i class="fa-solid fa-undo"></i></i></button>
-                    </div>`;
-                }
-                },
-                {
-                    targets: [10],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="id_item' + meta.row + '" name="id_item['+meta.row+']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [11],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="qty_sdh_out' + meta.row + '" name="qty_sdh_out['+meta.row+']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [12],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="unit' + meta.row + '" name="unit['+meta.row+']" value="' + data + '" readonly />'
-                }
-                ]
+            dom: "lfrtip"     
         });
+    });
 
     function getdatabarcode(val){
         let id_barcode = $('#txt_barcode').val();
@@ -1194,5 +1217,208 @@ function submitFormScan(e, evt) {
             }
         }
     }
+
+
+    function showlocation($no_bppb, $no_ws, $styleno, $id_item, $id_jo, $qty_out, $item_desc){
+        let no_bppb = $no_bppb;
+        let no_ws = $no_ws;
+        let styleno = $styleno;
+        let id_item = $id_item;
+        let id_jo = $id_jo;
+        let qty_out = $qty_out;
+        let item_desc = $item_desc;
+        // alert(id_item);
+        $('#mdl_no_bppb').val(no_bppb);
+        $('#mdl_no_ws').val(no_ws);
+        $('#mdl_style').val(styleno);
+        $('#mdl_id_item').val(id_item);
+        $('#mdl_id_jo').val(id_jo);
+        $('#mdl_qty_out').val(Number(qty_out).toLocaleString('en-US'));
+        $('#mdl_qty_out_h').val(qty_out);
+        $('#mdl_catatan').val(item_desc);
+        $('#modal-det-bppb').modal('show');
+    }
+
+    function getlist_bppbdet($no_bppb ,$id_jo, $id_item){
+        let no_bppb = $no_bppb;
+        let id_jo = $id_jo;
+        let id_item = $id_item;
+        return $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: '{{ route("get-detail-bppb") }}',
+            type: 'get',
+            data: {
+                no_bppb: no_bppb,
+                id_jo: id_jo,
+                id_item: id_item
+            },
+            success: function (res) {
+                if (res) {
+                    document.getElementById('detail_showlok').innerHTML = res;
+                    $('#tableshow').dataTable({
+                        "bFilter": false,
+                        "paging": false,
+                        "info": false,
+                        "ordering": false
+                    });
+                }
+            }
+        });
+    }
+
+
+    $(document).ready(function(){
+    let isDragging = false;
+    let isNumbering = false; // mode numbering (ALT + klik kanan)
+    let startCell = null;
+    let startText = '';
+    let startRowIndex = null;
+    let startColIndex = null;
+    let lastRowIndex = null;
+    let lastColIndex = null;
+
+    // === FUNGSI UPDATE TOTAL QTY ===
+    function updateQtyTotal() {
+        let total = 0;
+        $('#tableshow tbody tr').each(function(){
+            let val = parseFloat($(this).find('td:eq(5)').text()) || 0; // kolom 5 = Qty Aktual
+            total += val;
+        });
+        $('#mdl_qty_out').val(total.toFixed(2));
+        $('#mdl_qty_out_h').val(total.toFixed(2));
+
+    }
+
+    function getCellPosition(cell){
+        const row = $(cell).closest('tr').index();
+        const col = $(cell).index();
+        return { row, col };
+    }
+
+    // === MULAI DRAG (ALT + klik kiri = copy text | ALT + klik kanan = numbering) ===
+    $(document).on('mousedown', '#tableshow td.editable', function(e){
+        if(e.altKey && (e.which === 1 || e.which === 3)){
+            e.preventDefault();
+
+            isDragging = true;
+            isNumbering = (e.which === 3);
+            startCell = this;
+            startText = $(this).text();
+
+            const pos = getCellPosition(this);
+            startRowIndex = pos.row;
+            startColIndex = pos.col;
+            lastRowIndex = startRowIndex;
+            lastColIndex = startColIndex;
+
+            $('#tableshow td.editable').removeClass('drag-highlight');
+            $(this).addClass('drag-highlight');
+        }
+    });
+
+    // === HIGHLIGHT AREA ===
+    $(document).on('mouseenter', '#tableshow td.editable', function(){
+        if(isDragging && startCell){
+            const pos = getCellPosition(this);
+            lastRowIndex = pos.row;
+            lastColIndex = pos.col;
+
+            const minRow = Math.min(startRowIndex, lastRowIndex);
+            const maxRow = Math.max(startRowIndex, lastRowIndex);
+            const minCol = Math.min(startColIndex, lastColIndex);
+            const maxCol = Math.max(startColIndex, lastColIndex);
+
+            $('#tableshow td.editable').removeClass('drag-highlight');
+            for(let r = minRow; r <= maxRow; r++){
+                for(let c = minCol; c <= maxCol; c++){
+                    $('#tableshow tr').eq(r).find('td').eq(c).addClass('drag-highlight');
+                }
+            }
+        }
+    });
+
+    // === AUTO SCROLL SAAT DRAG ===
+    $(document).on('mousemove', function(e){
+        if(!isDragging) return;
+        const $container = $('.modal-body .table-responsive');
+        const offset = $container.offset();
+        const scrollTop = $container.scrollTop();
+        const height = $container.height();
+        const scrollSpeed = 25;
+
+        if(e.pageY < offset.top + 30){
+            $container.scrollTop(scrollTop - scrollSpeed);
+        } else if(e.pageY > offset.top + height - 30){
+            $container.scrollTop(scrollTop + scrollSpeed);
+        }
+    });
+
+    // === LEPAS DRAG ===
+    $(document).on('mouseup', function(){
+        if(isDragging && startCell){
+            const selectedCells = $('#tableshow td.drag-highlight');
+
+            if(isNumbering){
+                // 🔢 MODE NUMBERING
+                let num = 1;
+                selectedCells.each(function(){
+                    $(this).text(num++);
+                });
+            } else {
+                // 📝 MODE COPY TEXT
+                selectedCells.each(function(){
+                    $(this).text(startText);
+                });
+            }
+
+            $('#tableshow td.editable').removeClass('drag-highlight');
+
+            const table = $('#tableshow').DataTable();
+            table.rows().invalidate().draw(false);
+
+            // Update total setelah drag selesai
+            updateQtyTotal();
+        }
+
+        isDragging = false;
+        isNumbering = false;
+        startCell = null;
+    });
+
+
+    // Fungsi hitung total qty aktual
+    function updateQtyTotal() {
+    let total = 0;
+    $('#tableshow tbody tr').each(function(){
+        let val = parseFloat($(this).find('td:eq(5)').text()) || 0;
+        total += val;
+    });
+    
+    $('#mdl_qty_out').val(total.toFixed(2));
+        $('#mdl_qty_out_h').val(total.toFixed(2));
+
+}
+
+
+    // Saat user mengubah qty di kolom qty aktual
+    $(document).on('keyup blur', '#tableshow td:nth-child(6)', function() {
+    let value = $(this).text().trim();
+
+    if (value === '' || isNaN(value)) {
+        $(this).css('background-color', '#f8d7da'); // merah muda
+        $(this).text(''); // biarkan kosong
+        updateQtyTotal(); // tetap hitung ulang total
+    } else {
+        $(this).css('background-color', '');
+        updateQtyTotal();
+    }
+});
+
+
+    // Jalankan pertama kali saat tabel dimuat
+    updateQtyTotal();
+});
     </script>
 @endsection
