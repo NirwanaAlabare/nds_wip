@@ -46,7 +46,8 @@
             <tr>
                 <th style="border: none;vertical-align: middle;">Product</th>
                 <td style="border: none;vertical-align: middle;padding: 2px;padding-left: 5px;padding-right: 5px;"> : </td>
-                <th style="border: none;vertical-align: middle;">{{ strtoupper(substr($sbItem->detail_item, 0, 65)).(strlen($sbItem->detail_item) > 65 ? '...' : '') }}</th>
+                {{-- <th style="border: none;vertical-align: middle;">{{ strtoupper(substr($sbItem->detail_item, 0, 65)).(strlen($sbItem->detail_item) > 65 ? '...' : '') }}</th> --}}
+                <th style="border: none;vertical-align: middle;">{{ $sbItem->detail_item }}</th>
             </tr>
             <tr>
                 <th style="border: none;vertical-align: middle;">Kode&nbsp;Barang</th>
@@ -112,10 +113,10 @@
         <table style="margin-bottom: 5px;">
             @php
                 $forms = explode('^', ($ndsItem ? $ndsItem->no_form : '-'));
-                $formsChunk = array_chunk($forms, 10);
+                $formsChunk = array_chunk($forms, 5);
             @endphp
             <tr>
-                <td style="text-align: center; width: auto;" rowspan="{{ count($forms) > 0 ? (count($forms) > 10 ? 10 : count($forms)) : 1 }}">
+                <td style="text-align: center; width: auto;" rowspan="{{ count($forms) > 0 ? (count($forms) > 5 ? 5 : count($forms)) : 1 }}">
                     <div style="padding-top: 25px; padding-bottom: 25px;">
                         <img src="data:image/png;base64, {!! DNS1D::getBarcodePNG($sbItem->id_roll, 'c39', 2, 70) !!}" style="width: 150px; padding-bottom: 3px;">
                         <br>
@@ -127,13 +128,13 @@
                     <td style="font-size: 6.5px;width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-right: 1px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
                     <th style="font-size: 6.5px;width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[0] }}</th>
 
-                    @if (count($forms) > 10)
+                    @if (count($forms) > 5)
                         @foreach ($formsChunk as $formChunk)
                             @if ($loop->index > 0)
-                                @if (isset($forms[10*$loop->index-1]))
+                                @if (isset($forms[5*$loop->index-1]))
                                     <th style="font-size: 6.5px;width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
                                     <td style="font-size: 6.5px;width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-right: 1px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
-                                    <th style="font-size: 6.5px;width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[10*$loop->index-1] }}</th>
+                                    <th style="font-size: 6.5px;width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[5*$loop->index-1] }}</th>
                                 @else
                                     <th style="font-size: 6.5px;width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;"></th>
                                     <td style="font-size: 6.5px;width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-right: 1px;padding-bottom: 0px;margin-bottom: 0px;"></td>
@@ -149,7 +150,7 @@
                 @endif
             </tr>
             @if (count($forms) > 1)
-                @for ($i = 1; $i < (count($forms) > 10 ? 10 : count($forms)); $i++)
+                @for ($i = 1; $i < (count($forms) > 5 ? 5 : count($forms)); $i++)
                     <tr>
                         <th style="font-size: 6.5px;width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
                         <td style="font-size: 6.5px;width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-right: 1px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
@@ -157,10 +158,10 @@
 
                         @foreach ($formsChunk as $chunk)
                             @if ($loop->index > 0)
-                                @if (isset($forms[10*$loop->index+$i]))
+                                @if (isset($forms[5*$loop->index+$i]))
                                     <th style="font-size: 6.5px;width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
                                     <td style="font-size: 6.5px;width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-right: 1px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
-                                    <th style="font-size: 6.5px;width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[(10*$loop->index)+$i] }}</th>
+                                    <th style="font-size: 6.5px;width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[(5*$loop->index)+$i] }}</th>
                                 @else
                                     <th style="font-size: 6.5px;width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-bottom: 0px;margin-bottom: 0px;"></th>
                                     <td style="font-size: 6.5px;width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 1px;padding-right: 1px;padding-bottom: 0px;margin-bottom: 0px;"></td>

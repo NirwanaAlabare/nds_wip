@@ -802,7 +802,7 @@ class CuttingFormPilotController extends Controller
             "color" => "required",
             "panel" => "required",
             "gelar_qty" => "required|numeric|gt:0",
-            "urutan_marker" => "required|numeric|gt:0",
+            "urutan_marker" => "nullable",
             "tipe_marker" => "required"
         ]);
 

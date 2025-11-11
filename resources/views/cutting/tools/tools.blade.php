@@ -47,6 +47,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4 d-none">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormSwap">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Form Swap</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
                 <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#fixRollQty">
                         <div class="card">
@@ -241,6 +250,14 @@
                                 <option value=""></option>
                             </select>
                             <input type="hidden" class="form-control" id="modify_marker_panel_input" name="modify_marker_panel_input">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="bypass" id="modify_bypass_stocker" name="modify_bypass_stocker">
+                                <label class="form-check-label" for="modify_bypass_stocker">
+                                    Bypass Stocker
+                                </label>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-sb btn-block mt-3">Simpan</button>
                     </form>
