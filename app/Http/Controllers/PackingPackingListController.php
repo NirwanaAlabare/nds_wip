@@ -1034,14 +1034,15 @@ order by po asc, no_carton asc
             if ($value != '') {
                 $txtid                          = $JmlArray[$key]; {
 
-                    $del_history =  DB::delete("
-                    delete from packing_master_packing_list where id = '$txtid' and po = '$po' and dest = '$dest'");
-
                     $del_scan =  DB::delete("
 DELETE a
 FROM packing_packing_out_scan a
 left join packing_master_packing_list b on a.po = b.po  and a.dest = b.dest and a.no_carton = b.no_carton
 WHERE b.id = '$txtid'");
+
+
+                    $del_history =  DB::delete("
+                    delete from packing_master_packing_list where id = '$txtid' and po = '$po' and dest = '$dest'");
                 }
             }
         }

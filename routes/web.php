@@ -2295,9 +2295,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_IE', 'dashboard_IE')->name('dashboard-IE');
     });
 
-    // Proses Industrial Engineering Operational Breakdown
+    // Proses Industrial Engineering Master Process
     Route::controller(IEMasterController::class)->prefix("master")->middleware('role:management')->group(function () {
         Route::get('/IE_master_process', 'IE_master_process')->name('IE_master_process');
+        Route::post('/IE_save_master_process', 'IE_save_master_process')->name('IE_save_master_process');
     });
 
     // Proses Industrial Engineering Operational Breakdown

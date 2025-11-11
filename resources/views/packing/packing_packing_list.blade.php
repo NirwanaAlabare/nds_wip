@@ -297,8 +297,8 @@
                         </div>
                         <div class='row'>
                             <div class="col-md-12 table-responsive">
-                                <table id="datatable_detail_packing_list_hapus"
-                                    class="table table-bordered 100 text-nowrap">
+                                <table id="datatable_detail_packing_list_hapus" class="table table-bordered text-nowrap"
+                                    style="width:100%;">
                                     <thead class="table-primary">
                                         <tr style='text-align:center; vertical-align:middle'>
                                             <th>
