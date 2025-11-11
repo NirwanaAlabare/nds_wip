@@ -540,7 +540,7 @@
                         </div>
 
                         <div class="mt-2 text-right">
-            <button type="button" class="btn btn-success btn-sm" onclick="saveEditedLokasi()">
+            <button type="button" class="btn btn-success btn-sm" onclick="saveEditedBppbDet()">
                 <i class="fa fa-save"></i> Update
             </button>
         </div>
@@ -1420,5 +1420,62 @@ function submitFormScan(e, evt) {
     // Jalankan pertama kali saat tabel dimuat
     updateQtyTotal();
 });
+
+
+function saveEditedBppbDet() {
+    const rows = [];
+    $("#tableshow tbody tr").each(function() {
+        const id_roll = $(this).data('id_roll');
+        const cols = $(this).find('td');
+        rows.push({
+            id_roll: id_roll,
+            id_bppbdet: $(cols[6]).text().trim(),
+            qty_out: $(cols[5]).text().trim(),
+            m_qty: $('#m_qty2_new').val(),
+            m_qty_diff: $('#m_qty2_diff').val(),
+            m_gr_dok: $('#m_gr_dok2').val(),
+            m_iditem: $('#m_iditem2').val(),
+        });
+    });
+
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Simpan semua perubahan data lokasi?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Simpan',
+        cancelButtonText: 'Batal',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'POST',
+                url: '{{ route("update-all-barcode-rak") }}',
+                data: { data: rows },
+                success: function(res) {
+                    if (res.success) {
+                        Swal.fire({
+                        title: 'Berhasil',
+                        text: 'Data berhasil disimpan!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload(); 
+                        }
+                    });
+                    } else {
+                        Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'Tidak dapat terhubung ke server!', 'error');
+                }
+            });
+        }
+    });
+}
     </script>
 @endsection
