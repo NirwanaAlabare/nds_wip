@@ -53,7 +53,7 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
         a.tgl_trans,
         concat((DATE_FORMAT(tgl_trans,  '%d')), '-',left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')) tgl_trans_fix,
         concat((DATE_FORMAT(mp.tgl_plan,  '%d')), '-',left(DATE_FORMAT(mp.tgl_plan,  '%M'),3),'-',DATE_FORMAT(mp.tgl_plan,  '%Y')) tgl_plan_fix,
-        u.name sewing_line,
+        ul.username sewing_line,
         ms.supplier buyer,
         ac.kpno,
         ac.styleno,
@@ -106,6 +106,7 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
         inner join so on sd.id_so = so.id
         inner join act_costing ac on so.id_cost = ac.id
         inner join user_sb_wip u on a.created_by = u.id
+        inner join userpassword ul on u.line_id = ul.line_id
         inner join master_plan mp on a.master_plan_id = mp.id
         inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
         left join (
@@ -149,8 +150,8 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
         select min(id), man_power, sewing_line, tgl_plan from master_plan where tgl_plan >= '$this->tgl_awal_n' and  tgl_plan <= '$this->tgl_akhir_n' and cancel = 'N' group by sewing_line, tgl_plan
         ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
         left join master_kurs_bi mkb on a.tgl_trans = mkb.tanggal_kurs_bi
-        group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
-        order by a.tgl_trans asc, u.name asc, ac.kpno asc
+        group by ul.username, ac.kpno, ac.Styleno, a.tgl_trans
+        order by a.tgl_trans asc, ul.username asc, ac.kpno asc
         ");
 
 
