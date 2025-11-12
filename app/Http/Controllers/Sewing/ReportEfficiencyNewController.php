@@ -129,7 +129,7 @@ class ReportEfficiencyNewController extends Controller
                     select min(id), man_power, sewing_line, tgl_plan from master_plan
                     where tgl_plan >= '$tgl_awal_n' and  tgl_plan <= '$tgl_akhir_n' and cancel = 'N'
                     group by sewing_line, tgl_plan
-                ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
+                ) cmp on a.tgl_trans = cmp.tgl_plan and ul.username = cmp.sewing_line
 
                 -- Kurs join for pre-MySQL 8
                 LEFT JOIN (
