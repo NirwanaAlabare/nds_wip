@@ -168,7 +168,7 @@ class CuttingToolsController extends Controller
         $noForm = $request->no_form;
 
         if ($noForm) {
-            $form = FormCutInput::where("no_form", $noForm)->orderBy("id", "desc")->first();
+            $form = FormCutInput::where("no_form", $noForm)->orderBy("created_at", "desc")->first();
 
             if ($form && $form->marker && $form->marker->markerDetails) {
                 return array(
@@ -302,7 +302,7 @@ class CuttingToolsController extends Controller
         $noForm = $request->no_form;
 
         if ($noForm) {
-            $form = FormCutInput::where("no_form", $noForm)->orderBy("id", "desc")->first();
+            $form = FormCutInput::where("no_form", $noForm)->orderBy("created_at", "desc")->first();
 
             if ($form && $form->marker && $form->marker->markerDetails) {
                 return array(

@@ -245,7 +245,7 @@ class SpreadingController extends Controller
             $bulan = substr($date, 5, 2);
             $now = Carbon::now();
 
-            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
+            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("created_at", "desc")->first();
 
             $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
 
@@ -367,15 +367,17 @@ class SpreadingController extends Controller
         ]);
 
         // If the form already has stockers (return error)
-        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
-        if ($stockerForm) {
-            return array(
-                'status' => 400,
-                'message' => 'Form sudah memiliki stocker',
-                'redirect' => '',
-                'table' => 'datatable',
-                'additional' => [],
-            );
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
+            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
+            if ($stockerForm) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Form sudah memiliki stocker',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
         }
 
         // If the form only has part form (delete part form & reorder)

@@ -252,6 +252,18 @@ class CompletedFormController extends Controller
             "p_act" => "required"
         ]);
 
+        // Check Stocker
+        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        if ($stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
@@ -295,7 +307,7 @@ class CompletedFormController extends Controller
             // After Extension
             $detailAfter = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
                 where('id', '>', $validatedRequest['current_id'])->
-                orderBy('id', 'asc')->
+                orderBy('created_at', 'asc')->
                 first();
 
             if ($detailAfter) {
@@ -359,7 +371,7 @@ class CompletedFormController extends Controller
             }
 
             // Form Cut Detail Reorder Group Stocker
-            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
+            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("created_at", "asc")->get();
             $currentGroup = "";
             $groupNumber = 0;
             foreach ($formCutDetails as $formCutDetail) {
@@ -406,6 +418,18 @@ class CompletedFormController extends Controller
     }
 
     public function updateFinish(Request $request, $id) {
+        // Stocker
+        $stockerForm = Stocker::where('form_cut_id', $id)->first();
+        if ($stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
         $formCutInputData = FormCutInput::selectRaw("form_cut_input.*, marker_input.act_costing_ws, marker_input.color, marker_input.panel")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where("form_cut_input.id", $id)->
@@ -501,7 +525,7 @@ class CompletedFormController extends Controller
                     ]);
 
                     // Adjust form cut detail data
-                    $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
+                    $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
 
                     $currentGroup = "";
                     $currentGroupNumber = 0;
@@ -645,6 +669,17 @@ class CompletedFormController extends Controller
             "l_act" => "required",
         ]);
 
+        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        if ($stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
         // Form Recalculate
         $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
 
@@ -683,6 +718,17 @@ class CompletedFormController extends Controller
             "no_meja" => "required",
             "qty_ply" => "required"
         ]);
+
+        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        if ($stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
 
         // Form Recalculate
         $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
@@ -745,6 +791,17 @@ class CompletedFormController extends Controller
     }
 
     public function destroySpreadingRoll($id) {
+        $stockerForm = Stocker::where('form_cut_id', $id)->first();
+        if ($stockerForm) {
+            return array(
+                'status' => 400,
+                'message' => 'Form sudah memiliki stocker',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
         $formCutDetail = FormCutInputDetail::find($id);
 
         if ($formCutDetail) {
