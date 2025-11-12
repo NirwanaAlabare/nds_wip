@@ -2274,7 +2274,7 @@ class SewingToolsController extends Controller
                 ]);
 
                 if ($newMasterPlan) {
-                    $lineId = UserLine::where('username', $lineTo)->value('line_id');
+                    $lineId = UserLine::where('line_id', $lineTo)->value('line_id');
 
                     // RFT
                     $updateRft = DB::connection("mysql_sb")->table('output_rfts')->where('master_plan_id', $masterPlan->id)->update([
