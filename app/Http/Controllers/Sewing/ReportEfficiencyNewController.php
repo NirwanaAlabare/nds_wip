@@ -32,7 +32,7 @@ class ReportEfficiencyNewController extends Controller
                     a.tgl_trans,
                     concat((DATE_FORMAT(a.tgl_trans,  '%d')), '-',left(DATE_FORMAT(a.tgl_trans,  '%M'),3),'-',DATE_FORMAT(a.tgl_trans,  '%Y')) tgl_trans_fix,
                     concat((DATE_FORMAT(mp.tgl_plan,  '%d')), '-',left(DATE_FORMAT(mp.tgl_plan,  '%M'),3),'-',DATE_FORMAT(mp.tgl_plan,  '%Y')) tgl_plan_fix,
-                    u.name sewing_line,
+                    ul.username sewing_line,
                     ms.supplier buyer,
                     ac.kpno,
                     ac.styleno,
@@ -85,6 +85,7 @@ class ReportEfficiencyNewController extends Controller
                 inner join so on sd.id_so = so.id
                 inner join act_costing ac on so.id_cost = ac.id
                 inner join user_sb_wip u on a.created_by = u.id
+                inner join userpassword ul on u.line_id = ul.line_id
                 inner join master_plan mp on a.master_plan_id = mp.id
                 inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
                 left join (
@@ -148,8 +149,8 @@ class ReportEfficiencyNewController extends Controller
                     ON k.tanggal_kurs_bi = x.max_kurs_date
                 ) mkb ON a.tgl_trans = mkb.tgl_trans
 
-                group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
-                order by a.tgl_trans asc, u.name asc, ac.kpno asc;
+                group by ul.username, ac.kpno, ac.Styleno, a.tgl_trans
+                order by a.tgl_trans asc, ul.username asc, ac.kpno asc;
             ");
 
             return DataTables::of($data_input)->toJson();
