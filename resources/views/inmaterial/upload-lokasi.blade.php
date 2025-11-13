@@ -101,14 +101,18 @@ input[type=file]::file-selector-button:hover {
             </div>
 
             <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                 <button type="button" class="btn btn-primary mr-5" data-toggle="modal" data-target="#importExcel" onclick="OpenModal()">
-                    <i class="fa-solid fa-file-arrow-up"></i> IMPORT EXCEL
-                </button>
-                </div>
-            </div>
-            </div>
+    <div class="mb-1">
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importExcel" onclick="OpenModal()">
+                <i class="fa-solid fa-file-arrow-up"></i> IMPORT EXCEL
+            </button>
+            <a onclick="export_excel()" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Template Upload
+            </a>
+        </div>
+    </div>
+</div>
+
 
         </div>
     </div>
@@ -724,5 +728,48 @@ input[type=file]::file-selector-button:hover {
                 }
             });
     }
+
+    function export_excel() {
+            let from = '';
+            let to = '';
+
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export-format-upload-roll') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Berhasil Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Format Upload Roll.xlsx";
+                        link.click();
+
+                    }
+                },
+            });
+        }
 </script>
 @endsection

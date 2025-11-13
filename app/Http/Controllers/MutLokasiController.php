@@ -18,6 +18,8 @@ use App\Models\InMaterialLokasi;
 use App\Models\MutLokasiHeader;
 use App\Models\MutLokasi;
 use App\Models\SaldoAwalFabric;
+use App\Models\MutasiDetailTemp;
+use App\Models\MutasiDetailTempCancel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
@@ -54,7 +56,7 @@ class MutLokasiController extends Controller
 
         $nows = DB::connection('mysql_sb')->select("select DISTINCT no_ws from whs_mut_lokasi_h");
 
-        return view("mut-lokasi.mut-lokasi", ['nows' => $nows,"page" => "dashboard-warehouse"]);
+        return view("mut-lokasi.mut-lokasi-new", ['nows' => $nows,"page" => "dashboard-warehouse"]);
     }
 
     /**
@@ -76,8 +78,9 @@ class MutLokasiController extends Controller
             select DISTINCT no_ws kpno from whs_sa_fabric where qty > 0");
         $kode_gr = DB::connection('mysql_sb')->select("
             select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
+        $lokasi = DB::connection('mysql_sb')->select("select id, kode_lok from whs_master_lokasi where status = 'Active'");
 
-        return view('mut-lokasi.create-mutlokasi', ['kode_gr' => $kode_gr,'no_ws' => $no_ws, 'page' => 'dashboard-warehouse']);
+        return view('mut-lokasi.create-mutlokasi-new', ['kode_gr' => $kode_gr,'no_ws' => $no_ws,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
     }
 
     public function editmutlok($id)
@@ -405,6 +408,168 @@ class MutLokasiController extends Controller
         );
 
     }
+
+
+    public function store_new(Request $request)
+    {
+        // dd($request);
+        $validatedRequest = $request->validate([
+            "txt_total_roll" => "required|min:1",
+        ]);
+
+        $timestamp = Carbon::now();
+
+        $notrans = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
+        $no_mut = $notrans[0]->kode;
+
+        if (intval($validatedRequest['txt_total_roll']) > 0) {
+
+            $mutlokasiheader = MutLokasiHeader::create([
+                'no_mut' => $no_mut,
+                'tgl_mut' => $request['txt_tgl_mut'],
+                'rak_tujuan' => $request['txt_lokasi_tujuan'],
+                'deskripsi' => $request['txt_keterangan'],
+                'status' => 'Pending',
+                'created_by' => Auth::user()->name,
+                "created_at" => $timestamp,
+                "updated_at" => $timestamp,
+            ]);
+
+            $mutasi_detail = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi select '', '".$no_mut."' no_mut, '".$request['txt_tgl_mut']."' tgl_mut, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_ws, no_bpb, no_lot, no_roll, qty, qty, a.unit, rak_asal, rak_tujuan, 'Y' status, idbpb_det, '".$timestamp."' created_at, '".$timestamp."' updated_at from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+
+            $trx_in = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '',idbpb_det, '".$no_mut."' no_mut, no_ws, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_roll, '' roll_buyer, no_lot, qty, qty, '' , '', no_bpb, a.unit, rak_tujuan, 'Y' status, created_by, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+
+            $trx_out = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '', '".$no_mut."' no_mut, idbpb_det, a.id_jo, a.id_item, a.rak_asal, no_lot, no_roll, b.itemdesc, qty, a.unit, qty, '' curr, '0' price, 'Y' status, created_by, 'mutasi lokasi' deskripsi, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','','','','','','' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+
+            $mut_detail_temp = MutasiDetailTemp::where('created_by',Auth::user()->name)->delete();
+
+            $mut_detail_temp_cancel = MutasiDetailTempCancel::where('created_by',Auth::user()->name)->delete();
+
+            $massage = $no_mut . ' Saved Succesfully';
+            $stat = 200;
+
+        }else{
+            $massage = ' Please Input Data';
+            $stat = 400;
+        }
+
+        return array(
+            "status" =>  $stat,
+            "message" => $massage,
+            "additional" => [],
+            "redirect" => url('/mutasi-lokasi')
+        );
+        //
+    }
+
+    public function getbarcodemutasi(Request $request)
+{
+    $barcode = DB::connection('mysql_sb')->select("select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, sal_akhir qty, kpno no_ws, styleno, color, itemdesc from data_stock_fabric where no_barcode = '$request->no_barcode' limit 1");
+
+
+    return response()->json($barcode);
+}
+
+public function simpanbarcodemutasi(Request $request)
+{
+    $validatedRequest = $request->validate([
+        "no_barcode" => "required",
+        "qty" => "required|min:0.1",
+        "id_item" => "required",
+        "id_jo" => "required",
+        "lokasi_tujuan" => "required",
+    ]);
+    $timestamp = Carbon::now();
+
+    $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_mut_lokasi_temp_cancel where idbpb_det = '" . $validatedRequest['no_barcode'] . "'");
+
+    $cek_barcode = DB::connection('mysql_sb')->select("select * from whs_mut_lokasi_temp where idbpb_det = '" . $validatedRequest['no_barcode'] . "'");
+    $no_barcode = $cek_barcode ? $cek_barcode[0]->idbpb_det : 0;
+
+    if ($no_barcode == '0') {
+
+        if ($validatedRequest["qty"] > 0) {
+            $MutasiDetailTempStore = MutasiDetailTemp::create([
+                'id_jo' => $validatedRequest['id_jo'],
+                'id_item' => $validatedRequest['id_item'],
+                'item_desc' => $request['itemdesc'],
+                'no_ws' => $request['no_ws'],
+                'no_bpb' => $request['no_dok'],
+                'no_lot' => $request['no_lot'],
+                'no_roll' => $request['no_roll'],
+                'qty' => $validatedRequest['qty'],
+                'unit' => $request['unit'],
+                'rak_asal' => $request['lokasi_barcode'],
+                'rak_tujuan' => $validatedRequest['lokasi_tujuan'],
+                'idbpb_det' => $request['no_barcode'],
+                'created_by' => Auth::user()->name,
+                "created_at" => $timestamp,
+                "updated_at" => $timestamp,
+            ]);
+
+            if ($MutasiDetailTempStore) {
+                return array(
+                    "status" => 200,
+                    "message" => "",
+                    "additional" => [],
+                );
+            }
+        }
+    }else{
+        return array(
+            "status" => 200,
+            "message" => "",
+            "additional" => [],
+        );
+    }
+
+}
+
+
+public function listscanbarcodemut(Request $request)
+{
+    if ($request->ajax()) {
+        $additionalQuery = "";
+        $keywordQuery = "";
+
+        $data_scan = DB::connection('mysql_sb')->select("select * from whs_mut_lokasi_temp where created_by  = '".Auth::user()->name."' GROUP BY idbpb_det");
+
+        return DataTables::of($data_scan)->toJson();
+    }
+
+}
+
+public function deletemuttemp(Request $request)
+{
+    $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_mut_lokasi_temp_cancel where created_by = '".Auth::user()->name."' and idbpb_det = '".$request['no_barcode']."'");
+
+    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi_temp_cancel select * from whs_mut_lokasi_temp where created_by = '".Auth::user()->name."' and idbpb_det = '".$request['no_barcode']."'");
+
+    $deletescan = MutasiDetailTemp::where('idbpb_det',$request['no_barcode'])->delete();
+
+}
+
+public function deletemuttempall(Request $request) 
+{
+    $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_mut_lokasi_temp_cancel where created_by = '".Auth::user()->name."'");
+
+    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi_temp_cancel select * from whs_mut_lokasi_temp where created_by = '".Auth::user()->name."'");
+
+    $deletescan = MutasiDetailTemp::where('created_by',Auth::user()->name)->delete();
+
+}
+
+public function updatelokasimuttemp(Request $request)
+{
+    $lokasi_tujuan = $request['lokasi_tujuan'];
+
+    $updatescan = MutasiDetailTemp::where('created_by', Auth::user()->name)
+    ->update([
+        'rak_tujuan' => $lokasi_tujuan
+    ]);
+
+
+}
 
 
     /**

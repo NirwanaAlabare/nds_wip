@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>lokasi</title>
-    <style>
-        @page { margin: 5px; }
+  <title>All Fabric Locations</title>
+  <style>
+        @page { margin: 2px; }
 
-        body { margin: 5px; }
+        body { margin: 2px; }
 
 
         * {
@@ -31,9 +31,9 @@
         }
     </style>
 </head>
-<body >
+<body>
+  @foreach($listLokasi as $dataLokasi)
     
-
     <table width="100%">
         <tr style="line-height: 25px;">
             <td colspan="4" style="vertical-align: middle; text-align: center;width:100%;font-size: 15px;">
@@ -98,5 +98,7 @@
         </tr>
         <!-- {!!  DNS1D::getBarcodeHTML($dataLokasi->id, 'C128',1,40,'black', false); !!} -->
     </table>
+    <br>
+  @endforeach
 </body>
 </html>

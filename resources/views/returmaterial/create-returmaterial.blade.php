@@ -115,15 +115,21 @@
             </div>
 
             <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Dikirim Ke</small></label>
-                <input type="text" class="form-control " id="txt_dikirim" name="txt_dikirim" value="" readonly>
-                <input type="hidden" class="form-control " id="txt_idsupp" name="txt_idsupp" value="" readonly>
-                <input type="hidden" class="form-control " id="txt_nows" name="txt_nows" value="" readonly>
-                </div>
-            </div>
-            </div>
+    <div class="mb-1">
+        <div class="form-group">
+            <label><small>Dikirim Ke</small></label>
+            <select class="form-control select2bs4" id="txt_dikirim" name="txt_dikirim">
+                <option value="">-- Pilih Supplier --</option>
+                @foreach($msupplier as $supp)
+                    <option value="{{ $supp->id_supplier }}">{{ $supp->Supplier }}</option>
+                @endforeach
+            </select>
+            <input type="hidden" id="txt_idsupp" name="txt_idsupp" readonly>
+            <input type="hidden" id="txt_nows" name="txt_nows" readonly>
+        </div>
+    </div>
+</div>
+
 
             <div class="col-md-12">
             <div class="mb-1">
@@ -536,26 +542,31 @@
 
 
         function getSupp() {
-           return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-supplier-ro") }}',
-                type: 'get',
-                data: {
-                    no_bpb: $('#txt_nobpb').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        // console.log(res[0].jml)
-                        $('#txt_nopo').val(res[0].pono);
-                        $('#txt_dikirim').val(res[0].supplier);
-                        $('#txt_idsupp').val(res[0].id_supplier);
-                        $('#txt_nows').val(res[0].kpno);
-                    }
-                },
-            });
+    return $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        url: '{{ route("get-supplier-ro") }}',
+        type: 'get',
+        data: {
+            no_bpb: $('#txt_nobpb').val(),
+        },
+        success: function (res) {
+            if (res && res.length > 0) {
+                $('#txt_nopo').val(res[0].pono);
+                $('#txt_idsupp').val(res[0].id_supplier);
+                $('#txt_nows').val(res[0].kpno);
+                
+                // set supplier terpilih di select
+                $('#txt_dikirim').val(res[0].id_supplier).trigger('change');
+            }
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
         }
+    });
+}
+
 
         // Form Submit
 function submitFormScan(e, evt) {

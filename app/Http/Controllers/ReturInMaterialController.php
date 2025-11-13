@@ -379,7 +379,7 @@ class ReturInMaterialController extends Controller
                 $barcode = $sql_barcode[0]->kode;
 
                 $save_lokasi = InMaterialLokasi::create([
-                    "no_barcode" => $barcode,
+                    "no_barcode" => $t_no_barcode,
                     "no_dok" => $bpbno_int,
                     "no_ws" => $t_no_ws,
                     "id_jo" => $t_id_jo,
@@ -440,7 +440,7 @@ class ReturInMaterialController extends Controller
     $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
     $lokasi = DB::connection('mysql_sb')->select("select a.id,a.kode_lok, CONCAT(a.kode_lok,' (Used ',COALESCE(qty,0),' Of ',kapasitas,')') lokasi,a.kapasitas,COALESCE(qty,0) qty_used from (select id,kode_lok,kapasitas from whs_master_lokasi) a left join (select COUNT(id) qty,kode_lok from (select id,kode_lok from whs_lokasi_inmaterial where status = 'Y') a GROUP BY kode_lok) b on b.kode_lok = a.kode_lok ORDER BY kode_lok asc");
 
-    return view('retur_inmaterial.lokasi-inmaterial', ['no_bppb' => $no_bppb,'det_data' => $det_data,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
+    return view('inmaterial.lokasi-inmaterial', ['no_bppb' => $no_bppb,'det_data' => $det_data,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
 }
 
 
@@ -656,7 +656,8 @@ public function getNobppbCutting(Request $request)
         left join jo_det jod on sod.id_so=jod.id_so
         left join jo on jo.id=jod.id_jo
         where bppbdate = '" . $request->tgl_ri . "' and a.id_supplier = '432' and LEFT(bppbno_int,2) = 'GK'
-        group by bppbno order by bppbno) a left join (select b.ori_dok,a.id_jo,a.id_item,a.no_ws,sum(COALESCE(qty_good,0) - COALESCE(qty_reject,0)) qty_ri from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and ori_dok != '-' GROUP BY b.ori_dok) b on b.ori_dok = a.isi where (a.qty - COALESCE(qty_ri,0)) > 0");
+        group by bppbno order by bppbno) a left join (select b.ori_dok,a.id_jo,a.id_item,a.no_ws,sum(COALESCE(qty_good,0) - COALESCE(qty_reject,0)) qty_ri from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and ori_dok != '-' GROUP BY b.ori_dok) b on b.ori_dok = a.isi");
+    // where (a.qty - COALESCE(qty_ri,0)) > 0
 
     $html = "<option value=''>Pilih No SJ</option>";
 
