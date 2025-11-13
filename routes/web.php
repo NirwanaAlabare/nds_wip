@@ -843,6 +843,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
 
         Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
+
+        Route::post('/rearrange-groups', 'rearrangeGroups')->name('rearrange-groups');
+        Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');
     });
 
     // DC :

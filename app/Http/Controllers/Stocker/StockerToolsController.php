@@ -12,6 +12,9 @@ use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Dc\LoadingLine;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Services\StockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -335,5 +338,31 @@ class StockerToolsController extends Controller
             "message" => 'Terjadi Kesalahan',
             "additional" => [],
         );
+    }
+
+    function rearrangeGroups(Request $request) {
+        $formCut = FormCutInput::whereBetween("updated_at", [$request->date." 00:00:00", $request->date." 23:59:59"])->get();
+
+        foreach ($formCut as $fc) {
+            $formCutDetails = FormCutInputDetail::where("form_cut_id", $fc->id)->where("no_form_cut_input", $fc->no_form)->orderBy("created_at", "asc")->get();
+
+            $currentGroup = "";
+            $groupNumber = 0;
+            foreach ($formCutDetails as $formCutDetail) {
+                if ($currentGroup != $formCutDetail->group_roll) {
+                    $currentGroup = $formCutDetail->group_roll;
+                    $groupNumber += 1;
+                }
+
+                $formCutDetail->group_stocker = $groupNumber;
+                $formCutDetail->save();
+            }
+        }
+
+        return $formCutDetails;
+    }
+
+    function recalculateStockerTransaction(Request $request, StockerService $stockerService) {
+        return $stockerService->recalculateStockerTransaction($request->formCutId);
     }
 }
