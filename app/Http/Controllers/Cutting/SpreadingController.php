@@ -367,18 +367,18 @@ class SpreadingController extends Controller
         ]);
 
         // If the form already has stockers (return error)
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
-            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
-            if ($stockerForm) {
-                return array(
-                    'status' => 400,
-                    'message' => 'Form sudah memiliki stocker',
-                    'redirect' => '',
-                    'table' => 'datatable',
-                    'additional' => [],
-                );
-            }
-        }
+        // if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
+        //     $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
+        //     if ($stockerForm) {
+        //         return array(
+        //             'status' => 400,
+        //             'message' => 'Form sudah memiliki stocker',
+        //             'redirect' => '',
+        //             'table' => 'datatable',
+        //             'additional' => [],
+        //         );
+        //     }
+        // }
 
         // If the form only has part form (delete part form & reorder)
         $partForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->first();
