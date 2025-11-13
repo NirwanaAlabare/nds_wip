@@ -303,7 +303,29 @@
                             <td value="{{$detdata->satuan}}">{{$detdata->satuan}}</td>
                             <td value="-">
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_bppb}}","{{$detdata->kpno}}","{{$detdata->styleno}}","{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_out}}","{{$detdata->item_desc}}");getlist_bppbdet("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-file-pen"></i></button>
+                                    <button 
+    type="button" 
+    class="btn btn-sm btn-success"
+    onclick='
+        showlocation(
+            @json($detdata->no_bppb),
+            @json($detdata->kpno),
+            @json($detdata->styleno),
+            @json($detdata->id_item),
+            @json($detdata->id_jo),
+            @json($detdata->qty_out),
+            @json($detdata->item_desc)
+        );
+        getlist_bppbdet(
+            @json($detdata->no_bppb),
+            @json($detdata->id_jo),
+            @json($detdata->id_item)
+        );
+    '
+>
+    <i class="fa-solid fa-file-pen"></i>
+</button>
+
                                     @if ($detdata->qty_out != 0)
                                     <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'>
                                         <i class="fa-solid fa-trash"></i>
