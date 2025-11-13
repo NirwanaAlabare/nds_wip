@@ -115,6 +115,9 @@
                                     <option selected="selected" value="{{$kodegr->no_po}}">{{$kodegr->no_po}}</option>
                                 </select>
                                 @endif
+                                @if ($kodegr->type_dok == "")
+                                <select class="form-control select2bs4" id="txt_po" name="txt_po" style="width: 100%;"  disabled></select>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -134,6 +137,10 @@
                                 </select>
                                 @endif
                                 @if ($kodegr->type_dok == "FOB")
+                                <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;"  disabled>
+                                </select>
+                                @endif
+                                @if ($kodegr->type_dok == "")
                                 <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;"  disabled>
                                 </select>
                                 @endif
@@ -330,15 +337,37 @@
                             <td value="{{$detdata->no_ws}}">{{$detdata->qty_reject}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->unit}}</td>
                             <td>
-                                @if($detdata->qty_sisa > 0)
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='addlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}")'><i class="fa-solid fa-circle-plus fa-lg"></i></button>
-                                    <a href="{{ route('upload-lokasi') }}/{{$detdata->id}}"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-upload"></i></button></a>
-                                    <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_dok}}","{{$detdata->id_item}}")'>
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </div>
-                                @endif
+                               @if($detdata->qty_sisa > 0)
+    <div class="d-flex gap-1 justify-content-center">
+        <button type="button" 
+                class="btn btn-sm btn-warning" 
+                onclick='addlocation(
+                    @json($detdata->no_ws),
+                    @json($detdata->id_jo),
+                    @json($detdata->id_item),
+                    @json($detdata->kode_item),
+                    @json($detdata->qty_good),
+                    @json($detdata->unit),
+                    @json($detdata->qty_good),
+                    @json($detdata->desc_item),
+                    @json($detdata->qty_sisa)
+                )'>
+            <i class="fa-solid fa-circle-plus fa-lg"></i>
+        </button>
+
+        <a href="{{ route('upload-lokasi', $detdata->id) }}">
+            <button type="button" class="btn btn-sm btn-info">
+                <i class="fa-solid fa-upload"></i>
+            </button>
+        </a>
+
+        <button type="button" class="btn btn-sm btn-danger" 
+                onclick='deleteData(@json($detdata->no_dok), @json($detdata->id_item))'>
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+@endif
+
                                 @if($detdata->qty_sisa <= 0)
                                 <div class='d-flex gap-1 justify-content-center'>
                                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}");getlist_showlokasi("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-clipboard-check fa-lg"></i></button>
