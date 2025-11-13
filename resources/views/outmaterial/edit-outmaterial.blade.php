@@ -299,7 +299,7 @@
                             <td value="{{$detdata->stok}}">{{$detdata->stok}}</td>
                             <td value="{{$detdata->qty_req}}">{{$detdata->qty_req}}</td>
                             <td value="{{$detdata->qty_out}}">{{$detdata->qty_out}}</td>
-                            <td value="{{$detdata->qty_sisa_req}}">{{$detdata->qty_sisa_req}}</td>
+                            <td value="{{$detdata->qty_sisa_req}}">{{ number_format($detdata->qty_sisa_req, 2) }}</td>
                             <td value="{{$detdata->satuan}}">{{$detdata->satuan}}</td>
                             <td value="-">
                                 <div class='d-flex gap-1 justify-content-center'>
@@ -331,7 +331,7 @@
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                     @endif
-                                    @if ($detdata->qty_sisa_req != 0)
+                                    @if (number_format($detdata->qty_sisa_req, 2) != 0)
                                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_sisa_req}}","{{$detdata->satuan}}")'><i class="fa-solid fa-table-list"></i></i></button>
                                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_scan("{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_sisa_req}}","{{$detdata->satuan}}","{{$detdata->no_req}}")'><i class="fa-solid fa-barcode"></i></i></button>
                                     @endif
