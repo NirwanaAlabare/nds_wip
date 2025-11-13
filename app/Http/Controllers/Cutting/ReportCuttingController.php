@@ -513,9 +513,9 @@ class ReportCuttingController extends Controller
                     scanned_item.unit,
                     COALESCE(roll_use.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
                     roll_use.total_sisa_kain_1,
-                    (CASE WHEN roll_use.total_sisa_kain > 0 THEN COALESCE(roll_use.total_sisa_kain, 0) - COALESCE(piping.piping, 0) ELSE scanned_item.qty END) as total_sisa_kain,
-                    (CASE WHEN roll_use.total_short_roll > 0 THEN roll_use.total_short_roll ELSE piping.short_roll END) total_short_roll,
-                    (CASE WHEN roll_use.total_short_roll_percentage > 0 THEN roll_use.total_short_roll_percentage ELSE ((piping.short_roll/piping.qty)*100) END) total_short_roll_percentage,
+                    ROUND((CASE WHEN roll_use.total_sisa_kain != 0 THEN COALESCE(roll_use.total_sisa_kain, 0) - COALESCE(piping.piping, 0) ELSE scanned_item.qty END), 2) total_sisa_kain,
+                    ROUND((CASE WHEN roll_use.total_short_roll != 0 THEN roll_use.total_short_roll ELSE piping.short_roll END), 2) total_short_roll,
+                    ROUND((CASE WHEN roll_use.total_short_roll_percentage != 0 THEN roll_use.total_short_roll_percentage ELSE ((piping.short_roll/piping.qty)*100) END), 2) total_short_roll_percentage,
                     '".$rollId->tgl_dok."' tanggal_return
                 FROM
                     scanned_item
