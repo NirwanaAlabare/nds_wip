@@ -1495,6 +1495,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/show-detail-bppb', 'showdetailBppb')->name('get-detail-bppb');
         Route::post('/update-detail-barcode-bppb', 'updateBarcodeBppb')->name('update-detail-barcode-bppb');
         Route::post('/delete-detail-barcode-bppb', 'DeleteDataBarcodeBppb')->name('delete-detail-barcode-bppb');
+        Route::post('/save-out-scan-edit', 'saveoutscanEdit')->name('save-out-scan-edit');
+        Route::post('/save-out-manual-edit', 'saveoutmanualEdit')->name('save-out-manual-edit');
     });
 
 
@@ -1536,6 +1538,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/barcode-ro/{id?}', 'barcodeRO')->name('barcode-ro');
         Route::get('/ro-list-barcode', 'ROListbarcode')->name('ro-list-barcode');
         Route::post('/save-ro-scan', 'saveroscan')->name('save-ro-scan');
+        Route::post('/save-ro-manual', 'saveromanual')->name('save-ro-manual');
     });
 
     //Retur Penerimaan

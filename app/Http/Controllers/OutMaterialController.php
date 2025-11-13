@@ -115,7 +115,7 @@ class OutMaterialController extends Controller
     {
 
         // $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
-        $det_data = DB::connection('mysql_sb')->select("select no_bppb, kpno, styleno, a.id_item, a.id_jo, item_desc, COALESCE(stok,0) stok, qty_req, COALESCE(qty_out,0) qty_out, (qty_req - COALESCE(qty_out,0)) qty_sisa_req, satuan from (select a.no_bppb, styleno, a.id_item, a.id_jo, a.item_desc, sum(a.qty_out) qty_out, a.satuan,kpno from whs_bppb_det a INNER JOIN whs_bppb_h b on b.no_bppb = a.no_bppb left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) c on c.id_jo=a.id_jo where b.id = '$id' GROUP BY a.id_item, a.id_jo) a INNER JOIN (select b.id_item, b.id_jo, sum(qty) qty_req from whs_bppb_h a INNER JOIN bppb_req b on b.bppbno = a.no_req where a.id = '$id' GROUP BY b.id_item, b.id_jo) b on b.id_jo = a.id_jo AND b.id_item = a.id_item LEFT JOIN (select id_jo, id_item, SUM(sal_akhir) stok from data_stock_fabric GROUP BY id_jo, id_item) c on c.id_jo = a.id_jo and c.id_item = a.id_item");
+        $det_data = DB::connection('mysql_sb')->select("select b.no_bppb, b.kpno, b.styleno, b.id_item, b.id_jo, b.item_desc, COALESCE(stok,0) stok, qty_req, COALESCE(qty_out,0) qty_out, (qty_req - COALESCE(qty_out,0)) qty_sisa_req, b.satuan, b.no_req from (select a.no_bppb, c.kpno, c.styleno, b.id_item, b.id_jo, sum(qty) qty_req, mi.itemdesc item_desc, b.unit satuan, a.no_req from whs_bppb_h a INNER JOIN bppb_req b on b.bppbno = a.no_req left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) c on c.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.id = '$id' GROUP BY b.id_item, b.id_jo) b LEFT JOIN (select a.no_bppb, styleno, a.id_item, a.id_jo, a.item_desc, sum(a.qty_out) qty_out, a.satuan,kpno from whs_bppb_det a INNER JOIN whs_bppb_h b on b.no_bppb = a.no_bppb left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) c on c.id_jo=a.id_jo where b.id = '$id' GROUP BY a.id_item, a.id_jo) a on b.id_jo = a.id_jo AND b.id_item = a.id_item LEFT JOIN (select id_jo, id_item, SUM(sal_akhir) stok from data_stock_fabric GROUP BY id_jo, id_item) c on c.id_jo = b.id_jo and c.id_item = b.id_item");
 
         // $jml_det = DB::connection('mysql_sb')->select("select COUNT(no_dok) jml_dok from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
 
@@ -1251,6 +1251,134 @@ public function pdfoutmaterial(Request $request, $id)
             ]);
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan server.'], 500);
         }
+    }
+
+
+    public function saveoutscanEdit(Request $request)
+    {
+        $tglbppb = $request['m_tgl_bppb2'];
+        $timestamp = Carbon::now();
+        $no_bppb = $request['m_no_bppb2'];
+        $bppb_temp_det = [];
+        $data_aktual = 0;
+        for ($i = 1; $i <= $request['tot_roll']; $i++) {
+            if ($request["qty_out"][$i] > 0) {
+                array_push($bppb_temp_det, [
+                    "no_bppb" => $no_bppb ,
+                    "id_roll" => $request["id_roll"][$i],
+                    "id_jo" => $request["id_jo"][$i],
+                    "id_item" => $request["id_item"][$i],
+                    "no_rak" => $request["rak"][$i],
+                    "no_lot" => $request["no_lot"][$i],
+                    "no_roll" => $request["no_roll"][$i],
+                    "item_desc" => $request["itemdesc"][$i],
+                    "qty_stok" => $request["qty_stok"][$i],
+                    "satuan" => $request["unit"][$i],
+                    "qty_out" => $request["qty_out"][$i],
+                    "curr" => '',
+                    "price" => '',
+                    "status" => 'Y',
+                    "created_by" => Auth::user()->name,
+                    "deskripsi" => 'scan',
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                    "price_in" => '',
+                    "nilai_barang" => '',
+                    "bc_in" => '',
+                    "no_aju_in" => '',
+                    "tgl_aju_in" => '',
+                    "no_daftar_in" => '',
+                    "tgl_daftar_in" => '',
+                ]);
+            }
+        }
+
+        // dd($bppb_temp_det);
+
+        $BppbdetStore = BppbDet::insert($bppb_temp_det);
+
+
+        $massage = 'Add data Succesfully';
+        $stat = 200;
+
+        return array(
+            "status" => $stat,
+            "message" => $massage,
+            "additional" => [],
+            "redirect" => ''
+        );
+
+    }
+
+
+    public function saveoutmanualEdit(Request $request)
+    {
+        $tglbppb = $request['m_tgl_bppb'];
+        $qtyOut = collect($request['qty_out']);
+
+        $qtyOutKeys = $qtyOut->keys();
+
+        if (intval($request['t_roll']) > 0 && intval($request['m_qty_bal_h']) >= 0) {
+            $timestamp = Carbon::now();
+            $no_bppb = $request['m_no_bppb'];
+            $bppb_temp_det = [];
+            $data_aktual = 0;
+            foreach ($qtyOut as $key => $value) {
+                if ($request['qty_out'][$key] > 0) {
+                    array_push($bppb_temp_det, [
+                        "no_bppb" => $no_bppb,
+                        "id_roll" => $request["id_roll"][$key],
+                        "id_jo" => $request["id_jo"][$key],
+                        "id_item" => $request["id_item"][$key],
+                        "no_rak" => $request["rak"][$key],
+                        "no_lot" => $request["no_lot"][$key],
+                        "no_roll" => $request["no_roll"][$key],
+                        "item_desc" => $request["itemdesc"][$key],
+                        "qty_stok" => $request["qty_stok"][$key],
+                        "satuan" => $request["unit"][$key],
+                        "qty_out" => $request["qty_out"][$key],
+                        "curr" => '',
+                        "price" => '',
+                        "status" => 'Y',
+                        "created_by" => Auth::user()->name,
+                        "deskripsi" => 'manual',
+                        "created_at" => $timestamp,
+                        "updated_at" => $timestamp,
+                        "price_in" => '',
+                        "nilai_barang" => '',
+                        "bc_in" => '',
+                        "no_aju_in" => '',
+                        "tgl_aju_in" => '',
+                        "no_daftar_in" => '',
+                        "tgl_daftar_in" => '',
+                    ]);
+                }
+            }
+
+            $BppbdetStore = BppbDet::insert($bppb_temp_det);
+
+
+            $massage = 'Add data Succesfully';
+            $stat = 200;
+        }elseif(intval($request['t_roll']) <= 0){
+            $massage = ' Please Input Data';
+            $stat = 400;
+        }elseif(intval($request['m_qty_bal_h']) >= 0){
+            $massage = ' Qty Out Melebihi Qty Request';
+            $stat = 400;
+        }else{
+            $massage = ' Data Error';
+            $stat = 400;
+        }
+        // dd($iddok);
+
+        return array(
+            "status" => $stat,
+            "message" => $massage,
+            "additional" => [],
+            "redirect" => ''
+        );
+
     }
 
 

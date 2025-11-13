@@ -303,10 +303,16 @@
                             <td value="{{$detdata->satuan}}">{{$detdata->satuan}}</td>
                             <td value="-">
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_bppb}}","{{$detdata->kpno}}","{{$detdata->styleno}}","{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_out}}","{{$detdata->item_desc}}");getlist_bppbdet("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-barcode"></i></button>
+                                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_bppb}}","{{$detdata->kpno}}","{{$detdata->styleno}}","{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_out}}","{{$detdata->item_desc}}");getlist_bppbdet("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-file-pen"></i></button>
+                                    @if ($detdata->qty_out != 0)
                                     <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_bppb}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'>
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
+                                    @endif
+                                    @if ($detdata->qty_sisa_req != 0)
+                                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_sisa_req}}","{{$detdata->satuan}}")'><i class="fa-solid fa-table-list"></i></i></button>
+                                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_scan("{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_sisa_req}}","{{$detdata->satuan}}","{{$detdata->no_req}}")'><i class="fa-solid fa-barcode"></i></i></button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -329,7 +335,7 @@
 </form>
 
 <div class="modal fade" id="modal-out-manual">
-    <form action="{{ route('save-out-manual') }}" method="post" onsubmit="submitFormScan(this, event)">
+    <form action="{{ route('save-out-manual-edit') }}" method="post" onsubmit="submitFormScan(this, event)">
          @method('POST')
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -399,7 +405,7 @@
 
 
 <div class="modal fade" id="modal-out-barcode">
-    <form action="{{ route('save-out-scan') }}" method="post" onsubmit="submitFormScan(this, event)">
+    <form action="{{ route('save-out-scan-edit') }}" method="post" onsubmit="submitFormScan(this, event)">
          @method('POST')
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -646,14 +652,7 @@ function submitFormScan(e, evt) {
                     timer: 5000,
                     timerProgressBar: true
                 }).then(() => {
-                    if (res.redirect != '') {
-                        if (res.redirect != 'reload') {
-                            location.href = res.redirect;
-                        } else {
-                            location.reload();
-                        }
-                    }
-                    getlistdata();
+                    location.reload();
                 });
 
                 e.reset();

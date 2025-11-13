@@ -548,9 +548,10 @@ public function updatedet(Request $request)
             $tglbpb = $request['txt_tgl_gr'];
             $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0)) nomor,CONCAT('GK/IN/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(no_dok) IS NULL,'00001',LPAD(MAX(SUBSTR(no_dok,12,5))+1,5,0))) no_dok FROM whs_inmaterial_fabric WHERE MONTH(tgl_dok) = MONTH('" . $tglbpb . "') AND YEAR(tgl_dok) = YEAR('" . $tglbpb . "') AND LEFT(no_dok,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
+            // dd($Mattype1);
             $m_type = $Mattype1[0]->Mattype;
             $no_type = $Mattype1[0]->nomor;
-            $bpbno_int = $Mattype1[0]->bpbno_int;
+            $bpbno_int = $Mattype1[0]->no_dok;
 
             $cek_mattype = DB::connection('mysql_sb')->select("select * from tempbpb where Mattype = '" . $m_type . "'");
             $hasilcek = $cek_mattype ? $cek_mattype[0]->Mattype : 0;
