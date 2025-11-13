@@ -90,6 +90,7 @@
                             <th class="text-center">Qty Req</th>
                             <th class="text-center">Qty Out</th>
                             <th class="text-center">No Bppb</th>
+                            <th class="text-center">Status</th>
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
@@ -237,6 +238,18 @@
                 data: 'bppbno_int'
             },
             {
+                data: 'cancel',
+                render: function(data, type, row) {
+                    if (data === 'N') {
+                        return '<span class="badge bg-success center">POST</span>';
+                    } else if (data === 'Y') {
+                        return '<span class="badge bg-danger center">CANCEL</span>';
+                    } else {
+                        return data;
+                    }
+                }           
+            },
+            {
                 data: 'bppbno'
             }
 
@@ -269,18 +282,22 @@
                 render: (data, type, row, meta) => data ? data : "-"
             },
             {
-                targets: [12],
+                targets: [13],
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if ($('#tipe_data').val() == 'header') {
+                        if (row.cancel != 'Y') {       
                       return `<div class='d-flex gap-1 justify-content-center'>
-                      <a href="{{ route('edit-reqmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
-                      <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.bppbno + `")'><i class="fa-solid fa-print "></i></button>
+                      <a href="{{ route('edit-reqmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-warning'><i class="fa-solid fa-pen-to-square"></i></button></a>
+                      <button type='button' class='btn btn-sm btn-success onclick='printpdf("` + row.bppbno + `")'><i class="fa-solid fa-print "></i></button>
+                      <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='Cancel_Request("` + row.bppbno + `")'><i class="fa-solid fa-trash"></i></i></button>
                       </div>`;
+                        }else{
+                            return `<div class='d-flex gap-1 justify-content-center'> - </div>`;
+                        }
+                  }else{
+                  return `<div class='d-flex gap-1 justify-content-center'> - </div>`;
                   }
-                  return `<div class='d-flex gap-1 justify-content-center'>
-                  -
-                  </div>`;
               }
           }
 
@@ -299,6 +316,36 @@
         $('#txt_nodok').val(nodok);
         $('#modal-appv-material').modal('show');
     }
+
+    function Cancel_Request($bppbno){
+    let bppbno = $bppbno;
+    $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        url: '{{ route("cancel-request") }}',
+        type: 'get',
+        data: { bppbno: bppbno },
+        success: function (res) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: res.message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+            dataTableReload();
+        },
+        error: function (xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: 'Terjadi kesalahan saat membatalkan data.'
+            });
+        }
+    });
+}
+
 
 
     function nonactive_lokasi($id,$status,$kode_lok){

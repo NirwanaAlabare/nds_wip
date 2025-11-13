@@ -518,6 +518,7 @@
                         return `<div class='d-flex gap-1 justify-content-center'>
                         <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>  
                         <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-trash"></i></button>
+                        <a href="{{ route('edit-out-material') }}/`+data+`"><button type='button' class='btn btn-sm btn-primary'><i class="fa-solid fa-pen-to-square"></i></button></a>
                         </div>`;
                     }else if (row.status == 'Approved') {
                         return `<div class='d-flex gap-1 justify-content-center'>

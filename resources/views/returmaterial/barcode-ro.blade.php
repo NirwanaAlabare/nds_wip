@@ -171,6 +171,7 @@
                         <td>
                             @if($detdata->qty_sisa > 0)
                             <div class='d-flex gap-1 justify-content-center'>
+                                <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("{{$detdata->id_item}}","{{$detdata->id_jo}}","{{$detdata->qty_sisa}}","{{$detdata->unit}}")'><i class="fa-solid fa-table-list"></i></i></button>
                                 <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick="out_scan('{{$detdata->id_item}}','{{$detdata->id_jo}}','{{$detdata->qty_sisa}}','{{$detdata->unit}}','{{$detdata->no_ws}}')"><i class="fa-solid fa-circle-plus fa-lg"></i></button>
                             </div>
                             @endif
@@ -374,6 +375,77 @@
         </div>
     </form>
 </div>
+
+<div class="modal fade" id="modal-out-manual">
+    <form action="{{ route('save-ro-manual') }}" method="post" onsubmit="submitForm(this, event)">
+         @method('POST')
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h4 class="modal-title">List Item</h4>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <div class="modal-body">
+                <div class="form-group row">
+
+                    <div class="col-md-12">
+                        <input type="text" class="form-control " id="m_no_bppb" name="m_no_bppb" value="" readonly>
+                        <input type="text" class="form-control " id="m_tgl_bppb" name="m_tgl_bppb" value="" readonly>
+                        <input type="hidden" class="form-control " id="t_roll" name="t_roll" value="" readonly>
+                    <div class="row">
+                        <div class="col-4 col-md-4">
+                        <div class="mb-1">
+                        <div class="form-group">
+                            <label><small>Qty Request</small></label>
+                                <input type="text" class="form-control " id="m_qty_req" name="m_qty_req" value="" readonly>
+                                <input type="hidden" class="form-control " id="m_qty_req_h" name="m_qty_req_h" value="" readonly>
+                        </div>
+                        </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                        <div class="mb-1">
+                        <div class="form-group">
+                            <label><small>Qty Out</small></label>
+                                <input type="text" class="form-control " id="m_qty_out" name="m_qty_out" value="" readonly>
+                                <input type="hidden" class="form-control " id="m_qty_out_h" name="m_qty_out_h" value="" readonly>
+                        </div>
+                        </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                        <div class="mb-1">
+                        <div class="form-group">
+                            <label><small>Qty Balance</small></label>
+                                <input type="text" class="form-control " id="m_qty_bal" name="m_qty_bal" value="" readonly>
+                                <input type="hidden" class="form-control " id="m_qty_bal_h" name="m_qty_bal_h" value="" readonly>
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-12" id="detail_showitem">
+                        </div>
+                    </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
+                    <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+
 @endsection
 
 
@@ -578,7 +650,7 @@
             var sum_out = 0;
 
             for (let i = 1; i < (table.rows.length); i++) {
-                satuan = document.getElementById("tableshow").rows[i].cells[6].children[0].value;
+                satuan = document.getElementById("unit"+i).value;
                 qty_stok = document.getElementById("qty_stok"+i).value || 0;
                 qty_out = document.getElementById("qty_out"+i).value || 0;
                 sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
@@ -596,13 +668,13 @@
                 }
             }
 
-                h_qty_out = (sum_out.round(2) || 0) + ' ' + satuan;
+                h_qty_out = sum_out.round(2) + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
-                h_sum_bal = (sum_bal.round(2) || 0) + ' ' + satuan;
+                h_sum_bal = sum_bal.round(2) + ' ' + satuan;
                 $('#m_qty_out2').val(h_qty_out);
-                $('#m_qty_out_h2').val(sum_out.round(2) || 0);
+                $('#m_qty_out_h2').val(sum_out.round(2));
                 $('#m_qty_bal2').val(h_sum_bal);
-                $('#m_qty_bal_h2').val(sum_bal.round(2) || 0);
+                $('#m_qty_bal_h2').val(sum_bal.round(2));
 
         }
 
@@ -852,5 +924,131 @@
                 }
             });
     }
+
+    function out_manual($id_item,$id_jo,$qty_req,$unit){
+        let id_item = $id_item;
+        let id_jo = $id_jo;
+        let qty_req = $qty_req;
+        let unit = $unit;
+        let no_bppb = $('#txt_no_bppb').val();
+        let tgl_bppb = $('#tgl_return').val();
+
+        getlist_showitem(id_item,id_jo);
+
+        $('#m_qty_req').val(qty_req + ' ' + unit);
+        $('#m_qty_req_h').val(qty_req);
+        $('#m_no_bppb').val(no_bppb);
+        $('#m_tgl_bppb').val(tgl_bppb);
+        $('#m_qty_out').val('');
+        $('#m_qty_out_h').val('');
+        $('#m_qty_bal').val('');
+        $('#m_qty_bal_h').val('');
+        $('#modal-out-manual').modal('show');
+    }
+
+    function getlist_showitem($id_item,$id_jo){
+        let iditem = $id_item;
+        let idjo = $id_jo;
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("get-detail-showitem") }}',
+                type: 'get',
+                data: {
+                    id_item: iditem,
+                    id_jo: idjo,
+                },
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('detail_showitem').innerHTML = res;
+                        // $('#tableshow').dataTable({
+                        //     "bFilter": false,
+                        // });
+                    }
+                }
+            });
+    }
+
+
+    function enableinput() {
+    var table = document.getElementById("tableshow");
+    var t_roll = 0;
+
+    for (let i = 1; i < table.rows.length; i++) {
+        var cek = document.getElementById("pil_item" + i);
+        var qtyStokInput = document.getElementById("qty_stok" + i);
+        var qtyOutInput = document.getElementById("qty_out" + i);
+        var qtySisaInput = document.getElementById("qty_sisa" + i);
+
+        // Cek jika elemen checkbox dan qty stok ada
+        if (!cek || !qtyStokInput || !qtyOutInput || !qtySisaInput) {
+            continue;
+        }
+
+        var qtyroll = parseFloat(qtyStokInput.value) || 0;
+
+        if (cek.checked === true) {
+            t_roll += qtyroll;
+
+            qtyOutInput.disabled = false;
+            qtyOutInput.value = qtyroll;
+            qtySisaInput.value = 0;
+        } else {
+            qtyOutInput.value = '';
+            qtySisaInput.value = '';
+            qtyOutInput.disabled = true;
+        }
+    }
+
+    document.getElementById('t_roll').value = t_roll;
+
+    // Hanya panggil sekali setelah selesai loop
+    sum_qty_item('1');
+}
+
+
+        function sum_qty_item(val){
+            var table = document.getElementById("tableshow");
+            var qty_stok = 0;
+            var satuan = '';
+            var qty_out = 0;
+            var qty = 0;
+            var sisa_qty = 0;
+            var nol = 0;
+            var qty_req = $('#m_qty_req_h').val();
+            var h_qty_out = '';
+            var h_sum_bal = '';
+            var sum_bal = 0;
+            var sum_out = 0;
+
+            for (let i = 1; i < (table.rows.length); i++) {
+                var cek =  document.getElementById("pil_item"+i);
+                satuan = document.getElementById("unit"+i).value;
+                qty_stok = document.getElementById("qty_stok"+i).value || 0;
+                qty_out = document.getElementById("qty_out"+i).value || 0;
+                sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
+
+                if (cek.checked == true && qty_out > 0) {
+                    if (parseFloat(qty_out) > parseFloat(qty_stok)) {
+                        $('#qty_out'+i).val(qty_stok);
+                        $('#qty_sisa'+i).val(nol);
+                    }else{
+                        $('#qty_out'+i).val(qty_out);
+                        $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
+                    }
+                    sum_out += parseFloat(qty_out);
+                }
+            }
+                h_qty_out = sum_out.round(2) + ' ' + satuan;
+                sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
+                h_sum_bal = sum_bal.round(2) + ' ' + satuan;
+                $('#m_qty_out').val(h_qty_out);
+                $('#m_qty_out_h').val(sum_out.round(2));
+                $('#m_qty_bal').val(h_sum_bal || 0);
+                $('#m_qty_bal_h').val(sum_bal.round(2) || 0);
+
+        }
+
 </script>
 @endsection
