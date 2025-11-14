@@ -221,11 +221,11 @@ class ReportHourlyExport implements FromView, WithTitle
                             when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
                             when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
                             END as istirahat,
-                        REPLACE('_', ' ', userpassword.username) username
+                        REPLACE(userpassword.username, '_', ' ') username
                         from output_rfts
                         left join user_sb_wip on output_rfts.created_by = user_sb_wip.id
                         left join userpassword on user_sb_wip.line_id = userpassword.line_id
-                        where output_rfts.updated_at >= '$this->start_date' and output_rfts.updated_at <= '$this->end_date' group by REPLACE('_', ' ', userpassword.username), date(output_rfts.updated_at)
+                        where output_rfts.updated_at >= '$this->start_date' and output_rfts.updated_at <= '$this->end_date' group by REPLACE(userpassword.username, '_', ' '), date(output_rfts.updated_at)
                         ) op on z.tgl_trans = op.tgl_trans_line and REPLACE(ul.username, '_', ' ') = op.username
                         left join
                         (
