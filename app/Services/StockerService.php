@@ -410,8 +410,13 @@ class StockerService
             )".($formCutId ? " and stocker_input.form_cut_id = '".$formCutId."' " : "")."")->
             get();
 
+        // dd($stockers);
+
         $log = [];
         foreach ($stockers as $s) {
+            $s->qty_ply_mod = null;
+            $s->save();
+
             $dc = DcIn::where("id_qr_stocker", $s->id_qr_stocker)->first();
             if ($dc) {
                 $dc->qty_awal = $s->qty_ply_mod != null ? $s->qty_ply_mod : $s->qty_ply;
@@ -436,7 +441,8 @@ class StockerService
                 // Loading Line
                 $loadingLine = LoadingLine::where("stocker_id", $s->id)->first();
                 if ($loadingLine) {
-                    $loadingLine->qty = ($secondaryIn ? $secondaryIn->qty_in : ($dc->qty_awal - $dc->qty_reject + $dc->qty_replace));
+                    $loadingLine->qty = (isset($secondaryIn) ? $secondaryIn->qty_in : ($dc->qty_awal - $dc->qty_reject + $dc->qty_replace));
+                    $loadingLine->save();
                 }
 
                 array_push($log, $s->id_qr_stocker." Qty Updated.");

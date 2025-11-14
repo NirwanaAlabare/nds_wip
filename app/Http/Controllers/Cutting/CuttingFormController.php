@@ -98,13 +98,14 @@ class CuttingFormController extends Controller
                     cutting_plan.app,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
                 FROM cutting_plan
                 left join form_cut_input a on a.id = cutting_plan.form_cut_id
                 left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
                 left outer join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                 left outer join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
-                left join master_size_new on marker_input_detail.size = master_size_new.size
+                left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                left join master_size_new on master_size_new.size = master_sb_ws.size
                 left join users on users.id = a.no_meja
                 where
                     a.id is not null

@@ -88,12 +88,13 @@ class CuttingFormPilotController extends Controller
                     b.urutan_marker,
                     b.cons_marker,
                     cutting_plan.app,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    GROUP_CONCAT(CONCAT(' ', COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM cutting_plan
                 left join form_cut_input a on a.no_form = cutting_plan.no_form_cut_input
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
-                left join master_size_new on marker_input_detail.size = master_size_new.size
+                left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                left join master_size_new on master_size_new.size = master_sb_ws.size
                 left join users on users.id = a.no_meja
                 where
                     b.cancel = 'N' and
@@ -140,12 +141,13 @@ class CuttingFormPilotController extends Controller
 
                 $markerDetailData = MarkerDetail::selectRaw("
                         marker_input.kode kode_marker,
-                        marker_input_detail.size,
+                        master_sb_ws.size,
                         marker_input_detail.so_det_id,
                         marker_input_detail.ratio,
                         marker_input_detail.cut_qty
                     ")->
                     leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+                    leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
                     where("marker_input.kode", $formCutInputData->kode)->
                     where("marker_input.cancel", "N")->
                     get();
