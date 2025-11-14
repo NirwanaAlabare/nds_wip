@@ -1428,6 +1428,25 @@ class CuttingFormPilotController extends Controller
                 );
 
                 if ($storeTimeRecordLap) {
+                    $storeTimeRecordSummaryNext = FormCutInputDetail::create([
+                        "form_cut_id" => $validatedRequest['id'],
+                        "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                        "id_roll" => $validatedRequest['current_id_roll'],
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color_act" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "group_roll" => $validatedRequest['current_group'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                        "qty" => $itemRemain,
+                        "unit" => $itemUnit,
+                        "sambungan" => 0,
+                        "status" => "not complete",
+                        "metode" => $request->metode ? $request->metode : null,
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                    ]);
+
                     return array(
                         "status" => 200,
                         "message" => "alright",
