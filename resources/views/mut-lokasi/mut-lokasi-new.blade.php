@@ -51,7 +51,7 @@
           <tr>
             <th>No Mutasi</th>
             <th>Tgl Mutasi</th>
-            <th>No WS</th>
+            <th>Rak Tujuan</th>
             <th>Notes</th>
             <th>User</th>
             <th>Status</th>
@@ -167,7 +167,7 @@ $('.select2type').select2({
                 data: 'tgl_mut'
             },
             {
-                data: 'no_ws'
+                data: 'rak_tujuan'
             },
             {
                 data: 'deskripsi'

@@ -853,7 +853,11 @@ public function updatedet(Request $request)
                     }
                     $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F', DATE_FORMAT(NOW(), '%y%m'), LPAD(COALESCE((SELECT CAST(RIGHT(no_barcode, 5) AS UNSIGNED) + 1 FROM whs_lokasi_inmaterial WHERE no_barcode REGEXP CONCAT('^F', DATE_FORMAT(NOW(), '%y%m'), '[0-9]{5}$') ORDER BY no_barcode DESC LIMIT 1), 1), 5, '0')) AS kode");
                     $barcode = $sql_barcode[0]->kode;
-                    // dd($barcode);
+
+                    $sql_det_in = DB::connection('mysql_sb')->select("select curr, price, tgl_dok from whs_inmaterial_fabric_det where id_item = '".$iditem."' and id_jo = '".$idjo."' and status = 'Y'");
+                    $np_curr = $sql_det_in[0]->curr;
+                    $np_price = $sql_det_in[0]->price;
+                    $np_tgl_in = $sql_det_in[0]->tgl_dok;
 
                     $save_lokasi = InMaterialLokasi::create([
                         "no_barcode" => $barcode,
@@ -879,6 +883,9 @@ public function updatedet(Request $request)
                         "updated_at" => $timestamp,
                         "nilai_barang" => '',
                         "no_barcode_old" => '',
+                        "np_curr" => $np_curr,
+                        "np_price" => $np_price,
+                        "np_tgl_in" => $np_tgl_in,
                     ]);
                 }
             }
@@ -935,6 +942,11 @@ public function updatedet(Request $request)
                     $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F', DATE_FORMAT(NOW(), '%y%m'), LPAD(COALESCE((SELECT CAST(RIGHT(no_barcode, 5) AS UNSIGNED) + 1 FROM whs_lokasi_inmaterial WHERE no_barcode REGEXP CONCAT('^F', DATE_FORMAT(NOW(), '%y%m'), '[0-9]{5}$') ORDER BY no_barcode DESC LIMIT 1), 1), 5, '0')) AS kode");
                     $barcode = $sql_barcode[0]->kode;
 
+                    $sql_det_in = DB::connection('mysql_sb')->select("select curr, price, tgl_dok from whs_inmaterial_fabric_det where id_item = '".$iditem."' and id_jo = '".$idjo."' and status = 'Y'");
+                    $np_curr = $sql_det_in[0]->curr;
+                    $np_price = $sql_det_in[0]->price;
+                    $np_tgl_in = $sql_det_in[0]->tgl_dok;
+
                     $save_lokasi = InMaterialLokasi::create([
                         "no_barcode" => $barcode,
                         "no_dok" => $nodok,
@@ -954,6 +966,9 @@ public function updatedet(Request $request)
                         "created_by" => Auth::user()->name,
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
+                        "np_curr" => $np_curr,
+                        "np_price" => $np_price,
+                        "np_tgl_in" => $np_tgl_in,
                     ]);
                 }
             }

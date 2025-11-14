@@ -48,7 +48,7 @@ class MutLokasiController extends Controller
             }
 
 
-            $dataMutlokas = DB::connection('mysql_sb')->select("select id,no_mut,tgl_mut,no_ws,deskripsi,CONCAT(created_by,' (',created_at, ') ') user_create,status,CONCAT(id,'-',no_mut,'-',tgl_mut,'-',no_ws,'-',deskripsi,'-',CONCAT(created_by,' (',created_at, ') ') ,'-',status) filter from whs_mut_lokasi_h where tgl_mut BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where."  order by no_mut asc");
+            $dataMutlokas = DB::connection('mysql_sb')->select("select id,no_mut,tgl_mut,no_ws,deskripsi,CONCAT(created_by,' (',created_at, ') ') user_create,status,CONCAT(id,'-',no_mut,'-',tgl_mut,'-',no_ws,'-',deskripsi,'-',CONCAT(created_by,' (',created_at, ') ') ,'-',status) filter, ifnull(rak_tujuan,'-') rak_tujuan from whs_mut_lokasi_h where tgl_mut BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."'  order by no_mut asc");
 
 
             return DataTables::of($dataMutlokas)->toJson();
@@ -437,7 +437,7 @@ class MutLokasiController extends Controller
 
             $mutasi_detail = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi select '', '".$no_mut."' no_mut, '".$request['txt_tgl_mut']."' tgl_mut, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_ws, no_bpb, no_lot, no_roll, qty, qty, a.unit, rak_asal, rak_tujuan, 'Y' status, idbpb_det, '".$timestamp."' created_at, '".$timestamp."' updated_at from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
-            $trx_in = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '',idbpb_det, '".$no_mut."' no_mut, no_ws, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_roll, '' roll_buyer, no_lot, qty, qty, '' , '', no_bpb, a.unit, rak_tujuan, 'Y' status, created_by, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+            $trx_in = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '',idbpb_det, '".$no_mut."' no_mut, no_ws, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_roll, '' roll_buyer, no_lot, qty, qty, '' , '', no_bpb, a.unit, rak_tujuan, 'Y' status, created_by, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','','','','' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
             $trx_out = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '', '".$no_mut."' no_mut, idbpb_det, a.id_jo, a.id_item, a.rak_asal, no_lot, no_roll, b.itemdesc, qty, a.unit, qty, '' curr, '0' price, 'Y' status, created_by, 'mutasi lokasi' deskripsi, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','','','','','','' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
