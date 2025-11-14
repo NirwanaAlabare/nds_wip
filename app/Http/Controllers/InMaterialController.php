@@ -509,12 +509,45 @@ public function updatedet(Request $request)
         'deskripsi' => $request['txt_notes'],
     ]);
 
+    $get_no_bpb = DB::connection('mysql_sb')->select("select no_dok from whs_inmaterial_fabric where id = '" .$request['txt_idgr']. "'");
+    $bpbno_int = $get_no_bpb ? $get_no_bpb[0]->no_dok : 0;
+
+    DB::connection('mysql_sb')->table('bpb')
+    ->where('bpbno_int', $bpbno_int)
+    ->update([
+        'bpbdate'    => $request['txt_tgl_gr'],
+        'jenis_dok'    => $request['txt_type_bc'],
+        'jenis_trans'   => $request['txt_type_pch'],
+        'invno' => $request['txt_invdok'],
+        'remark'  => $request['txt_notes'],
+    ]);
+
+    DB::connection('mysql_sb')->table('whs_lokasi_inmaterial')
+    ->where('no_dok', $bpbno_int)
+    ->update([
+        'np_tgl_in' => $request['txt_tgl_gr'],
+    ]);
+
     for ($i = 1; $i <= intval($request['txt_jmldet']); $i++) {
         if ($request["qty_good"][$i] > 0 || $request["qty_reject"][$i] > 0) {
             $updateInMaterialDet = InMaterialFabricDet::where('id', $request["id_det"][$i])->update([
+                'tgl_dok' => $request['txt_tgl_gr'],
                 'qty_good' => $request["qty_good"][$i],
                 'qty_reject' => $request["qty_reject"][$i],
             ]);
+
+            $get_det_bpb = DB::connection('mysql_sb')->select("select id_item, id_jo from whs_inmaterial_fabric_det where id = '" .$request['txt_idgr']. "'");
+            $sb_id_item = $get_det_bpb ? $get_det_bpb[0]->id_item : 0;
+            $sb_id_jo = $get_det_bpb ? $get_det_bpb[0]->id_jo : 0;
+
+            DB::connection('mysql_sb')->table('bpb')
+                ->where('bpbno_int', $bpbno_int)
+                ->where('id_item', $sb_id_item)
+                ->where('id_jo', $sb_id_jo)
+                ->update([
+                    'qty_old' => DB::raw('qty'),
+                    'qty'    => $request["qty_good"][$i],
+                ]);
         }
     }
 
