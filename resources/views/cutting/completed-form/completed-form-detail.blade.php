@@ -2660,7 +2660,7 @@
 
         function updateStatus() {
             $.ajax({
-                url: '{{ route('update-status') }}',
+                url: '{{ route('update-status-redirect') }}',
                 type: 'post',
                 data: {
                     edit_id_status: id,
@@ -2670,7 +2670,11 @@
                 success: function(res) {
                     document.getElementById("loading").classList.add('d-none');
 
-                    window.location.reload();
+                    if (res.redirect) {
+                        window.open(res.redirect, '_blank');
+                    } else {
+                        window.location.reload();
+                    }
                 },
                 error: function(jqXHR) {
                     document.getElementById("loading").classList.add('d-none');
